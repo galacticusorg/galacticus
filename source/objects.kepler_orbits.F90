@@ -122,30 +122,6 @@ module Kepler_Orbits
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>output</method>
-     !@     <description>Store a {\normalfont \ttfamily keplerOrbit} object in the output buffers.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ integerProperty\arginout, \intzero\ integerBufferCount\arginout, \inttwo\ integerBuffer\arginout, \intzero doubleProperty\arginout, \intzero\ doubleBufferCount\arginout, \doubletwo\ doubleBuffer\arginout, \doublezero\ time\argin, \intzero\ instance\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>postOutput</method>
-     !@     <description>Perform post-output processing of a {\normalfont \ttfamily keplerOrbit} object.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>outputCount</method>
-     !@     <description>Specify the count of a {\normalfont \ttfamily keplerOrbit} object for output.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ integerPropertyCount\arginout, \intzero\ doublePropertyCount\arginout, \doublezero\ time\argin, \intzero\ instance\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>outputNames</method>
-     !@     <description>Specify the names of a {\normalfont \ttfamily keplerOrbit} object properties for output.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ integerProperty\arginout, \textcolor{red}{\textless char[*](:)\textgreater} integerPropertyNames\arginout, \textcolor{red}{\textless char[*](:)\textgreater} integerPropertyComments\arginout, \doubleone\ integerPropertyUnitsSI\arginout, \intzero\ doubleProperty\arginout, \textcolor{red}{\textless char[*](:)\textgreater} doublePropertyNames\arginout, \textcolor{red}{\textless char[*](:)\textgreater} doublePropertyComments\arginout, \doubleone\ doublePropertyUnitsSI\arginout, \doublezero\ time\argin, \intzero\ instance\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
      !@     <method>isDefined</method>
      !@     <description>Returns true if an orbit is fully defined.</description>
      !@     <type>\logicalzero</type>
@@ -364,10 +340,6 @@ module Kepler_Orbits
      procedure :: reset                 => Kepler_Orbits_Reset
      procedure :: destroy               => Kepler_Orbits_Destroy
      procedure :: isDefined             => Kepler_Orbits_Is_Defined
-     procedure :: output                => Kepler_Orbits_Output
-     procedure :: postOutput            => Kepler_Orbits_Post_Output
-     procedure :: outputCount           => Kepler_Orbits_Output_Count
-     procedure :: outputNames           => Kepler_Orbits_Output_Names
      procedure :: assertIsDefined       => Kepler_Orbits_Assert_Is_Defined
      procedure :: isBound               => Kepler_Orbits_Is_Bound
      procedure :: propagate             => Kepler_Orbits_Propagate
@@ -430,90 +402,6 @@ contains
     ! Nothing to do.
     return
   end subroutine Kepler_Orbits_Destroy
-
-  subroutine Kepler_Orbits_Output(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount&
-       &,doubleBuffer,time,outputInstance)
-    !% Store a {\normalfont \ttfamily keplerOrbit} object in the output buffers.
-    use :: Kind_Numbers  , only : kind_int8
-    use :: Multi_Counters, only : multiCounter
-    implicit none
-    class           (keplerOrbit   )                , intent(inout) :: self
-    double precision                                , intent(in   ) :: time
-    integer                                         , intent(inout) :: doubleBufferCount, doubleProperty, integerBufferCount, &
-         &                                                             integerProperty
-    integer         (kind=kind_int8), dimension(:,:), intent(inout) :: integerBuffer
-    double precision                , dimension(:,:), intent(inout) :: doubleBuffer
-    type            (multiCounter  )                , intent(in   ) :: outputInstance
-    !$GLC attributes unused :: integerBufferCount, integerProperty, integerBuffer, time, outputInstance
-
-    if (self%isDefined()) then
-       doubleBuffer(doubleBufferCount,doubleProperty+1)=self%energy         ()
-       doubleBuffer(doubleBufferCount,doubleProperty+2)=self%angularMomentum()
-       doubleBuffer(doubleBufferCount,doubleProperty+3)=self%velocityScale  ()
-       doubleBuffer(doubleBufferCount,doubleProperty+4)=self%hostMass       ()
-    else
-       doubleBuffer(doubleBufferCount,doubleProperty+1:doubleProperty+4)=0.0d0
-    end if
-    doubleProperty=doubleProperty+4
-    return
-  end subroutine Kepler_Orbits_Output
-
-  subroutine Kepler_Orbits_Post_Output(self,time)
-    !% Perform post-output processing of a {\normalfont \ttfamily keplerOrbit} object.
-    implicit none
-    class           (keplerOrbit), intent(inout) :: self
-    double precision             , intent(in   ) :: time
-    !$GLC attributes unused :: self, time
-
-    return
-  end subroutine Kepler_Orbits_Post_Output
-
-  subroutine Kepler_Orbits_Output_Count(self,integerPropertyCount,doublePropertyCount,time)
-    !% Increment the output count to account for a {\normalfont \ttfamily keplerOrbit} object.
-    implicit none
-    class           (keplerOrbit), intent(in   ) :: self
-    integer                      , intent(inout) :: doublePropertyCount, integerPropertyCount
-    double precision             , intent(in   ) :: time
-    !$GLC attributes unused :: self, integerPropertyCount, time
-
-    doublePropertyCount=doublePropertyCount+4
-    return
-  end subroutine Kepler_Orbits_Output_Count
-
-  subroutine Kepler_Orbits_Output_Names(self,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI&
-       &,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,prefix,comment,unitsInSI)
-    !% Assign names to output buffers for a {\normalfont \ttfamily keplerOrbit} object.
-    use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
-    use :: Numerical_Constants_Prefixes    , only : kilo
-    implicit none
-    class           (keplerOrbit)              , intent(in   ) :: self
-    double precision                           , intent(in   ) :: time
-    integer                                    , intent(inout) :: doubleProperty         , integerProperty
-    character       (len=*      ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
-         &                                                        integerPropertyComments, integerPropertyNames
-    double precision             , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    character       (len=*      )              , intent(in   ) :: comment                , prefix
-    double precision                           , intent(in   ) :: unitsInSI
-    !$GLC attributes unused :: self, time, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI, unitsInSI
-
-    doubleProperty=doubleProperty+1
-    doublePropertyNames   (doubleProperty)=trim(prefix)//'SpecificEnergy'
-    doublePropertyComments(doubleProperty)=trim(comment)//' [specific energy]'
-    doublePropertyUnitsSI (doubleProperty)=kilo**2
-    doubleProperty=doubleProperty+1
-    doublePropertyNames   (doubleProperty)=trim(prefix)//'SpecificAngularMomentum'
-    doublePropertyComments(doubleProperty)=trim(comment)//' [specific angular momentum]'
-    doublePropertyUnitsSI (doubleProperty)=kilo*megaParsec
-    doubleProperty=doubleProperty+1
-    doublePropertyNames   (doubleProperty)=trim(prefix)//'VelocityScale'
-    doublePropertyComments(doubleProperty)=trim(comment)//' [velocity scale]'
-    doublePropertyUnitsSI (doubleProperty)=kilo
-    doubleProperty=doubleProperty+1
-    doublePropertyNames   (doubleProperty)=trim(prefix)//'HostMass'
-    doublePropertyComments(doubleProperty)=trim(comment)//' [host mass]'
-    doublePropertyUnitsSI (doubleProperty)=massSolar
-    return
-  end subroutine Kepler_Orbits_Output_Names
 
   subroutine Kepler_Orbits_Builder(self,keplerOrbitDefinition)
     !% Build a {\normalfont \ttfamily keplerOrbit} object from the given XML {\normalfont \ttfamily keplerOrbitDefinition}.
