@@ -88,7 +88,7 @@ contains
 
   subroutine fspsReadFile(self)
     !% Ensure that the requested stellar population has been generated.
-    use :: File_Utilities , only : File_Exists
+    use :: File_Utilities , only : File_Exists                 , File_Lock , File_Unlock, lockDescriptor
     use :: IO_HDF5        , only : hdf5Access                  , hdf5Object
     use :: Interfaces_FSPS, only : Interface_FSPS_SSPs_Tabulate
     use :: Tables         , only : table1D
@@ -98,11 +98,14 @@ contains
     logical                                              :: remakeFile
     integer                                              :: fileFormatVersion
     type   (hdf5Object                  )                :: spectraFile
+    type   (lockDescriptor              )                :: fileLock
 
     ! Decide if we need to read the file.
     if (.not.self%fileRead) then
        ! Check if the file exists and has the correct version.
        remakeFile=.false.
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+       call File_Lock(char(self%fileName),fileLock,lockIsShared=.false.)
        if (File_Exists(char(self%fileName))) then
           !$ call hdf5Access%set()
           call spectraFile%openFile     (char(self%fileName),readOnly         =.true.)
@@ -121,6 +124,7 @@ contains
           call Interface_FSPS_SSPs_Tabulate(imf,self%initialMassFunction_%label(),fileFormatVersionCurrent,self%fileName)
           !$omp end critical (stellarPopulationsFSPS)
        end if
+       call File_Unlock(fileLock)
        ! Call the parent file reader to complete reading.
        call self%stellarPopulationSpectraFile%readFile()
     end if
