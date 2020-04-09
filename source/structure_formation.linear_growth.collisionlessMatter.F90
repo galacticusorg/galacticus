@@ -121,7 +121,7 @@ contains
 
   subroutine collisionlessMatterRetabulate(self,time)
     !% Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
-    !% $D(1)=1$ for a collisionlessMatter matter plus cosmological constant cosmology.
+    !% $D(1)=1$ for a collisionless matter plus cosmological constant cosmology.
     use :: FGSL      , only : FGSL_Success            , fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_step, &
           &                   fgsl_odeiv_system
     use :: ODE_Solver, only : ODE_Solve               , ODE_Solver_Free
@@ -144,7 +144,7 @@ contains
     type            (fgsl_odeiv_control             )                :: odeController
     type            (fgsl_odeiv_evolve              )                :: odeEvolver
     type            (fgsl_odeiv_system              )                :: odeSystem
-    logical                                                          :: odeReset                     =.true.
+    logical                                                          :: odeReset
 
     ! Check if we need to recompute our table.
     if (self%tableInitialized) then
@@ -195,6 +195,7 @@ contains
                &                                                               )                  &
                &                                                              )                   &
                &                    )
+          odeReset=.true.
           do i=2,growthTableNumberPoints
              timeNow                    =growthFactor          %x(i-1)
              growthFactorODEVariables(1)=growthFactor          %y(i-1)
