@@ -23,6 +23,7 @@
   use, intrinsic :: ISO_C_Binding                         , only : c_size_t
   use            :: Locks                                 , only : ompReadWriteLock
   use            :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorClass
+  use            :: Stellar_Population_Spectra            , only : stellarPopulationSpectraClass
 
   type luminosityTable
      !% Structure for holding tables of simple stellar population luminosities.
@@ -70,12 +71,13 @@
   end interface stellarPopulationBroadBandLuminositiesStandard
 
   ! Module scope variables used in integrations.
-  double precision                                                          :: standardAge                                  , standardRedshift
-  integer                                                                   :: standardFilterIndex
-  integer         (c_size_t                                  )              :: standardPopulationID
-  type            (abundances                                )              :: standardAbundances
-  class           (stellarPopulationSpectraPostprocessorClass), allocatable :: standardStellarPopulationSpectraPostprocessor
-  !$omp threadprivate(standardAge,standardRedshift,standardAbundances,standardFilterIndex,standardPopulationID,standardStellarPopulationSpectraPostprocessor)
+  double precision                                                      :: standardAge                                  , standardRedshift
+  integer                                                               :: standardFilterIndex
+  integer         (c_size_t                                  )          :: standardPopulationID
+  type            (abundances                                )          :: standardAbundances
+  class           (stellarPopulationSpectraPostprocessorClass), pointer :: standardStellarPopulationSpectraPostprocessor
+  class           (stellarPopulationSpectraClass             ), pointer :: standardStellarPopulationSpectra
+  !$omp threadprivate(standardAge,standardRedshift,standardAbundances,standardFilterIndex,standardPopulationID,standardStellarPopulationSpectraPostprocessor,standardStellarPopulationSpectra)
 
 contains
   
@@ -297,22 +299,21 @@ contains
 
   subroutine standardTabulate(self,luminosityIndex,filterIndex,stellarPopulationSpectraPostprocessor_,stellarPopulation_,redshift)
     !% Tabulate stellar population luminosity in the given filters.
-    use            :: Abundances_Structure                  , only : logMetallicityZero                       , metallicityTypeLogarithmicByMassSolar
-    use            :: FGSL                                  , only : FGSL_Integ_Gauss15                       , fgsl_function                        , fgsl_integration_workspace
-    use            :: File_Utilities                        , only : File_Exists                              , File_Lock                            , File_Unlock               , lockDescriptor
-    use            :: Galacticus_Display                    , only : Galacticus_Display_Counter               , Galacticus_Display_Counter_Clear     , Galacticus_Display_Indent , Galacticus_Display_Unindent, &
-         &                                                           verbosityWorking
-    use            :: Galacticus_Error                      , only : Galacticus_Error_Report                  , Galacticus_Warn                      , errorStatusFail           , errorStatusSuccess
+    use            :: Abundances_Structure            , only : logMetallicityZero        , metallicityTypeLogarithmicByMassSolar
+    use            :: FGSL                            , only : FGSL_Integ_Gauss15        , fgsl_function                        , fgsl_integration_workspace
+    use            :: File_Utilities                  , only : File_Exists               , File_Lock                            , File_Unlock               , lockDescriptor
+    use            :: Galacticus_Display              , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear     , Galacticus_Display_Indent , Galacticus_Display_Unindent, &
+         &                                                     verbosityWorking
+    use            :: Galacticus_Error                , only : Galacticus_Error_Report   , Galacticus_Warn                      , errorStatusFail           , errorStatusSuccess
     use :: Input_Parameters, only : inputParameters
-    use            :: IO_HDF5                               , only : hdf5Access                               , hdf5Object
-    use, intrinsic :: ISO_C_Binding                         , only : c_size_t
-    use            :: ISO_Varying_String                    , only : assignment(=)                            , char                                 , operator(//)              , var_str
-    use            :: Instruments_Filters                   , only : Filter_Extent                            , Filter_Name
-    use            :: Memory_Management                     , only : Memory_Usage_Record                      , allocateArray                        , deallocateArray
-    use            :: Numerical_Constants_Astronomical      , only : metallicitySolar
-    use            :: Numerical_Integration                 , only : Integrate                                , Integrate_Done
-    use            :: Stellar_Population_Spectra            , only : stellarPopulationSpectraClass
-    use            :: String_Handling                       , only : operator(//)
+    use            :: IO_HDF5                         , only : hdf5Access                , hdf5Object
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
+    use            :: ISO_Varying_String              , only : assignment(=)             , char                                 , operator(//)              , var_str
+    use            :: Instruments_Filters             , only : Filter_Extent             , Filter_Name
+    use            :: Memory_Management               , only : Memory_Usage_Record       , allocateArray                        , deallocateArray
+    use            :: Numerical_Constants_Astronomical, only : metallicitySolar
+    use            :: Numerical_Integration           , only : Integrate                 , Integrate_Done
+    use            :: String_Handling                 , only : operator(//)
     implicit none
     class           (stellarPopulationBroadBandLuminositiesStandard), intent(inout)                   :: self
     integer                                                         , intent(in   ), dimension(:    ) :: filterIndex                                   , luminosityIndex
@@ -478,9 +479,11 @@ contains
                         &               *self%luminosityTables(populationID)%agesCount
                    loopCount           = 0
                    !$omp parallel private(iAge,iMetallicity,integrandFunction,integrationWorkspace,toleranceRelative,errorStatus) copyin(standardFilterIndex,standardRedshift,standardPopulationID)
+                   allocate(standardStellarPopulationSpectra             ,mold=stellarPopulationSpectra_                                                                 )
                    allocate(standardStellarPopulationSpectraPostprocessor,mold=stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_)
                    !$omp critical(broadBandLuminositiesDeepCopy)
-                   !# <deepCopyReset variables="stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_"/>
+                   !# <deepCopyReset variables="stellarPopulationSpectra_ stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_"/>
+                   !# <deepCopy source="stellarPopulationSpectra_"                                                                  destination="standardStellarPopulationSpectra"             />
                    !# <deepCopy source="stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_" destination="standardStellarPopulationSpectraPostprocessor"/>
                    !$omp end critical(broadBandLuminositiesDeepCopy)
                    !$omp do
@@ -537,7 +540,8 @@ contains
                       end do
                    end do
                    !$omp end do
-                   deallocate(standardStellarPopulationSpectraPostprocessor)
+                   !# <objectDestructor name="standardStellarPopulationSpectra"             />
+                   !# <objectDestructor name="standardStellarPopulationSpectraPostprocessor"/>
                    !$omp end parallel
                    ! Clear the counter and write a completion message.
                    call Galacticus_Display_Counter_Clear(           verbosityWorking)
@@ -599,16 +603,16 @@ contains
       double precision, intent(in   ) :: wavelength
       double precision                :: wavelengthRedshifted
 
-      ! If this luminosity is for a redshifted spectrum, then we shift wavelength at which we sample the stellar population spectrum
-      ! to be a factor of (1+z) smaller. We therefore integrate over the stellar SED at shorter wavelengths, since these will be
-      ! shifted into the filter by z=0. Factor of 1/wavelength appears since we want to integrate F_nu (dnu / nu) and dnu =
-      ! -c/lambda^2 dlambda. Note that we follow the convention of Hogg et al. (2002) and assume that the filter response gives the
-      ! fraction of incident photons received by the detector at a given wavelength, multiplied by the relative photon response
-      ! (which will be 1 for a photon-counting detector such as a CCD, or proportional to the photon energy for a
-      ! bolometer/calorimeter type detector).
+      ! If this luminosity is for a redshifted spectrum, then we shift wavelength at which we sample the stellar population
+      ! spectrum to be a factor of (1+z) smaller. We therefore integrate over the stellar SED at shorter wavelengths, since these
+      ! will be shifted into the filter by z=0. Factor of 1/wavelength appears since we want to integrate F_ν (dν / ν) and dν =
+      ! -c/λ² dλ. Note that we follow the convention of Hogg et al. (2002) and assume that the filter response gives the fraction
+      ! of incident photons received by the detector at a given wavelength, multiplied by the relative photon response (which will
+      ! be 1 for a photon-counting detector such as a CCD, or proportional to the photon energy for a bolometer/calorimeter type
+      ! detector).
       wavelengthRedshifted=wavelength/(1.0d0+standardRedshift)
       integrandFilteredLuminosity=+Filter_Response                                         (standardFilterIndex             ,wavelength          ) &
-           &                      *stellarPopulationSpectra_                    %luminosity(standardAbundances  ,standardAge,wavelengthRedshifted) &
+           &                      *standardStellarPopulationSpectra             %luminosity(standardAbundances  ,standardAge,wavelengthRedshifted) &
            &                      *standardStellarPopulationSpectraPostprocessor%multiplier(wavelengthRedshifted,standardAge,standardRedshift    ) &
            &                      /                                                                                          wavelength
       return
