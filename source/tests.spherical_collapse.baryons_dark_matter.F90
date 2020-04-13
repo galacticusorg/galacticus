@@ -51,7 +51,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
   type            (transferFunctionIdentity                                       )                          :: transferFunctionIdentity_
   type            (powerSpectrumPrimordialTransferredSimple                       )                          :: powerSpectrumPrimordialTransferredSimple_
   type            (intergalacticMediumFilteringMassGnedin2000                     )                          :: intergalacticMediumFilteringMassGnedin2000_
-  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt  )                          :: criticalOverdensitySphrclCllpsCllsnlssMttrCsmlgclCnstnt_
+  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt   )                          :: criticalOverdensitySphrclCllpsCllsnlssMttrCsmlgclCnstnt_
   type            (criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy       )                          :: criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgy_
   type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)                          :: virialDensityContrastSphrclCllpsCllsnlssMttrCsmlgclCnstnt_
   type            (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy     )                          :: virialDensityContrastSphrclCllpsBrynsDrkMttrDrkEnrgy_
