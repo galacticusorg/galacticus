@@ -227,9 +227,9 @@ contains
 
     function indexNode(nodeDefinition,indexType,required)
       !% Extract and return an index from a node definition as used when constructing fully-specified merger trees.
-      use :: FoX_Dom         , only : extractDataContent          , node
+      use :: FoX_Dom         , only : node
       use :: Galacticus_Error, only : Galacticus_Error_Report
-      use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name
+      use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, extractDataContent => extractDataContentTS
       use :: Kind_Numbers    , only : kind_int8
       implicit none
       integer  (kind=kind_int8)                             :: indexNode

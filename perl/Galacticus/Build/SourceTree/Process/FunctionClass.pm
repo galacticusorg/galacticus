@@ -18,6 +18,7 @@ use Fortran::Utils;
 use Text::Template 'fill_in_string';
 use Storable qw(dclone);
 use Galacticus::Build::SourceTree::Process::SourceIntrospection;
+use Galacticus::Build::SourceTree::Process::Utils qw(performIO);
 use Galacticus::Build::SourceTree::Process::FunctionClass::Utils;
 
 # Insert hooks for our functions.
@@ -497,7 +498,7 @@ sub Process_FunctionClass {
 						    if ( $declaration->{'intrinsic'} eq "double precision" );
 						$format = "i17"
 						    if ( $declaration->{'intrinsic'} eq "integer"          );
-						$descriptorCode .= "write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."\n";
+						$descriptorCode .= &performIO("write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."\n");
 						$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',trim(adjustl(parameterLabel)))\n";
 					    }
 					}
@@ -1474,8 +1475,10 @@ CODE
 	    my $stateFileUsed     = 0;
 	    my $labelUsed         = 0;
 	    $rankMaximum          = 0;
-	    $stateStoreCode   .= "call Galacticus_Display_Indent(var_str('storing state for \""  .$directive->{'name'}."\" [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)\n";
-	    $stateRestoreCode .= "call Galacticus_Display_Indent(var_str('restoring state for \"".$directive->{'name'}."\" [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)\n";
+	    $stateStoreCode   .= &performIO("position=FTell(stateFile)\n");
+	    $stateRestoreCode .= &performIO("position=FTell(stateFile)\n");
+	    $stateStoreCode   .= "call Galacticus_Display_Indent(var_str('storing state for \""  .$directive->{'name'}."\" [position: ')//position//']',verbosity=verbosityWorking)\n";
+	    $stateRestoreCode .= "call Galacticus_Display_Indent(var_str('restoring state for \"".$directive->{'name'}."\" [position: ')//position//']',verbosity=verbosityWorking)\n";
 	    $stateStoreCode   .= "select type (self)\n";
 	    $stateRestoreCode .= "select type (self)\n";
 	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
@@ -1549,8 +1552,8 @@ CODE
 					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 					    #  </description>
 					    # </workaround>
-					    $outputCode .= "   write (label,'(i16)') 0\n";
-					    #$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
+					    $outputCode .= &performIO("   write (label,'(i16)') 0\n");
+					    #$outputCode .= &performIO("   write (label,'(i16)') sizeof(c__)\n");
 					    $outputCode .= "  end select\n";
 					    $outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= " end if\n";
@@ -1591,15 +1594,15 @@ CODE
 						$dimensionalsFound  = 1
 						    if ( $rank > 0 );
 						$outputCode .= " if (allocated(self%".$variableName.")) then\n";
-						$outputCode .= "  write (stateFile) .true.\n";
-						$outputCode .= "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
+						$outputCode .= &performIO("  write (stateFile) .true.\n");
+						$outputCode .= &performIO("  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n")
 						    if ( $rank > 0 );
-						$inputCode  .= " read (stateFile) wasAllocated\n";
+						$inputCode  .= &performIO(" read (stateFile) wasAllocated\n");
 						$inputCode  .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 						$inputCode  .= " if (wasAllocated) then\n";
 						if ( $rank > 0 ) {
 						    $inputCode  .= "  allocate(storedShape(".$rank."))\n";
-						    $inputCode  .= "  read (stateFile) storedShape\n";
+						    $inputCode  .= &performIO("  read (stateFile) storedShape\n");
 						}
 						if ( $declaration->{'intrinsic'} eq "class" ) {
 						    (my $storable) = grep {$_->{'type'} eq $type} @{$stateStorables->{'stateStorables'}};
@@ -1628,8 +1631,8 @@ CODE
 						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 						#  </description>
 						# </workaround>
-						$outputCode .= "   write (label,'(i16)') 0\n";
-						#$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
+						$outputCode .= &performIO("   write (label,'(i16)') 0\n");
+						#$outputCode .= &performIO("   write (label,'(i16)') sizeof(c__)\n");
 						$outputCode .= "  end select\n";
 					    } else {
 						# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
@@ -1637,8 +1640,8 @@ CODE
 						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 						#  </description>
 						# </workaround>
-						$outputCode .= "   write (label,'(i16)') 0\n";
-						#$outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
+						$outputCode .= &performIO("   write (label,'(i16)') 0\n");
+						#$outputCode .= &performIO("   write (label,'(i16)') sizeof(self%".$variableName.")\n");
 					    }
 					    $outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName.$arrayElement."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= " end if\n";
@@ -1652,7 +1655,7 @@ CODE
 					    if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
 						$inputCode  .= " end if\n";
 						$outputCode .= " else\n";
-						$outputCode .= "  write (stateFile) .false.\n";
+						$outputCode .= &performIO("  write (stateFile) .false.\n");
 						$outputCode .= " end if\n";
 					    }
 					    $stateFileUsed    = 1;
@@ -1683,25 +1686,25 @@ CODE
 					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 					    #  </description>
 					    # </workaround>
-					    $outputCode .= "   write (label,'(i16)') 0\n";
-					    #$outputCode        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
+					    $outputCode .= &performIO("   write (label,'(i16)') 0\n");
+					    #$outputCode        .= &performIO("   write (label,'(i16)') sizeof(self%".$variableName.")\n");
 					    $outputCode        .= "   call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode        .= "  end if\n";
-					    $outputCode        .= "  write (stateFile) .true.\n";
-					    $outputCode        .= "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n";
-					    $outputCode        .= "  write (stateFile) self%".$variableName."\n";
+					    $outputCode        .= &performIO("  write (stateFile) .true.\n"
+							       . "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
+					                       . "  write (stateFile) self%".$variableName."\n");
 					    $outputCode        .= " else\n";
-					    $outputCode        .= "  write (stateFile) .false.\n";
+					    $outputCode        .= &performIO("  write (stateFile) .false.\n");
 					    $outputCode        .= " end if\n";
-					    $inputCode         .= " read (stateFile) wasAllocated\n";
+					    $inputCode         .= &performIO(" read (stateFile) wasAllocated\n");
 					    $inputCode         .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 					    $inputCode         .= " if (wasAllocated) then\n";
 					    $inputCode         .= "  call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
 					    $inputCode         .= "  allocate(storedShape(".$rank."))\n";
-					    $inputCode         .= "  read (stateFile) storedShape\n";
+					    $inputCode         .= &performIO("  read (stateFile) storedShape\n");
 					    $inputCode         .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
 					    $inputCode         .= "  deallocate(storedShape)\n";
-					    $inputCode         .= "  read (stateFile) self%".$variableName."\n";
+					    $inputCode         .= &performIO("  read (stateFile) self%".$variableName."\n");
 					    $inputCode         .= " end if\n";
 					}
 				    } else {
@@ -1787,8 +1790,8 @@ CODE
 				#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 				#  </description>
 				# </workaround>
-				$outputCode .= "   write (label,'(i16)') 0\n";
-				#$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
+				$outputCode .= &performIO("   write (label,'(i16)') 0\n");
+				#$outputCode .=&performIO( "   write (label,'(i16)') sizeof(c__)\n");
 				$outputCode .= "  end select\n";
 				$outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 				$outputCode .= " end if\n";
@@ -1828,15 +1831,15 @@ CODE
 				    $dimensionalsFound  = 1
 					if ( $rank > 0 );
 				    $outputCode .= " if (allocated(self%".$variableName.")) then\n";
-				    $outputCode .= "  write (stateFile) .true.\n";
-				    $outputCode .= "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
+				    $outputCode .= &performIO("  write (stateFile) .true.\n");
+				    $outputCode .= &performIO("  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n")
 					if ( $rank > 0 );
-				    $inputCode  .= " read (stateFile) wasAllocated\n";
+				    $inputCode  .= &performIO(" read (stateFile) wasAllocated\n");
 				    $inputCode  .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 				    $inputCode  .= " if (wasAllocated) then\n";
 				    if ( $rank > 0 ) {
 					$inputCode  .= "  allocate(storedShape(".$rank."))\n";
-					$inputCode  .= "  read (stateFile) storedShape\n";
+					$inputCode  .= &performIO("  read (stateFile) storedShape\n");
 				    }
 				    if ( $declaration->{'intrinsic'} eq "class" ) {
 					(my $storable) = grep {$_->{'type'} eq $type} @{$stateStorables->{'stateStorables'}};
@@ -1865,8 +1868,8 @@ CODE
 				    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 				    #  </description>
 				    # </workaround>
-				    $outputCode .= "   write (label,'(i16)') 0\n";
-				    #$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
+				    $outputCode .= &performIO("   write (label,'(i16)') 0\n");
+				    #$outputCode .= &performIO("   write (label,'(i16)') sizeof(c__)\n");
 				    $outputCode .= "  end select\n";
 				} else {
 				    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
@@ -1874,8 +1877,8 @@ CODE
 				    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 				    #  </description>
 				    # </workaround>
-				    $outputCode .= "   write (label,'(i16)') 0\n";
-				    #$outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.$arrayElement.")\n";
+				    $outputCode .= &performIO("   write (label,'(i16)') 0\n");
+				    #$outputCode .= &performIO("   write (label,'(i16)') sizeof(self%".$variableName.$arrayElement.")\n");
 				}
 				$outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName.$arrayElement."\" with size '//trim(adjustl(label))//' bytes')\n";
 				$outputCode .= " end if\n";
@@ -1889,7 +1892,7 @@ CODE
 				if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
 				    $inputCode  .= " end if\n";
 				    $outputCode .= " else\n";
-				    $outputCode .= "  write (stateFile) .false.\n";
+				    $outputCode .= &performIO("  write (stateFile) .false.\n");
 				    $outputCode .= " end if\n";
 				}
 				$stateFileUsed    = 1;
@@ -1920,25 +1923,25 @@ CODE
 				#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 				#  </description>
 				# </workaround>
-				$outputCode .= "   write (label,'(i16)') 0\n";
-				#$outputCode        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
+				$outputCode        .= &performIO("   write (label,'(i16)') 0\n");
+				#$outputCode        .= &performIO("   write (label,'(i16)') sizeof(self%".$variableName.")\n");
 				$outputCode        .= "   call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 				$outputCode        .= "  end if\n";
-				$outputCode        .= "  write (stateFile) .true.\n";
-				$outputCode        .= "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n";
-				$outputCode        .= "  write (stateFile) self%".$variableName."\n";
+				$outputCode        .= &performIO("  write (stateFile) .true.\n"
+						   .  "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
+			                           .  "  write (stateFile) self%".$variableName."\n");
 				$outputCode        .= " else\n";
-				$outputCode        .= "  write (stateFile) .false.\n";
+				$outputCode        .= &performIO("  write (stateFile) .false.\n");
 				$outputCode        .= " end if\n";
-				$inputCode         .= " read (stateFile) wasAllocated\n";
+				$inputCode         .= &performIO(" read (stateFile) wasAllocated\n");
 				$inputCode         .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 				$inputCode         .= " if (wasAllocated) then\n";
 				$inputCode         .= "  call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
 				$inputCode         .= "  allocate(storedShape(".$rank."))\n";
-				$inputCode         .= "  read (stateFile) storedShape\n";
+				$inputCode         .= &performIO("  read (stateFile) storedShape\n");
 				$inputCode         .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
 				$inputCode         .= "  deallocate(storedShape)\n";
-				$inputCode         .= "  read (stateFile) self%".$variableName."\n";
+				$inputCode         .= &performIO("  read (stateFile) self%".$variableName."\n");
 				$inputCode         .= " end if\n";
 			    }
 			} else {
@@ -1983,8 +1986,8 @@ CODE
 					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 					    #  </description>
 					    # </workaround>
-					    $outputCode .= "   write (label,'(i16)') 0\n";
-					    #$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
+					    $outputCode .= &performIO("   write (label,'(i16)') 0\n");
+					    #$outputCode .= &performIO("   write (label,'(i16)') sizeof(c__)\n");
 					    $outputCode .= "  end select\n";
 					    $outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= " end if\n";
@@ -2031,15 +2034,15 @@ CODE
 						$dimensionalsFound  = 1
 						    if ( $rank > 0 );
 						$outputCode .= " if (allocated(self%".$variableName.")) then\n";
-						$outputCode .= "  write (stateFile) .true.\n";
-						$outputCode .= "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
+						$outputCode .= &performIO("  write (stateFile) .true.\n");
+						$outputCode .= &performIO("  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n")
 						    if ( $rank > 0 );
-						$inputCode  .= " read (stateFile) wasAllocated\n";
+						$inputCode  .= &performIO(" read (stateFile) wasAllocated\n");
 						$inputCode  .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 						$inputCode  .= " if (wasAllocated) then\n";
 						if ( $rank > 0 ) {
 						    $inputCode  .= "  allocate(storedShape(".$rank."))\n";
-						    $inputCode  .= "  read (stateFile) storedShape\n";
+						    $inputCode  .= &performIO("  read (stateFile) storedShape\n");
 						}
 						if ( $declaration->{'intrinsic'} eq "class" ) {
 						    (my $storable) = grep {$_->{'type'} eq $type} @{$stateStorables->{'stateStorables'}};
@@ -2068,8 +2071,8 @@ CODE
 						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 						#  </description>
 						# </workaround>
-						$outputCode .= "   write (label,'(i16)') 0\n";
-						#$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
+						$outputCode .= &performIO("   write (label,'(i16)') 0\n");
+						#$outputCode .= &performIO("   write (label,'(i16)') sizeof(c__)\n");
 						$outputCode .= "  end select\n";
 					    } else {
 						# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
@@ -2077,8 +2080,8 @@ CODE
 						#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 						#  </description>
 						# </workaround>
-						$outputCode .= "   write (label,'(i16)') 0\n";
-						#$outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
+						$outputCode .= &performIO("   write (label,'(i16)') 0\n");
+						#$outputCode .= &performIO("   write (label,'(i16)') sizeof(self%".$variableName.")\n");
 					    }
 					    $outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName.$arrayElement."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= " end if\n";
@@ -2092,7 +2095,7 @@ CODE
 					    if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
 						$inputCode  .= " end if\n";
 						$outputCode .= " else\n";
-						$outputCode .= "  write (stateFile) .false.\n";
+						$outputCode .= &performIO("  write (stateFile) .false.\n");
 						$outputCode .= " end if\n";
 					    }
 					    $stateFileUsed    = 1;
@@ -2123,25 +2126,25 @@ CODE
 					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 					    #  </description>
 					    # </workaround>
-					    $outputCode .= "   write (label,'(i16)') 0\n";
-					    #$outputCode        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
+					    $outputCode        .= &performIO("   write (label,'(i16)') 0\n");
+					    #$outputCode        .= &performIO("   write (label,'(i16)') sizeof(self%".$variableName.")\n");
 					    $outputCode        .= "   call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode        .= "  end if\n";
-					    $outputCode        .= "  write (stateFile) .true.\n";
-					    $outputCode        .= "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n";
-					    $outputCode        .= "  write (stateFile) self%".$variableName."\n";
+					    $outputCode        .= &performIO("  write (stateFile) .true.\n"
+					                       .  "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
+					                       .  "  write (stateFile) self%".$variableName."\n");
 					    $outputCode        .= " else\n";
-					    $outputCode        .= "  write (stateFile) .false.\n";
+					    $outputCode        .= &performIO("  write (stateFile) .false.\n");
 					    $outputCode        .= " end if\n";
-					    $inputCode         .= " read (stateFile) wasAllocated\n";
+					    $inputCode         .= &performIO(" read (stateFile) wasAllocated\n");
 					    $inputCode         .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 					    $inputCode         .= " if (wasAllocated) then\n";
 					    $inputCode         .= "  call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
 					    $inputCode         .= "  allocate(storedShape(".$rank."))\n";
-					    $inputCode         .= "  read (stateFile) storedShape\n";
+					    $inputCode         .= &performIO("  read (stateFile) storedShape\n");
 					    $inputCode         .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
 					    $inputCode         .= "  deallocate(storedShape)\n";
-					    $inputCode         .= "  read (stateFile) self%".$variableName."\n";
+					    $inputCode         .= &performIO("  read (stateFile) self%".$variableName."\n");
 					    $inputCode         .= " end if\n";
 					}
 				    } else {
@@ -2200,12 +2203,12 @@ CODE
 			#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
 			#  </description>
 			# </workaround>
-			$stateStoreCode .= "   write (label,'(i16)') 0\n";
-			#$stateStoreCode .= "  write (label,'(i16)') sizeof(self%".$_.")\n";
+			$stateStoreCode .= &performIO("   write (label,'(i16)') 0\n");
+			#$stateStoreCode .= &performIO("  write (label,'(i16)') sizeof(self%".$_.")\n");
 			$stateStoreCode .= "  call Galacticus_Display_Message('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
 			$stateStoreCode .= " end if\n";
 		    }
-		    $stateStoreCode .= " write (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n"
+		    $stateStoreCode .= &performIO(" write (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n")
 			if ( scalar(@staticVariables) > 0 );
 		    $stateStoreCode .= $outputCode
 			if ( defined($outputCode) );
@@ -2218,7 +2221,7 @@ CODE
 		    foreach ( @staticVariables ) {
 			$stateRestoreCode .= " call Galacticus_Display_Message('restoring \"".$_."\"',verbosity=verbosityWorking)\n";
 		    }
-		    $stateRestoreCode .= " read (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n"
+		    $stateRestoreCode .= &performIO(" read (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n")
 			if ( scalar(@staticVariables) > 0 );
 		    $stateRestoreCode .= $inputCode
 			if ( defined($inputCode) );
@@ -2253,6 +2256,8 @@ CODE
 	    }
 	    $stateStoreCode   = " character(len=16) :: label\n".$stateStoreCode
                  if ( $labelUsed );
+            $stateStoreCode   = " integer(c_size_t) :: position\n".$stateStoreCode;
+            $stateRestoreCode = " integer(c_size_t) :: position\n".$stateRestoreCode;
 	    $methods{'stateStore'} =
 	    {
 		description => "Store the state of this object to file.",
@@ -3144,13 +3149,15 @@ CODE
 	    $modulePostContains->{'content'} .= "    integer          , intent(in   ) :: stateFile\n";
 	    $modulePostContains->{'content'} .= "    integer(c_size_t), intent(in   ) :: stateOperationID\n";
 	    $modulePostContains->{'content'} .= "    type   (c_ptr   ), intent(in   ) :: gslStateFile\n";
+	    $modulePostContains->{'content'} .= "    integer(c_size_t)                :: position\n";
+	    $modulePostContains->{'content'} .= &performIO("position=FTell(stateFile)\n");
 	    $modulePostContains->{'content'} .= "    if (associated(".$directive->{'name'}."Default)) then\n";
-	    $modulePostContains->{'content'} .= "     write (stateFile) .true.\n";
-	    $modulePostContains->{'content'} .= "     call Galacticus_Display_Message(var_str('storing default object of \""  .$directive->{'name'}."\" class [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)\n";
+	    $modulePostContains->{'content'} .= &performIO("     write (stateFile) .true.\n");
+	    $modulePostContains->{'content'} .= "     call Galacticus_Display_Message(var_str('storing default object of \""  .$directive->{'name'}."\" class [position: ')//position//']',verbosity=verbosityWorking)\n";
 	    $modulePostContains->{'content'} .= "     call ".$directive->{'name'}."Default%stateStore(stateFile,gslStateFile,stateOperationID)\n";
 	    $modulePostContains->{'content'} .= "    else\n";
-	    $modulePostContains->{'content'} .= "     write (stateFile) .false.\n";
-	    $modulePostContains->{'content'} .= "     call Galacticus_Display_Message(var_str('skipping default object of \""  .$directive->{'name'}."\" class [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)\n";
+	    $modulePostContains->{'content'} .= &performIO("     write (stateFile) .false.\n");
+	    $modulePostContains->{'content'} .= "     call Galacticus_Display_Message(var_str('skipping default object of \""  .$directive->{'name'}."\" class [position: ')//position//']',verbosity=verbosityWorking)\n";
 	    $modulePostContains->{'content'} .= "    end if\n";
 	    $modulePostContains->{'content'} .= "    return\n";
 	    $modulePostContains->{'content'} .= "  end subroutine ".$directive->{'name'}."DoStateStore\n\n";
@@ -3168,14 +3175,16 @@ CODE
 	    $modulePostContains->{'content'} .= "    integer(c_size_t), intent(in   ) :: stateOperationID\n";
 	    $modulePostContains->{'content'} .= "    type   (c_ptr   ), intent(in   ) :: gslStateFile\n";
 	    $modulePostContains->{'content'} .= "    class  (".$directive->{'name'}."Class), pointer :: default\n";
-	    $modulePostContains->{'content'} .= "    logical                                         :: initialized\n\n";
-	    $modulePostContains->{'content'} .= "    read (stateFile) initialized\n";
+	    $modulePostContains->{'content'} .= "    logical                                         :: initialized\n";
+	    $modulePostContains->{'content'} .= "    integer(c_size_t)                               :: position\n\n";
+	    $modulePostContains->{'content'} .= &performIO("    read (stateFile) initialized\n"
+                                             .             "    position=FTell(stateFile)\n");
 	    $modulePostContains->{'content'} .= "    if (initialized) then\n";
-	    $modulePostContains->{'content'} .= "     call Galacticus_Display_Message(var_str('restoring default object of \""  .$directive->{'name'}."\" class [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)\n";
+	    $modulePostContains->{'content'} .= "     call Galacticus_Display_Message(var_str('restoring default object of \""  .$directive->{'name'}."\" class [position: ')//position//']',verbosity=verbosityWorking)\n";
 	    $modulePostContains->{'content'} .= "     default => ".$directive->{'name'}."()\n";
 	    $modulePostContains->{'content'} .= "     call default%stateRestore(stateFile,gslStateFile,stateOperationID)\n";
 	    $modulePostContains->{'content'} .= "    else\n";
-	    $modulePostContains->{'content'} .= "     call Galacticus_Display_Message(var_str('skipping default object of \""  .$directive->{'name'}."\" class [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)\n";
+	    $modulePostContains->{'content'} .= "     call Galacticus_Display_Message(var_str('skipping default object of \""  .$directive->{'name'}."\" class [position: ')//position//']',verbosity=verbosityWorking)\n";
 	    $modulePostContains->{'content'} .= "    end if\n";
 	    $modulePostContains->{'content'} .= "    return\n";
 	    $modulePostContains->{'content'} .= "  end subroutine ".$directive->{'name'}."DoStateRetrieve\n\n";

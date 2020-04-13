@@ -363,16 +363,18 @@ contains
     inputParametersConstructorNull%parameters => null()
     inputParametersConstructorNull%global     = .false.
     inputParametersConstructorNull%isNull     = .true.
+    !$omp critical (FoX_DOM_Access)
     call setLiveNodeLists(inputParametersConstructorNull%document,.false.)
-    return
+    !$omp end critical (FoX_DOM_Access)
+   return
   end function inputParametersConstructorNull
 
   function inputParametersConstructorVarStr(xmlString,allowedParameterNames,outputParametersGroup,noOutput)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     !% specified as a variable length string.
-    use :: FoX_dom           , only : node                             , parseString
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name
-    use :: ISO_Varying_String, only : extract                          , char       , operator(==)
+    use :: FoX_dom           , only : node
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, parseString => parseStringTS
+    use :: ISO_Varying_String, only : extract                          , char                        , operator(==)
     implicit none
     type     (inputParameters)                                           :: inputParametersConstructorVarStr
     type     (varying_string    )              , intent(in   )           :: xmlString
@@ -484,11 +486,11 @@ contains
   function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
     use :: File_Utilities    , only : File_Name_Temporary
-    use :: FoX_dom           , only : getOwnerDocument                 , getTextContent , node        , setLiveNodeLists
+    use :: FoX_dom           , only : getOwnerDocument                 , node           , setLiveNodeLists
     use :: Galacticus_Display, only : Galacticus_Display_Message
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
-    use :: ISO_Varying_String, only : char                             , assignment(=)  , operator(/=), operator(//)
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists, getTextContent => getTextContentTS
+    use :: ISO_Varying_String, only : char                             , assignment(=)  , operator(/=)                      , operator(//)
     use :: String_Handling   , only : String_Strip
     implicit none
     type     (inputParameters)                                        :: inputParametersConstructorNode
@@ -509,8 +511,8 @@ contains
     inputParametersConstructorNode%document => getOwnerDocument(parametersNode)
     inputParametersConstructorNode%rootNode =>                  parametersNode
     inputParametersConstructorNode%parent   => null            (              )
-    call setLiveNodeLists(inputParametersConstructorNode%document,.false.)
     !$omp critical (FoX_DOM_Access)
+    call setLiveNodeLists(inputParametersConstructorNode%document,.false.)
     if (.not.noBuild_) then
        allocate(inputParametersConstructorNode%parameters)
        inputParametersConstructorNode%parameters%content    => null()
@@ -912,11 +914,12 @@ contains
 
   function inputParameterGet(self)
     !% Get the value of a parameter.
-    use :: FoX_dom           , only : DOMException           , getAttributeNode, getNodeName, getTextContent, &
-          &                           hasAttribute           , inException     , node
+    use :: FoX_dom           , only : DOMException                               , getAttributeNode, getNodeName, hasAttribute, &
+          &                           inException                                , node
     use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: IO_XML            , only : getTextContent          => getTextContentTS
     use :: ISO_Varying_String, only : assignment(=)
-   implicit none
+    implicit none
     type   (varying_string)                :: inputParameterGet
     class  (inputParameter), intent(inout) :: self
     type   (node          ), pointer       :: valueElement
@@ -1379,20 +1382,17 @@ contains
 
   subroutine inputParametersValueNode{Type¦label}(self,parameterNode,parameterValue,errorStatus,writeOutput)
     !% Return the value of the specified parameter.
-    use :: FoX_dom           , only : DOMException                     , extractDataContent, getAttributeNode, getNodeName, &
-          &                           getTextContent                   , hasAttribute      , inException     , node
+    use :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName                        , hasAttribute                              , &
+          &                           inException                      , node
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: IO_HDF5           , only : hdf5Access
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
     {Type¦match¦^(Character|VarStr)Rank1$¦use :: String_Handling , only : String_Split_Words¦}
-    use :: FoX_dom           , only : DOMException                     , extractDataContent, getAttributeNode, getNodeName, &
-          &                           getTextContent                   , hasAttribute      , inException     , node
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: IO_HDF5           , only : hdf5Access
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
-    use :: ISO_Varying_String, only : char
-    {Type¦match¦^(Character|VarStr)Rank1$¦use :: ISO_Varying_String, only : assignment(=)¦}
-    {Type¦match¦^VarStr¦use :: ISO_Varying_String, only : assignment(=)¦}
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists   , getTextContent  => getTextContentTS, extractDataContent => extractDataContentTS
+    use :: ISO_Varying_String, only : char                             , trim              , assignment(=)                      , operator(//)                              , &
+         &                            operator(==)
     implicit none
     class           (inputParameters), intent(inout)           :: self
     type            (inputParameter ), intent(in   )           :: parameterNode
@@ -1443,12 +1443,12 @@ contains
              if (present(errorStatus)) then
                 errorStatus=inputParameterErrorStatusParse
              else
-                call Galacticus_Error_Report(                                          &
-                     &                       'unable to parse parameter ['          // &
-                     &                        getNodeName   (parameterNode%content) // &
-                     &                       ']='                                   // &
-                     &                        getTextContent(valueElement )         // &
-                     &                        {introspection:location}                 &
+                call Galacticus_Error_Report(                                         &
+                     &                       'unable to parse parameter ['         // &
+                     &                        getNodeName   (parameterNode%content)// &
+                     &                       ']='                                  // &
+                     &                        getTextContent(valueElement         )// &
+                     &                        {introspection:location}                &
                      &                      )
              end if
           else

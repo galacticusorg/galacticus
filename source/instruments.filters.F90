@@ -102,15 +102,16 @@ contains
   subroutine Filter_Response_Load(filterName)
     !% Load a filter response curve.
     use :: File_Utilities           , only : File_Exists
-    use :: FoX_dom                  , only : DOMException           , Node                             , destroy           , extractDataContent, &
-          &                                  getExceptionCode       , inException                      , node              , parseFile
+    use :: FoX_dom                  , only : DOMException           , Node                             , destroy           , getExceptionCode                          , &
+         &                                   inException
     use :: Galacticus_Error         , only : Galacticus_Error_Report
     use :: Galacticus_HDF5          , only : galacticusOutputFile   , galacticusOutputFileIsOpen
     use :: Galacticus_Paths         , only : galacticusPath         , pathTypeDataDynamic              , pathTypeDataStatic
     use :: HII_Region_Emission_Lines, only : emissionLineWavelength
     use :: IO_HDF5                  , only : hdf5Access             , hdf5Object
-    use :: IO_XML                   , only : XML_Array_Read         , XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
-    use :: ISO_Varying_String       , only : assignment(=)          , char                             , operator(//)      , operator(==)     , &
+    use :: IO_XML                   , only : XML_Array_Read         , XML_Get_First_Element_By_Tag_Name, XML_Path_Exists   , extractDataContent => extractDataContentTS, &
+         &                                   XML_Parse
+    use :: ISO_Varying_String       , only : assignment(=)          , char                             , operator(//)      , operator(==)                              , &
          &                                   extract
     use :: Memory_Management        , only : Memory_Usage_Record    , allocateArray
     use :: Numerical_Constants_Units, only : angstromsPerMeter
@@ -245,7 +246,7 @@ contains
        end if
        ! Parse the XML file.
        !$omp critical (FoX_DOM_Access)
-       doc => parseFile(char(filterFileName),iostat=ioErr,ex=exception)
+       doc => XML_Parse(char(filterFileName),iostat=ioErr,ex=exception)
        parseSuccess=.true.
        errorMessage=''
        if (inException(exception)) then

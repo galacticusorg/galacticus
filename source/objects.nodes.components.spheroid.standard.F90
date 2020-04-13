@@ -1684,8 +1684,17 @@ contains
     type   (c_ptr   ), intent(in   ) :: gslStateFile
 
     call Galacticus_Display_Message('Storing state for: treeNodeMethodSpheroid -> standard',verbosity=verbosityInfo)
+    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    !# </workaround>
+#ifdef THREADSAFEIO
+    !$omp critical(gfortranInternalIO)
+#endif
     write (stateFile) spheroidAngularMomentumAtScaleRadius
     write (stateFile) associated(spheroidMassDistribution)
+#ifdef THREADSAFEIO
+    !$omp end critical(gfortranInternalIO)
+#endif
     if (associated(spheroidMassDistribution)) call spheroidMassDistribution%stateStore(stateFile,gslStateFile,stateOperatorID)
     return
   end subroutine Node_Component_Spheroid_Standard_State_Store
@@ -1706,8 +1715,14 @@ contains
     logical                          :: wasAllocated
 
     call Galacticus_Display_Message('Retrieving state for: treeNodeMethodSpheroid -> standard',verbosity=verbosityInfo)
+#ifdef THREADSAFEIO
+    !$omp critical(gfortranInternalIO)
+#endif
     read (stateFile) spheroidAngularMomentumAtScaleRadius
     read (stateFile) wasAllocated
+#ifdef THREADSAFEIO
+    !$omp end critical(gfortranInternalIO)
+#endif
     if (wasAllocated) then
        if (.not.associated(spheroidMassDistribution)) call Galacticus_Error_Report('spheroidMassDistribution was stored, but is now not allocated'//{introspection:location})
        call spheroidMassDistribution%stateRestore(stateFile,gslStateFile,stateOperationID)

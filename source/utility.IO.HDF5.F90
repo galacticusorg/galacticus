@@ -551,6 +551,9 @@ contains
        H5T_NATIVE_INTEGER_8AS(4:5) =H5T_NATIVE_UNSIGNED_INTEGERS
        H5T_NATIVE_INTEGER_8AS(6:8) =H5T_NATIVE_INTEGER_8S
 
+       ! Initialize our OpenMP lock.
+       hdf5Access=ompLock()
+       
        ! Flag that the hdf5 system is now initialized.
        hdf5IsInitalized=.true.
     end if

@@ -62,10 +62,11 @@ contains
   function nagashima2005ConstructorInternal(stellarAstrophysics_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily nagashima2005} supernovae type Ia class.
     use :: Atomic_Data      , only : Atom_Lookup                   , Atomic_Data_Atoms_Count
-    use :: FoX_dom          , only : destroy                       , extractDataContent               , node                        , parseFile
+    use :: FoX_dom          , only : destroy                       , node
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Galacticus_Paths , only : galacticusPath                , pathTypeDataStatic
-    use :: IO_XML           , only : XML_Count_Elements_By_Tag_Name, XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, xmlNodeList
+    use :: IO_XML           , only : XML_Count_Elements_By_Tag_Name, XML_Get_First_Element_By_Tag_Name                        , XML_Get_Elements_By_Tag_Name, xmlNodeList, &
+         &                           XML_Parse                     , extractDataContent                => extractDataContentTS
     use :: Memory_Management, only : allocateArray
     implicit none
     type            (supernovaeTypeIaNagashima2005)                              :: self
@@ -84,7 +85,7 @@ contains
     ! Read in Type Ia yields.
     !$omp critical (FoX_DOM_Access)
     ! Open the XML file containing yields.
-    doc => parseFile(char(galacticusPath(pathTypeDataStatic))//'stellarAstrophysics/Supernovae_Type_Ia_Yields.xml',iostat=ioErr)
+    doc => XML_Parse(char(galacticusPath(pathTypeDataStatic))//'stellarAstrophysics/Supernovae_Type_Ia_Yields.xml',iostat=ioErr)
     if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse yields file'//{introspection:location})
     ! Get a list of all isotopes.
     call XML_Get_Elements_By_Tag_Name(doc,"isotope",isotopesList)
