@@ -115,7 +115,9 @@ contains
     ! Set error handler if necessary.
     if (present(errorStatus)) then
        integrationErrorHandler=FGSL_Error_Handler_Init(Integration_GSL_Error_Handler)
+       !$omp critical(gslErrorHandler)
        standardGslErrorHandler=FGSL_Set_Error_Handler (integrationErrorHandler      )
+       !$omp end critical(gslErrorHandler)
        errorStatusGlobal=errorStatusSuccess
     end if
 
@@ -133,7 +135,9 @@ contains
     ! Reset error handler.
     if (present(errorStatus)) then
        errorStatus            =errorStatusGlobal
+       !$omp critical(gslErrorHandler)
        standardGslErrorHandler=FGSL_Set_Error_Handler (standardGslErrorHandler)
+       !$omp end critical(gslErrorHandler)
     end if
     ! Restore the previous integrand.
     currentIntegrand => previousIntegrand

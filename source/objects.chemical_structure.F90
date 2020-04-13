@@ -100,10 +100,10 @@ contains
   subroutine Chemical_Structure_Initialize
     !% Initialize the chemical structure database by reading the atomic structure database. Note: this implementation is not
     !% fully compatible with chemical markup language (CML), but only a limited subset of it.
-    use :: FoX_dom           , only : Node                        , destroy           , extractDataContent, parseFile
+    use :: FoX_dom           , only : Node                        , destroy
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath              , pathTypeDataStatic
-    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
+    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, xmlNodeList       , XML_Parse, extractDataContent => extractDataContentTS
     use :: ISO_Varying_String, only : char                        , assignment(=)
     implicit none
     type     (Node       ), pointer                   :: doc     , thisAtom, thisBond    , thisChemical, thisElement
@@ -114,7 +114,7 @@ contains
     ! Check if the chemical database is initialized.
     if (.not.chemicalDatabaseInitialized) then
        !$omp critical (FoX_DOM_Access)
-       doc => parseFile(char(galacticusPath(pathTypeDataStatic))//'abundances/Chemical_Database.cml',iostat=ioErr)
+       doc => XML_Parse(char(galacticusPath(pathTypeDataStatic))//'abundances/Chemical_Database.cml',iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Unable to find chemical database file'//{introspection:location})
        ! Get a list of all chemicals.
        call XML_Get_Elements_By_Tag_Name(doc,"chemical",chemicalList)

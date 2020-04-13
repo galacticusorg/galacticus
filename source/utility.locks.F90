@@ -31,7 +31,7 @@ module Locks
      !% OpenMP lock type which allows querying based on thread number.
      private
      !$ integer(omp_lock_kind) :: lock
-     integer                   :: ownerThread=-2
+     integer                   :: ownerThread=-1
    contains
      !@ <objectMethods>
      !@   <object>ompLock</object>
@@ -191,7 +191,6 @@ contains
 
     ! Initialize the lock.
     !$ call OMP_Init_Lock(self%lock)
-    self%ownerThread=-1
     return
   end subroutine ompLockInitialize
 
@@ -201,7 +200,6 @@ contains
     implicit none
     class(ompLock), intent(inout) :: self
 
-    if (self%ownerThread == -2) call self%initialize()
     !$ call OMP_Set_Lock(self%lock)
     !$ self%ownerThread=OMP_Get_Thread_Num()
     return
@@ -213,8 +211,8 @@ contains
     implicit none
     class(ompLock), intent(inout) :: self
 
-    !$ call OMP_Unset_Lock(self%lock)
     self%ownerThread=-1
+    !$ call OMP_Unset_Lock(self%lock)
     return
   end subroutine ompLockUnset
 

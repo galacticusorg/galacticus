@@ -106,6 +106,7 @@ contains
     type            (varying_string)            :: headerText                 , usageText
     character       (len=1         )            :: join
 
+    !$omp critical(memoryUsageReport)
     call Code_Memory_Usage()
     issueNewReport=.false.
     usedMemory%memoryType(memoryTypeTotal)%usage=sum(usedMemory%memoryType(1:memoryTypeTotal-1)%usage)
@@ -146,6 +147,7 @@ contains
        call Galacticus_Display_Message(headerText)
        call Galacticus_Display_Message(usageText )
     end if
+    !$omp end critical(memoryUsageReport)
     return
   end subroutine Memory_Usage_Report
 
@@ -160,8 +162,14 @@ contains
     character(len=20                )                :: formatString
     character(len=len(headerText)+40)                :: temporaryString
     character(len=13                )                :: usageString
-
+    
     if (thisMemoryUsage%usage > 0) then
+       !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+       !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+       !# </workaround>
+#ifdef THREADSAFEIO
+       !$omp critical(gfortranInternalIO)
+#endif
        spaceCount=max(0,11-len_trim(thisMemoryUsage%name))
        write (formatString,'(a,i1,a)') '(a,1x,a1,',spaceCount,'x,a)'
        write (temporaryString,formatString) trim(char(headerText)),join,trim(thisMemoryUsage%name)
@@ -169,6 +177,9 @@ contains
        write (usageString,'(1x,a1,1x,f7.3,a3)') join,dble(thisMemoryUsage%usage)/dble(thisMemoryUsage%divisor),thisMemoryUsage%suffix
        usageText=trim(usageText)//usageString
        join='+'
+#ifdef THREADSAFEIO
+       !$omp end critical(gfortranInternalIO)
+#endif
     end if
     return
   end subroutine Add_Memory_Component

@@ -116,9 +116,10 @@ contains
   subroutine fileRead(self)
     !% Read stellar astrophysics data. This is not done during object construction since it can be slow---we only perform the read if the data is actually needed.
     use :: Atomic_Data      , only : Atomic_Short_Label
-    use :: FoX_DOM          , only : destroy                          , extractDataContent          , node       , parseFile
+    use :: FoX_DOM          , only : destroy                          , node
     use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: IO_XML           , only : XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, xmlNodeList
+    use :: IO_XML           , only : XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS, &
+         &                           XML_Parse
     use :: Memory_Management, only : allocateArray
     implicit none
     class           (stellarAstrophysicsFile), intent(inout)               :: self
@@ -136,7 +137,7 @@ contains
     if (self%readDone) return
     !$omp critical (FoX_DOM_Access)
     ! Open the XML file containing stellar properties.
-    doc => parseFile(char(self%fileName),iostat=ioErr)
+    doc => XML_Parse(char(self%fileName),iostat=ioErr)
     if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse stellar properties file'//{introspection:location})
     ! Check the file format version of the file.
     datum => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")

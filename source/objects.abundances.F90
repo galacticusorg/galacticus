@@ -373,9 +373,9 @@ contains
 
   subroutine Abundances_Builder(self,abundancesDefinition)
     !% Build a {\normalfont \ttfamily abundances} object from the given XML {\normalfont \ttfamily abundancesDefinition}.
-    use :: FoX_DOM         , only : extractDataContent          , node
+    use :: FoX_DOM         , only : node
     use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
+    use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
     implicit none
     class  (abundances ), intent(inout)              :: self
     type   (node       ), intent(in   ), pointer     :: abundancesDefinition
