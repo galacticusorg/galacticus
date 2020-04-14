@@ -48,8 +48,11 @@
      module procedure gslConstructorInternal
   end interface randomNumberGeneratorGSL
 
+  ! GSL RNG initialization status.
+  logical                                         :: gslRNGInitialized=.false.
+  
   ! RNG types.
-  type(c_ptr), bind(C, name="gsl_rng_default") :: gsl_rng_default
+  type   (c_ptr), bind(C, name="gsl_rng_default") :: gsl_rng_default
 
   interface
      function gsl_rng_alloc(T) bind(c,name='gsl_rng_alloc')
@@ -115,6 +118,10 @@
        integer(c_int)        :: gsl_rng_fread
        type   (c_ptr), value :: stream       , r
      end function gsl_rng_fread
+
+     subroutine gsl_rng_env_setup() bind(c,name='gsl_rng_env_setup')
+       !% Template for function used to set up default GSL random number generator.
+     end subroutine gsl_rng_env_setup
   end interface
   
 contains
@@ -161,7 +168,7 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily gsl} random number generator class.
 #ifdef USEMPI
     use :: MPI, only : MPI_Comm_Rank, MPI_Comm_World
-#endif
+#endif   
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
     implicit none
     type   (randomNumberGeneratorGSL)                          :: self
@@ -177,7 +184,15 @@ contains
 
     self%ompThreadOffset         =ompThreadOffset_
     self%mpiRankOffset           =mpiRankOffset_
-    self%gslRandomNumberGenerator=GSL_RNG_Alloc(GSL_RNG_Default)
+    if (.not.gslRNGInitialized) then
+       !$omp critical(GSL_RNG_Initialize)
+       if (.not.gslRNGInitialized) then
+          call gsl_rng_env_setup()
+          gslRNGInitialized=.true.
+       end if
+       !$omp end critical(GSL_RNG_Initialize)
+    end if
+    self%gslRandomNumberGenerator=GSL_RNG_Alloc(GSL_Rng_Default)
     seed_                        =seed
     !$ if (ompThreadOffset_) seed_=seed_+OMP_Get_Thread_Num()
     if (mpiRankOffset_) then
