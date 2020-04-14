@@ -17,7 +17,7 @@ RUN     pwd && ls
 
 # Clone datasets.
 RUN     cd /opt &&\
-	git clone --depth 1 https://github.com/galacticusorg/galacticus.git galacticus
+	git clone --depth 1 https://github.com/galacticusorg/galacticus.git galacticus &&\
 	git clone --depth 1 https://github.com/galacticusorg/datasets.git datasets
 
 # Build Galacticus.
