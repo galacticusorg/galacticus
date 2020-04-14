@@ -53,7 +53,6 @@
   !# </cosmologicalMassVariance>
   use :: Cosmology_Functions                 , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters                , only : cosmologyParametersClass
-  use :: File_Utilities                      , only : lockDescriptor
   use :: Linear_Growth                       , only : linearGrowthClass
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredClass
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionClass       , powerSpectrumWindowFunctionTopHat
@@ -151,9 +150,6 @@
   ! Module-scope time used in integrals.
   double precision                            :: filteredPowerTime
   !$omp threadprivate(filteredPowerTime)
-
-  ! Lock used for file access.
-  type            (lockDescriptor)            :: filteredPowerFileLock
 
 contains
 
@@ -494,7 +490,7 @@ contains
   subroutine filteredPowerRetabulate(self,mass,time)
     !% Tabulate the cosmological mass variance.
     use :: Cosmology_Parameters    , only : hubbleUnitsLittleH
-    use :: File_Utilities          , only : File_Lock                , File_Unlock
+    use :: File_Utilities          , only : File_Lock                , File_Unlock                      , lockDescriptor
     use :: Galacticus_Display      , only : Galacticus_Display_Indent, Galacticus_Display_Message       , Galacticus_Display_Unindent, verbosityWorking
     use :: Galacticus_Error        , only : Galacticus_Error_Report  , Galacticus_Warn
     use :: Numerical_Constants_Math, only : Pi
@@ -517,16 +513,17 @@ contains
     !$omp threadprivate(message)
     character       (len=12                               )                              :: label                     , labelLow               , &
          &                                                                                  labelHigh                 , labelTarget
-
+    type            (lockDescriptor                       )                              :: fileLock
+    
     if (self%remakeTable(mass,time)) then
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       call File_Lock(char(self%fileName),filteredPowerFileLock,lockIsShared=.true.)
+       call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
        call self%fileRead()
-       call File_Unlock(filteredPowerFileLock,sync=.false.)
+       call File_Unlock(fileLock,sync=.false.)
     end if
     if (self%remakeTable(mass,time)) then
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       call File_Lock(char(self%fileName),filteredPowerFileLock,lockIsShared=.false.)
+       call File_Lock(char(self%fileName),fileLock,lockIsShared=.false.)
        ! Try again to read the file - another process/thread may have already created the file in which case we may not need to do so again.
        call self%fileRead()
        if (self%remakeTable(mass,time)) then
@@ -708,7 +705,7 @@ contains
           ! Store file.
           call self%fileWrite()
        end if
-       call File_Unlock(filteredPowerFileLock)
+       call File_Unlock(fileLock)
     end if
     return
 

@@ -22,7 +22,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <gsl/gsl_math.h>
+#include <gsl/gsl_rng.h>
 #include <errno.h>
+
+void gslRngDefault() {
+  gsl_rng_env_setup();
+}
 
 FILE *gslFileOpenC(const char *fileName, const char *access) {
   /* Open a file to be used for GSL state. */
