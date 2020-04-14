@@ -15,6 +15,12 @@ From:galacticusorg/buildenv:latest
 	echo "Building Galacticus container..."
 
 %post
+	echo LOCATION
+	pwd
+	ls
+	echo ENVIRONMENT
+	env
+	echo $GALACTICUS_EXEC_PATH
 	cd /opt
 	git clone --depth 1 https://github.com/galacticusorg/galacticus.git galacticus
 	git clone --depth 1 https://github.com/galacticusorg/datasets.git datasets
