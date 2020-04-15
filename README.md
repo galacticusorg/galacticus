@@ -1,6 +1,6 @@
 # Welcome to Galacticus
 
-[![badge](https://img.shields.io/docker/cloud/automated/galacticusorg/galacticus)](https://hub.docker.com/repository/docker/galacticusorg/galacticus) [![badge](https://img.shields.io/docker/cloud/build/galacticusorg/galacticus)](https://hub.docker.com/repository/docker/galacticusorg/galacticus) [![badge](https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg)](https://singularity-hub.org/collections/4251)
+[![hostedOnDockerHub](https://img.shields.io/docker/cloud/automated/galacticusorg/galacticus)](https://hub.docker.com/repository/docker/galacticusorg/galacticus) [![hostedOnDockerHub](https://img.shields.io/docker/cloud/build/galacticusorg/galacticus)](https://hub.docker.com/repository/docker/galacticusorg/galacticus) [![hostedOnSingularityHub](https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg)](https://singularity-hub.org/collections/4251)
 
 
 Welcome to the Galacticus project. Galacticus is a semi-analytic model of galaxy formation - a powerful toolkit for modeling the physics of how galaxies form.
