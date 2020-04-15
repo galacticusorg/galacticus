@@ -36,5 +36,5 @@ From:galacticusorg/buildenv:latest
 	git clone --depth 1 https://github.com/galacticusorg/datasets.git datasets
 	cd /opt/galacticus
 	make -j2 Galacticus.exe
-#./Galacticus.exe parameters/buildTools.xml
-#rm /opt/datasets/dynamic/c17.01.tar.gz /opt/datasets/dynamic/CAMB.tar.gz
+	./Galacticus.exe parameters/buildTools.xml
+	rm /opt/datasets/dynamic/c17.01.tar.gz /opt/datasets/dynamic/CAMB.tar.gz
