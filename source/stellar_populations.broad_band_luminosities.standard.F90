@@ -382,6 +382,7 @@ contains
           stellarPopulationHashedDescriptorComputed      =  .false.
           stellarPopulationSpectraPostprocessorPrevious_ => null()
           do iLuminosity=1,size(luminosityIndex)
+             !$omp critical(broadBandLuminositiesStandardComputeTable)
              if (allocated(self%luminosityTables(populationID)%isTabulated)) then
                 if (size(self%luminosityTables(populationID)%isTabulated) >= luminosityIndex(iLuminosity)) then
                    computeTable=.not.self%luminosityTables(populationID)%isTabulated(luminosityIndex(iLuminosity))
@@ -586,6 +587,7 @@ contains
                    self%luminosityTables(populationID)%isTabulatedMaximum=jLuminosity
                 end if
              end if
+             !$omp end critical(broadBandLuminositiesStandardComputeTable)
           end do
        end if
        call self%luminosityTableLock%unsetWrite(haveReadLock=.true.)
