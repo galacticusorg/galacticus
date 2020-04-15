@@ -12,8 +12,8 @@ From:galacticusorg/buildenv:latest
 	export GALACTICUS_FCFLAGS="-fintrinsic-modules-path $INSTALL_PATH/finclude -fintrinsic-modules-path $INSTALL_PATH/include -fintrinsic-modules-path $INSTALL_PATH/include/gfortran -fintrinsic-modules-path $INSTALL_PATH/lib/gfortran/modules -L$INSTALL_PATH/lib -L$INSTALL_PATH/lib64 -fuse-ld=bfd"
 	export GALACTICUS_CFLAGS="-fuse-ld=bfd"
 	export GALACTICUS_CPPFLAGS="-fuse-ld=bfd"
-	export GALACTICUS_EXEC_PATH=/root/galacticus
-	export GALACTICUS_DATA_PATH=/root/datasets
+	export GALACTICUS_EXEC_PATH=/opt/galacticus
+	export GALACTICUS_DATA_PATH=/opt/datasets
 
 %runscript
 	echo "Building Galacticus container..."
@@ -26,15 +26,15 @@ From:galacticusorg/buildenv:latest
 	export GALACTICUS_FCFLAGS="-fintrinsic-modules-path $INSTALL_PATH/finclude -fintrinsic-modules-path $INSTALL_PATH/include -fintrinsic-modules-path $INSTALL_PATH/include/gfortran -fintrinsic-modules-path $INSTALL_PATH/lib/gfortran/modules -L$INSTALL_PATH/lib -L$INSTALL_PATH/lib64 -fuse-ld=bfd"
 	export GALACTICUS_CFLAGS="-fuse-ld=bfd"
 	export GALACTICUS_CPPFLAGS="-fuse-ld=bfd"
-	export GALACTICUS_EXEC_PATH=/root/galacticus
-	export GALACTICUS_DATA_PATH=/root/datasets
+	export GALACTICUS_EXEC_PATH=/opt/galacticus
+	export GALACTICUS_DATA_PATH=/opt/datasets
 	echo ENVIRONMENT
 	env
 	echo $GALACTICUS_EXEC_PATH
-	cd /root
+	cd /opt
 	git clone --depth 1 https://github.com/galacticusorg/galacticus.git galacticus
 	git clone --depth 1 https://github.com/galacticusorg/datasets.git datasets
-	cd /root/galacticus
-	make -j4 Galacticus.exe
+	cd /opt/galacticus
+	make -j2 Galacticus.exe
 #./Galacticus.exe parameters/buildTools.xml
-#rm /root/datasets/dynamic/c17.01.tar.gz /root/datasets/dynamic/CAMB.tar.gz
+#rm /opt/datasets/dynamic/c17.01.tar.gz /opt/datasets/dynamic/CAMB.tar.gz
