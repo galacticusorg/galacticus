@@ -19,8 +19,12 @@
 
 !% Contains a module which implements outputting of formatted, indented messages at various vebosity levels from \glc.
 
+! Specify an explicit dependence on the C interface files.
+!: $(BUILDPATH)/isatty.o
+
 module Galacticus_Display
   !% Implements outputting of formatted, indented messages at various vebosity levels from \glc.
+  use, intrinsic :: ISO_C_Binding, only : c_int
   implicit none
   private
   public :: Galacticus_Display_Message,Galacticus_Display_Indent,Galacticus_Display_Unindent,Galacticus_Verbosity_Level&
@@ -43,6 +47,9 @@ module Galacticus_Display
   logical                                      :: barVisible                =.false.
   integer                                      :: barPercentage             =0
 
+  ! Output type.
+  logical                                      :: stdOutIsFile
+  
   interface Galacticus_Display_Message
      module procedure Galacticus_Display_Message_Char
      module procedure Galacticus_Display_Message_VarStr
@@ -57,6 +64,14 @@ module Galacticus_Display
      module procedure Galacticus_Display_Unindent_Char
      module procedure Galacticus_Display_Unindent_VarStr
   end interface Galacticus_Display_Unindent
+
+  interface
+     function stdOutIsATTY() bind(c,name='stdOutIsATTY')
+       !% Template for a C function that determines if stdout is a TTY.
+       import
+       integer(c_int) :: stdOutIsATTY
+     end function stdOutIsATTY
+  end interface
 
 contains
 
@@ -138,6 +153,9 @@ contains
           !$omp end critical(gfortranInternalIO)
 #endif
 #endif
+          ! Determine if stdout is connected to a file or pipe.
+          stdOutIsFile=stdOutIsATTY() /= 1
+          ! Mark display as initialized.
           displayInitialized=.true.
        end if
        !$omp end critical (Initialize_Display)
@@ -422,6 +440,8 @@ contains
        !$omp critical(gfortranInternalIO)
 #endif
        write (0,'(1x,i3,"% [",a50,"]",$)') percentage,bar
+       ! For output to a file, add a newline, since we will not be deleting the bar.
+       if (stdOutIsFile) write (0,*)
 #ifdef THREADSAFEIO
        !$omp end critical(gfortranInternalIO)
 #endif
@@ -450,7 +470,9 @@ contains
     integer, intent(in   ), optional :: verbosity
     logical                          :: showMessage
 
-    call Initialize_Display
+    call Initialize_Display()
+    ! If output is to a file we do not attempt to clear the bar (which is useful only on a TTY).
+    if (stdOutIsFile) return
     if (present(verbosity)) then
        showMessage=(verbosity       <= verbosityLevel)
     else
