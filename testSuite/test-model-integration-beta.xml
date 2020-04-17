@@ -6,6 +6,11 @@
   
   <!-- Logging -->
   <verbosityLevel value="1"/>
+
+  <!-- Random number generation -->
+  <randomNumberGeneratorMethod value="GSL">
+    <seed value="1" />
+  </randomNumberGeneratorMethod>
   
   <!-- Cosmological model -->
   <cosmologyParametersMethod value="simple">
@@ -177,16 +182,21 @@
   </galacticStructureSolverMethod>
 
   <!-- Star formation in disks -->
-  <starFormationTimescaleDisksMethod value="velocityMaxScaling">
-    <exponentRedshift value="-2.6841093892429728"/>
-    <timescale value="8.5952943576927687"/>
-    <exponentVelocity value="1.5643560026940344"/>
-  </starFormationTimescaleDisksMethod>
+  <starFormationRateDisksMethod value="timescale">
+    <starFormationTimescaleMethod value="lowerLimited">
+      <timescaleMinimum value="2.2925637877309368E-005"/>
+      <starFormationTimescaleMethod value="velocityMaxScaling">
+	<exponentRedshift value="-2.6841093892429728"/>
+	<timescale value="8.5952943576927687"/>
+	<exponentVelocity value="1.5643560026940344"/>
+      </starFormationTimescaleMethod>
+    </starFormationTimescaleMethod>
+    <starFormationActiveMassMethod value="surfaceDensityThreshold">
+      <surfaceDensityThreshold value="128685124731.37694"/>
+      <exponentVelocity value="-0.82656309641695880"/>
+    </starFormationActiveMassMethod>
+  </starFormationRateDisksMethod>
 
-  <diskStarFormationTimescaleMinimum value="2.2925637877309368E-005"/>
-  <diskVerySimpleSurfaceDensityThreshold value="128685124731.37694"/>
-  <diskVerySimpleSurfaceDensityVelocityExponent value="-0.82656309641695880"/>
-  
   <!-- Stellar feedback in disks -->
   <starFormationFeedbackDisksMethod value="vlctyMxSclng">
     <fraction value="6.2513793382530228E-002"/>
@@ -236,6 +246,9 @@
   <diskVerySimpleAnalyticSolverPruneMassGas value="1.0e6"/>
   <diskVerySimpleAnalyticSolverPruneMassStars value="1.0e6"/>
   <diskVerySimpleUseAnalyticSolver value="true"/>
+  
+  <!-- Node evolution and physics -->
+  <nodeOperatorMethod value="starFormationDisks"    />
   
   <!-- Output -->
   <galacticusOutputFileName value="testSuite/outputs/test-model-integration/beta/galacticus.hdf5"/>

@@ -85,4 +85,11 @@
   <hotHaloRamPressureStrippingMethod value="virialRadius"/>
   <hotHaloTrackStrippedGas value="false"/>
   <satelliteOrbitStoreOrbitalParameters value="false"/>
+
+  <!-- Node evolution and physics -->
+  <nodeOperatorMethod value="multi">
+    <nodeOperatorMethod value="starFormationDisks"    />
+    <nodeOperatorMethod value="starFormationSpheroids"/>
+  </nodeOperatorMethod>
+
 </parameters>

@@ -69,9 +69,11 @@
   <galacticStructureSolverMethod value="fixed"/>
 
   <!-- Star formation rate -->
-  <starFormationTimescaleDisksMethod value="fixed">
-    <timescale value="0.50"/>
-  </starFormationTimescaleDisksMethod>
+  <starFormationRateDisksMethod value="timescale">
+    <starFormationTimescaleMethod value="fixed">
+      <timescale value="0.50"/>
+    </starFormationTimescaleMethod>
+  </starFormationRateDisksMethod>
 
   <!-- Feedback -->
   <starFormationFeedbackDisksMethod value="fixed">
@@ -96,6 +98,9 @@
     <timestepHostRelative value="0.100"/>
   </mergerTreeEvolverMethod>
 
+  <!-- Node evolution and physics -->
+  <nodeOperatorMethod value="starFormationDisks"/>
+  
   <!-- Output options -->
   <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>

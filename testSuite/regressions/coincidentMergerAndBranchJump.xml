@@ -153,16 +153,18 @@
     <stabilityThresholdStellar value="0.7"/>
   </galacticDynamicsBarInstabilityMethod>
   <!-- Star formation rate options -->
-  <starFormationTimescaleDisksMethod value="intgrtdSurfaceDensity"/>
+  <starFormationRateDisksMethod value="intgrtdSurfaceDensity"/>
   <starFormationRateSurfaceDensityDisksMethod value="krumholz2009">
     <molecularFractionFast value="true"/>
   </starFormationRateSurfaceDensityDisksMethod>
-  <starFormationTimescaleSpheroidsMethod value="dynamicalTime">
-    <efficiency value="0.004"/>
-    <exponentVelocity value="4.0"/>
-    <timescaleMinimum value="0.001"/>
-  </starFormationTimescaleSpheroidsMethod>
-
+  <starFormationRateSpheroidsMethod value="timescale">
+    <starFormationTimescaleMethod value="dynamicalTime">
+      <efficiency value="0.004"/>
+      <exponentVelocity value="4.0"/>
+      <timescaleMinimum value="0.001"/>
+    </starFormationTimescaleMethod>
+  </starFormationRateSpheroidsMethod>
+  
   <!-- Stellar populations options -->
   <stellarPopulationPropertiesMethod value="instantaneous"/>
   <stellarPopulationSpectraMethod value="FSPS"/>
@@ -215,6 +217,12 @@
   <!-- Satellite orbit options -->
   <satelliteOrbitStoreOrbitalParameters value="true"/>
 
+  <!-- Node evolution and physics -->
+  <nodeOperatorMethod value="multi">
+    <nodeOperatorMethod value="starFormationDisks"    />
+    <nodeOperatorMethod value="starFormationSpheroids"/>
+  </nodeOperatorMethod>
+  
   <!-- Galaxy merger options -->
   <virialOrbitMethod value="benson2005"/>
   <satelliteMergingTimescalesMethod value="jiang2008">

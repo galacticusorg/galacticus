@@ -30,7 +30,7 @@ module Node_Component_Spheroid_Standard
   use :: Star_Formation_Feedback_Expulsion_Spheroids    , only : starFormationExpulsiveFeedbackSpheroidsClass
   use :: Star_Formation_Feedback_Spheroids              , only : starFormationFeedbackSpheroidsClass
   use :: Star_Formation_Histories                       , only : starFormationHistory                        , starFormationHistoryClass
-  use :: Star_Formation_Timescales_Spheroids            , only : starFormationTimescaleSpheroidsClass
+  use :: Star_Formation_Rates_Spheroids                 , only : starFormationRateSpheroidsClass
   use :: Stellar_Population_Properties                  , only : stellarPopulationPropertiesClass
   use :: Tidal_Stripping_Mass_Loss_Rate_Spheroids       , only : tidalStrippingSpheroidsClass
   implicit none
@@ -118,13 +118,6 @@ module Node_Component_Spheroid_Standard
   !#     <output unitsInSI="kilo" comment="Circular velocity at the scale length of the standard spheroid."/>
   !#   </property>
   !#   <property>
-  !#     <name>starFormationRate</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" createIfNeeded="true" makeGeneric="true" isVirtual="true" />
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <output condition="[[spheroidOutputStarFormationRate]]" unitsInSI="massSolar/gigaYear" comment="Star formation rate of the standard spheroid."/>
-  !#   </property>
-  !#   <property>
   !#     <name>luminositiesStellar</name>
   !#     <type>stellarLuminosities</type>
   !#     <rank>0</rank>
@@ -177,11 +170,11 @@ module Node_Component_Spheroid_Standard
   class(tidalStrippingSpheroidsClass                ), pointer :: tidalStrippingSpheroids_
   class(darkMatterHaloScaleClass                    ), pointer :: darkMatterHaloScale_
   class(satelliteTidalFieldClass                    ), pointer :: satelliteTidalField_
-  class(starFormationTimescaleSpheroidsClass        ), pointer :: starFormationTimescaleSpheroids_
+  class(starFormationRateSpheroidsClass             ), pointer :: starFormationRateSpheroids_
   class(starFormationHistoryClass                   ), pointer :: starFormationHistory_
   class(mergerMassMovementsClass                    ), pointer :: mergerMassMovements_
   class(mergerRemnantSizeClass                      ), pointer :: mergerRemnantSize_
-  !$omp threadprivate(stellarPopulationProperties_,starFormationFeedbackSpheroids_,starFormationExpulsiveFeedbackSpheroids_,ramPressureStrippingSpheroids_,tidalStrippingSpheroids_,darkMatterHaloScale_,satelliteTidalField_,starFormationTimescaleSpheroids_,starFormationHistory_,mergerMassMovements_,mergerRemnantSize_)
+  !$omp threadprivate(stellarPopulationProperties_,starFormationFeedbackSpheroids_,starFormationExpulsiveFeedbackSpheroids_,ramPressureStrippingSpheroids_,tidalStrippingSpheroids_,darkMatterHaloScale_,satelliteTidalField_,starFormationRateSpheroids_,starFormationHistory_,mergerMassMovements_,mergerRemnantSize_)
 
   ! Internal count of abundances.
   integer                                     :: abundancesCount
@@ -192,7 +185,7 @@ module Node_Component_Spheroid_Standard
   ! Parameters controlling the physical implementation.
   double precision                            :: spheroidEnergeticOutflowMassRate    , spheroidOutflowTimescaleMinimum    , &
        &                                         spheroidMassToleranceAbsolute
-  logical                                     :: spheroidStarFormationInSatellites   , spheroidLuminositiesStellarInactive
+  logical                                     :: spheroidLuminositiesStellarInactive
 
   ! Spheroid structural parameters.
   double precision                            :: spheroidAngularMomentumAtScaleRadius
@@ -224,7 +217,6 @@ contains
        abundancesCount  =Abundances_Property_Count            ()
 
        ! Bind deferred functions.
-       call spheroidStandardComponent%           starFormationRateFunction(Node_Component_Spheroid_Standard_Star_Formation_Rate        )
        call spheroidStandardComponent%          energyGasInputRateFunction(Node_Component_Spheroid_Standard_Energy_Gas_Input_Rate      )
        call spheroidStandardComponent%             massGasSinkRateFunction(Node_Component_Spheroid_Standard_Mass_Gas_Sink_Rate         )
        call spheroidStandardComponent%    starFormationHistoryRateFunction(Node_Component_Spheroid_Standard_Star_Formation_History_Rate)
@@ -255,14 +247,6 @@ contains
        !#   <description>The minimum timescale (in units of the spheroid dynamical time) on which outflows may deplete gas in the spheroid.</description>
        !#   <source>parameters_</source>
        !#   <type>double</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>spheroidStarFormationInSatellites</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>.true.</defaultValue>
-       !#   <description>Specifies whether or not star formation occurs in spheroids in satellites.</description>
-       !#   <source>parameters_</source>
-       !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>spheroidLuminositiesStellarInactive</name>
@@ -304,7 +288,7 @@ contains
        !# <objectBuilder class="stellarPopulationProperties"             name="stellarPopulationProperties_"             source="parameters_"/>
        !# <objectBuilder class="starFormationFeedbackSpheroids"          name="starFormationFeedbackSpheroids_"          source="parameters_"/>
        !# <objectBuilder class="starFormationExpulsiveFeedbackSpheroids" name="starFormationExpulsiveFeedbackSpheroids_" source="parameters_"/>
-       !# <objectBuilder class="starFormationTimescaleSpheroids"         name="starFormationTimescaleSpheroids_"         source="parameters_"/>
+       !# <objectBuilder class="starFormationRateSpheroids"              name="starFormationRateSpheroids_"              source="parameters_"/>
        !# <objectBuilder class="ramPressureStrippingSpheroids"           name="ramPressureStrippingSpheroids_"           source="parameters_"/>
        !# <objectBuilder class="tidalStrippingSpheroids"                 name="tidalStrippingSpheroids_"                 source="parameters_"/>
        !# <objectBuilder class="darkMatterHaloScale"                     name="darkMatterHaloScale_"                     source="parameters_"/>
@@ -368,7 +352,7 @@ contains
        !# <objectDestructor name="stellarPopulationProperties_"            />
        !# <objectDestructor name="starFormationFeedbackSpheroids_"         />
        !# <objectDestructor name="starFormationExpulsiveFeedbackSpheroids_"/>
-       !# <objectDestructor name="starFormationTimescaleSpheroids_"        />
+       !# <objectDestructor name="starFormationRateSpheroids_"             />
        !# <objectDestructor name="ramPressureStrippingSpheroids_"          />
        !# <objectDestructor name="tidalStrippingSpheroids_"                />
        !# <objectDestructor name="darkMatterHaloScale_"                    />
@@ -684,12 +668,11 @@ contains
          &                                                             tidalField                 , tidalTorque
     type            (history              )                         :: historyTransferRate        , stellarHistoryRate
     type            (stellarLuminosities  ), save                   :: luminositiesStellarRates
-    logical                                                         :: luminositiesCompute
     !$omp threadprivate(luminositiesStellarRates)
     !$GLC attributes unused :: interrupt, interruptProcedure, odeConverged
 
-    ! Return immediately if this class is not in use.
-    if (.not.defaultSpheroidComponent%standardIsActive()) return
+    ! Return immediately if this class is not in use or only inactive properties are to be computed.
+    if (.not.defaultSpheroidComponent%standardIsActive() .or. propertyType == propertyTypeInactive) return
     ! Get the disk and check that it is of our class.
     spheroid => node%spheroid()
     select type (spheroid)
@@ -700,47 +683,17 @@ contains
             & .or. spheroid%massGas        () <            massMinimum &
             & ) return
        ! Compute the star formation rate.
-       if (propertyType == propertyTypeInactive) then
-          starFormationRate=spheroid%massStellarFormedRateGet()
-       else
-          ! During active property solution, integrate the star formation rate so that we will have a solution for the total mass
-          ! of stars formed as a function of time. This differs from the stellar mass due to recycling, and possibly transfer of
-          ! stellar mass to other components.
-          starFormationRate=spheroid%starFormationRate()
-          call spheroid%massStellarFormedRate(starFormationRate)
-       end if
+       starFormationRate=starFormationRateSpheroids_%rate(node)
        ! Get the available fuel mass.
        fuelMass         =spheroid%massGas          ()
        ! Find the metallicity of the fuel supply.
        fuelAbundances   =spheroid%abundancesGas    ()
        call fuelAbundances%massToMassFraction(fuelMass)
-       ! Determine if luminosities must be computed.
-       luminositiesCompute= (propertyType == propertyTypeActive   .and. .not.spheroidLuminositiesStellarInactive) &
-            &              .or.                                                                                   &
-            &               (propertyType == propertyTypeInactive .and.      spheroidLuminositiesStellarInactive) &
-            &              .or.                                                                                   &
-            &                propertyType == propertyTypeAll
        ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
        stellarHistoryRate=spheroid%stellarPropertiesHistory()
        call stellarPopulationProperties_%rates(starFormationRate,fuelAbundances,spheroid,node,stellarHistoryRate&
-            &,stellarMassRate,fuelMassRate,energyInputRate,fuelAbundancesRates,stellarAbundancesRates,luminositiesStellarRates,luminositiesCompute)
-       if (stellarHistoryRate%exists()) call spheroid%stellarPropertiesHistoryRate(stellarHistoryRate)
-       ! Adjust rates.
-       if (propertyType == propertyTypeActive .or. propertyType == propertyTypeAll) then
-          call spheroid%      massStellarRate(       stellarMassRate)
-          call spheroid%          massGasRate(          fuelMassRate)
-          call spheroid%abundancesStellarRate(stellarAbundancesRates)
-          call spheroid%    abundancesGasRate(   fuelAbundancesRates)
-       end if
-       if (luminositiesCompute) call spheroid%luminositiesStellarRate(luminositiesStellarRates)
-       if (propertyType == propertyTypeInactive) return
-
-       ! Record the star formation history.
-       stellarHistoryRate=spheroid%starFormationHistory()
-       call stellarHistoryRate   %reset(                                                        )
-       call starFormationHistory_%rate (node,stellarHistoryRate,fuelAbundances,starFormationRate)
-       if (stellarHistoryRate%exists()) call spheroid%starFormationHistoryRate(stellarHistoryRate)
-
+            &,stellarMassRate,fuelMassRate,energyInputRate,fuelAbundancesRates,stellarAbundancesRates,luminositiesStellarRates,computeRateLuminosityStellar=.false.)
+       
        ! Find rate of outflow of material from the spheroid and pipe it to the outflowed reservoir.
        massOutflowRateToHotHalo=starFormationFeedbackSpheroids_         %outflowRate(node,energyInputRate,starFormationRate)
        massOutflowRateFromHalo =starFormationExpulsiveFeedbackSpheroids_%outflowRate(node,starFormationRate,energyInputRate)
@@ -1574,37 +1527,6 @@ contains
     call self%isInitializedSet(.true.)
     return
   end subroutine Node_Component_Spheroid_Standard_Initializor
-
-  double precision function Node_Component_Spheroid_Standard_Star_Formation_Rate(self)
-    !% Return the star formation rate of the standard spheroid.
-    use :: Galacticus_Nodes, only : nodeComponentSpheroidStandard, treeNode
-    implicit none
-    class           (nodeComponentSpheroidStandard), intent(inout) :: self
-    type            (treeNode                     ), pointer       :: node
-    double precision                                               :: gasMass, starFormationTimescale
-
-    ! Check for a realistic spheroid, return zero if spheroid is unphysical.
-    if     (    self%angularMomentum() < angularMomentumMinimum &
-         & .or. self%radius         () <          radiusMinimum &
-         & .or. self%massGas        () <            massMinimum &
-         & ) then
-       Node_Component_Spheroid_Standard_Star_Formation_Rate=0.0d0
-    else
-       ! Get the associated node.
-       node => self%host()
-       ! Get the star formation timescale.
-       starFormationTimescale=starFormationTimescaleSpheroids_%timescale(node)
-       ! Get the gas mass.
-       gasMass=self%massGas()
-       ! If timescale is finite and gas mass is positive, then compute star formation rate.
-       if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0 .and. (spheroidStarFormationInSatellites .or. .not.node%isSatellite())) then
-          Node_Component_Spheroid_Standard_Star_Formation_Rate=gasMass/starFormationTimescale
-       else
-          Node_Component_Spheroid_Standard_Star_Formation_Rate=0.0d0
-       end if
-    end if
-    return
-  end function Node_Component_Spheroid_Standard_Star_Formation_Rate
 
   subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Extend(node)
     !% Extend the range of a star formation history in a standard spheroid component for {\normalfont \ttfamily node}.

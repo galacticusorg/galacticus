@@ -23,6 +23,8 @@ module Node_Component_Inter_Output_Standard
   !% Implements the standard indices component.
   use :: Output_Times                    , only : outputTimesClass
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
+  use :: Star_Formation_Rates_Disks      , only : starFormationRateDisksClass
+  use :: Star_Formation_Rates_Spheroids  , only : starFormationRateSpheroidsClass
   implicit none
   private
   public :: Node_Component_Inter_Output_Standard_Rate_Compute      , Node_Component_Inter_Output_Standard_Reset    , &
@@ -54,9 +56,11 @@ module Node_Component_Inter_Output_Standard
   !# </component>
 
   ! Objects used by this component.
-  class(outputTimesClass        ), pointer :: outputTimes_
-  class(mergerMassMovementsClass), pointer :: mergerMassMovements_
-  !$omp threadprivate(outputTimes_,mergerMassMovements_)
+  class(outputTimesClass               ), pointer :: outputTimes_
+  class(mergerMassMovementsClass       ), pointer :: mergerMassMovements_
+  class(starFormationRateDisksClass    ), pointer :: starFormationRateDisks_
+  class(starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_
+  !$omp threadprivate(outputTimes_,mergerMassMovements_,starFormationRateDisks_,starFormationRateSpheroids_)
 
 contains
 
@@ -75,8 +79,10 @@ contains
     if (defaultInteroutputComponent%standardIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call satelliteMergerEvent%attach(defaultInteroutputComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentInteroutputStandard',dependencies=dependencies)
-       !# <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters_"/>
-       !# <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters_"/>
+       !# <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters_"/>
+       !# <objectBuilder class="mergerMassMovements"        name="mergerMassMovements_"        source="parameters_"/>
+       !# <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters_"/>
+       !# <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters_"/>
     end if
     return
   end subroutine Node_Component_Interoutput_Standard_Thread_Initialize
@@ -92,8 +98,10 @@ contains
 
     if (defaultInteroutputComponent%standardIsActive()) then
        call satelliteMergerEvent%detach(defaultInteroutputComponent,satelliteMerger)
-       !# <objectDestructor name="outputTimes_"        />
-       !# <objectDestructor name="mergerMassMovements_"/>
+       !# <objectDestructor name="outputTimes_"               />
+       !# <objectDestructor name="mergerMassMovements_"       />
+       !# <objectDestructor name="starFormationRateDisks_"    />
+       !# <objectDestructor name="starFormationRateSpheroids_"/>
     end if
     return
   end subroutine Node_Component_Interoutput_Standard_Thread_Uninitialize
@@ -162,10 +170,10 @@ contains
     ! Get the disk and check that it is of our class.
     interOutput => node%interOutput()
     ! Get disk and spheroid star formation rates.
-    disk                      => node    %disk             ()
-    spheroid                  => node    %spheroid         ()
-    diskStarFormationRate     =  disk    %starFormationRate()
-    spheroidStarFormationRate =  spheroid%starFormationRate()
+    disk                      => node                       %disk    (    )
+    spheroid                  => node                       %spheroid(    )
+    diskStarFormationRate     =  starFormationRateDisks_    %rate    (node)
+    spheroidStarFormationRate =  starFormationRateSpheroids_%rate    (node)
     ! Find the time interval between previous and next outputs.
     basic              => node %basic()
     timeCurrent        =  basic%time ()

@@ -13,9 +13,14 @@ use File::Find;
 use Term::ReadKey;
 use System::Redirect;
 use Galacticus::Launch::PBS;
+use Galacticus::Options;
 
 # Run a suite of tests on the Galacticus code.
 # Andrew Benson (19-Aug-2010).
+
+# Get options.
+my %options;
+&Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
 # Read in any configuration options.
 my $config;
@@ -66,8 +71,14 @@ open(lHndl,">".$logFile);
 system("rm -rf work/build/*");
 
 # Create a directory for test suite outputs.
-system("rm -rf testSuite/outputs");
-system("mkdir -p testSuite/outputs");
+if ( exists($options{'outputPath'}) ) {
+    system("rm -rf "  .$options{'outputPath'}." testSuite/outputs");
+    system("mkdir -p ".$options{'outputPath'});
+    system("cd testSuite; ln -sf ".$options{'outputPath'}." outputs");
+} else {
+    system("rm -rf testSuite/outputs");
+    system("mkdir -p testSuite/outputs");
+}
 
 # Write header to log file.
 print lHndl ":-> Running test suite:\n";
@@ -650,7 +661,7 @@ foreach $mpi ( "noMPI", "MPI" ) {
     unlink("testSuite/compileGalacticus".$mpi.".pbs");
     if ( -e "./Galacticus.exe" ) {
 	# Find all test scripts to run.
-	my @testDirs = ( "testSuite" );
+	my @testDirs = ( "testSuite/" );
 	find(\&runTestScript,@testDirs);
 	# Run scripts that require us to launch them under PBS.
 	&Galacticus::Launch::PBS::SubmitJobs(\%pbsOptions,@launchPBS);

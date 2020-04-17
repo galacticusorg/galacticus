@@ -47,6 +47,15 @@ module Nodes_Operators
   !#    !$GLC attributes unused :: self, node
   !#   </code>
   !#  </method>
+  !#  <method name="differentialEvolutionPre" >
+  !#   <description>Operate on a node before differential evolution.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#   <code>
+  !#    !$GLC attributes unused :: self, node
+  !#   </code>
+  !#  </method>
   !#  <method name="differentialEvolution" >
   !#   <description>Operate on a node during differential evolution.</description>
   !#   <type>void</type>
@@ -58,6 +67,15 @@ module Nodes_Operators
   !#   <argument>integer                 , intent(in   )          :: propertyType     </argument>
   !#   <code>
   !#    !$GLC attributes unused :: self, node, odeConverged, interrupt, functionInterrupt, propertyType
+  !#   </code>
+  !#  </method>
+  !#  <method name="differentialEvolutionStepFinalState" >
+  !#   <description>Operate on a node at the end of an ODE step.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#   <code>
+  !#    !$GLC attributes unused :: self, node
   !#   </code>
   !#  </method>
   !#  <method name="differentialEvolutionPost" >

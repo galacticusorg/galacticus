@@ -151,15 +151,17 @@
     <stabilityThresholdStellar value="0.7"/>
   </galacticDynamicsBarInstabilityMethod>
   <!-- Star formation rate options -->
-  <starFormationTimescaleDisksMethod value="intgrtdSurfaceDensity"/>
+  <starFormationRateDisksMethod value="intgrtdSurfaceDensity"/>
   <starFormationRateSurfaceDensityDisksMethod value="krumholz2009">
     <molecularFractionFast value="true"/>
   </starFormationRateSurfaceDensityDisksMethod>
-  <starFormationTimescaleSpheroidsMethod value="dynamicalTime">
-    <efficiency value="0.004"/>
-    <exponentVelocity value="4.0"/>
-    <timescaleMinimum value="0.001"/>
-  </starFormationTimescaleSpheroidsMethod>
+  <starFormationRateSpheroidsMethod value="timescale">
+    <starFormationTimescaleMethod value="dynamicalTime">
+      <efficiency value="0.004"/>
+      <exponentVelocity value="4.0"/>
+      <timescaleMinimum value="0.001"/>
+    </starFormationTimescaleMethod>
+  </starFormationRateSpheroidsMethod>
 
   <!-- Stellar populations options -->
   <stellarPopulationPropertiesMethod value="instantaneous"/>
@@ -229,14 +231,20 @@
   <!-- Spheroid options -->
   <spheroidEnergeticOutflowMassRate value="1.0"/>
 
+  <!-- Node evolution and physics -->
+  <nodeOperatorMethod value="multi">
+    <nodeOperatorMethod value="starFormationDisks"    />
+    <nodeOperatorMethod value="starFormationSpheroids"/>
+  </nodeOperatorMethod>
+  
   <!-- Numerical tolerances -->
   <mergerTreeNodeEvolverMethod value="standard">
     <odeToleranceAbsolute value="0.01"/>
     <odeToleranceRelative value="0.01"/>
   </mergerTreeNodeEvolverMethod>
-
   <diskMassToleranceAbsolute value="1.0e-6"/>
   <spheroidMassToleranceAbsolute value="1.0e-6"/>
+  
   <!-- Output options -->
   <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
@@ -245,4 +253,4 @@
     <redshifts value="0.0 1.0 2.0 3.0"/>
   </outputTimesMethod>
 
-  </parameters>
+</parameters>

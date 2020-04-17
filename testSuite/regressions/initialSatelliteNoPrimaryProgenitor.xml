@@ -9,11 +9,17 @@
   <version>0.9.4</version>
   <verbosityLevel value="1"/>
   <treeNodeMethodDarkMatterProfile value="scale"/>
-  <starFormationTimescaleDisksMethod value="haloScaling">
-    <exponentRedshift value="0.0"/>
-    <exponentVelocityVirial value="0.0"/>
-    <timescale value="1.0"/>
-  </starFormationTimescaleDisksMethod>
+  
+  <!-- Node evolution and physics -->
+  <nodeOperatorMethod value="starFormationDisks"/>
+  
+  <starFormationRateDisksMethod value="timescale">
+    <starFormationTimescaleMethod value="haloScaling">
+      <exponentRedshift value="0.0"/>
+      <exponentVelocityVirial value="0.0"/>
+      <timescale value="1.0"/>
+    </starFormationTimescaleMethod>
+  </starFormationRateDisksMethod>
 
   <coolingTimeMethod value="simple">
     <degreesOfFreedom value="3.0"/>
@@ -141,11 +147,13 @@
   <randomNumberGeneratorMethod value="GSL">
     <seed value="828"/>
   </randomNumberGeneratorMethod>
-  <starFormationFeedbackDisksMethod value="haloScaling">
-    <fraction value="1.0"/>
-    <exponentVelocity value="-3.0"/>
-    <exponentRedshift value="0.0"/>
-  </starFormationFeedbackDisksMethod>
+  <starFormationRateDisksMethod value="timescale">
+    <starFormationTimescaleMethod value="haloScaling">
+      <fraction value="1.0"/>
+      <exponentVelocity value="-3.0"/>
+      <exponentRedshift value="0.0"/>
+    </starFormationTimescaleMethod>
+  </starFormationRateDisksMethod>
   <coolingRateMethod value="simpleScaling">
     <timescale value="1.0"/>
     <massCutOff value="5.0e12"/>

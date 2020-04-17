@@ -66,4 +66,11 @@
   <treeNodeMethodSpin value="preset3D"/>
   <verbosityLevel value="1"/>
   <galacticusOutputFileName value="testSuite/outputs/deadlockMergeTargetInDescendentOfMergee.hdf5"/>
+
+  <!-- Node evolution and physics -->
+  <nodeOperatorMethod value="multi">
+    <nodeOperatorMethod value="starFormationDisks"    />
+    <nodeOperatorMethod value="starFormationSpheroids"/>
+  </nodeOperatorMethod>
+
 </parameters>

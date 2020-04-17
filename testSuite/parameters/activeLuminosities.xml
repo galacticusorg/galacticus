@@ -130,17 +130,19 @@
   <galacticDynamicsBarInstabilityMethod value="efstathiou1982"/>
     
   <!-- Star formation rate options -->
-  <starFormationTimescaleDisksMethod value="intgrtdSurfaceDensity"/>
+  <starFormationRateDisksMethod value="intgrtdSurfaceDensity"/>
   <starFormationRateSurfaceDensityDisksMethod value="krumholz2009">
     <frequencyStarFormation value="0.385"/>
     <clumpingFactorMolecularComplex value="5.000"/>
     <molecularFractionFast value="true"/>
   </starFormationRateSurfaceDensityDisksMethod>
-  <starFormationTimescaleSpheroidsMethod value="dynamicalTime">
-    <efficiency value="0.04"/>
-    <exponentVelocity value="2.0"/>
-    <timescaleMinimum value="0.001"/>
-  </starFormationTimescaleSpheroidsMethod>
+  <starFormationRateSpheroidsMethod value="timescale">
+    <starFormationTimescaleMethod value="dynamicalTime">
+      <efficiency value="0.04"/>
+      <exponentVelocity value="2.0"/>
+      <timescaleMinimum value="0.001"/>
+    </starFormationTimescaleMethod>
+  </starFormationRateSpheroidsMethod>
   
   <!-- Stellar populations options -->
   <stellarPopulationPropertiesMethod value="instantaneous"/>
@@ -224,6 +226,16 @@
     <timestepHostAbsolute value="1.0"/>
     <timestepHostRelative value="0.1"/>
   </mergerTreeEvolverMethod>
+
+  <!-- Physics -->
+  <nodeOperatorMethod value="multi">
+    <nodeOperatorMethod value="starFormationDisks"    >
+      <luminositiesStellarInactive value="false"/>
+    </nodeOperatorMethod>
+    <nodeOperatorMethod value="starFormationSpheroids">
+      <luminositiesStellarInactive value="false"/>
+    </nodeOperatorMethod>
+  </nodeOperatorMethod>
 
   <!-- Output options -->
   <mergerTreeOutputterMethod value="standard">

@@ -4,12 +4,21 @@
   <version>0.9.4</version>
   <verbosityLevel value="1"/>
   <treeNodeMethodDarkMatterProfile value="scale"/>
-  <starFormationTimescaleDisksMethod value="haloScaling">
-    <exponentRedshift value="0.0"/>
-    <exponentVelocityVirial value="0.0"/>
-    <timescale value="1.0"/>
-  </starFormationTimescaleDisksMethod>
+  
+  <starFormationRateDisksMethod value="timescale">
+    <starFormationTimescaleMethod value="haloScaling">
+      <exponentRedshift value="0.0"/>
+      <exponentVelocityVirial value="0.0"/>
+      <timescale value="1.0"/>
+    </starFormationTimescaleMethod>
+  </starFormationRateDisksMethod>
 
+  <!-- Node evolution and physics -->
+  <nodeOperatorMethod value="multi">
+    <nodeOperatorMethod value="starFormationDisks"    />
+    <nodeOperatorMethod value="starFormationSpheroids"/>
+  </nodeOperatorMethod>
+  
   <coolingTimeMethod value="simple">
     <degreesOfFreedom value="3.0"/>
   </coolingTimeMethod>

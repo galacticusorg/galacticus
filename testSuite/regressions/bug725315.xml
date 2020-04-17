@@ -22,12 +22,20 @@
     <A value="0.8"/>
   </darkMatterProfileMethod>
 
-  <starFormationTimescaleDisksMethod value="dynamicalTime">
-    <efficiency value="0.01"/>
-    <timescaleMinimum value="0.001"/>
-    <exponentVelocity value="-1.5"/>
-  </starFormationTimescaleDisksMethod>
-
+  <starFormationRateDisksMethod value="timescale">
+    <starFormationTimescaleMethod value="dynamicalTime">
+      <efficiency value="0.01"/>
+      <exponentVelocity value="-1.5"/>
+      <timescaleMinimum value="0.001"/> 
+    </starFormationTimescaleMethod>
+  </starFormationRateDisksMethod>
+  
+  <!-- Node evolution and physics -->
+  <nodeOperatorMethod value="multi">
+    <nodeOperatorMethod value="starFormationDisks"    />
+    <nodeOperatorMethod value="starFormationSpheroids"/>
+  </nodeOperatorMethod>
+  
   <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.807"/>
   </cosmologicalMassVarianceMethod>
@@ -104,11 +112,14 @@
   <virialOrbitMethod value="benson2005"/>
   <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   <mergerTreeNodeMergerMethod value="singleLevelHierarchy"/>
-  <starFormationTimescaleSpheroidsMethod value="dynamicalTime">
-    <timescaleMinimum value="0.001"/>
-    <exponentVelocity value="0"/>
-    <efficiency value="0.1"/>
-  </starFormationTimescaleSpheroidsMethod>
+
+  <starFormationRateSpheroidsMethod value="timescale">
+    <starFormationTimescaleMethod value="dynamicalTime">
+      <efficiency value="0.1"/>
+      <exponentVelocity value="0"/>
+      <timescaleMinimum value="0.001"/> 
+    </starFormationTimescaleMethod>
+  </starFormationRateSpheroidsMethod>
 
   <mergerMassMovementsMethod value="simple">
   <massRatioMajorMerger value="0.1"/>

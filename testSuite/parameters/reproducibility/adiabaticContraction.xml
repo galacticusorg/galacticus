@@ -54,8 +54,9 @@
 
   <!-- Merger tree building options -->
   <mergerTreeConstructorMethod value="fullySpecified">
-  <fileName value="testSuite/parameters/reproducibility/adiabaticContractionTree.xml"/>
+    <fileName value="testSuite/parameters/reproducibility/adiabaticContractionTree.xml"/>
   </mergerTreeConstructorMethod>
+  
   <!-- Dark matter halo profile -->
   <darkMatterProfileDMOMethod value="isothermal"/>
   

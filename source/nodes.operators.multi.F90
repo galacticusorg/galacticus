@@ -35,8 +35,13 @@
      private
      type(multiProcessList), pointer :: processes => null()
    contains
-     final     ::                multiDestructor
-     procedure :: nodePromote => multiNodePromote
+     final     ::                                        multiDestructor
+     procedure :: nodePromote                         => multiNodePromote
+     procedure :: galaxiesMerge                       => multiGalaxiesMerge
+     procedure :: differentialEvolutionPre            => multiDifferentialEvolutionPre
+     procedure :: differentialEvolution               => multiDifferentialEvolution
+     procedure :: differentialEvolutionStepFinalState => multiDifferentialEvolutionStepFinalState
+     procedure :: differentialEvolutionPost           => multiDifferentialEvolutionPost
   end type nodeOperatorMulti
 
   interface nodeOperatorMulti
@@ -104,7 +109,7 @@ contains
     end if
     return
   end subroutine multiDestructor
-  
+
   subroutine multiNodePromote(self,node)
     !% Act on a node promotion event.
     implicit none
@@ -119,3 +124,82 @@ contains
     end do
     return
   end subroutine multiNodePromote
+
+  subroutine multiGalaxiesMerge(self,node)
+    !% Act on a merger between galaxies.
+    implicit none
+    class(nodeOperatorMulti), intent(inout) :: self
+    type (treeNode         ), intent(inout) :: node
+    type (multiProcessList ), pointer       :: process_
+
+    process_ => self%processes
+    do while (associated(process_))
+       call process_%process_%galaxiesMerge(node)
+       process_ => process_%next
+    end do
+    return
+  end subroutine multiGalaxiesMerge
+
+  subroutine multiDifferentialEvolutionPre(self,node)
+    !% Act on a node before differential evolution.
+    implicit none
+    class(nodeOperatorMulti), intent(inout) :: self
+    type (treeNode         ), intent(inout) :: node
+    type (multiProcessList ), pointer       :: process_
+
+    process_ => self%processes
+    do while (associated(process_))
+       call process_%process_%differentialEvolutionPre(node)
+       process_ => process_%next
+    end do
+    return
+  end subroutine multiDifferentialEvolutionPre
+
+  subroutine multiDifferentialEvolution(self,node,odeConverged,interrupt,functionInterrupt,propertyType)
+    !% Act on a node during differential evolution.
+    implicit none
+    class    (nodeOperatorMulti), intent(inout)          :: self
+    type     (treeNode         ), intent(inout)          :: node
+    logical                     , intent(in   )          :: odeConverged
+    logical                     , intent(inout)          :: interrupt
+    procedure(interruptTask    ), intent(inout), pointer :: functionInterrupt
+    integer                     , intent(in   )          :: propertyType
+    type     (multiProcessList )               , pointer :: process_
+
+    process_ => self%processes
+    do while (associated(process_))
+       call process_%process_%differentialEvolution(node,odeConverged,interrupt,functionInterrupt,propertyType)
+       process_ => process_%next
+    end do
+    return
+  end subroutine multiDifferentialEvolution
+
+  subroutine multiDifferentialEvolutionStepFinalState(self,node)
+    !% Act on a node after a differential evolution ODE step.
+    implicit none
+    class(nodeOperatorMulti), intent(inout) :: self
+    type (treeNode         ), intent(inout) :: node
+    type (multiProcessList ), pointer       :: process_
+
+    process_ => self%processes
+    do while (associated(process_))
+       call process_%process_%differentialEvolutionStepFinalState(node)
+       process_ => process_%next
+    end do
+    return
+  end subroutine multiDifferentialEvolutionStepFinalState
+
+  subroutine multiDifferentialEvolutionPost(self,node)
+    !% Act on a node after differential evolution.
+    implicit none
+    class(nodeOperatorMulti), intent(inout) :: self
+    type (treeNode         ), intent(inout) :: node
+    type (multiProcessList ), pointer       :: process_
+
+    process_ => self%processes
+    do while (associated(process_))
+       call process_%process_%differentialEvolutionPost(node)
+       process_ => process_%next
+    end do
+    return
+  end subroutine multiDifferentialEvolutionPost

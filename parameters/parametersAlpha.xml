@@ -102,14 +102,17 @@
   <galacticDynamicsBarInstabilityMethod value="stable"/>
 
   <!-- Star formation rate options -->
-  <starFormationTimescaleDisksMethod value="haloScaling">
-    <exponentRedshift value="0.316329039863"/>
-    <exponentVelocityVirial value="-3.34818453376"/>
-    <timescale value="0.680886564265287"/>
-  </starFormationTimescaleDisksMethod>
-
-  <diskStarFormationTimescaleMinimum value="0.000129182223339982"/>
-
+  <starFormationRateDisksMethod value="timescale">
+    <starFormationTimescaleMethod value="lowerLimited">
+      <timescaleMinimum value="0.000129182223339982"/>
+      <starFormationTimescaleMethod value="haloScaling">
+	<exponentRedshift value="0.316329039863"/>
+	<exponentVelocityVirial value="-3.34818453376"/>
+	<timescale value="0.680886564265287"/>
+      </starFormationTimescaleMethod>
+    </starFormationTimescaleMethod>
+  </starFormationRateDisksMethod>
+  
   <!-- Stellar populations options -->
   <stellarPopulationPropertiesMethod value="instantaneous"/>
   <stellarPopulationSelectorMethod value="fixed"/>
@@ -139,6 +142,12 @@
   <mergerMassMovementsMethod value="verySimple"/>
   <mergerRemnantSizeMethod value="null"/>
 
+  <!-- Node evolution and physics -->
+  <nodeOperatorMethod value="multi">
+    <nodeOperatorMethod value="starFormationDisks"    />
+    <nodeOperatorMethod value="starFormationSpheroids"/>
+  </nodeOperatorMethod>
+  
   <!-- Numerical tolerances -->
   <mergerTreeNodeEvolverMethod value="standard">
     <odeAlgorithm value="rungeKuttaSecondOrder"/>
