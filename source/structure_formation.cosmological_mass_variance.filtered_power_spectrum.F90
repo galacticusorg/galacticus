@@ -561,6 +561,10 @@ contains
              ! Adjust the limits of the table by an integer number of steps.
              self%massMinimum=self%massMinimum/10.0d0**(dble(countNewLower)/dble(filteredPowerTablePointsPerDecade))
              self%massMaximum=self%massMaximum*10.0d0**(dble(countNewUpper)/dble(filteredPowerTablePointsPerDecade))
+          else if (.not.self%initialized) then
+             ! No mass was given, but the tables are not initialized. Must provide some mass range.
+             self%massMinimum=1.0d10
+             self%massMaximum=1.0d15
           end if
           rootVarianceTableCount=int(                                         &
                &                     +log10(                                  &
@@ -589,6 +593,10 @@ contains
                 ! Adjust the limits of the table by an integer number of steps.
                 self%timeMinimum=self%timeMinimum/10.0d0**(dble(countNewLower)/dble(filteredPowerTimePointsPerDecade))
                 self%timeMaximum=self%timeMaximum*10.0d0**(dble(countNewUpper)/dble(filteredPowerTimePointsPerDecade))
+             else if (.not.self%initialized) then
+                ! No time was given, but the tables are not initialized. Must provide some time range.
+                self%timeMinimum=self%cosmologyFunctions_%cosmicTime(0.5d0)
+                self%timeMaximum=self%cosmologyFunctions_%cosmicTime(1.0d0)
              end if
              rootVarianceTimeCount =int(                                         &
                   &                     +log10(                                  &
