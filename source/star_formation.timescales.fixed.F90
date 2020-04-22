@@ -17,67 +17,66 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a fixed timescale for star formation in galactic disks.
+  !% Implementation of a fixed timescale for star formation.
 
-  !# <starFormationTimescaleDisks name="starFormationTimescaleDisksFixed">
-  !#  <description>A fixed timescale for star formation in galactic disks.</description>
-  !# </starFormationTimescaleDisks>
-  type, extends(starFormationTimescaleDisksClass) :: starFormationTimescaleDisksFixed
-     !% Implementation of a fixed timescale for star formation in galactic disks.
+  !# <starFormationTimescale name="starFormationTimescaleFixed">
+  !#  <description>A fixed timescale for star formation.</description>
+  !# </starFormationTimescale>
+  type, extends(starFormationTimescaleClass) :: starFormationTimescaleFixed
+     !% Implementation of a fixed timescale for star formation.
      private
      double precision :: timescaleValue
    contains
      procedure :: timescale => fixedTimescale
-  end type starFormationTimescaleDisksFixed
+  end type starFormationTimescaleFixed
 
-  interface starFormationTimescaleDisksFixed
-     !% Constructors for the {\normalfont \ttfamily fixed} timescale for star formation in disks class.
+  interface starFormationTimescaleFixed
+     !% Constructors for the {\normalfont \ttfamily fixed} timescale for star formation.
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
-  end interface starFormationTimescaleDisksFixed
+  end interface starFormationTimescaleFixed
 
 contains
 
   function fixedConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily fixed} timescale for star formation in disks class which takes a
-    !% parameter set as input.
+    !% Constructor for the {\normalfont \ttfamily fixed} timescale for star formation class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (starFormationTimescaleDisksFixed)                :: self
-    type            (inputParameters                 ), intent(inout) :: parameters
-    double precision                                                  :: timescale
+    type            (starFormationTimescaleFixed)                :: self
+    type            (inputParameters            ), intent(inout) :: parameters
+    double precision                                             :: timescale
 
     !# <inputParameter>
     !#   <name>timescale</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The timescale for star formation in the fixed timescale model for disks.</description>
+    !#   <description>The timescale for star formation in the fixed timescale model.</description>
     !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    self=starFormationTimescaleDisksFixed(timescale)
+    self=starFormationTimescaleFixed(timescale)
     !# <inputParametersValidate source="parameters"/>
     return
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(timescale) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily fixed} timescale for star formation in disks class.
+    !% Internal constructor for the {\normalfont \ttfamily fixed} timescale for star formation class.
     implicit none
-    type            (starFormationTimescaleDisksFixed)                :: self
-    double precision                                  , intent(in   ) :: timescale
+    type            (starFormationTimescaleFixed)                :: self
+    double precision                             , intent(in   ) :: timescale
 
     self%timescaleValue=timescale
     return
   end function fixedConstructorInternal
 
-  double precision function fixedTimescale(self,node)
-    !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\normalfont \ttfamily node}, assuming a fixed
+  double precision function fixedTimescale(self,component)
+    !% Returns the timescale (in Gyr) for star formation in the given {\normalfont \ttfamily component}, assuming a fixed
     !% timecale.
     implicit none
-    class(starFormationTimescaleDisksFixed), intent(inout), target :: self
-    type (treeNode                        ), intent(inout), target :: node
-    !$GLC attributes unused :: node
+    class(starFormationTimescaleFixed), intent(inout) :: self
+    class(nodeComponent              ), intent(inout) :: component
+    !$GLC attributes unused :: component
 
     fixedTimescale=self%timescaleValue
     return

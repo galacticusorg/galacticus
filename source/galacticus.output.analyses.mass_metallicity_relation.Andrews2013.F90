@@ -37,8 +37,10 @@ contains
 
   function massMetallicityAndrews2013ConstructorParameters(parameters) result (self)
     !% Constructor for the ``massMetallicityAndrews2013'' output analysis class which takes a parameter set as input.
-    use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
-    use :: Input_Parameters   , only : inputParameter    , inputParameters
+    use :: Cosmology_Functions           , only : cosmologyFunctions             , cosmologyFunctionsClass
+    use :: Input_Parameters              , only : inputParameter                 , inputParameters
+    use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
+    use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
     implicit none
     type            (outputAnalysisMassMetallicityAndrews2013)                              :: self
     type            (inputParameters                         ), intent(inout)               :: parameters
@@ -46,8 +48,9 @@ contains
          &                                                                                     metallicitySystematicErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass                 ), pointer                     :: cosmologyFunctions_
     class           (outputTimesClass                        ), pointer                     :: outputTimes_
+    class           (starFormationRateDisksClass             ), pointer                     :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass         ), pointer                     :: starFormationRateSpheroids_
     double precision                                                                        :: randomErrorMinimum                             , randomErrorMaximum
-
 
     ! Check and read parameters.
     allocate(metallicitySystematicErrorPolynomialCoefficient(max(1,parameters%count('metallicitySystematicErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
@@ -98,17 +101,21 @@ contains
     !#   <type>float</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>
+    !# <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters"/>
+    !# <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
+    !# <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
     ! Build the object.
-    self=outputAnalysisMassMetallicityAndrews2013(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_)
+    self=outputAnalysisMassMetallicityAndrews2013(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
-    !# <objectDestructor name="outputTimes_"       />
+    !# <objectDestructor name="cosmologyFunctions_"        />
+    !# <objectDestructor name="outputTimes_"               />
+    !# <objectDestructor name="starFormationRateDisks_"    />
+    !# <objectDestructor name="starFormationRateSpheroids_"/>
     return
   end function massMetallicityAndrews2013ConstructorParameters
 
-  function massMetallicityAndrews2013ConstructorInternal(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_) result (self)
+  function massMetallicityAndrews2013ConstructorInternal(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_) result (self)
     !% Constructor for the ``massMetallicityAndrews2013'' output analysis class for internal use.
     use :: Abundances_Structure                  , only : Abundances_Index_From_Name                         , abundances
     use :: Atomic_Data                           , only : Atomic_Mass
@@ -129,6 +136,8 @@ contains
     use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
     use :: Output_Times                          , only : outputTimesClass
+    use :: Star_Formation_Rates_Disks            , only : starFormationRateDisksClass
+    use :: Star_Formation_Rates_Spheroids        , only : starFormationRateSpheroidsClass
     implicit none
     type            (outputAnalysisMassMetallicityAndrews2013           )                                :: self
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                      , randomErrorMaximum
@@ -136,6 +145,8 @@ contains
          &                                                                                                  randomErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass                            ), intent(inout), target         :: cosmologyFunctions_
     class           (outputTimesClass                                   ), intent(inout), target         :: outputTimes_
+    class           (starFormationRateDisksClass                        ), intent(in   ), target         :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass                    ), intent(in   ), target         :: starFormationRateSpheroids_
     integer                                                              , parameter                     :: covarianceBinomialBinsPerDecade                 =10
     double precision                                                     , parameter                     :: covarianceBinomialMassHaloMinimum               = 1.0d08, covarianceBinomialMassHaloMaximum                      =1.0d16
     double precision                                                     , allocatable  , dimension(:  ) :: masses                                                  , functionValueTarget
@@ -151,8 +162,8 @@ contains
     type            (outputAnalysisPropertyOperatorFilterHighPass       ), pointer                       :: outputAnalysisPropertyOperatorFilterHighPass_
     type            (outputAnalysisPropertyOperatorAntiLog10            ), pointer                       :: outputAnalysisPropertyUnoperator_
     type            (outputAnalysisPropertyOperatorMetallicity12LogNH   ), pointer                       :: outputAnalysisPropertyOperatorMetallicity12LogNH_
-    type            (nodePropertyExtractorMassStellar         ), pointer                       :: nodePropertyExtractor_
-    type            (nodePropertyExtractorMetallicityISM      ), pointer                       :: outputAnalysisWeightPropertyExtractor_
+    type            (nodePropertyExtractorMassStellar                   ), pointer                       :: nodePropertyExtractor_
+    type            (nodePropertyExtractorMetallicityISM                ), pointer                       :: outputAnalysisWeightPropertyExtractor_
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc    ), pointer                       :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial    ), pointer                       :: outputAnalysisPropertyOperatorSystmtcPolynomial_        , outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
     type            (cosmologyParametersSimple                          ), pointer                       :: cosmologyParametersData
@@ -216,10 +227,12 @@ contains
     allocate(galacticFilterStarFormationRate_                                       )
     !# <referenceConstruct object="galacticFilterStarFormationRate_">
     !#  <constructor>
-    !#   galacticFilterStarFormationRate(                      &amp;
-    !#     &amp;                         logM0        =0.00d0, &amp;
-    !#     &amp;                         logSFR0      =0.76d0, &amp;
-    !#     &amp;                         logSFR1      =0.76d0  &amp;
+    !#   galacticFilterStarFormationRate(                                                         &amp;
+    !#     &amp;                         logM0                      =0.00d0                     , &amp;
+    !#     &amp;                         logSFR0                    =0.76d0                     , &amp;
+    !#     &amp;                         logSFR1                    =0.76d0                     , &amp;
+    !#     &amp;                         starFormationRateDisks_    =starFormationRateDisks_    , &amp;
+    !#     &amp;                         starFormationRateSpheroids_=starFormationRateSpheroids_  &amp;
     !#     &amp;                        )
     !#  </constructor>
     !# </referenceConstruct>

@@ -405,8 +405,8 @@ contains
 
   subroutine Kepler_Orbits_Builder(self,keplerOrbitDefinition)
     !% Build a {\normalfont \ttfamily keplerOrbit} object from the given XML {\normalfont \ttfamily keplerOrbitDefinition}.
-    use :: FoX_DOM         , only : extractDataContent          , getNodeName, node
-    use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
+    use :: FoX_DOM         , only : getNodeName                 , node
+    use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (keplerOrbit), intent(inout)               :: self

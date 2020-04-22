@@ -36,11 +36,15 @@
   </cosmologicalMassVarianceMethod>
 
   <nodePropertyExtractorMethod value="multi">
-    <nodePropertyExtractorMethod value="virialProperties"/>
-    <nodePropertyExtractMethod value="descendents"/>
+    <nodePropertyExtractorMethod value="virialProperties" />
+    <nodePropertyExtractorMethod value="descendents"      />
+    <nodePropertyExtractorMethod value="starFormationRate" >
+      <component value="disk"    />
+    </nodePropertyExtractorMethod>
+    <nodePropertyExtractorMethod value="starFormationRate" >
+      <component value="spheroid"/>
+    </nodePropertyExtractorMethod>
   </nodePropertyExtractorMethod>
-  <diskOutputStarFormationRate value="true"/>
-  <spheroidOutputStarFormationRate value="true"/>
   <mergerTreeOperatorMethod value="massAccretionHistory"/>
   <hotHaloAngularMomentumAlwaysGrows value="true"/>
   <verbosityLevel value="1"/>
@@ -50,12 +54,20 @@
   </outputTimesMethod>
 
   <galacticDynamicsBarInstabilityMethod value="stable"/>
-  <starFormationTimescaleSpheroidsMethod value="dynamicalTime">
-    <efficiency value="0.0"/>
-  </starFormationTimescaleSpheroidsMethod>
-
+  <starFormationRateSpheroidsMethod value="timescale">
+    <starFormationTimescaleMethod value="dynamicalTime">
+      <efficiency value="0.0"/>
+    </starFormationTimescaleMethod>
+  </starFormationRateSpheroidsMethod>
+ 
   <satelliteMergingTimescalesMethod value="jiang2008">
     <timescaleMultiplier value="1.0e30"/>
   </satelliteMergingTimescalesMethod>
 
-  </parameters>
+  <!-- Node evolution and physics -->
+  <nodeOperatorMethod value="multi">
+    <nodeOperatorMethod value="starFormationDisks"    />
+    <nodeOperatorMethod value="starFormationSpheroids"/>
+  </nodeOperatorMethod>
+  
+</parameters>

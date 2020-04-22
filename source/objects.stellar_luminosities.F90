@@ -528,9 +528,9 @@ contains
 
   subroutine Stellar_Luminosities_Builder(self,stellarLuminositiesDefinition)
     !% Build a {\normalfont \ttfamily stellarLuminosities} object from the given XML {\normalfont \ttfamily stellarLuminositiesDefinition}.
-    use :: FoX_DOM         , only : extractDataContent          , node
+    use :: FoX_DOM         , only : node
     use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
+    use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
     implicit none
     class  (stellarLuminosities), intent(inout)              :: self
     type   (node               ), intent(in   ), pointer     :: stellarLuminositiesDefinition
@@ -1769,12 +1769,39 @@ contains
     !$GLC attributes unused :: gslStateFile, stateOperationID
 
     call Galacticus_Display_Indent  (var_str('storing state for "stellar luminosities" [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
+    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    !# </workaround>
+#ifdef THREADSAFEIO
+    !$omp critical(gfortranInternalIO)
+#endif
     write (stateFile) luminositiesInitialized
+#ifdef THREADSAFEIO
+    !$omp end critical(gfortranInternalIO)
+#endif
     if (luminositiesInitialized) then
        call Galacticus_Display_Message(var_str('storing "luminosityCount" [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
+       !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+       !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+       !# </workaround>
+#ifdef THREADSAFEIO
+       !$omp critical(gfortranInternalIO)
+#endif
        write (stateFile) luminosityCount
+#ifdef THREADSAFEIO
+       !$omp end critical(gfortranInternalIO)
+#endif
        call Galacticus_Display_Message(var_str('storing luminosities [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
+       !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+       !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+       !# </workaround>
+#ifdef THREADSAFEIO
+       !$omp critical(gfortranInternalIO)
+#endif
        write (stateFile) luminosityIndex,luminosityCosmicTime,luminosityRedshift,luminosityBandRedshift
+#ifdef THREADSAFEIO
+       !$omp end critical(gfortranInternalIO)
+#endif
        do i=1,luminosityCount
           call Galacticus_Display_Message(var_str('storing luminosity ')//i//' of '//luminosityCount//' [position: '//FTell(stateFile)//']',verbosity=verbosityWorking)
           call luminosityName          (i)%stateStore(stateFile)
@@ -1807,7 +1834,16 @@ contains
     !$GLC attributes unused :: gslStateFile, stateOperationID
 
     call Galacticus_Display_Indent  (var_str('restoring state for "stellar luminosities" [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
+    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    !# </workaround>
+#ifdef THREADSAFEIO
+    !$omp critical(gfortranInternalIO)
+#endif
     read (stateFile) luminositiesInitialized
+#ifdef THREADSAFEIO
+    !$omp end critical(gfortranInternalIO)
+#endif
     if (allocated(luminosityFilterIndex                  )) deallocate(luminosityFilterIndex                  )
     if (allocated(luminosityIndex                        )) deallocate(luminosityIndex                        )
     if (allocated(luminosityPostprocessor                )) deallocate(luminosityPostprocessor                )
@@ -1823,7 +1859,16 @@ contains
     if (luminositiesInitialized) then
        call Galacticus_Display_Message(var_str('restoring "luminosityCount" [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
        stellarPopulationSpectraPostprocessorBuilder_ => stellarPopulationSpectraPostprocessorBuilder()
+       !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+       !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+       !# </workaround>
+#ifdef THREADSAFEIO
+       !$omp critical(gfortranInternalIO)
+#endif
        read (stateFile) luminosityCount
+#ifdef THREADSAFEIO
+       !$omp end critical(gfortranInternalIO)
+#endif
        allocate(luminosityFilterIndex                  (luminosityCount))
        allocate(luminosityIndex                        (luminosityCount))
        allocate(luminosityPostprocessor                (luminosityCount))
@@ -1839,7 +1884,16 @@ contains
        unitStellarLuminosities%luminosityValue=1.0d0
        zeroStellarLuminosities%luminosityValue=0.0d0
        call Galacticus_Display_Message(var_str('restoring luminosities [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
+       !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+       !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+       !# </workaround>
+#ifdef THREADSAFEIO
+       !$omp critical(gfortranInternalIO)
+#endif
        read (stateFile) luminosityIndex,luminosityCosmicTime,luminosityRedshift,luminosityBandRedshift
+#ifdef THREADSAFEIO
+       !$omp end critical(gfortranInternalIO)
+#endif
        do i=1,luminosityCount
           call Galacticus_Display_Message(var_str('restoring luminosity ')//i//' of '//luminosityCount//' [position: '//FTell(stateFile)//']',verbosity=verbosityWorking)
           call luminosityName          (i)%stateRestore(stateFile)

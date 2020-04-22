@@ -536,20 +536,47 @@ contains
                    node => nodeNext
                 end do treeWalkLoop
                 ! Output tree progress information.
-               ! if (treeWalkCount > int(treeWalkCountPreviousOutput*1.1d0)+1) then
-                 !  if (Galacticus_Verbosity_Level() >= verbosityLevel) then
+                if (treeWalkCount > int(treeWalkCountPreviousOutput*1.1d0)+1) then
+                   if (Galacticus_Verbosity_Level() >= verbosityLevel) then
+                      !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+                      !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+                      !# </workaround>
+#ifdef THREADSAFEIO
+                      !$omp critical(gfortranInternalIO)
+#endif
                       write (message,'(a,i9,a )') 'Evolving tree [',treeWalkCount,']'
+#ifdef THREADSAFEIO
+                      !$omp end critical(gfortranInternalIO)
+#endif
                       call Galacticus_Display_Indent(message,verbosityLevel)
+#ifdef THREADSAFEIO
+                      !$omp critical(gfortranInternalIO)
+#endif
                       write (message,'(a,i9   )') 'Nodes in tree:         ',nodesTotalCount
+#ifdef THREADSAFEIO
+                      !$omp end critical(gfortranInternalIO)
+#endif
                       call Galacticus_Display_Message(message,verbosityLevel)
+#ifdef THREADSAFEIO
+                      !$omp critical(gfortranInternalIO)
+#endif
                       write (message,'(a,i9   )') 'Nodes evolved:         ',nodesEvolvedCount
+#ifdef THREADSAFEIO
+                      !$omp end critical(gfortranInternalIO)
+#endif
                       call Galacticus_Display_Message(message,verbosityLevel)
+#ifdef THREADSAFEIO
+                      !$omp critical(gfortranInternalIO)
+#endif
                       write (message,'(a,e10.4)') 'Earliest time in tree: ',earliestTimeInTree
+#ifdef THREADSAFEIO
+                      !$omp end critical(gfortranInternalIO)
+#endif
                       call Galacticus_Display_Message(message,verbosityLevel)
                       call Galacticus_Display_Unindent('done',verbosityLevel)
                       treeWalkCountPreviousOutput=treeWalkCount
-                !   end if
-              !  end if
+                   end if
+                end if
                 ! Report on current tree if deadlocked.
                 if (statusDeadlock == deadlockStatusIsReporting) call Galacticus_Display_Unindent('end tree')
              end if

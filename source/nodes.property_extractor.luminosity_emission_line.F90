@@ -23,6 +23,8 @@
   use    :: ISO_Varying_String               , only : varying_string
   !$ use :: OMP_Lib                          , only : omp_lock_kind
   use    :: Output_Times                     , only : outputTimesClass
+  use    :: Star_Formation_Rates_Disks       , only : starFormationRateDisksClass
+  use    :: Star_Formation_Rates_Spheroids   , only : starFormationRateSpheroidsClass
   use    :: Stellar_Spectra_Dust_Attenuations, only : stellarSpectraDustAttenuationClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorLmnstyEmssnLine">
@@ -31,6 +33,8 @@
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorLmnstyEmssnLine
      !% A stellar luminosity output analysis property extractor class.
      private
+     class           (starFormationRateDisksClass       ), pointer                             :: starFormationRateDisks_        => null()
+     class           (starFormationRateSpheroidsClass   ), pointer                             :: starFormationRateSpheroids_    => null()
      class           (stellarSpectraDustAttenuationClass), pointer                             :: stellarSpectraDustAttenuation_ => null()
      class           (outputTimesClass                  ), pointer                             :: outputTimes_                   => null()
      type            (varying_string                    )                                      :: name_                                   , description_
@@ -97,6 +101,8 @@ contains
     type            (nodePropertyExtractorLmnstyEmssnLine)                              :: self
     type            (inputParameters                     ), intent(inout)               :: parameters
     type            (varying_string                      ), allocatable  , dimension(:) :: lineNames
+    class           (starFormationRateDisksClass         ), pointer                     :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass     ), pointer                     :: starFormationRateSpheroids_
     class           (stellarSpectraDustAttenuationClass  ), pointer                     :: stellarSpectraDustAttenuation_
     class           (outputTimesClass                    ), pointer                     :: outputTimes_
     double precision                                                                    :: depthOpticalISMCoefficient
@@ -117,16 +123,20 @@ contains
     !#   <type>string</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    !# <objectBuilder class="starFormationRateDisks"        name="starFormationRateDisks_"        source="parameters"/>
+    !# <objectBuilder class="starFormationRateSpheroids"    name="starFormationRateSpheroids_"    source="parameters"/>
     !# <objectBuilder class="stellarSpectraDustAttenuation" name="stellarSpectraDustAttenuation_" source="parameters"/>
     !# <objectBuilder class="outputTimes"                   name="outputTimes_"                   source="parameters"/>
-    self=nodePropertyExtractorLmnstyEmssnLine(stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient)
+    self=nodePropertyExtractorLmnstyEmssnLine(starFormationRateDisks_,starFormationRateSpheroids_,stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="starFormationRateDisks_"       />
+    !# <objectDestructor name="starFormationRateSpheroids_"   />
     !# <objectDestructor name="stellarSpectraDustAttenuation_"/>
     !# <objectDestructor name="outputTimes_"                  />
     return
   end function lmnstyEmssnLineConstructorParameters
 
-  function lmnstyEmssnLineConstructorInternal(stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient,outputMask) result(self)
+  function lmnstyEmssnLineConstructorInternal(starFormationRateDisks_,starFormationRateSpheroids_,stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient,outputMask) result(self)
     !% Internal constructor for the ``lmnstyEmssnLine'' output analysis property extractor class.
     use            :: Galacticus_Error              , only : Galacticus_Error_Report
     use            :: Galacticus_Paths              , only : galacticusPath         , pathTypeDataStatic
@@ -142,12 +152,14 @@ contains
     double precision                                      , intent(in   )                         :: depthOpticalISMCoefficient
     type            (varying_string                      ), intent(in   ), dimension(:)           :: lineNames
     logical                                               , intent(in   ), dimension(:), optional :: outputMask
+    class           (starFormationRateDisksClass         ), intent(in   ), target                 :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass     ), intent(in   ), target                 :: starFormationRateSpheroids_
     class           (stellarSpectraDustAttenuationClass  ), intent(in   ), target                 :: stellarSpectraDustAttenuation_
     class           (outputTimesClass                    ), intent(in   ), target                 :: outputTimes_
     type            (hdf5Object                          )                                        :: emissionLinesFile             , lines, &
          &                                                                                           lineDataset
     integer         (c_size_t                            )                                        :: i
-    !# <constructorAssign variables="lineNames, depthOpticalISMCoefficient, *stellarSpectraDustAttenuation_, *outputTimes_"/>
+    !# <constructorAssign variables="lineNames, depthOpticalISMCoefficient, *starFormationRateDisks_, *starFormationRateSpheroids_, *stellarSpectraDustAttenuation_, *outputTimes_"/>
 
     ! Read the table of emission line luminosities.
     !$ call hdf5Access%set()
@@ -234,6 +246,8 @@ contains
             &               )
     end do
     !$ call OMP_Destroy_Lock(self%interpolateLock)
+    !# <objectDestructor name="self%starFormationRateDisks_"       />
+    !# <objectDestructor name="self%starFormationRateSpheroids_"   />
     !# <objectDestructor name="self%stellarSpectraDustAttenuation_"/>
     !# <objectDestructor name="self%outputTimes_"                  />
     return
@@ -316,16 +330,16 @@ contains
     ! Determine output index.
     output   =  self%outputTimes_%index(basic%time(),findClosest=.true.)
     ! Extract all required properties.
-    luminositiesStellar(galacticComponentDisk    )=disk    %luminositiesStellar()
-    luminositiesStellar(galacticComponentSpheroid)=spheroid%luminositiesStellar()
-    abundancesGas      (galacticComponentDisk    )=disk    %abundancesGas      ()
-    abundancesGas      (galacticComponentSpheroid)=spheroid%abundancesGas      ()
-    massGas            (galacticComponentDisk    )=disk    %massGas            ()
-    massGas            (galacticComponentSpheroid)=spheroid%massGas            ()
-    radius             (galacticComponentDisk    )=disk    %radius             ()
-    radius             (galacticComponentSpheroid)=spheroid%radius             ()
-    rateStarFormation  (galacticComponentDisk    )=disk    %starFormationRate  ()
-    rateStarFormation  (galacticComponentSpheroid)=spheroid%starFormationRate  ()
+    luminositiesStellar(galacticComponentDisk    )=disk    %luminositiesStellar             (    )
+    luminositiesStellar(galacticComponentSpheroid)=spheroid%luminositiesStellar             (    )
+    abundancesGas      (galacticComponentDisk    )=disk    %abundancesGas                   (    )
+    abundancesGas      (galacticComponentSpheroid)=spheroid%abundancesGas                   (    )
+    massGas            (galacticComponentDisk    )=disk    %massGas                         (    )
+    massGas            (galacticComponentSpheroid)=spheroid%massGas                         (    )
+    radius             (galacticComponentDisk    )=disk    %radius                          (    )
+    radius             (galacticComponentSpheroid)=spheroid%radius                          (    )
+    rateStarFormation  (galacticComponentDisk    )=self    %starFormationRateDisks_    %rate(node)
+    rateStarFormation  (galacticComponentSpheroid)=self    %starFormationRateSpheroids_%rate(node)
     ! Extract ionizing continuum luminosities.
     do component=1,2
        do continuum=1,3

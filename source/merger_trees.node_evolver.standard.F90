@@ -387,6 +387,7 @@ contains
        self%systemClockMaximum=-1_kind_int8
     end if
     ! Call functions to perform any pre-evolution tasks.
+    call self%nodeOperator_%differentialEvolutionPre(node)
     !# <include directive="preEvolveTask" type="functionCall" functionType="void">
     !#  <functionArgs>node</functionArgs>
     include 'objects.tree_node.pre_evolve.inc'
@@ -758,18 +759,12 @@ contains
 
   subroutine standardFinalStateProcessing(propertyCountActive,propertyValues)
     !% Perform any actions based on the final state of the ODE step.
-    !# <include directive="finalStateTask" type="moduleUse">
-    include 'objects.tree_node.final_state.modules.inc'
-    !# </include>
     implicit none
     integer         , intent(in   )                                 :: propertyCountActive
     double precision, intent(in   ), dimension(propertyCountActive) :: propertyValues
 
-    call standardSelf%activeNode%deserializeValues(propertyValues(1:propertyCountActive),standardSelf%propertyTypeODE)
-    !# <include directive="finalStateTask" type="functionCall" functionType="void">
-    !#  <functionArgs>standardSelf%activeNode</functionArgs>
-    include 'objects.tree_node.final_state.inc'
-    !# </include>
+    call standardSelf%activeNode   %deserializeValues                  (propertyValues(1:propertyCountActive),standardSelf%propertyTypeODE)
+    call standardSelf%nodeOperator_%differentialEvolutionStepFinalState(                                      standardSelf%activeNode     )
     return
   end subroutine standardFinalStateProcessing
 

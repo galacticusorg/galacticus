@@ -22,6 +22,8 @@
 module Node_Component_Age_Statistics_Standard
   !% Implements the standard galaxy age statistics component.
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
+  use :: Star_Formation_Rates_Disks      , only : starFormationRateDisksClass
+  use :: Star_Formation_Rates_Spheroids  , only : starFormationRateSpheroidsClass
   implicit none
   private
   public :: Node_Component_Age_Statistics_Standard_Scale_Set          , Node_Component_Age_Statistics_Standard_Rate_Compute     , &
@@ -69,11 +71,13 @@ module Node_Component_Age_Statistics_Standard
   !# </component>
   
   ! Objects used by this component.
-  class  (mergerMassMovementsClass), pointer :: mergerMassMovements_
-  !$omp threadprivate(mergerMassMovements_)
+  class  (mergerMassMovementsClass       ), pointer :: mergerMassMovements_
+  class  (starFormationRateDisksClass    ), pointer :: starFormationRateDisks_
+  class  (starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_
+  !$omp threadprivate(mergerMassMovements_,starFormationRateDisks_,starFormationRateSpheroids_)
   
   ! Record of whether variables in this component are inactive.
-  logical                                    :: ageStatisticsStandardIsInactive
+  logical                                           :: ageStatisticsStandardIsInactive
 
 contains
 
@@ -116,7 +120,9 @@ contains
     if (defaultAgeStatisticsComponent%standardIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call satelliteMergerEvent%attach(defaultAgeStatisticsComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentAgeStatisticsStandard',dependencies=dependencies)
-       !# <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters_"/>
+       !# <objectBuilder class="mergerMassMovements"        name="mergerMassMovements_"        source="parameters_"/>
+       !# <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters_"/>
+       !# <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters_"/>
     end if
     return
   end subroutine Node_Component_Age_Statistics_Standard_Thread_Initialize
@@ -132,7 +138,9 @@ contains
 
     if (defaultAgeStatisticsComponent%standardIsActive()) then
        call satelliteMergerEvent%detach(defaultAgeStatisticsComponent,satelliteMerger)
-       !# <objectDestructor name="mergerMassMovements_"/>
+       !# <objectDestructor name="mergerMassMovements_"       />
+       !# <objectDestructor name="starFormationRateDisks_"    />
+       !# <objectDestructor name="starFormationRateSpheroids_"/>
     end if
     return
   end subroutine Node_Component_Age_Statistics_Standard_Thread_Uninitialize
@@ -245,10 +253,10 @@ contains
          &                                                 .not.isGeneric                        &
          & ) return
     ! Get the star formation rates.
-    disk                      => node    %disk             ()
-    spheroid                  => node    %spheroid         ()
-    diskStarFormationRate     =  disk    %starFormationRate()
-    spheroidStarFormationRate =  spheroid%starFormationRate()
+    disk                      => node                       %disk    (    )
+    spheroid                  => node                       %spheroid(    )
+    diskStarFormationRate     =  starFormationRateDisks_    %rate    (node)
+    spheroidStarFormationRate =  starFormationRateSpheroids_%rate    (node)
     ! Find the current cosmic time.
     basic => node %basic()
     time  =  basic%time ()

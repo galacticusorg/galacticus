@@ -26,6 +26,8 @@
   use :: FGSL                                  , only : fgsl_interp_accel
   use :: Intergalactic_Medium_State            , only : intergalacticMediumStateClass
   use :: Output_Times                          , only : outputTimesClass
+  use :: Star_Formation_Rates_Disks            , only : starFormationRateDisksClass
+  use :: Star_Formation_Rates_Spheroids        , only : starFormationRateSpheroidsClass
   use :: Stellar_Population_Selectors          , only : stellarPopulationSelectorClass
 
   !# <radiationField name="radiationFieldIntergalacticBackgroundInternal">
@@ -39,6 +41,8 @@
      class           (intergalacticMediumStateClass         ), pointer                     :: intergalacticMediumState_          => null()
      class           (atomicCrossSectionIonizationPhotoClass), pointer                     :: atomicCrossSectionIonizationPhoto_ => null()
      class           (accretionDiskSpectraClass             ), pointer                     :: accretionDiskSpectra_              => null()
+     class           (starFormationRateDisksClass           ), pointer                     :: starFormationRateDisks_            => null()
+     class           (starFormationRateSpheroidsClass       ), pointer                     :: starFormationRateSpheroids_        => null()
      class           (stellarPopulationSelectorClass        ), pointer                     :: stellarPopulationSelector_         => null()
      class           (outputTimesClass                      ), pointer                     :: outputTimes_                       => null()
      integer                                                                               :: wavelengthCountPerDecade                    , wavelengthCount
@@ -92,6 +96,8 @@ contains
     class           (intergalacticMediumStateClass                ), pointer       :: intergalacticMediumState_
     class           (atomicCrossSectionIonizationPhotoClass       ), pointer       :: atomicCrossSectionIonizationPhoto_
     class           (accretionDiskSpectraClass                    ), pointer       :: accretionDiskSpectra_
+    class           (starFormationRateDisksClass                  ), pointer       :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass              ), pointer       :: starFormationRateSpheroids_
     class           (stellarPopulationSelectorClass               ), pointer       :: stellarPopulationSelector_
     class           (outputTimesClass                             ), pointer       :: outputTimes_
     integer                                                                        :: wavelengthCountPerDecade          , timeCountPerDecade
@@ -151,21 +157,25 @@ contains
     !# <objectBuilder class="intergalacticMediumState"          name="intergalacticMediumState_"          source="parameters"/>
     !# <objectBuilder class="atomicCrossSectionIonizationPhoto" name="atomicCrossSectionIonizationPhoto_" source="parameters"/>
     !# <objectBuilder class="accretionDiskSpectra"              name="accretionDiskSpectra_"              source="parameters"/>
+    !# <objectBuilder class="starFormationRateDisks"            name="starFormationRateDisks_"            source="parameters"/>
+    !# <objectBuilder class="starFormationRateSpheroids"        name="starFormationRateSpheroids_"        source="parameters"/>
     !# <objectBuilder class="stellarPopulationSelector"         name="stellarPopulationSelector_"         source="parameters"/>
     !# <objectBuilder class="outputTimes"                       name="outputTimes_"                       source="parameters"/>
-    self=radiationFieldIntergalacticBackgroundInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,redshiftMinimum,redshiftMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_,atomicCrossSectionIonizationPhoto_,accretionDiskSpectra_,stellarPopulationSelector_,outputTimes_)
+    self=radiationFieldIntergalacticBackgroundInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,redshiftMinimum,redshiftMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_,atomicCrossSectionIonizationPhoto_,accretionDiskSpectra_,starFormationRateDisks_,starFormationRateSpheroids_,stellarPopulationSelector_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"              />
     !# <objectDestructor name="cosmologyFunctions_"               />
     !# <objectDestructor name="intergalacticMediumState_"         />
     !# <objectDestructor name="atomicCrossSectionIonizationPhoto_"/>
     !# <objectDestructor name="accretionDiskSpectra_"             />
+    !# <objectDestructor name="starFormationRateDisks_"           />
+    !# <objectDestructor name="starFormationRateSpheroids_"       />
     !# <objectDestructor name="stellarPopulationSelector_"        />
     !# <objectDestructor name="outputTimes_"                      />
     return
   end function intergalacticBackgroundInternalConstructorParameters
 
-  function intergalacticBackgroundInternalConstructorInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,redshiftMinimum,redshiftMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_,atomicCrossSectionIonizationPhoto_,accretionDiskSpectra_,stellarPopulationSelector_,outputTimes_) result(self)
+  function intergalacticBackgroundInternalConstructorInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,redshiftMinimum,redshiftMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_,atomicCrossSectionIonizationPhoto_,accretionDiskSpectra_,starFormationRateDisks_,starFormationRateSpheroids_,stellarPopulationSelector_,outputTimes_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily intergalacticBackgroundInternal} radiation field class.
     use :: Memory_Management, only : allocateArray
     use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
@@ -179,10 +189,12 @@ contains
     class           (intergalacticMediumStateClass                ), intent(in   ), target :: intergalacticMediumState_
     class           (atomicCrossSectionIonizationPhotoClass       ), intent(in   ), target :: atomicCrossSectionIonizationPhoto_
     class           (accretionDiskSpectraClass                    ), intent(in   ), target :: accretionDiskSpectra_
+    class           (starFormationRateDisksClass                  ), intent(in   ), target :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass              ), intent(in   ), target :: starFormationRateSpheroids_
     class           (stellarPopulationSelectorClass               ), intent(in   ), target :: stellarPopulationSelector_
     class           (outputTimesClass                             ), intent(in   ), target :: outputTimes_
     integer                                                                                :: iTime                             , iWavelength
-    !# <constructorAssign variables="wavelengthMinimum, wavelengthMaximum, wavelengthCountPerDecade, redshiftMinimum, redshiftMaximum, timeCountPerDecade, *cosmologyParameters_, *cosmologyFunctions_, *intergalacticMediumState_, *atomicCrossSectionIonizationPhoto_, *accretionDiskSpectra_, *stellarPopulationSelector_, *outputTimes_"/>
+    !# <constructorAssign variables="wavelengthMinimum, wavelengthMaximum, wavelengthCountPerDecade, redshiftMinimum, redshiftMaximum, timeCountPerDecade, *cosmologyParameters_, *cosmologyFunctions_, *intergalacticMediumState_, *atomicCrossSectionIonizationPhoto_, *accretionDiskSpectra_, *starFormationRateDisks_, *starFormationRateSpheroids_, *stellarPopulationSelector_, *outputTimes_"/>
 
     ! Build tables of wavelength and time for cosmic background radiation.
     self%timeMaximum=self%cosmologyFunctions_%cosmicTime                 (                      &
@@ -279,6 +291,8 @@ contains
     !# <objectDestructor name="self%intergalacticMediumState_"         />
     !# <objectDestructor name="self%atomicCrossSectionIonizationPhoto_"/>
     !# <objectDestructor name="self%accretionDiskSpectra_"             />
+    !# <objectDestructor name="self%starFormationRateDisks_"           />
+    !# <objectDestructor name="self%starFormationRateSpheroids_"       />
     !# <objectDestructor name="self%stellarPopulationSelector_"        />
     !# <objectDestructor name="self%outputTimes_"                      />
     return
@@ -455,14 +469,14 @@ contains
              treeTimeLatest =  max(treeTimeLatest,basic%time ())
              if (basic%time() == event%time) then
                 ! Get the star formation rates and metallicites for this node.
-                disk                      => node    %disk             ()
-                spheroid                  => node    %spheroid         ()
-                starFormationRateDisk     =  disk    %starFormationRate()
-                starFormationRateSpheroid =  spheroid%starFormationRate()
-                gasMassDisk               =  disk    %massGas          ()
-                gasMassSpheroid           =  spheroid%massGas          ()
-                gasAbundancesDisk         =  disk    %abundancesGas    ()
-                gasAbundancesSpheroid     =  spheroid%abundancesGas    ()
+                disk                      => node    %disk                            (    )
+                spheroid                  => node    %spheroid                        (    )
+                starFormationRateDisk     =  self    %starFormationRateDisks_    %rate(node)
+                starFormationRateSpheroid =  self    %starFormationRateSpheroids_%rate(node)
+                gasMassDisk               =  disk    %massGas                         (    )
+                gasMassSpheroid           =  spheroid%massGas                         (    )
+                gasAbundancesDisk         =  disk    %abundancesGas                   (    )
+                gasAbundancesSpheroid     =  spheroid%abundancesGas                   (    )
                 if (starFormationRateDisk     > 0.0d0) gasAbundancesDisk    =gasAbundancesDisk    /gasMassDisk
                 if (starFormationRateSpheroid > 0.0d0) gasAbundancesSpheroid=gasAbundancesSpheroid/gasMassSpheroid
                 if (starFormationRateDisk > 0.0d0 .or. starFormationRateSpheroid > 0.0d0) then

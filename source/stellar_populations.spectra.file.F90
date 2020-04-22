@@ -301,8 +301,8 @@ contains
     do jAge=0,1
        do jWavelength=0,1
           do jMetallicity=0,1
-             fileLuminosity=+fileLuminosity                                                &
-                  &         +self                                                          &
+             fileLuminosity=+fileLuminosity                                &
+                  &         +self                                          &
                   &              %spectra                                  &
                   &                      %table(                           &
                   &                             iWavelength +jWavelength , &

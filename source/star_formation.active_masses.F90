@@ -17,25 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements timescales for star formation in spheroids.
+!% Contains a module which provides a class that implements active masses for star formation.
 
-module Star_Formation_Timescales_Spheroids
-  !% Provides a class that implements calculations of timescales for star formation in spheroids.
-  use :: Galacticus_Nodes, only : treeNode
+module Star_Formation_Active_Masses
+  !% Provides a class that implements calculations of active masses for star formation.
+  use :: Galacticus_Nodes, only : nodeComponent
   private
 
   !# <functionClass>
-  !#  <name>starFormationTimescaleSpheroids</name>
-  !#  <descriptiveName>Timescales for star formation in spheroids</descriptiveName>
-  !#  <description>Class providing models of timescales for star formation in spheroids.</description>
-  !#  <default>dynamicalTime</default>
-  !#  <calculationReset>yes</calculationReset>
-  !#  <method name="timescale" >
-  !#   <description>Returns the timescale (in Gyr) for star formation in the spheroid component of {\normalfont \ttfamily node}.</description>
+  !#  <name>starFormationActiveMass</name>
+  !#  <descriptiveName>Active masses for star formation</descriptiveName>
+  !#  <description>Class providing models of active masses for star formation.</description>
+  !#  <default>totalISM</default>
+  !#  <method name="massActive" >
+  !#   <description>Returns the mass (in $\mathrm{M}_\odot$) of gas which is actively star forming in the provided {\normalfont \ttfamily component}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
+  !#   <argument>class(nodeComponent), intent(inout) :: component</argument>
   !#  </method>
   !# </functionClass>
 
-end module Star_Formation_Timescales_Spheroids
+end module Star_Formation_Active_Masses

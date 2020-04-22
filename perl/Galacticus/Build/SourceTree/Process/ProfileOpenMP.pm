@@ -40,6 +40,7 @@ sub Profile_OpenMP {
     # Walk the tree, looking for code blocks.
     my $node  = $tree;
     my $depth = 0;
+    my $skip  = 0;
     while ( $node ) {
 	if ( $node->{'type'} eq "code" ) {
 	    my $newContent;
@@ -53,7 +54,18 @@ sub Profile_OpenMP {
 			while ( $nodeParent->{'type'} ne "function" && $nodeParent->{'type'} ne "subroutine" && defined($nodeParent->{'parent'}) ) {
 			    $nodeParent = $nodeParent->{'parent'};
 			}
-			if ( $nodeParent->{'type'} eq "function" || $nodeParent->{'type'} eq "subroutine" ) {
+			# Find parent module.
+			my $nodeModule = $nodeParent;
+			while ( $nodeModule->{'type'} ne "module" && defined($nodeModule->{'parent'}) ) {
+			    $nodeModule = $nodeModule->{'parent'};
+			}
+			my $moduleName = $nodeModule->{'type'} eq "module" ? $nodeModule->{'name'} : "";
+			# We must skip modules which are themselves used by the OpenMP profiling module, otherwise we cause
+			# circular dependencies for Make.
+			my $skip = 0;
+			$skip = 1
+			    if ( $moduleName eq "iso_varying_string" );
+			if ( $nodeParent->{'type'} eq "function" || $nodeParent->{'type'} eq "subroutine" && ! $skip ) {
 			    # Add modules required.
 			    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($nodeParent,$moduleUses);
 			    # Generate code to time the wait at this critical section.

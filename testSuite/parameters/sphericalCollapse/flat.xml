@@ -9,5 +9,6 @@
     <OmegaDarkEnergy value="0.9"/>
     <OmegaBaryon value="0.0"/>
     <HubbleConstant value="70.0"/>
-  </cosmologyParametersMethod><virialDensityContrastMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  </cosmologyParametersMethod>
+  <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
 </parameters>

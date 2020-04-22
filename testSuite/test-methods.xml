@@ -282,8 +282,11 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <starFormationTimescaleDisksMethod value="dynamicalTime"/>
-    <starFormationTimescaleDisksMethod value="intgrtdSurfaceDensity">
+    <starFormationRateDisksMethod value="timescale">
+      <starFormationTimescaleMethod value="dynamicalTime"/>
+      <starFormationTimescaleMethod value="baugh2005"/>
+    </starFormationRateDisksMethod>
+    <starFormationRateDisksMethod value="intgrtdSurfaceDensity">
       <starFormationRateSurfaceDensityDisksMethod value="kennicuttSchmidt" parameterLevel="top">
         <truncate value="true"/>
         <truncate value="false"/>
@@ -294,8 +297,7 @@
         <molecularFractionFast value="true"/>
       </starFormationRateSurfaceDensityDisksMethod>
       <starFormationRateSurfaceDensityDisksMethod value="extendedSchmidt" parameterLevel="top"/>
-    </starFormationTimescaleDisksMethod>
-    <starFormationTimescaleDisksMethod value="baugh2005"/>
+    </starFormationRateDisksMethod>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
@@ -583,8 +585,14 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <diskOutputStarFormationRate value="true"/>
-    <spheroidOutputStarFormationRate value="true"/>
+    <nodePropertyExtractorMethod value="multi">
+      <nodePropertyExtractorMethod value="starFormationRate" >
+	<component value="disk"    />
+      </nodePropertyExtractorMethod>
+      <nodePropertyExtractorMethod value="starFormationRate" >
+	<component value="spheroid"/>
+      </nodePropertyExtractorMethod>
+    </nodePropertyExtractorMethod>
   </parameters>
 
   <!-- Output star formation histories -->
@@ -831,6 +839,7 @@
       <dimensionless value="true"/>
     </spheroidMassDistribution>
     <treeNodeMethodSpin value="random"/>
+    <nodeOperatorMethod value="null"/>
     <satelliteDynamicalFrictionMethod value="chandrasekhar1943"/>
     <cosmologyFunctionsMethod value="matterLambda"/>
     <cosmologyParametersMethod value="simple">
@@ -984,6 +993,7 @@
  	<progenitorRedshifts value="0.508591 1.077875"/>
       </mergerTreeOperatorMethod>
     </mergerTreeOperatorMethod>
+    <nodeOperatorMethod value="null"/>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
     <treeNodeMethodDarkMatterProfile value="scale"/>
@@ -1025,6 +1035,7 @@
       <snapshotRedshifts value="19.915688 18.243723 16.724525 15.343073 14.085914 12.940780      11.896569 10.943864 10.073462  9.277915  8.549912  7.883204      7.272188  6.711586  6.196833  5.723864  5.288833  4.888449      4.519556  4.179469  3.865683  3.575905  3.308098  3.060419      2.831182  2.618862  2.422044  2.239486  2.070027  1.912633      1.766336  1.630271  1.503636  1.385718  1.275846  1.173417      1.077875  0.988708  0.905463  0.827699  0.755036  0.687109      0.623590  0.564177  0.508591  0.456577  0.407899  0.362340      0.319703  0.279802  0.242469  0.207549  0.174898  0.144383      0.115883  0.089288  0.064493  0.041403  0.019933  0.000000"/>
       <snapshotSpacing value="list"/>
     </mergerTreeOperatorMethod>
+    <nodeOperatorMethod value="null"/>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
     <treeNodeMethodDarkMatterProfile value="null"/>
@@ -1071,6 +1082,7 @@
       <primaryProgenitorDepth value="4"/>
       <progenitorRedshifts value="0.508591 1.077875"/>
     </mergerTreeOperatorMethod>
+    <nodeOperatorMethod value="null"/>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
     <treeNodeMethodDarkMatterProfile value="null"/>
@@ -1106,6 +1118,7 @@
       <massResolution value="1.0e10"/>
     </mergerTreeMassResolutionMethod>
     <mergerTreeOperatorMethod value="informationContent"/>
+    <nodeOperatorMethod value="null"/>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
     <treeNodeMethodDarkMatterProfile value="null"/>
@@ -1144,6 +1157,7 @@
       <massMinimum value="2.0e12"/>
       <massMaximum value="6.0e12"/>
     </mergerTreeOperatorMethod>
+    <nodeOperatorMethod value="null"/>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
     <treeNodeMethodDarkMatterProfile value="null"/>
@@ -1181,6 +1195,7 @@
     <mergerTreeOperatorMethod value="pruneByMass">
       <massThreshold value="1.0e11"/>
     </mergerTreeOperatorMethod>
+    <nodeOperatorMethod value="null"/>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
     <treeNodeMethodDarkMatterProfile value="null"/>
@@ -1218,6 +1233,7 @@
     <mergerTreeOperatorMethod value="pruneHierarchy">
       <hierarchyDepth value="1"/>
     </mergerTreeOperatorMethod>
+    <nodeOperatorMethod value="null"/>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
     <treeNodeMethodDarkMatterProfile value="null"/>
@@ -1255,6 +1271,7 @@
     <mergerTreeOperatorMethod value="pruneByTime">
       <redshiftEarliest value="1.0"/>
     </mergerTreeOperatorMethod>
+    <nodeOperatorMethod value="null"/>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
     <treeNodeMethodDarkMatterProfile value="null"/>
@@ -1297,6 +1314,7 @@
       <selection value="hosts"/>
       <nonCosmological value="true"/>
     </mergerTreeOperatorMethod>
+    <nodeOperatorMethod value="null"/>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
     <treeNodeMethodDarkMatterProfile value="null"/>
@@ -1334,6 +1352,7 @@
     <mergerTreeOperatorMethod value="dumpToGraphViz">
       <path value="testSuite/outputs"/>
     </mergerTreeOperatorMethod>
+    <nodeOperatorMethod value="null"/>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
     <treeNodeMethodDarkMatterProfile value="null"/>
@@ -1377,14 +1396,14 @@
       <temperatureCMB value="2.72548"/>
     </cosmologyParametersMethod>
     <mergerTreeEvolverMethod value="standard">
-    <allTreesExistAtFinalTime value="false"/>
-  </mergerTreeEvolverMethod>
-
-  <mergerTreeOperatorMethod value="perturbMasses">
+      <allTreesExistAtFinalTime value="false"/>
+    </mergerTreeEvolverMethod>
+    <mergerTreeOperatorMethod value="perturbMasses">
       <nbodyHaloMassErrorMethod value="friendsOfFriends">
  	<massParticle value="1.0e9"/>
       </nbodyHaloMassErrorMethod>
     </mergerTreeOperatorMethod>
+    <nodeOperatorMethod value="null"/>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
     <treeNodeMethodDarkMatterProfile value="scale"/>
@@ -1431,6 +1450,7 @@
       <allTreesExistAtFinalTime value="false"/>
     </mergerTreeEvolverMethod>
     <mergerTreeOperatorMethod value="monotonizeMassGrowth"/>
+    <nodeOperatorMethod value="null"/>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
     <treeNodeMethodDarkMatterProfile value="scale"/>
@@ -1472,14 +1492,15 @@
     <presetScaleRadii value="false"/>
     <presetSpins value="false"/>
     <presetOrbits value="false"/>
-  </mergerTreeConstructorMethod>
+    </mergerTreeConstructorMethod>
     <mergerTreeEvolverMethod value="standard">
-    <allTreesExistAtFinalTime value="false"/>
-  </mergerTreeEvolverMethod>
-  <mergerTreeOperatorMethod value="outputRootMasses">
+      <allTreesExistAtFinalTime value="false"/>
+    </mergerTreeEvolverMethod>
+    <mergerTreeOperatorMethod value="outputRootMasses">
       <redshift value="0.1"/>
       <fileName value="testSuite/outputs/rootMasses.hdf5"/>
     </mergerTreeOperatorMethod>
+    <nodeOperatorMethod value="null"/>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
     <treeNodeMethodDarkMatterProfile value="scale"/>
@@ -1496,6 +1517,7 @@
   <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
+    <nodeOperatorMethod value="null"/>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodHotHalo value="null"/>
     <treeNodeMethodBlackHole value="null"/>

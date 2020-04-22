@@ -74,10 +74,12 @@
     <stabilityThresholdStellar value="0.7"/>
   </galacticDynamicsBarInstabilityMethod>
   <!-- Star formation rate -->
-  <starFormationTimescaleDisksMethod value="fixed">
-    <timescale value="0.25"/>
-  </starFormationTimescaleDisksMethod>
-
+  <starFormationRateDisksMethod value="timescale">
+    <starFormationTimescaleMethod value="fixed">
+      <timescale value="0.25"/>
+    </starFormationTimescaleMethod>
+  </starFormationRateDisksMethod>
+  
   <!-- Feedback -->
   <starFormationFeedbackDisksMethod value="fixed">
     <fraction value="0.0"/>
@@ -93,6 +95,12 @@
     <recycledFraction value="0.4"/>
   </stellarPopulationMethod>
 
+  <!-- Node evolution and physics -->
+  <nodeOperatorMethod value="multi">
+    <nodeOperatorMethod value="starFormationDisks"    />
+    <nodeOperatorMethod value="starFormationSpheroids"/>
+  </nodeOperatorMethod>
+  
   <!-- Numerical tolerances -->
   <mergerTreeNodeEvolverMethod value="standard">
     <odeToleranceAbsolute value="1.0e-6"/>

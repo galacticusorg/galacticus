@@ -135,20 +135,24 @@
   </cosmologicalMassVarianceMethod>
   <spheroidEnergeticOutflowMassRate value="1"/>
   <spheroidMassToleranceAbsolute value="1e-06"/>
-  <starFormationTimescaleDisksMethod value="dynamicalTime">
-    <efficiency value="0.01"/>
-    <timescaleMinimum value="0.001"/>
-    <exponentVelocity value="-1.5"/>
-  </starFormationTimescaleDisksMethod>
+  <starFormationRateDisksMethod value="timescale">
+    <starFormationTimescaleMethod value="dynamicalTime">
+      <efficiency value="0.1"/>
+      <exponentVelocity value="-1.5"/>
+      <timescaleMinimum value="0.001"/>
+    </starFormationTimescaleMethod>
+  </starFormationRateDisksMethod>
   <starFormationFeedbackSpheroidsMethod value="powerLaw">
     <exponent value="2"/>
     <velocityCharacteristic value="50"/>
   </starFormationFeedbackSpheroidsMethod>
-  <starFormationTimescaleSpheroidsMethod value="dynamicalTime">
-    <efficiency value="0.1"/>
-    <timescaleMinimum value="0.001"/>
-    <exponentVelocity value="0"/>
-  </starFormationTimescaleSpheroidsMethod>
+  <starFormationRateSpheroidsMethod value="timescale">
+    <starFormationTimescaleMethod value="dynamicalTime">
+      <efficiency value="0.1"/>
+      <exponentVelocity value="0"/>
+      <timescaleMinimum value="0.001"/>
+    </starFormationTimescaleMethod>
+  </starFormationRateSpheroidsMethod>
   <starveSatellites value="true"/>
   <stellarPopulationPropertiesMethod value="instantaneous"/>
   <stellarPopulationSpectraMethod value="FSPS"/>
@@ -185,4 +189,11 @@
   <diskMassDistribution value="exponentialDisk">
     <dimensionless value="true"/>
   </diskMassDistribution>
+
+  <!-- Node evolution and physics -->
+  <nodeOperatorMethod value="multi">
+    <nodeOperatorMethod value="starFormationDisks"    />
+    <nodeOperatorMethod value="starFormationSpheroids"/>
+  </nodeOperatorMethod>
+
 </parameters>

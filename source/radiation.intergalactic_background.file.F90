@@ -29,14 +29,14 @@
   type, extends(radiationFieldIntergalacticBackground) :: radiationFieldIntergalacticBackgroundFile
      !% A radiation field class for intergalactic background light with properties read from file.
      private
-     class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_ => null()
+     class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_     => null()
      type            (varying_string         )                              :: fileName
      double precision                                                       :: time
-     integer                                                                :: spectraTimesCount       , spectraWavelengthsCount
-     double precision                         , allocatable, dimension(:  ) :: spectraTimes            , spectraWavelengths
+     integer                                                                :: spectraTimesCount                , spectraWavelengthsCount
+     double precision                         , allocatable, dimension(:  ) :: spectraTimes                     , spectraWavelengths
      double precision                         , allocatable, dimension(:,:) :: spectra
-     logical                                                                :: interpolationReset      , interpolationResetTimes
-     type            (fgsl_interp_accel      )                              :: interpolationAccelerator, interpolationAcceleratorTimes
+     logical                                                                :: interpolationReset               , interpolationResetTimes
+     type            (fgsl_interp_accel      )                              :: interpolationAccelerator         , interpolationAcceleratorTimes
      integer         (c_size_t               )                              :: iTime
      double precision                         , dimension(0:1)              :: hTime
    contains
@@ -91,10 +91,10 @@ contains
   function intergalacticBackgroundFileConstructorInternal(fileName,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily intergalacticBackgroundFile} radiation field class.
     use :: Array_Utilities  , only : Array_Is_Monotonic            , Array_Reverse     , directionIncreasing
-    use :: FoX_DOM          , only : destroy                       , extractDataContent, node                 , parseFile
+    use :: FoX_DOM          , only : destroy                       , node              , extractDataContent
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: IO_XML           , only : XML_Count_Elements_By_Tag_Name, XML_Array_Read    , XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, &
-         &                           XML_Get_Elements_By_Tag_Name  , xmlNodeList
+         &                           XML_Get_Elements_By_Tag_Name  , xmlNodeList       , XML_Parse
     use :: Memory_Management, only : allocateArray
     implicit none
     type   (radiationFieldIntergalacticBackgroundFile)                              :: self
@@ -109,7 +109,7 @@ contains
     !# <constructorAssign variables="fileName, *cosmologyFunctions_"/>
 
     !$omp critical (FoX_DOM_Access)
-    doc => parseFile(char(fileName),iostat=status)
+    doc => XML_Parse(char(fileName),iostat=status)
     if (status /= 0) call Galacticus_Error_Report('Unable to find or parse data file'//{introspection:location})
     ! Check the file format version of the file.
     datum => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")

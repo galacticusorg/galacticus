@@ -25,5 +25,11 @@
     <timescaleMultiplier value="5.4"/>
   </satelliteMergingTimescalesMethod>
 
+  <!-- Node evolution and physics -->
+  <nodeOperatorMethod value="multi">
+    <nodeOperatorMethod value="starFormationDisks"    />
+    <nodeOperatorMethod value="starFormationSpheroids"/>
+  </nodeOperatorMethod>
+  
   <verbosityLevel value="1"/>
 </parameters>

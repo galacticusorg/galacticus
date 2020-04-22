@@ -36,11 +36,15 @@
     <sigma_8 value="0.816"/>
   </cosmologicalMassVarianceMethod>
   <nodePropertyExtractorMethod value="multi">
-    <nodePropertyExtractorMethod value="virialProperties"/>
-    <nodePropertyExtractorMethod value="descendents"/>
+    <nodePropertyExtractorMethod value="virialProperties" />
+    <nodePropertyExtractorMethod value="descendents"      />
+    <nodePropertyExtractorMethod value="starFormationRate" >
+      <component value="disk"    />
+    </nodePropertyExtractorMethod>
+    <nodePropertyExtractorMethod value="starFormationRate" >
+      <component value="spheroid"/>
+    </nodePropertyExtractorMethod>
   </nodePropertyExtractorMethod>
-  <diskOutputStarFormationRate value="true"/>
-  <spheroidOutputStarFormationRate value="true"/>
   <mergerTreeOperatorMethod value="massAccretionHistory"/>
   <hotHaloAngularMomentumAlwaysGrows value="true"/>
   <nodePromotionIndexShift value="false"/>
@@ -48,4 +52,10 @@
     <redshifts value="0.000"/>
   </outputTimesMethod>
 
-  </parameters>
+  <!-- Node evolution and physics -->
+  <nodeOperatorMethod value="multi">
+    <nodeOperatorMethod value="starFormationDisks"    />
+    <nodeOperatorMethod value="starFormationSpheroids"/>
+  </nodeOperatorMethod>
+  
+</parameters>

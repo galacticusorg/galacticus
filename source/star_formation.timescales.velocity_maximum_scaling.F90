@@ -17,18 +17,18 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a timescale for star formation in galactic disks which scales with the circular velocity of the host halo.
+  !% Implementation of a timescale for star formation which scales with the circular velocity of the host halo.
 
   use :: Cosmology_Functions     , only : cosmologyFunctionsClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   use :: Kind_Numbers            , only : kind_int8
   use :: Math_Exponentiation     , only : fastExponentiator
 
-  !# <starFormationTimescaleDisks name="starFormationTimescaleDisksVelocityMaxScaling">
-  !#  <description>A velocityMaxScaling timescale for star formation in galactic disks.</description>
-  !# </starFormationTimescaleDisks>
-  type, extends(starFormationTimescaleDisksClass) :: starFormationTimescaleDisksVelocityMaxScaling
-     !% Implementation of a velocityMaxScaling timescale for star formation in galactic disks.
+  !# <starFormationTimescale name="starFormationTimescaleVelocityMaxScaling">
+  !#  <description>A velocityMaxScaling timescale for star formation.</description>
+  !# </starFormationTimescale>
+  type, extends(starFormationTimescaleClass) :: starFormationTimescaleVelocityMaxScaling
+     !% Implementation of a velocityMaxScaling timescale for star formation.
      private
      class           (cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_           => null()
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_         => null()
@@ -41,7 +41,7 @@
      type            (fastExponentiator        )          :: velocityExponentiator                  , expansionFactorExponentiator
    contains
      !@ <objectMethods>
-     !@   <object>starFormationTimescaleDisksVelocityMaxScaling</object>
+     !@   <object>starFormationTimescaleVelocityMaxScaling</object>
      !@   <objectMethod>
      !@     <method>calculationReset</method>
      !@     <type>\void</type>
@@ -53,24 +53,24 @@
      procedure :: autoHook         => velocityMaxScalingAutoHook
      procedure :: timescale        => velocityMaxScalingTimescale
      procedure :: calculationReset => velocityMaxScalingCalculationReset
-  end type starFormationTimescaleDisksVelocityMaxScaling
+  end type starFormationTimescaleVelocityMaxScaling
 
-  interface starFormationTimescaleDisksVelocityMaxScaling
-     !% Constructors for the {\normalfont \ttfamily velocityMaxScaling} timescale for star formation in disks class.
+  interface starFormationTimescaleVelocityMaxScaling
+     !% Constructors for the {\normalfont \ttfamily velocityMaxScaling} timescale for star formation class.
      module procedure velocityMaxScalingConstructorParameters
      module procedure velocityMaxScalingConstructorInternal
-  end interface starFormationTimescaleDisksVelocityMaxScaling
+  end interface starFormationTimescaleVelocityMaxScaling
 
   double precision, parameter :: velocityMaxScalingVelocityNormalization=200.0d0
 
 contains
 
   function velocityMaxScalingConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily velocityMaxScaling} timescale for star formation in disks class which takes a
-    !% parameter set as input.
+    !% Constructor for the {\normalfont \ttfamily velocityMaxScaling} timescale for star formation class which takes a parameter
+    !% set as input.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (starFormationTimescaleDisksVelocityMaxScaling)                :: self
+    type            (starFormationTimescaleVelocityMaxScaling)                :: self
     type            (inputParameters                              ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass                      ), pointer       :: cosmologyFunctions_
     class           (darkMatterProfileDMOClass                    ), pointer       :: darkMatterProfileDMO_
@@ -82,7 +82,7 @@ contains
     !#   <name>timescale</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The timescale for star formation in the velocity maximum scaling timescale model for disks.</description>
+    !#   <description>The timescale for star formation in the velocity maximum scaling timescale model.</description>
     !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
@@ -91,7 +91,7 @@ contains
     !#   <name>exponentVelocity</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The exponent of virial velocity in the timescale for star formation in the velocity maximum scaling timescale model for disks.</description>
+    !#   <description>The exponent of virial velocity in the timescale for star formation in the velocity maximum scaling timescale model.</description>
     !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
@@ -100,14 +100,14 @@ contains
     !#   <name>exponentRedshift</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The exponent of redshift in the timescale for star formation in the velocity maximum scaling timescale model for disks.</description>
+    !#   <description>The exponent of redshift in the timescale for star formation in the velocity maximum scaling timescale model.</description>
     !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
-    self=starFormationTimescaleDisksVelocityMaxScaling(timescale,exponentVelocity,exponentRedshift,cosmologyFunctions_,darkMatterProfileDMO_)
+    self=starFormationTimescaleVelocityMaxScaling(timescale,exponentVelocity,exponentRedshift,cosmologyFunctions_,darkMatterProfileDMO_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"  />
     !# <objectDestructor name="darkMatterProfileDMO_"/>
@@ -115,9 +115,9 @@ contains
   end function velocityMaxScalingConstructorParameters
 
   function velocityMaxScalingConstructorInternal(timescale,exponentVelocity,exponentRedshift,cosmologyFunctions_,darkMatterProfileDMO_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily velocityMaxScaling} timescale for star formation in disks class.
+    !% Internal constructor for the {\normalfont \ttfamily velocityMaxScaling} timescale for star formation class.
     implicit none
-    type            (starFormationTimescaleDisksVelocityMaxScaling)                        :: self
+    type            (starFormationTimescaleVelocityMaxScaling)                        :: self
     double precision                                               , intent(in   )         :: timescale            , exponentVelocity, &
          &                                                                                    exponentRedshift
     class           (cosmologyFunctionsClass                      ), intent(in   ), target :: cosmologyFunctions_
@@ -143,17 +143,17 @@ contains
     !% Attach to the calculation reset event.
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
-    class(starFormationTimescaleDisksVelocityMaxScaling), intent(inout) :: self
+    class(starFormationTimescaleVelocityMaxScaling), intent(inout) :: self
 
     call calculationResetEvent%attach(self,velocityMaxScalingCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine velocityMaxScalingAutoHook
 
   subroutine velocityMaxScalingDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily velocityMaxScaling} timescale for star formation in disks class.
+    !% Destructor for the {\normalfont \ttfamily velocityMaxScaling} timescale for star formation class.
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
-    type(starFormationTimescaleDisksVelocityMaxScaling), intent(inout) :: self
+    type(starFormationTimescaleVelocityMaxScaling), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyFunctions_"  />
     !# <objectDestructor name="self%darkMatterProfileDMO_"/>
@@ -162,34 +162,34 @@ contains
   end subroutine velocityMaxScalingDestructor
 
   subroutine velocityMaxScalingCalculationReset(self,node)
-    !% Reset the halo scaling disk star formation timescale calculation.
+    !% Reset the velocity maximum scaling star formation timescale calculation.
+    use :: Galacticus_Nodes, only : treeNode
     implicit none
-    class(starFormationTimescaleDisksVelocityMaxScaling), intent(inout) :: self
-    type (treeNode                                     ), intent(inout) :: node
+    class(starFormationTimescaleVelocityMaxScaling), intent(inout) :: self
+    type (treeNode                                ), intent(inout) :: node
 
     self%timescaleComputed=.false.
     self%lastUniqueID     =node%uniqueID()
     return
   end subroutine velocityMaxScalingCalculationReset
 
-  double precision function velocityMaxScalingTimescale(self,node)
-    !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\normalfont \ttfamily node} in the halo scaling timescale model.
-    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+  double precision function velocityMaxScalingTimescale(self,component)
+    !% Returns the timescale (in Gyr) for star formation in the {\normalfont \ttfamily component} in the velocity maximum scaling timescale model.
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class           (starFormationTimescaleDisksVelocityMaxScaling), intent(inout), target :: self
-    type            (treeNode                                     ), intent(inout), target :: node
-    class           (nodeComponentBasic                           ), pointer               :: basic
-    double precision                                                                       :: expansionFactor, velocityMaximum
-
+    class           (starFormationTimescaleVelocityMaxScaling), intent(inout) :: self
+    class           (nodeComponent                           ), intent(inout) :: component
+    class           (nodeComponentBasic                      ), pointer       :: basic
+    double precision                                                          :: expansionFactor, velocityMaximum
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (component%hostNode%uniqueID() /= self%lastUniqueID) call self%calculationReset(component%hostNode)
     ! Compute the timescale if necessary.
     if (.not.self%timescaleComputed) then
        ! Get virial velocity and expansion factor.
-       basic           => node%basic                                        (            )
-       velocityMaximum =  self%darkMatterProfileDMO_%circularVelocityMaximum(node        )
-       expansionFactor =  self%cosmologyFunctions_  %expansionFactor        (basic%time())
+       basic           => component%hostNode%basic                                        (                    )
+       velocityMaximum =  self              %darkMatterProfileDMO_%circularVelocityMaximum(component%hostNode  )
+       expansionFactor =  self              %cosmologyFunctions_  %expansionFactor        (basic    %time    ())
        ! Compute the velocity factor.
        if (velocityMaximum /= self%velocityMaximumPrevious) then
            self%velocityMaximumPrevious=velocityMaximum

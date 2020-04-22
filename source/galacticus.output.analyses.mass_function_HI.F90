@@ -284,7 +284,7 @@ contains
     end do
     ! Create a HI mass property extractor.
     allocate(nodePropertyExtractor_)
-    !# <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassISM         (                                                                 )"/>
+    !# <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorMassISM                   (                                                                 )"/>
     ! Prepend log10, cosmological luminosity distance, and HI mass property operators.
     allocate(outputAnalysisPropertyOperatorHIMass_           )
     !# <referenceConstruct object="outputAnalysisPropertyOperatorHIMass_"            constructor="outputAnalysisPropertyOperatorHIMass           (outputAnalysisMolecularRatio_                                    )"/>
@@ -375,7 +375,7 @@ contains
          &                                functionCovarianceTarget                                         &
          &                               )
     ! Clean up.
-    !# <objectDestructor name="nodePropertyExtractor_"                />
+    !# <objectDestructor name="nodePropertyExtractor_"                          />
     !# <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
     !# <objectDestructor name="outputAnalysisPropertyOperatorAntiLog10_"        />
     !# <objectDestructor name="outputAnalysisPropertyOperatorSequence_"         />

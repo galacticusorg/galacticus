@@ -38,14 +38,18 @@ contains
 
   function luminosityFunctionSobral2013HiZELSConstructorParameters(parameters) result (self)
     !% Constructor for the ``luminosityFunctionSobral2013HiZELS'' output analysis class which takes a parameter set as input.
-    use :: Gravitational_Lensing, only : gravitationalLensing, gravitationalLensingClass
-    use :: Input_Parameters     , only : inputParameter      , inputParameters
+    use :: Gravitational_Lensing         , only : gravitationalLensing           , gravitationalLensingClass
+    use :: Input_Parameters              , only : inputParameter                 , inputParameters
+    use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
+    use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
     implicit none
     type            (outputAnalysisLuminosityFunctionSobral2013HiZELS)                              :: self
     type            (inputParameters                                 ), intent(inout)               :: parameters
     class           (cosmologyFunctionsClass                         ), pointer                     :: cosmologyFunctions_
     class           (outputTimesClass                                ), pointer                     :: outputTimes_
     class           (gravitationalLensingClass                       ), pointer                     :: gravitationalLensing_
+    class           (starFormationRateDisksClass                     ), pointer                     :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass                 ), pointer                     :: starFormationRateSpheroids_
     class           (stellarSpectraDustAttenuationClass              ), pointer                     :: stellarSpectraDustAttenuation_
     double precision                                                  , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
     integer                                                                                         :: covarianceBinomialBinsPerDecade  , redshiftInterval
@@ -153,20 +157,24 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"            name="cosmologyFunctions_"            source="parameters"/>
-    !# <objectBuilder class="outputTimes"            name="outputTimes_"            source="parameters"/>
+    !# <objectBuilder class="outputTimes"                   name="outputTimes_"                   source="parameters"/>
     !# <objectBuilder class="gravitationalLensing"          name="gravitationalLensing_"          source="parameters"/>
+    !# <objectBuilder class="starFormationRateDisks"        name="starFormationRateDisks_"        source="parameters"/>
+    !# <objectBuilder class="starFormationRateSpheroids"    name="starFormationRateSpheroids_"    source="parameters"/>
     !# <objectBuilder class="stellarSpectraDustAttenuation" name="stellarSpectraDustAttenuation_" source="parameters"/>
     ! Build the object.
-    self=outputAnalysisLuminosityFunctionSobral2013HiZELS(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,outputTimes_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient)
+    self=outputAnalysisLuminosityFunctionSobral2013HiZELS(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"           />
     !# <objectDestructor name="outputTimes_"                  />
     !# <objectDestructor name="gravitationalLensing_"         />
+    !# <objectDestructor name="starFormationRateDisks_"       />
+    !# <objectDestructor name="starFormationRateSpheroids_"   />
     !# <objectDestructor name="stellarSpectraDustAttenuation_"/>
     return
   end function luminosityFunctionSobral2013HiZELSConstructorParameters
 
-  function luminosityFunctionSobral2013HiZELSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,outputTimes_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient) result (self)
+  function luminosityFunctionSobral2013HiZELSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient) result (self)
     !% Constructor for the ``luminosityFunctionSobral2013HiZELS'' output analysis class for internal use.
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -177,6 +185,8 @@ contains
     use :: Gravitational_Lensing                 , only : gravitationalLensingClass
     use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                       , outputAnalysisDistributionOperatorGrvtnlLnsng, outputAnalysisDistributionOperatorRandomErrorPlynml, outputAnalysisDistributionOperatorSequence
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystmtcPolynomial
+    use :: Star_Formation_Rates_Disks            , only : starFormationRateDisksClass
+    use :: Star_Formation_Rates_Spheroids        , only : starFormationRateSpheroidsClass
     use :: String_Handling                       , only : operator(//)
     implicit none
     type            (outputAnalysisLuminosityFunctionSobral2013HiZELS   )                              :: self
@@ -184,6 +194,8 @@ contains
     class           (outputTimesClass                                   ), intent(in   ), target       :: outputTimes_
     class           (gravitationalLensingClass                          ), intent(in   ), target       :: gravitationalLensing_
     class           (stellarSpectraDustAttenuationClass                 ), intent(in   ), target       :: stellarSpectraDustAttenuation_
+    class           (starFormationRateDisksClass                        ), intent(in   ), target       :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass                    ), intent(in   ), target       :: starFormationRateSpheroids_
     integer                                                              , intent(in   )               :: redshiftInterval
     double precision                                                     , intent(in   )               :: randomErrorMinimum                                  , randomErrorMaximum                  , &
          &                                                                                                sizeSourceLensing                                   , depthOpticalISMCoefficient
@@ -300,6 +312,8 @@ contains
          &                                        outputAnalysisPropertyOperator_                                                                                             , &
          &                                        outputAnalysisDistributionOperator_                                                                                         , &
          &                                        outputTimes_                                                                                                                , &
+         &                                        starFormationRateDisks_                                                                                                     , &
+         &                                        starFormationRateSpheroids_                                                                                                 , &
          &                                        covarianceBinomialBinsPerDecade                                                                                             , &
          &                                        covarianceBinomialMassHaloMinimum                                                                                           , &
          &                                        covarianceBinomialMassHaloMaximum                                                                                             &

@@ -131,11 +131,12 @@ contains
   subroutine noninstantaneousRates(self,rateStarFormation,abundancesFuel,component,node,history_,rateMassStellar,rateMassFuel,rateEnergyInput&
        &,rateAbundancesFuel,rateAbundancesStellar,rateLuminosityStellar,computeRateLuminosityStellar)
     !% Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
+    use            :: Abundances_Structure          , only : zeroAbundances
     use            :: FGSL                          , only : fgsl_interp_accel
     use            :: Galacticus_Nodes              , only : nodeComponent         , nodeComponentBasic , treeNode
     use, intrinsic :: ISO_C_Binding                 , only : c_size_t
     use            :: Numerical_Interpolation       , only : Interpolate_Done      , Interpolate_Locate
-    use            :: Stellar_Luminosities_Structure, only : max                   , stellarLuminosities
+    use            :: Stellar_Luminosities_Structure, only : max                   , stellarLuminosities, zeroStellarLuminosities
     use            :: Stellar_Populations           , only : stellarPopulationClass
     implicit none
     class           (stellarPopulationPropertiesNoninstantaneous), intent(inout)                 :: self
@@ -161,59 +162,70 @@ contains
     type            (fgsl_interp_accel                          )                                :: interpolationAccelerator
     logical                                                                                      :: interpolationReset
 
-    ! Get the current time.
-    basic       => node %basic()
-    currentTime =  basic%time ()
-    ! Get interpolating factors in stellar population history.
-    interpolationReset=.true.
-    iHistory          =Interpolate_Locate(history_%time,interpolationAccelerator,currentTime,interpolationReset)
-    call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
-    ! Get recycling, energy input, metal recycling and metal yield rates.
-    recyclingRate  =history_%data(iHistory,self%          recycledRateIndex                               )
-    rateEnergyInput=history_%data(iHistory,self%       rateEnergyInputIndex                               )
-    metalReturnRate=history_%data(iHistory,self%returnedMetalRateBeginIndex:self%returnedMetalRateEndIndex)
-    metalYieldRate =history_%data(iHistory,self%   metalYieldRateBeginIndex:self%   metalYieldRateEndIndex)
-    ! Get the metallicity of the fuel supply.
-    call abundancesFuel%serialize(fuelMetallicity)
-    ! Set the stellar and fuel mass rates of change.
-    rateMassStellar=+rateStarFormation-recyclingRate
-    rateMassFuel   =-rateMassStellar
-    ! Set the rates of change of the stellar and fuel metallicities.
-    stellarMetalsRateOfChange=rateStarFormation*fuelMetallicity-metalReturnRate
-    fuelMetalsRateOfChange   =-stellarMetalsRateOfChange+metalYieldRate
-    call rateAbundancesStellar%deserialize(stellarMetalsRateOfChange)
-    call rateAbundancesFuel   %deserialize(   fuelMetalsRateOfChange)
-    ! Get the stellar population.
-    stellarPopulation_ => self%stellarPopulationSelector_%select(rateStarFormation,abundancesFuel,component)
-    ! Set luminosity rates of change.
-    if (computeRateLuminosityStellar) call rateLuminosityStellar%setLuminosities(rateStarFormation,stellarPopulation_,currentTime,abundancesFuel)
-    ! Set rates of change in the stellar populations properties future history.
-    do iHistory=1,size(history_%time)-1
-       ! Find the age of the forming stellar population at the future time. We average over the time between successive timesteps
-       ! to ensure that the rates will integrate to the correct values.
-       ageMinimum=max(history_%time(iHistory  )-currentTime,0.0d0)
-       ageMaximum=max(history_%time(iHistory+1)-currentTime,0.0d0)
-       ! Check that it really is in the future and that the timestep over which the contribution to be made is non-zero.
-       if (ageMaximum >= 0.0d0 .and. ageMaximum > ageMinimum) then
-          ! Get the recycling rate.
-          recyclingRate                                                                                =+stellarPopulation_%rateRecycling(abundancesFuel,ageMinimum,ageMaximum         ) &
-               &                                                                                        *rateStarFormation
-          ! Accumulate the mass recycling rate from this population at the future time.
-          history_      %data(iHistory,self%recycledRateIndex                                         )=+recyclingRate
-          ! Get the (normalized) energy input rate.
-          history_      %data(iHistory,self%rateEnergyInputIndex                                      )=+stellarPopulation_%rateEnergy   (abundancesFuel,ageMinimum,ageMaximum         ) &
-               &                                                                                        *rateStarFormation
-          ! Accumulate the metal return rate from this population at the future time.
-          history_      %data(iHistory,self%returnedMetalRateBeginIndex:self%returnedMetalRateEndIndex)=+recyclingRate   &
-               &                                                                                        *fuelMetallicity
-          ! Loop over all elements (and total metallicity).
-          do iElement=1,self%elementsCount
-             ! Get the metal yield rate.
-             history_   %data(iHistory,self%metalYieldRateBeginIndex+iElement-1                       )=+stellarPopulation_%rateYield    (abundancesFuel,ageMinimum,ageMaximum,iElement) &
-                  &                                                                                     *rateStarFormation
-          end do
-       end if
-    end do
+    ! If a history exists, compute rates.
+    if (history_%exists()) then
+       ! Get the current time.
+       basic       => node %basic()
+       currentTime =  basic%time ()
+       ! Get interpolating factors in stellar population history.
+       interpolationReset=.true.
+       iHistory          =Interpolate_Locate(history_%time,interpolationAccelerator,currentTime,interpolationReset)
+       call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
+       ! Get recycling, energy input, metal recycling and metal yield rates.
+       recyclingRate  =history_%data(iHistory,self%          recycledRateIndex                               )
+       rateEnergyInput=history_%data(iHistory,self%       rateEnergyInputIndex                               )
+       metalReturnRate=history_%data(iHistory,self%returnedMetalRateBeginIndex:self%returnedMetalRateEndIndex)
+       metalYieldRate =history_%data(iHistory,self%   metalYieldRateBeginIndex:self%   metalYieldRateEndIndex)
+       ! Get the metallicity of the fuel supply.
+       call abundancesFuel%serialize(fuelMetallicity)
+       ! Set the stellar and fuel mass rates of change.
+       rateMassStellar=+rateStarFormation-recyclingRate
+       rateMassFuel   =-rateMassStellar
+       ! Set the rates of change of the stellar and fuel metallicities.
+       stellarMetalsRateOfChange=rateStarFormation*fuelMetallicity-metalReturnRate
+       fuelMetalsRateOfChange   =-stellarMetalsRateOfChange+metalYieldRate
+       call rateAbundancesStellar%deserialize(stellarMetalsRateOfChange)
+       call rateAbundancesFuel   %deserialize(   fuelMetalsRateOfChange)
+       ! Get the stellar population.
+       stellarPopulation_ => self%stellarPopulationSelector_%select(rateStarFormation,abundancesFuel,component)
+       ! Set luminosity rates of change.
+       if (computeRateLuminosityStellar) call rateLuminosityStellar%setLuminosities(rateStarFormation,stellarPopulation_,currentTime,abundancesFuel)
+       ! Set rates of change in the stellar populations properties future history.
+       do iHistory=1,size(history_%time)-1
+          ! Find the age of the forming stellar population at the future time. We average over the time between successive timesteps
+          ! to ensure that the rates will integrate to the correct values.
+          ageMinimum=max(history_%time(iHistory  )-currentTime,0.0d0)
+          ageMaximum=max(history_%time(iHistory+1)-currentTime,0.0d0)
+          ! Check that it really is in the future and that the timestep over which the contribution to be made is non-zero.
+          if (ageMaximum >= 0.0d0 .and. ageMaximum > ageMinimum) then
+             ! Get the recycling rate.
+             recyclingRate                                                                                =+stellarPopulation_%rateRecycling(abundancesFuel,ageMinimum,ageMaximum         ) &
+                  &                                                                                        *rateStarFormation
+             ! Accumulate the mass recycling rate from this population at the future time.
+             history_      %data(iHistory,self%recycledRateIndex                                         )=+recyclingRate
+             ! Get the (normalized) energy input rate.
+             history_      %data(iHistory,self%rateEnergyInputIndex                                      )=+stellarPopulation_%rateEnergy   (abundancesFuel,ageMinimum,ageMaximum         ) &
+                  &                                                                                        *rateStarFormation
+             ! Accumulate the metal return rate from this population at the future time.
+             history_      %data(iHistory,self%returnedMetalRateBeginIndex:self%returnedMetalRateEndIndex)=+recyclingRate   &
+                  &                                                                                        *fuelMetallicity
+             ! Loop over all elements (and total metallicity).
+             do iElement=1,self%elementsCount
+                ! Get the metal yield rate.
+                history_   %data(iHistory,self%metalYieldRateBeginIndex+iElement-1                       )=+stellarPopulation_%rateYield    (abundancesFuel,ageMinimum,ageMaximum,iElement) &
+                     &                                                                                     *rateStarFormation
+             end do
+          end if
+       end do
+    else
+       ! No history exists - rates must all be zero.
+       rateEnergyInput      =0.0d0
+       rateMassFuel         =0.0d0
+       rateMassStellar      =0.0d0
+       rateAbundancesFuel   =zeroAbundances
+       rateAbundancesStellar=zeroAbundances
+       rateLuminosityStellar=zeroStellarLuminosities
+    end if
     return
   end subroutine noninstantaneousRates
 

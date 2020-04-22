@@ -1,2 +1,11 @@
 # Ignore the work directory as it is created as needed #
+*~
 work
+testSuite/*.log
+testSuite/*.pbs
+doc/contributions.tex
+doc/enumerations
+doc/inputParameters
+doc/methods
+source/FFTlog
+					

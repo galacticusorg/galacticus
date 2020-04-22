@@ -124,7 +124,7 @@ foreach my $stateStorableFileName ( &List::ExtraUtils::as_array($directiveLocati
     # Process any stateStorable directives.
     foreach my $directiveNode ( @directiveNodes ) {
 	my $directive = $directiveNode->{'directive'};
-	my $moduleName;
+	my $moduleName = "";
 	my $parentNode = $directiveNode;
 	while ( $parentNode ) {
 	    if ( $parentNode->{'type'} eq "module" && $parentNode->{'opener'} =~ m/^module\s+([a-zA-Z0-9_]+)/ ) {

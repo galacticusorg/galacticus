@@ -138,9 +138,9 @@ contains
 
   subroutine localGroupDBGetProperty{Type¦label}(self,name,property,isPresent)
     !% Get a named text property from the Local Group database.
-    use                      :: FoX_DOM           , only : extractDataContent          , getAttributeNode,  getTextContent, hasAttribute
+    use                      :: FoX_DOM           , only : getAttributeNode            , getTextContent                            , hasAttribute
     use                      :: Galacticus_Error  , only : Galacticus_Error_Report
-    use                      :: IO_XML            , only : XML_Get_Elements_By_Tag_Name
+    use                      :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, extractDataContent => extractDataContentTS
     {Type¦match¦^VarStr$¦use :: ISO_Varying_String, only : varying_string              , assignment(=)¦}
     implicit none
     class           (localGroupDB  ), intent(inout)                                      :: self
@@ -274,14 +274,13 @@ contains
 
   subroutine localGroupDBUpdate(self)
     !% Update the database.
-    use :: FoX_DOM                         , only : appendChild                 , createElementNS    , extractDataContent, getAttributeNode, &
-         &                                          getNamespaceURI             , getTextContent     , hasAttribute      , serialize       , &
-         &                                          setAttribute
+    use :: FoX_DOM                         , only : appendChild                 , createElementNS                            , setAttribute      , getAttributeNode, &
+         &                                          getNamespaceURI             , getTextContent                             , hasAttribute      , serialize
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Galacticus_Paths                , only : galacticusPath              , pathTypeDataStatic
-    use :: IO_XML                          , only : XML_Get_Elements_By_Tag_Name
+    use :: IO_XML                          , only : XML_Get_Elements_By_Tag_Name, extractDataContent  => extractDataContentTS
     use :: ISO_Varying_String              , only : char
-    use :: Numerical_Constants_Astronomical, only : arcminutesToDegrees         , arcsecondsToDegrees, degreesToRadians  , hoursToDegrees  , &
+    use :: Numerical_Constants_Astronomical, only : arcminutesToDegrees         , arcsecondsToDegrees                        , degreesToRadians  , hoursToDegrees  , &
           &                                         minutesToDegrees            , secondsToDegrees
     implicit none
     class           (localGroupDB  ), intent(inout)             :: self

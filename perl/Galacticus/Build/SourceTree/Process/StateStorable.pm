@@ -8,6 +8,7 @@ use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
 use Text::Template 'fill_in_string';
+use Galacticus::Build::SourceTree::Process::Utils qw(performIO);
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'stateStorable'} = \&Process_StateStorable;
@@ -164,7 +165,7 @@ CODE
 		$classIdentifiers{$className} = $classIdentifier;
 		$outputCode .= " type is (".$className.")\n";
 		$inputCode  .= " type is (".$className.")\n";
-		$outputCode .= "  if (present(storeIdentifier).and.storeIdentifier) write (stateFile) ".$classIdentifier."\n";
+		$outputCode .= &performIO("  if (present(storeIdentifier).and.storeIdentifier) write (stateFile) ".$classIdentifier."\n");
 		# Search the class node for declarations.
 		my @staticVariables;
 		my $parentClassName = $className;
@@ -195,10 +196,10 @@ CODE
 					    if ( $declaration->{'intrinsic'} eq "class" ) {
 						$outputCode .= "  select type (c__ => self%".$variableName.")\n";
 						$outputCode .= "  class is (".$declaration->{'type'}.")\n";
-						$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
+						$outputCode .= &performIO("   write (label,'(i16)') sizeof(c__)\n");
 						$outputCode .= "  end select\n";
 					    } else {
-						$outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
+						$outputCode .= &performIO("   write (label,'(i16)') sizeof(self%".$variableName.")\n");
 					    }
 					    $outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= " end if\n";
@@ -225,18 +226,18 @@ CODE
 						if ( grep {lc($_) eq lc($variableName)} @excludes );
 					    $outputCode .= "transferredSize=sizeof(self%".$variableName.")\n";
 					    $outputCode .= "if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
-					    $outputCode .= " write (label,'(i16)') transferredSize\n";
+					    $outputCode .= &performIO(" write (label,'(i16)') transferredSize\n");
 					    $outputCode .= " call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= "end if\n";
 					    $outputCode .= "allocate(transferred(transferredSize))\n";
 					    $outputCode .= "transferred=transfer(self%".$variableName.",transferred)\n";
-					    $outputCode .= "write (stateFile) transferredSize\n";
-					    $outputCode .= "write (stateFile) transferred\n";
+					    $outputCode .= &performIO("write (stateFile) transferredSize\n"
+					                .  "write (stateFile) transferred\n");
 					    $outputCode .= "deallocate(transferred)\n";
 					    $inputCode  .= "call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
-					    $inputCode  .= "read (stateFile) transferredSize\n";
+					    $inputCode  .= &performIO("read (stateFile) transferredSize\n");
 					    $inputCode  .= "allocate(transferred(transferredSize))\n";
-					    $inputCode  .= "read (stateFile) transferred\n";
+					    $inputCode  .= &performIO("read (stateFile) transferred\n");
 					    $inputCode  .= "self%".$variableName."=transfer(transferred,self%".$variableName.")\n";
 					    $inputCode  .= "deallocate(transferred)\n";
 					}
@@ -257,24 +258,24 @@ CODE
 					    $labelUsed   = 1;
 					    $outputCode .= "  if (allocated(self%".$variableName.")) then\n";
 					    $outputCode .= "   if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
-					    $outputCode .= "    write (label,'(i16)') sizeof(self%".$variableName.")\n";
+					    $outputCode .= &performIO("    write (label,'(i16)') sizeof(self%".$variableName.")\n");
 					    $outputCode .= "    call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= "   end if\n";
-					    $outputCode .= "   write (stateFile) .true.\n";
-					    $outputCode .= "   write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n";
-					    $outputCode .= "   write (stateFile) self%".$variableName."\n";
+					    $outputCode .= &performIO("   write (stateFile) .true.\n"
+					                .  "   write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
+					                .  "   write (stateFile) self%".$variableName."\n");
 					    $outputCode .= "  else\n";
-					    $outputCode .= "   write (stateFile) .false.\n";
+					    $outputCode .= &performIO("   write (stateFile) .false.\n");
 					    $outputCode .= "  end if\n";
-		    			    $inputCode  .= " read (stateFile) wasAllocated\n";
+		    			    $inputCode  .= &performIO(" read (stateFile) wasAllocated\n");
 					    $inputCode  .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 					    $inputCode  .= " if (wasAllocated) then\n";
 					    $inputCode  .= "  call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
 					    $inputCode  .= "  allocate(storedShape(".$rank."))\n";
-		    			    $inputCode  .= "  read (stateFile) storedShape\n";
+		    			    $inputCode  .= &performIO("  read (stateFile) storedShape\n");
 					    $inputCode  .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
 		    			    $inputCode  .= "  deallocate(storedShape)\n";
-		    			    $inputCode  .= "  read (stateFile) self%".$variableName."\n";
+		    			    $inputCode  .= &performIO("  read (stateFile) self%".$variableName."\n");
 		    			    $inputCode  .= " end if\n";
 					}
 				    } else {
@@ -307,16 +308,16 @@ CODE
 		foreach ( @staticVariables ) {
 		    $labelUsed   = 1;
 		    $outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
-		    $outputCode .= "  write (label,'(i16)') sizeof(self%".$_.")\n";
+		    $outputCode .= &performIO("  write (label,'(i16)') sizeof(self%".$_.")\n");
 		    $outputCode .= "  call Galacticus_Display_Message('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
 		    $outputCode .= " end if\n";
 		}
 		foreach ( @staticVariables ) {
 		    $inputCode .= " call Galacticus_Display_Message('restoring \"".$_."\"',verbosity=verbosityWorking)\n";
 		}
-		$outputCode .= "  write (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n"
+		$outputCode .= &performIO("  write (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n")
 		    if ( scalar(@staticVariables) > 0 );
-		$inputCode  .= "  read  (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n"
+		$inputCode  .= &performIO("  read  (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n")
 		    if ( scalar(@staticVariables) > 0 );
 	    }
 	}
@@ -391,10 +392,8 @@ subroutine {$parentClassName}ClassRestore{$rankSuffix}(self,stateFile{$storedSha
 CODE
 		    $classRestoreCode .= "integer(c_size_t), intent(in   ), dimension(".join(",",map {":"} 1..$rank).") :: storedShape\n"
 			if ( $rank > 0 );
-		    $classRestoreCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
- read (stateFile) classIdentifier
- select case (classIdentifier)
-CODE
+		    $classRestoreCode .= &performIO(" read (stateFile) classIdentifier\n");
+		    $classRestoreCode .= " select case (classIdentifier)\n";
 		    foreach my $childClassName( sort(keys(%classIdentifiers)) ) {
 			my $parentClassName = $childClassName;
 			while ( defined($parentClassName) ) {

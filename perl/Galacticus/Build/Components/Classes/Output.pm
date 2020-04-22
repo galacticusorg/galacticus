@@ -278,7 +278,7 @@ sub Class_Output {
 	     }
 	    ]
     };
-    # Find all derived types to be output, whether we have any rank-1, conditional, intrinsic outputs, and any modules required.
+    # Find all derived types to be output, and any modules required.
     my %intrinsicTypeMap =
 	(
 	 double      => {label => "double" , intrinsic => "double precision"                     },
@@ -294,7 +294,6 @@ sub Class_Output {
 	 "double"   => 0
 	);
     my %outputDerivedTypes;
-    my %rank1ConditionalIntrinsicOutputs;
     my %modulesRequired;
     # Iterate over class member implementations.
     foreach my $member ( @{$code::class->{'members'}} ) {
@@ -312,42 +311,19 @@ sub Class_Output {
 		unless ( exists($property->{'output'}) );
 	    $argumentUsage                   {'self'                                                     } = 1;
 	    $argumentUsage                   {'time'                                                     } = 1
-		unless ( &isOutputIntrinsic($property->{'data'}->{'type'})                                                                                       );
+		unless ( &isOutputIntrinsic($property->{'data'}->{'type'}) );
 	    $argumentUsage                   {$intrinsicTypeMap{$property->{'data'}->{'type'}}->{'label'}} = 1
-		if     ( &isOutputIntrinsic($property->{'data'}->{'type'})                                                                                       );
+		if     ( &isOutputIntrinsic($property->{'data'}->{'type'}) );
 	    unless ( &isOutputIntrinsic($property->{'data'}->{'type'}) ) {
 		$argumentUsage               {'integer'                                                  } = 1;
 		$argumentUsage               {'double'                                                   } = 1;
 	    }
 	    $outputDerivedTypes              {                  $property->{'data'}->{'type'}}             = 1
-		unless ( &isOutputIntrinsic($property->{'data'}->{'type'})                                                                                       );
-	    $rank1ConditionalIntrinsicOutputs{                  $property->{'data'}->{'type'}}             = 1
-		if ( &isOutputIntrinsic($property->{'data'}->{'type'}) && $property->{'data'}->{'rank'} == 1 && exists($property->{'output'}->{'condition'}) );
+		unless ( &isOutputIntrinsic($property->{'data'}->{'type'}) );
 	    map {$modulesRequired{$_} = 1} split(/,/,$property->{'output'}->{'modules'})
 		if ( exists($property->{'output'}->{'modules'}) );
 	}
     }
-    # Add a counter variable for rank-1, conditional, intrinsic outputs.
-    push(
-	@{$function->{'variables'}},
-	{
-	    intrinsic  => "integer",
-	    variables  => [ "i" ]
-	}
-	)
-	if ( %rank1ConditionalIntrinsicOutputs );
-    # Add output arrays for rank-1, conditional, intrinsic outputs.
-    push(
-	@{$function->{'variables'}},
-	map
-	{
-	    my %descriptor = %{$intrinsicTypeMap{$_}};
-	    $descriptor{'attributes'} = [ "allocatable", "dimension(:)" ];
-	    $descriptor{'variables' } = [ "outputRank1".ucfirst($intrinsicTypeMap{$_}->{'label'}) ];
-	    \%descriptor
-	}
-        &List::ExtraUtils::sortedKeys(\%rank1ConditionalIntrinsicOutputs)
-	);
     # Add output variables for all derived types to be output.
     push(
 	@{$function->{'variables'}},
@@ -404,64 +380,25 @@ CODE
 	    }
 	    # Determine which output buffer type to use.
 	    $code::bufferType = $intrinsicTypeMap{$code::property->{'data'}->{'type'}}->{'label'};
-	    # Construct the output condition string.
-	    $code::condition = exists($code::property->{'output'}->{'condition'}) ? $code::property->{'output'}->{'condition'} : "";
-	    $code::condition =~ s/\[\[([^\]]+)\]\]/$1/g;
 	    # Increment the counters.
 	    if ( &isOutputIntrinsic($code::property->{'data'}->{'type'}) ) {
 		if ( $code::property->{'data'}->{'rank'} == 0 ) {
-		    if ( exists($code::property->{'output'}->{'condition'}) ) {
-			$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if ({$condition}) then
-CODE
-		    }
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 {$bufferType}Property={$bufferType}Property+1
 {$bufferType}Buffer({$bufferType}BufferCount,{$bufferType}Property)=self%{$property->{'name'}}()
 CODE
-		    if ( exists($code::property->{'output'}->{'condition'}) ) {
-			$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-end if
-CODE
-		    }
 		} else {
-		    if ( exists($code::property->{'output'}->{'condition'}) ) {
-			$code::condition =~ s/\{i\}/i/g;
-			$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-outputRank1{ucfirst({$bufferType})}=self%{$property->{'name'}}()
-do i=1,{$property->{'output'}->{'count'}}
-  if ({$condition}) then
-    {$bufferType}Property={$bufferType}Property+1
-    {$bufferType}Buffer({$bufferType}BufferCount,{$bufferType}Property)=outputRank1{ucfirst({$bufferType})}(i)
-  end if
-end do
-deallocate(outputRank1{ucfirst({$bufferType})})
-CODE
-		    } else {
-			$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 {$bufferType}Buffer({$bufferType}BufferCount,{$bufferType}Property+1:{$bufferType}Property+{$count})=reshape(self%{$property->{'name'}}(),[{$count}])
 {$bufferType}Property={$bufferType}Property+{$count}
 CODE
-		    }
 		}
 	    } else {
-		if ( exists($code::property->{'output'}->{'condition'}) ) {
-		    my $condition = $code::property->{'output'}->{'condition'};
-		    $condition =~ s/\[\[([^\]]+)\]\]/$1/g;
-		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if ({$condition}) then
-CODE
-		}
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 output{ucfirst($property->{'data'}->{'type'})}=self%{$property->{'name'}}()
 call output{ucfirst($property->{'data'}->{'type'})}%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time,outputInstance)
 if (.not.same_type_as(self,{$class->{'name'}}Class)) call self%{$property->{'name'}}Set(output{ucfirst($property->{'data'}->{'type'})})
 CODE
-		if ( exists($code::property->{'output'}->{'condition'}) ) {
-		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-end if
-CODE
-		}
 	    }
 	}
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');

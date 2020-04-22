@@ -94,6 +94,12 @@ contains
     omegaDarkMatter=self%cosmologyParameters_%OmegaMatter()-self%cosmologyParameters_%OmegaBaryon()
     ! Construct the file name.
     self%fileName=char(galacticusPath(pathTypeDataDynamic))//'intergalacticMedium/recFast'
+    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    !# </workaround>
+#ifdef THREADSAFEIO
+    !$omp critical(gfortranInternalIO)
+#endif
     write (parameterLabel,'(f6.4)') self%cosmologyParameters_%OmegaMatter    (                   )
     self%fileName=self%fileName//'_OmegaMatter'    //trim(parameterLabel)
     write (parameterLabel,'(f6.4)') self%cosmologyParameters_%OmegaDarkEnergy(                   )
@@ -107,6 +113,9 @@ contains
     write (parameterLabel,'(f4.2)') heliumByMassPrimordial
     self%fileName=self%fileName//'_YHe'            //trim(parameterLabel)
     self%fileName=self%fileName//'.hdf5'
+#ifdef THREADSAFEIO
+    !$omp end critical(gfortranInternalIO)
+#endif
     ! Create directory for output.
     call Directory_Make(galacticusPath(pathTypeDataDynamic)//'intergalacticMedium')
     ! Lock file.

@@ -19,8 +19,10 @@
 
 !% Implements a merger tree evolution timestepping class which limits the step the next epoch at which to store global history.
 
-  use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
-  use :: FGSL               , only : fgsl_interp_accel
+  use :: Cosmology_Functions           , only : cosmologyFunctions             , cosmologyFunctionsClass
+  use :: FGSL                          , only : fgsl_interp_accel
+  use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
+  use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
 
   !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepHistory">
   !#  <description>A merger tree evolution timestepping class which limits the step the next epoch at which to store global history.</description>
@@ -28,17 +30,18 @@
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepHistory
      !% Implementation of a merger tree evolution timestepping class which limits the step the next epoch at which to store global history.
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null()
-     logical                                                              :: diskActive               , spheroidActive
-     integer                                                              :: historyCount
-     double precision                                                     :: timeBegin                , timeEnd
-     double precision                         , allocatable, dimension(:) :: rateStarFormationDisk    , densityStellarDisk    , &
-          &                                                                  expansionFactor          , densityColdGas        , &
-          &                                                                  densityHotHaloGas        , densityNode           , &
-          &                                                                  rateStarFormationSpheroid, densityStellarSpheroid, &
-          &                                                                  rateStarFormation        , densityStellar        , &
-          &                                                                  time
-     type            (fgsl_interp_accel      )                            :: interpolationAccelerator
+     class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_         => null()
+     class           (starFormationRateDisksClass    ), pointer                   :: starFormationRateDisks_     => null()
+     class           (starFormationRateSpheroidsClass), pointer                   :: starFormationRateSpheroids_ => null()
+     integer                                                                      :: historyCount
+     double precision                                                             :: timeBegin                            , timeEnd
+     double precision                                 , allocatable, dimension(:) :: rateStarFormationDisk                , densityStellarDisk    , &
+          &                                                                          expansionFactor                      , densityColdGas        , &
+          &                                                                          densityHotHaloGas                    , densityNode           , &
+          &                                                                          rateStarFormationSpheroid            , densityStellarSpheroid, &
+          &                                                                          rateStarFormation                    , densityStellar        , &
+          &                                                                          time
+     type            (fgsl_interp_accel              )                            :: interpolationAccelerator
    contains
      final     ::                 historyDestructor
      procedure :: timeEvolveTo => historyTimeEvolveTo
@@ -60,11 +63,15 @@ contains
     type            (mergerTreeEvolveTimestepHistory)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass        ), pointer       :: cosmologyFunctions_
+    class           (starFormationRateDisksClass    ), pointer       :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass), pointer       :: starFormationRateSpheroids_
     integer                                                          :: historyCount
-    double precision                                                 :: timeBegin          , timeEnd, &
+    double precision                                                 :: timeBegin                  , timeEnd, &
          &                                                              ageUniverse
 
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"          source="parameters"/>
+    !# <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
+    !# <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
     ageUniverse=cosmologyFunctions_%cosmicTime(1.0d0)
     !# <inputParameter>
     !#   <name>timeBegin</name>
@@ -93,29 +100,29 @@ contains
     !#   <source>parameters</source>
     !#   <type>integer</type>
     !# </inputParameter>
-    self=mergerTreeEvolveTimestepHistory(historyCount,timeBegin,timeEnd,cosmologyFunctions_)
+    self=mergerTreeEvolveTimestepHistory(historyCount,timeBegin,timeEnd,cosmologyFunctions_,starFormationRateDisks_,starFormationRateSpheroids_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="cosmologyFunctions_"        />
+    !# <objectDestructor name="starFormationRateDisks_"    />
+    !# <objectDestructor name="starFormationRateSpheroids_"/>
     return
   end function historyConstructorParameters
 
-  function historyConstructorInternal(historyCount,timeBegin,timeEnd,cosmologyFunctions_) result(self)
+  function historyConstructorInternal(historyCount,timeBegin,timeEnd,cosmologyFunctions_,starFormationRateDisks_,starFormationRateSpheroids_) result(self)
     !% Constructor for the {\normalfont \ttfamily history} merger tree evolution timestep class which takes a parameter set as input.
-    use            :: Galacticus_Nodes , only : defaultDiskComponent, defaultSpheroidComponent
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : allocateArray
-    use            :: Numerical_Ranges , only : Make_Range          , rangeTypeLogarithmic
+    use            :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
     implicit none
     type            (mergerTreeEvolveTimestepHistory)                        :: self
     integer                                          , intent(in   )         :: historyCount
-    double precision                                 , intent(in   )         :: timeBegin          , timeEnd
+    double precision                                 , intent(in   )         :: timeBegin                  , timeEnd
     class           (cosmologyFunctionsClass        ), intent(in   ), target :: cosmologyFunctions_
+    class           (starFormationRateDisksClass    ), intent(in   ), target :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass), intent(in   ), target :: starFormationRateSpheroids_
     integer         (c_size_t                       )                        :: timeIndex
-    !# <constructorAssign variables="historyCount, timeBegin, timeEnd, *cosmologyFunctions_"/>
+    !# <constructorAssign variables="historyCount, timeBegin, timeEnd, *cosmologyFunctions_, *starFormationRateDisks_, *starFormationRateSpheroids_"/>
 
-    ! Determine if we have active components that can provide star formation rates.
-    self%diskActive    =    defaultDiskComponent%starFormationRateIsGettable()
-    self%spheroidActive=defaultSpheroidComponent%starFormationRateIsGettable()
     ! Allocate storage arrays.
     call allocateArray(self%time                     ,[self%historyCount])
     call allocateArray(self%expansionFactor          ,[self%historyCount])
@@ -160,7 +167,9 @@ contains
     implicit none
     type(mergerTreeEvolveTimestepHistory), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_"        />
+    !# <objectDestructor name="self%starFormationRateDisks_"    />
+    !# <objectDestructor name="self%starFormationRateSpheroids_"/>
     return
   end subroutine historyDestructor
 
@@ -240,10 +249,8 @@ contains
           timeIndex=Interpolate_Locate(self%time,self%interpolationAccelerator,time)
        end if
        ! Extract disk and spheroid star formation rates.
-       rateStarFormationDisk                        =0.0d0
-       rateStarFormationSpheroid                    =0.0d0
-       if (self%diskActive)     rateStarFormationDisk    =disk    %starFormationRate()
-       if (self%spheroidActive) rateStarFormationSpheroid=spheroid%starFormationRate()
+       rateStarFormationDisk    =self%starFormationRateDisks_    %rate(node)
+       rateStarFormationSpheroid=self%starFormationRateSpheroids_%rate(node)
        ! Accumulate the properties.
        ! Star formation rate:
        self%rateStarFormation                       (timeIndex)=+self%rateStarFormation          (timeIndex)                                                           &
