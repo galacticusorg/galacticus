@@ -29,7 +29,7 @@
      !% A class implementing calculations of satellite merging times by applying the \cite{villalobos_improved_2013} modifier to
      !% another selected satellite merging time method.
      private
-     class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_ => null()
+     class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_         => null()
      class           (satelliteMergingTimescalesClass), pointer :: satelliteMergingTimescales_ => null()
      double precision                                           :: exponent
    contains
