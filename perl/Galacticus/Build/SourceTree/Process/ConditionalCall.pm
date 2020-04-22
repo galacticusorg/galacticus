@@ -50,7 +50,7 @@ sub Process_ConditionalCall {
 	    foreach my $argument ( &List::ExtraUtils::hashList($arguments,keyAs => "name") ) {
 		my $condition;
 		if      ( exists($argument->{'parameterPresent'}) ) {
-		    $condition = $argument->{'parameterPresent'}."%isPresent('".$argument->{'name'}."')";
+		    $condition = $argument->{'parameterPresent'}."%isPresent('".(exists($argument->{'parameterName'}) ? $argument->{'parameterName'} : $argument->{'name'})."')";
 		} elsif ( exists($argument->{'condition'       }) ) {
 		    $condition = $argument->{'condition'       }                                        ;
 		}
