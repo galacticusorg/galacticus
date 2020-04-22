@@ -58,7 +58,7 @@ contains
     use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
     use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadiusClass
     use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOClass
-    use :: FFTLogs                   , only : FFTLog                           , fftLogForward                 , fftLogSine
+    use :: FFTLogs                   , only : FFTLogSineTransform              , fftLogForward
     use :: FGSL                      , only : FGSL_Integ_Gauss61               , fgsl_function                 , fgsl_integration_workspace
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Galacticus_Nodes          , only : nodeComponentBasic               , nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale, treeNode
@@ -222,17 +222,16 @@ contains
        ! Fourier transform to get the correlation function.
        call allocateArray(correlation,shape(wavenumber))
        call allocateArray(separation ,shape(wavenumber))
-       call FFTLog(                     &
-            &      wavenumber         , &
-            &      separation         , &
-            &      +powerSpectrumTotal  &
-            &      *wavenumber          &
-            &      * 4.0d0*Pi           &
-            &      /(2.0d0*Pi)**3     , &
-            &      correlation        , &
-            &      fftLogSine         , &
-            &      fftLogForward        &
-            &     )
+       call FFTLogSineTransform(                     &
+            &                   wavenumber         , &
+            &                   separation         , &
+            &                   +powerSpectrumTotal  &
+            &                   *wavenumber          &
+            &                   * 4.0d0*Pi           &
+            &                   /(2.0d0*Pi)**3     , &
+            &                   correlation        , &
+            &                   fftLogForward        &
+            &                  )
        correlation=correlation/separation
        ! Project the correlation function.
        call allocateArray(projectedCorrelation,shape(wavenumber))

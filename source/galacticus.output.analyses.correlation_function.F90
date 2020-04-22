@@ -923,7 +923,7 @@ contains
 
   subroutine correlationFunctionFinalizeAnalysis(self)
     !% Compute final covariances and normalize.
-    use :: FFTLogs                 , only : FFTLog                             , fftLogForward                  , fftLogSine
+    use :: FFTLogs                 , only : FFTLogSineTransform                , fftLogForward
 #ifdef USEMPI
     use :: MPI_Utilities           , only : mpiSelf
 #endif
@@ -1126,17 +1126,16 @@ contains
     call allocateArray(separation ,[self%wavenumberCount])
     ! Fourier transform the power spectrum to get the correlation function.
     do n=1,self%massCount
-       call FFTLog(                          &
-            &      self%wavenumber         , &
-            &      separation              , &
-            &      +powerSpectrumValue(:,n)  &
-            &      *self%wavenumber          &
-            &      * 4.0d0*Pi                &
-            &      /(2.0d0*Pi)**3          , &
-            &      correlation(:,n)        , &
-            &      fftLogSine              , &
-            &      fftLogForward             &
-            &     )
+       call FFTLogSineTransform(                          &
+            &                    self%wavenumber        , &
+            &                    separation             , &
+            &                   +powerSpectrumValue(:,n)  &
+            &                   *self%wavenumber          &
+            &                   * 4.0d0*Pi                &
+            &                   /(2.0d0*Pi)**3          , &
+            &                    correlation       (:,n), &
+            &                    fftLogForward            &
+            &                  )
        correlation(:,n)=correlation(:,n)/separation
     end do
     ! Compute the covariance of the correlation function.
@@ -1164,28 +1163,26 @@ contains
     do n=1,self%massCount
        do m=1,self%massCount
           do i=1,self%wavenumberCount
-             call FFTlog(                                                                                                           &
-                  &      self%wavenumber                                                                                          , &
-                  &      separation                                                                                               , &
-                  &      powerSpectrumCovariance((n-1)*self%wavenumberCount+i,(m-1)*self%wavenumberCount+1:m*self%wavenumberCount), &
-                  &      covarianceTmp          ((n-1)*self%wavenumberCount+i,(m-1)*self%wavenumberCount+1:m*self%wavenumberCount), &
-                  &      fftLogSine                                                                                               , &
-                  &      fftLogForward                                                                                              &
-                  )
+             call FFTLogSineTransform(                                                                                                           &
+                  &                   self%wavenumber                                                                                          , &
+                  &                   separation                                                                                               , &
+                  &                   powerSpectrumCovariance((n-1)*self%wavenumberCount+i,(m-1)*self%wavenumberCount+1:m*self%wavenumberCount), &
+                  &                   covarianceTmp          ((n-1)*self%wavenumberCount+i,(m-1)*self%wavenumberCount+1:m*self%wavenumberCount), &
+                  &                   fftLogForward                                                                                              &
+                  &                  )
           end do
        end do
     end do
     do n=1,self%massCount
        do m=1,self%massCount
           do i=1,self%wavenumberCount
-             call FFTlog(                                                                                                           &
-                  &      self%wavenumber                                                                                          , &
-                  &      separation                                                                                               , &
-                  &      covarianceTmp          ((n-1)*self%wavenumberCount+1:n*self%wavenumberCount,(m-1)*self%wavenumberCount+i), &
-                  &      correlationCovariance  ((n-1)*self%wavenumberCount+1:n*self%wavenumberCount,(m-1)*self%wavenumberCount+i), &
-                  &      fftLogSine                                                                                               , &
-                  &      fftLogForward                                                                                              &
-                  )
+             call FFTLogSineTransform(                                                                                                           &
+                  &                   self%wavenumber                                                                                          , &
+                  &                   separation                                                                                               , &
+                  &                   covarianceTmp          ((n-1)*self%wavenumberCount+1:n*self%wavenumberCount,(m-1)*self%wavenumberCount+i), &
+                  &                   correlationCovariance  ((n-1)*self%wavenumberCount+1:n*self%wavenumberCount,(m-1)*self%wavenumberCount+i), &
+                  &                   fftLogForward                                                                                              &
+                  &                  )
           end do
        end do
     end do
