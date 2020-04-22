@@ -95,7 +95,7 @@ sub Process_InputParametersValidate {
 			$copyInstance = ",copyInstance=".$_->{'copy'};
 		    }
 		}
-		$code .= $copyLoopOpen."   call ".$_->{'name'}."%allowedParameters(".$variableName.",'parameters')\n".$copyLoopClose;
+		$code .= $copyLoopOpen."   if (associated(".$_->{'name'}.")) call ".$_->{'name'}."%allowedParameters(".$variableName.",'parameters')\n".$copyLoopClose;
 	    }
 	    $code .= "   call ".$source."%checkParameters(".$variableName.")\n";
 	    $code .= "   if (allocated(".$variableName.")) deallocate(".$variableName.")\n";
