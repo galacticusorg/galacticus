@@ -67,7 +67,7 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="mergerTreeBuildMasses" name="mergerTreeBuildMasses_" source="parameters"/>
     self=mergerTreeBuildMassesSubset(subsetBegin,subsetEnd,mergerTreeBuildMasses_)
-    !# <inputParametersValidate target="self" source="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function subsetConstructorParameters
 

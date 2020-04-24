@@ -54,7 +54,6 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <inputParametersValidate label="allowedParameterNames_"/>
     self=coolingRateSimple(timeScale)
     !# <inputParametersValidate source="parameters"/>
     return

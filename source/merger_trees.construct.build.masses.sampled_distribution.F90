@@ -95,7 +95,7 @@ contains
     !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="mergerTreeBuildMassDistribution" name="self%mergerTreeBuildMassDistribution_" source="parameters"/>
-    !# <inputParametersValidate target="self" source="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
     ! Validate input.
     if (self%massTreeMaximum >= 1.0d16              )                                                           &
          & call Galacticus_Display_Message(                                                                     &

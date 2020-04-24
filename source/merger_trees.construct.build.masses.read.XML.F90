@@ -62,7 +62,7 @@ contains
     !#   <type>float</type>
     !# </inputParameter>
     self=mergerTreeBuildMassesReadXML(fileName,massIntervalFractional)
-    !# <inputParametersValidate target="self" source="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function readXMLConstructorParameters
 

@@ -136,7 +136,7 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=mergerTreeBuildMassesFixedMass(massTree,radiusTree,treeCount,massIntervalFractional,cosmologyParameters_,darkMatterHaloScale_)
-    !# <inputParametersValidate target="self" source="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="darkMatterHaloScale_"/>
     return
