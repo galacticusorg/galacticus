@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <!-- Schema used to validate inputParametersValidate directives -->
+
+  <!-- Type definition for levels, used in "bindsTo" attributes -->
+  <xs:element name="inputParametersValidate" type="xs:string">
+    <xs:attribute name="source"/>
+  </xs:element>
+  
+</xs:schema>
