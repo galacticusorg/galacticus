@@ -70,7 +70,7 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="accretionDiskSpectra" name="accretionDiskSpectra_" source="parameters"/>
     self=radiativeTransferSpectrumAccretionDisk(massBlackHole,accretionRateEddington,accretionDiskSpectra_)
-    !# <inputParametersValidate spectrum="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="accretionDiskSpectra_"/>
     return
   end function accretionDiskConstructorParameters
