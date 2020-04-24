@@ -947,7 +947,7 @@ contains
   subroutine inputParametersCheckParameters(self,allowedParameterNames)
     use :: FoX_dom            , only : destroy                    , getNodeName               , node
     use :: Galacticus_Display , only : Galacticus_Display_Indent  , Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-         &                            verbositySilent
+         &                             verbositySilent
     use :: ISO_Varying_String , only : assignment(=)              , operator(//)
     use :: Regular_Expressions, only : regEx
     use :: String_Handling    , only : String_Levenshtein_Distance
