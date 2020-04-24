@@ -49,7 +49,7 @@ sub Process_InputParametersValidate {
 		$sibling = $sibling->{'sibling'};
 	    }
 	    # Generate the variable declaration.
-	    my $variableName = exists($node->{'directive'}->{'label'}) ? $node->{'directive'}->{'label'} : "allowedParameterNames_";
+	    my $variableName = "allowedParameterNames_";
 	    unless ( &Galacticus::Build::SourceTree::Parse::Declarations::DeclarationExists($node->{'parent'},$variableName) ) {
 		my $declaration =
 		{
@@ -65,20 +65,14 @@ sub Process_InputParametersValidate {
 	    # Generate the validation code.
 	    my $code;
 	    my $result;
-	    if      ( $node->{'parent'}->{'type'} eq "subroutine" ) {
-		if ( exists($node->{'directive'}->{'target'}) ) {
-		    $result = $node->{'directive'}->{'target'};
-		} else {
-		    die('Galacticus::Build::SourceTree::Process::InputParametersValidate::Process_InputParametersValidate: target must be specified');
-		}
-	    } elsif ( $node->{'parent'}->{'type'} eq "function"   ) {
+	    if ( $node->{'parent'}->{'type'} eq "function" ) {
 		if ( $node->{'parent'}->{'opener'} =~ m/result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$/ ) {
 		    $result = $1;
 		} else {
 		    $result = $node->{'parent'}->{'name'};	       
 		}
 	    } else {
-		die('Galacticus::Build::SourceTree::Process::InputParametersValidate::Process_InputParametersValidate: parent is neither function nor subroutine');
+		die('Galacticus::Build::SourceTree::Process::InputParametersValidate::Process_InputParametersValidate: parent is not a function');
 	    }
 	    $code .= "   call ".$result."%allowedParameters(".$variableName.",'".$source."')\n";
 	    foreach ( @objectBuilders) {
