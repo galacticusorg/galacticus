@@ -84,7 +84,7 @@ contains
     !#   <type>real</type>
     !# </inputParameter>
     self=radiativeTransferSpectrumPowerLaw(wavelengthMinimum,wavelengthMaximum,exponent,normalization)
-    !# <inputParametersValidate spectrum="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function powerLawConstructorParameters
 

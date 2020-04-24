@@ -64,7 +64,7 @@ contains
     !#   <type>real</type>
     !# </inputParameter>
     self=radiativeTransferSpectrumBlackBody(temperature,luminosityBolometric)
-    !# <inputParametersValidate spectrum="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
    return
   end function blackBodyConstructorParameters
 
