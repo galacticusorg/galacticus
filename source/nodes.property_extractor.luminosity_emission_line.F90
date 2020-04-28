@@ -267,60 +267,61 @@ contains
     use            :: Numerical_Interpolation         , only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
     use            :: Stellar_Luminosities_Structure  , only : max                                , stellarLuminosities
     implicit none
-    class           (nodePropertyExtractorLmnstyEmssnLine), intent(inout)              :: self
+    class           (nodePropertyExtractorLmnstyEmssnLine), intent(inout)           :: self
     type            (treeNode                            ), intent(inout), target   :: node
-    type            (multiCounter                        ), intent(inout)   , optional :: instance
-    class           (nodeComponentBasic                  ), pointer                    :: basic
-    class           (nodeComponentDisk                   ), pointer                    :: disk
-    class           (nodeComponentSpheroid               ), pointer                    :: spheroid
-    double precision                                      , parameter                  :: massMinimum                   =1.0d-06
-    double precision                                      , parameter                  :: radiusMinimum                 =1.0d-06
-    double precision                                      , parameter                  :: rateStarFormationMinimum      =1.0d-06
-    double precision                                      , parameter                  :: luminosityIonizingMinimum     =1.0d-20
-    double precision                                      , parameter                  :: massHIIRegion                 =7.5d+03                     ! Mass of gas in HII region; M☉.
-    double precision                                      , parameter                  :: massGMC                       =3.7d+07                     ! Mass of a giant molecular cloud at critical surface density; M☉.
-    double precision                                      , parameter                  :: lifetimeHIIRegion             =1.0d-03                     ! Lifetime of HII region; Gyr.
-    double precision                                      , parameter                  :: densitySurfaceCritical        =8.5d+13                     ! Critical surface density for molecular clouds; M☉ Mpc⁻².
-    double precision                                      , parameter                  :: metallicityISMLocal           =+2.00d-02                   ! Metallicity in the local ISM.
-    double precision                                      , parameter                  :: AVToEBV                       =+3.10d+00                   ! (A_V/E(B-V); Savage & Mathis 1979)
-    double precision                                      , parameter                  :: NHToEBV                       =+5.80d+21                   ! (N_H/E(B-V); atoms/cm^2/mag; Savage & Mathis 1979)
-    double precision                                      , parameter                  :: wavelengthZeroPoint           =+5.50d+03                   ! Angstroms
-    double precision                                      , parameter                  :: depthOpticalToMagnitudes      =+2.50d+00                 & ! Conversion factor from optical depth to magnitudes of extinction.
-         &                                                                                                               *log10(                   &
-         &                                                                                                                      +exp(              &
-         &                                                                                                                           +1.0d0        &
-         &                                                                                                                          )              &
-         &                                                                                                                     )
-    double precision                                      , parameter                  :: depthOpticalNormalization     =+AVToEBV                  &
-         &                                                                                                               /NHToEBV                  &
-         &                                                                                                               *hydrogenByMassSolar      &
-         &                                                                                                               /atomicMassUnit*massSolar &
-         &                                                                                                               /(                        &
-         &                                                                                                                 +parsec                 &
-         &                                                                                                                 *hecto                  &
-         &                                                                                                               )**2                      &
-         &                                                                                                               /metallicityISMLocal      &
-         &                                                                                                               /depthOpticalToMagnitudes
-    type            (stellarLuminosities                 ), dimension(  2  )           :: luminositiesStellar
-    type            (abundances                          ), dimension(  2  )           :: abundancesGas
-    double precision                                      , dimension(3,2  )           :: luminosityIonizing
-    double precision                                      , dimension(  2  )           :: massGas                                                 , radius                         , &
-         &                                                                                rateStarFormation                                       , metallicityGas                 , &
-         &                                                                                densityHydrogen                                         , luminosityLymanContinuum       , &
-         &                                                                                ratioLuminosityHeliumToHydrogen                         , ratioLuminosityOxygenToHydrogen, &
-         &                                                                                countHIIRegion                                          , densitySurfaceGas              , &
-         &                                                                                massClouds                                              , densitySurfaceClouds           , &
-         &                                                                                depthOpticalDiffuse                                     , densitySurfaceMetals           , &
-         &                                                                                ionizingFluxMultiplier
-    logical                                               , dimension(  2  )           :: isPhysical
-    integer         (c_size_t                            ), dimension(0:1,5)           :: interpolateIndex
-    double precision                                      , dimension(0:1,5)           :: interpolateFactor
-    double precision                                                                   :: weight                                                  , luminosityLinePerHIIRegion
-    integer         (c_size_t                            )                             :: output
-    integer                                                                            :: component                                               , continuum                      , &
-         &                                                                                i                                                       , j                              , &
-         &                                                                                k                                                       , l                              , &
-         &                                                                                m                                                       , line
+    type            (multiCounter                        ), intent(inout), optional :: instance
+    class           (nodeComponentBasic                  ), pointer                 :: basic
+    class           (nodeComponentDisk                   ), pointer                 :: disk
+    class           (nodeComponentSpheroid               ), pointer                 :: spheroid
+    double precision                                      , parameter               :: massMinimum                   =1.0d-06
+    double precision                                      , parameter               :: radiusMinimum                 =1.0d-06
+    double precision                                      , parameter               :: rateStarFormationMinimum      =1.0d-06
+    double precision                                      , parameter               :: luminosityIonizingMinimum     =1.0d-20
+    double precision                                      , parameter               :: massHIIRegion                 =7.5d+03                     ! Mass of gas in HII region; M☉.
+    double precision                                      , parameter               :: massGMC                       =3.7d+07                     ! Mass of a giant molecular cloud at critical surface density; M☉.
+    double precision                                      , parameter               :: lifetimeHIIRegion             =1.0d-03                     ! Lifetime of HII region; Gyr.
+    double precision                                      , parameter               :: efficiencyHIIRegion           =1.0d-02                     ! Efficiency of HII region (fraction of mass turned into stars).
+    double precision                                      , parameter               :: densitySurfaceCritical        =8.5d+13                     ! Critical surface density for molecular clouds; M☉ Mpc⁻².
+    double precision                                      , parameter               :: metallicityISMLocal           =+2.00d-02                   ! Metallicity in the local ISM.
+    double precision                                      , parameter               :: AVToEBV                       =+3.10d+00                   ! (A_V/E(B-V); Savage & Mathis 1979)
+    double precision                                      , parameter               :: NHToEBV                       =+5.80d+21                   ! (N_H/E(B-V); atoms/cm^2/mag; Savage & Mathis 1979)
+    double precision                                      , parameter               :: wavelengthZeroPoint           =+5.50d+03                   ! Angstroms
+    double precision                                      , parameter               :: depthOpticalToMagnitudes      =+2.50d+00                 & ! Conversion factor from optical depth to magnitudes of extinction.
+         &                                                                                                            *log10(                   &
+         &                                                                                                                   +exp(              &
+         &                                                                                                                        +1.0d0        &
+         &                                                                                                                       )              &
+         &                                                                                                                  )
+    double precision                                      , parameter               :: depthOpticalNormalization     =+AVToEBV                  &
+         &                                                                                                            /NHToEBV                  &
+         &                                                                                                            *hydrogenByMassSolar      &
+         &                                                                                                            /atomicMassUnit*massSolar &
+         &                                                                                                            /(                        &
+         &                                                                                                              +parsec                 &
+         &                                                                                                              *hecto                  &
+         &                                                                                                            )**2                      &
+         &                                                                                                            /metallicityISMLocal      &
+         &                                                                                                            /depthOpticalToMagnitudes
+    type            (stellarLuminosities                 ), dimension(  2  )        :: luminositiesStellar
+    type            (abundances                          ), dimension(  2  )        :: abundancesGas
+    double precision                                      , dimension(3,2  )        :: luminosityIonizing
+    double precision                                      , dimension(  2  )        :: massGas                                                 , radius                         , &
+         &                                                                             rateStarFormation                                       , metallicityGas                 , &
+         &                                                                             densityHydrogen                                         , luminosityLymanContinuum       , &
+         &                                                                             ratioLuminosityHeliumToHydrogen                         , ratioLuminosityOxygenToHydrogen, &
+         &                                                                             countHIIRegion                                          , densitySurfaceGas              , &
+         &                                                                             massClouds                                              , densitySurfaceClouds           , &
+         &                                                                             depthOpticalDiffuse                                     , densitySurfaceMetals           , &
+         &                                                                             ionizingFluxMultiplier
+    logical                                               , dimension(  2  )        :: isPhysical
+    integer         (c_size_t                            ), dimension(0:1,5)        :: interpolateIndex
+    double precision                                      , dimension(0:1,5)        :: interpolateFactor
+    double precision                                                                :: weight                                                  , luminosityLinePerHIIRegion
+    integer         (c_size_t                            )                          :: output
+    integer                                                                         :: component                                               , continuum                      , &
+         &                                                                             i                                                       , j                              , &
+         &                                                                             k                                                       , l                              , &
+         &                                                                             m                                                       , line
     !$GLC attributes unused :: instance
 
     ! Retrieve components.
@@ -410,9 +411,10 @@ contains
        ! Compute oxygen to Lyman continuum luminosity logarithmic ratio.
        ratioLuminosityOxygenToHydrogen=+log10(max(luminosityIonizing(ionizingContinuumOxygen,:),luminosityIonizingMinimum)/luminosityIonizing(ionizingContinuumHydrogen,:))
        ! Compute number of HII regions.
-       countHIIRegion                 =+rateStarFormation &
-            &                          *lifetimeHIIRegion &
-            &                          /massHIIRegion
+       countHIIRegion                 =+rateStarFormation   &
+            &                          *lifetimeHIIRegion   &
+            &                          /massHIIRegion       &
+            &                          /efficiencyHIIRegion
        !  Convert the hydrogen ionizing luminosity to be per HII region.
        luminosityLymanContinuum       =+luminosityLymanContinuum &
             &                          -log10(countHIIRegion)
