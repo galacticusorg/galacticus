@@ -152,6 +152,11 @@ contains
           scaleFactor         =+1.0d0
           call Galacticus_Error_Report('expected hydrogen- or helium-like ion'//{introspection:location})
        end if
+       ! Handle zero temperature.
+       if (temperatureEffective <= 0.0d0) then
+          hummerRate=0.0d0
+          return
+       end if
        ! Use tabulated solutions for hydrogenic and helium-like sequences.
        select case (level)
        case (recombinationCaseA)
