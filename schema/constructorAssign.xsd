@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <!-- Schema used to validate constructorAssign directives -->
+
+  <xs:simpleType name="yesNo">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="yes"/>
+      <xs:enumeration value="no" />
+    </xs:restriction>
+  </xs:simpleType> 
+  
+  <xs:element name="constructorAssign" type="xs:string">
+    <xs:attribute name="variables" use="required"/>
+    <xs:attribute name="allocate"  type="yesNo"  />
+  </xs:element>
+  
+</xs:schema>
