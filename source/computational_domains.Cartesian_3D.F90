@@ -484,7 +484,7 @@ contains
   subroutine cartesian3DStateSolve(self)
     !% Solve for the state of matter in the computational domain.
     use :: Galacticus_Display, only : Galacticus_Display_Indent , Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                            Galacticus_Display_Message, verbosityStandard        , verbosityWorking
+         &                            Galacticus_Display_Message, verbosityStandard          , verbosityWorking
     use :: MPI_Utilities     , only : mpiSelf                   , mpiBarrier
     use :: Galacticus_Error  , only : errorStatusSuccess
     use :: Timers            , only : timer
