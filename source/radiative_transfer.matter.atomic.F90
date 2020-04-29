@@ -45,6 +45,7 @@
      integer                                                                                   :: indexAbundancePattern                             , iterationAverageCount, &
           &                                                                                       countElements                                     , indexHydrogen
      integer         (c_size_t                                    )                            :: countOutputs_
+     logical                                                                                   :: outputRates
      double precision                                                                          :: metallicity                                       , temperatureMinimum
      double precision                                              , allocatable, dimension(:) :: numberDensityMassDensityRatio                     , elementAtomicMasses
      type            (varying_string                              )                            :: abundancePattern
@@ -111,7 +112,7 @@
   !$omp threadprivate(atomicSelf,atomicElementsPhotoRate,atomicProperties,atomicDensityNumberElectrons,atomicRecombinationCase)
 
   ! Tolerance parameters.
-  double precision                                         , parameter                   :: atomicIonizationStateFractionToleranceAbsolute=1.0d-6, atomicIonizationStateFractionToleranceRelative=1.0d-2
+  double precision                                         , parameter                   :: atomicIonizationStateFractionToleranceAbsolute=1.0d-12, atomicIonizationStateFractionToleranceRelative=1.0d-2
 
 contains
 
@@ -135,6 +136,7 @@ contains
     integer                                                                                    :: iterationAverageCount    
     double precision                                                                           :: temperatureMinimum                      , metallicity
     type            (varying_string                              )                             :: abundancePattern
+    logical                                                                                    :: outputRates
     
     !# <inputParameter>
     !#   <name>iterationAverageCount</name>
@@ -147,7 +149,7 @@ contains
     !# <inputParameter>
     !#   <name>temperatureMinimum</name>
     !#   <cardinality>1</cardinality>
-    !#   <defaultValue>3.0d0</defaultValue>
+    !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The minimum temperature that matter is allowed to reach in the case of zero photoheating.</description>
     !#   <source>parameters</source>
     !#   <type>real</type>
@@ -181,6 +183,14 @@ contains
     !#   <source>parameters</source>
     !#   <type>string</type>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>outputRates</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true, output photoionization and heating rates.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
     !# <objectBuilder class="massDistribution"                        name="massDistribution_"                        source="parameters"/>
     !# <objectBuilder class="atomicCrossSectionIonizationPhoto"       name="atomicCrossSectionIonizationPhoto_"       source="parameters"/>
     !# <objectBuilder class="atomicRecombinationRateRadiative"        name="atomicRecombinationRateRadiative_"        source="parameters"/>
@@ -190,7 +200,7 @@ contains
     !# <objectBuilder class="atomicIonizationPotential"               name="atomicIonizationPotential_"               source="parameters"/>
     !# <objectBuilder class="atomicExcitationRateCollisional"         name="atomicExcitationRateCollisional_"         source="parameters"/>
     !# <objectBuilder class="gauntFactor"                             name="gauntFactor_"                             source="parameters"/>
-    self=radiativeTransferMatterAtomic(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_)
+    self=radiativeTransferMatterAtomic(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,outputRates,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_)
     !# <objectDestructor name="massDistribution_"                       />
     !# <objectDestructor name="atomicCrossSectionIonizationPhoto_"      />
     !# <objectDestructor name="atomicRecombinationRateRadiative_"       />
@@ -203,7 +213,7 @@ contains
     return
   end function atomicConstructorParameters
 
-  function atomicConstructorInternal(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_) result(self)
+  function atomicConstructorInternal(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,outputRates,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily atomic} radiative transfer matter class.
     use :: Abundances_Structure            , only : abundances              , metallicityTypeLinearByMassSolar, adjustElementsReset, Abundances_Index_From_Name
     use :: Atomic_Data                     , only : Abundance_Pattern_Lookup, Atomic_Abundance                , Atomic_Mass        , Atomic_Number
@@ -217,6 +227,7 @@ contains
     integer                                                       , intent(in   )               :: iterationAverageCount
     double precision                                              , intent(in   )               :: temperatureMinimum                      , metallicity
     type            (varying_string                              ), intent(in   )               :: abundancePattern
+    logical                                                       , intent(in   )               :: outputRates
     character       (len=2                                       ), intent(in   ), dimension(:) :: elements
     class           (massDistributionClass                       ), intent(in   ), target       :: massDistribution_
     class           (atomicCrossSectionIonizationPhotoClass      ), intent(in   ), target       :: atomicCrossSectionIonizationPhoto_
@@ -231,7 +242,7 @@ contains
     double precision                                                                            :: numberDensityMassDensityRatioHydrogen    , numberDensityMassDensityRatioHelium
     type            (abundances                                  )                              :: abundances_
     integer                                                                                     :: i
-    !# <constructorAssign variables="abundancePattern, metallicity, elements, iterationAverageCount, temperatureMinimum, *massDistribution_, *atomicCrossSectionIonizationPhoto_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiativeCooling_, *atomicIonizationRateCollisional_, *atomicRecombinationRateDielectronic_, *atomicIonizationPotential_, *atomicExcitationRateCollisional_, *gauntFactor_"/>
+    !# <constructorAssign variables="abundancePattern, metallicity, elements, iterationAverageCount, temperatureMinimum, outputRates, *massDistribution_, *atomicCrossSectionIonizationPhoto_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiativeCooling_, *atomicIonizationRateCollisional_, *atomicRecombinationRateDielectronic_, *atomicIonizationPotential_, *atomicExcitationRateCollisional_, *gauntFactor_"/>
 
     ! Initialize count of outputs. (Just 1, for temperature.)
     self%countOutputs_=1_c_size_t
@@ -263,6 +274,7 @@ contains
        self%elementAtomicNumbers(i)=Atomic_Number(shortLabel=trim(self%elements(i)))
        self%elementAtomicMasses (i)=Atomic_Mass  (shortLabel=trim(self%elements(i)))
        self%countOutputs_=self%countOutputs_+self%elementAtomicNumbers(i)+1_c_size_t
+       if (outputRates) self%countOutputs_=self%countOutputs_+2*self%elementAtomicNumbers(i)
        select case (self%elementAtomicNumbers(i))
        case (1)     ! Hydrogen
           self%numberDensityMassDensityRatio(i)=+numberDensityMassDensityRatioHydrogen
@@ -680,9 +692,9 @@ contains
     double precision                                   , parameter                   :: temperatureMaximum                      =1.0d+7
     type            (element                          ), dimension( : ), allocatable :: elementsPrevious                               , elementsReference
     double precision                                                                 :: rateRecombinationRadiative                     , rateRecombinationDielectronic       , &
-         &                                                                              densityNumberTotal                             , temperatureReference                , &
          &                                                                              temperatureChangePrevious                      , temperatureEquilibrium              , &
-         &                                                                              rateUpward                                     , rateDownward
+         &                                                                              rateUpward                                     , rateDownward                        , &
+         &                                                                              temperatureReference
     logical                                                                          :: converged                                      , temperatureOscillating              , &
          &                                                                              electronsOscillating                           , heatingNonZero
     integer                                                                          :: countIteration                                 , i                                   , &
@@ -713,7 +725,7 @@ contains
                &                            )
           call finder   %rangeExpand        (                                                                  &
                &                             rangeExpandUpward            =     2.0d0                        , &
-               &                             rangeExpandDownward               =0.5d0                        , &
+               &                             rangeExpandDownward          =     0.5d0                        , &
                &                             rangeExpandUpwardSignExpect  =     rangeExpandSignExpectNegative, &
                &                             rangeExpandDownwardSignExpect=     rangeExpandSignExpectPositive, &
                &                             rangeUpwardLimit             =     temperatureMaximum           , &
@@ -795,8 +807,6 @@ contains
           end do
           if (electronsOscillatingCount > 0) &
                & atomicDensityNumberElectrons=0.5d0*(atomicDensityNumberElectrons+densityElectronsPrevious(1))
-          densityNumberTotal=+sum(properties%elements%densityNumber         ) &
-               &             +                        atomicDensityNumberElectrons
           ! Compute rates of change of the ionization states and temperature.
           !! Initialize rates and computed photoionization and photoheating rates.
           heatingNonZero=.false.
@@ -805,7 +815,7 @@ contains
                 ! Compute the photoionization rate.
                 if (properties%elements(i)%densityNumber > 0.0d0) then
                    atomicElementsPhotoRate (i)%photoIonizationRate(j)=+properties%elements(i)%photoIonizationRate(j) &
-                        &                                            /properties%elements(i)%densityNumber
+                        &                                             /properties%elements(i)%densityNumber
                 else
                    atomicElementsPhotoRate (i)%photoIonizationRate(j)=+0.0d0
                 end if
@@ -905,11 +915,25 @@ contains
              end do
              ! Decrement electron oscillation count.
              if (electronsOscillatingCount > 0) &
-                  & electronsOscillatingCount=electronsOscillatingCount-1       
+                  & electronsOscillatingCount=electronsOscillatingCount-1
+             ! Scale heating rates by the relevant ionization state fraction.
+             if (elementsReference         (i)%ionizationStateFraction(j) > 0.0d0)                                                    &
+                  & atomicElementsPhotoRate(i)%photoHeatingRate       (j)=+properties%elements         (i)%photoHeatingRate       (j) &
+                  &                                                       *properties%elements         (i)%ionizationStateFraction(j) &
+                  &                                                       /           elementsReference(i)%ionizationStateFraction(j)
              ! Solve for temperature - updating only if we find a solution in range.
              temperatureEquilibrium=finder%find(rootGuess=properties%temperature,status=statusTemperature)
-             if (statusTemperature == errorStatusSuccess) &
-                  & properties%temperature=temperatureEquilibrium             
+             if (statusTemperature == errorStatusSuccess) then
+                properties%temperature=temperatureEquilibrium
+             else
+                ! Temperature solution failed. Attempt to adjust the temperature slightly to allow us to find a solution on
+                ! subsequent iterations.
+                if      (atomicStateThermalBalance(self%temperatureMinimum) < 0.0d0) then
+                   properties%temperature=max(properties%temperature/1.1d0,self%temperatureMinimum)
+                else if (atomicStateThermalBalance(     temperatureMaximum) > 0.0d0) then
+                   properties%temperature=min(properties%temperature*1.1d0,     temperatureMaximum)
+                end if
+             end if
              ! If temperature is oscillating bisect the temperature, and then decrease the count of steps for which we attempted
              ! to break out of oscillation.
              if (temperatureOscillatingCount > 0) then
@@ -919,6 +943,7 @@ contains
              end if
           else
              ! No photo-heating - set to minimum temperature and fully neutral.
+             statusTemperature     =errorStatusSuccess
              properties%temperature=self%temperatureMinimum
              do i=1,self%countElements
                 properties%elements(i)%ionizationStateFraction   =0.0d0
@@ -926,12 +951,20 @@ contains
              end do
           end if
           ! Check for convergence.
-          converged= abs(properties%temperature-temperaturePrevious(1)) <  max(temperatureToleranceAbsolute,temperatureToleranceRelative*properties%temperature) &
-               &    .or.                                                                                                                                         &
-               &     abs(properties%temperature-temperaturePrevious(1)) <      temperatureToleranceAbsolute
+          converged=       statusTemperature                              ==     errorStatusSuccess                                                                &
+               &    .and.                                                                                                                                          &
+               &     (                                                                                                                                             &
+               &       abs(properties%temperature-temperaturePrevious(1)) <  max(temperatureToleranceAbsolute,temperatureToleranceRelative*properties%temperature) &
+               &      .or.                                                                                                                                         &
+               &       abs(properties%temperature-temperaturePrevious(1)) <      temperatureToleranceAbsolute                                                      &
+               &     )
           do i=1,self%countElements
              if (.not.converged) exit
-             converged=all(abs(properties%elements(i)%ionizationStateFraction-elementsPrevious(i)%ionizationStateFraction) < max(atomicIonizationStateFractionToleranceAbsolute,atomicIonizationStateFractionToleranceRelative*properties%elements(i)%ionizationStateFraction))
+             converged=all(                                                                                                                                                   &
+                  &         abs(properties%elements(i)%ionizationStateFraction-elementsPrevious(i)%ionizationStateFraction)                                                   &
+                  &        <                                                                                                                                                  &
+                  &         max(atomicIonizationStateFractionToleranceAbsolute,atomicIonizationStateFractionToleranceRelative*properties%elements(i)%ionizationStateFraction) &
+                  &       )
           end do
           ! Check for exceeding maximum iterations.
           countIteration=countIteration+1
@@ -1152,26 +1185,38 @@ contains
     class  (radiativeTransferMatterAtomic    ), intent(inout) :: self
     class  (radiativeTransferPropertiesMatter), intent(inout) :: properties
     integer(c_size_t                         ), intent(in   ) :: output
-    integer(c_size_t                         )                :: output_
+    integer(c_size_t                         )                :: output_   , outputCountElement
     integer                                                   :: i
     
     select type (properties)
     type is (radiativeTransferPropertiesMatterAtomic)
-       if (output == 1_c_size_t) then
+       if      (output == 1_c_size_t                                   ) then
           atomicOutputProperty=properties%temperature
        else if (output >= 2_c_size_t .and. output <= self%countOutputs_) then
-          output_=output-1_c_size_t
-          i      =1
-          do while (output_ > self%elementAtomicNumbers(i)+1_c_size_t)
-             output_=output_-self%elementAtomicNumbers(i)-1_c_size_t
-             i      =i      +1
+          output_                  =output                                                    -1_c_size_t
+          i                        =                                                           1
+          outputCountElement       =                              self%elementAtomicNumbers(i)+1_c_size_t
+          if (self%outputRates)                                                                           &
+               & outputCountElement=outputCountElement+2_c_size_t*self%elementAtomicNumbers(i)
+          do while (output_ > outputCountElement)
+             output_                  =output_                                                  -outputCountElement
+             i                        =i                                                         +1
+             outputCountElement       =                              self%elementAtomicNumbers(i)+1_c_size_t
+             if (self%outputRates)                                                                                  &
+                  & outputCountElement=outputCountElement+2_c_size_t*self%elementAtomicNumbers(i)
           end do
-          select case (output_)
-          case (1)
+          if      (output_                                                    == 1_c_size_t                  ) then
              atomicOutputProperty=properties%elements(i)%densityNumber
-          case default
-             atomicOutputProperty=properties%elements(i)%ionizationStateFraction(output_-1)
-          end select
+          else if (output_                                        -1_c_size_t <= self%elementAtomicNumbers(i)) then
+             atomicOutputProperty=properties%elements(i)%ionizationStateFraction(output_                                        -1_c_size_t)
+          else if (output_-           self%elementAtomicNumbers(i)-1_c_size_t <= self%elementAtomicNumbers(i)) then
+             atomicOutputProperty=properties%elements(i)%photoIonizationRate    (output_-           self%elementAtomicNumbers(i)-2_c_size_t)
+          else if (output_-2_c_size_t*self%elementAtomicNumbers(i)-1_c_size_t <= self%elementAtomicNumbers(i)) then
+             atomicOutputProperty=properties%elements(i)%photoHeatingRate       (output_-2_c_size_t*self%elementAtomicNumbers(i)-2_c_size_t)
+          else
+             atomicOutputProperty=0.0d0
+             call Galacticus_Error_Report('output is out of range (this should not happen)'//{introspection:location})
+          end if
        else
           atomicOutputProperty=0.0d0
           call Galacticus_Error_Report('output is out of range'//{introspection:location})
@@ -1203,24 +1248,36 @@ contains
     type   (varying_string               )                :: atomicOutputName
     class  (radiativeTransferMatterAtomic), intent(inout) :: self
     integer(c_size_t                     ), intent(in   ) :: output
-    integer(c_size_t                     )                :: output_
+    integer(c_size_t                     )                :: output_         , outputCountElement
     integer                                               :: i
     
-    if (output == 1_c_size_t) then
-       atomicOutputName=var_str('temperature'     )
+    if      (output == 1_c_size_t                                   ) then
+       atomicOutputName=var_str('temperature')
     else if (output >= 2_c_size_t .and. output <= self%countOutputs_) then
-       output_=output-1_c_size_t
-       i      =1
-       do while (output_ > self%elementAtomicNumbers(i)+1_c_size_t)
-          output_=output_-self%elementAtomicNumbers(i)-1_c_size_t
-          i      =i      +1
+       output_                  =output                                                    -1_c_size_t
+       i                        =                                                           1
+       outputCountElement       =                              self%elementAtomicNumbers(i)+1_c_size_t
+       if (self%outputRates)                                                                           &
+            & outputCountElement=outputCountElement+2_c_size_t*self%elementAtomicNumbers(i)
+       do while (output_ > outputCountElement)
+          output_                  =output_                                                  -outputCountElement
+          i                        =i                                                         +1
+          outputCountElement       =                              self%elementAtomicNumbers(i)+1_c_size_t
+          if (self%outputRates)                                                                                  &
+               & outputCountElement=outputCountElement+2_c_size_t*self%elementAtomicNumbers(i)
        end do
-       select case (output_)
-       case (1)
-          atomicOutputName=var_str('densityNumber')//trim(adjustl(self%elements(i)))
-       case default
-          atomicOutputName=var_str('fraction'     )//trim(adjustl(self%elements(i)))//Roman_Numerals(int(output_))
-       end select
+       if      (output_                                                    == 1_c_size_t                  ) then
+          atomicOutputName=var_str('densityNumber'      )//trim(adjustl(self%elements(i)))
+       else if (output_                                        -1_c_size_t <= self%elementAtomicNumbers(i)) then
+          atomicOutputName=var_str('fraction'           )//trim(adjustl(self%elements(i)))//Roman_Numerals(int(output_                                                   ))
+       else if (output_-           self%elementAtomicNumbers(i)-1_c_size_t <= self%elementAtomicNumbers(i)) then
+          atomicOutputName=var_str('photoIonizationRate')//trim(adjustl(self%elements(i)))//Roman_Numerals(int(output_-           self%elementAtomicNumbers(i)-1_c_size_t))
+       else if (output_-2_c_size_t*self%elementAtomicNumbers(i)-1_c_size_t <= self%elementAtomicNumbers(i)) then
+          atomicOutputName=var_str('photoHeatingRate'   )//trim(adjustl(self%elements(i)))//Roman_Numerals(int(output_-2_c_size_t*self%elementAtomicNumbers(i)-1_c_size_t))
+       else
+          atomicOutputName=var_str(''                   )
+          call Galacticus_Error_Report('output is out of range (this should not happen)'//{introspection:location})
+       end if
     else
        atomicOutputName=var_str(''                )
        call Galacticus_Error_Report('output is out of range'//{introspection:location})
