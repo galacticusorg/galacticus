@@ -81,7 +81,7 @@ contains
     use :: Galacticus_Nodes    , only : nodeComponentDisk, nodeComponentSpheroid, treeNode
     implicit none
     class           (nodePropertyExtractorMetallicityISM), intent(inout)               :: self
-    type            (treeNode                           ), intent(inout), target   :: node
+    type            (treeNode                           ), intent(inout), target       :: node
     type            (multiCounter                       ), intent(inout), optional     :: instance
     class           (nodeComponentDisk                  ), pointer                     :: disk
     class           (nodeComponentSpheroid              ), pointer                     :: spheroid
