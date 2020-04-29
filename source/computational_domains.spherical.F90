@@ -462,18 +462,22 @@ contains
   
   subroutine sphericalStateSolve(self)
     !% Solve for the state of matter in the computational domain.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                            verbosityStandard        , verbosityWorking
-    use :: MPI_Utilities     , only : mpiSelf                  , mpiBarrier
+    use :: Galacticus_Display, only : Galacticus_Display_Indent , Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
+         &                            Galacticus_Display_Message, verbosityStandard          , verbosityWorking
+    use :: Galacticus_Error  , only : errorStatusSuccess
+    use :: MPI_Utilities     , only : mpiSelf                   , mpiBarrier
     use :: Timers            , only : timer
     implicit none
-    class  (computationalDomainSpherical), intent(inout) :: self
-    integer(c_size_t                    )                :: i
+    class    (computationalDomainSpherical), intent(inout) :: self
+    integer  (c_size_t                    )                :: i     , countFail
+    integer                                                :: status
 #ifdef USEMPI
-    integer                                              :: p
+    integer                                                :: p
 #endif
-    type   (timer                       )                :: timer_
-
+    type     (timer                       )                :: timer_
+    type     (varying_string              )                :: message
+    character(len=12                      )                :: label
+    
     ! Establish a timer.
     timer_=timer()
 #ifdef USEMPI
@@ -490,14 +494,26 @@ contains
     ! Solve for state in domain cells local to this process.
     if (mpiSelf%isMaster()) call Galacticus_Display_Indent  ('solving for domain state',verbosityStandard)
     call timer_%start()
+    countFail=0_c_size_t
     do i=self%sliceMinimum(mpiSelf%rank()),self%sliceMaximum(mpiSelf%rank())
        if (mpiSelf%isMaster()) call Galacticus_Display_Counter(int(100.0d0*dble(i-self%sliceMinimum(mpiSelf%rank()))/dble(self%sliceMaximum(mpiSelf%rank())-self%sliceMinimum(mpiSelf%rank())+1)),isNew=i==self%sliceMinimum(mpiSelf%rank()),verbosity=verbosityWorking)
-       call self%radiativeTransferMatter_%stateSolve(self%properties(i))
+       call self%radiativeTransferMatter_%stateSolve(self%properties(i),status)
+       if (status /= errorStatusSuccess) countFail=countFail+1_c_size_t
     end do
     call mpiBarrier     ()
+    countFail=mpiSelf%sum(countFail)
     call timer_    %stop()
-    if (mpiSelf%isMaster()) call Galacticus_Display_Counter_Clear(                                   verbosityWorking )
-    if (mpiSelf%isMaster()) call Galacticus_Display_Unindent     ('done ['//timer_%reportText()//']',verbosityStandard)
+    if (mpiSelf%isMaster()) then
+       call Galacticus_Display_Counter_Clear(                                   verbosityWorking )
+       if (countFail == 0_c_size_t) then
+          message='state solve succeeded for all cells'
+       else
+          write (label,'(i12)') countFail
+          message='state solve failed for '//trim(adjustl(label))//' cells'
+       end if
+       call Galacticus_Display_Message(message,verbosityStandard)
+       call Galacticus_Display_Unindent     ('done ['//timer_%reportText()//']',verbosityStandard)
+    end if
     ! Broadcast populated domain cell solutions.
 #ifdef USEMPI
     if (mpiSelf%isMaster()) call Galacticus_Display_Indent('broadcasting computational domain state',verbosityStandard)
