@@ -97,26 +97,22 @@ contains
 
   double precision function cylindricalIntegrate(self,integrand)
     !% Integrate over the computational domain cell.
-    use :: FGSL                 , only : fgsl_function        , fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate            , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     use :: Coordinates          , only : coordinateCylindrical
     implicit none
-    class           (computationalDomainVolumeIntegratorCylindrical), intent(inout), target :: self
-    procedure       (computationalDomainVolumeIntegrand            )                        :: integrand
-    type            (fgsl_function                                 )                        :: integrandFunction
-    type            (fgsl_integration_workspace                    )                        :: integrationWorkspace
-    type            (coordinateCylindrical                         )                        :: coordinates
+    class    (computationalDomainVolumeIntegratorCylindrical), intent(inout), target :: self
+    procedure(computationalDomainVolumeIntegrand            )                        :: integrand
+    type     (integrator                                    )                        :: integrator_
+    type     (coordinateCylindrical                         )                        :: coordinates
 
-    cylindricalIntegrate=Integrate(                                                         &
-         &                                           self                 %boundaries(1,1), &
-         &                                           self                 %boundaries(1,2), &
-         &                                           cylindricalIntegrandR                , &
-         &                                           integrandFunction                    , &
-         &                                           integrationWorkspace                 , &
-         &                         toleranceAbsolute=0.0d0                                , &
-         &                         toleranceRelative=1.0d-2                                 &
-         &                        )  
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_         =integrator           (                                         &
+         &                                                       cylindricalIntegrandR, &
+         &                                     toleranceRelative=1.0d-2                 &
+         &                                    )
+    cylindricalIntegrate=integrator_%integrate(                                         &
+         &                                                       self%boundaries(1,1) , &
+         &                                                       self%boundaries(1,2)   &
+         &)                                    
     return
 
   contains
@@ -125,43 +121,31 @@ contains
       !% $r$-integrand over cylindrical computational domain cells.
       use :: Numerical_Constants_Math, only : Pi
       implicit none
-      double precision                            , intent(in   ) :: r
-      type            (fgsl_function             )                :: integrandFunction
-      type            (fgsl_integration_workspace)                :: integrationWorkspace
+      double precision            , intent(in   ) :: r
+      type            (integrator)                :: integrator_
 
       call coordinates%rSet(r)
-      cylindricalIntegrandR=+Integrate(                                           &
-           &                                             0.0d0                  , &
-           &                                             2.0d0*Pi               , &
-           &                                             cylindricalIntegrandPhi, &
-           &                                             integrandFunction      , &
-           &                                             integrationWorkspace   , &
-           &                           toleranceAbsolute=0.0d0                  , &
-           &                           toleranceRelative=1.0d-2                   &
-           &                          )                                           &
-           &              *r
-      call Integrate_Done(integrandFunction,integrationWorkspace)
+      integrator_         =  integrator           (cylindricalIntegrandPhi,toleranceRelative=1.0d-2   )
+      cylindricalIntegrandR=+integrator_%integrate(0.0d0                  ,                  2.0d+0*Pi) &
+           &                *r
       return
     end function cylindricalIntegrandR
 
     double precision function cylindricalIntegrandPhi(phi)
       !% $\phi$-integrand over cylindrical computational domain cells.
       implicit none
-      double precision                            , intent(in   ) :: phi
-      type            (fgsl_function             )                :: integrandFunction
-      type            (fgsl_integration_workspace)                :: integrationWorkspace
+      double precision            , intent(in   ) :: phi
+      type            (integrator)                :: integrator_
 
       call coordinates%phiSet(phi)
-      cylindricalIntegrandPhi=+Integrate(                                                         &
-           &                                               self                 %boundaries(2,1), &
-           &                                               self                 %boundaries(2,2), &
-           &                                               cylindricalIntegrandZ                , &
-           &                                               integrandFunction                    , &
-           &                                               integrationWorkspace                 , &
-           &                             toleranceAbsolute=0.0d0                                , &
-           &                             toleranceRelative=1.0d-2                                 &
-           &                            )
-      call Integrate_Done(integrandFunction,integrationWorkspace)
+      integrator_            = integrator           (                                         &
+           &                                                           cylindricalIntegrandZ, &
+           &                                         toleranceRelative=1.0d-2                 &
+           &                                        )
+      cylindricalIntegrandPhi=+integrator_%integrate(                                         &
+           &                                                           self%boundaries(2,1) , &
+           &                                                           self%boundaries(2,2)   &
+           &                                        )
       return
     end function cylindricalIntegrandPhi
 

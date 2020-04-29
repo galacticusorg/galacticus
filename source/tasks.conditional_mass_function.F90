@@ -291,29 +291,27 @@ contains
 
   subroutine conditionalMassFunctionPerform(self,status)
     !% Compute and output the halo mass function.
-    use :: FGSL                 , only : fgsl_function            , fgsl_integration_workspace
     use :: Galacticus_Display   , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
     use :: Galacticus_Error     , only : Galacticus_Error_Report  , errorStatusSuccess
     use :: Galacticus_HDF5      , only : galacticusOutputFile
     use :: IO_HDF5              , only : hdf5Object
     use :: ISO_Varying_String   , only : char                     , var_str                    , varying_string
     use :: Memory_Management    , only : allocateArray
-    use :: Numerical_Integration, only : Integrate
+    use :: Numerical_Integration, only : integrator
     use :: String_Handling      , only : operator(//)
     implicit none
     class           (taskConditionalMassFunction), intent(inout), target       :: self
     integer                                      , intent(  out), optional     :: status
-    double precision                             , allocatable  , dimension(:) :: conditionalMassFunction        , conditionalMassFunctionIncomplete
-    integer                                                                    :: iMass                          , iField                                  , &
+    double precision                             , allocatable  , dimension(:) :: conditionalMassFunction    , conditionalMassFunctionIncomplete
+    integer                                                                    :: iMass                      , iField                           , &
          &                                                                        fieldCount
-    logical                                                                    :: integrationReset        =.true., integrationResetNormalization    =.true.
-    double precision                                                           :: volumeIntegrand                , massFunctionIntegrand                   , &
-         &                                                                        massBinMinimum                 , massBinMaximum                          , &
-         &                                                                        binTimeMinimum                 , binTimeMaximum                          , &
-         &                                                                        time                           , logHaloMassLower                        , &
-         &                                                                        logHaloMassUpper               , distanceMaximum
-    type            (fgsl_function             )                               :: integrandFunction              , integrandFunctionNormalization
-    type            (fgsl_integration_workspace)                               :: integrationWorkspace           , integrationWorkspaceNormalization
+    double precision                                                           :: volumeIntegrand            , massFunctionIntegrand            , &
+         &                                                                        massBinMinimum             , massBinMaximum                   , &
+         &                                                                        binTimeMinimum             , binTimeMaximum                   , &
+         &                                                                        time                       , logHaloMassLower                 , &
+         &                                                                        logHaloMassUpper           , distanceMaximum
+    type            (integrator                )                               :: integratorMassHalo         , integratorTime                   , &
+         &                                                                        integratorNormalizationTime
     type            (hdf5Object                )                               :: outputGroup
     type            (varying_string            )                               :: message
     character       (len=12                    )                               :: label
@@ -325,6 +323,10 @@ contains
     ! Find logarithmic limits for halo mass in integrations.
     logHaloMassLower=log10(self%massHaloMinimum)
     logHaloMassUpper=log10(self%massHaloMaximum)
+    ! Build integrators.
+    integratorMassHalo         =integrator(integrandMassHalo         ,toleranceRelative=1.0d-3)
+    integratorTime             =integrator(integrandTime             ,toleranceRelative=1.0d-3)
+    integratorNormalizationTime=integrator(integrandNormalizationTime,toleranceRelative=1.0d-3)
     ! Compute the conditional mass function and output to file.
     do iMass=1,self%countMass
        massBinMinimum=exp(log(self%massBinCenters(iMass))-0.5d0*self%massLogarithmDelta(iMass))
@@ -334,16 +336,8 @@ contains
           ! Branch on whether a range of redshifts was given.
           if (self%timeMaximum <= self%timeMinimum) then
              ! No range of redshifts given. Compute the mass function at the minimum redshift.
-             time=self%timeMaximum
-             conditionalMassFunction(iMass)=Integrate(                                        &
-                  &                                                     logHaloMassLower    , &
-                  &                                                     logHaloMassUpper    , &
-                  &                                                     integrandMassHalo   , &
-                  &                                                     integrandFunction   , &
-                  &                                                     integrationWorkspace, &
-                  &                                   toleranceRelative=1.0d-3              , &
-                  &                                   reset            =integrationReset      &
-                  &                                  )
+             time                          =self              %timeMaximum
+             conditionalMassFunction(iMass)=integratorMassHalo%integrate  (logHaloMassLower,logHaloMassUpper)
           else
              ! Determine number of fields to integrate over.
              if (self%useSurveyLimits) then
@@ -373,30 +367,12 @@ contains
                    binTimeMaximum=self%timeMaximum
                 end if
                 ! Range of redshifts was given, integrate the mass function over this time interval.
-               massFunctionIntegrand=                                                                &
-                     &                +massFunctionIntegrand                                          &
-                     &                +self%surveyGeometry_%solidAngle(iField)                        &
-                     &                *Integrate(                                                     &
-                     &                                             binTimeMinimum                   , &
-                     &                                             binTimeMaximum                   , &
-                     &                                             integrandTime                    , &
-                     &                                             integrandFunction                , &
-                     &                                             integrationWorkspace             , &
-                     &                           toleranceRelative=1.0d-3                           , &
-                     &                           reset            =integrationReset                   &
-                     &                          )
-                volumeIntegrand      =                                                                &
-                     &                +volumeIntegrand                                                &
-                     &                +self%surveyGeometry_%solidAngle(iField)                        &
-                     &                *Integrate(                                                     &
-                     &                                             binTimeMinimum                   , &
-                     &                                             binTimeMaximum                   , &
-                     &                                             integrandNormalizationTime       , &
-                     &                                             integrandFunctionNormalization   , &
-                     &                                             integrationWorkspaceNormalization, &
-                     &                           toleranceRelative=1.0d-3                           , &
-                     &                           reset            =integrationResetNormalization      &
-                     &                          )
+               massFunctionIntegrand =+massFunctionIntegrand                                                                 &
+                     &                +self                       %surveyGeometry_%solidAngle(iField                       ) &
+                     &                *integratorTime                             %integrate (binTimeMinimum,binTimeMaximum)
+                volumeIntegrand      =+volumeIntegrand                                                                       &
+                     &                +self                       %surveyGeometry_%solidAngle(iField                       ) &
+                     &                *integratorNormalizationTime                %integrate (binTimeMinimum,binTimeMaximum)
              end do
              if (volumeIntegrand <= 0.0d0) then
                 write (label,'(e12.6)') self%massBinCenters(iMass)
@@ -442,22 +418,13 @@ contains
     double precision function integrandTime(timePrime)
       !% Integral over time.
       implicit none
-      double precision                            , intent(in   ) :: timePrime
-      type            (fgsl_function             ), save          :: integrandFunctionTime
-      type            (fgsl_integration_workspace), save          :: integrationWorkspaceTime
-      logical                                     , save          :: integrationResetTime    =.true.
+      double precision            , intent(in   ) :: timePrime
+      type            (integrator)                :: integrator_
 
-      time         =timePrime
-      integrandTime=+Integrate(                                            &
-           &                                     logHaloMassLower        , &
-           &                                     logHaloMassUpper        , &
-           &                                     integrandMassHalo       , &
-           &                                     integrandFunctionTime   , &
-           &                                     integrationWorkspaceTime, &
-           &                   toleranceRelative=1.0d-3                  , &
-           &                   reset            =integrationResetTime      &
-           &                  )                                            &
-           &        *self%cosmologyFunctions_%comovingVolumeElementTime(timePrime)
+      time         =                                                           timePrime
+      integrator_  = integrator                                               (integrandMassHalo,toleranceRelative=1.0d-3          )
+      integrandTime=+integrator_                    %integrate                (logHaloMassLower ,                  logHaloMassUpper) &
+           &        *self       %cosmologyFunctions_%comovingVolumeElementTime(timePrime                                           )
       return
     end function integrandTime
 

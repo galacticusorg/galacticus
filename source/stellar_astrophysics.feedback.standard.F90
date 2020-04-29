@@ -127,17 +127,15 @@ contains
 
   double precision function standardEnergyInputCumulative(self,initialMass,age,metallicity)
     !% Compute the cumulative energy input from a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
-    use :: FGSL                            , only : fgsl_function   , fgsl_integration_workspace
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
-    use :: Numerical_Integration           , only : Integrate       , Integrate_Done
+    use :: Numerical_Integration           , only : integrator
     implicit none
-    class           (stellarFeedbackStandard   ), intent(inout), target :: self
-    double precision                            , intent(in   )         :: age                                                    , initialMass, metallicity
-    double precision                            , parameter             :: populationIIIMaximumMetallicity=1.0d-4*metallicitySolar
-    double precision                                                    :: energySNe                                              , energyWinds, lifetime
-    type            (fgsl_function             )                        :: integrandFunction
-    type            (fgsl_integration_workspace)                        :: integrationWorkspace
-
+    class           (stellarFeedbackStandard), intent(inout), target :: self
+    double precision                         , intent(in   )         :: age                                                    , initialMass, metallicity
+    double precision                         , parameter             :: populationIIIMaximumMetallicity=1.0d-4*metallicitySolar
+    double precision                                                 :: energySNe                                              , energyWinds, lifetime
+    type            (integrator             )                        :: integrator_
+    
     ! Begin with zero energy input.
     standardEnergyInputCumulative=0.0d0
     ! Check if the star is sufficiently massive to result in a Type II supernova.
@@ -160,12 +158,13 @@ contains
          &                        +self%supernovaeTypeIa_%number         (initialMass,age,metallicity) &
          &                        *self                  %supernovaEnergy
     ! Add in the contribution from stellar winds.
-    standardSelf        => self
-    standardMassInitial =  initialMass
-    standardMetallicity =  metallicity
-    energyWinds=Integrate(0.0d0,age,standardWindEnergyIntegrand,integrandFunction,integrationWorkspace,toleranceAbsolute=1.0d-3*standardEnergyInputCumulative,toleranceRelative=1.0d-3)
-    call Integrate_Done(integrandFunction,integrationWorkspace)
-    standardEnergyInputCumulative=standardEnergyInputCumulative+energyWinds
+    standardSelf                  =>  self
+    standardMassInitial           =   initialMass
+    standardMetallicity           =   metallicity
+    integrator_                   =   integrator           (standardWindEnergyIntegrand,toleranceAbsolute=1.0d-3*standardEnergyInputCumulative,toleranceRelative=1.0d-3)
+    energyWinds                   =   integrator_%integrate(0.0d0,age)
+    standardEnergyInputCumulative =  +standardEnergyInputCumulative &
+         &                           +energyWinds
     return
   end function standardEnergyInputCumulative
 

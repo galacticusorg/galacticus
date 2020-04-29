@@ -142,7 +142,6 @@ contains
 
   function velocityDispersionExtract(self,node,time,instance)
     !% Implement a {\normalfont \ttfamily velocityDispersion} property extractor.
-    use :: FGSL                                   , only : fgsl_function                         , fgsl_integration_workspace
     use :: Galactic_Structure_Enclosed_Masses     , only : Galactic_Structure_Enclosed_Mass      , Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options             , only : componentTypeAll                      , componentTypeDisk                       , componentTypeSpheroid              , massTypeGalactic               , &
           &                                                massTypeStellar                       , radiusLarge
@@ -152,7 +151,7 @@ contains
           &                                                radiusTypeVirialRadius
     use :: Galactic_Structure_Velocity_Dispersions, only : Galactic_Structure_Velocity_Dispersion
     use :: Galacticus_Nodes                       , only : nodeComponentDarkMatterProfile        , nodeComponentDisk                       , nodeComponentSpheroid              , treeNode
-    use :: Numerical_Integration                  , only : Integrate                             , Integrate_Done
+    use :: Numerical_Integration                  , only : integrator
     implicit none
     double precision                                         , dimension(:) , allocatable :: velocityDispersionExtract
     class           (nodePropertyExtractorVelocityDispersion), intent(inout), target      :: self
@@ -162,18 +161,22 @@ contains
     class           (nodeComponentDisk                      ), pointer                    :: disk
     class           (nodeComponentSpheroid                  ), pointer                    :: spheroid
     class           (nodeComponentDarkMatterProfile         ), pointer                    :: darkMatterProfile
-    double precision                                         , parameter                  :: outerRadiusMultiplier     =10.0d0
+    double precision                                         , parameter                  :: outerRadiusMultiplier           =10.0d0
     integer                                                                               :: i
-    double precision                                                                      :: radius                           , radiusVirial            , &
-         &                                                                                   radiusFromFraction               , densityIntegrand        , &
-         &                                                                                   radiusZero                       , velocityDensityIntegrand, &
-         &                                                                                   numerator                        , denominator             , &
-         &                                                                                   massDisk                         , massSpheroid
+    double precision                                                                      :: radius                                 , radiusVirial            , &
+         &                                                                                   radiusFromFraction                     , densityIntegrand        , &
+         &                                                                                   radiusZero                             , velocityDensityIntegrand, &
+         &                                                                                   numerator                              , denominator             , &
+         &                                                                                   massDisk                               , massSpheroid
     logical                                                                               :: scaleIsZero
-    type            (fgsl_function                          )                             :: integrandFunction
-    type            (fgsl_integration_workspace             )                             :: integrationWorkspace
+    type            (integrator                             )                             :: integratorVelocitySurfaceDensity       , integratorSurfaceDensity, &
+         &                                                                                   integratorLambdaR2                     , integratorLambdaR1
     !$GLC attributes unused :: time, instance
 
+    integratorVelocitySurfaceDensity=integrator(velocityDispersionVelocitySurfaceDensityIntegrand,toleranceRelative=1.0d-3)
+    integratorSurfaceDensity        =integrator(velocityDispersionSurfaceDensityIntegrand        ,toleranceRelative=1.0d-3)
+    integratorLambdaR1              =integrator(velocityDispersionLambdaRIntegrand1              ,toleranceRelative=1.0d-2)
+    integratorLambdaR2              =integrator(velocityDispersionLambdaRIntegrand2              ,toleranceRelative=1.0d-2)
     allocate(velocityDispersionExtract(self%elementCount_))
     radiusVirial                                         =  0.0d0
     if (self%         virialRadiusIsNeeded) radiusVirial      =  self%darkMatterHaloScale_%virialRadius(node                    )
@@ -253,26 +256,8 @@ contains
              velocityDispersionWeightIndex   =  self%radii(i)%integralWeightByIndex
              radiusZero                      =  0.0d0
              velocityDispersionRadiusImpact  =  radius
-             velocityDensityIntegrand        =Integrate(                                                                     &
-                  &                                                       radiusZero                                       , &
-                  &                                                       velocityDispersionRadiusOuter                    , &
-                  &                                                       velocityDispersionVelocitySurfaceDensityIntegrand, &
-                  &                                                       integrandFunction                                , &
-                  &                                                       integrationWorkspace                             , &
-                  &                                     toleranceAbsolute=0.0d0                                            , &
-                  &                                     toleranceRelative=1.0d-3                                             &
-                  &                                    )
-             call Integrate_Done(integrandFunction,integrationWorkspace)
-             densityIntegrand                =Integrate(                                                                     &
-                  &                                                       radiusZero                                       , &
-                  &                                                       velocityDispersionRadiusOuter                    , &
-                  &                                                       velocityDispersionSurfaceDensityIntegrand        , &
-                  &                                                       integrandFunction                                , &
-                  &                                                       integrationWorkspace                             , &
-                  &                                     toleranceAbsolute=0.0d0                                            , &
-                  &                                     toleranceRelative=1.0d-3                                             &
-                  &                                    )
-             call Integrate_Done(integrandFunction,integrationWorkspace)
+             velocityDensityIntegrand        =integratorVelocitySurfaceDensity%integrate(radiusZero,velocityDispersionRadiusOuter)
+             densityIntegrand                =integratorSurfaceDensity        %integrate(radiusZero,velocityDispersionRadiusOuter)
              if (velocityDensityIntegrand <= 0.0d0) then
                 velocityDispersionExtract((i-1)*self%step+1)=0.0d0
              else
@@ -310,26 +295,8 @@ contains
              else
                 ! Full calculation is required.
                 radiusZero=0.0d0
-                numerator  =Integrate(                                                       &
-                     &                                  radiusZero                         , &
-                     &                                  radius                             , &
-                     &                                  velocityDispersionLambdaRIntegrand2, &
-                     &                                  integrandFunction                  , &
-                     &                                  integrationWorkspace               , &
-                     &                toleranceAbsolute=0.0d0                              , &
-                     &                toleranceRelative=1.0d-2                               &
-                     &               )
-                call Integrate_Done(integrandFunction,integrationWorkspace)
-                denominator=Integrate(                                                       &
-                     &                                  radiusZero                         , &
-                     &                                  radius                             , &
-                     &                                  velocityDispersionLambdaRIntegrand1, &
-                     &                                  integrandFunction                  , &
-                     &                                  integrationWorkspace               , &
-                     &                toleranceAbsolute=0.0d0                              , &
-                     &                toleranceRelative=1.0d-2                               &
-                     &               )
-                call Integrate_Done(integrandFunction,integrationWorkspace)
+                numerator  =integratorLambdaR2%integrate(radiusZero,radius)
+                denominator=integratorLambdaR1%integrate(radiusZero,radius)
                 if (denominator <= 0.0d0) then
                    velocityDispersionExtract((i-1)*self%step+1)=0.0d0
                 else
@@ -430,35 +397,25 @@ contains
     !% \begin{equation}
     !% \sigma^2(r) = \left. \int_{-\infty}^{+\infty} P(V) [V-V(r)]^2 \mathrm{d}V \right/ \int_{-\infty}^{+\infty} P(V) \mathrm{d}V = {  \Sigma_\mathrm{s}(r) [\sigma_\mathrm{s}^2(r)] + \Sigma_\mathrm{d}(r) [V_\mathrm{d}(r)-V(r)]^2  \over [\Sigma_\mathrm{d}(r)+\Sigma_\mathrm{s}(r)]}.
     !% \end{equation}
-    use :: FGSL                                , only : fgsl_function                     , fgsl_integration_workspace
-    use :: Galactic_Structure_Options          , only : componentTypeAll                  , componentTypeDisk         , massTypeAll, massTypeStellar
+    use :: Galactic_Structure_Options          , only : componentTypeAll                  , componentTypeDisk, massTypeAll, massTypeStellar
     use :: Galactic_Structure_Rotation_Curves  , only : Galactic_Structure_Rotation_Curve
     use :: Galactic_Structure_Surface_Densities, only : Galactic_Structure_Surface_Density
     use :: Numerical_Constants_Math            , only : Pi
-    use :: Numerical_Integration               , only : Integrate                         , Integrate_Done
+    use :: Numerical_Integration               , only : integrator
     implicit none
-    double precision                            , intent(in   ) :: radius
-    double precision                            , parameter     :: fractionSmall                         =1.0d-3
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    double precision                                            :: sigmaLineOfSightSquaredSpheroidDensity       , densitySpheroid        , &
-         &                                                         densityDisk                                  , velocityDisk           , &
-         &                                                         velocityMean                                 , sigmaLineOfSightSquared
+    double precision            , intent(in   ) :: radius
+    double precision            , parameter     :: fractionSmall                         =1.0d-3
+    type            (integrator)                :: integratorDensity                            , integratorVelocityDensity
+    double precision                            :: sigmaLineOfSightSquaredSpheroidDensity       , densitySpheroid          , &
+         &                                         densityDisk                                  , velocityDisk             , &
+         &                                         velocityMean                                 , sigmaLineOfSightSquared
 
     if (radius <= 0.0d0) then
        velocityDispersionLambdaRIntegrand1=0.0d0
     else
        velocityDispersionRadiusImpact=radius
-       densitySpheroid               =Integrate(                                                      &
-            &                                                     radius                            , &
-            &                                                     velocityDispersionRadiusOuter     , &
-            &                                                     velocityDispersionDensityIntegrand, &
-            &                                                     integrandFunction                 , &
-            &                                                     integrationWorkspace              , &
-            &                                   toleranceAbsolute=0.0d0                             , &
-            &                                   toleranceRelative=1.0d-2                              &
-            &                                  )
-       call Integrate_Done(integrandFunction,integrationWorkspace)
+       integratorDensity             =integrator                 (velocityDispersionDensityIntegrand,toleranceRelative            =1.0d-2)
+       densitySpheroid               =integratorDensity%integrate(radius                            ,velocityDispersionRadiusOuter       )
        densityDisk=Galactic_Structure_Surface_Density(                                             &
             &                                                       velocityDispersionNode       , &
             &                                                       [radius,0.0d0,0.0d0]         , &
@@ -483,16 +440,8 @@ contains
                &                               *velocityDisk
        else
           ! ...it is, so we must do the full calculation.
-          sigmaLineOfSightSquaredSpheroidDensity=Integrate(                                                              &
-               &                                                             radius                                    , &
-               &                                                             velocityDispersionRadiusOuter             , &
-               &                                                             velocityDispersionVelocityDensityIntegrand, &
-               &                                                             integrandFunction                         , &
-               &                                                             integrationWorkspace                      , &
-               &                                           toleranceAbsolute=0.0d0                                     , &
-               &                                           toleranceRelative=1.0d-2                                      &
-               &                                          )
-          call Integrate_Done(integrandFunction,integrationWorkspace)
+          integratorVelocityDensity             =integrator                         (velocityDispersionVelocityDensityIntegrand,toleranceRelative            =1.0d-2)
+          sigmaLineOfSightSquaredSpheroidDensity=integratorVelocityDensity%integrate(radius                                    ,velocityDispersionRadiusOuter       )
           velocityMean                       =+densityDisk                                   &
                &                              *velocityDisk                                  &
                &                              /(densityDisk+densitySpheroid)
@@ -644,34 +593,16 @@ contains
 
   double precision function velocityDispersionLineOfSightVelocityDispersionIntegrand(radius)
     !% Compute the line-of-sight velocity dispersion at the given {\normalfont \ttfamily radius}.
-    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate    , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
-    double precision                            , intent(in   ) :: radius
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    double precision                                            :: densityIntegral     , velocityDensityIntegral
+    double precision            , intent(in   ) :: radius
+    type            (integrator)                :: integratorVelocityDensity, integratorDensity
+    double precision                            :: densityIntegral          , velocityDensityIntegral
 
-    velocityDensityIntegral=Integrate(&
-         &                                              radius                                    , &
-         &                                              velocityDispersionRadiusOuter             , &
-         &                                              velocityDispersionVelocityDensityIntegrand, &
-         &                                              integrandFunction                         , &
-         &                                              integrationWorkspace                      , &
-         &                            toleranceAbsolute=0.0d0                                     , &
-         &                            toleranceRelative=1.0d-3                                      &
-         &                           )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
-    densityIntegral        =Integrate(&
-         &                                              radius                                    , &
-         &                                              velocityDispersionRadiusOuter             , &
-         &                                              velocityDispersionDensityIntegrand        , &
-         &                                              integrandFunction                         , &
-         &                                              integrationWorkspace                      , &
-         &                            toleranceAbsolute=0.0d0                                     , &
-         &                            toleranceRelative=1.0d-3                                      &
-         &                           )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integratorVelocityDensity=integrator                         (velocityDispersionVelocityDensityIntegrand,toleranceRelative            =1.0d-3)
+    integratorDensity        =integrator                         (velocityDispersionDensityIntegrand        ,toleranceRelative            =1.0d-3)
+    velocityDensityIntegral  =integratorVelocityDensity%integrate(radius                                    ,velocityDispersionRadiusOuter       )
+    densityIntegral          =integratorDensity        %integrate(radius                                    ,velocityDispersionRadiusOuter       )
     if (velocityDensityIntegral <= 0.0d0) then
        velocityDispersionLineOfSightVelocityDispersionIntegrand=0.0d0
     else
@@ -731,7 +662,7 @@ contains
     use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : componentTypeAll                , massTypeAll
-    use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: radius
 

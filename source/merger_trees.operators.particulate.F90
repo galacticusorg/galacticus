@@ -724,26 +724,25 @@ contains
     !%  F(E) = \int_E^0 {\mathrm{d}\Phi \over \sqrt{\Phi-E}} {\mathrm{d}\rho \over \mathrm{d} \Phi},
     !% \end{equation}
     !% which we can then take the derivative of numerically to obtain the distribution function.
-    use :: FGSL                 , only : fgsl_function          , fgsl_integration_workspace
     use :: Galacticus_Error     , only : Galacticus_Error_Report
-    use :: Numerical_Integration, only : Integrate              , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     use :: Table_Labels         , only : extrapolationTypeFix
     implicit none
-    double precision                            , intent(in   ) :: radius
-    double precision                            , intent(in   ) :: energyDistributionPointsPerDecade
-    double precision                            , parameter     :: radiusVirialFraction                     =1.0d-5
-    double precision                            , parameter     :: toleranceTabulation                      =1.0d-6
-    double precision                            , parameter     :: toleranceGradient                        =1.0d-6
-    double precision                                            :: radiusMinimum                                   , energyPotentialTruncate                  , &
-         &                                                         particulateSmoothingIntegrationRangeLower       , particulateSmoothingIntegrationRangeUpper, &
-         &                                                         radiusFactorAsymptote                           , integralAsymptotic                       , &
-         &                                                         gradientDensityPotentialLower                   , gradientDensityPotentialUpper            , &
-         &                                                         densitySmoothedIntegralLower                    , densitySmoothedIntegralUpper
-    logical                                                     :: tableRebuild
-    integer                                                     :: i
-    integer                                                     :: radiusCount
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
+    double precision            , intent(in   ) :: radius
+    double precision            , intent(in   ) :: energyDistributionPointsPerDecade
+    double precision            , parameter     :: radiusVirialFraction                     =1.0d-5
+    double precision            , parameter     :: toleranceTabulation                      =1.0d-6
+    double precision            , parameter     :: toleranceGradient                        =1.0d-6
+    double precision                            :: radiusMinimum                                   , energyPotentialTruncate                  , &
+         &                                         particulateSmoothingIntegrationRangeLower       , particulateSmoothingIntegrationRangeUpper, &
+         &                                         radiusFactorAsymptote                           , integralAsymptotic                       , &
+         &                                         gradientDensityPotentialLower                   , gradientDensityPotentialUpper            , &
+         &                                         densitySmoothedIntegralLower                    , densitySmoothedIntegralUpper
+    logical                                     :: tableRebuild
+    integer                                     :: i
+    integer                                     :: radiusCount
+    type            (integrator)                :: intergatorSmoothingZ                            , integratorMass                           , &
+         &                                         integratorPotential                             , integratorEddington
 
     ! Determine the minimum of the given radius and some small fraction of the virial radius.
     radiusMinimum=min(radius/2.0d0,radiusVirialFraction*particulateSelf%darkMatterHaloScale_%virialRadius(particulateNode))
@@ -817,37 +816,26 @@ contains
              end select
              ! The integral here is performed in two parts - below and above the current radius where the integrand has a
              ! discontinuous gradient - for improved speed and stability.
+             intergatorSmoothingZ=integrator(particulateSmoothingIntegrandZ,toleranceRelative=1.0d-9)
              if (particulateSmoothingIntegrationRangeLower < particulateRadius) then
-                densitySmoothedIntegralLower=Integrate(                                                                   &
-                     &                                                         particulateSmoothingIntegrationRangeLower, &
-                     &                                                     min(                                           &
-                     &                                                         particulateRadius                        , &
-                     &                                                         particulateSmoothingIntegrationRangeUpper  &
-                     &                                                     )                                            , &
-                     &                                                     particulateSmoothingIntegrandZ               , &
-                     &                                                     integrandFunction                            , &
-                     &                                                     integrationWorkspace                         , &
-                     &                                  toleranceAbsolute=+0.0d0                                        , &
-                     &                                  toleranceRelative=+1.0d-9                                         &
-                     &                                )
+                densitySmoothedIntegralLower=intergatorSmoothingZ%integrate(                                               &
+                     &                                                          particulateSmoothingIntegrationRangeLower, &
+                     &                                                      min(                                           &
+                     &                                                          particulateRadius                        , &
+                     &                                                          particulateSmoothingIntegrationRangeUpper  &
+                     &                                                         )                                           &
+                     &                                                     )
              else
                 densitySmoothedIntegralLower=0.0d0
              end if
-             call Integrate_Done(integrandFunction,integrationWorkspace)
              if (particulateSmoothingIntegrationRangeUpper > particulateRadius) then
-                densitySmoothedIntegralUpper=Integrate(                                                                   &
-                     &                                                     max(                                           &
-                     &                                                         particulateRadius                        , &
-                     &                                                         particulateSmoothingIntegrationRangeLower  &
-                     &                                                     )                                            , &
-                     &                                                         particulateSmoothingIntegrationRangeUpper, &
-                     &                                                     particulateSmoothingIntegrandZ               , &
-                     &                                                     integrandFunction                            , &
-                     &                                                     integrationWorkspace                         , &
-                     &                                  toleranceAbsolute=+0.0d0                                        , &
-                     &                                  toleranceRelative=+1.0d-9                                         &
-                     &                                )
-                call Integrate_Done(integrandFunction,integrationWorkspace)
+                densitySmoothedIntegralUpper=intergatorSmoothingZ%integrate(                                               &
+                     &                                                      max(                                           &
+                     &                                                          particulateRadius                        , &
+                     &                                                          particulateSmoothingIntegrationRangeLower  &
+                     &                                                         )                                         , &
+                     &                                                          particulateSmoothingIntegrationRangeUpper  &
+                     &                                                      )
              else
                 densitySmoothedIntegralUpper=0.0d0
              end if
@@ -862,6 +850,7 @@ contains
        end do
        ! If necessary, compute the potential from the smoothed density profile.
        if (particulateSofteningKernel /= particulateKernelDelta) then
+          integratorMass=integrator(particulateMassIntegrand,toleranceRelative=1.0d-8)
           do i=1,radiusCount
              particulateRadius=particulateEnergyDistribution%x(i)
              if     (                                                                                    &
@@ -873,44 +862,34 @@ contains
                   &   >                                                                                  &
                   &    particulateEnergyDistribution%y(i-1,table=energyDistributionTableDensitySmoothed) &
                   & ) call particulateEnergyDistribution%populate(particulateEnergyDistribution%y(i-1,table=energyDistributionTableDensitySmoothed),i,table=energyDistributionTableDensitySmoothed)
-             call particulateEnergyDistribution%populate(                                                                      &
-                  &                                              +Integrate(                                                   &
-                  &                                                                           +0.0d0                         , &
-                  &                                                                           +particulateRadius             , &
-                  &                                                                            particulateMassIntegrand      , &
-                  &                                                                            integrandFunction             , &
-                  &                                                                            integrationWorkspace          , &
-                  &                                                         toleranceAbsolute=+0.0d0                         , &
-                  &                                                         toleranceRelative=+1.0d-8                          &
-                  &                                                       )                                                  , &
-                  &                                                                                                        i , &
-                  &                                table        =energyDistributionTableMass                                 , &
-                  &                                computeSpline=i==radiusCount                                                &
-                  &                               )
-             call Integrate_Done(integrandFunction,integrationWorkspace)
+             call particulateEnergyDistribution%populate(                                                            &
+                  &                                                    +integratorMass%integrate(                    &
+                  &                                                                              +0.0d0            , &
+                  &                                                                              +particulateRadius  &
+                  &                                                                             )                  , &
+                  &                                                    i                                           , &
+                  &                                      table        =energyDistributionTableMass                 , &
+                  &                                      computeSpline=i==radiusCount                                &
+                  &                                     )
           end do
+          integratorPotential=integrator(particulatePotentialIntegrand,toleranceRelative=1.0d-9)
           do i=1,radiusCount
              particulateRadius=particulateEnergyDistribution%x(i)
-             call particulateEnergyDistribution%populate(                                                                      &
-                  &                                              +Integrate(                                                   &
-                  &                                                                           +particulateRadius             , &
-                  &                                                                           +particulateRadiusTruncate     , &
-                  &                                                                            particulatePotentialIntegrand , &
-                  &                                                                            integrandFunction             , &
-                  &                                                                            integrationWorkspace          , &
-                  &                                                         toleranceAbsolute=+0.0d0                         , &
-                  &                                                         toleranceRelative=+1.0d-9                          &
-                  &                                                       )                                                  , &
-                  &                                                                                                        i , &
-                  &                                table        =energyDistributionTablePotential                            , &
-                  &                                computeSpline=i==radiusCount                                                &
-                  &                               )
-             call Integrate_Done(integrandFunction,integrationWorkspace)
+             call particulateEnergyDistribution%populate(                                                                       &
+                  &                                                    integratorPotential%integrate(                           &
+                  &                                                                                  particulateRadius        , &
+                  &                                                                                  particulateRadiusTruncate  &
+                  &                                                                                 )                         , &
+                  &                                                    i                                                      , &
+                  &                                      table        =energyDistributionTablePotential                       , &
+                  &                                      computeSpline=i==radiusCount                                           &
+                  &                                     )
           end do
        end if
        ! Evaluate the integral in Eddington's formula. Ignore the normalization as we will simply use rejection sampling to draw
        ! from this distribution.
        call particulateEnergyDistribution%populate(0.0d0,radiusCount,table=energyDistributionTableDistribution,computeSpline=.false.)
+       integratorEddington=integrator(particulateEddingtonIntegrand,toleranceRelative=1.0d-5)
        do i=1,radiusCount-1
           particulateRadius=particulateEnergyDistribution%x(i)
           particulateEnergy=particulateEnergyDistribution%y(i,table=energyDistributionTablePotential)
@@ -941,22 +920,16 @@ contains
                &                   -particulateEnergyDistribution%interpolate(particulateRadius*radiusFactorAsymptote,table=energyDistributionTablePotential) &
                &                  )
           ! Evaluate the remainder of the integral numerically and add on the asympototic part.
-          call particulateEnergyDistribution%populate(                                                                                            &
-               &                                              +Integrate(                                                                         &
-               &                                                                           +log(particulateRadiusTruncate                      ), &
-               &                                                                           +log(particulateRadius        *radiusFactorAsymptote), &
-               &                                                                            particulateEddingtonIntegrand                       , &
-               &                                                                            integrandFunction                                   , &
-               &                                                                            integrationWorkspace                                , &
-               &                                                         toleranceAbsolute=+0.0d0                                               , &
-               &                                                         toleranceRelative=+1.0d-5                                                &
-               &                                                        )                                                                         &
-               &                                              +integralAsymptotic                                                               , &
-               &                                                                                                                              i , &
-               &                                table        =energyDistributionTableDistribution                                               , &
-               &                                computeSpline=i==radiusCount-1                                                                    &
-               &                               )
-          call Integrate_Done(integrandFunction,integrationWorkspace)
+          call particulateEnergyDistribution%populate(                                                                                                    &
+               &                                                    +integratorEddington%integrate(                                                       &
+               &                                                                                   +log(particulateRadiusTruncate                      ), &
+               &                                                                                   +log(particulateRadius        *radiusFactorAsymptote)  &
+               &                                                                                  )                                                       &
+               &                                                    +integralAsymptotic                                                                 , &
+               &                                                    i                                                                                   , &
+               &                                      table        =energyDistributionTableDistribution                                                 , &
+               &                                      computeSpline=i==radiusCount-1                                                                      &
+               &                                     )
           ! Check that the distribution function is monotonically increasing.
           if     (                                                                                 &
                &    i                                                                              &
@@ -995,14 +968,12 @@ contains
   double precision function particulateSmoothingIntegrandZ(height)
     !% The integrand over cylindrical coordinate $z$ used in finding the smoothed density profile defined by
     !% \cite{barnes_gravitational_2012} to account for gravitational softening.
-    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate    , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
-    double precision                            , intent(in   ) :: height
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    double precision                                            :: radiusMaximum       , heightOffset, &
-         &                                                         argumentSqrt
+    double precision            , intent(in   ) :: height
+    type            (integrator)                :: integrator_
+    double precision                            :: radiusMaximum, heightOffset, &
+         &                                         argumentSqrt
 
     heightOffset=height-particulateRadius ! Height in the profile (not the kernel).
     argumentSqrt=+particulateRadiusTruncate**2-heightOffset**2
@@ -1015,16 +986,8 @@ contains
        case (particulateKernelGadget )
           radiusMaximum=min(radiusMaximum,sqrt(+(2.8d0*particulateLengthSoftening)**2-particulateHeight**2))
        end select
-       particulateSmoothingIntegrandZ=Integrate(                                                   &
-            &                                                     +0.0d0                         , &
-            &                                                     +radiusMaximum                 , &
-            &                                                      particulateSmoothingIntegrandR, &
-            &                                                      integrandFunction             , &
-            &                                                      integrationWorkspace          , &
-            &                                   toleranceAbsolute=+0.0d0                         , &
-            &                                   toleranceRelative=+1.0d-7                          &
-            &                                  )
-       call Integrate_Done(integrandFunction,integrationWorkspace)
+       integrator_                   =integrator           (particulateSmoothingIntegrandR,toleranceRelative=1.0d-7       )
+       particulateSmoothingIntegrandZ=integrator_%integrate(0.0d0                         ,                  radiusMaximum)
     end if
     return
   end function particulateSmoothingIntegrandZ

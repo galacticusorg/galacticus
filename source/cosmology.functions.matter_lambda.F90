@@ -21,9 +21,8 @@
   !% matter plus a cosmological constant.
 
   use    :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
-  use    :: FGSL                , only : FGSL_Success       , fgsl_function           , fgsl_integration_workspace, fgsl_interp    , &
-          &                              fgsl_interp_accel  , fgsl_odeiv_control      , fgsl_odeiv_evolve         , fgsl_odeiv_step, &
-          &                              fgsl_odeiv_system
+  use    :: FGSL                , only : FGSL_Success       , fgsl_function           , fgsl_interp      , fgsl_odeiv_system, &
+          &                              fgsl_interp_accel  , fgsl_odeiv_control      , fgsl_odeiv_evolve, fgsl_odeiv_step
   !$ use :: OMP_Lib             , only : omp_lock_kind
 
   integer         , parameter :: matterLambdaAgeTableNPointsPerDecade     =300
@@ -1244,17 +1243,15 @@ contains
   subroutine matterLambdaMakeDistanceTable(self,time)
     !% Builds a table of distance vs. time.
     use :: Memory_Management      , only : allocateArray   , deallocateArray
-    use :: Numerical_Integration  , only : Integrate       , Integrate_Done
+    use :: Numerical_Integration  , only : integrator
     use :: Numerical_Interpolation, only : Interpolate_Done
     use :: Numerical_Ranges       , only : Make_Range      , rangeTypeLogarithmic
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout), target :: self
     double precision                                , intent(in   )         :: time
-    double precision                                , parameter             :: toleranceAbsolute   =1.0d-5, toleranceRelative=1.0d-5
+    double precision                                , parameter             :: toleranceAbsolute=1.0d-5, toleranceRelative=1.0d-5
     integer                                                                 :: iTime
-    logical                                                                 :: resetIntegration
-    type            (fgsl_function                 )                        :: integrandFunction
-    type            (fgsl_integration_workspace    )                        :: integrationWorkspace
+    type            (integrator                    )                        :: integrator_
 
     ! Find minimum and maximum times to tabulate.
     self%distanceTableTimeMinimum=min(self%distanceTableTimeMinimum,0.5d0*time)
@@ -1276,20 +1273,17 @@ contains
     ! Create the range of times.
     self% distanceTableTime=Make_Range(self%distanceTableTimeMinimum,self%distanceTableTimeMaximum,self%distanceTableNumberPoints,rangeTypeLogarithmic)
     ! Integrate to get the comoving distance.
-    resetIntegration       =  .true.
+    integrator_            =  integrator(                                                         &
+         &                                                 matterLambdaComovingDistanceIntegrand, &
+         &                               toleranceAbsolute=toleranceAbsolute                    , &
+         &                               toleranceRelative=toleranceRelative                      &
+         &                              )
     matterLambdaSelfGlobal => self
     do iTime=1,self%distanceTableNumberPoints
-       self%distanceTableComovingDistance(iTime)                                                       &
-            & =Integrate(                                                                              &
-            &            self%expansionFactor(self%distanceTableTime(iTime                         )), &
-            &            self%expansionFactor(self%distanceTableTime(self%distanceTableNumberPoints)), &
-            &            matterLambdaComovingDistanceIntegrand                                       , &
-            &            integrandFunction                                                           , &
-            &            integrationWorkspace                                                        , &
-            &            toleranceAbsolute=toleranceAbsolute                                         , &
-            &            toleranceRelative=toleranceRelative                                         , &
-            &            reset=resetIntegration                                                        &
-            &           )
+       self%distanceTableComovingDistance(iTime)=integrator_%integrate(                                                                              &
+            &                                                          self%expansionFactor(self%distanceTableTime(iTime                         )), &
+            &                                                          self%expansionFactor(self%distanceTableTime(self%distanceTableNumberPoints))  &
+            &                                                         )
        self              %distanceTableLuminosityDistanceNegated              (iTime)   &
             & =      self%distanceTableComovingDistance                       (iTime)   &
             &       /self%expansionFactor              (self%distanceTableTime(iTime))
@@ -1297,7 +1291,6 @@ contains
             & =      self%distanceTableComovingDistance                       (iTime)   &
             &  /sqrt(self%expansionFactor              (self%distanceTableTime(iTime)))
     end do
-    call Integrate_Done(integrandFunction,integrationWorkspace)
     ! Make a negated copy of the distances so that we have an increasing array for use in interpolation routines.
     self%distanceTableComovingDistanceNegated            =-self%distanceTableComovingDistance
     self%distanceTableLuminosityDistanceNegated          =-self%distanceTableLuminosityDistanceNegated

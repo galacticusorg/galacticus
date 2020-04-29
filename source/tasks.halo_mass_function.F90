@@ -286,7 +286,6 @@ contains
 
   subroutine haloMassFunctionPerform(self,status)
     !% Compute and output the halo mass function.
-    use            :: FGSL                            , only : FGSL_Integ_Gauss15           , fgsl_function              , fgsl_integration_workspace
     use            :: Galacticus_Calculations_Resets  , only : Galacticus_Calculations_Reset
     use            :: Galacticus_Display              , only : Galacticus_Display_Indent    , Galacticus_Display_Unindent
     use            :: Galacticus_Error                , only : errorStatusSuccess
@@ -298,7 +297,7 @@ contains
     use            :: Numerical_Constants_Astronomical, only : massSolar                    , megaParsec
     use            :: Numerical_Constants_Math        , only : Pi
     use            :: Numerical_Constants_Prefixes    , only : kilo
-    use            :: Numerical_Integration           , only : Integrate                    , Integrate_Done
+    use            :: Numerical_Integration           , only : integrator                   , GSL_Integ_Gauss15
     use            :: Numerical_Ranges                , only : Make_Range                   , rangeTypeLogarithmic
     use            :: String_Handling                 , only : operator(//)
     implicit none
@@ -324,8 +323,7 @@ contains
     class           (nodeComponentBasic            ), pointer                       :: basic
     class           (nodeComponentDarkMatterProfile), pointer                       :: darkMatterProfileHalo
     type            (mergerTree                    ), target                        :: tree
-    type            (fgsl_function                 )                                :: integrandFunction
-    type            (fgsl_integration_workspace    )                                :: integrationWorkspace
+    type            (integrator                    )                                :: integrator_
     integer         (c_size_t                      )                                :: iOutput                                              , outputCount                  , &
          &                                                                             iMass                                                , massCount
     double precision                                                                :: massHaloBinMinimum                                   , massHaloBinMaximum           , &
@@ -393,7 +391,9 @@ contains
     ! Get the basic and dark matter profile components.
     basic                 => tree%baseNode%basic            (autoCreate=.true.)
     darkMatterProfileHalo => tree%baseNode%darkMatterProfile(autoCreate=.true.)
-    ! Iterate over all output times.
+    ! Build an integrator.
+    integrator_=integrator(subhaloMassFunctionIntegrand,toleranceRelative=1.0d-3,integrationRule=GSL_Integ_Gauss15)
+    ! Iterate over all output times.    
     do iOutput=outputCount,1,-1
        ! Set the time in the node.
        call basic%timeSet(outputTimes(iOutput))
@@ -435,19 +435,11 @@ contains
           velocityMaximum                               (iMass,iOutput)=self%darkMatterProfileDMO_         %circularVelocityMaximum        (                                                                                               node=tree%baseNode)
           darkMatterProfileRadiusScale                  (iMass,iOutput)=darkMatterProfileHalo              %scale                          (                                                                                                                 )
           ! Integrate the unevolved subhalo mass function over the halo mass function to get the total subhalo mass function.
-          if (self%includeUnevolvedSubhaloMassFunction) then
-             massFunctionCumulativeSubhalo                 (iMass,iOutput)=Integrate(                                                              &
-                  &                                                                                    log(massHalo(1)/subhaloMassMaximum       ), &
-                  &                                                                                    log(            haloMassEffectiveInfinity), &
-                  &                                                                                    subhaloMassFunctionIntegrand              , &
-                  &                                                                                    integrandFunction                         , &
-                  &                                                                                    integrationWorkspace                      , &
-                  &                                                                  toleranceAbsolute=0.0d+0                                    , &
-                  &                                                                  toleranceRelative=1.0d-3                                    , &
-                  &                                                                  integrationRule  =FGSL_Integ_Gauss15                          &
-                  &                                                                 )
-             call Integrate_Done(integrandFunction,integrationWorkspace)
-          end if
+          if (self%includeUnevolvedSubhaloMassFunction)                                                                                   &
+               & massFunctionCumulativeSubhalo          (iMass,iOutput)=integrator_%integrate(                                            &
+               &                                                                              log(massHalo(1)/subhaloMassMaximum       ), &
+               &                                                                              log(            haloMassEffectiveInfinity)  &
+               &                                                                             )
        end do
        massFunctionDifferentialLogarithmic(:,iOutput)=+massFunctionDifferential(:,iOutput) &
             &                                         *massHalo

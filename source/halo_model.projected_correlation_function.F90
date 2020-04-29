@@ -59,7 +59,6 @@ contains
     use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadiusClass
     use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOClass
     use :: FFTLogs                   , only : FFTLogSineTransform              , fftLogForward
-    use :: FGSL                      , only : FGSL_Integ_Gauss61               , fgsl_function                 , fgsl_integration_workspace
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Galacticus_Nodes          , only : nodeComponentBasic               , nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale, treeNode
     use :: Geometry_Surveys          , only : surveyGeometryClass
@@ -67,7 +66,7 @@ contains
     use :: Linear_Growth             , only : linearGrowthClass
     use :: Memory_Management         , only : allocateArray
     use :: Numerical_Constants_Math  , only : Pi
-    use :: Numerical_Integration     , only : Integrate                        , Integrate_Done
+    use :: Numerical_Integration     , only : integrator                       , GSL_Integ_Gauss61
     use :: Numerical_Ranges          , only : Make_Range                       , rangeTypeLogarithmic
     use :: Power_Spectra             , only : powerSpectrumClass
     use :: Table_Labels              , only : extrapolationTypeExtrapolate
@@ -108,9 +107,8 @@ contains
     integer                                                                                                          :: iField                                            , iWavenumber                                       , &
          &                                                                                                              wavenumberCount                                   , iSeparation                                       , &
          &                                                                                                              projectedCorrelationFunctionSeparationCount
-    type            (fgsl_function                      )                                                            :: integrandFunction
-    type            (fgsl_integration_workspace         )                                                            :: integrationWorkspace
-    logical                                                                                                          :: integrationReset
+    type            (integrator                         )                                                            :: integratorVolumeTime                              , integratorNormalizationTime                       , &
+         &                                                                                                              integratorPowerSpectrumOneHaloTime                , integratorPowerSpectrumTwoHaloTime
     type            (table1DLogarithmicLinear           )                                                            :: correlationTable
 
     ! Create worker node.
@@ -141,69 +139,27 @@ contains
        timeMinimum=cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_%distanceMaximum(projectedCorrelationFunctionMassMinimum,field=iField))
        timeMaximum=cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_%distanceMinimum(projectedCorrelationFunctionMassMinimum,field=iField))
        ! Integrate the volume term.
-       integrationReset    =.true.
-       volume              =                                       &
-            & +volume                                              &
-            & +Integrate(                                          &
-            &            timeMinimum                             , &
-            &            timeMaximum                             , &
-            &            volumeTimeIntegrand                     , &
-            &            integrandFunction                       , &
-            &            integrationWorkspace                    , &
-            &            toleranceRelative                =1.0d-2, &
-            &            reset=integrationReset                    &
-            &           )                                          &
-            & *surveyGeometry_%solidAngle(iField)
-       call Integrate_Done(integrandFunction,integrationWorkspace)
+       integratorVolumeTime= integrator                      (volumeTimeIntegrand,toleranceRelative=1.0d-2     )
+       volume              =+volume                                                                              &
+            &               +integratorVolumeTime%integrate  (timeMinimum        ,                  timeMaximum) &
+            &               *surveyGeometry_      %solidAngle(iField                                           )
        ! Integrate the normalization term.
-       integrationReset    =.true.
-       galaxyDensity       =                                       &
-            & +galaxyDensity                                       &
-            & +Integrate(                                          &
-            &            timeMinimum                             , &
-            &            timeMaximum                             , &
-            &            normalizationTimeIntegrand              , &
-            &            integrandFunction                       , &
-            &            integrationWorkspace                    , &
-            &            toleranceRelative                =1.0d-2, &
-            &            reset=integrationReset                    &
-            &           )                                          &
-            & *surveyGeometry_%solidAngle(iField)
-       call Integrate_Done(integrandFunction,integrationWorkspace)
+       integratorNormalizationTime=integrator                             (normalizationTimeIntegrand,toleranceRelative=1.0d-2     )
+       galaxyDensity              =+galaxyDensity                                                                                    &
+            &                      +integratorNormalizationTime%integrate (timeMinimum               ,                  timeMaximum) &
+            &                      *surveyGeometry_            %solidAngle(iField                                                  )
        ! Iterate over wavenumbers.
+       integratorPowerSpectrumOneHaloTime=integrator(powerSpectrumOneHaloTimeIntegrand,toleranceRelative=1.0d-2,integrationRule=GSL_Integ_Gauss61)
+       integratorPowerSpectrumTwoHaloTime=integrator(powerSpectrumTwoHaloTimeIntegrand,toleranceRelative=1.0d-2,integrationRule=GSL_Integ_Gauss61)
        do iWavenumber=1,wavenumberCount
           ! Integrate the one-halo term.
-          integrationReset    =.true.
-          powerSpectrumOneHalo        (iWavenumber)=                              &
-               & +powerSpectrumOneHalo(iWavenumber)                               &
-               & +Integrate(                                                      &
-               &            timeMinimum                                         , &
-               &            timeMaximum                                         , &
-               &            powerSpectrumOneHaloTimeIntegrand                   , &
-               &            integrandFunction                                   , &
-               &            integrationWorkspace                                , &
-               &            toleranceRelative                =1.0d-2            , &
-               &            reset                            =integrationReset  , &
-               &            integrationRule                  =FGSL_Integ_Gauss61  &
-               &           )                                                      &
-               & *surveyGeometry_%solidAngle(iField)
-          call Integrate_Done(integrandFunction,integrationWorkspace)
+          powerSpectrumOneHalo(iWavenumber)=+powerSpectrumOneHalo                         (iWavenumber            ) &
+               &                            +integratorPowerSpectrumOneHaloTime%integrate (timeMinimum,timeMaximum) &
+               &                            *surveyGeometry_                   %solidAngle(iField                 )
           ! Integrate the two-halo term.
-          integrationReset    =.true.
-          powerSpectrumTwoHalo        (iWavenumber)=                              &
-               & +powerSpectrumTwoHalo(iWavenumber)                               &
-               & +Integrate(                                                      &
-               &            timeMinimum                                         , &
-               &            timeMaximum                                         , &
-               &            powerSpectrumTwoHaloTimeIntegrand                   , &
-               &            integrandFunction                                   , &
-               &            integrationWorkspace                                , &
-               &            toleranceRelative                =1.0d-2            , &
-               &            reset                            =integrationReset  , &
-               &            integrationRule                  =FGSL_Integ_Gauss61  &
-               &           )                                                      &
-               & *surveyGeometry_%solidAngle(iField)
-          call Integrate_Done(integrandFunction,integrationWorkspace)
+          powerSpectrumTwoHalo(iWavenumber)=+powerSpectrumTwoHalo(iWavenumber)                                      &
+               &                            +integratorPowerSpectrumTwoHaloTime%integrate (timeMinimum,timeMaximum) &
+               &                            *surveyGeometry_                   %solidAngle(iField                 )
        end do
     end do
     ! Check for non-zero galaxy density.
@@ -309,31 +265,21 @@ contains
       use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWarn
       use :: Galacticus_Error  , only : errorStatusSuccess
       implicit none
-      double precision                            , intent(in   ) :: timePrime
-      type            (fgsl_function             )                :: integrandFunctionTime
-      type            (fgsl_integration_workspace)                :: integrationWorkspaceTime
-      logical                                                     :: integrationResetTime
-      integer                                                     :: errorStatus
+      double precision            , intent(in   ) :: timePrime
+      type            (integrator)                :: integratorTime
+      integer                                     :: errorStatus
 
       time           =timePrime
       expansionFactor=cosmologyFunctions_%expansionFactor(time)
       call basic%timeSet                             (time)
       call basic%timeLastIsolatedSet                 (time)
-      integrationResetTime             =.true.
-      powerSpectrumOneHaloTimeIntegrand=                                                  &
-           & +Integrate(                                                                  &
-           &            projectedCorrelationFunctionHaloMassMinimum                     , &
-           &            projectedCorrelationFunctionHaloMassMaximum                     , &
-           &            powerSpectrumOneHaloIntegrand                                   , &
-           &            integrandFunctionTime                                           , &
-           &            integrationWorkspaceTime                                        , &
-           &            toleranceRelative                          =1.0d-2              , &
-           &            reset                                      =integrationResetTime, &
-           &            integrationRule                            =FGSL_Integ_Gauss61  , &
-           &            errorStatus                                =errorStatus           &
-           &           )                                                                  &
-           & *cosmologyFunctions_%comovingVolumeElementTime(time)
-      call Integrate_Done(integrandFunctionTime,integrationWorkspaceTime)
+      integratorTime                   = integrator(powerSpectrumOneHaloIntegrand,toleranceRelative=1.0d-2,integrationRule=GSL_Integ_Gauss61)
+      powerSpectrumOneHaloTimeIntegrand=+integratorTime     %integrate                (                                                    &
+           &                                                                                  projectedCorrelationFunctionHaloMassMinimum, &
+           &                                                                                  projectedCorrelationFunctionHaloMassMaximum, &
+           &                                                                           status=errorStatus                                  &
+           &                                                                          )                                                    &
+           &                            *cosmologyFunctions_%comovingVolumeElementTime(time)
       if (errorStatus /= errorStatusSuccess .and. .not.integrationWarningIssued) then
          call Galacticus_Display_Message('WARNING: [powerSpectrumOneHaloTimeIntegrand] integration failed - likely due to oscillatory nature of integrand - proceeding anyway',verbosity=verbosityWarn)
          integrationWarningIssued=.true.
@@ -393,32 +339,26 @@ contains
       use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWarn
       use :: Galacticus_Error  , only : errorStatusSuccess
       implicit none
-      double precision                            , intent(in   ) :: timePrime
-      type            (fgsl_function             )                :: integrandFunctionTime
-      type            (fgsl_integration_workspace)                :: integrationWorkspaceTime
-      logical                                                     :: integrationResetTime
-      integer                                                     :: errorStatus
-
+      double precision            , intent(in   ) :: timePrime
+      type            (integrator)                :: integratorTime
+      integer                                     :: errorStatus
+      
       time           =timePrime
       expansionFactor=cosmologyFunctions_%expansionFactor(time)
       call basic%timeSet                             (time)
       call basic%timeLastIsolatedSet                 (time)
-      integrationResetTime             =.true.
-      powerSpectrumTwoHaloTimeIntegrand=                                                         &
-           & +Integrate(                                                                         &
-           &            projectedCorrelationFunctionHaloMassMinimum                            , &
-           &            projectedCorrelationFunctionHaloMassMaximum                            , &
-           &            powerSpectrumTwoHaloIntegrand                                          , &
-           &            integrandFunctionTime                                                  , &
-           &            integrationWorkspaceTime                                               , &
-           &            toleranceRelative                          =1.0d-2                     , &
-           &            reset                                      =integrationResetTime       , &
-           &            integrationRule                            =FGSL_Integ_Gauss61         , &
-           &            errorStatus                                =errorStatus                  &
-           &           )                                                                         &
-           & *sqrt(powerSpectrum_     %power                    (wavenumber(iWavenumber),time))  &
-           & *     cosmologyFunctions_%comovingVolumeElementTime(                        time)
-      call Integrate_Done(integrandFunctionTime,integrationWorkspaceTime)
+      integratorTime                  =       integrator                                   (                                                               &
+           &                                                                                                  powerSpectrumTwoHaloIntegrand              , &
+           &                                                                                toleranceRelative=1.0d-2                                     , &
+           &                                                                                integrationRule  =GSL_Integ_Gauss61                            &
+           &                                                                               )
+      powerSpectrumTwoHaloTimeIntegrand=+     integratorTime     %integrate                (                                                               &
+           &                                                                                                  projectedCorrelationFunctionHaloMassMinimum, &
+           &                                                                                                  projectedCorrelationFunctionHaloMassMaximum, &
+           &                                                                                status           =errorStatus                                  &
+           &                                                                               )                                                               &
+           &                            *sqrt(powerSpectrum_     %power                    (wavenumber(iWavenumber),time))                                 &
+           &                            *     cosmologyFunctions_%comovingVolumeElementTime(                        time)
       if (errorStatus /= errorStatusSuccess .and. .not.integrationWarningIssued) then
          call Galacticus_Display_Message('WARNING: [powerSpectrumTwoHaloTimeIntegrand] integration failed - likely due to oscillatory nature of integrand - proceeding anyway',verbosity=verbosityWarn)
          integrationWarningIssued=.true.
@@ -459,25 +399,16 @@ contains
     double precision function normalizationTimeIntegrand(timePrime)
       !% Time integrand for the normalization term in the power spectrum.
       implicit none
-      double precision                            , intent(in   ) :: timePrime
-      type            (fgsl_function             )                :: integrandFunctionTime
-      type            (fgsl_integration_workspace)                :: integrationWorkspaceTime
-      logical                                                     :: integrationResetTime
+      double precision            , intent(in   ) :: timePrime
+      type            (integrator)                :: integratorTime
 
       time           =timePrime
-      integrationResetTime=.true.
-      normalizationTimeIntegrand=                                           &
-           & +Integrate(                                                    &
-           &            projectedCorrelationFunctionHaloMassMinimum       , &
-           &            projectedCorrelationFunctionHaloMassMaximum       , &
-           &            normalizationIntegrand                            , &
-           &            integrandFunctionTime                             , &
-           &            integrationWorkspaceTime                          , &
-           &            toleranceRelative                          =1.0d-2, &
-           &            reset=integrationResetTime                          &
-           &           )                                                    &
-           & *cosmologyFunctions_%comovingVolumeElementTime(time)
-       call Integrate_Done(integrandFunctionTime,integrationWorkspaceTime)
+      integratorTime=integrator(normalizationIntegrand,toleranceRelative=1.0d-2)
+      normalizationTimeIntegrand=+integratorTime     %integrate                (                                             &
+           &                                                                    projectedCorrelationFunctionHaloMassMinimum, &
+           &                                                                    projectedCorrelationFunctionHaloMassMaximum  &
+           &                                                                   )                                             &
+           &                     *cosmologyFunctions_%comovingVolumeElementTime(time)
       return
     end function normalizationTimeIntegrand
 

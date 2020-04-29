@@ -98,7 +98,7 @@ contains
   recursive double precision function environmentAveragedDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
     use :: Galacticus_Nodes     , only : mergerTree         , nodeComponentBasic           , treeNode
-    use :: Numerical_Integration, only : Integrate          , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     use :: Root_Finder          , only : rangeExpandAdditive, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (haloMassFunctionEnvironmentAveraged), intent(inout)           :: self
@@ -111,8 +111,7 @@ contains
     type            (mergerTree                         ), target                  :: tree
     double precision                                                               :: environmentOverdensityLower       , environmentOverdensityUpper, &
          &                                                                            cdfTarget                         , massBackground
-    type            (fgsl_function                      )                          :: integrandFunction
-    type            (fgsl_integration_workspace         )                          :: integrationWorkspace
+    type            (integrator                         )                          :: integrator_
     type            (rootFinder                         )                          :: finder
 
     massBackground=self%haloEnvironment_%environmentMass()
@@ -163,16 +162,15 @@ contains
           environmentOverdensityLower=environmentOverdensityLower-rangeExpandStep
        end if
        ! Perform the averaging integral.
-       environmentAveragedDifferential=Integrate(                                       &
-            &                                    environmentOverdensityLower          , &
-            &                                    environmentOverdensityUpper          , &
-            &                                    environmentAveragedIntegrand         , &
-            &                                    integrandFunction                    , &
-            &                                    integrationWorkspace                 , &
-            &                                    toleranceAbsolute           =1.0d-100, &
-            &                                    toleranceRelative           =1.0d-009  &
-            &                                   )
-       call Integrate_Done(integrandFunction,integrationWorkspace)
+       integrator_                    =integrator           (                                                &
+            &                                                                  environmentAveragedIntegrand, &
+            &                                                toleranceAbsolute=1.0d-100                    , &
+            &                                                toleranceRelative=1.0d-009                      &
+            &                                               )
+       environmentAveragedDifferential=integrator_%integrate(                                                &
+            &                                                                  environmentOverdensityLower , &
+            &                                                                  environmentOverdensityUpper   &
+            &                                               )
        ! Clean up our work node.
        call tree%baseNode%destroy()
        deallocate(tree%baseNode)

@@ -97,10 +97,9 @@ contains
   double precision function intgrtdSurfaceDensityRate(self,node)
     !% Returns the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the galactic disk of {\normalfont \ttfamily node}, by
     !% integrating over the surface density of star formation rate.
-    use :: FGSL                    , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
-    use :: Galacticus_Nodes        , only : nodeComponentDisk , treeNode
+    use :: Galacticus_Nodes        , only : nodeComponentDisk, treeNode
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : Integrate         , Integrate_Done
+    use :: Numerical_Integration   , only : integrator       , GSL_Integ_Gauss15
     implicit none
     class           (starFormationRateDisksIntgrtdSurfaceDensity), intent(inout), target         :: self
     type            (treeNode                                   ), intent(inout), target         :: node
@@ -109,9 +108,7 @@ contains
     double precision                                             , parameter                     :: radiusInnerDimensionless=0.0d0, radiusOuterDimensionless=10.0d0
     double precision                                                                             :: radiusDisk                    , massGas                        , &
          &                                                                                          radiusInner                   , radiusOuter
-    type            (fgsl_function                              )                                :: integrandFunction
-    type            (fgsl_integration_workspace                 )                                :: integrationWorkspace
-    logical                                                                                      :: integrationReset
+    type            (integrator                                 )                                :: integrator_
     integer                                                                                      :: i
 
     ! Test whether the star formation rate surface density function changed. If it did not we can re-use the previous integral.
@@ -135,23 +132,12 @@ contains
           radiusOuter=radiusDisk*radiusOuterDimensionless
           ! Get a set of intervals into which this integral should be broken.
           intervals=self%starFormationRateSurfaceDensityDisks_%intervals(node,radiusInner,radiusOuter)
-          ! Compute the star formation rate. A low order integration rule (FGSL_Integ_Gauss15) works well here.
+          ! Compute the star formation rate. A low order integration rule (GSL_Integ_Gauss15) works well here.
+          integrator_=integrator(intgrtdSurfaceDensityIntegrand,toleranceRelative=self%tolerance,integrationRule=GSL_Integ_Gauss15)
           intgrtdSurfaceDensityRate=0.0d0
           do i=1,size(intervals,dim=2)
-             integrationReset=.true.
-             intgrtdSurfaceDensityRate=+intgrtdSurfaceDensityRate                                    &
-                  &                    +Integrate(                                                   &
-                  &                               intervals(1,i)                                   , &
-                  &                               intervals(2,i)                                   , &
-                  &                               intgrtdSurfaceDensityIntegrand                   , &
-                  &                               integrandFunction                                , &
-                  &                               integrationWorkspace                             , &
-                  &                               reset                         =integrationReset  , &
-                  &                               toleranceAbsolute             =0.0d+0            , &
-                  &                               toleranceRelative             =self%tolerance    , &
-                  &                               integrationRule               =FGSL_Integ_Gauss15  &
-                  &                              )
-             call Integrate_Done(integrandFunction,integrationWorkspace)
+             intgrtdSurfaceDensityRate=+intgrtdSurfaceDensityRate                            &
+                  &                    +integrator_%integrate(intervals(1,i),intervals(2,i))
           end do
           intgrtdSurfaceDensityRate=+2.0d0                     &
                &                    *Pi                        &

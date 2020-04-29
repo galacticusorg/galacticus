@@ -121,12 +121,11 @@ contains
 
   function icmXRayLuminosityExtract(self,node,time,instance)
     !% Implement an ICM X-ray properties extractor.
-    use :: FGSL                        , only : fgsl_function                          , fgsl_integration_workspace
     use :: Galacticus_Nodes            , only : nodeComponentHotHalo                   , treeNode
     use :: Numerical_Constants_Physical, only : boltzmannsConstant
     use :: Numerical_Constants_Prefixes, only : kilo
     use :: Numerical_Constants_Units   , only : electronVolt
-    use :: Numerical_Integration       , only : Integrate                              , Integrate_Done
+    use :: Numerical_Integration       , only : integrator
     use :: Radiation_Fields            , only : radiationFieldCosmicMicrowaveBackground
     implicit none
     double precision                                         , dimension(:) , allocatable :: icmXRayLuminosityExtract
@@ -135,10 +134,8 @@ contains
     double precision                                         , intent(in   )              :: time
     type            (multiCounter                           ), intent(inout), optional    :: instance
     type            (radiationFieldCosmicMicrowaveBackground), pointer                    :: radiation_
-    type            (fgsl_function                          )                             :: integrandFunction
-    type            (fgsl_integration_workspace             )                             :: integrationWorkspace
-    logical                                                                               :: integrationReset
-    double precision                                                                      :: luminosity          , temperature
+    type            (integrator                             )                             :: integratorLuminosity    , integratorTemperature
+    double precision                                                                      :: luminosity              , temperature
     !$GLC attributes unused :: self, time, instance
 
     allocate(icmXRayLuminosityExtract(2))
@@ -146,30 +143,10 @@ contains
     allocate(radiation_)
     !# <referenceConstruct object="radiation_" constructor="radiationFieldCosmicMicrowaveBackground(self%cosmologyFunctions_)"/>
     ! Compute luminosity and temperature.
-    integrationReset=.true.
-    luminosity      =Integrate(                                                                &
-         &                                       0.0d0                                       , &
-         &                                       self%darkMatterHaloScale_%virialRadius(node), &
-         &                                       integrandLuminosityXray                     , &
-         &                                       integrandFunction                           , &
-         &                                       integrationWorkspace                        , &
-         &                     reset            =integrationReset                            , &
-         &                     toleranceAbsolute=0.0d+0                                      , &
-         &                     toleranceRelative=1.0d-3                                        &
-         &                    )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
-    integrationReset=.true.
-    temperature     =Integrate(                                                                &
-         &                                       0.0d0                                       , &
-         &                                       self%darkMatterHaloScale_%virialRadius(node), &
-         &                                       integrandTemperatureXray                    , &
-         &                                       integrandFunction                           , &
-         &                                       integrationWorkspace                        , &
-         &                     reset            =integrationReset                            , &
-         &                     toleranceAbsolute=0.0d+0                                      , &
-         &                     toleranceRelative=1.0d-3                                        &
-         &                    )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integratorLuminosity =integrator                     (integrandLuminosityXray ,toleranceRelative                           =1.0d-3)
+    integratorTemperature=integrator                     (integrandTemperatureXray,toleranceRelative                           =1.0d-3)
+    luminosity           =integratorLuminosity %integrate(0.0d0                   ,self%darkMatterHaloScale_%virialRadius(node)       )
+    temperature          =integratorTemperature%integrate(0.0d0                   ,self%darkMatterHaloScale_%virialRadius(node)       )
     if (luminosity > 0.0d0) then
        temperature=+temperature        &
             &      /luminosity         &

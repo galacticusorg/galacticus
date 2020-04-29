@@ -383,13 +383,11 @@ contains
 
   double precision function parkinsonColeHellyMassBranchRoot(logMassMaximum)
     !% Used to find the mass of a merger tree branching event.
-    use :: FGSL                 , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate         , Integrate_Done
+    use :: Numerical_Integration, only : integrator, GSL_Integ_Gauss15
     implicit none
-    double precision                            , intent(in   ) :: logMassMaximum
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    double precision                                            :: integral            , massMaximum
+    double precision            , intent(in   ) :: logMassMaximum
+    type            (integrator)                :: integrator_
+    double precision                            :: integral      , massMaximum
 
     if      (logMassMaximum < parkinsonColeHellySelf%probabilityMinimumMassLog) then
        parkinsonColeHellyMassBranchRoot=parkinsonColeHellySelf%probabilitySeek   +parkinsonColeHellySelf%probabilityGradientMinimum*(logMassMaximum-parkinsonColeHellySelf%probabilityMinimumMassLog)
@@ -397,18 +395,13 @@ contains
        parkinsonColeHellyMassBranchRoot=parkinsonColeHellySelf%probabilityMaximum+parkinsonColeHellySelf%probabilityGradientMaximum*(logMassMaximum-parkinsonColeHellySelf%probabilityMaximumMassLog)
     else
        massMaximum=+exp(logMassMaximum)
-       integral   =+parkinsonColeHellySelf%branchingProbabilityPreFactor                              &
-            &      *Integrate(                                                                        &
-            &                                      parkinsonColeHellySelf%probabilityMinimumMassLog , &
-            &                                      logMassMaximum                                   , &
-            &                                      parkinsonColeHellyProbabilityIntegrandLogarithmic, &
-            &                                      integrandFunction                                , &
-            &                                      integrationWorkspace                             , &
-            &                 toleranceAbsolute   =0.0d0                                            , &
-            &                 toleranceRelative   =parkinsonColeHellyIntegrandToleranceRelative     , &
-            &                 integrationRule     =FGSL_Integ_Gauss15                                 &
-            &                )
-       call Integrate_Done(integrandFunction,integrationWorkspace)
+       integrator_= integrator                                          (                                                                     &
+            &                                                                              parkinsonColeHellyProbabilityIntegrandLogarithmic, &
+            &                                                            toleranceRelative=parkinsonColeHellyIntegrandToleranceRelative     , &
+            &                                                            integrationRule  =GSL_Integ_Gauss15                                  &
+            &                                                           )
+       integral   =+parkinsonColeHellySelf%branchingProbabilityPreFactor                                                                      &
+            &      *integrator_           %integrate                    (parkinsonColeHellySelf%probabilityMinimumMassLog,logMassMaximum)
        parkinsonColeHellyMassBranchRoot=parkinsonColeHellySelf%probabilitySeek-integral
     end if
     return
@@ -464,16 +457,14 @@ contains
   double precision function parkinsonColeHellyProbability(self,haloMass,deltaCritical,time,massResolution,node)
     !% Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time
     !% {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
-    use :: FGSL                 , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate         , Integrate_Done
+    use :: Numerical_Integration, only : integrator, GSL_Integ_Gauss15
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout), target :: self
-    double precision                                                  , intent(in   )         :: deltaCritical       , haloMass   , &
-         &                                                                                       massResolution      , time
+    double precision                                                  , intent(in   )         :: deltaCritical , haloMass   , &
+         &                                                                                       massResolution, time
     type            (treeNode                                        ), intent(inout), target :: node
-    type            (fgsl_function                                   )                        :: integrandFunction
-    type            (fgsl_integration_workspace                      )                        :: integrationWorkspace
-    double precision                                                                          :: massMaximum         , massMinimum
+    type            (integrator                                      )                        :: integrator_
+    double precision                                                                          :: massMaximum   , massMinimum
     !$GLC attributes unused :: node
 
     ! Recompute branching probability if necessary.
@@ -493,18 +484,16 @@ contains
           call self%computeCommonFactors(deltaCritical,time,haloMass,node)
           massMinimum             =+           massResolution
           massMaximum             =+0.5d0*self%massHaloParent
-          self%probabilityPrevious=+self%branchingProbabilityPreFactor                                             &
-               &                   *Integrate(                                                                     &
-               &                                                log(massMinimum)                                 , &
-               &                                                log(massMaximum)                                 , &
-               &                                                parkinsonColeHellyProbabilityIntegrandLogarithmic, &
-               &                                                integrandFunction                                , &
-               &                                                integrationWorkspace                             , &
-               &                              toleranceAbsolute=0.0d0                                            , &
-               &                              toleranceRelative=parkinsonColeHellyIntegrandToleranceRelative     , &
-               &                              integrationRule  =FGSL_Integ_Gauss15                                 &
-               &                             )
-          call Integrate_Done(integrandFunction,integrationWorkspace)
+          integrator_             = integrator                               (                                                                     &
+               &                                                                                parkinsonColeHellyProbabilityIntegrandLogarithmic, &
+               &                                                              toleranceRelative=parkinsonColeHellyIntegrandToleranceRelative     , &
+               &                                                              integrationRule   =GSL_Integ_Gauss15&
+               &                                                             )
+          self%probabilityPrevious=+self       %branchingProbabilityPreFactor                                                                      &
+               &                   *integrator_%integrate                    (                                                                     &
+               &                                                                                 log(massMinimum)                                , &
+               &                                                                                 log(massMaximum)                                  &
+               &                                                             )
        else
           self%probabilityPrevious=0.0d0
        end if

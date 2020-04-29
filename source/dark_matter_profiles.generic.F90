@@ -232,25 +232,15 @@ contains
     !% Returns the enclosed mass difference (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} between the
     !% given {\normalfont \ttfamily radiusLower} and {\normalfont \ttfamily radiusUpper} (given in units of Mpc) using a numerical
     !% calculation.
-    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate    , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
-    class           (darkMatterProfileGeneric  ), intent(inout) :: self
-    type            (treeNode                  ), intent(inout) :: node
-    double precision                            , intent(in   ) :: radiusLower         , radiusUpper
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
+    class           (darkMatterProfileGeneric), intent(inout) :: self
+    type            (treeNode                ), intent(inout) :: node
+    double precision                          , intent(in   ) :: radiusLower, radiusUpper
+    type            (integrator              )                :: integrator_
 
-    genericEnclosedMassDifferenceNumerical=+Integrate(                                        &
-         &                                                              radiusLower         , &
-         &                                                              radiusUpper         , &
-         &                                                              genericMassIntegrand, &
-         &                                                              integrandFunction   , &
-         &                                                              integrationWorkspace, &
-         &                                            toleranceAbsolute=0.0d+0              , &
-         &                                            toleranceRelative=1.0d-6                &
-         &                                           )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_=integrator(genericMassIntegrand,toleranceRelative=1.0d-6)
+    genericEnclosedMassDifferenceNumerical=+integrator_%integrate(radiusLower,radiusUpper)
     return
 
   contains
@@ -274,34 +264,27 @@ contains
   double precision function genericPotentialNumerical(self,node,radius,status)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
     !% \ttfamily radius} (given in units of Mpc) using a numerical calculation.
-    use :: FGSL                      , only : fgsl_function            , fgsl_integration_workspace
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
-    use :: Numerical_Integration     , only : Integrate                , Integrate_Done
+    use :: Numerical_Integration     , only : integrator
     implicit none
-    class           (darkMatterProfileGeneric  ), intent(inout), target   :: self
-    type            (treeNode                  ), intent(inout), target   :: node
-    double precision                            , intent(in   )           :: radius
-    integer                                     , intent(  out), optional :: status
-    double precision                            , parameter               :: radiusMaximumFactor =1.0d2
-    type            (fgsl_function             )                          :: integrandFunction
-    type            (fgsl_integration_workspace)                          :: integrationWorkspace
-    double precision                                                      :: radiusMaximum
+    class           (darkMatterProfileGeneric), intent(inout), target   :: self
+    type            (treeNode                ), intent(inout), target   :: node
+    double precision                          , intent(in   )           :: radius
+    integer                                   , intent(  out), optional :: status
+    double precision                          , parameter               :: radiusMaximumFactor =1.0d2
+    type            (integrator              )                          :: integrator_
+    double precision                                                    :: radiusMaximum
 
     if (present(status)) status=structureErrorCodeSuccess
     genericSelf               =>  self
     genericNode               =>  node
     radiusMaximum             =  +radiusMaximumFactor                          &
          &                       *self%darkMatterHaloScale_%virialRadius(node)
-    genericPotentialNumerical =   Integrate(                             &
-         &                                  radius                     , &
-         &                                  radiusMaximum              , &
-         &                                  integrandPotential         , &
-         &                                  integrandFunction          , &
-         &                                  integrationWorkspace       , &
-         &                                  toleranceAbsolute   =0.0d+0, &
-         &                                  toleranceRelative   =1.0d-6  &
-         &                                 )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_               =   integrator           (integrandPotential,toleranceRelative=1.0d-6)
+    genericPotentialNumerical =   integrator_%integrate(               &
+         &                                              radius       , &
+         &                                              radiusMaximum  &
+         &                                             )
     return
   end function genericPotentialNumerical
 
@@ -309,28 +292,21 @@ contains
     !% Returns the potential difference (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} between the
     !% given {\normalfont \ttfamily radiusLower} and {\normalfont \ttfamily radiusUpper} (given in units of Mpc) using a numerical
     !% calculation.
-    use :: FGSL                      , only : fgsl_function            , fgsl_integration_workspace
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
-    use :: Numerical_Integration     , only : Integrate                , Integrate_Done
+    use :: Numerical_Integration     , only : integrator
     implicit none
-    class           (darkMatterProfileGeneric  ), intent(inout), target   :: self
-    type            (treeNode                  ), intent(inout), pointer  :: node
-    double precision                            , intent(in   )           :: radiusLower         , radiusUpper
-    type            (fgsl_function             )                          :: integrandFunction
-    type            (fgsl_integration_workspace)                          :: integrationWorkspace
+    class           (darkMatterProfileGeneric), intent(inout), target   :: self
+    type            (treeNode                ), intent(inout), pointer  :: node
+    double precision                          , intent(in   )           :: radiusLower, radiusUpper
+    type            (integrator              )                          :: integrator_
 
     genericSelf                         => self
     genericNode                         => node
-    genericPotentialDifferenceNumerical =  Integrate(                             &
-         &                                           radiusLower                , &
-         &                                           radiusUpper                , &
-         &                                           integrandPotential         , &
-         &                                           integrandFunction          , &
-         &                                           integrationWorkspace       , &
-         &                                           toleranceAbsolute   =0.0d+0, &
-         &                                           toleranceRelative   =1.0d-6  &
-         &                                          )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_                         =  integrator           (integrandPotential,toleranceRelative=1.0d-6)
+    genericPotentialDifferenceNumerical =  integrator_%integrate(             &
+         &                                                       radiusLower, &
+         &                                                       radiusUpper  &
+         &                                                      )
     return
   end function genericPotentialDifferenceNumerical
 
@@ -374,35 +350,25 @@ contains
   double precision function genericRadialVelocityDispersionNumerical(self,node,radius)
     !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
-    use :: FGSL                        , only : fgsl_function                  , fgsl_integration_workspace
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Numerical_Integration       , only : Integrate                      , Integrate_Done
+    use :: Numerical_Integration           , only : integrator
     implicit none
-    class           (darkMatterProfileGeneric  ), intent(inout)            :: self
-    type            (treeNode                  ), intent(inout)            :: node
-    double precision                            , intent(in   )            :: radius
-    double precision                                           , parameter :: radiusTinyFraction =1.0d-9, radiusLargeFactor=5.0d2
-    double precision                                                       :: radiusMinimum             , radiusMaximum          , &
-         &                                                                    radiusVirial
-    type            (fgsl_function             )                           :: integrandFunction
-    type            (fgsl_integration_workspace)                           :: integrationWorkspace
+    class           (darkMatterProfileGeneric), intent(inout)            :: self
+    type            (treeNode                ), intent(inout)            :: node
+    double precision                          , intent(in   )            :: radius
+    double precision                                         , parameter :: radiusTinyFraction =1.0d-9, radiusLargeFactor=5.0d2
+    double precision                                                     :: radiusMinimum             , radiusMaximum          , &
+         &                                                                  radiusVirial
+    type            (integrator              )                           :: integrator_
 
     radiusVirial =self%darkMatterHaloScale_%virialRadius(node)
     radiusMinimum=max(       radius,radiusTinyFraction*radiusVirial)
     radiusMaximum=max(10.0d0*radius,radiusLargeFactor *radiusVirial)
-    genericRadialVelocityDispersionNumerical=sqrt(                                              &
-         &                                        +Integrate(                                   &
-         &                                                   radiusMinimum                    , &
-         &                                                   radiusMaximum                    , &
-         &                                                   genericJeansEquationIntegrand    , &
-         &                                                   integrandFunction                , &
-         &                                                   integrationWorkspace             , &
-         &                                                   toleranceAbsolute    =0.0d+0     , &
-         &                                                   toleranceRelative    =1.0d-6       &
-         &                                                  )                                   &
-         &                                         /self%density(node,radius)                   &
-         &                                        )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_=integrator(genericJeansEquationIntegrand,toleranceRelative=1.0d-6)
+    genericRadialVelocityDispersionNumerical=sqrt(                                                    &
+         &                                        +integrator_%integrate(radiusMinimum,radiusMaximum) &
+         &                                        /self       %density  (node         ,radius       ) &
+         &                                       )
     return
 
   contains
@@ -428,31 +394,21 @@ contains
   double precision function genericRadialMomentNumerical(self,node,moment,radiusMinimum,radiusMaximum)
     !% Returns the radial moment of the density in the dark matter profile of {\normalfont \ttfamily node} between the given
     !% {\normalfont \ttfamily radiusMinimum} and {\normalfont \ttfamily radiusMaximum} (given in units of Mpc).
-    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate    , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
-    class           (darkMatterProfileGeneric  ), intent(inout)           :: self
-    type            (treeNode                  ), intent(inout)           :: node
-    double precision                            , intent(in   )           :: moment
-    double precision                            , intent(in   ), optional :: radiusMinimum       , radiusMaximum
-    type            (fgsl_function             )                          :: integrandFunction
-    type            (fgsl_integration_workspace)                          :: integrationWorkspace
-    double precision                                                      :: radiusMinimumActual , radiusMaximumActual
+    class           (darkMatterProfileGeneric), intent(inout)           :: self
+    type            (treeNode                ), intent(inout)           :: node
+    double precision                          , intent(in   )           :: moment
+    double precision                          , intent(in   ), optional :: radiusMinimum      , radiusMaximum
+    type            (integrator              )                          :: integrator_
+    double precision                                                    :: radiusMinimumActual, radiusMaximumActual
 
     radiusMinimumActual=0.0d0
     radiusMaximumActual=self%darkMatterHaloScale_%virialRadius(node)
     if (present(radiusMinimum)) radiusMinimumActual=radiusMinimum
     if (present(radiusMaximum)) radiusMaximumActual=radiusMaximum
-    genericRadialMomentNumerical=Integrate(                              &
-         &                                 radiusMinimumActual         , &
-         &                                 radiusMaximumActual         , &
-         &                                 integrandRadialMoment       , &
-         &                                 integrandFunction           , &
-         &                                 integrationWorkspace        , &
-         &                                 toleranceAbsolute    =0.0d+0, &
-         &                                 toleranceRelative    =1.0d-3  &
-         &                                )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_=integrator(integrandRadialMoment,toleranceRelative=1.0d-3)
+    genericRadialMomentNumerical=integrator_%integrate(radiusMinimumActual,radiusMaximumActual)
     return
 
   contains
@@ -502,28 +458,18 @@ contains
   double precision function genericKSpaceNumerical(self,node,waveNumber)
     !% Returns the Fourier transform of the dark matter density profile at the specified {\normalfont \ttfamily waveNumber}
     !% (given in Mpc$^{-1}$).
-    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate    , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
-    class           (darkMatterProfileGeneric  ), intent(inout)         :: self
-    type            (treeNode                  ), intent(inout), target :: node
-    double precision                            , intent(in   )         :: waveNumber
-    type            (fgsl_function             )                        :: integrandFunction
-    type            (fgsl_integration_workspace)                        :: integrationWorkspace
-    double precision                                                    :: radiusVirial
+    class           (darkMatterProfileGeneric), intent(inout)         :: self
+    type            (treeNode                ), intent(inout), target :: node
+    double precision                          , intent(in   )         :: waveNumber
+    type            (integrator              )                        :: integrator_
+    double precision                                                  :: radiusVirial
 
-    radiusVirial          =+self%darkMatterHaloScale_%virialRadius(node             )
-    genericKSpaceNumerical=+Integrate(                                                &
-         &                            lowerLimit          =0.0d0                    , &
-         &                            upperLimit          =radiusVirial             , &
-         &                            integrand           =integrandFourierTransform, &
-         &                            integrandFunction   =integrandFunction        , &
-         &                            integrationWorkspace=integrationWorkspace     , &
-         &                            toleranceAbsolute   =0.0d+0                   , &
-         &                            toleranceRelative   =1.0d-3                     &
-         &                           )                                                &
-         &                  /self                    %enclosedMass(node,radiusVirial)
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    radiusVirial          =+self       %darkMatterHaloScale_%virialRadius(node                                              )
+    integrator_           = integrator                                   (integrandFourierTransform,toleranceRelative=1.0d-3)
+    genericKSpaceNumerical=+integrator_%integrate                        (0.0d0                    ,radiusVirial            ) &
+         &                 /self                            %enclosedMass(node                     ,radiusVirial            )
     return
 
   contains
@@ -551,65 +497,42 @@ contains
 
   double precision function genericEnergyNumerical(self,node)
     !% Return the energy of a generic dark matter density profile.
-    use :: FGSL                        , only : fgsl_function                  , fgsl_integration_workspace
-    use :: Numerical_Constants_Math    , only : Pi
+    use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Numerical_Integration       , only : Integrate                      , Integrate_Done
+    use :: Numerical_Integration           , only : integrator
     implicit none
     class           (darkMatterProfileGeneric  ), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node
-    double precision                            , parameter     :: multiplierRadius    =100.0d0
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    double precision                                            :: radiusVirial                , radiusLarge, energyPotential, energyKinetic, pseudoPressure
+    double precision                            , parameter     :: multiplierRadius   =100.0d0
+    type            (integrator                )                :: integratorPotential        , integratorKinetic, &
+         &                                                         integratorPressure
+    double precision                                            :: radiusVirial               , radiusLarge      , &
+         &                                                         energyPotential            , energyKinetic    , &
+         &                                                         pseudoPressure
 
+    integratorPotential=integrator(integrandEnergyPotential,toleranceRelative=1.0d-3)
+    integratorKinetic  =integrator(integrandEnergyKinetic  ,toleranceRelative=1.0d-3)
+    integratorPressure =integrator(integrandPseudoPressure ,toleranceRelative=1.0d-3)
     radiusVirial          =+self%darkMatterHaloScale_%virialRadius(node)
-    radiusLarge           =+multiplierRadius                                         &
+    radiusLarge           =+multiplierRadius                                          &
          &                 *radiusVirial
-    energyPotential       =+Integrate(                                               &
-         &                            lowerLimit          =0.0d0                   , &
-         &                            upperLimit          =radiusVirial            , &
-         &                            integrand           =integrandEnergyPotential, &
-         &                            integrandFunction   =integrandFunction       , &
-         &                            integrationWorkspace=integrationWorkspace    , &
-         &                            toleranceAbsolute   =0.0d+0                  , &
-         &                            toleranceRelative   =1.0d-3                    &
-         &                           )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
-    energyKinetic         =+Integrate(                                               &
-         &                            lowerLimit          =0.0d0                   , &
-         &                            upperLimit          =radiusVirial            , &
-         &                            integrand           =integrandEnergyKinetic  , &
-         &                            integrandFunction   =integrandFunction       , &
-         &                            integrationWorkspace=integrationWorkspace    , &
-         &                            toleranceAbsolute   =0.0d+0                  , &
-         &                            toleranceRelative   =1.0d-3                    &
-         &                           )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
-    pseudoPressure        =+Integrate(                                               &
-         &                            lowerLimit          =radiusVirial            , &
-         &                            upperLimit          =radiusLarge             , &
-         &                            integrand           =integrandPseudoPressure , &
-         &                            integrandFunction   =integrandFunction       , &
-         &                            integrationWorkspace=integrationWorkspace    , &
-         &                            toleranceAbsolute   =0.0d+0                  , &
-         &                            toleranceRelative   =1.0d-3                    &
-         &                           )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
-    genericEnergyNumerical=-0.5d0                                                    &
-         &                 *gravitationalConstantGalacticus                          &
-         &                 *(                                                        &
-         &                   +energyPotential                                        &
-         &                   +self%enclosedMass(node,radiusVirial)**2                &
-         &                   /                       radiusVirial                    &
-         &                  )                                                        &
-         &                 +2.0d0                                                    &
-         &                 *Pi                                                       &
-         &                 *gravitationalConstantGalacticus                          &
-         &                 *(                                                        &
-         &                   +radiusVirial**3                                        &
-         &                   *pseudoPressure                                         &
-         &                   +energyKinetic                                          &
+    energyPotential       =+integratorPotential%integrate(0.0d0        ,radiusVirial)
+    energyKinetic         =+integratorKinetic  %integrate(0.0d0        ,radiusVirial)
+    pseudoPressure        =+integratorPressure %integrate(radiusVirial,radiusLarge  )
+    genericEnergyNumerical=-0.5d0                                                     &
+         &                 *gravitationalConstantGalacticus                           &
+         &                 *(                                                         &
+         &                   +energyPotential                                         &
+         &                   +self%enclosedMass(node,radiusVirial)**2                 &
+         &                   /                       radiusVirial                     &
+         &                  )                                                         &
+         &                 +2.0d0                                                     &
+         &                 *Pi                                                        &
+         &                 *gravitationalConstantGalacticus                           &
+         &                 *(                                                         &
+         &                   +radiusVirial**3                                         &
+         &                   *pseudoPressure                                          &
+         &                   +energyKinetic                                           &
          &                  )
     return
 
@@ -745,25 +668,15 @@ contains
 
   double precision function rootRadiusFreefall(radiusFreefall)
     !% Root function used in finding the radius corresponding to a given freefall time.
-    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate    , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
-    double precision                            , intent(in   ) :: radiusFreefall
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
+    double precision            , intent(in   ) :: radiusFreefall
+    type            (integrator)                :: integrator_
 
-    genericRadiusFreefall=radiusFreefall
-    rootRadiusFreefall=+Integrate(                                            &
-         &                        lowerLimit          =0.0d0                , &
-         &                        upperLimit          =radiusFreefall       , &
-         &                        integrand           =integrandTimeFreefall, &
-         &                        integrandFunction   =integrandFunction    , &
-         &                        integrationWorkspace=integrationWorkspace , &
-         &                        toleranceAbsolute   =0.0d+0               , &
-         &                        toleranceRelative   =1.0d-3                 &
-         &                       )                                            &
-         &                      -genericTime
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    genericRadiusFreefall=+radiusFreefall
+    integrator_          = integrator              (integrandTimeFreefall,toleranceRelative=1.0d-3)
+    rootRadiusFreefall   =+integrator_   %integrate(0.0d0                ,radiusFreefall          ) &
+         &                -genericTime
     return
   end function rootRadiusFreefall
 

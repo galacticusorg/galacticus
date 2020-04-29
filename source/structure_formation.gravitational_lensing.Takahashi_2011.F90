@@ -314,13 +314,12 @@ contains
 
   subroutine takahashi2011LensingDistributionConstruct(self,redshift,scaleSource)
     !% Construct the lensing distribution function for the \cite{takahashi_probability_2011} formalism.
-    use :: FGSL                 , only : fgsl_function               , fgsl_integration_workspace
     use :: File_Utilities       , only : Directory_Make              , File_Exists
     use :: Galacticus_Error     , only : Galacticus_Error_Report
     use :: Galacticus_Paths     , only : galacticusPath              , pathTypeDataDynamic
     use :: IO_HDF5              , only : hdf5Access                  , hdf5Object
     use :: Numerical_Comparison , only : Values_Differ
-    use :: Numerical_Integration, only : Integrate                   , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     use :: Numerical_Ranges     , only : Make_Range                  , rangeTypeLogarithmic
     use :: Root_Finder          , only : rangeExpandMultiplicative   , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     use :: Table_Labels         , only : extrapolationTypeExtrapolate, extrapolationTypeFix
@@ -337,18 +336,18 @@ contains
     double precision                                   , parameter                   :: magnificationMaximum                  =1000.0d0
     integer                                            , parameter                   :: omegaKappaCount                       =1000
     integer                                            , parameter                   :: cdfMagnificationCount                 =1000
-    double precision                                   , allocatable  , dimension(:) :: tableOmegaKappa                           , tableAKappa, &
+    double precision                                   , allocatable  , dimension(:) :: tableOmegaKappa                           , tableAKappa                   , &
          &                                                                              tableNKappa                               , tableConvergenceVariance
     integer                                                                          :: i
     type            (rootFinder                       )                              :: finder
-    logical                                                                          :: integrationReset
-    type            (fgsl_function                    )                              :: integrandFunction
-    type            (fgsl_integration_workspace       )                              :: integrationWorkspace
-    double precision                                                                 :: distanceComovingSource                    , timeLens               , &
-         &                                                                              convergencePdfMoment0                     , convergencePdfMoment1  , &
-         &                                                                              convergencePdfMoment2                     , convergenceMinimum     , &
-         &                                                                              convergenceMaximum                        , magnificationPdfMoment0, &
-         &                                                                              magnificationLower                        , magnificationUpper     , &
+    type            (integrator                       )                              :: integratorMoment0                         , integratorMoment1             , &
+         &                                                                              integratorMoment2                         , integratorEmptyBeamConvergence, &
+         &                                                                              integratorConvergenceVariance             , integratorMagnificationPdf
+    double precision                                                                 :: distanceComovingSource                    , timeLens                      , &
+         &                                                                              convergencePdfMoment0                     , convergencePdfMoment1         , &
+         &                                                                              convergencePdfMoment2                     , convergenceMinimum            , &
+         &                                                                              convergenceMaximum                        , magnificationPdfMoment0       , &
+         &                                                                              magnificationLower                        , magnificationUpper            , &
          &                                                                              cdfPrevious                               , cdf
     type            (hdf5Object                       )                              :: parametersFile
 
@@ -394,6 +393,9 @@ contains
              allocate(tableNKappa             (omegaKappaCount))
              allocate(tableConvergenceVariance(omegaKappaCount))
              ! Iterate over values of omega_k
+             integratorMoment0=integrator(convergenceDistributionMoment0Integrand,toleranceRelative=1.0d-4)
+             integratorMoment1=integrator(convergenceDistributionMoment1Integrand,toleranceRelative=1.0d-4)
+             integratorMoment2=integrator(convergenceDistributionMoment2Integrand,toleranceRelative=1.0d-4)
              do i=1,omegaKappaCount
                 ! Set omega_kappa parameter.
                 self%omegaConvergence                    =tableOmegaKappa(i)
@@ -407,39 +409,9 @@ contains
                 ! convergence distribution (eq. 9 of Takahashi et al.).
                 self%aConvergence                        =finder%find(rootGuess=1.0d0)
                 ! Evaluate zeroth and second moments of the convergence distribution.
-                integrationReset     =.true.
-                convergencePdfMoment0=Integrate(                                         &
-                     &                          convergenceMinimum                     , &
-                     &                          convergenceMaximum                     , &
-                     &                          convergenceDistributionMoment0Integrand, &
-                     &                          integrandFunction                      , &
-                     &                          integrationWorkspace                   , &
-                     &                          toleranceRelative=1.0d-4               , &
-                     &                          reset=integrationReset                   &
-                     &                         )
-                call Integrate_Done(integrandFunction,integrationWorkspace)
-                integrationReset     =.true.
-                convergencePdfMoment1=Integrate(                                         &
-                     &                          convergenceMinimum                     , &
-                     &                          convergenceMaximum                     , &
-                     &                          convergenceDistributionMoment1Integrand, &
-                     &                          integrandFunction                      , &
-                     &                          integrationWorkspace                   , &
-                     &                          toleranceRelative=1.0d-4               , &
-                     &                          reset=integrationReset                   &
-                     &                         )
-                call Integrate_Done(integrandFunction,integrationWorkspace)
-                integrationReset     =.true.
-                convergencePdfMoment2=Integrate(                                         &
-                     &                          convergenceMinimum                     , &
-                     &                          convergenceMaximum                     , &
-                     &                          convergenceDistributionMoment2Integrand, &
-                     &                          integrandFunction                      , &
-                     &                          integrationWorkspace                   , &
-                     &                          toleranceRelative=1.0d-4               , &
-                     &                          reset=integrationReset                   &
-                     &                         )
-                call Integrate_Done(integrandFunction,integrationWorkspace)
+                convergencePdfMoment0=integratorMoment0%integrate(convergenceMinimum,convergenceMaximum)
+                convergencePdfMoment1=integratorMoment1%integrate(convergenceMinimum,convergenceMaximum)
+                convergencePdfMoment2=integratorMoment2%integrate(convergenceMinimum,convergenceMaximum)
                 ! Store the A parameter.
                 tableAKappa             (i)=self%aConvergence
                 ! Compute the normalization of the convergence distribution.
@@ -494,29 +466,11 @@ contains
                &                                                                      )          &
                &                                                                     )
           ! Find the convergence of an empty beam.
-          integrationReset         =.true.
-          self%convergenceEmptyBeam=Integrate(                               &
-               &                              redshiftZero                 , &
-               &                              redshift                     , &
-               &                              emptyBeamConvergenceIntegrand, &
-               &                              integrandFunction            , &
-               &                              integrationWorkspace         , &
-               &                              toleranceRelative=1.0d-3     , &
-               &                              reset=integrationReset         &
-               &                            )
-          call Integrate_Done(integrandFunction,integrationWorkspace)
+          integratorEmptyBeamConvergence=integrator                              (emptyBeamConvergenceIntegrand,toleranceRelative=1.0d-3)
+          self%convergenceEmptyBeam     =integratorEmptyBeamConvergence%integrate(redshiftZero                 ,redshift                )
           ! Find the variance of the convergence.
-          integrationReset         =.true.
-          self%convergenceVariance =Integrate(                               &
-               &                              redshiftZero                 , &
-               &                              redshift                     , &
-               &                              convergenceVarianceIntegrand , &
-               &                              integrandFunction            , &
-               &                              integrationWorkspace         , &
-               &                              toleranceRelative=1.0d-3     , &
-               &                              reset=integrationReset         &
-               &                             )
-          call Integrate_Done(integrandFunction,integrationWorkspace)
+          integratorConvergenceVariance=integrator                               (convergenceVarianceIntegrand ,toleranceRelative=1.0d-3)
+          self%convergenceVariance     =integratorConvergenceVariance%integrate  (redshiftZero                 ,redshift                )
           ! Determine the parameters of the convergence distribution.
           self%convergenceScale                    =abs(self%convergenceEmptyBeam)
           self%convergenceVarianceScaled           =self%convergenceVariance/self%convergenceScale**2
@@ -524,17 +478,8 @@ contains
           self%aConvergence                        =self%convergencePDF%interpolate(self%convergenceVarianceScaled,2)
           self%omegaConvergence                    =self%convergencePDF%interpolate(self%convergenceVarianceScaled,3)
           ! Integrate the modified magnification distribution in order to find the normalization.
-          integrationReset        =.true.
-          magnificationPdfMoment0=Integrate(                           &
-               &                            magnificationMinimum     , &
-               &                            magnificationMaximum     , &
-               &                            magnificationPDFIntegrand, &
-               &                            integrandFunction        , &
-               &                            integrationWorkspace     , &
-               &                            toleranceRelative=1.0d-3 , &
-               &                            reset=integrationReset     &
-               &                           )
-          call Integrate_Done(integrandFunction,integrationWorkspace)
+          integratorMagnificationPdf=integrator                          (magnificationPDFIntegrand,toleranceRelative   =1.0d-6)
+          magnificationPdfMoment0   =integratorMagnificationPdf%integrate(magnificationMinimum     ,magnificationMaximum       )
           self%convergenceDistributionNormalization         &
                & =self%convergenceDistributionNormalization &
                & /magnificationPdfMoment0
@@ -542,7 +487,6 @@ contains
           if (self%cdfInitialized) call self%magnificationCDFTable%destroy()
           call self%magnificationCDFTable%create(takahashi2011MagnificationMinimum,takahashi2011MagnificationMaximum,cdfMagnificationCount,tableCount=1)
           do i=1,cdfMagnificationCount
-             integrationReset=.true.
              if (i == 1 ) then
                 magnificationLower=0.0d0
                 cdfPrevious       =0.0d0
@@ -551,17 +495,8 @@ contains
                 cdfPrevious       =self%magnificationCDFTable%y(i-1)
              end if
              magnificationUpper   =self%magnificationCDFTable%x(i  )
-             cdf=Integrate(                           &
-                  &        magnificationLower       , &
-                  &        magnificationUpper       , &
-                  &        magnificationPDFIntegrand, &
-                  &        integrandFunction        , &
-                  &        integrationWorkspace     , &
-                  &        toleranceRelative=1.0d-6 , &
-                  &        reset=integrationReset     &
-                  &       )
+             cdf=integratorMagnificationPdf%integrate(magnificationLower,magnificationUpper)
              call self%magnificationCDFTable%populate(cdf+cdfPrevious,i)
-             call Integrate_Done(integrandFunction,integrationWorkspace)
           end do
           self%cdfInitialized=.true.
        end if
@@ -583,31 +518,14 @@ contains
     double precision function convergencePdfParameterSolver(a)
       !% Root function used in finding equivalent circular orbits.
       implicit none
-      double precision, intent(in   ) :: a
+      double precision            , intent(in   ) :: a
+      type            (integrator)                :: integratorConvergenceDistributionMoment1, integratorConvergenceDistributionMoment2
 
       self%aConvergence    =a
-      integrationReset     =.true.
-      convergencePdfMoment1=Integrate(                                        &
-           &                         convergenceMinimum                     , &
-           &                         convergenceMaximum                     , &
-           &                         convergenceDistributionMoment1Integrand, &
-           &                         integrandFunction                      , &
-           &                         integrationWorkspace                   , &
-           &                         toleranceRelative=1.0d-3               , &
-           &                         reset=integrationReset                   &
-           &                        )
-      call Integrate_Done(integrandFunction,integrationWorkspace)
-      integrationReset     =.true.
-      convergencePdfMoment2=Integrate(                                        &
-           &                         convergenceMinimum                     , &
-           &                         convergenceMaximum                     , &
-           &                         convergenceDistributionMoment2Integrand, &
-           &                         integrandFunction                      , &
-           &                         integrationWorkspace                   , &
-           &                         toleranceRelative=1.0d-3               , &
-           &                         reset=integrationReset                   &
-           &                        )
-      call Integrate_Done(integrandFunction,integrationWorkspace)
+      integratorConvergenceDistributionMoment1=integrator                                        (convergenceDistributionMoment1Integrand,toleranceRelative =1.0d-3)
+      integratorConvergenceDistributionMoment2=integrator                                        (convergenceDistributionMoment2Integrand,toleranceRelative =1.0d-3)
+      convergencePdfMoment1                   =integratorConvergenceDistributionMoment1%integrate(convergenceMinimum                     ,convergenceMaximum       )
+      convergencePdfMoment2                   =integratorConvergenceDistributionMoment2%integrate(convergenceMinimum                     ,convergenceMaximum       )
       if (convergencePdfMoment2 <= 0.0d0) then
          convergencePdfParameterSolver=0.0d0
       else
@@ -661,13 +579,11 @@ contains
       use :: Numerical_Constants_Physical, only : speedLight
       use :: Numerical_Constants_Prefixes, only : kilo
       implicit none
-      double precision                            , intent(in   ) :: redshiftLens
-      double precision                            , parameter     :: wavenumberDynamicRange      =1.0d-6
-      logical                                                     :: integrationReset
-      double precision                                            :: distanceComovingLens               , logWavenumberMaximum, &
-           &                                                         lensingPower                       , logWavenumberMinimum
-      type            (fgsl_function             )                :: integrandFunction
-      type            (fgsl_integration_workspace)                :: integrationWorkspace
+      double precision            , intent(in   ) :: redshiftLens
+      double precision            , parameter     :: wavenumberDynamicRange =1.0d-6
+      double precision                            :: distanceComovingLens          , logWavenumberMaximum, &
+           &                                         lensingPower                  , logWavenumberMinimum
+      type            (integrator)                :: integratorPowerSpectrum
 
       ! Find cosmic time at this redshift.
       timeLens            =self%cosmologyFunctions_%cosmicTime                 (              &
@@ -680,19 +596,10 @@ contains
            &                                                                     timeLens     &
            &                                                                   )
       ! Integrate over the power spectrum.
-      logWavenumberMaximum=                    -log(scaleSource           )
-      logWavenumberMinimum=logWavenumberMaximum+log(wavenumberDynamicRange)
-      integrationReset    =.true.
-      lensingPower        =Integrate(                                           &
-           &                         logWavenumberMinimum                     , &
-           &                         logWavenumberMaximum                     , &
-           &                         convergenceVariancePowerSpectrumIntegrand, &
-           &                         integrandFunction                        , &
-           &                         integrationWorkspace                     , &
-           &                         toleranceRelative=1.0d-3                 , &
-           &                         reset=integrationReset                     &
-           &                        )
-      call Integrate_Done(integrandFunction,integrationWorkspace)
+      logWavenumberMaximum   =                    -log(scaleSource           )
+      logWavenumberMinimum   =logWavenumberMaximum+log(wavenumberDynamicRange)
+      integratorPowerSpectrum=integrator                       (convergenceVariancePowerSpectrumIntegrand,toleranceRelative   =1.0d-3)
+      lensingPower           =integratorPowerSpectrum%integrate(logWavenumberMinimum                     ,logWavenumberMaximum       )
       ! Evaluate the integrand.
       convergenceVarianceIntegrand =                                                               &
            &                        +9.0d0                                                         &

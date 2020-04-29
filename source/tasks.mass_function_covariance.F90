@@ -252,40 +252,38 @@ contains
 
   subroutine massFunctionCovariancePerform(self,status)
     !% Compute and output the halo mass function.
-    use :: FGSL                            , only : fgsl_function            , fgsl_integration_workspace
     use :: Galacticus_Display              , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
     use :: Galacticus_Error                , only : Galacticus_Error_Report  , errorStatusSuccess
     use :: IO_HDF5                         , only : hdf5Object
     use :: Memory_Management               , only : allocateArray            , deallocateArray
     use :: Numerical_Constants_Astronomical, only : massSolar                , megaParsec
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Integration           , only : Integrate                , Integrate_Done
+    use :: Numerical_Integration           , only : integrator
     use :: Numerical_Ranges                , only : Make_Range               , rangeTypeLinear            , rangeTypeLogarithmic
     implicit none
     class           (taskMassFunctionCovariance), intent(inout), target                   :: self
     integer                                     , intent(  out), optional                 :: status
-    double precision                            , allocatable  , dimension(:    )         :: mass                        , massWidthObserved   , &
-         &                                                                                   completenessObserved        , numberObserved      , &
+    double precision                            , allocatable  , dimension(:    )         :: mass                        , massWidthObserved          , &
+         &                                                                                   completenessObserved        , numberObserved             , &
          &                                                                                   massObserved
     double precision                            , allocatable  , dimension(:    ), target :: massFunction                , massFunctionObserved
-    double precision                            , allocatable  , dimension(:,:  )         :: covariance                  , covariancePoisson   , &
-         &                                                                                   covarianceHalo              , covarianceLSS       , &
+    double precision                            , allocatable  , dimension(:,:  )         :: covariance                  , covariancePoisson          , &
+         &                                                                                   covarianceHalo              , covarianceLSS              , &
          &                                                                                   correlation
     double precision                            , allocatable  , dimension(:,:  )         :: varianceLSS                 , volume
     double precision                            , pointer      , dimension(:    )         :: massFunctionUse
     double precision                            , parameter                               :: timePointsPerDecade =100
     double precision                            , parameter                               :: massFunctionMinimum =1.0d-50
-    logical                                                                               :: integrationReset            , useCompleteness     , &
-         &                                                                                   useNumber
-    integer                                                                               :: i                           , j                   , &
-         &                                                                                   iTime                       , iField              , &
+    logical                                                                               :: useCompleteness             ,  useNumber
+    integer                                                                               :: i                           , j                          , &
+         &                                                                                   iTime                       , iField                     , &
          &                                                                                   countFields
-    double precision                                                                      :: logMassMinimum              , logMassMaximum      , &
-         &                                                                                   normalization               , volumeNormalization , &
+    double precision                                                                      :: logMassMinimum              , logMassMaximum             , &
+         &                                                                                   normalization               , volumeNormalization        , &
          &                                                                                   timeMinimum                 , timeMaximum
     double precision                                                                      :: binCompleteness
-    type            (fgsl_function             )                                          :: integrandFunction
-    type            (fgsl_integration_workspace)                                          :: integrationWorkspace
+    type            (integrator                )                                          :: integratorVolume            , integratorTimeI            , &
+         &                                                                                   integratorBiasI             , integratorHaloOccupancyTime
     type            (hdf5Object                )                                          :: massFunctionFile            , dataset
 
     call Galacticus_Display_Indent('Begin task: mass function covariance' )
@@ -322,6 +320,11 @@ contains
     call allocateArray(     varianceLSS      ,[self%countMassBins,self%countMassBins])
     call allocateArray(self%timeTable        ,[self%countTimeBins                   ])
     call allocateArray(self%biasTable        ,[self%countTimeBins,self%countMassBins])
+    ! Build integrators.
+    integratorVolume           =integrator(massFunctionCovarianceVolumeIntegrand           ,toleranceRelative=1.0d-3)
+    integratorTimeI            =integrator(massFunctionCovarianceMassFunctionTimeIntegrandI,toleranceRelative=1.0d-3)
+    integratorBiasI            =integrator(massFunctionCovarianceBiasIntegrandI            ,toleranceRelative=1.0d-2)
+    integratorHaloOccupancyTime=integrator(massFunctionCovarianceHaloOccupancyTimeInterand ,toleranceRelative=1.0d-3)
     ! Create time bins.
     self%timeTable=Make_Range(timeMinimum,timeMaximum,self%countTimeBins,rangeType=rangeTypeLogarithmic)
     ! Create mass bins.
@@ -373,31 +376,12 @@ contains
                &          self%cosmologyFunctions_%timeAtDistanceComoving(self%surveyGeometry_    %distanceMaximum            (self%massBinCenterI       ,field=iField))  &
                &         )
           ! Get the normalizing volume integral.
-          integrationReset=.true.
-          volumeNormalization=+volumeNormalization                                                    &
-               &              +Integrate(                                                             &
-               &                                           timeMinimum                              , &
-               &                                           timeMaximum                              , &
-               &                                           massFunctionCovarianceVolumeIntegrand    , &
-               &                                           integrandFunction                        , &
-               &                                           integrationWorkspace                     , &
-               &                         toleranceRelative=1.0d-3                                   , &
-               &                         reset            =integrationReset                           &
-               &                        )
+          volumeNormalization=+volumeNormalization                                 &
+               &              +integratorVolume%integrate(timeMinimum,timeMaximum)
 
           ! Integrate mass function over the bin.
-          integrationReset=.true.
-          massFunction(i)=+massFunction(i)                                                               &
-               &          +Integrate(                                                                    &
-               &                                       timeMinimum                                     , &
-               &                                       timeMaximum                                     , &
-               &                                       massFunctionCovarianceMassFunctionTimeIntegrandI, &
-               &                                       integrandFunction                               , &
-               &                                       integrationWorkspace                            , &
-               &                     toleranceRelative=1.0d-3                                          , &
-               &                     reset            =integrationReset                                  &
-               &                    )
-          call Integrate_Done(integrandFunction,integrationWorkspace)
+          massFunction(i)=+massFunction             (i                      ) &
+               &          +integratorTimeI%integrate(timeMinimum,timeMaximum)
           ! Find the effective volume of the survey at this mass.
           volume(i,iField)=self%surveyGeometry_%volumeMaximum(self%massBinCenterI,iField)
        end do
@@ -406,21 +390,11 @@ contains
             &          /self%logMassBinWidth   (i) &
             &          /     volumeNormalization
        ! Tabulate the bias as a function of time in this bin.
-       integrationReset=.true.
        do iTime=1,self%countTimeBins
-          self%time=self%timeTable(iTime)
-          self%biasTable(iTime,i)=+Integrate(                                                             &
-               &                                               self%logMassLower                        , &
-               &                                               self%logMassUpper                        , &
-               &                                                    massFunctionCovarianceBiasIntegrandI, &
-               &                                                    integrandFunction                   , &
-               &                                                    integrationWorkspace                , &
-               &                             toleranceRelative=     1.0d-2                              , &
-               &                             reset            =     integrationReset                      &
-               &                            )                                                             &
-               &                  /self%logMassBinWidth(i)
+          self%time              =+self           %timeTable      (iTime                              )
+          self%biasTable(iTime,i)=+integratorBiasI%integrate      (self%logMassLower,self%logMassUpper) &
+               &                  /self           %logMassBinWidth(i                                  )
        end do
-       call Integrate_Done(integrandFunction,integrationWorkspace)
     end do
     ! Compute LSS variance if necessary.
     if (self%includeLSS) then
@@ -474,7 +448,6 @@ contains
           if (self%includeHalo) then
              ! Iterate over fields.
              do iField=1,countFields
-                integrationReset=.true.
                 ! Find integration limits for this bin.
                 timeMaximum=    self%cosmologyFunctions_%cosmicTime            (self%cosmologyFunctions_%expansionFactorFromRedshift(self%surveyRedshiftMinimum))
                 timeMinimum=max(                                                                                                                                   &
@@ -489,20 +462,11 @@ contains
                 if (timeMaximum > timeMinimum) then
                    ! Integrate over the volume. Note that the following expression is multiplied through by the volumes of both
                    ! fields such that we accumulate a volume-weighted covariance, which will be normalized below.
-                   covarianceHalo(i,j)=+covarianceHalo(i,j)                                                          &
-                        &              +Integrate(                                                                   &
-                        &                                           timeMinimum                                    , &
-                        &                                           timeMaximum                                    , &
-                        &                                           massFunctionCovarianceHaloOccupancyTimeInterand, &
-                        &                                           integrandFunction                              , &
-                        &                                           integrationWorkspace                           , &
-                        &                         toleranceRelative=1.0d-3                                         , &
-                        &                         reset            =integrationReset                                 &
-                        &                        )                                                                   &
-                        &              *self%surveyGeometry_%solidAngle(iField)                                      &
-                        &              /self%logMassBinWidth(i)                                                      &
-                        &              /self%logMassBinWidth(j)
-                   call Integrate_Done(integrandFunction,integrationWorkspace)
+                   covarianceHalo(i,j)=+covarianceHalo                                             (i          ,j          ) &
+                        &              +integratorHaloOccupancyTime                %integrate      (timeMinimum,timeMaximum) &
+                        &              *self                       %surveyGeometry_%solidAngle     (iField                 ) &
+                        &              /self                                       %logMassBinWidth(i                      ) &
+                        &              /self                                       %logMassBinWidth(            j          )
                 end if
              end do
              ! Normalize the covariance for the total field volume.
@@ -615,27 +579,15 @@ contains
   double precision function massFunctionCovarianceGalaxyRootPowerSpectrum(iBin,timeMinimum,timeMaximum)
     !% Computes the quantity $\int_{t_\mathrm{min}}^{t_\mathrm{max}} \mathrm{d} t b(t) \sqrt{P(k,t)} \mathrm{d} V / \mathrm{d}t$, where $b(t)$ is
     !% galaxy bias, and $P(k,t)$ is the non-linear galaxy power spectrum.
-    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate    , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
-    integer                                     , intent(in   ) :: iBin
-    double precision                            , intent(in   ) :: timeMinimum         , timeMaximum
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    logical                                                     :: integrationReset
+    integer                     , intent(in   ) :: iBin
+    double precision            , intent(in   ) :: timeMinimum, timeMaximum
+    type            (integrator)                :: integrator_
 
-    massFunctionCovarianceSelfCopy%lssBin            =iBin
-    integrationReset                             =.true.
-    massFunctionCovarianceGalaxyRootPowerSpectrum=Integrate(                                                                      &
-         &                                                                    timeMinimum                                       , &
-         &                                                                    timeMaximum                                       , &
-         &                                                                    massFunctionCovarianceLargeScaleStructureIntegrand, &
-         &                                                                    integrandFunction                                 , &
-         &                                                                    integrationWorkspace                              , &
-         &                                                  toleranceRelative=1.0d-2                                            , &
-         &                                                  reset            =integrationReset                                    &
-         &                                                 )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    massFunctionCovarianceSelfCopy%lssBin        =iBin
+    integrator_                                  =integrator           (massFunctionCovarianceLargeScaleStructureIntegrand,toleranceRelative=1.0d-2     )
+    massFunctionCovarianceGalaxyRootPowerSpectrum=integrator_%integrate(timeMinimum                                       ,                  timeMaximum)
     return
   end function massFunctionCovarianceGalaxyRootPowerSpectrum
 
@@ -820,29 +772,17 @@ contains
 
   double precision function massFunctionCovarianceMassFunctionTimeIntegrandI(timePrime)
     !% Integral for comoving volume.
-    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate    , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
-    double precision                            , intent(in   ) :: timePrime
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    logical                                                     :: integrationReset
-    double precision                                            :: massFunction
+    double precision            , intent(in   ) :: timePrime
+    type            (integrator)                :: integrator_
+    double precision                            :: massFunction
 
-    massFunctionCovarianceSelf%time=timePrime
-    integrationReset               =.true.
-    massFunction=Integrate(                                                                &
-         &                                   massFunctionCovarianceSelf%logMassLower     , &
-         &                                   massFunctionCovarianceSelf%logMassUpper     , &
-         &                                   massFunctionCovarianceMassFunctionIntegrandI, &
-         &                                   integrandFunction                           , &
-         &                                   integrationWorkspace                        , &
-         &                 toleranceRelative=1.0d-3                                      , &
-         &                 reset             =integrationReset                             &
-         &                )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
-    massFunctionCovarianceMassFunctionTimeIntegrandI=+massFunction                                                                                              &
-         &                                           *massFunctionCovarianceSelf%cosmologyFunctions_%comovingVolumeElementTime(massFunctionCovarianceSelf%time)
+    massFunctionCovarianceSelf                      %time=+timePrime
+    integrator_                                          = integrator                                                              (massFunctionCovarianceMassFunctionIntegrandI,toleranceRelative=1.0d-3                                 )
+    massFunction                                         =+integrator_                                   %integrate                (massFunctionCovarianceSelf%logMassLower     ,                  massFunctionCovarianceSelf%logMassUpper)
+    massFunctionCovarianceMassFunctionTimeIntegrandI     =+massFunction                                                                                                                                                                     &
+         &                                                *massFunctionCovarianceSelf%cosmologyFunctions_%comovingVolumeElementTime(massFunctionCovarianceSelf%time                                                                       )
     return
   end function massFunctionCovarianceMassFunctionTimeIntegrandI
 
@@ -911,30 +851,24 @@ contains
 
   double precision function massFunctionCovarianceHaloOccupancyTimeInterand(timePrime)
     !% Integral for comoving volume.
-    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate    , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
-    double precision                            , intent(in   ) :: timePrime
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    logical                                                     :: integrationReset
-    double precision                                            :: massFunction
+    double precision            , intent(in   ) :: timePrime
+    type            (integrator)                :: integrator_
+    double precision                            :: massFunction
 
     massFunctionCovarianceSelf%time=timePrime
-    integrationReset               =.true.
-    massFunction                   =Integrate(                                                                &
-         &                                                      massFunctionCovarianceSelf%logMassLower     , &
-         &                                                      massFunctionCovarianceSelf%logMassUpper     , &
-         &                                                      massFunctionCovarianceHaloOccupancyIntegrand, &
-         &                                                      integrandFunction                           , &
-         &                                                      integrationWorkspace                        , &
-         &                                    toleranceRelative=1.0d-3                                      , &
-         &                                    reset            =integrationReset                              &
-         &                                   )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_                                    =integrator           (                                                                &
+         &                                                                                  massFunctionCovarianceHaloOccupancyIntegrand, &
+         &                                                                toleranceRelative=1.0d-3&
+         &                                                               )
+    massFunction                                   =integrator_%integrate(                                                                &
+         &                                                                                  massFunctionCovarianceSelf%logMassLower     , &
+         &                                                                                  massFunctionCovarianceSelf%logMassUpper       &
+         &                                                               )
     massFunctionCovarianceHaloOccupancyTimeInterand=+massFunction                                                                                              &
          &                                          *massFunctionCovarianceSelf%cosmologyFunctions_%comovingVolumeElementTime(massFunctionCovarianceSelf%time)
-    return
+      return
   end function massFunctionCovarianceHaloOccupancyTimeInterand
 
   double precision function massFunctionCovarianceHaloOccupancyIntegrand(logMass)
@@ -962,18 +896,16 @@ contains
 
   subroutine massFunctionCovarianceComputeVolumeNormalizations(logMass,redshiftMinimum,redshiftMaximum,timeMinimum,timeMaximum,volumeNormalization)
     !% Compute volume normalization factors for LSS covariance calculations.
-    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate    , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
-    double precision                            , intent(in   )               :: logMass             , redshiftMinimum, &
-         &                                                                       redshiftMaximum
-    double precision                            , intent(  out), dimension(:) :: timeMinimum         , timeMaximum    , &
-         &                                                                       volumeNormalization
-    integer                                                                   :: iField
-    type            (fgsl_function             )                              :: integrandFunction
-    type            (fgsl_integration_workspace)                              :: integrationWorkspace
-    logical                                                                   :: integrationReset
+    double precision            , intent(in   )               :: logMass            , redshiftMinimum, &
+         &                                                       redshiftMaximum
+    double precision            , intent(  out), dimension(:) :: timeMinimum        , timeMaximum    , &
+         &                                                       volumeNormalization
+    integer                                                   :: iField
+    type            (integrator)                              :: integrator_
 
+    integrator_=integrator(massFunctionCovarianceVolumeIntegrand,toleranceRelative=1.0d-3)
     do iField=1,massFunctionCovarianceSelfCopy%surveyGeometry_%fieldCount()
        ! Find integration limits for this bin. We want the maximum of the volumes associated with the two bins.
        timeMaximum(iField)=        massFunctionCovarianceSelfCopy%cosmologyFunctions_%cosmicTime            (massFunctionCovarianceSelfCopy%cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum            ))
@@ -985,18 +917,13 @@ contains
             &                  timeMaximum(iField)                                                                                                                                                                          &
             &                 )
        ! Get the normalizing volume integral for bin i.
-       integrationReset=.true.
-       volumeNormalization(iField)=+Integrate(                                                         &
-            &                                                   timeMinimum(iField)                  , &
-            &                                                   timeMaximum(iField)                  , &
-            &                                                   massFunctionCovarianceVolumeIntegrand, &
-            &                                                   integrandFunction                    , &
-            &                                                   integrationWorkspace                 , &
-            &                                 toleranceRelative=1.0d-3                               , &
-            &                                 reset            =integrationReset                       &
-            &                                )                                                         &
-            &                      *massFunctionCovarianceSelfCopy%surveyGeometry_%solidAngle(iField)
-      call Integrate_Done(integrandFunction,integrationWorkspace)
+       volumeNormalization(iField)=+integrator_                                   %integrate (                     &
+            &                                                                                 timeMinimum(iField), &
+            &                                                                                 timeMaximum(iField)  &
+            &                                )                                                                     &
+            &                      *massFunctionCovarianceSelfCopy%surveyGeometry_%solidAngle(                     &
+            &                                                                                             iField   &
+            &                                                                                )
     end do
     return
   end subroutine massFunctionCovarianceComputeVolumeNormalizations
@@ -1185,11 +1112,10 @@ contains
 
   subroutine massFunctionCovarianceLSSAngularSpectrum(self,massBinCount,redshiftMinimum,redshiftMaximum,varianceLSS)
     !% Compute variance due to large scale structure by integration over the angular power spectrum.
-    use :: FGSL                    , only : fgsl_function             , fgsl_integration_workspace
     use :: Galacticus_Display      , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear
     use :: Memory_Management       , only : allocateArray             , deallocateArray
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : Integrate                 , Integrate_Done
+    use :: Numerical_Integration   , only : integrator
     implicit none
     class           (taskMassFunctionCovariance), intent(inout), target           :: self
     integer                                     , intent(in   )                   :: massBinCount
@@ -1203,15 +1129,13 @@ contains
          &                                                                           taskCount                    , taskTotal
     double precision                                                              :: wavenumberMinimum            , wavenumberMaximum, &
          &                                                                           distanceMaximum
-    logical                                                                       :: integrationReset
-    type            (fgsl_function             )                                  :: integrandFunction
-    type            (fgsl_integration_workspace)                                  :: integrationWorkspace
+    type            (integrator                )                                  :: integrator_
 
     countFields=massFunctionCovarianceSelf%surveyGeometry_%fieldCount()
     !$ call OMP_Set_Nested(.true.)
     taskTotal  =massBinCount*(massBinCount+1)/2
     taskCount  =0
-    !$omp parallel private (i,j,wavenumberMinimum,wavenumberMaximum,integrationReset,integrandFunction,integrationWorkspace)
+    !$omp parallel private (i,j,wavenumberMinimum,wavenumberMaximum,integrator_)
     allocate(massFunctionCovarianceSelfCopy,mold=self)
     !$omp critical(massFunctionCovarianceDeepCopy)
     !# <deepCopyReset variables="self"/>
@@ -1223,6 +1147,7 @@ contains
     call allocateArray(massFunctionCovarianceSelfCopy%timeMinimumJ        ,[countFields])
     call allocateArray(massFunctionCovarianceSelfCopy%timeMaximumI        ,[countFields])
     call allocateArray(massFunctionCovarianceSelfCopy%timeMaximumJ        ,[countFields])
+    integrator_=integrator(massFunctionCovarianceAngularPowerIntegrand,toleranceRelative=1.0d-2)
     !$omp do schedule (dynamic)
     do i=1,massBinCount
        massFunctionCovarianceSelfCopy%binI=i
@@ -1266,21 +1191,14 @@ contains
                &                 /Pi                                                                          &
                &                )                                                                             &
                &            /distanceMaximum
-          integrationReset=.true.
-          varianceLSS(massFunctionCovarianceSelfCopy%binI,massFunctionCovarianceSelfCopy%binJ)=+2.0d0                                                            &
-               &                                                                       /Pi                                                                       &
-               &                                                                       /sum(massFunctionCovarianceSelfCopy%volumeNormalizationI)**2              &
-               &                                                                       /sum(massFunctionCovarianceSelfCopy%volumeNormalizationJ)**2              &
-               &                                                                       *Integrate(                                                               &
-               &                                                                                                    wavenumberMinimum                          , &
-               &                                                                                                    wavenumberMaximum                          , &
-               &                                                                                                    massFunctionCovarianceAngularPowerIntegrand, &
-               &                                                                                                    integrandFunction                          , &
-               &                                                                                                    integrationWorkspace                       , &
-               &                                                                                  toleranceRelative=1.0d-2                                     , &
-               &                                                                                  reset            =integrationReset                             &
-               &                                                                                 )
-          call Integrate_Done(integrandFunction,integrationWorkspace)
+          varianceLSS(massFunctionCovarianceSelfCopy%binI,massFunctionCovarianceSelfCopy%binJ)=+2.0d0                                                   &
+               &                                                                       /Pi                                                              &
+               &                                                                       /sum(massFunctionCovarianceSelfCopy%volumeNormalizationI)**2     &
+               &                                                                       /sum(massFunctionCovarianceSelfCopy%volumeNormalizationJ)**2     &
+               &                                                                       *    integrator_                   %integrate(                   &
+               &                                                                                                                     wavenumberMinimum, &
+               &                                                                                                                     wavenumberMaximum  &
+               &                                                                                                                    )
           !$omp atomic
           taskCount=taskCount+1
        end do

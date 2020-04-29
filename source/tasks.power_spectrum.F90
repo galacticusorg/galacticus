@@ -204,7 +204,6 @@ contains
 
   subroutine powerSpectraPerform(self,status)
     !% Compute and output the halo mass function.
-    use            :: FGSL                            , only : FGSL_Integ_Gauss15       , fgsl_function              , fgsl_integration_workspace
     use            :: Galacticus_Display              , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
     use            :: Galacticus_Error                , only : errorStatusSuccess
     use            :: Galacticus_HDF5                 , only : galacticusOutputFile
@@ -213,7 +212,7 @@ contains
     use            :: Memory_Management               , only : allocateArray
     use            :: Numerical_Constants_Astronomical, only : massSolar                , megaParsec
     use            :: Numerical_Constants_Math        , only : Pi
-    use            :: Numerical_Integration           , only : Integrate                , Integrate_Done
+    use            :: Numerical_Integration           , only : integrator               , GSL_Integ_Gauss15
     use            :: Numerical_Ranges                , only : Make_Range               , rangeTypeLogarithmic
     use            :: String_Handling                 , only : operator(//)
     implicit none
@@ -228,8 +227,7 @@ contains
          &                                                                         powerSpectrumLinear      , growthFactor       , &
          &                                                                         growthFactorLogDerivative
     double precision                                                            :: wavenumberMinimum        , wavenumberMaximum
-    type            (fgsl_function             )                                :: integrandFunction
-    type            (fgsl_integration_workspace)                                :: integrationWorkspace
+    type            (integrator                )                                :: integrator_
     type            (hdf5Object                )                                :: outputsGroup             , outputGroup        , &
          &                                                                         containerGroup           , dataset
     type            (varying_string            )                                :: groupName                , commentText
@@ -256,6 +254,7 @@ contains
     ! Build a range of wavenumbers.
     wavenumber(:)=Make_Range(self%wavenumberMinimum,self%wavenumberMaximum,int(wavenumberCount),rangeTypeLogarithmic)
     ! Iterate over outputs.
+    integrator_=integrator(varianceIntegrand,toleranceRelative=1.0d-2,integrationRule=GSL_Integ_Gauss15)
     do iOutput=1,outputCount
        epochTime                (iOutput)=                                                                     self%outputTimes_%time(iOutput)
        epochRedshift            (iOutput)=self%cosmologyFunctions_ %redshiftFromExpansionFactor         (                                       &
@@ -287,21 +286,11 @@ contains
              ! Compute the variance in the non-linear power spectrum.
              wavenumberMinimum=    0.0d0
              wavenumberMaximum=min(1.0d3*wavenumber(iWavenumber),self%powerSpectrumWindowFunction_%wavenumberMaximum(massScale(iWavenumber)))
-             sigmaNonLinear(iWavenumber,iOutput)=+sqrt(                                                   &
-                  &                                    +Integrate(                                        &
-                  &                                                                 wavenumberMinimum   , &
-                  &                                                                 wavenumberMaximum   , &
-                  &                                                                 varianceIntegrand   , &
-                  &                                                                 integrandFunction   , &
-                  &                                                                 integrationWorkspace, &
-                  &                                               toleranceAbsolute=0.0d0               , &
-                  &                                               toleranceRelative=1.0d-2              , &
-                  &                                               integrationRule  =FGSL_Integ_Gauss15    &
-                  &                                              )                                        &
-                  &                                    /2.0d0                                             &
-                  &                                    /Pi**2                                             &
+             sigmaNonLinear(iWavenumber,iOutput)=+sqrt(                                                            &
+                  &                                    +integrator_%integrate(wavenumberMinimum,wavenumberMaximum) &
+                  &                                    /2.0d0                                                      &
+                  &                                    /Pi**2                                                      &
                   &                                   )
-             call Integrate_Done(integrandFunction,integrationWorkspace)
           end if
        end do
     end do

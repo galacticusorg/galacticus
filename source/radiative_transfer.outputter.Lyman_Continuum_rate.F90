@@ -73,34 +73,30 @@ contains
 
   subroutine lymanContinuumRateSourceProperties(self,radiativeTransferSource_,outputGroup)
     !% Compute and output the Lyman continuum photon emission rate.
-    use :: FGSL                      , only : fgsl_function                     , fgsl_integration_workspace
     use :: IO_HDF5                   , only : hdf5Access
     use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen
-    use :: Numerical_Integration     , only : Integrate                         , Integrate_Done
+    use :: Numerical_Integration     , only : integrator
     implicit none
     class           (radiativeTransferOutputterLymanContinuumRate), intent(inout) :: self
     class           (radiativeTransferSourceClass                ), intent(inout) :: radiativeTransferSource_
     type            (hdf5Object                                  ), intent(inout) :: outputGroup
-    type            (fgsl_function                               )                :: integrandFunction
-    type            (fgsl_integration_workspace                  )                :: integrationWorkspace
+    type            (integrator                                  )                :: integrator_
     double precision                                                              :: rateLymanContinuum
     !$GLC attributes unused :: self
-    
-    rateLymanContinuum=+Integrate(                                         &
-         &                                            1.0d-6*lymanSeriesLimitWavelengthHydrogen   , &
-         &                                            lymanSeriesLimitWavelengthHydrogen   , &
-         &                                            integrand           , &
-         &                                            integrandFunction   , &
-         &                                            integrationWorkspace, &
-         &                          toleranceAbsolute=0.0d+0              , &
-         &                          toleranceRelative=1.0d-2                &
-         &                         )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+
+    integrator_       = integrator           (                                                             &
+         &                                                      integrand                                , &
+         &                                    toleranceRelative=1.0d-2                                     &
+         &                                   )
+    rateLymanContinuum=+integrator_%integrate(                                                             &
+         &                                                      1.0d-6*lymanSeriesLimitWavelengthHydrogen, &
+         &                                                             lymanSeriesLimitWavelengthHydrogen  &
+         &                                   )
     !$ call hdf5Access%set  ()
     call outputGroup%writeAttribute(rateLymanContinuum,'rateLymanContinuumEmitted')
     !$ call hdf5Access%unset()
     return
-    
+
   contains
 
     double precision function integrand(wavelength)

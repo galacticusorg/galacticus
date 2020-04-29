@@ -99,9 +99,8 @@ contains
 
   function spinNBodyErrorsOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement an output analysis distribution operator which accounts for errors in N-body measurements of halo spin.
-    use :: FGSL                   , only : fgsl_function                   , fgsl_integration_workspace
     use :: Galacticus_Error       , only : Galacticus_Error_Report         , Galacticus_Warn                , errorStatusSuccess
-    use :: Numerical_Integration  , only : Integrate                       , Integrate_Done
+    use :: Numerical_Integration  , only : integrator
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear, outputAnalysisPropertyTypeLog10
     implicit none
     class           (outputAnalysisDistributionOperatorSpinNBodyErrors), intent(inout)                                        :: self
@@ -115,8 +114,7 @@ contains
     integer                                                                                                                   :: status
     double precision                                                                                                          :: spinMeasuredMinimum         , spinMeasuredMaximum     , &
          &                                                                                                                       spinMeasuredRangeMinimum    , spinMeasuredRangeMaximum
-    type            (fgsl_function                                    )                                                       :: integrandFunction
-    type            (fgsl_integration_workspace                       )                                                       :: integrationWorkspace
+    type            (integrator                                       )                                                       :: integrator_
     !$GLC attributes unused :: outputIndex, propertyValue
 
     select case (propertyType)
@@ -129,6 +127,7 @@ contains
     case default
        call Galacticus_Error_Report('unhandled property type'//{introspection:location})
     end select
+    integrator_=integrator(spinDistributionIntegrate,toleranceRelative=1.0d-6)
     do i=1,size(propertyValueMinimum)
        select case (propertyType)
        case (outputAnalysisPropertyTypeLinear)
@@ -140,21 +139,8 @@ contains
        case default
           call Galacticus_Error_Report('unhandled property type'//{introspection:location})
        end select
-       spinNBodyErrorsOperateScalar(i)=+Integrate(                                 &
-            &                                    spinMeasuredMinimum             , &
-            &                                    spinMeasuredMaximum             , &
-            &                                    spinDistributionIntegrate       , &
-            &                                    integrandFunction               , &
-            &                                    integrationWorkspace            , &
-            &                                    toleranceAbsolute        =0.0d+0, &
-            &                                    toleranceRelative        =1.0d-6, &
-            &                                    errorStatus              =status  &
-            &                                   )                                  &
-            &                          /(                                          &
-            &                            +spinMeasuredMaximum                      &
-            &                            -spinMeasuredMinimum                      &
-            &                           )
-       call Integrate_Done(integrandFunction,integrationWorkspace)
+       spinNBodyErrorsOperateScalar(i)=+integrator_%integrate( spinMeasuredMinimum,spinMeasuredMaximum,status=status) &
+            &                          /                     (+spinMeasuredMaximum-spinMeasuredMinimum              )
        if (status /= errorStatusSuccess) then
           if (self%errorTolerant) then
              call Galacticus_Warn        ('integration of N-body spin distribution failed'                          )

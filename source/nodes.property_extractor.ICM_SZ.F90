@@ -162,8 +162,7 @@ contains
 
   double precision function icmSZExtract(self,node,instance)
     !% Implement a Sunyaev-Zeldovich effect property extractor.
-    use FGSL                    , only : fgsl_function                          , fgsl_integration_workspace
-    use Numerical_Integration   , only : Integrate                              , Integrate_Done
+    use Numerical_Integration   , only : integrator
     use Galacticus_Nodes        , only : nodeComponentHotHalo                   , nodeComponentBasic
     use Numerical_Constants_Math, only : Pi
     use Radiation_Fields        , only : radiationFieldCosmicMicrowaveBackground
@@ -174,9 +173,7 @@ contains
     type            (radiationFieldCosmicMicrowaveBackground), pointer                 :: radiation_
     double precision                                         , dimension(2)            :: densityContrastProperties
     class           (nodeComponentBasic                     ), pointer                 :: basic
-    type            (fgsl_function                          )                          :: integrandFunction
-    type            (fgsl_integration_workspace             )                          :: integrationWorkspace
-    logical                                                                            :: integrationReset
+    type            (integrator                             )                          :: integrator_
     double precision                                                                   :: radiusOuter              , time
 
     ! Initialize radiation field.
@@ -192,20 +189,10 @@ contains
        radiusOuter              =   self %darkMatterHaloScale_     %virialRadius(node              )
     end if
     ! Compute mean Compton-y parameter within this radius.
-    integrationReset=.true.
-    icmSZExtract    =+Integrate(                                       &
-         &                                       0.0d0               , &
-         &                                       radiusOuter         , &
-         &                                       integrandComptionY  , &
-         &                                       integrandFunction   , &
-         &                                       integrationWorkspace, &
-         &                     reset            =integrationReset    , &
-         &                     toleranceAbsolute=0.0d+0              , &
-         &                     toleranceRelative=1.0d-3                &
-         &                    )                                        &
-         &           /Pi                                               &
-         &           /radiusOuter**2
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_ = integrator           (integrandComptionY,toleranceRelative=1.0d-3)
+    icmSZExtract=+integrator_%integrate(0.0d0             ,radiusOuter             ) &
+         &       /Pi                                                                 &
+         &       /radiusOuter**2
     !# <objectDestructor name="radiation_"/>
     return
 

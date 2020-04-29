@@ -899,31 +899,31 @@ contains
          &                                  verbosityWorking
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Galacticus_Paths        , only : galacticusPath             , pathTypeDataDynamic
-    use :: FGSL                    , only : fgsl_function              , fgsl_integration_workspace
     use :: File_Utilities          , only : File_Exists                , File_Lock                       , File_Unlock              , File_Path                  , &
          &                                  Directory_Make             , lockDescriptor
     use :: ISO_Varying_String      , only : operator(//)               , char                            , varying_string
     use :: IO_HDF5                 , only : hdf5Access                 , hdf5Object
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : Integrate                  , Integrate_Done
+    use :: Numerical_Integration   , only : integrator
     use :: Numerical_Ranges        , only : Make_Range                 , rangeTypeLogarithmic
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
-    double precision                                 , parameter     :: radiusMinimum          = 1.0d-2, radiusMaximum    =5.0d1
-    double precision                                 , parameter     :: radiiPerDecade         =30.0d+0
-    double precision                                 , parameter     :: wavenumberMaximumFactor=10.0d+0
-    integer                                          , parameter     :: xi                     = 2
-    type            (fgsl_function                  ), save          :: integrandFunction
-    type            (fgsl_integration_workspace     ), save          :: integrationWorkspace
-    logical                                          , save          :: integrationReset               , converged
-    integer                                          , save          :: iBesselZero                    , besselOrder
-    double precision                                 , save          :: height                         , accelerationDelta      , &
-         &                                                              wavenumberLow                  , wavenumberHigh         , &
-         &                                                              tidalTensorDelta               , tidalTensorRadialRadial
-    !$omp threadprivate(height,accelerationDelta,tidalTensorDelta,tidalTensorRadialRadial,wavenumberLow,wavenumberHigh,iBesselZero,besselOrder,converged,integrationReset,integrandFunction,integrationWorkspace)
-    integer                                                          :: countRadii                     , iRadius                , &
-         &                                                              iHeight                        , countWork
-    double precision                                                 :: radius                         , beta
+    double precision                                 , parameter     :: radiusMinimum                    = 1.0d-2, radiusMaximum    =5.0d1
+    double precision                                 , parameter     :: radiiPerDecade                   =30.0d+0
+    double precision                                 , parameter     :: wavenumberMaximumFactor          =10.0d+0
+    integer                                          , parameter     :: xi                               = 2
+    type            (integrator                     ), save          :: integratorAccelerationRadial             , integratorAccelerationVertical       , &
+         &                                                              integratorTidalTensorRadialRadial        , integratorTidalTensorVerticalVertical, &
+         &                                                              integratorTidalTensorCross
+    logical                                          , save          :: converged
+    integer                                          , save          :: iBesselZero                              , besselOrder
+    double precision                                 , save          :: height                                   , accelerationDelta                    , &
+         &                                                              wavenumberLow                            , wavenumberHigh                       , &
+         &                                                              tidalTensorDelta                         , tidalTensorRadialRadial
+    !$omp threadprivate(height,accelerationDelta,tidalTensorDelta,tidalTensorRadialRadial,wavenumberLow,wavenumberHigh,iBesselZero,besselOrder,converged,integratorAccelerationRadial,integratorAccelerationVertical,integratorTidalTensorRadialRadial,integratorTidalTensorVerticalVertical,integratorTidalTensorCross)
+    integer                                                          :: countRadii                               , iRadius                              , &
+         &                                                              iHeight                                  , countWork
+    double precision                                                 :: radius                                   , beta
     type            (varying_string                 )                :: fileName
     character       (len=8                          )                :: label
     type            (hdf5Object                     )                :: file
@@ -988,7 +988,13 @@ contains
        countWork=0
        do iRadius=1,countRadii
           radius=self%accelerationRadii(iRadius)
-          !$omp parallel do
+          !$omp parallel
+          integratorAccelerationRadial         =integrator(accelerationRadialIntegrand         ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
+          integratorAccelerationVertical       =integrator(accelerationVerticalIntegrand       ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
+          integratorTidalTensorRadialRadial    =integrator(tidalTensorRadialRadialIntegrand    ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
+          integratorTidalTensorVerticalVertical=integrator(tidalTensorVerticalVerticalIntegrand,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
+          integratorTidalTensorCross           =integrator(tidalTensorCrossIntegrand           ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
+          !$omp do
           do iHeight=1,countRadii
              !$omp atomic
              countWork=countWork+1
@@ -1005,18 +1011,7 @@ contains
                 wavenumberLow    =+wavenumberHigh
                 wavenumberHigh   =+Bessel_Function_J1_Zero(iBesselZero) &
                      &            /radius        
-                integrationReset =.true.
-                accelerationDelta=+Integrate(                                                 &
-                     &                                         wavenumberLow                , &
-                     &                                         wavenumberHigh               , &
-                     &                                         accelerationRadialIntegrand  , &
-                     &                                         integrandFunction            , &
-                     &                                         integrationWorkspace         , &
-                     &                       reset            =integrationReset             , &
-                     &                       toleranceAbsolute=1.0d-6                       , &
-                     &                       toleranceRelative=1.0d-3                         &
-                     &                      )
-                call Integrate_Done(integrandFunction,integrationWorkspace)
+                accelerationDelta=+integratorAccelerationRadial%integrate(wavenumberLow,wavenumberHigh)
                 converged=abs(accelerationDelta) < 1.0d-6*abs(self%accelerationRadial(iRadius,iHeight))
                 self%accelerationRadial(iRadius,iHeight)=+self%accelerationRadial(iRadius,iHeight) &
                      &                                   +     accelerationDelta
@@ -1032,18 +1027,7 @@ contains
                 wavenumberLow    =+wavenumberHigh
                 wavenumberHigh   =+Bessel_Function_J0_Zero(iBesselZero) &
                      &            /radius
-                integrationReset =.true.
-                accelerationDelta=+Integrate(                                                 &
-                     &                                         wavenumberLow                , &
-                     &                                         wavenumberHigh               , &
-                     &                                         accelerationVerticalIntegrand, &
-                     &                                         integrandFunction            , &
-                     &                                         integrationWorkspace         , &
-                     &                       reset            =integrationReset             , &
-                     &                       toleranceAbsolute=1.0d-6                       , &
-                     &                       toleranceRelative=1.0d-3                         &
-                     &                      )
-                call Integrate_Done(integrandFunction,integrationWorkspace)
+                accelerationDelta=+integratorAccelerationVertical%integrate(wavenumberLow,wavenumberHigh)
                 converged=abs(accelerationDelta) < 1.0d-6*abs(self%accelerationVertical(iRadius,iHeight))
                 self%accelerationVertical(iRadius,iHeight)=+self%accelerationVertical(iRadius,iHeight) &
                      &                                     +     accelerationDelta
@@ -1069,18 +1053,7 @@ contains
                    case default
                       call Galacticus_Error_Report('incorrect Bessel function order'//{introspection:location})
                    end select
-                   integrationReset=.true.
-                   tidalTensorDelta=+Integrate(                                                    &
-                        &                                        wavenumberLow                   , &
-                        &                                        wavenumberHigh                  , &
-                        &                                        tidalTensorRadialRadialIntegrand, &
-                        &                                        integrandFunction               , &
-                        &                                        integrationWorkspace            , &
-                        &                      reset            =integrationReset                , &
-                        &                      toleranceAbsolute=1.0d-6                          , &
-                        &                      toleranceRelative=1.0d-3                            &
-                        &                     )
-                   call Integrate_Done(integrandFunction,integrationWorkspace)
+                   tidalTensorDelta=+integratorTidalTensorRadialRadial%integrate(wavenumberLow,wavenumberHigh)
                    converged=abs(tidalTensorDelta) < 1.0d-6*abs(tidalTensorRadialRadial)                   
                    tidalTensorRadialRadial=+tidalTensorRadialRadial &
                         &                  +     tidalTensorDelta
@@ -1099,18 +1072,7 @@ contains
                 wavenumberLow   =+wavenumberHigh
                 wavenumberHigh  =+Bessel_Function_J0_Zero(iBesselZero) &
                      &           /radius
-                integrationReset=.true.
-                tidalTensorDelta=+Integrate(                                                        &
-                     &                                        wavenumberLow                       , &
-                     &                                        wavenumberHigh                      , &
-                     &                                        tidalTensorVerticalVerticalIntegrand, &
-                     &                                        integrandFunction                   , &
-                     &                                        integrationWorkspace                , &
-                     &                      reset            =integrationReset                    , &
-                     &                      toleranceAbsolute=1.0d-6                              , &
-                     &                      toleranceRelative=1.0d-3                                &
-                     &                     )
-                call Integrate_Done(integrandFunction,integrationWorkspace)
+                tidalTensorDelta=+integratorTidalTensorVerticalVertical%integrate(wavenumberLow,wavenumberHigh)
                 converged=abs(tidalTensorDelta) < 1.0d-6*abs(self%tidalTensorVerticalVertical(iRadius,iHeight))
                 self%tidalTensorVerticalVertical(iRadius,iHeight)=+self%tidalTensorVerticalVertical(iRadius,iHeight) &
                      &                                            +     tidalTensorDelta
@@ -1126,24 +1088,14 @@ contains
                 wavenumberLow   =+wavenumberHigh
                 wavenumberHigh  =+Bessel_Function_J1_Zero(iBesselZero) &
                      &           /radius
-                integrationReset=.true.
-                tidalTensorDelta=+Integrate(                                             &
-                     &                                        wavenumberLow            , &
-                     &                                        wavenumberHigh           , &
-                     &                                        tidalTensorCrossIntegrand, &
-                     &                                        integrandFunction        , &
-                     &                                        integrationWorkspace     , &
-                     &                      reset            =integrationReset         , &
-                     &                      toleranceAbsolute=1.0d-6                   , &
-                     &                      toleranceRelative=1.0d-3                     &
-                     &                     )
-                call Integrate_Done(integrandFunction,integrationWorkspace)
+                tidalTensorDelta=+integratorTidalTensorCross%integrate(wavenumberLow,wavenumberHigh)
                 converged=abs(tidalTensorDelta) < 1.0d-6*abs(self%tidalTensorCross(iRadius,iHeight))
                 self%tidalTensorCross(iRadius,iHeight)=+self%tidalTensorCross(iRadius,iHeight) &
                      &                                 +     tidalTensorDelta
              end do
           end do
-          !$omp end parallel do
+          !$omp end do
+          !$omp end parallel
        end do
        call Galacticus_Display_Counter_Clear(       verbosityWorking)
        call Galacticus_Display_Unindent     ("done",verbosityWorking)

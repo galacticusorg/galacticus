@@ -105,69 +105,59 @@ contains
 
   double precision function cartesian3DIntegrate(self,integrand)
     !% Integrate over the computational domain cell.
-    use :: FGSL                 , only : fgsl_function      , fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate          , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     use :: Coordinates          , only : coordinateCartesian
     implicit none
     class    (computationalDomainVolumeIntegratorCartesian3D), intent(inout), target :: self
     procedure(computationalDomainVolumeIntegrand            )                        :: integrand
-    type     (fgsl_function                                 )                        :: integrandFunction
-    type     (fgsl_integration_workspace                    )                        :: integrationWorkspace
+    type     (integrator                                    )                        :: integrator_
     type     (coordinateCartesian                           )                        :: coordinates
 
-    cartesian3DIntegrate=Integrate(                                                         &
-         &                                           self                 %boundaries(1,1), &
-         &                                           self                 %boundaries(1,2), &
-         &                                           cartesian3DIntegrandX                , &
-         &                                           integrandFunction                    , &
-         &                                           integrationWorkspace                 , &
-         &                         toleranceAbsolute=0.0d0                                , &
-         &                         toleranceRelative=1.0d-2                                 &
-         &                        )  
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_         = integrator           (                                         &
+         &                                                        cartesian3DIntegrandX, &
+         &                                      toleranceRelative=1.0d-2                 &
+         &                                     )
+    cartesian3DIntegrate=+integrator_%integrate(                                         &
+         &                                                         self%boundaries(1,1), &
+         &                                                         self%boundaries(1,2)  &
+         &                                     )  
     return
 
   contains
-    
+
     double precision function cartesian3DIntegrandX(x)
       !% $x$-integrand over Cartesian 3D computational domain cells.
       implicit none
-      double precision                            , intent(in   ) :: x
-      type            (fgsl_function             )                :: integrandFunction
-      type            (fgsl_integration_workspace)                :: integrationWorkspace
+      double precision            , intent(in   ) :: x
+      type            (integrator)                :: integrator_
 
       call coordinates%xSet(x)
-      cartesian3DIntegrandX=Integrate(                                                         &
-           &                                            self                 %boundaries(2,1), &
-           &                                            self                 %boundaries(2,2), &
-           &                                            cartesian3DIntegrandY                , &
-           &                                            integrandFunction                    , &
-           &                                            integrationWorkspace                 , &
-           &                          toleranceAbsolute=0.0d0                                , &
-           &                          toleranceRelative=1.0d-2                                 &
-           &                         )  
-      call Integrate_Done(integrandFunction,integrationWorkspace)
+      integrator_         = integrator            (                                         &
+           &                                                         cartesian3DIntegrandY, &
+           &                                       toleranceRelative=1.0d-2                 &
+           &                                      )
+      cartesian3DIntegrandX=+integrator_%integrate(                                         &
+           &                                                         self%boundaries(2,1) , &
+           &                                                         self%boundaries(2,2)   &
+           &                                      )  
       return
     end function cartesian3DIntegrandX
 
     double precision function cartesian3DIntegrandY(y)
       !% $y$-integrand over Cartesian 3D computational domain cells.
       implicit none
-      double precision                            , intent(in   ) :: y
-      type            (fgsl_function             )                :: integrandFunction
-      type            (fgsl_integration_workspace)                :: integrationWorkspace
+      double precision            , intent(in   ) :: y
+      type            (integrator)                :: integrator_
 
       call coordinates%ySet(y)
-      cartesian3DIntegrandY=Integrate(                                                         &
-           &                                            self                 %boundaries(3,1), &
-           &                                            self                 %boundaries(3,2), &
-           &                                            cartesian3DIntegrandZ                , &
-           &                                            integrandFunction                    , &
-           &                                            integrationWorkspace                 , &
-           &                          toleranceAbsolute=0.0d0                                , &
-           &                          toleranceRelative=1.0d-2                                 &
-           &                         )  
-      call Integrate_Done(integrandFunction,integrationWorkspace)
+      integrator_         = integrator            (                                         &
+           &                                                         cartesian3DIntegrandZ, &
+           &                                       toleranceRelative=1.0d-2                 &
+           &                                      )
+      cartesian3DIntegrandY=+integrator_%integrate(                                         &
+           &                                                         self%boundaries(3,1) , &
+           &                                                         self%boundaries(3,2)   &
+           &                                      )  
       return
     end function cartesian3DIntegrandY
 

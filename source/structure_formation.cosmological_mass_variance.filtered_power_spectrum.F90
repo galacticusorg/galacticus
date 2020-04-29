@@ -721,18 +721,16 @@ contains
 
     double precision function rootVariance(time_,useTopHat)
       !% Compute the root-variance of mass in spheres enclosing the given {\normalfont \ttfamily mass} from the power spectrum.
-      use :: FGSL                    , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
       use :: Numerical_Constants_Math, only : Pi
-      use :: Numerical_Integration   , only : Integrate         , Integrate_Done
+      use :: Numerical_Integration   , only : integrator, GSL_Integ_Gauss15
       implicit none
-      double precision                            , intent(in   ) :: time_
-      logical                                     , intent(in   ) :: useTopHat
-      double precision                            , parameter     :: wavenumberBAO       =5.0d0 ! The wavenumber above which baryon acoustic oscillations are small - used to split the integral allowing the oscillating part to be handled robustly.
-      double precision                                            :: topHatRadius              , wavenumberMaximum, &
-           &                                                         wavenumberMinimum         , integrandLow     , &
-           &                                                         integrandHigh
-      type            (fgsl_function             )                :: integrandFunction
-      type            (fgsl_integration_workspace)                :: integrationWorkspace
+      double precision            , intent(in   ) :: time_
+      logical                     , intent(in   ) :: useTopHat
+      double precision            , parameter     :: wavenumberBAO    =5.0d0 ! The wavenumber above which baryon acoustic oscillations are small - used to split the integral allowing the oscillating part to be handled robustly.
+      double precision                            :: topHatRadius           , wavenumberMaximum, &
+           &                                         wavenumberMinimum      , integrandLow     , &
+           &                                         integrandHigh
+      type            (integrator)                :: integrator_
 
       filteredPowerTime=time_
       topHatRadius     =(                                             &
@@ -751,93 +749,40 @@ contains
       ! part of the integral to be computed more accurately, without affecting the non-oscillatory part at larger wavenumbers, and
       ! leads to an overall more accurate and robust determination of σ(M).
       if (useTopHat) then
+         integrator_=integrator(varianceIntegrandTopHat,toleranceRelative=+self%tolerance,integrationRule=GSL_Integ_Gauss15)
          wavenumberMaximum=min(1.0d3/topHatRadius,self%powerSpectrumWindowFunctionTopHat_%wavenumberMaximum(smoothingMass))
          if (wavenumberMaximum > wavenumberBAO) then
-            integrandLow =Integrate(                                             &
-                 &                  wavenumberMinimum                          , &
-                 &                  wavenumberBAO                              , &
-                 &                  varianceIntegrandTopHat                    , &
-                 &                  integrandFunction                          , &
-                 &                  integrationWorkspace                       , &
-                 &                  toleranceAbsolute      =+0.0d0             , &
-                 &                  toleranceRelative      =+self%tolerance    , &
-                 &                  integrationRule        = FGSL_Integ_Gauss15  &
-                 &                 )
-            integrandHigh=Integrate(                                             &
-                 &                  wavenumberBAO                              , &
-                 &                  wavenumberMaximum                          , &
-                 &                  varianceIntegrandTopHat                    , &
-                 &                  integrandFunction                          , &
-                 &                  integrationWorkspace                       , &
-                 &                  toleranceAbsolute      =+0.0d0             , &
-                 &                  toleranceRelative      =+self%tolerance    , &
-                 &                  integrationRule        = FGSL_Integ_Gauss15  &
-                 &                 )
-           rootVariance=+(                                                       &
-                 &         +integrandLow                                         &
-                 &         +integrandHigh                                        &
-                 &        )                                                      &
-                 &       /2.0d0                                                  &
-                 &       /Pi**2
+            integrandLow =   integrator_%integrate(wavenumberMinimum,wavenumberBAO    )
+            integrandHigh=   integrator_%integrate(wavenumberBAO    ,wavenumberMaximum)
+            rootVariance =+(                                                            &
+                 &          +integrandLow                                               &
+                 &          +integrandHigh                                              &
+                 &         )                                                            &
+                 &        /2.0d0                                                        &
+                 &        /Pi**2
          else
-            rootVariance=+  Integrate(                                              &
-                 &                    wavenumberMinimum                           , &
-                 &                    wavenumberMaximum                           , &
-                 &                    varianceIntegrandTopHat                     , &
-                 &                    integrandFunction                           , &
-                 &                    integrationWorkspace                        , &
-                 &                    toleranceAbsolute      =0.0d0               , &
-                 &                    toleranceRelative      =self%tolerance      , &
-                 &                    integrationRule        =FGSL_Integ_Gauss15    &
-                 &                   )                                              &
-                 &       /2.0d0                                                     &
+            rootVariance =+  integrator_%integrate(wavenumberMinimum,wavenumberMaximum) &
+                 &       /2.0d0                                                         &
                  &       /Pi**2
          end if
       else
+         integrator_=integrator(varianceIntegrand,toleranceRelative=+self%tolerance,integrationRule=GSL_Integ_Gauss15)
          wavenumberMaximum=min(1.0d3/topHatRadius,self%powerSpectrumWindowFunction_      %wavenumberMaximum(smoothingMass))
          if (wavenumberMaximum > wavenumberBAO) then
-            integrandLow =Integrate(                                             &
-                 &                  wavenumberMinimum                          , &
-                 &                  wavenumberBAO                              , &
-                 &                  varianceIntegrand                          , &
-                 &                  integrandFunction                          , &
-                 &                  integrationWorkspace                       , &
-                 &                  toleranceAbsolute      =+0.0d0             , &
-                 &                  toleranceRelative      =+self%tolerance    , &
-                 &                  integrationRule        = FGSL_Integ_Gauss15  &
-                 &                 )
-            integrandHigh=Integrate(                                             &
-                 &                  wavenumberBAO                              , &
-                 &                  wavenumberMaximum                          , &
-                 &                  varianceIntegrand                          , &
-                 &                  integrandFunction                          , &
-                 &                  integrationWorkspace                       , &
-                 &                  toleranceAbsolute      =0.0d0              , &
-                 &                  toleranceRelative      =+self%tolerance    , &
-                 &                  integrationRule        = FGSL_Integ_Gauss15  &
-                 &                 )
-           rootVariance=+(                                                       &
-                 &         +integrandLow                                         &
-                 &         +integrandHigh                                        &
-                 &        )                                                      &
-                 &       /2.0d0                                                  &
-                 &       /Pi**2
+            integrandLow =   integrator_%integrate(wavenumberMinimum,wavenumberBAO    )
+            integrandHigh=   integrator_%integrate(wavenumberBAO    ,wavenumberMaximum)
+            rootVariance =+(                                                            &
+                 &          +integrandLow                                               &
+                 &          +integrandHigh                                              &
+                 &         )                                                            &
+                 &        /2.0d0                                                        &
+                 &        /Pi**2
          else
-            rootVariance=+  Integrate(                                            &
-                 &                    wavenumberMinimum                         , &
-                 &                    wavenumberMaximum                         , &
-                 &                    varianceIntegrand                         , &
-                 &                    integrandFunction                         , &
-                 &                    integrationWorkspace                      , &
-                 &                    toleranceAbsolute      =0.0d0             , &
-                 &                    toleranceRelative      =self%tolerance    , &
-                 &                    integrationRule        =FGSL_Integ_Gauss15  &
-                 &                   )                                            &
-                 &       /2.0d0                                                   &
-                 &       /Pi**2
+            rootVariance =+  integrator_%integrate(wavenumberMinimum,wavenumberMaximum) &
+                 &        /2.0d0                                                        &
+                 &        /Pi**2
          end if
       end if
-      call Integrate_Done(integrandFunction,integrationWorkspace)
       rootVariance=sqrt(rootVariance)
       return
     end function rootVariance

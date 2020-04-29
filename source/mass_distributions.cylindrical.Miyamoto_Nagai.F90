@@ -255,17 +255,15 @@ contains
 
   subroutine miyamotoNagaiMassEnclosedTabulate(self)
     !% Construct a tabulation of the mass enclosed by a sphere in a Miyamoto-Nagai mass distribution.
-    use :: FGSL                    , only : fgsl_function               , fgsl_integration_workspace
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : Integrate                   , Integrate_Done
+    use :: Numerical_Integration   , only : integrator
     use :: Table_Labels            , only : extrapolationTypeExtrapolate
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
     double precision                               , parameter     :: radiusMinimum       =1.0d-6, radiusMaximum =1.0d3
     double precision                               , parameter     :: heightStart         =0.0d+0, heightInfinity=1.0d3
     integer                                        , parameter     :: radiusCount         =300
-    type            (fgsl_function                )                :: integrandFunction
-    type            (fgsl_integration_workspace   )                :: integrationWorkspace
+    type            (integrator                   )                :: integrator_
     integer                                                        :: i
     double precision                                               :: radius
 
@@ -273,25 +271,20 @@ contains
     if (.not.self%massEnclosedInitialized) then
        ! Initialize a table of radii.
        call self%massEnclosedTable%create(radiusMinimum*self%a,radiusMaximum*self%a,radiusCount,1,extrapolationType=spread(extrapolationTypeExtrapolate,1,2))
-       ! Compute surface density at each radius.
+       ! Compute enclosed mass at each radius.
+       integrator_=integrator(integrandR,toleranceRelative=1.0d-3)
        do i=1,radiusCount
-          call self                                                      &
-               & %massEnclosedTable                                      &
-               &  %populate(                                             &
-               &            +4.0d0                                       &
-               &            *Pi                                          &
-               &            *Integrate(                                  &
-               &                       0.0d0                           , &
-               &                       self%massEnclosedTable%x(i)     , &
-               &                       integrandR                      , &
-               &                       integrandFunction               , &
-               &                       integrationWorkspace            , &
-               &                       toleranceAbsolute        =0.0d+0, &
-               &                       toleranceRelative        =1.0d-3  &
-               &                )                                      , &
-               &            i                                            &
+          call self                                                             &
+               & %massEnclosedTable                                             &
+               &  %populate(                                                    &
+               &            +4.0d0                                              &
+               &            *Pi                                                 &
+               &            *integrator_%integrate(                             &
+               &                                   0.0d0                      , &
+               &                                   self%massEnclosedTable%x(i)  &
+               &                                  )                           , &
+               &                                                            i   &
                &           )
-          call Integrate_Done(integrandFunction,integrationWorkspace)
        end do
        ! Find the half-mass radius.
        do i=2,radiusCount
@@ -324,25 +317,19 @@ contains
     double precision function integrandR(r)
       !% Integrand function used for finding the mass enclosed by a sphere in Miyamoto-Nagai disks.
       implicit none
-      double precision                            , intent(in   ) :: r
-      type            (fgsl_function             )                :: integrandFunction1
-      type            (fgsl_integration_workspace)                :: integrationWorkspace1
+      double precision            , intent(in   ) :: r
+      type            (integrator)                :: integrator1_
 
       radius    =+r
-      integrandR=+radius                                                 &
-           &     *Integrate(                                             &
-           &                0.0d0                                      , &
-           &                sqrt(                                        &
-           &                     +self%massEnclosedTable%x(i)**2         &
-           &                     -radius                     **2         &
-           &                    )                                      , &
-           &                integrandZ                                 , &
-           &                integrandFunction1                         , &
-           &                integrationWorkspace1                      , &
-           &                toleranceAbsolute                   =0.0d+0, &
-           &                toleranceRelative                   =1.0d-3  &
-           &               )
-      call Integrate_Done(integrandFunction1,integrationWorkspace1)
+      integrator1_=integrator(integrandZ,toleranceRelative=1.0d-3)
+      integrandR=+                             radius                          &
+           &     *integrator1_%integrate(                                      &
+           &                             0.0d0                               , &
+           &                             sqrt(                                 &
+           &                                  +self%massEnclosedTable%x(i)**2  &
+           &                                  -radius                     **2  &
+           &                                 )                                 &
+           &                            )
       return
     end function integrandR
 
@@ -362,16 +349,14 @@ contains
 
   subroutine miyamotoNagaiSurfaceDensityTabulate(self)
     !% Construct a tabulation of the surface density profile in a Miyamoto-Nagai mass distribution.
-    use :: FGSL                 , only : fgsl_function               , fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate                   , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     use :: Table_Labels         , only : extrapolationTypeExtrapolate
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
-    double precision                               , parameter     :: radiusMinimum       =1.0d-6, radiusMaximum =1.0d3
-    double precision                               , parameter     :: heightStart         =0.0d+0, heightInfinity=1.0d3
-    integer                                        , parameter     :: radiusCount         =300
-    type            (fgsl_function                )                :: integrandFunction
-    type            (fgsl_integration_workspace   )                :: integrationWorkspace
+    double precision                               , parameter     :: radiusMinimum=1.0d-6, radiusMaximum =1.0d3
+    double precision                               , parameter     :: heightStart  =0.0d+0, heightInfinity=1.0d3
+    integer                                        , parameter     :: radiusCount  =300
+    type            (integrator                   )                :: integrator_
     integer                                                        :: i
 
     ! Surface density is not analytically tractable. Tabulate the results of numerical integration.
@@ -379,23 +364,18 @@ contains
        ! Initialize a table of radii.
        call self%surfaceDensityTable%create(radiusMinimum*self%a,radiusMaximum*self%a,radiusCount,1,extrapolationType=spread(extrapolationTypeExtrapolate,1,2))
        ! Compute surface density at each radius.
+       integrator_=integrator(integrandSurfaceDensity,toleranceRelative=1.0d-3)
        do i=1,radiusCount
-          call self                                                    &
-               & %surfaceDensityTable                                  &
-               &  %populate(                                           &
-               &            +2.0d0                                     &
-               &            *Integrate(                                &
-               &                       self%b*heightStart            , &
-               &                       self%b*heightInfinity         , &
-               &                       integrandSurfaceDensity       , &
-               &                       integrandFunction             , &
-               &                       integrationWorkspace          , &
-               &                       toleranceAbsolute      =0.0d+0, &
-               &                       toleranceRelative      =1.0d-3  &
-               &                )                                    , &
-               &            i                                          &
+          call self                                                       &
+               & %surfaceDensityTable                                     &
+               &  %populate(                                              &
+               &            +2.0d0                                        &
+               &            *integrator_%integrate(                       &
+               &                                   self%b*heightStart   , &
+               &                                   self%b*heightInfinity  &
+               &                                  )                     , &
+               &            i                                             &
                &           )
-          call Integrate_Done(integrandFunction,integrationWorkspace)
        end do
        ! Record that surface density is now initialized.
        self%surfaceDensityInitialized=.true.

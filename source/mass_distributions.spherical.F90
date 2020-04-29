@@ -70,31 +70,18 @@ contains
   double precision function sphericalMassEnclosedBySphere(self,radius)
     !% Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for spherically-symmetric mass
     !% distributions using numerical integration.
-    use :: FGSL                    , only : fgsl_function, fgsl_integration_workspace
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : Integrate    , Integrate_Done
+    use :: Numerical_Integration   , only : integrator
     implicit none
-    class           (massDistributionSpherical ), intent(inout), target :: self
-    double precision                            , intent(in   )         :: radius
-    type            (fgsl_function             )                        :: integrandFunction
-    type            (fgsl_integration_workspace)                        :: integrationWorkspace
-    logical                                                             :: integrationReset
+    class           (massDistributionSpherical), intent(inout), target :: self
+    double precision                           , intent(in   )         :: radius
+    type            (integrator               )                        :: integrator_
 
-    sphericalActive  => self
-    integrationReset =  .true.
-    sphericalMassEnclosedBySphere=+4.0d0                                                               &
-         &                        *Pi                                                                  &
-         &                        *Integrate(                                                          &
-         &                                                     0.0d0                                 , &
-         &                                                     radius                                , &
-         &                                                     sphericalMassEnclosedBySphereIntegrand, &
-         &                                                     integrandFunction                     , &
-         &                                                     integrationWorkspace                  , &
-         &                                   reset            =integrationReset                      , &
-         &                                   toleranceAbsolute=0.0d+0                                , &
-         &                                   toleranceRelative=1.0d-6                                  &
-         &                       )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    sphericalActive               =>  self
+    integrator_                   =   integrator(sphericalMassEnclosedBySphereIntegrand,toleranceRelative=1.0d-6)
+    sphericalMassEnclosedBySphere =  +4.0d0                              &
+         &                           *Pi                                 &
+         &                           *integrator_%integrate(0.0d0,radius)
     return
   end function sphericalMassEnclosedBySphere
 

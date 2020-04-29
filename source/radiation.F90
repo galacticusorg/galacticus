@@ -65,40 +65,29 @@ contains
     !% {4 \pi \over \mathrm{h}} \int_{\lambda_1}^{\lambda_2} \sigma(\lambda) j_{\nu}(\lambda) {\mathrm{d}\lambda \over \lambda},
     !% \end{equation}
     !% where $j_{\nu}$ is the flux of energy per unit area per unit solid angle and per unit frequency.
-    use :: FGSL                        , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
     use :: Numerical_Constants_Math    , only : Pi
     use :: Numerical_Constants_Physical, only : plancksConstant
     use :: Numerical_Constants_Units   , only : ergs
-    use :: Numerical_Integration       , only : Integrate         , Integrate_Done
+    use :: Numerical_Integration       , only : integrator     , GSL_Integ_Gauss15
     implicit none
-    class           (radiationFieldClass       ), target      , intent(inout) :: self
-    double precision                            , dimension(2), intent(in   ) :: wavelengthRange
-    double precision                            , external                    :: crossSectionFunction
-    type            (treeNode                  ), target      , intent(inout) :: node
-    type            (fgsl_function             )                              :: integrandFunction
-    type            (fgsl_integration_workspace)                              :: integrationWorkspace
+    class           (radiationFieldClass), target      , intent(inout) :: self
+    double precision                     , dimension(2), intent(in   ) :: wavelengthRange
+    double precision                     , external                    :: crossSectionFunction
+    type            (treeNode           ), target      , intent(inout) :: node
+    type            (integrator         )                              :: integrator_
 
     ! Set module-scope pointers to self and the cross-section function for use in the integrand routine.
     selfGlobal                 => self
     nodeGlobal                 => node
     crossSectionFunctionGlobal => crossSectionFunction
     ! Perform the integration.
-    radiationFieldIntegrateOverCrossSection_=Integrate(                                         &
-         &                                                               wavelengthRange(1)   , &
-         &                                                               wavelengthRange(2)   , &
-         &                                                               crossSectionIntegrand, &
-         &                                                               integrandFunction    , &
-         &                                                               integrationWorkspace , &
-         &                                             toleranceAbsolute=0.0d+0               , &
-         &                                             toleranceRelative=1.0d-3               , &
-         &                                             integrationRule  =FGSL_Integ_Gauss15     &
-         &                                            )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_=integrator(crossSectionIntegrand,toleranceRelative=1.0d-3,integrationRule=GSL_Integ_Gauss15)
+    radiationFieldIntegrateOverCrossSection_=integrator_%integrate(wavelengthRange(1),wavelengthRange(2))
     ! Scale result by multiplicative prefactors to give answer in units of inverse seconds.
     radiationFieldIntegrateOverCrossSection_=+radiationFieldIntegrateOverCrossSection_ &
-         &                                   *4.0d0                               &
-         &                                   *Pi                                  &
-         &                                   *ergs                                &
+         &                                   *4.0d0                                    &
+         &                                   *Pi                                       &
+         &                                   *ergs                                     &
          &                                   /plancksConstant
     return
   end function radiationFieldIntegrateOverCrossSection_

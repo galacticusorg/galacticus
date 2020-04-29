@@ -141,36 +141,31 @@ contains
 
   double precision function diskSizeInclntnRoot(xHalf)
     !% Function used in solving for the half-light radii of inclined disks.
-    use :: FGSL                    , only : fgsl_function, fgsl_integration_workspace
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : Integrate
+    use :: Numerical_Integration   , only : integrator
     implicit none
-    double precision                            , intent(in   ) :: xHalf
-    double precision                                            :: integralHalf
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    logical                                                     :: integrationReset
+    double precision            , intent(in   ) :: xHalf
+    double precision                            :: integralHalf
+    type            (integrator)                :: integrator_
 
-    integrationReset=.true.
-    integralHalf=Integrate(0.0d0,xHalf,diskSizeInclntnIntegrandX,integrandFunction,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
+    integrator_        =integrator           (diskSizeInclntnIntegrandX,toleranceRelative=1.0d-6)
+    integralHalf       =integrator_%integrate(0.0d0                    ,                  xHalf )
     diskSizeInclntnRoot=integralHalf/2.0d0/Pi/cos(diskSizeInclntnAngle)-0.5d0
     return
   end function diskSizeInclntnRoot
 
   double precision function diskSizeInclntnIntegrandX(x)
     !% Integral for half-light radius.
-    use :: FGSL                    , only : fgsl_function, fgsl_integration_workspace
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : Integrate
+    use :: Numerical_Integration   , only : integrator
     implicit none
-    double precision                            , intent(in   ) :: x
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    logical                                                     :: integrationReset
+    double precision            , intent(in   ) :: x
+    type            (integrator)                :: integrator_
 
-    integrationReset         =.true.
-    diskSizeInclntnXIntegrate=x
-    diskSizeInclntnIntegrandX=Integrate(0.0d0,2.0d0*Pi,diskSizeInclntnIntegrandPhi,integrandFunction,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)*x
+    diskSizeInclntnXIntegrate=+x
+    integrator_              = integrator           (diskSizeInclntnIntegrandPhi,toleranceRelative=1.0d-6   )
+    diskSizeInclntnIntegrandX=+integrator_%integrate(0.0d0                      ,                  2.0d+0*Pi) &
+         &                    *x
     return
   end function diskSizeInclntnIntegrandX
 

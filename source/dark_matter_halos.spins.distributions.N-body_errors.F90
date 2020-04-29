@@ -224,12 +224,11 @@ contains
 
   subroutine nbodyErrorsTabulate(self,massRequired,spinRequired,massFixed,spinFixed,spinFixedMeasuredMinimum,spinFixedMeasuredMaximum)
     !% Tabulate the halo spin distribution.
-    use :: FGSL                          , only : fgsl_function                , fgsl_integration_workspace
     use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
     use :: Galacticus_Error              , only : Galacticus_Error_Report
     use :: Galacticus_Nodes              , only : nodeComponentBasic           , nodeComponentDarkMatterProfile, nodeComponentSpin, treeNode
     use :: Memory_Management             , only : allocateArray                , deallocateArray
-    use :: Numerical_Integration         , only : Integrate                    , Integrate_Done
+    use :: Numerical_Integration         , only : integrator
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout)           :: self
     double precision                                 , intent(in   ), optional :: massRequired                        , spinRequired               , &
@@ -240,10 +239,8 @@ contains
     class           (nodeComponentSpin              ), pointer                 :: nodeSpin
     class           (nodeComponentDarkMatterProfile ), pointer                 :: nodeDarkMatterProfile
     double precision                                 , parameter               :: massIntegrationRange         =10.0d0
-    type            (fgsl_function                  )                          :: integrandFunctionMass               , integrandFunctionSpin      , &
-         &                                                                        integrandFunctionMassSpin           , integrandFunctionProduct
-    type            (fgsl_integration_workspace     )                          :: integrationWorkspaceMass            , integrationWorkspaceSpin   , &
-         &                                                                        integrationWorkspaceMassSpin        , integrationWorkspaceProduct
+    type            (integrator                     )                          :: integratorMass                      , integratorSpin             , &
+         &                                                                        integratorMassSpin                  , integratorProduct
     logical                                                                    :: retabulate                          , fixedPoint
     integer                                                                    :: iSpin                               , iMass
     double precision                                                           :: spinMeasured                        , massMeasured               , &
@@ -337,6 +334,11 @@ contains
     nodeSpin              => node    %spin             (autoCreate=.true.)
     nodeDarkMatterProfile => node    %darkMatterProfile(autoCreate=.true.)
     call nodeBasic%timeSet(self%time)
+    ! Build integrators.
+    integratorMass    =integrator(massIntegral               ,toleranceAbsolute=1.0d-30,toleranceRelative=1.0d-3)
+    integratorMassSpin=integrator(massSpinIntegral           ,toleranceAbsolute=1.0d-30,toleranceRelative=1.0d-3)
+    integratorSpin    =integrator(spinIntegral                                         ,toleranceRelative=1.0d-3)
+    integratorProduct =integrator(productDistributionIntegral                          ,toleranceRelative=1.0d-3)
     ! Tabulate the distribution.
     do iMass=1,self%massCount
        massMeasured=10.0d0**(dble(iMass-1)*self%massDelta+log10(self%massMinimum))
@@ -380,16 +382,7 @@ contains
        if (self%fixedPoint) then
           massAverage=1.0d0
        else
-          massAverage=Integrate(                                  &
-               &                massMinimum                     , &
-               &                massMaximum                     , &
-               &                massIntegral                    , &
-               &                integrandFunctionMass           , &
-               &                integrationWorkspaceMass        , &
-               &                toleranceAbsolute       =1.0d-30, &
-               &                toleranceRelative       =1.0d-03  &
-               &               )
-          call Integrate_Done(integrandFunctionMass,integrationWorkspaceMass)
+          massAverage=integratorMass%integrate(massMinimum,massMaximum)
        end if
        do iSpin=1,self%spinCount
           ! Evaluate the spin at this grid point - this corresponds to the measured spin in the N-body simulation.
@@ -400,18 +393,9 @@ contains
           else
              ! Integrate over the intrinsic spin distribution to find the measured distribution at this measured mass and
              ! spin.
-             massSpinAverage=Integrate(                                      &
-                  &                    massMinimum                         , &
-                  &                    massMaximum                         , &
-                  &                    massSpinIntegral                    , &
-                  &                    integrandFunctionMassSpin           , &
-                  &                    integrationWorkspaceMassSpin        , &
-                  &                    toleranceAbsolute           =1.0d-30, &
-                  &                    toleranceRelative           =1.0d-03  &
-                  &                   )
+             massSpinAverage=integratorMassSpin%integrate(massMinimum,massMaximum)
              self%distributionTable(iMass,iSpin)=+massSpinAverage &
                   &                              /massAverage
-             call Integrate_Done(integrandFunctionMassSpin,integrationWorkspaceMassSpin)
           end if
        end do
     end do
@@ -461,18 +445,18 @@ contains
                                                                                                                               ! momentum (i.e. the normalizing angular momentum appearing in the definition of
                                                                                                                               ! halo spin): γ = Mσⱼ/Jₛ, Jₛ = GM²˙⁵/|E⁰˙⁵|. This parameter corresponds to γ.
       integer                                         :: errorStatus
-      double precision                                :: logSpinMinimum, logSpinMaximum, &
-           &                                             errorMaximum  , scaleAbsolute , &
-           &                                             tolerance
-      character       (len=8          )               :: label         , labelMass     , &
+      double precision                                :: logSpinMinimum, logSpinMaximum      , &
+           &                                             errorMaximum  , scaleAbsolute       , &
+           &                                             tolerance     , massSpinIntegralMass
+      character       (len=8          )               :: label         , labelMass           , &
            &                                             labelSpin
       type            (inputParameters)               :: descriptor
 
       ! Evaluate the halo mass part of the integrand, unless evaluating the distribution at a fixed point.
       if (self%fixedPoint) then
-         massSpinIntegral          =1.0d0
+         massSpinIntegralMass      =1.0d0
       else
-         massSpinIntegral          =massIntegral(massIntrinsic)
+         massSpinIntegralMass      =massIntegral(massIntrinsic)
       end if
       ! Compute the particle number.
       particleNumber               =massIntrinsic /self%massParticle
@@ -528,24 +512,15 @@ contains
          errorStatus=errorStatusFail
          tolerance  =1.0d-4
          do while (tolerance < 1.0d0 .and. errorStatus /= errorStatusSuccess)
-            tolerance       =+10.0d0                                                  &
+            tolerance       =+10.0d0    &
                  &           *tolerance
-            massSpinIntegral=+massSpinIntegral                                        &
-                 &           *Integrate(                                              &
-                 &                      logSpinMinimum                              , &
-                 &                      logSpinMaximum                              , &
-                 &                      spinIntegral                                , &
-                 &                      integrandFunctionSpin                       , &
-                 &                      integrationWorkspaceSpin                    , &
-                 &                      toleranceAbsolute       =1.0d-9*spinMeasured, &
-                 &                      toleranceRelative       =tolerance          , &
-                 &                      errorStatus             =errorStatus          &
-                 &                    )                                               &
-                 &           /2.0d0                                                   & ! <= Partial combined normalization term for the lognormal and non-central chi-square distributions - brought
-                 &           /Pi                                                      & !    outside of integrand since constant. Each contributes √(2π).
-                 &           *2.0d0                                                   & ! <= Factor 2 appears due to change of variables from λ² to λ in the non-central χ² distribution.
-                 &           /errorSpinIndependent1D**2                                 ! <= Partial normalization term for the non-central chi-square distribution - brought outside of integrand since constant.
-            call Integrate_Done(integrandFunctionSpin,integrationWorkspaceSpin)
+            call integratorSpin%toleranceSet(toleranceAbsolute=1.0d-9*spinMeasured,toleranceRelative=tolerance)
+            massSpinIntegral=+massSpinIntegralMass                                                       &
+                 &           *integratorSpin%integrate(logSpinMinimum,logSpinMaximum,status=errorStatus) &
+                 &           /2.0d0                                                                      & ! <= Partial combined normalization term for the lognormal and non-central chi-square distributions - brought
+                 &           /Pi                                                                         & !    outside of integrand since constant. Each contributes √(2π).
+                 &           *2.0d0                                                                      & ! <= Factor 2 appears due to change of variables from λ² to λ in the non-central χ² distribution.
+                 &           /errorSpinIndependent1D**2                                                    ! <= Partial normalization term for the non-central chi-square distribution - brought outside of integrand since constant.
             if (errorStatus /= errorStatusSuccess) then
                write (label    ,'(e8.1)') tolerance
                write (labelMass,'(i4)'  ) iMass
@@ -646,18 +621,13 @@ contains
       logSpinMinimum=max(logSpinMinimum,log(spinMeasured/self%logNormalRange))
       logSpinMaximum=min(logSpinMaximum,log(spinMeasured*self%logNormalRange))
       ! Evaluate the integrand.
-      spinErrorIntegral=+Integrate(                                                & ! Multiply by the integral which gives us the product distribution
-           &                       logSpinMinimum                                , & ! of log-normal and non-central χ-square distributions.
-           &                       logSpinMaximum                                , &
-           &                       productDistributionIntegral                   , &
-           &                       integrandFunctionProduct                      , &
-           &                       integrationWorkspaceProduct                   , &
-           &                       toleranceAbsolute       =+1.0d-9*spinIntrinsic, &
-           &                       toleranceRelative       =+1.0d-3                &
-           &                      )                                                &
-           &            /logNormalWidth                                            & ! <= Partial normalization term for the lognormal distribution - brought outside of integrand since constant.
-           &            /sqrt(nonCentrality)                                         ! <= Partial normalization term for the non-central chi-square distribution - brought outside of integrand since constant.      
-      call Integrate_Done(integrandFunctionProduct,integrationWorkspaceProduct)
+      call integratorProduct%toleranceSet(toleranceAbsolute=1.0d-9*spinIntrinsic,toleranceRelative=1.0d-3)
+      spinErrorIntegral=+integratorProduct%integrate(                & ! Multiply by the integral which gives us the product distribution
+           &                                         logSpinMinimum, & ! of log-normal and non-central χ-square distributions.
+           &                                         logSpinMaximum  &
+           &                                        )                &
+           &            /logNormalWidth                              & ! <= Partial normalization term for the lognormal distribution - brought outside of integrand since constant.
+           &            /sqrt(nonCentrality)                           ! <= Partial normalization term for the non-central chi-square distribution - brought outside of integrand since constant.      
       return
     end function spinErrorIntegral
 

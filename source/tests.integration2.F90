@@ -21,17 +21,16 @@
 
 program Test_Integration2
   !% Tests that numerical integration routines work.
-  use :: FGSL                       , only : FGSL_Integ_Gauss15              , FGSL_Integ_Gauss61                         , fgsl_function                                   , fgsl_integration_workspace
-  use :: Galacticus_Display         , only : Galacticus_Display_Indent       , Galacticus_Display_Message                 , Galacticus_Display_Unindent                     , Galacticus_Verbosity_Level_Set                 , &
+  use :: Galacticus_Display         , only : Galacticus_Display_Indent                     , Galacticus_Display_Message                 , Galacticus_Display_Unindent                     , Galacticus_Verbosity_Level_Set                 , &
           &                                  verbosityStandard
   use :: Galacticus_Error           , only : Galacticus_Error_Report
   use :: Kind_Numbers               , only : kind_int8
-  use :: Numerical_Integration      , only : Integrate                       , Integrate_Done
-  use :: Numerical_Integration2     , only : integrator                      , integrator1D                               , integratorAdaptiveCompositeTrapezoidal1D        , integratorCompositeGaussKronrod1D              , &
-          &                                  integratorCompositeTrapezoidal1D, integratorMultiVectorized1D                , integratorMultiVectorizedCompositeGaussKronrod1D, integratorMultiVectorizedCompositeTrapezoidal1D, &
-          &                                  integratorVectorized1D          , integratorVectorizedCompositeGaussKronrod1D, integratorVectorizedCompositeTrapezoidal1D
-  use :: ISO_Varying_String         , only : assignment(=)                   , len                                        , char
-  use :: Test_Integration2_Functions, only : testFunctions                   , testFunctionsInitialize                    , testFunctionsMulti                              , testIntegrator                                 , &
+  use :: Numerical_Integration      , only : integrator1                      => integrator, GSL_Integ_Gauss15                          , GSL_Integ_Gauss61
+  use :: Numerical_Integration2     , only : integrator                                    , integrator1D                               , integratorAdaptiveCompositeTrapezoidal1D        , integratorCompositeGaussKronrod1D              , &
+          &                                  integratorCompositeTrapezoidal1D              , integratorMultiVectorized1D                , integratorMultiVectorizedCompositeGaussKronrod1D, integratorMultiVectorizedCompositeTrapezoidal1D, &
+          &                                  integratorVectorized1D                        , integratorVectorizedCompositeGaussKronrod1D, integratorVectorizedCompositeTrapezoidal1D
+  use :: ISO_Varying_String         , only : assignment(=)                                 , len                                        , char
+  use :: Test_Integration2_Functions, only : testFunctions                                 , testFunctionsInitialize                    , testFunctionsMulti                              , testIntegrator                                 , &
           &                                  testIntegratorMulti
   implicit none
   double precision                                                                             :: timeMean                       , error
@@ -45,9 +44,8 @@ program Test_Integration2
   integer                                                                                      :: i                              , trial                   , &
        &                                                                                          integrationRule                , iFunction               , &
        &                                                                                          descriptionLengthMaximum
-  type            (fgsl_function             )                                                 :: integrandFunction
-  type            (fgsl_integration_workspace)                                                 :: integrationWorkspace
-  integer                                     , parameter                                      :: integratorCount         = 10
+  type            (integrator1               )                                   , allocatable :: integrator1_
+  integer                                     , parameter                                      :: integratorCount         =  7
   integer                                     , parameter                                      :: integratorMultiCount    =  2
   type            (testIntegrator            ), dimension(integratorCount       )              :: integrators
   type            (testIntegratorMulti       ), dimension(integratorMultiCount  )              :: integratorsMulti
@@ -83,32 +81,24 @@ program Test_Integration2
           &                                testFunctions(iFunction)%rangeHigh
      call Galacticus_Display_Indent(message)
      ! Allocate integrators.
-     allocate(integratorCompositeTrapezoidal1D                 :: integrators     ( 1)%integrator_)
-     integrators     ( 1)%description="Scalar composite trapezoidal"
-     allocate(integratorAdaptiveCompositeTrapezoidal1D         :: integrators     ( 2)%integrator_)
-     integrators     ( 2)%description="Scalar adaptive composite trapezoidal"
-     allocate(integratorVectorizedCompositeTrapezoidal1D       :: integrators     ( 3)%integrator_)
-     integrators     ( 3)%description="Vector adaptive composite trapezoidal"
-     allocate(integratorVectorizedCompositeTrapezoidal1D       :: integrators     ( 4)%integrator_)
-     integrators     ( 4)%description="Vector YEPPP! adaptive composite trapezoidal"
-     allocate(integratorCompositeGaussKronrod1D                :: integrators     ( 5)%integrator_)
-     integrators     ( 5)%description="Scalar adaptive composite Gauss-Kronrod 15-point"
-     integrators     ( 5)%order   =15
-     allocate(integratorCompositeGaussKronrod1D                :: integrators     ( 6)%integrator_)
-     integrators     ( 6)%description="Scalar adaptive composite Gauss-Kronrod 61-point"
-     integrators     ( 6)%order   =61
-     allocate(integratorVectorizedCompositeGaussKronrod1D      :: integrators     ( 7)%integrator_)
-     integrators     ( 7)%description="Vector adaptive composite Gauss-Kronrod 15-point"
-     integrators     ( 7)%order   =15
-     allocate(integratorVectorizedCompositeGaussKronrod1D      :: integrators     ( 8)%integrator_)
-     integrators     ( 8)%description="Vector adaptive composite Gauss-Kronrod 61-point"
-     integrators     ( 8)%order   =61
-     allocate(integratorVectorizedCompositeGaussKronrod1D      :: integrators     ( 9)%integrator_)
-     integrators     ( 9)%description="Vector YEPPP! adaptive composite Gauss-Kronrod 15-point"
-     integrators     ( 9)%order   =15
-     allocate(integratorVectorizedCompositeGaussKronrod1D      :: integrators     (10)%integrator_)
-     integrators     (10)%description="Vector YEPPP! adaptive composite Gauss-Kronrod 61-point"
-     integrators     (10)%order   =61
+     allocate(integratorCompositeTrapezoidal1D                 :: integrators     (1)%integrator_)
+     integrators     (1)%description="Scalar composite trapezoidal"
+     allocate(integratorAdaptiveCompositeTrapezoidal1D         :: integrators     (2)%integrator_)
+     integrators     (2)%description="Scalar adaptive composite trapezoidal"
+     allocate(integratorVectorizedCompositeTrapezoidal1D       :: integrators     (3)%integrator_)
+     integrators     (3)%description="Vector adaptive composite trapezoidal"
+     allocate(integratorCompositeGaussKronrod1D                :: integrators     (4)%integrator_)
+     integrators     (4)%description="Scalar adaptive composite Gauss-Kronrod 15-point"
+     integrators     (4)%order   =15
+     allocate(integratorCompositeGaussKronrod1D                :: integrators     (5)%integrator_)
+     integrators     (5)%description="Scalar adaptive composite Gauss-Kronrod 61-point"
+     integrators     (5)%order   =61
+     allocate(integratorVectorizedCompositeGaussKronrod1D      :: integrators     (6)%integrator_)
+     integrators     (6)%description="Vector adaptive composite Gauss-Kronrod 15-point"
+     integrators     (6)%order   =15
+     allocate(integratorVectorizedCompositeGaussKronrod1D      :: integrators     (7)%integrator_)
+     integrators     (7)%description="Vector adaptive composite Gauss-Kronrod 61-point"
+     integrators     (7)%order   =61
      ! Find the longest description.
      descriptionLengthMaximum=26
      do i=1,integratorCount
@@ -172,24 +162,25 @@ program Test_Integration2
         end do
         ! Evaluate GSL integrators.
         do i=1,2
+           allocate(integrator1_)
            select case (i)
            case (1)
-              integrationRule=FGSL_Integ_Gauss15
+              integrationRule=GSL_Integ_Gauss15
            case (2)
-              integrationRule=FGSL_Integ_Gauss61
+              integrationRule=GSL_Integ_Gauss61
            end select
-           call System_Clock(countStart,countRate)
-           integralGSL(i)=Integrate(                                                      &
-                &                   testFunctions(iFunction)%rangeLow                   , &
-                &                   testFunctions(iFunction)%rangeHigh                  , &
-                &                   testFunctions(iFunction)%scalar                     , &
-                &                   integrandFunction                                   , &
-                &                   integrationWorkspace                                , &
-                &                   toleranceAbsolute                 =toleranceAbsolute, &
-                &                   toleranceRelative                 =toleranceRelative, &
-                &                   integrationRule                   =integrationRule    &
+           integrator1_=integrator1(                                                       &
+                &                                     testFunctions    (iFunction)%scalar, &
+                &                   toleranceAbsolute=toleranceAbsolute                  , &
+                &                   toleranceRelative=toleranceRelative                  , &
+                &                   integrationRule  =integrationRule                      &
                 &                  )
-           call Integrate_Done(integrandFunction,integrationWorkspace)
+           call System_Clock(countStart,countRate)
+           integralGSL(i)=integrator1_%integrate(                                    &
+                &                                testFunctions(iFunction)%rangeLow , &
+                &                                testFunctions(iFunction)%rangeHigh  &
+                &                               )
+           deallocate(integrator1_)
            call System_Clock  (countEnd         ,countRate           )
            timeGSL(i)=timeGSL(i)+(countEnd-countStart)
         end do

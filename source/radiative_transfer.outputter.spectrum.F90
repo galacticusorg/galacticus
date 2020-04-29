@@ -172,35 +172,28 @@ contains
 
   subroutine spectrumSourceProperties(self,radiativeTransferSource_,outputGroup)
     !% Compute and output the emission spectrum.
-    use :: FGSL                            , only : fgsl_function  , fgsl_integration_workspace
     use :: IO_HDF5                         , only : hdf5Access
     use :: Numerical_Constants_Astronomical, only : luminositySolar
-    use :: Numerical_Integration           , only : Integrate      , Integrate_Done
+    use :: Numerical_Integration           , only : integrator
     implicit none
     class           (radiativeTransferOutputterSpectrum), intent(inout)                    :: self
     class           (radiativeTransferSourceClass      ), intent(inout)                    :: radiativeTransferSource_
     type            (hdf5Object                        ), intent(inout)                    :: outputGroup
-    type            (fgsl_function                     )                                   :: integrandFunction
-    type            (fgsl_integration_workspace        )                                   :: integrationWorkspace
+    type            (integrator                        )                                   :: integrator_
     double precision                                    , dimension(self%countWavelengths) :: spectrumEmitted
     integer         (c_size_t                          )                                   :: i
 
+    integrator_=integrator(integrand,toleranceRelative=1.0d-2)
     do i=1_c_size_t,self%countWavelengths
-       spectrumEmitted(i)=+Integrate(                                                &
-            &                                            self%wavelengthsMinimum(i), &
-            &                                            self%wavelengthsMaximum(i), &
-            &                                            integrand                 , &
-            &                                            integrandFunction         , &
-            &                                            integrationWorkspace      , &
-            &                          toleranceAbsolute=0.0d+0                    , &
-            &                          toleranceRelative=1.0d-2                      &
-            &                         )                                              &
-            &             *luminositySolar                                           &
-            &             /(                                                         &
-            &               +                            self%wavelengthsMaximum(i)  &
-            &               -                            self%wavelengthsMinimum(i)  &
+       spectrumEmitted(i)=+integrator_%integrate(                            &
+            &                                    self%wavelengthsMinimum(i), &
+            &                                    self%wavelengthsMaximum(i)  &
+            &                                   )                            &
+            &             *luminositySolar                                   &
+            &             /(                                                 &
+            &               +                    self%wavelengthsMaximum(i)  &
+            &               -                    self%wavelengthsMinimum(i)  &
             &              )
-       call Integrate_Done(integrandFunction,integrationWorkspace)
     end do
     !$ call hdf5Access%set  ()
     call outputGroup%writeDataset(self%wavelengths    ,'spectrumWavelength','Central wavelengths of spectral bins' )

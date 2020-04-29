@@ -956,7 +956,6 @@ contains
   double precision function nfwRadiusEnclosingMass(self,node,mass)
     !% Returns the radius (in Mpc) in an NFW dark matter profile with given {\normalfont \ttfamily
     !% concentration} which encloses a given mass (in $M_\odot$).
-    use :: FGSL            , only : FGSL_SF_LAMBERT_W0
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
     use :: Lambert_Ws      , only : Lambert_W0
     implicit none
@@ -1142,16 +1141,15 @@ contains
     !% \citeauthor{cole_hierarchical_2000}~(\citeyear{cole_hierarchical_2000}; their Appendix~A), except for potential energy
     !% which is computed using the result derived by \citeauthor{mo_formation_1998}~(\citeyear{mo_formation_1998}; eqn.~23).
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : Integrate, Integrate_Done
+    use :: Numerical_Integration   , only : integrator
     implicit none
-    class           (darkMatterProfileDMONFW   ), intent(inout) :: self
-    double precision                            , intent(in   ) :: concentration
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    double precision                                            :: jeansEquationIntegral , kineticEnergy  , &
-         &                                                         kineticEnergyIntegral , potentialEnergy, &
-         &                                                         radiusMinimum         , radiusMaximum  , &
-         &                                                         concentrationParameter
+    class           (darkMatterProfileDMONFW), intent(inout) :: self
+    double precision                         , intent(in   ) :: concentration
+    type            (integrator             )                :: integratorJeans       , integratorKinetic
+    double precision                                         :: jeansEquationIntegral , kineticEnergy    , &
+         &                                                      kineticEnergyIntegral , potentialEnergy  , &
+         &                                                      radiusMinimum         , radiusMaximum    , &
+         &                                                      concentrationParameter
 
     ! Compute the potential energy.
     potentialEnergy=-0.5d0                               &
@@ -1168,20 +1166,18 @@ contains
          &                  -log(1.0d0+concentration)    &
          &           )                               **2
     ! Compute the velocity dispersion at the virial radius.
-    radiusMinimum=concentration
-    radiusMaximum=100.0d0*concentration
-    concentrationParameter=concentration
-    jeansEquationIntegral=Integrate(radiusMinimum,radiusMaximum,nfwJeansEquationIntegrand,integrandFunction, &
-         &                          integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    radiusMinimum         =        concentration
+    radiusMaximum         =100.0d0*concentration
+    concentrationParameter=        concentration
+    integratorJeans       =integrator               (nfwJeansEquationIntegrand,toleranceRelative=1.0d-3)
+    jeansEquationIntegral =integratorJeans%integrate(radiusMinimum            ,radiusMaximum           )
     ! Compute the kinetic energy.
-    radiusMinimum=0.0d0
-    radiusMaximum=concentration
+    radiusMinimum         =0.0d0
+    radiusMaximum         =concentration
     concentrationParameter=concentration
-    kineticEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,nfwKineticEnergyIntegrand,integrandFunction, &
-         &                          integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
-    call Integrate_Done(integrandFunction,integrationWorkspace)
-    kineticEnergy=2.0d0*Pi*(jeansEquationIntegral*concentration**3+kineticEnergyIntegral)
+    integratorKinetic     =integrator                 (nfwKineticEnergyIntegrand,toleranceRelative=1.0d-3)
+    kineticEnergyIntegral =integratorKinetic%integrate(radiusMinimum            ,radiusMaximum           )
+    kineticEnergy         =2.0d0*Pi*(jeansEquationIntegral*concentration**3+kineticEnergyIntegral)
     ! Compute the total energy.
     nfwProfileEnergy=(potentialEnergy+kineticEnergy)*concentration
     return
@@ -1391,23 +1387,21 @@ contains
 
   double precision function nfwFreefallTimeScaleFree(self,radius)
     !% Compute the freefall time in a scale-free NFW halo.
-    use :: Numerical_Integration, only : Integrate, Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
-    class           (darkMatterProfileDMONFW   ), intent(inout) :: self
-    double precision                            , intent(in   ) :: radius
-    double precision                            , parameter     :: radiusSmall         =4.0d-6
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    double precision                                            :: radiusEnd                  , radiusStart
+    class           (darkMatterProfileDMONFW), intent(inout) :: self
+    double precision                         , intent(in   ) :: radius
+    double precision                         , parameter     :: radiusSmall=4.0d-6
+    type            (integrator             )                :: integrator_
+    double precision                                         :: radiusEnd         , radiusStart
     !$GLC attributes unused :: self
 
     if (radius > radiusSmall) then
        ! Use the full solution.
-       radiusStart=radius
-       radiusEnd  =0.0d0
-       nfwFreefallTimeScaleFree=Integrate(radiusEnd,radiusStart,nfwFreefallTimeScaleFreeIntegrand,integrandFunction, &
-            &                             integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
-       call Integrate_Done(integrandFunction,integrationWorkspace)
+       radiusStart             =radius
+       radiusEnd               =0.0d0
+       integrator_             =integrator           (nfwFreefallTimeScaleFreeIntegrand,toleranceRelative=1.0d-3)
+       nfwFreefallTimeScaleFree=integrator_%integrate(radiusEnd                        ,radiusStart             )
     else
        ! Use an approximation here, found by taking series expansions of the logarithms in the integrand and keeping only the
        ! first order terms.

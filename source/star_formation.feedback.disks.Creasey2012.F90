@@ -117,10 +117,9 @@ contains
     !% where $\Sigma_{g,1}(r)$ is the surface density of gas in units of $M_\odot$ pc$^{-2}$, $f_\mathrm{g}(r)$ is the gas
     !% fraction, $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate, $\beta_0=${\normalfont \ttfamily [beta0]},
     !% $\mu=${\normalfont \ttfamily [mu]}, and $\nu=${\normalfont \ttfamily [nu]}.
-    use :: FGSL                    , only : fgsl_function                         , fgsl_integration_workspace
     use :: Galacticus_Nodes        , only : nodeComponentDisk                     , treeNode
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : Integrate                             , Integrate_Done
+    use :: Numerical_Integration   , only : integrator
     use :: Stellar_Feedback        , only : feedbackEnergyInputAtInfinityCanonical
     implicit none
     class           (starFormationFeedbackDisksCreasey2012), intent(inout) :: self
@@ -131,8 +130,7 @@ contains
     double precision                                                       :: radiusScale                   , massGas                        , &
          &                                                                    radiusInner                   , radiusOuter                    , &
          &                                                                    massStellar
-    type            (fgsl_function                        )                :: integrandFunction
-    type            (fgsl_integration_workspace           )                :: integrationWorkspace
+    type            (integrator                           )                :: integrator_
 
     ! Get the disk properties.
     disk        => node%disk       ()
@@ -148,22 +146,14 @@ contains
     radiusInner=radiusScale*radiusInnerDimensionless
     radiusOuter=radiusScale*radiusOuterDimensionless
     ! Compute the outflow rate.
-    creasey2012OutflowRate=+2.0d0&
-         &                *Pi                                     &
-         &                *self%beta0                             &
-         &                *Integrate(                             &
-         &                           radiusInner                , &
-         &                           radiusOuter                , &
-         &                           outflowRateIntegrand       , &
-         &                           integrandFunction          , &
-         &                           integrationWorkspace       , &
-         &                           toleranceAbsolute   =0.0d+0, &
-         &                           toleranceRelative   =1.0d-3  &
-         &                          )                             &
-         &                /rateStarFormation                      &
-         &                *rateEnergyInput                        &
-         &                /feedbackEnergyInputAtInfinityCanonical
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_=integrator(outflowRateIntegrand,toleranceRelative=1.0d-3)
+    creasey2012OutflowRate=+2.0d0                                          &
+         &                 *Pi                                             &
+         &                 *self%beta0                                     &
+         &                 *integrator_%integrate(radiusInner,radiusOuter) &
+         &                 /rateStarFormation                              &
+         &                 *rateEnergyInput                                &
+         &                 /feedbackEnergyInputAtInfinityCanonical
     return
 
   contains

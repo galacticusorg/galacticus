@@ -234,12 +234,11 @@ contains
 
   double precision function spinDistributionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the halo spin distribution likelihood function.
-    use :: FGSL                          , only : fgsl_function                  , fgsl_integration_workspace
     use :: Galacticus_Error              , only : Galacticus_Error_Report
     use :: Galacticus_Nodes              , only : nodeComponentBasic             , nodeComponentSpin            , treeNode
     use :: Halo_Spin_Distributions       , only : haloSpinDistributionBett2007   , haloSpinDistributionLogNormal, haloSpinDistributionNbodyErrors
     use :: Models_Likelihoods_Constants  , only : logImpossible
-    use :: Numerical_Integration         , only : Integrate                      , Integrate_Done
+    use :: Numerical_Integration         , only : integrator
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
     use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
     implicit none
@@ -259,8 +258,7 @@ contains
     class           (haloSpinDistributionLogNormal            ), pointer                     :: distributionLogNormal
     class           (haloSpinDistributionBett2007             ), pointer                     :: distributionBett2007
     type            (haloSpinDistributionNbodyErrors          )                              :: distributionNbody
-    type            (fgsl_function                            )                              :: integrandFunction
-    type            (fgsl_integration_workspace               )                              :: integrationWorkspace
+    type            (integrator                               )                              :: integrator_
     integer                                                                                  :: i
     !$GLC attributes unused :: simulationConvergence, temperature, timeEvaluate, logLikelihoodCurrent, logPriorCurrent, modelParametersInactive_, forceAcceptance
 
@@ -342,21 +340,10 @@ contains
     call nodeBasic%timeSet(self%time)
     ! Compute the spin distribution. The spin distribution is averaged over the width of each bin.
     allocate(distribution(size(self%spin)))
+    integrator_=integrator(spinDistributionIntegrate,toleranceRelative=1.0d-6)
     do i=1,size(self%spin)
-       distribution(i)=+Integrate(                                  &
-            &                     self%spinMinimum(i)             , &
-            &                     self%spinMaximum(i)             , &
-            &                     spinDistributionIntegrate       , &
-            &                     integrandFunction               , &
-            &                     integrationWorkspace            , &
-            &                     toleranceAbsolute        =0.0d+0, &
-            &                     toleranceRelative        =1.0d-6  &
-            &                    )                                  &
-            &          /log10(                                      &
-            &                 +self%spinMaximum(i)                  &
-            &                 /self%spinMinimum(i)                  &
-            &                )
-       call Integrate_Done(integrandFunction,integrationWorkspace)
+       distribution(i)=+integrator_%integrate( self%spinMinimum(i),self%spinMaximum(i)) &
+            &          /log10                (+self%spinMaximum(i)/self%spinMinimum(i))
     end do
     ! Evaluate the log-likelihood.
     spinDistributionEvaluate=-0.5d0*sum(((distribution-self%distribution)/self%distributionError)**2,mask=self%distributionError > 0.0d0)

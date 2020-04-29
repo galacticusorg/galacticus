@@ -140,7 +140,6 @@ contains
 
   function projectedDensityExtract(self,node,time,instance)
     !% Implement a {\normalfont \ttfamily projectedDensity} property extractor.
-    use :: FGSL                                , only : fgsl_function                           , fgsl_integration_workspace
     use :: Galactic_Structure_Densities        , only : Galactic_Structure_Density
     use :: Galactic_Structure_Enclosed_Masses  , only : Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options          , only : componentTypeAll                        , massTypeGalactic
@@ -148,7 +147,7 @@ contains
           &                                             radiusTypeGalacticMassFraction          , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius, radiusTypeSpheroidRadius       , &
           &                                             radiusTypeVirialRadius
     use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile          , nodeComponentDisk           , nodeComponentSpheroid           , treeNode
-    use :: Numerical_Integration               , only : Integrate                               , Integrate_Done
+    use :: Numerical_Integration               , only : integrator
     implicit none
     double precision                                       , dimension(:) , allocatable :: projectedDensityExtract
     class           (nodePropertyExtractorProjectedDensity), intent(inout), target      :: self
@@ -158,8 +157,7 @@ contains
     class           (nodeComponentDisk                    ), pointer                    :: disk
     class           (nodeComponentSpheroid                ), pointer                    :: spheroid
     class           (nodeComponentDarkMatterProfile       ), pointer                    :: darkMatterProfile
-    type            (fgsl_function                        )                             :: integrandFunction
-    type            (fgsl_integration_workspace           )                             :: integrationWorkspace
+    type            (integrator                           )                             :: integrator_
     integer                                                                             :: i
     double precision                                                                    :: radiusVirial           , radiusOuter
     !$GLC attributes unused :: time, instance
@@ -170,6 +168,7 @@ contains
     if (self%                 diskIsNeeded) disk              =>                                        node%disk             ()
     if (self%             spheroidIsNeeded) spheroid          =>                                        node%spheroid         ()
     if (self%darkMatterScaleRadiusIsNeeded) darkMatterProfile =>                                        node%darkMatterProfile()
+    integrator_=integrator(projectedDensityIntegrand,toleranceRelative=1.0d-3)
     do i=1,self%radiiCount
        projectedDensityRadius=self%radii(i)%value
        select case (self%radii(i)%type)
@@ -200,19 +199,10 @@ contains
                &   weightIndex   =self%radii(i)%weightByIndex      &
                &  )
        end select
-       radiusOuter=self%darkMatterHaloScale_%virialRadius(node)
-       projectedDensityExtract       ((i-1)*self%step+1)=Integrate(                                             &
-            &                                                                        projectedDensityRadius   , &
-            &                                                                        radiusOuter              , &
-            &                                                                        projectedDensityIntegrand, &
-            &                                                                        integrandFunction        , &
-            &                                                                        integrationWorkspace     , &
-            &                                                      toleranceAbsolute=0.0d+0                   , &
-            &                                                      toleranceRelative=1.0d-3                     &
-            &                                                     )
-       call Integrate_Done(integrandFunction,integrationWorkspace)
-       if (self%includeRadii)                                                                                   &
-            & projectedDensityExtract((i-1)*self%step+2)=                            projectedDensityRadius
+       radiusOuter                                      =self       %darkMatterHaloScale_%virialRadius(node                              )       
+       projectedDensityExtract       ((i-1)*self%step+1)=integrator_                     %integrate   (projectedDensityRadius,radiusOuter)
+       if (self%includeRadii)                                                                                                              &
+            & projectedDensityExtract((i-1)*self%step+2)=                                              projectedDensityRadius
     end do
     return
 

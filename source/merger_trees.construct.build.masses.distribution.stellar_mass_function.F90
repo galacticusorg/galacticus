@@ -159,8 +159,7 @@ contains
 
   double precision function stellarMassFunctionSample(self,mass,time,massMinimum,massMaximum)
     !% Computes the halo mass function sampling rate optimized to minimize errors in the stellar mass function.
-    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate    , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
     class           (mergerTreeBuildMassDistributionStllrMssFnctn), intent(inout) :: self
     double precision                                              , intent(in   ) :: mass                               , massMaximum                 , &
@@ -170,8 +169,7 @@ contains
          &                                                                           logStellarMassMinimum              , treeComputeTime             , &
          &                                                                           xi                                 , xiIntegral                  , &
          &                                                                           massHalo
-    type            (fgsl_function                               )                :: integrandFunction
-    type            (fgsl_integration_workspace                  )                :: integrationWorkspace
+    type            (integrator                                  )                :: integrator_
     !$GLC attributes unused :: massMinimum, massMaximum
 
     ! Get the halo mass function, defined per logarithmic interval in halo mass.
@@ -181,16 +179,8 @@ contains
     massHalo             =mass
     logStellarMassMinimum=log10(self%massMinimum)
     logStellarMassMaximum=log10(self%massMaximum)
-    xiIntegral           =Integrate(                                         &
-         &                                            logStellarMassMinimum, &
-         &                                            logStellarMassMaximum, &
-         &                                            xiIntegrand          , &
-         &                                            integrandFunction    , &
-         &                                            integrationWorkspace , &
-         &                          toleranceAbsolute=toleranceAbsolute    , &
-         &                          toleranceRelative=toleranceRelative      &
-         &                         )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_          =integrator           (xiIntegrand          ,toleranceAbsolute=toleranceAbsolute    ,toleranceRelative=toleranceRelative)
+    xiIntegral           =integrator_%integrate(logStellarMassMinimum,                  logStellarMassMaximum                                    )
     ! Compute the "xi" function.
     xi              =+haloMassFunctionDifferential**2 &
          &           *xiIntegral

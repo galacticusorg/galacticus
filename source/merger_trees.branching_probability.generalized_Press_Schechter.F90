@@ -287,25 +287,21 @@ contains
 
   double precision function generalizedPressSchechterMassBranchRoot(massMaximum)
     !% Root function used in solving for the branch mass.
-    use :: FGSL                 , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate         , Integrate_Done
+    use :: Numerical_Integration, only : integrator, GSL_Integ_Gauss15
     implicit none
-    double precision                            , intent(in   ) :: massMaximum
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
+    double precision            , intent(in   ) :: massMaximum
+    type            (integrator)                :: integrator_
 
-    generalizedPressSchechterMassBranchRoot=+generalizedPressSchechterSelf%probabilitySeek                                     &
-         &                                  -Integrate(                                                                        &
-         &                                                               generalizedPressSchechterSelf%probabilityMinimumMass, &
-         &                                                               massMaximum                                         , &
-         &                                                               generalizedPressSchechterProbabilityIntegrand       , &
-         &                                                               integrandFunction                                   , &
-         &                                                               integrationWorkspace                                , &
-         &                                             toleranceAbsolute=0.0d0                                               , &
-         &                                             toleranceRelative=generalizedPressSchechterIntegrandToleranceRelative , &
-         &                                             integrationRule  =FGSL_Integ_Gauss15                                    &
-         &                                            )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_                            = integrator           (                                                                        &
+         &                                                                           generalizedPressSchechterProbabilityIntegrand       , &
+         &                                                         toleranceRelative=generalizedPressSchechterIntegrandToleranceRelative , &
+         &                                                         integrationRule  =GSL_Integ_Gauss15                                     &
+         &                                                        )
+    generalizedPressSchechterMassBranchRoot=+                                        generalizedPressSchechterSelf%probabilitySeek         &
+         &                                  -integrator_%integrate(                                                                        &
+         &                                                                           generalizedPressSchechterSelf%probabilityMinimumMass, &
+         &                                                                                                                    massMaximum  &
+         &                                                        )
     return
   end function generalizedPressSchechterMassBranchRoot
 
@@ -342,16 +338,14 @@ contains
     !% Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at
     !% time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont
     !% \ttfamily massResolution}.
-    use :: FGSL                 , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate         , Integrate_Done
+    use :: Numerical_Integration, only : integrator, GSL_Integ_Gauss15
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
-    double precision                                                 , intent(in   )         :: deltaCritical       , haloMass   , &
-         &                                                                                      massResolution      , time
+    double precision                                                 , intent(in   )         :: deltaCritical , haloMass   , &
+         &                                                                                      massResolution, time
     type            (treeNode                                       ), intent(inout), target :: node
-    type            (fgsl_function                                  )                        :: integrandFunction
-    type            (fgsl_integration_workspace                     )                        :: integrationWorkspace
-    double precision                                                                         :: massMaximum         , massMinimum
+    type            (integrator                                     )                        :: integrator_
+    double precision                                                                         :: massMaximum   , massMinimum
 
     call self%excursionSetTest(node)
     ! Get sigma and delta_critical for the parent halo.
@@ -360,17 +354,15 @@ contains
        massMinimum                          =             massResolution
        massMaximum                          =  0.5d0*self%parentHaloMass
        generalizedPressSchechterSelf        => self
-       generalizedPressSchechterProbability =  Integrate(                                                                       &
-            &                                                              massMinimum                                        , &
-            &                                                              massMaximum                                        , &
-            &                                                              generalizedPressSchechterProbabilityIntegrand      , &
-            &                                                              integrandFunction                                  , &
-            &                                                              integrationWorkspace                               , &
-            &                                            toleranceAbsolute=0.0d0                                              , &
-            &                                            toleranceRelative=generalizedPressSchechterIntegrandToleranceRelative, &
-            &                                            integrationRule  =FGSL_Integ_Gauss15                                   &
-            &                                           )
-       call Integrate_Done(integrandFunction,integrationWorkspace)
+       integrator_                          =  integrator           (                                                                       &
+            &                                                                          generalizedPressSchechterProbabilityIntegrand      , &
+            &                                                        toleranceRelative=generalizedPressSchechterIntegrandToleranceRelative, &
+            &                                                        integrationRule  =GSL_Integ_Gauss15                                    &
+            &                                                       )
+       generalizedPressSchechterProbability =  integrator_%integrate(                                                                       &
+            &                                                                          massMinimum                                        , &
+            &                                                                          massMaximum                                          &
+            &                                                       )
     else
        generalizedPressSchechterProbability=0.0d0
     end if
@@ -380,10 +372,9 @@ contains
   double precision function generalizedPressSchechterFractionSubresolution(self,haloMass,deltaCritical,time,massResolution,node)
     !% Return the fraction of mass accreted in subresolution halos, i.e. those below {\normalfont \ttfamily massResolution}, per unit change in
     !% $\delta_\mathrm{crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}. The integral is computed numerically.
-    use :: FGSL                 , only : FGSL_Integ_Gauss15, fgsl_function     , fgsl_integration_workspace
-    use :: Galacticus_Error     , only : Galacticus_Warn   , errorStatusSuccess
+    use :: Galacticus_Error     , only : Galacticus_Warn, errorStatusSuccess
     use :: ISO_Varying_String   , only : varying_string
-    use :: Numerical_Integration, only : Integrate         , Integrate_Done
+    use :: Numerical_Integration, only : integrator     , GSL_Integ_Gauss15
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
     double precision                                                 , intent(in   )         :: deltaCritical                                 , haloMass   , &
@@ -392,8 +383,7 @@ contains
     double precision                                                 , parameter             :: resolutionSigmaOverParentSigmaTolerance=1.0d-3
     double precision                                                                         :: massMaximum                                   , massMinimum, &
          &                                                                                      resolutionSigmaOverParentSigma
-    type            (fgsl_function                                  )                        :: integrandFunction
-    type            (fgsl_integration_workspace                     )                        :: integrationWorkspace
+    type            (integrator                                     )                        :: integrator_
     integer                                                                                  :: errorStatus
     type            (varying_string                                 )                        :: message
 
@@ -415,22 +405,20 @@ contains
     end if
     resolutionSigmaOverParentSigma=self%resolutionSigma/self%parentSigma
     if (resolutionSigmaOverParentSigma >= 1.0d0) then
-       generalizedPressSchechterSelf => self
-       massMinimum                   =  self%massMinimum
-       massMaximum                   =       massResolution
-       generalizedPressSchechterFractionSubresolution=+generalizedPressSchechterFractionSubresolution                                       &
-            &                                         +Integrate(                                                                           &
-            &                                                                      massMinimum                                            , &
-            &                                                                      massMaximum                                            , &
-            &                                                                      generalizedPressSchechterFractionSubresolutionIntegrand, &
-            &                                                                      integrandFunction                                      , &
-            &                                                                      integrationWorkspace                                   , &
-            &                                                    toleranceAbsolute=0.0d+0                                                 , &
-            &                                                    toleranceRelative=1.0d-3                                                 , &
-            &                                                    integrationRule  =FGSL_Integ_Gauss15                                     , &
-            &                                                    errorStatus      =errorStatus                                              &
-            &                                                   )
-       call Integrate_Done(integrandFunction,integrationWorkspace)
+       generalizedPressSchechterSelf                 =>  self
+       massMinimum                                   =   self%massMinimum
+       massMaximum                                   =        massResolution
+       integrator_                                   =   integrator           (                                                                           &
+            &                                                                                    generalizedPressSchechterFractionSubresolutionIntegrand, &
+            &                                                                  toleranceRelative=1.0d-3                                                 , &
+            &                                                                  integrationRule  =GSL_Integ_Gauss15                                        &
+            &                                                                 )
+       generalizedPressSchechterFractionSubresolution=  +generalizedPressSchechterFractionSubresolution                                                   &
+            &                                           +integrator_%integrate(                                                                           &
+            &                                                                                    massMinimum                                            , &
+            &                                                                                    massMaximum                                            , &
+            &                                                                  status           =errorStatus                                              &
+            &                                                                 )
        if (errorStatus /= errorStatusSuccess) then
           if (resolutionSigmaOverParentSigma < 1.0d0+resolutionSigmaOverParentSigmaTolerance) then
              generalizedPressSchechterFractionSubresolution=-1.0d0
@@ -443,17 +431,9 @@ contains
                 call Galacticus_Warn(message)
                 self%subresolutionFractionIntegrandFailureWarned=.true.
              end if
-             generalizedPressSchechterFractionSubresolution=+generalizedPressSchechterFractionSubresolution                                       &
-                  &                                         +Integrate(                                                                           &
-                  &                                                                      massMinimum                                            , &
-                  &                                                                      massMaximum                                            , &
-                  &                                                                      generalizedPressSchechterFractionSubresolutionIntegrand, &
-                  &                                                                      integrandFunction                                      , &
-                  &                                                                      integrationWorkspace                                   , &
-                  &                                                    toleranceAbsolute=0.0d0                                                  , &
-                  &                                                    toleranceRelative=1.0d-2                                                 , &
-                  &                                                    integrationRule  =FGSL_Integ_Gauss15                                       &
-                  &                                                   )
+             call integrator_%toleranceSet(toleranceRelative=1.0d-2)
+             generalizedPressSchechterFractionSubresolution=+generalizedPressSchechterFractionSubresolution &
+                  &                                         +integrator_%integrate(massMinimum,massMaximum)
           end if
        end if
     else

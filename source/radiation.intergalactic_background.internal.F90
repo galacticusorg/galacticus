@@ -393,7 +393,7 @@ contains
     !% Update the radiation background for a given universe.
     use            :: Abundances_Structure        , only : abundances                   , max
     use            :: Arrays_Search               , only : searchArrayClosest
-    use            :: FGSL                        , only : FGSL_Success                 , fgsl_function             , fgsl_integration_workspace
+    use            :: FGSL                        , only : FGSL_Success
     use            :: FODEIV2                     , only : fodeiv2_driver               , fodeiv2_system
     use            :: Galacticus_Display          , only : Galacticus_Display_Indent    , Galacticus_Display_Message, Galacticus_Display_Unindent
     use            :: Galacticus_Error            , only : Galacticus_Error_Report
@@ -409,7 +409,7 @@ contains
     use            :: Numerical_Constants_Physical, only : plancksConstant              , speedLight
     use            :: Numerical_Constants_Prefixes, only : centi
     use            :: Numerical_Constants_Units   , only : angstromsPerMeter            , ergs
-    use            :: Numerical_Integration       , only : Integrate                    , Integrate_Done
+    use            :: Numerical_Integration       , only : integrator
     use            :: ODEIV2_Solver               , only : ODEIV2_Solve                 , ODEIV2_Solver_Free
     use            :: Stellar_Population_Spectra  , only : stellarPopulationSpectraClass
     use            :: Stellar_Populations         , only : stellarPopulationClass
@@ -432,9 +432,8 @@ contains
     class           (*                                   ), pointer       :: state
     type            (fodeiv2_system                      ), save          :: ode2System
     type            (fodeiv2_driver                      ), save          :: ode2Driver
-    type            (fgsl_function                       ), save          :: integrandFunction
-    type            (fgsl_integration_workspace          ), save          :: integrationWorkspace
-    logical                                               , save          :: odeReset                             , integrationReset                 =.true.
+    type            (integrator                          )                :: integrator_
+    logical                                               , save          :: odeReset
     type            (mergerTreeWalkerAllNodes            )                :: treeWalker
     double precision                                                      :: starFormationRateDisk                , starFormationRateSpheroid               , &
          &                                                                   gasMassDisk                          , gasMassSpheroid                         , &
@@ -499,36 +498,15 @@ contains
                          ageStart=max(self%time(iTime-1)-event%time,0.0d0)
                       end if
                       ! Iterate over wavelength
+                      integrator_=integrator(stellarSpectraConvolution,toleranceAbsolute=integrationToleranceAbsolute,toleranceRelative=integrationToleranceRelative)
                       do iWavelength=1,self%wavelengthCount
                          wavelength                =  self%wavelength(iWavelength)
                          stellarPopulationSpectra_ => stellarPopulationSpectraDisk_
                          gasAbundances             => gasAbundancesDisk
-                         integrationReset          =  .true.
-                         stellarSpectrumDisk       =  Integrate(                                                        &
-                              &                                 ageStart                                              , &
-                              &                                 ageEnd                                                , &
-                              &                                 stellarSpectraConvolution                             , &
-                              &                                 integrandFunction                                     , &
-                              &                                 integrationWorkspace                                  , &
-                              &                                 toleranceAbsolute        =integrationToleranceAbsolute, &
-                              &                                 toleranceRelative        =integrationToleranceRelative, &
-                              &                                 reset                    =integrationReset              &
-                              &                                )
-                         call Integrate_Done(integrandFunction,integrationWorkspace)
+                         stellarSpectrumDisk       =  integrator_%integrate(ageStart,ageEnd)
                          stellarPopulationSpectra_ => stellarPopulationSpectraSpheroid_
                          gasAbundances             => gasAbundancesSpheroid
-                         integrationReset          =  .true.
-                         stellarSpectrumSpheroid   =  Integrate(                                                        &
-                              &                                 ageStart                                              , &
-                              &                                 ageEnd                                                , &
-                              &                                 stellarSpectraConvolution                             , &
-                              &                                 integrandFunction                                     , &
-                              &                                 integrationWorkspace                                  , &
-                              &                                 toleranceAbsolute        =integrationToleranceAbsolute, &
-                              &                                 toleranceRelative        =integrationToleranceRelative, &
-                              &                                 reset                    =integrationReset              &
-                              &                                )
-                         call Integrate_Done(integrandFunction,integrationWorkspace)
+                         stellarSpectrumSpheroid   =  integrator_%integrate(ageStart,ageEnd)
                          self%emissivity         (iWavelength,iTime) &
                               & =+self%emissivity(iWavelength,iTime) &
                               &  +(                                  &

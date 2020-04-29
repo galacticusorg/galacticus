@@ -160,9 +160,8 @@ contains
 
   function grvtnlLnsngOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node) result(distributionNew)
     !% Implement a gravitational lensing output analysis distribution operator.
-    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
     use :: Memory_Management    , only : allocateArray
-    use :: Numerical_Integration, only : Integrate    , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
     class           (outputAnalysisDistributionOperatorGrvtnlLnsng), intent(inout)                                        :: self
     double precision                                               , intent(in   ), dimension(:)                          :: distribution
@@ -174,9 +173,7 @@ contains
     double precision                                                                                                      :: redshift
     integer         (c_size_t                                     )                                                       :: j                    , k                   , &
          &                                                                                                                   i                    , l
-    type            (fgsl_function                                )                                                       :: integrandFunction
-    type            (fgsl_integration_workspace                   )                                                       :: integrationWorkspace
-    logical                                                                                                               :: integrationReset
+    type            (integrator                                   )                                                       :: integrator_
     !$GLC attributes unused :: node
 
     ! Construct the lensing transfer matrix if not already done.
@@ -186,12 +183,13 @@ contains
        if (.not.allocated(self%transfer_(outputIndex)%matrix)) then
           redshift=self%outputTimes_%redshift(outputIndex)
           call allocateArray(self%transfer_(outputIndex)%matrix,[size(propertyValueMinimum),size(propertyValueMinimum)])
-          !$omp parallel private (i,j,k,l,integrationReset,integrandFunction,integrationWorkspace)
+          !$omp parallel private (i,j,k,l,integrator_)
           allocate(grvtnlLnsngGravitationalLensing_,mold=self%gravitationalLensing_)
           !$omp critical(analysesGravitationalLensingDeepCopy)
           !# <deepCopyReset variables="self%gravitationalLensing_"/>
           !# <deepCopy source="self%gravitationalLensing_" destination="grvtnlLnsngGravitationalLensing_"/>
           !$omp end critical(analysesGravitationalLensingDeepCopy)
+          integrator_=integrator(magnificationCDFIntegrand,toleranceRelative=1.0d-3)
           !$omp do schedule(dynamic)
           do l=1,size(propertyValueMinimum)
              do i=1,2
@@ -200,22 +198,8 @@ contains
                 else
                    j=1; grvtnLnsngK=l
                 end if
-                integrationReset=.true.
-                self       %transfer_(outputIndex)%matrix(j,grvtnLnsngK)=          &
-                     & +Integrate(                                                 &
-                     &                               propertyValueMinimum     (j), &
-                     &                               propertyValueMaximum     (j), &
-                     &                               magnificationCDFIntegrand   , &
-                     &                               integrandFunction           , &
-                     &                               integrationWorkspace        , &
-                     &             toleranceRelative=1.0d-3                      , &
-                     &             reset            =integrationReset              &
-                     &            )                                                &
-                     & /(                                                          &
-                     &   +propertyValueMaximum(j)                                  &
-                     &   -propertyValueMinimum(j)                                  &
-                     &  )
-                call Integrate_Done(integrandFunction,integrationWorkspace)
+                self%transfer_(outputIndex)%matrix(j,grvtnLnsngK)=+integrator_%integrate( propertyValueMinimum(j),propertyValueMaximum(j)) &
+                     &                                            /                     (+propertyValueMaximum(j)-propertyValueMinimum(j))
              end do
           end do
           !$omp end do

@@ -19,7 +19,7 @@
 
   !% Implementation of a S\'ersic mass distribution class.
 
-  use    :: FGSL   , only : fgsl_function, fgsl_integration_workspace, fgsl_interp, fgsl_interp_accel
+  use    :: FGSL   , only : fgsl_interp  , fgsl_interp_accel
   !$ use :: OMP_Lib, only : omp_lock_kind
 
   !# <massDistribution name="massDistributionSersic">
@@ -377,25 +377,24 @@ contains
     !% Tabulate the density and enclosed mass in a dimensionless S\'ersic profile.
     use :: Memory_Management       , only : allocateArray            , deallocateArray
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : Integrate                , Integrate_Done
+    use :: Numerical_Integration   , only : integrator
     use :: Numerical_Interpolation , only : Interpolate              , Interpolate_Done
     use :: Numerical_Ranges        , only : Make_Range               , rangeTypeLogarithmic
     use :: Root_Finder             , only : rangeExpandMultiplicative, rootFinder
     implicit none
-    class           (massDistributionSersic    ), intent(inout), target   :: self
-    double precision                            , intent(in   ), optional :: radius
-    double precision                            , parameter               :: radiusMaximumToTabulate=1.0d+3
-    double precision                            , parameter               :: coefficientTolerance   =1.0d-6
-    double precision                            , parameter               :: coefficientGuess       =7.67d0
-    type            (rootFinder                ), save                    :: finder
+    class           (massDistributionSersic), intent(inout), target   :: self
+    double precision                        , intent(in   ), optional :: radius
+    double precision                        , parameter               :: radiusMaximumToTabulate=1.0d+3
+    double precision                        , parameter               :: coefficientTolerance   =1.0d-6
+    double precision                        , parameter               :: coefficientGuess       =7.67d0
+    type            (rootFinder            ), save                    :: finder
     !$omp threadprivate(finder)
-    logical                                                               :: rebuildTable                  , tableHasSufficientExtent
-    integer                                                               :: iRadius
-    double precision                                                      :: deltaRadius                   , integrand                , &
-         &                                                                   massPrevious                  , previousIntegrand        , &
-         &                                                                   radiusActual                  , radiusInfinity
-    type            (fgsl_function             )                          :: integrandFunction
-    type            (fgsl_integration_workspace)                          :: integrationWorkspace
+    logical                                                           :: rebuildTable                  , tableHasSufficientExtent
+    integer                                                           :: iRadius
+    double precision                                                  :: deltaRadius                   , integrand                , &
+         &                                                               massPrevious                  , previousIntegrand        , &
+         &                                                               radiusActual                  , radiusInfinity
+    type            (integrator            )                          :: integrator_
 
     ! Check if a radius was specified. Use it if so, otherwise use a midpoint radius.
     if (present(radius)) then
@@ -451,18 +450,13 @@ contains
           ! Compute a suitably large approximation to infinite radius for use in integration.
           radiusInfinity=10.0d0*self%tableRadiusMaximum
           ! Loop over radii and compute the inverse Abel integral required to get the 3D Sérsic profile.
+          integrator_=integrator(sersicAbelIntegrand,toleranceRelative=1.0d-3)
           do iRadius=1,self%tableCount
-             self%radiusStart          =self%tableRadius(iRadius)
-             self%tableDensity(iRadius)=Integrate(                                             &
-                  &                                                 self%radiusStart         , &
-                  &                                                      radiusInfinity      , &
-                  &                                                      sersicAbelIntegrand , &
-                  &                                                      integrandFunction   , &
-                  &                                                      integrationWorkspace, &
-                  &                               toleranceAbsolute=0.0d+0                   , &
-                  &                               toleranceRelative=1.0d-3                     &
-                  &                              )
-             call Integrate_Done(integrandFunction,integrationWorkspace)
+             self%radiusStart          =self       %tableRadius(iRadius)
+             self%tableDensity(iRadius)=integrator_%integrate  (                     &
+                  &                                             self%radiusStart   , &
+                  &                                                  radiusInfinity  &
+                  &                                            )
              ! Accumulate the enclosed mass using a simple trapezoidal integration.
              if (iRadius == 1) then
                 deltaRadius      =self%tableRadius(iRadius)

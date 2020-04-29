@@ -37,18 +37,16 @@ contains
 
   double precision function Galactic_Structure_Velocity_Dispersion(thisNode,radius,radiusOuter,componentType,massType)
     !% Returns the velocity dispersion of the specified {\normalfont \ttfamily componentType} in {\normalfont \ttfamily thisNode} at the given {\normalfont \ttfamily radius}.
-    use :: FGSL                              , only : fgsl_function                   , fgsl_integration_workspace
     use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : radiusLarge
-    use :: Numerical_Integration             , only : Integrate                       , Integrate_Done
-    type            (treeNode                  ), intent(inout), target   :: thisNode
-    double precision                            , intent(in   )           :: radius              , radiusOuter
-    integer                                     , intent(in   )           :: componentType       , massType
-    double precision                                                      :: componentDensity    , densityVelocityVariance, &
-         &                                                                   massTotal
-    type            (fgsl_function             )                          :: integrandFunction
-    type            (fgsl_integration_workspace)                          :: integrationWorkspace
+    use :: Numerical_Integration             , only : integrator
+    type            (treeNode  ), intent(inout), target   :: thisNode
+    double precision            , intent(in   )           :: radius          , radiusOuter
+    integer                     , intent(in   )           :: componentType   , massType
+    double precision                                      :: componentDensity, densityVelocityVariance, &
+         &                                                   massTotal
+    type            (integrator)                          :: integrator_
 
     activeNode         => thisNode
     componentTypeGlobal=  componentType
@@ -61,9 +59,8 @@ contains
        return
     end if
     ! Integrate the Jeans equation.
-    densityVelocityVariance=Integrate(radius,radiusOuter,Velocity_Dispersion_Integrand&
-         &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_            =integrator           (Velocity_Dispersion_Integrand,toleranceRelative=1.0d-3)
+    densityVelocityVariance=integrator_%integrate(radius                       ,radiusOuter             )
     ! Get the density at this radius.
     componentDensity=Galactic_Structure_Density(thisNode,[radius,0.0d0,0.0d0],componentType=componentType,massType=massType)
     ! Check for zero density.

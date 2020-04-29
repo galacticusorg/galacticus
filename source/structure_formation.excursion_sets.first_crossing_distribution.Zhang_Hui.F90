@@ -365,9 +365,8 @@ contains
 
   double precision function zhangHuiG2Integrated(self,variance,deltaVariance,time,node)
     !% Integrated function $g_2(S,S^\prime)$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
-    use :: FGSL                 , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
     use :: Numerical_Comparison , only : Values_Differ
-    use :: Numerical_Integration, only : Integrate         , Integrate_Done
+    use :: Numerical_Integration, only : integrator   , GSL_Integ_Gauss15
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout) :: self
     double precision                                   , intent(in   ) :: deltaVariance                 , time           , &
@@ -376,8 +375,7 @@ contains
     double precision                                   , parameter     :: gradientChangeTolerance=1.0d-3
     double precision                                                   :: smallStep                     , barrierGradient, &
          &                                                                barrier
-    type            (fgsl_function                    )                :: integrandFunction
-    type            (fgsl_integration_workspace       )                :: integrationWorkspace
+    type            (integrator                       )                :: integrator_
 
     ! Store variables needed in the integrand.
     barrier        =self%excursionSetBarrier_%barrier        (variance,time,node,rateCompute=.false.)
@@ -390,18 +388,17 @@ contains
        smallStep=0.5d0*smallStep
     end do
     ! Compute the non-divergent part of the integral numerically.
-    zhangHuiG2Integrated=Integrate(                                          &
-         &                                           variance-deltaVariance, &
-         &                                           variance-smallStep    , &
-         &                                           zhangHuiG2Integrand   , &
-         &                                           integrandFunction     , &
-         &                                           integrationWorkspace  , &
-         &                         toleranceAbsolute=1.0d-50               , &
-         &                         toleranceRelative=1.0d-06               , &
-         &                         hasSingularities =.true.                , &
-         &                         integrationRule  =FGSL_Integ_Gauss15      &
-         &                        )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_         =integrator           (                                          &
+         &                                                        zhangHuiG2Integrand  , &
+         &                                     toleranceAbsolute=1.0d-50               , &
+         &                                     toleranceRelative=1.0d-06               , &
+         &                                     hasSingularities =.true.                , &
+         &                                     integrationRule  =GSL_Integ_Gauss15       &
+         &                                    )
+    zhangHuiG2Integrated=integrator_%integrate(                                          &
+         &                                                       variance-deltaVariance, &
+         &                                                       variance-smallStep      &
+         &                                    )
     ! Compute the divergent part of the integral with an analytic approximation.
     zhangHuiG2Integrated=+zhangHuiG2Integrated               &
          &               +erf(                               &

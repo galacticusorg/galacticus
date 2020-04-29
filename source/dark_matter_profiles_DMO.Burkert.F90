@@ -848,12 +848,12 @@ contains
     !% Computes the total energy of an Burkert profile halo of given {\normalfont \ttfamily concentration} using the methods of
     !% \citeauthor{cole_hierarchical_2000}~(\citeyear{cole_hierarchical_2000}; their Appendix~A).
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : Integrate, Integrate_Done
+    use :: Numerical_Integration   , only : integrator
     implicit none
     class           (darkMatterProfileDMOBurkert), intent(inout) :: self
     double precision                             , intent(in   ) :: concentration
-    type            (fgsl_function              )                :: integrandFunction
-    type            (fgsl_integration_workspace )                :: integrationWorkspace
+    type            (integrator                 )                :: integratorPotential    , integratorJeans       , &
+         &                                                          integratorKinetic
     double precision                                             :: jeansEquationIntegral  , kineticEnergy         , &
          &                                                          kineticEnergyIntegral  , potentialEnergy       , &
          &                                                          potentialEnergyIntegral, radiusMaximum         , &
@@ -863,24 +863,21 @@ contains
     radiusMinimum          =0.0d0
     radiusMaximum          =concentration
     concentrationParameter =concentration
-    potentialEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,burkertPotentialEnergyIntegrand,integrandFunction, &
-         &                            integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
-    call Integrate_Done(integrandFunction,integrationWorkspace)
-    potentialEnergy=-0.5d0*(1.0d0/concentration+potentialEnergyIntegral)
+    integratorPotential    =integrator(burkertPotentialEnergyIntegrand,toleranceRelative=1.0d-3)
+    potentialEnergyIntegral=integratorPotential%integrate(radiusMinimum,radiusMaximum)
+    potentialEnergy        =-0.5d0*(1.0d0/concentration+potentialEnergyIntegral)
     ! Compute the velocity dispersion at the virial radius.
     radiusMinimum         =concentration
     radiusMaximum         =100.0d0*concentration
     concentrationParameter=concentration
-    jeansEquationIntegral =Integrate(radiusMinimum,radiusMaximum,burkertJeansEquationIntegrand,integrandFunction, &
-         &                           integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integratorJeans       =integrator(burkertJeansEquationIntegrand,toleranceRelative=1.0d-3)
+    jeansEquationIntegral =integratorJeans%integrate(radiusMinimum,radiusMaximum)
     ! Compute the kinetic energy.
     radiusMinimum         =0.0d0
     radiusMaximum         =concentration
     concentrationParameter=concentration
-    kineticEnergyIntegral =Integrate(radiusMinimum,radiusMaximum,burkertKineticEnergyIntegrand,integrandFunction, &
-         &                           integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integratorKinetic     =integrator(burkertKineticEnergyIntegrand,toleranceRelative=1.0d-3)
+    kineticEnergyIntegral =integratorKinetic%integrate(radiusMinimum,radiusMaximum)
     kineticEnergy         =2.0d0*Pi*(jeansEquationIntegral*concentration**3+kineticEnergyIntegral)
     ! Compute the total energy.
     burkertProfileEnergy  =(potentialEnergy+kineticEnergy)*concentration
@@ -1122,27 +1119,18 @@ contains
 
   double precision function burkertFreefallTimeScaleFree(self,radius)
     !% Compute the freefall time in a scale-free Burkert halo.
-    use :: Numerical_Integration, only : Integrate, Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
     class           (darkMatterProfileDMOBurkert), intent(inout) :: self
     double precision                             , intent(in   ) :: radius
-    type            (fgsl_function              )                :: integrandFunction
-    type            (fgsl_integration_workspace )                :: integrationWorkspace
-    double precision                                             :: radiusEnd           , radiusStart
+    type            (integrator                 )                :: integrator_
+    double precision                                             :: radiusEnd  , radiusStart
     !$GLC attributes unused :: self
 
-    radiusStart=radius
-    radiusEnd  =0.0d0
-    burkertFreefallTimeScaleFree=Integrate(                                                         &
-         &                                                   radiusEnd                            , &
-         &                                                   radiusStart                          , &
-         &                                                   burkertFreefallTimeScaleFreeIntegrand, &
-         &                                                   integrandFunction                    , &
-         &                                                   integrationWorkspace                 , &
-         &                                 toleranceAbsolute=0.0d+0                               , &
-         &                                 toleranceRelative=1.0d-5                                 &
-         &                                )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    radiusStart                 =radius
+    radiusEnd                   =0.0d0
+    integrator_                 =integrator           (burkertFreefallTimeScaleFreeIntegrand,toleranceRelative=1.0d-5)
+    burkertFreefallTimeScaleFree=integrator_%integrate(radiusEnd                            ,radiusStart             )
     return
 
   contains
@@ -1374,33 +1362,24 @@ contains
 
   double precision function burkertRadialVelocityDispersionScaleFree(self,radius)
     !% Compute the radial velocity dispersion in a scale-free Burkert halo.
-    use :: Numerical_Integration, only : Integrate, Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
     class           (darkMatterProfileDMOBurkert), intent(inout)            :: self
     double precision                             , intent(in   )            :: radius
-    double precision                                            , parameter :: radiusTiny          =1.0d-9, radiusLarge  =5.0d3
-    double precision                                                        :: radiusMinimum              , radiusMaximum
-    type            (fgsl_function              )                           :: integrandFunction
-    type            (fgsl_integration_workspace )                           :: integrationWorkspace
+    double precision                                            , parameter :: radiusTiny   =1.0d-9, radiusLarge  =5.0d3
+    double precision                                                        :: radiusMinimum       , radiusMaximum
+    type            (integrator                 )                           :: integrator_
     !$GLC attributes unused :: self
 
-    radiusMinimum=max(       radius,radiusTiny )
-    radiusMaximum=max(10.0d0*radius,radiusLarge)
-    burkertRadialVelocityDispersionScaleFree=sqrt(                                              &
-         &                                        +Integrate(                                   &
-         &                                                   radiusMinimum                    , &
-         &                                                   radiusMaximum                    , &
-         &                                                   burkertJeansEquationIntegrand    , &
-         &                                                   integrandFunction                , &
-         &                                                   integrationWorkspace             , &
-         &                                                   toleranceAbsolute    =0.0d+0     , &
-         &                                                   toleranceRelative    =1.0d-6       &
-         &                                                  )                                   &
-         &                                        *(1.0d0+radius   )                            &
-         &                                        *(1.0d0+radius**2)                            &
+    radiusMinimum                           =max(       radius,radiusTiny )
+    radiusMaximum                           =max(10.0d0*radius,radiusLarge)
+    integrator_                             =integrator(burkertJeansEquationIntegrand,toleranceRelative=1.0d-6)
+    burkertRadialVelocityDispersionScaleFree=sqrt(                                                    &
+         &                                        +integrator_%integrate(radiusMinimum,radiusMaximum) &
+         &                                        *(1.0d0+radius   )                                  &
+         &                                        *(1.0d0+radius**2)                                  &
          &                                       )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
-    return
+     return
 
   contains
 

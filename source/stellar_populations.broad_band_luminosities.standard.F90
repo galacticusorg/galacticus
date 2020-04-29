@@ -300,7 +300,6 @@ contains
   subroutine standardTabulate(self,luminosityIndex,filterIndex,stellarPopulationSpectraPostprocessor_,stellarPopulation_,redshift)
     !% Tabulate stellar population luminosity in the given filters.
     use            :: Abundances_Structure            , only : logMetallicityZero        , metallicityTypeLogarithmicByMassSolar
-    use            :: FGSL                            , only : FGSL_Integ_Gauss15        , fgsl_function                        , fgsl_integration_workspace
     use            :: File_Utilities                  , only : File_Exists               , File_Lock                            , File_Unlock               , lockDescriptor
     use            :: Galacticus_Display              , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear     , Galacticus_Display_Indent , Galacticus_Display_Unindent, &
          &                                                     verbosityWorking
@@ -312,7 +311,7 @@ contains
     use            :: Instruments_Filters             , only : Filter_Extent             , Filter_Name
     use            :: Memory_Management               , only : Memory_Usage_Record       , allocateArray                        , deallocateArray
     use            :: Numerical_Constants_Astronomical, only : metallicitySolar
-    use            :: Numerical_Integration           , only : Integrate                 , Integrate_Done
+    use            :: Numerical_Integration           , only : integrator                , GSL_Integ_Gauss15
     use            :: String_Handling                 , only : operator(//)
     implicit none
     class           (stellarPopulationBroadBandLuminositiesStandard), intent(inout)                   :: self
@@ -335,8 +334,7 @@ contains
     logical                                                                                           :: computeTable                                  , calculateLuminosity                  , &
          &                                                                                               stellarPopulationHashedDescriptorComputed
     double precision                                                                                  :: toleranceRelative                             , normalization
-    type            (fgsl_function                                 )                                  :: integrandFunction
-    type            (fgsl_integration_workspace                    )                                  :: integrationWorkspace
+    type            (integrator                                    )                                  :: integrator_                                   , integratorAB_
     type            (varying_string                                )                                  :: message                                       , luminositiesFileName                 , &
          &                                                                                               descriptorString                              , stellarPopulationHashedDescriptor    , &
          &                                                                                               postprocessorHashedDescriptor
@@ -470,6 +468,8 @@ contains
                         &  size(luminosityIndex)
                    call Galacticus_Display_Indent (message,verbosityWorking)
                    call Galacticus_Display_Counter(0,.true.,verbosityWorking)
+                   ! Build an integrator for AB luminosity.
+                   integratorAB_=integrator(integrandFilteredLuminosityAB,toleranceRelative=self%integrationToleranceRelative)
                    ! Get wavelength extent of the filter.
                    wavelengthRange=Filter_Extent(filterIndex(iLuminosity))
                    ! Integrate over the wavelength range.
@@ -479,7 +479,8 @@ contains
                    loopCountMaximum    =+self%luminosityTables(populationID)%metallicitiesCount &
                         &               *self%luminosityTables(populationID)%agesCount
                    loopCount           = 0
-                   !$omp parallel private(iAge,iMetallicity,integrandFunction,integrationWorkspace,toleranceRelative,errorStatus) copyin(standardFilterIndex,standardRedshift,standardPopulationID)
+                   !$omp parallel private(iAge,iMetallicity,integrator_,toleranceRelative,errorStatus) copyin(standardFilterIndex,standardRedshift,standardPopulationID)
+                   integrator_=integrator(integrandFilteredLuminosity,toleranceRelative=self%integrationToleranceRelative,integrationRule=GSL_Integ_Gauss15,intervalsMaximum=10000_c_size_t)
                    allocate(standardStellarPopulationSpectra             ,mold=stellarPopulationSpectra_                                                                 )
                    allocate(standardStellarPopulationSpectraPostprocessor,mold=stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_)
                    !$omp critical(broadBandLuminositiesDeepCopy)
@@ -500,24 +501,17 @@ contains
                          toleranceRelative=self%integrationToleranceRelative
                          errorStatus      =errorStatusFail
                          do while (errorStatus /= errorStatusSuccess)
+                            call integrator_%toleranceSet(toleranceRelative=toleranceRelative)
                             self%luminosityTables(populationID)%luminosity(                              &
                                  &                                         luminosityIndex(iLuminosity), &
                                  &                                         iAge                        , &
                                  &                                         iMetallicity                  &
                                  &                                        )                              &
-                                 & =Integrate(                                                           &
-                                 &            wavelengthRange(1)                                       , &
-                                 &            wavelengthRange(2)                                       , &
-                                 &            integrandFilteredLuminosity                              , &
-                                 &            integrandFunction                                        , &
-                                 &            integrationWorkspace                                     , &
-                                 &            toleranceAbsolute          =0.0d0                        , &
-                                 &            toleranceRelative          =toleranceRelative            , &
-                                 &            integrationRule            =FGSL_Integ_Gauss15           , &
-                                 &            maxIntervals               =10000                        , &
-                                 &            errorStatus                =errorStatus                    &
-                                 &           )
-                            call Integrate_Done(integrandFunction,integrationWorkspace)
+                                 & =integrator_%integrate(                           &
+                                 &                               wavelengthRange(1), &
+                                 &                               wavelengthRange(2), &
+                                 &                        status=errorStatus         &
+                                 &                       )
                             if (errorStatus /= errorStatusSuccess) then
                                if (self%integrationToleranceDegrade.and.toleranceRelative < 1.0d0) then
                                   toleranceRelative=2.0d0*toleranceRelative
@@ -548,8 +542,7 @@ contains
                    call Galacticus_Display_Counter_Clear(           verbosityWorking)
                    call Galacticus_Display_Unindent     ('finished',verbosityWorking)
                    ! Get the normalization by integrating a zeroth magnitude (AB) source through the filter.
-                   normalization=Integrate(wavelengthRange(1),wavelengthRange(2),integrandFilteredLuminosityAB,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=self%integrationToleranceRelative)
-                   call Integrate_Done(integrandFunction,integrationWorkspace)
+                   normalization=integratorAB_%integrate(wavelengthRange(1),wavelengthRange(2))
                    ! Normalize the luminosity.
                    self         %luminosityTables(populationID)%luminosity(luminosityIndex(iLuminosity),:,:) &
                         & =+self%luminosityTables(populationID)%luminosity(luminosityIndex(iLuminosity),:,:) &

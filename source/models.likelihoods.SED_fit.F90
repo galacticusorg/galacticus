@@ -239,12 +239,11 @@ contains
   double precision function sedFitEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the SED fitting likelihood function.
     use            :: Abundances_Structure             , only : abundances                          , max                                      , metallicityTypeLinearByMassSolar
-    use            :: FGSL                             , only : FGSL_Integ_Gauss61                  , fgsl_function                            , fgsl_integration_workspace
     use            :: Galacticus_Error                 , only : Galacticus_Error_Report
     use            :: Galacticus_Nodes                 , only : nodeComponentDisk
     use, intrinsic :: ISO_C_Binding                    , only : c_size_t
     use            :: Models_Likelihoods_Constants     , only : logImpossible
-    use            :: Numerical_Integration            , only : Integrate                           , Integrate_Done
+    use            :: Numerical_Integration            , only : integrator                          , GSL_Integ_Gauss61
     use            :: Posterior_Sampling_Convergence   , only : posteriorSampleConvergenceClass
     use            :: Posterior_Sampling_State         , only : posteriorSampleStateClass
     use            :: Stellar_Populations              , only : stellarPopulationClass
@@ -284,9 +283,8 @@ contains
          &                                                                                 agePrevious                                     , ageNow                       , &
          &                                                                                 ageNext
     type            (abundances                )                                        :: abundancesStars
-    type            (fgsl_function             )                                        :: integrandFunction
-    type            (fgsl_integration_workspace)                                        :: integrationWorkspace
-    logical                                                                             :: integrationReset                                , useRapidEvaluation
+    type            (integrator                )                                        :: integrator_
+    logical                                                                             :: useRapidEvaluation
     !$GLC attributes unused :: simulationConvergence, timeEvaluate, modelParametersInactive_, forceAcceptance
 
     ! There is no variance in our likelihood estimate.
@@ -529,23 +527,13 @@ contains
           end if
        else
           ! Integrate star formation history to get luminosity.
-          integrationReset=.true.
+          integrator_=integrator(luminosityIntegrand,toleranceRelative=toleranceRelative,integrationRule=GSL_Integ_Gauss61)
           if (iMagnitude == 0) then
              toleranceRelative=    1.0d-3
           else
              toleranceRelative=max(1.0d-3,toleranceRelativeFractional*self%error(imagnitude)*log(10.0d0)/2.5d0)
           end if
-          luminosity=Integrate(                                         &
-               &               timeStart                              , &
-               &               timeObserved                           , &
-               &               luminosityIntegrand                    , &
-               &               integrandFunction                      , &
-               &               integrationWorkspace                   , &
-               &               toleranceRelative   =toleranceRelative , &
-               &               integrationRule     =FGSL_Integ_Gauss61, &
-               &               reset               =integrationReset    &
-               &              )
-          call Integrate_Done(integrandFunction,integrationWorkspace)
+          luminosity=integrator_%integrate(timeStart,timeObserved)
        end if
        ! Determine if we're computing mass or luminosity.
        if (iMagnitude > 0) then

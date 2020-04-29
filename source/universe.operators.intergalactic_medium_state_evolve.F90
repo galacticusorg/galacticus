@@ -556,7 +556,7 @@ contains
 
    integer function intergalacticMediumStateEvolveODEs(time,properties,propertiesRateOfChange)
      !% Evaluates the ODEs controlling the evolution temperature.
-     use :: FGSL                                 , only : FGSL_Success      , fgsl_function    , fgsl_integration_workspace
+     use :: FGSL                                 , only : FGSL_Success
      use :: Intergalactic_Medium_Filtering_Masses, only : gnedin2000ODES    , gnedin2000ODEs
      use :: Numerical_Constants_Astronomical     , only : gigaYear
      use :: Numerical_Constants_Atomic           , only : massHeliumAtom    , massHydrogenAtom
@@ -565,7 +565,7 @@ contains
           &                                               plancksConstant   , radiationConstant, speedLight                , thomsonCrossSection
      use :: Numerical_Constants_Prefixes         , only : centi
      use :: Numerical_Constants_Units            , only : angstromsPerMeter , electronVolt
-     use :: Numerical_Integration                , only : Integrate         , Integrate_Done
+     use :: Numerical_Integration                , only : integrator
      implicit none
      double precision                                          , intent(in  )                :: time
      double precision                                          , intent(in   ), dimension(:) :: properties
@@ -575,9 +575,7 @@ contains
      double precision                                                         , dimension(2) :: densityHydrogen_                                  , massFilteringComposite_            , &
           &                                                                                     massFilteringCompositeRateOfChange
      double precision                                                         , dimension(3) :: densityHelium_                                    , massFilteringODEsRateOfChange
-     type            (fgsl_function                           )                              :: integrationFunction
-     type            (fgsl_integration_workspace              )                              :: integrationWorkspace
-     logical                                                                                 :: integrationReset
+     type            (integrator                              )                              :: integratorPhotoionization                         , integratorPhotoheating
      integer                                                                                 :: electronNumber                                    , atomicNumber                       , &
           &                                                                                     ionizationState                                   , shellNumber                        , &
           &                                                                                     photoionizationGroundIonizationState              , photoionizationGroundElectronNumber, &
@@ -638,6 +636,9 @@ contains
      ! Compute the clumping factor.
      clumpingFactor=+1.0d0                                                                                             &
           &         +intergalacticMediumStateEvolveSelf%cosmologicalMassVariance_%rootVariance(massFiltering_,time)**2
+     ! Build integrators.
+     integratorPhotoionization=integrator(integrandPhotoionizationRate       ,toleranceRelative=1.0d-2)
+     integratorPhotoheating   =integrator(integrandPhotoionizationHeatingRate,toleranceRelative=1.0d-3)
      ! Iterate over ionic species.
      iProperty=1 ! Counter for ionic species in properties array.
      do atomicNumber=1,2
@@ -751,19 +752,8 @@ contains
                    &            /electronVolt                                                                                         &
                    &            *angstromsPerMeter
               ! Integrate photoionizations over wavelength.
-              integrationReset       =.true.
-              ionizationPhotoRateFrom=-Integrate(                                                 &
-                   &                             wavelengthMinimum                              , &
-                   &                             wavelengthMaximum                              , &
-                   &                             integrandPhotoionizationRate                   , &
-                   &                             integrationFunction                            , &
-                   &                             integrationWorkspace                           , &
-                   &                             toleranceAbsolute             =0.0d+0          , &
-                   &                             toleranceRelative             =1.0d-2          , &
-                   &                             reset                         =integrationReset  &
-                   &                            )                                                 &
+              ionizationPhotoRateFrom=-integratorPhotoionization%integrate(wavelengthMinimum,wavelengthMaximum) &
                    &                  *densityThisIon
-              call Integrate_Done(integrationFunction,integrationWorkspace)
            else
               ionizationPhotoRateFrom =+0.0d0
            end if
@@ -779,34 +769,12 @@ contains
                    &            /electronVolt                                                                                           &
                    &            *angstromsPerMeter
               ! Integrate photoionizations over wavelength.
-              integrationReset     =.true.
-              ionizationPhotoRateTo=+Integrate(                                                 &
-                   &                           wavelengthMinimum                              , &
-                   &                           wavelengthMaximum                              , &
-                   &                           integrandPhotoionizationRate                   , &
-                   &                           integrationFunction                            , &
-                   &                           integrationWorkspace                           , &
-                   &                           toleranceAbsolute             =0.0d+0          , &
-                   &                           toleranceRelative             =1.0d-2          , &
-                   &                           reset                         =integrationReset  &
-                   &                          )                                                 &
-                   &                  *densityLowerIon
-              call Integrate_Done(integrationFunction,integrationWorkspace)
-              integrationReset=.true.
-              heatingRate                      =+heatingRate                                                     &
-                   &                            +Integrate(                                                      &
-                   &                                       wavelengthMinimum                                   , &
-                   &                                       wavelengthMaximum                                   , &
-                   &                                       integrandPhotoionizationHeatingRate                 , &
-                   &                                       integrationFunction                                 , &
-                   &                                       integrationWorkspace                                , &
-                   &                                       toleranceAbsolute                  =0.0d+0          , &
-                   &                                       toleranceRelative                  =1.0d-3          , &
-                   &                                       reset                              =integrationReset  &
-                   &                                      )                                                      &
-                   &                            *densityLowerIon                                                 &
+              ionizationPhotoRateTo            =+integratorPhotoionization%integrate(wavelengthMinimum,wavelengthMaximum) &
+                   &                            *densityLowerIon
+              heatingRate                      =+heatingRate                                                              &
+                   &                            +integratorPhotoheating   %integrate(wavelengthMinimum,wavelengthMaximum) &
+                   &                            *densityLowerIon                                                          &
                    &                            *gigaYear
-              call Integrate_Done(integrationFunction,integrationWorkspace)
            else
               ionizationPhotoRateTo =+0.0d0
            end if

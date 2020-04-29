@@ -245,12 +245,11 @@ contains
   double precision function massFunctionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the mass function likelihood function.
     use :: Conditional_Mass_Functions    , only : conditionalMassFunctionBehroozi2010
-    use :: FGSL                          , only : fgsl_function                              , fgsl_integration_workspace
     use :: Galacticus_Error              , only : Galacticus_Error_Report
     use :: Linear_Algebra                , only : assignment(=)                              , operator(*)
     use :: Mass_Function_Incompletenesses, only : massFunctionIncompletenessSurfaceBrightness
     use :: Models_Likelihoods_Constants  , only : logImpossible
-    use :: Numerical_Integration         , only : Integrate                                  , Integrate_Done
+    use :: Numerical_Integration         , only : integrator
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
     use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
     implicit none
@@ -258,7 +257,7 @@ contains
     class           (posteriorSampleStateClass                  ), intent(inout)               :: simulationState
     type            (modelParameterList                         ), intent(in   ), dimension(:) :: modelParametersActive_         , modelParametersInactive_
     class           (posteriorSampleConvergenceClass            ), intent(inout)               :: simulationConvergence
-    double precision                                             , intent(in   )               :: temperature                    , logLikelihoodCurrent              , &
+    double precision                                             , intent(in   )               :: temperature                    , logLikelihoodCurrent    , &
          &                                                                                        logPriorCurrent                , logPriorProposed
     real                                                         , intent(inout)               :: timeEvaluate
     double precision                                             , intent(  out), optional     :: logLikelihoodVariance
@@ -266,15 +265,13 @@ contains
     double precision                                             , allocatable  , dimension(:) :: stateVector
     type            (conditionalMassFunctionBehroozi2010        )                              :: conditionalMassFunction_
     type            (massFunctionIncompletenessSurfaceBrightness)                              :: massFunctionIncompletenessModel
-    type            (fgsl_function                              )                              :: integrandFunction               , integrandFunctionNormalization
-    type            (fgsl_integration_workspace                 )                              :: integrationWorkspace            , integrationWorkspaceNormalization
+    type            (integrator                                 )                              :: integratorMassFunction         , integratorNormalization
     type            (vector                                     )                              :: difference
-    integer                                                                                    :: i                               , j
-    double precision                                                                           :: binTimeMinimum                  , binTimeMaximum                    , &
-         &                                                                                        timeMinimum                     , timeMaximum                       , &
-         &                                                                                        distanceMaximum                 , time                              , &
-         &                                                                                        massFunction                    , normalization
-    logical                                                                                    :: integrationReset                , integrationResetNormalization
+    integer                                                                                    :: i                              , j
+    double precision                                                                           :: binTimeMinimum                 , binTimeMaximum          , &
+         &                                                                                        timeMinimum                    , timeMaximum             , &
+         &                                                                                        distanceMaximum                , time                    , &
+         &                                                                                        massFunction                   , normalization
     !$GLC attributes unused :: logLikelihoodCurrent, logPriorCurrent, simulationConvergence, temperature, timeEvaluate, modelParametersInactive_, forceAcceptance
 
     ! There is no variance in our likelihood estimate.
@@ -322,8 +319,8 @@ contains
     timeMinimum=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(self%redshiftMaximum))
     timeMaximum=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(self%redshiftMinimum))
     ! Compute the mass function.
-    integrationReset             =.true.
-    integrationResetNormalization=.true.
+    integratorMassFunction =integrator(likelihoodMassFunctionTimeIntegrand             ,toleranceRelative=1.0d-3)
+    integratorNormalization=integrator(likelihoodMassFunctionTimeNormalizationIntegrand,toleranceRelative=1.0d-3)
     do i=1,size(self%mass)
        ! A survey geometry is imposed - sum over fields.
        massFunction =0.0d0
@@ -341,30 +338,12 @@ contains
                &                )                                                                  &
                &            )
           ! Integrate the mass function over this time interval.
-          massFunction=                                                               &
-               &       +massFunction                                                  &
-               &       +self%surveyGeometry_%solidAngle(j)                            &
-               &       *Integrate(                                                    &
-               &                   binTimeMinimum                                   , &
-               &                   binTimeMaximum                                   , &
-               &                   likelihoodMassFunctionTimeIntegrand              , &
-               &                   integrandFunction                                , &
-               &                   integrationWorkspace                             , &
-               &                   toleranceRelative=1.0d-3                         , &
-               &                   reset=integrationReset                             &
-               &                  )
-          normalization=                                                              &
-               &        +normalization                                                &
-               &        +self%surveyGeometry_%solidAngle(j)                           &
-               &        *Integrate(                                                   &
-               &                   binTimeMinimum                                   , &
-               &                   binTimeMaximum                                   , &
-               &                   likelihoodMassFunctionTimeNormalizationIntegrand , &
-               &                   integrandFunctionNormalization                   , &
-               &                   integrationWorkspaceNormalization                , &
-               &                   toleranceRelative=1.0d-3                         , &
-               &                   reset=integrationResetNormalization                &
-               &                  )
+          massFunction =+massFunction                                                      &
+               &        +self%surveyGeometry_   %solidAngle(j                            ) &
+               &        *integratorMassFunction %integrate (binTimeMinimum,binTimeMaximum)
+          normalization=+normalization                                                     &
+               &        +self%surveyGeometry_   %solidAngle(j                            ) &
+               &        *integratorNormalization%integrate (binTimeMinimum,binTimeMaximum)
        end do
        self%massFunction(i)=                          &
             &               +massFunction             &
@@ -376,8 +355,6 @@ contains
        ! Account for surface brightness incompleteness if required.
        if (self%modelSurfaceBrightness) self%massFunction(i)=self%massFunction(i)*massFunctionIncompletenessModel%completeness(self%mass(i))
     end do
-    call Integrate_Done(integrandFunction             ,integrationWorkspace             )
-    call Integrate_Done(integrandFunctionNormalization,integrationWorkspaceNormalization)
     deallocate(stateVector)
     ! Evaluate the log-likelihood.
     difference          =self%massFunction-self%massFunctionObserved
@@ -391,14 +368,12 @@ contains
       use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusSuccess
       use :: String_Handling , only : operator(//)
       implicit none
-      double precision                            , intent(in   ) :: timePrime
-      type            (fgsl_function             )                :: integrandFunctionTime
-      type            (fgsl_integration_workspace)                :: integrationWorkspaceTime
-      integer                                                     :: errorStatus
-      logical                                                     :: integrationResetTime
-      type            (varying_string            )                :: message
-      character       (len=14                    )                :: label
-      double precision                                            :: haloMassMinimum,haloMassMaximum
+      double precision                , intent(in   ) :: timePrime
+      type            (integrator    )                :: integrator_
+      integer                                         :: errorStatus
+      type            (varying_string)                :: message
+      character       (len=14        )                :: label
+      double precision                                :: haloMassMinimum, haloMassMaximum
 
       ! Check for zero contribution from the ends of our halo mass range.
       haloMassMinimum=10.0d0**self%logHaloMassMinimum
@@ -444,20 +419,9 @@ contains
          end do
       end if
       time                =timePrime
-      integrationResetTime=.true.
-      likelihoodMassFunctionTimeIntegrand= Integrate(                                                      &
-           &                                           log10(haloMassMinimum)                            , &
-           &                                           log10(haloMassMaximum)                            , &
-           &                                           likelihoodMassFunctionHaloMassIntegrand           , &
-           &                                           integrandFunctionTime                             , &
-           &                                           integrationWorkspaceTime                          , &
-           &                                           toleranceRelative=1.0d-3                          , &
-           &                                           toleranceAbsolute=1.0d-9                          , &
-           &                                           reset      =integrationResetTime                  , &
-           &                                           errorStatus=errorStatus                             &
-           &                                          )                                                    &
-           &                               *self%cosmologyFunctions_%comovingVolumeElementTime(timePrime)
-      call Integrate_Done(integrandFunctionTime,integrationWorkspaceTime)
+      integrator_                        = integrator                                               (likelihoodMassFunctionHaloMassIntegrand,toleranceRelative=1.0d-3                ,toleranceAbsolute=1.0d-9     )
+      likelihoodMassFunctionTimeIntegrand=+integrator_                    %integrate                (log10(haloMassMinimum)                 ,                  log10(haloMassMaximum),status           =errorStatus) &
+           &                              *self       %cosmologyFunctions_%comovingVolumeElementTime(timePrime                                                                                                     )
       if (errorStatus /= errorStatusSuccess) then
          message='integration failed - state vector follows'
          do i=1,size(stateVector)

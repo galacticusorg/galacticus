@@ -460,10 +460,9 @@ contains
     use :: Galacticus_Display      , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
          &                                  verbosityWorking
     use :: Galacticus_Paths        , only : galacticusPath             , pathTypeDataDynamic
-    use :: FGSL                    , only : fgsl_function              , fgsl_integration_workspace
     use :: File_Utilities          , only : File_Exists                , File_Lock                       , File_Unlock              , File_Path                  , &
          &                                  Directory_Make             , lockDescriptor
-    use :: Numerical_Integration   , only : Integrate                  , Integrate_Done
+    use :: Numerical_Integration   , only : integrator
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Ranges        , only : Make_Range                 , rangeTypeLogarithmic
     use :: ISO_Varying_String      , only : operator(//)               , char                            , varying_string
@@ -475,9 +474,7 @@ contains
     double precision                                   , parameter           :: xMinimum            =1.0d-3, xMaximum            =5.0d1
     double precision                                   , parameter           :: scaleLengthMinimum  =1.0d-2, scaleLengthMaximum  =1.0d0
     double precision                                   , parameter           :: xPerDecade          =1.0d+1, scaleLengthPerDecade=1.0d1
-    type            (fgsl_function                    )               , save :: integrandFunction
-    type            (fgsl_integration_workspace       )               , save :: integrationWorkspace
-    logical                                                           , save :: integrationReset
+    type            (integrator                       )               , save :: integrator_
     double precision                                                  , save :: uLow                       , uHigh
     integer                                                           , save :: iAxis                      , l                       , &
          &                                                                      m
@@ -487,7 +484,7 @@ contains
     type            (varying_string                   )                      :: fileName
     type            (hdf5Object                       )                      :: file
     type            (lockDescriptor                   )                      :: fileLock
-    !$omp threadprivate(positionCartesian,scaleLength,integrandFunction,integrationWorkspace,integrationReset,uLow,uHigh,iAxis,l,m)
+    !$omp threadprivate(positionCartesian,scaleLength,integrator_,uLow,uHigh,iAxis,l,m)
     
     ! Return if acceleration is initialized.
     if (self%accelerationInitialized) return
@@ -521,7 +518,9 @@ contains
        countWork=0
        do i=1,countX
           do j=1,countX
-             !$omp parallel do schedule(dynamic)
+             !$omp parallel
+             integrator_=integrator(accelerationIntegrand,toleranceRelative=1.0d-3)
+             !$omp do schedule(dynamic)
              do k=1,countX
                 !$omp atomic
                 countWork=countWork+1
@@ -534,26 +533,19 @@ contains
                       uHigh=max(maxval(self%scaleLength),maxval(abs(positionCartesian)))*uHighFactor
                       do iAxis=1,3
                          ! Note that the factor of ∏ᵢ₌₁³ aᵢ has been cancelled with that appearing in the density normalization.
-                         integrationReset                        =.true.
-                         self%accelerationVector(iAxis,i,j,k,l,m)=-2.0d0                                              &
-                              &                                   *Pi                                                 &
-                              &                                   *positionCartesian(iAxis)                           &
-                              &                                   *Integrate(                                         &
-                              &                                                                uLow                 , &
-                              &                                                                uHigh                , &
-                              &                                                                accelerationIntegrand, &
-                              &                                                                integrandFunction    , &
-                              &                                                                integrationWorkspace , &
-                              &                                              reset            =integrationReset     , &
-                              &                                              toleranceAbsolute=0.0d+0               , &
-                              &                                              toleranceRelative=1.0d-3                 &
-                              &                                             )
-                         call Integrate_Done(integrandFunction,integrationWorkspace)
+                         self%accelerationVector(iAxis,i,j,k,l,m)=-2.0d0                         &
+                              &                                   *Pi                            &
+                              &                                   *positionCartesian(iAxis)      &
+                              &                                   *integrator_%integrate(        &
+                              &                                                          uLow  , &
+                              &                                                          uHigh   &
+                              &                                                         )
                       end do
                    end do
                 end do
              end do
-             !$omp end parallel do
+             !$omp end do
+             !$omp end parallel
           end do
        end do
        call Galacticus_Display_Counter_Clear(       verbosityWorking)

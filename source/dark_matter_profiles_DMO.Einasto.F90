@@ -19,7 +19,7 @@
 
   !% An implementation of ``Einasto'' dark matter halo profiles.
 
-  use :: FGSL, only : fgsl_function, fgsl_integration_workspace, fgsl_interp, fgsl_interp_accel
+  use :: FGSL, only : fgsl_interp, fgsl_interp_accel
 
   !# <darkMatterProfileDMO name="darkMatterProfileDMOEinasto">
   !#  <description>``Einasto'' dark matter halo profiles</description>
@@ -989,7 +989,7 @@ contains
     !% Create a tabulation of the energy of Einasto profiles as a function of their concentration of $\alpha$ parameter.
     use :: Memory_Management       , only : allocateArray   , deallocateArray
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : Integrate       , Integrate_Done
+    use :: Numerical_Integration   , only : integrator
     use :: Numerical_Interpolation , only : Interpolate_Done
     use :: Numerical_Ranges        , only : Make_Range      , rangeTypeLinear, rangeTypeLogarithmic
     implicit none
@@ -997,14 +997,14 @@ contains
     double precision                             , intent(in   ) :: alphaRequired          , concentrationRequired
     integer                                                      :: iAlpha                 , iConcentration
     logical                                                      :: makeTable
-    double precision                                             :: alpha                  , concentration        , &
-         &                                                          jeansEquationIntegral  , kineticEnergy        , &
-         &                                                          kineticEnergyIntegral  , potentialEnergy      , &
-         &                                                          potentialEnergyIntegral, radiusMaximum        , &
+    double precision                                             :: alpha                  , concentration         , &
+         &                                                          jeansEquationIntegral  , kineticEnergy         , &
+         &                                                          kineticEnergyIntegral  , potentialEnergy       , &
+         &                                                          potentialEnergyIntegral, radiusMaximum         , &
          &                                                          radiusMinimum          , concentrationParameter, &
          &                                                          alphaParameter
-    type            (fgsl_function              )                :: integrandFunction
-    type            (fgsl_integration_workspace )                :: integrationWorkspace
+    type            (integrator                 )                :: integratorPotential    , integratorKinetic     , &
+         &                                                          integratorJeans
 
     ! Assume table does not need remaking.
     makeTable=.false.
@@ -1044,6 +1044,9 @@ contains
        self%energyTableConcentration=Make_Range(self%energyTableConcentrationMinimum,self%energyTableConcentrationMaximum, &
             &                                   self%energyTableConcentrationCount  ,rangeType=rangeTypeLogarithmic)
        ! Tabulate the radius vs. specific angular momentum relation.
+       integratorPotential=integrator(einastoPotentialEnergyIntegrand,toleranceRelative=1.0d-3)
+       integratorKinetic  =integrator(einastoKineticEnergyIntegrand  ,toleranceRelative=1.0d-3)
+       integratorJeans    =integrator(einastoJeansEquationIntegrand  ,toleranceRelative=1.0d-3)
        do iAlpha=1,self%energyTableAlphaCount
           alpha=self%energyTableAlpha(iAlpha)
           do iConcentration=1,self%energyTableConcentrationCount
@@ -1054,9 +1057,7 @@ contains
              radiusMaximum         =concentration
              concentrationParameter=concentration
              alphaParameter        =alpha
-             potentialEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,einastoPotentialEnergyIntegrand,integrandFunction, &
-                  &                            integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
-             call Integrate_Done(integrandFunction,integrationWorkspace)
+             potentialEnergyIntegral=integratorPotential%integrate(radiusMinimum,radiusMaximum)
              potentialEnergy=-0.5d0*(1.0d0/concentration+potentialEnergyIntegral)
 
              ! Compute the velocity dispersion at the virial radius.
@@ -1064,18 +1065,14 @@ contains
              radiusMaximum         =100.0d0*concentration
              concentrationParameter=        concentration
              alphaParameter        =alpha
-             jeansEquationIntegral=Integrate(radiusMinimum,radiusMaximum,einastoJeansEquationIntegrand,integrandFunction, &
-                  &                          integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
-             call Integrate_Done(integrandFunction,integrationWorkspace)
+             jeansEquationIntegral=integratorJeans%integrate(radiusMinimum,radiusMaximum)
 
              ! Compute the kinetic energy.
              radiusMinimum         =0.0d0
              radiusMaximum         =concentration
              concentrationParameter=concentration
              alphaParameter        =alpha
-             kineticEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,einastoKineticEnergyIntegrand,integrandFunction, &
-                  &                          integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
-             call Integrate_Done(integrandFunction,integrationWorkspace)
+             kineticEnergyIntegral=integratorKinetic%integrate(radiusMinimum,radiusMaximum)
              kineticEnergy=2.0d0*Pi*(jeansEquationIntegral*concentration**3+kineticEnergyIntegral)
 
              ! Compute the total energy.
@@ -1261,13 +1258,14 @@ contains
   subroutine einastoFourierProfileTableMake(self,wavenumberRequired,concentrationRequired,alphaRequired)
     !% Create a tabulation of the Fourier transform of Einasto profiles as a function of their $\alpha$ parameter and
     !% dimensionless wavenumber.
-    use :: Galacticus_Display     , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-          &                                verbosityInfo             , verbosityWorking
-    use :: Galacticus_Error       , only : Galacticus_Error_Report   , errorStatusSuccess
-    use :: Memory_Management      , only : allocateArray             , deallocateArray
-    use :: Numerical_Integration  , only : Integrate                 , Integrate_Done
-    use :: Numerical_Interpolation, only : Interpolate_Done
-    use :: Numerical_Ranges       , only : Make_Range                , rangeTypeLinear                 , rangeTypeLogarithmic
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
+    use            :: Galacticus_Display     , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
+          &                                           verbosityInfo             , verbosityWorking
+    use            :: Galacticus_Error       , only : Galacticus_Error_Report   , errorStatusSuccess
+    use            :: Memory_Management      , only : allocateArray             , deallocateArray
+    use            :: Numerical_Integration  , only : integrator
+    use            :: Numerical_Interpolation, only : Interpolate_Done
+    use            :: Numerical_Ranges       , only : Make_Range                , rangeTypeLinear                 , rangeTypeLogarithmic
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
     double precision                             , intent(in   ) :: alphaRequired                , concentrationRequired, wavenumberRequired
@@ -1278,8 +1276,7 @@ contains
     double precision                                             :: alpha                        , concentration        , radiusMaximum      , &
          &                                                          radiusMinimum                , wavenumber           , wavenumberParameter, &
          &                                                          concentrationParameter       , alphaParameter
-    type            (fgsl_function              )                :: integrandFunction
-    type            (fgsl_integration_workspace )                :: integrationWorkspace
+    type            (integrator                 )                :: integrator_
     character       (len=12                     )                :: label
     type            (varying_string             )                :: message
 
@@ -1334,6 +1331,7 @@ contains
        self%fourierProfileTableWavenumber   =Make_Range(self%fourierProfileTableWavenumberMinimum   ,self%fourierProfileTableWavenumberMaximum   , &
             &                                           self%fourierProfileTableWavenumberCount     ,rangeType=rangeTypeLogarithmic)
        ! Tabulate the Fourier profile.
+       integrator_=integrator(einastoFourierProfileIntegrand,toleranceRelative=1.0d-3,intervalsMaximum=1000_c_size_t)
        do iAlpha=1,self%fourierProfileTableAlphaCount
           alpha=self%fourierProfileTableAlpha(iAlpha)
           do iConcentration=1,self%fourierProfileTableConcentrationCount
@@ -1358,11 +1356,7 @@ contains
                    wavenumberParameter   =wavenumber
                    alphaParameter        =alpha
                    concentrationParameter=concentration
-                   self%fourierProfileTable(iWavenumber,iConcentration,iAlpha)=Integrate(radiusMinimum,radiusMaximum,einastoFourierProfileIntegrand, &
-                        &                                                                integrandFunction      ,integrationWorkspace              , &
-                        &                                                                toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3          , &
-                        &                                                                maxIntervals     =10000,errorStatus      =errorStatus)
-                   call Integrate_Done(integrandFunction,integrationWorkspace)
+                   self%fourierProfileTable(iWavenumber,iConcentration,iAlpha)=integrator_%integrate(radiusMinimum,radiusMaximum,status=errorStatus)
                    if (errorStatus /= errorStatusSuccess) then
                       message="Integration of Einasto profile Fourier transform failed at:"//char(10)
                       write (label,'(e12.6)') wavenumber
@@ -1653,27 +1647,19 @@ contains
 
   double precision function einastoFreefallTimeScaleFree(self,radius,alpha)
     !% Compute the freefall time in a scale-free Einasto halo.
-    use :: Numerical_Integration, only : Integrate
+    use :: Numerical_Integration, only : integrator
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
-    double precision                             , intent(in   ) :: alpha               , radius
-    type            (fgsl_function              )                :: integrandFunction
-    type            (fgsl_integration_workspace )                :: integrationWorkspace
-    double precision                                             :: radiusStart         , radiusEnd, &
+    double precision                             , intent(in   ) :: alpha         , radius
+    type            (integrator                 )                :: integrator_
+    double precision                                             :: radiusStart   , radiusEnd, &
          &                                                          alphaParameter
 
     radiusStart                 =radius
     radiusEnd                   =0.0d0
     alphaParameter              =alpha
-    einastoFreefallTimeScaleFree=Integrate(                                                         &
-         &                                                   radiusEnd                            , &
-         &                                                   radiusStart                          , &
-         &                                                   einastoFreefallTimeScaleFreeIntegrand, &
-         &                                                   integrandFunction                    , &
-         &                                                   integrationWorkspace                 , &
-         &                                 toleranceAbsolute=0.0d+0                               , &
-         &                                 toleranceRelative=1.0d-3                                 &
-         &                                )
+    integrator_                 =integrator           (einastoFreefallTimeScaleFreeIntegrand,toleranceRelative=1.0d-3)
+    einastoFreefallTimeScaleFree=integrator_%integrate(radiusEnd                            ,radiusStart             )
     return
 
   contains
@@ -1743,31 +1729,22 @@ contains
 
   double precision function einastoRadialVelocityDispersionScaleFree(self,radius,alpha)
     !% Compute the radial velocity dispersion in a scale-free Einasto halo.
-    use :: Numerical_Integration, only : Integrate, Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout)            :: self
-    double precision                             , intent(in   )            :: radius                     , alpha
-    double precision                                            , parameter :: radiusTiny          =1.0d-9, radiusLarge  =5.0d3
-    double precision                                                        :: radiusMinimum              , radiusMaximum
-    type            (fgsl_function              )                           :: integrandFunction
-    type            (fgsl_integration_workspace )                           :: integrationWorkspace
+    double precision                             , intent(in   )            :: radius              , alpha
+    double precision                                            , parameter :: radiusTiny   =1.0d-9, radiusLarge  =5.0d3
+    double precision                                                        :: radiusMinimum       , radiusMaximum
+    type            (integrator                 )                           :: integrator_
     !$GLC attributes unused :: self
 
     radiusMinimum=max(       radius,radiusTiny )
     radiusMaximum=max(10.0d0*radius,radiusLarge)
-    einastoRadialVelocityDispersionScaleFree=sqrt(                                              &
-         &                                        +Integrate(                                   &
-         &                                                   radiusMinimum                    , &
-         &                                                   radiusMaximum                    , &
-         &                                                   einastoJeansEquationIntegrand    , &
-         &                                                   integrandFunction                , &
-         &                                                   integrationWorkspace             , &
-         &                                                   toleranceAbsolute    =0.0d+0     , &
-         &                                                   toleranceRelative    =1.0d-6       &
-         &                                                  )                                   &
-         &                                        /exp(-(2.0d0/alpha)*(radius**alpha-1.0d0))    &
+    integrator_=integrator(einastoJeansEquationIntegrand,toleranceRelative=1.0d-6)
+    einastoRadialVelocityDispersionScaleFree=sqrt(                                                    &
+         &                                        +integrator_%integrate(radiusMinimum,radiusMaximum) &
+         &                                        /exp(-(2.0d0/alpha)*(radius**alpha-1.0d0))          &
          &                                       )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
     return
 
   contains

@@ -205,8 +205,7 @@ contains
 
   function jiang2014ConstructorInternal(bRatioLow,bRatioIntermediate,bRatioHigh,gammaRatioLow,gammaRatioIntermediate,gammaRatioHigh,sigmaRatioLow,sigmaRatioIntermediate,sigmaRatioHigh,muRatioLow,muRatioIntermediate,muRatioHigh,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily jiang2014} virial orbits class.
-    use :: FGSL                    , only : FGSL_Integ_Gauss61          , fgsl_function , fgsl_integration_workspace
-    use :: Numerical_Integration   , only : Integrate                   , Integrate_Done
+    use :: Numerical_Integration   , only : integrator                  , GSL_Integ_Gauss61
     use :: Statistics_Distributions, only : distributionFunction1DVoight
     use :: Virial_Density_Contrast , only : fixedDensityTypeCritical
     implicit none
@@ -228,9 +227,7 @@ contains
     double precision                                                              :: limitLower                         , limitUpper                    , halfWidthHalfMaximum                , &
          &                                                                           fullWidthHalfMaximumLorentzian     , fullWidthHalfMaximumGaussian
     logical                                                                       :: reUse                              , limitFound
-    type            (fgsl_function               )                                :: integrandFunction
-    type            (fgsl_integration_workspace  )                                :: integrationWorkspace
-    logical                                                                       :: integrationReset
+    type            (integrator                  )                                :: integratorTangential               , integratorTotal
     !# <constructorAssign variables="*darkMatterHaloScale_, *cosmologyParameters_, *cosmologyFunctions_"/>
 
     ! Assign parameters of the distribution.
@@ -247,6 +244,8 @@ contains
     self%mu   (:,2)=   muRatioIntermediate
     self%mu   (:,3)=   muRatioHigh
     ! Tabulate Voight distribution functions for speed.
+    integratorTangential=integrator(jiang2014DistributionVelocityTangential  ,toleranceRelative=1.0d-6,integrationRule=GSL_Integ_Gauss61)
+    integratorTotal     =integrator(jiang2014DistributionVelocityTotalSquared,toleranceRelative=1.0d-6,integrationRule=GSL_Integ_Gauss61)
     ! Build the distribution function for total velocity.
     do i=1,3
        do j=1,3
@@ -319,35 +318,9 @@ contains
                 if (self%voightDistributions(i,j)%y(k) <= 0.0d0) limitFound=.true.
              end do
              ! Compute the mean magnitude of tangential velocity.
-             integrationReset                 =.true.
-             self%velocityTangentialMean_(i,j)=           Integrate(                                                             &
-                  &                                                 limitLower                                                 , &
-                  &                                                 limitUpper                                                 , &
-                  &                                                 jiang2014DistributionVelocityTangential                    , &
-                  &                                                 integrandFunction                                          , &
-                  &                                                 integrationWorkspace                                       , &
-                  &                                                 reset                                   =integrationReset  , &
-                  &                                                 toleranceAbsolute                       =0.0d+0            , &
-                  &                                                 toleranceRelative                       =1.0d-6            , &
-                  &                                                 integrationRule                         =FGSL_Integ_Gauss61  &
-                  &                                                )
-             call Integrate_Done(integrandFunction,integrationWorkspace)
+             self%velocityTangentialMean_      (i,j)=     integratorTangential%integrate(limitLower,limitUpper)
              ! Compute the root mean squared total velocity.
-             integrationReset                       =.true.
-             self%velocityTotalRootMeanSquared_(i,j)=sqrt(                                                                        &
-                  &                                       Integrate(                                                              &
-                  &                                                 limitLower                                                  , &
-                  &                                                 limitUpper                                                  , &
-                  &                                                 jiang2014DistributionVelocityTotalSquared                   , &
-                  &                                                 integrandFunction                                           , &
-                  &                                                 integrationWorkspace                                        , &
-                  &                                                 reset                                    =integrationReset  , &
-                  &                                                 toleranceAbsolute                        =0.0d+0            , &
-                  &                                                 toleranceRelative                        =1.0d-6            , &
-                  &                                                 integrationRule                          =FGSL_Integ_Gauss61  &
-                  &                                                )                                                              &
-                  &                                      )
-             call Integrate_Done(integrandFunction,integrationWorkspace)
+             self%velocityTotalRootMeanSquared_(i,j)=sqrt(integratorTotal     %integrate(limitLower,limitUpper))
              ! Store this table for later reuse.
              !$omp critical(virialOrbitJiang2014ReUse)
              previousInitialized(i,j)=.true.

@@ -1115,10 +1115,9 @@ contains
 
   function conditionalMFBinWeights2D(self,mass1,time1,mass2,time2,massLogarithmicMinimumBins1,massLogarithmicWidthInverseBins1,countBins1,massRatioLogarithmicMinimumBins2,massRatioLogarithmicWidthInverseBins2,countBins2,moment)
     !% Computes the weight that a given halo contributes to a 2D array of bins.
-    use :: FGSL                 , only : fgsl_function          , fgsl_integration_workspace
     use :: Galacticus_Error     , only : Galacticus_Error_Report
     use :: Galacticus_Nodes     , only : nodeComponentBasic     , treeNode
-    use :: Numerical_Integration, only : Integrate              , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
     class           (mergerTreeOperatorConditionalMF), intent(inout)                    :: self
     double precision                                 , intent(in   )                    :: mass1                                  , time1                                , &
@@ -1136,8 +1135,7 @@ contains
          &                                                                                 mass2LowerLimit                        , mass2UpperLimit                      , &
          &                                                                                 correlation                            , massError2Reduced
     integer                                                                             :: i                                      , j
-    type            (fgsl_function                  )                                   :: integrandFunction
-    type            (fgsl_integration_workspace     )                                   :: integrationWorkspace
+    type            (integrator                     )                                   :: integrator_
 
     ! Validate moment.
     if (moment < 0 .or. moment > 2) call Galacticus_Error_Report('moment must be 0, 1, or 2'//{introspection:location})
@@ -1185,6 +1183,7 @@ contains
             & conditionalMFBinWeights2D(i,j)=(mass2/mass1)**moment
     else
        ! Find the contribution to each bin.
+       integrator_=integrator(conditionalMFBinWeights2DIntegrand,toleranceAbsolute=1.0d-10,toleranceRelative=1.0d-03)
        do i=1,countBins1
           mass1LowerLimit=max(                                        &
                &              +exp(                                   &
@@ -1249,19 +1248,10 @@ contains
                      & ) then
                    conditionalMFBinWeights2D(i,j)=0.0d0
                 else
-                   conditionalMFBinWeights2D(i,j)=max(                                                      &
-                        &                             Integrate(                                            &
-                        &                                       mass1LowerLimit                           , &
-                        &                                       mass1UpperLimit                           , &
-                        &                                       conditionalMFBinWeights2DIntegrand        , &
-                        &                                       integrandFunction                         , &
-                        &                                       integrationWorkspace                      , &
-                        &                                       toleranceAbsolute                 =1.0d-10, &
-                        &                                       toleranceRelative                 =1.0d-03  &
-                        &                                      )                                          , &
-                        &                             0.0d0                                                 &
+                   conditionalMFBinWeights2D(i,j)=max(                                                        &
+                        &                             integrator_%integrate(mass1LowerLimit,mass1UpperLimit), &
+                        &                             0.0d0                                                   &
                         &                            )
-                   call Integrate_Done(integrandFunction,integrationWorkspace)
                 end if
              end do
           else

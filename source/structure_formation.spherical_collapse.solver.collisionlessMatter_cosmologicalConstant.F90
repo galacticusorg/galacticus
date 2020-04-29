@@ -437,17 +437,14 @@ contains
   end function cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot
 
   double precision function cllsnlssMttCsmlgclCnstntTimeCollapse(epsilonPerturbation)
-    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate    , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
-    real   (kind=c_double             ), intent(in   )       :: epsilonPerturbation
-    type   (fgsl_function             )                      :: integrandFunction
-    type   (fgsl_integration_workspace)                      :: integrationWorkspace
-    logical                                                  :: integrationReset
-    real   (kind=c_double             ), parameter           :: radiusMinimum        =0.0d0
-    real   (kind=c_double             ), parameter           :: numericalLimitEpsilon=1.0d-4
-    real   (kind=c_double             )                      :: radiusUpperNumerical        , radiusTurnaround, &
-         &                                                      timeTurnaround
+    real   (c_double  ), intent(in   ) :: epsilonPerturbation
+    type   (integrator)                :: integrator_
+    real   (c_double  ), parameter     :: radiusMinimum        =0.0d0
+    real   (c_double  ), parameter     :: numericalLimitEpsilon=1.0d-4
+    real   (c_double  )                :: radiusUpperNumerical        , radiusTurnaround, &
+         &                                timeTurnaround
 
     ! Find the maximum radius of the perturbation.
     radiusTurnaround       =+cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum(epsilonPerturbation)
@@ -460,20 +457,9 @@ contains
     ! Share the epsilon parameter.
     cllsnlssMttCsmlgclCnstntAmplitudePerturbation=epsilonPerturbation
     ! Integrate the perturbation equation from size zero to maximum size to get the time to maximum expansion.
-    integrationReset=.true.
-    timeTurnaround  =+Integrate(                                                                 &
-         &                                        radiusMinimum                                , &
-         &                                        radiusUpperNumerical                         , &
-         &                                        cllsnlssMttCsmlgclCnstntPerturbationIntegrand, &
-         &                                        integrandFunction                            , &
-         &                                        integrationWorkspace                         , &
-         &                      toleranceAbsolute=0.0d+0                                       , &
-         &                      toleranceRelative=1.0d-6                                       , &
-         &                      hasSingularities =.true.                                       , &
-         &                      reset            =integrationReset                               &
-         &                     )                                                                 &
-         &           /cllsnlssMttCsmlgclCnstntHubbleTimeEpochal
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_   = integrator           (cllsnlssMttCsmlgclCnstntPerturbationIntegrand,toleranceRelative   =1.0d-6,hasSingularities=.true.)
+    timeTurnaround=+integrator_%integrate(radiusMinimum                                ,radiusUpperNumerical                               ) &
+         &         /                      cllsnlssMttCsmlgclCnstntHubbleTimeEpochal
     ! Add on analytic correction for region close to the turnaround radius.
     timeTurnaround=+timeTurnaround                                          &
          &         -2.0d0                                                   &
@@ -523,39 +509,36 @@ contains
     !% Tabulate the mapping between linea rna dnonlinear overdensity for the spherical collapse model.
     use :: Array_Utilities      , only : Array_Reverse
     use :: Arrays_Search        , only : searchArray
-    use :: FGSL                 , only : fgsl_function            , fgsl_integration_workspace
     use :: Galacticus_Error     , only : Galacticus_Error_Report
     use :: Linear_Growth        , only : normalizeMatterDominated
-    use :: Numerical_Integration, only : Integrate                , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     use :: Numerical_Ranges     , only : Make_Range               , rangeTypeLinear              , rangeTypeLogarithmic
     use :: Root_Finder          , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
-    class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
-    double precision                                                  , intent(in   ) :: time
-    class           (table2DLinLinLin                   )             , intent(inout) :: linearNonlinearMap_
-    integer                                              , parameter                  :: tableIncrement          =100
-    integer                                              , parameter                  :: timesPerDecade          = 10
-    integer                                              , parameter                  :: overdensityLinearCount  =500
-    double precision                                     , parameter                  :: numericalLimitEpsilon   =  1.0d-4
-    double precision                                     , parameter                  :: toleranceAbsolute       =  0.0d+0, toleranceRelative         =1.0d-9
-    double precision                                     , parameter                  :: expansionFactorMinimum  =  1.0d-2, expansionFactorMaximum    =1.0d+0
-    double precision                                     , parameter                  :: overdensityLinearMinimum= -5.0d+0, overdensityLinearMaximum  =2.0d+0
-    double precision                                     , allocatable, dimension(:)  :: overdensityLinear                , overdensityNonlinear             , &
-         &                                                                               overdensityLinearTmp             , overdensityNonLinearTmp          , &
-         &                                                                               times                            , overdensitiesLinear
-    double precision                                                                  :: expansionFactor                  , epsilonPerturbationMaximum       , &
-         &                                                                               epsilonPerturbationCollapsed     , radiusNow                        , &
-         &                                                                               epsilonPerturbation              , epsilonPerturbationMinimum       , &
-         &                                                                               timeMaximum                      , radiusUpperLimit                 , &
-         &                                                                               normalization                    , overdensityNonlinear_            , &
-         &                                                                               timesMinimum                     , timesMaximum
-    type            (fgsl_function                      )                             :: integrandFunction
-    type            (fgsl_integration_workspace         )                             :: integrationWorkspace
-    type            (rootFinder                         )                             :: finderPerturbation               , finderRadius
-    logical                                                                           :: integrationReset
-    integer                                                                           :: i                                , timeCount                        , &
-         &                                                                               iOverdensityLinear               , iOverdensity                     , &
-         &                                                                               iTime
+    class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt), intent(inout)              :: self
+    double precision                                                  , intent(in   )              :: time
+    class           (table2DLinLinLin                                ), intent(inout)              :: linearNonlinearMap_
+    integer                                                           , parameter                  :: tableIncrement          =100
+    integer                                                           , parameter                  :: timesPerDecade          = 10
+    integer                                                           , parameter                  :: overdensityLinearCount  =500
+    double precision                                                  , parameter                  :: numericalLimitEpsilon   =  1.0d-4
+    double precision                                                  , parameter                  :: toleranceAbsolute       =  0.0d+0, toleranceRelative         =1.0d-9
+    double precision                                                  , parameter                  :: expansionFactorMinimum  =  1.0d-2, expansionFactorMaximum    =1.0d+0
+    double precision                                                  , parameter                  :: overdensityLinearMinimum= -5.0d+0, overdensityLinearMaximum  =2.0d+0
+    double precision                                                  , allocatable, dimension(:)  :: overdensityLinear                , overdensityNonlinear             , &
+         &                                                                                            overdensityLinearTmp             , overdensityNonLinearTmp          , &
+         &                                                                                            times                            , overdensitiesLinear
+    double precision                                                                               :: expansionFactor                  , epsilonPerturbationMaximum       , &
+         &                                                                                            epsilonPerturbationCollapsed     , radiusNow                        , &
+         &                                                                                            epsilonPerturbation              , epsilonPerturbationMinimum       , &
+         &                                                                                            timeMaximum                      , radiusUpperLimit                 , &
+         &                                                                                            normalization                    , overdensityNonlinear_            , &
+         &                                                                                            timesMinimum                     , timesMaximum
+    type            (integrator                                      )                             :: integrator_
+    type            (rootFinder                                      )                             :: finderPerturbation               , finderRadius
+    integer                                                                                        :: i                                , timeCount                        , &
+         &                                                                                            iOverdensityLinear               , iOverdensity                     , &
+         &                                                                                            iTime
 
     ! Check that we have a linear growth object.
     if (.not.associated(self%linearGrowth_)) call Galacticus_Error_Report('no linearGrowth object was supplied'//{introspection:location})
@@ -605,6 +588,7 @@ contains
        epsilonPerturbationCollapsed=finderPerturbation%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
        ! For non-collapsed regions, epsilon will be greater then that for a collapsed perturbation. Step through values until
        ! sufficiently low non-linear overdensity is reached.
+       integrator_        =integrator(cllsnlssMttCsmlgclCnstntPerturbationIntegrand,toleranceRelative=1.0d-6,hasSingularities =.true.)
        epsilonPerturbation=epsilonPerturbationCollapsed
        i=0
        do while (.true.)
@@ -624,36 +608,24 @@ contains
              radiusUpperLimit=(1.0d0-numericalLimitEpsilon)*cllsnlssMttCsmlgclCnstntRadiusMaximum
              ! Integrate the perturbation equation from size zero to maximum size to get the time to maximum expansion, adding on the
              ! analytic correction for the region close to maximum expansion.
-             integrationReset=.true.
-             timeMaximum     =+Integrate(                                                                 &
-                  &                                        0.0d0                                        , &
-                  &                                        radiusUpperLimit                             , &
-                  &                                        cllsnlssMttCsmlgclCnstntPerturbationIntegrand, &
-                  &                                        integrandFunction                            , &
-                  &                                        integrationWorkspace                         , &
-                  &                      toleranceAbsolute=0.0d0                                        , &
-                  &                      toleranceRelative=1.0d-6                                       , &
-                  &                      hasSingularities =.true.                                       , &
-                  &                      reset            =integrationReset                               &
-                  &                     )                                                                 &
-                  &           /cllsnlssMttCsmlgclCnstntHubbleTimeEpochal                                  &
-                  &           -2.0d0                                                                      &
-                  &           *sqrt(                                                                      &
-                  &                 +cllsnlssMttCsmlgclCnstntOmegaMatterEpochal                           &
-                  &                 /radiusUpperLimit                                                     &
-                  &                 +epsilonPerturbation                                                  &
-                  &                 +cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal                       &
-                  &                 *radiusUpperLimit                  **2                                &
-                  &                )                                                                      &
-                  &           /(                                                                          &
-                  &             +2.0d0                                                                    &
-                  &             *cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal                           &
-                  &             *radiusUpperLimit                                                         &
-                  &             -cllsnlssMttCsmlgclCnstntOmegaMatterEpochal                               &
-                  &             /radiusUpperLimit                  **2                                    &
-                  &            )&
+             timeMaximum     =+integrator_%integrate(0.0d0,radiusUpperLimit)        &
+                  &           /cllsnlssMttCsmlgclCnstntHubbleTimeEpochal            &
+                  &           -2.0d0                                                &
+                  &           *sqrt(                                                &
+                  &                 +cllsnlssMttCsmlgclCnstntOmegaMatterEpochal     &
+                  &                 /radiusUpperLimit                               &
+                  &                 +epsilonPerturbation                            &
+                  &                 +cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal &
+                  &                 *radiusUpperLimit                  **2          &
+                  &                )                                                &
+                  &           /(                                                    &
+                  &             +2.0d0                                              &
+                  &             *cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal     &
+                  &             *radiusUpperLimit                                   &
+                  &             -cllsnlssMttCsmlgclCnstntOmegaMatterEpochal         &
+                  &             /radiusUpperLimit                  **2              &
+                  &            )                                                    &
                   &           /cllsnlssMttCsmlgclCnstntHubbleTimeEpochal
-             call Integrate_Done(integrandFunction,integrationWorkspace)
              ! Set the target time
              if (timeMaximum > cllsnlssMttCsmlgclCnstntTime) then
                 ! Expanding phase.
@@ -753,35 +725,21 @@ contains
 
   double precision function cllsnlssMttCsmlgclCnstntRadiusRoot(radiusNow)
     !% Root function used in solving for the radius of a perturbation.
-    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate    , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
-    double precision                            , intent(in   ) :: radiusNow
-    double precision                            , parameter     :: numericalLimitEpsilon=1.0d-4
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    logical                                                     :: integrationReset
-    double precision                                            :: radiusUpperLimit
+    double precision            , intent(in   ) :: radiusNow
+    double precision            , parameter     :: numericalLimitEpsilon=1.0d-4
+    type            (integrator)                :: integrator_
+    double precision                            :: radiusUpperLimit
 
-    radiusUpperLimit      =min(                                                                      &
-         &                     +(1.0d0-numericalLimitEpsilon)*cllsnlssMttCsmlgclCnstntRadiusMaximum, &
-         &                     +                              radiusNow                              &
-         &                    )
-    integrationReset      =.true.
-    cllsnlssMttCsmlgclCnstntRadiusRoot=+Integrate(                                                     &
-         &                                              0.0d0                                        , &
-         &                                              radiusUpperLimit                             , &
-         &                                              cllsnlssMttCsmlgclCnstntPerturbationIntegrand, &
-         &                                              integrandFunction                            , &
-         &                                              integrationWorkspace                         , &
-         &                            toleranceAbsolute=0.0d+0                                       , &
-         &                            toleranceRelative=1.0d-6                                       , &
-         &                            hasSingularities =.true.                                       , &
-         &                            reset            =integrationReset                               &
-         &                           )                                                                 &
-         &                 /cllsnlssMttCsmlgclCnstntHubbleTimeEpochal                                  &
-         &                 -cllsnlssMttCsmlgclCnstntTimeTarget
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    radiusUpperLimit                  =min(                                                                      &
+         &                                 +(1.0d0-numericalLimitEpsilon)*cllsnlssMttCsmlgclCnstntRadiusMaximum, &
+         &                                 +                              radiusNow                              &
+         &                                )
+    integrator_                       = integrator(cllsnlssMttCsmlgclCnstntPerturbationIntegrand,toleranceRelative=1.0d-6,hasSingularities =.true.)
+    cllsnlssMttCsmlgclCnstntRadiusRoot=+integrator_%integrate(0.0d0,radiusUpperLimit) &
+         &                             /cllsnlssMttCsmlgclCnstntHubbleTimeEpochal     &
+         &                             -cllsnlssMttCsmlgclCnstntTimeTarget
     if (radiusUpperLimit < radiusNow) then
        cllsnlssMttCsmlgclCnstntRadiusRoot       =+cllsnlssMttCsmlgclCnstntRadiusRoot                                                                                                                                                     &
             &                        -2.0d0*sqrt(+cllsnlssMttCsmlgclCnstntOmegaMatterEpochal/radiusUpperLimit   +      cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal*radiusUpperLimit**2+cllsnlssMttCsmlgclCnstntAmplitudePerturbation) &

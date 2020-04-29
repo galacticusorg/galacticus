@@ -113,11 +113,10 @@ contains
   function massRatioNBodyOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement an N-body mass ratio output analysis distribution operator.
     use :: Arrays_Search          , only : searchArray
-    use :: FGSL                   , only : fgsl_function                   , fgsl_integration_workspace
     use :: Galacticus_Error       , only : Galacticus_Error_Report
     use :: Galacticus_Nodes       , only : nodeComponentBasic
     use :: Numerical_Comparison   , only : Values_Agree
-    use :: Numerical_Integration  , only : Integrate                       , Integrate_Done
+    use :: Numerical_Integration  , only : integrator
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear, outputAnalysisPropertyTypeLog10
     implicit none
     class           (outputAnalysisDistributionOperatorMassRatioNBody), intent(inout)                                        :: self
@@ -138,8 +137,7 @@ contains
          &                                                                                                                      massParentLimitLower              , massParentLimitUpper       , &
          &                                                                                                                      massRatioLimitLower               , massRatioLimitUpper
     integer         (c_size_t                                        )                                                       :: binIndex
-    type            (fgsl_function                                   )                                                       :: integrandFunction
-    type            (fgsl_integration_workspace                      )                                                       :: integrationWorkspace
+    type            (integrator                                      )                                                       :: integrator_
     !$GLC attributes unused :: outputIndex
 
     ! Get the parent halo mass.
@@ -192,6 +190,7 @@ contains
             &                   *massUncertaintyParent/sqrt(1.0d0-massUncertaintyCorrelation**2)   &
             &                  )
        if (massParentLimitUpper > massParentLimitLower) then
+          integrator_=integrator(massRatioBivariateNormalIntegrand,toleranceAbsolute=1.0d-10,toleranceRelative=1.0d-03)
           do binIndex=1,size(propertyValueMinimum)
              select case (propertyType)
              case (outputAnalysisPropertyTypeLinear)
@@ -258,19 +257,10 @@ contains
                      &                                  -erf((massParentLimitLower-massParent)/massUncertaintyParent/sqrt(2.0d0)) &
                      &                                 )
              else
-                massRatioNBodyOperateScalar(binIndex)=max(                                                      &
-                     &                                    Integrate(                                            &
-                     &                                              massParentLimitLower                      , &
-                     &                                              massParentLimitUpper                      , &
-                     &                                              massRatioBivariateNormalIntegrand         , &
-                     &                                              integrandFunction                         , &
-                     &                                              integrationWorkspace                      , &
-                     &                                              toleranceAbsolute                 =1.0d-10, &
-                     &                                              toleranceRelative                 =1.0d-03  &
-                     &                                             )                                          , &
-                     &                                    0.0d0                                                 &
+                massRatioNBodyOperateScalar(binIndex)=max(                                                                  &
+                     &                                    integrator_%integrate(massParentLimitLower,massParentLimitUpper), &
+                     &                                    0.0d0                                                             &
                      &                                   )
-                call Integrate_Done(integrandFunction,integrationWorkspace)
              end if
           end do
        else

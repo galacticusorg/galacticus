@@ -110,24 +110,14 @@ contains
 
   double precision function accretionDiskLuminosity(self,wavelengthMinimum,wavelengthMaximum)
     !% Compute the luminosity in the given wavelength range for an accretion disk.
-    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate    , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
     class           (radiativeTransferSpectrumAccretionDisk), intent(inout) :: self
-    double precision                                        , intent(in   ) :: wavelengthMinimum    , wavelengthMaximum
-    type            (fgsl_function                         )                :: integrandFunction
-    type            (fgsl_integration_workspace            )                :: integrationWorkspace
+    double precision                                        , intent(in   ) :: wavelengthMinimum, wavelengthMaximum
+    type            (integrator                            )                :: integrator_
 
-    accretionDiskLuminosity=+Integrate(                                        &
-         &                                               wavelengthMinimum   , &
-         &                                               wavelengthMaximum   , &
-         &                                               integrand           , &
-         &                                               integrandFunction   , &
-         &                                               integrationWorkspace, &
-         &                             toleranceAbsolute=0.0d+0              , &
-         &                             toleranceRelative=1.0d-2                &
-         &                            )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_            =integrator           (integrand        ,toleranceRelative=1.0d-2)
+    accretionDiskLuminosity=integrator_%integrate(wavelengthMinimum,wavelengthMaximum       )
     return
     
   contains

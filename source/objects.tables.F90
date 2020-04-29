@@ -21,7 +21,7 @@
 
 module Tables
   !% Defines a {\normalfont \ttfamily table} class with optimized interpolation operators.
-  use :: FGSL, only : FGSL_Interp_Linear, fgsl_function   , fgsl_integration_workspace, fgsl_interp, &
+  use :: FGSL, only : FGSL_Interp_Linear, fgsl_function   , fgsl_interp, &
           &           fgsl_interp_accel , fgsl_interp_type
   private
   public :: table                          , table1D                          , table1DGeneric                    , &
@@ -1048,20 +1048,22 @@ contains
   function Table_Logarithmic_Integration_Weights(self,x0,x1,integrand)
     !% Returns a set of weights for trapezoidal integration on the table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
     use :: Galacticus_Error     , only : Galacticus_Error_Report
-    use :: Numerical_Integration, only : Integrate              , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
-    class           (table1DLogarithmicLinear               ), intent(inout)                               :: self
-    double precision                                         , intent(in   )                               :: x0, x1
-    procedure       (tablesIntegrationWeightFunction        ), intent(in   )           , pointer, optional :: integrand
-    double precision                                         , dimension(size(self%xv))                    :: Table_Logarithmic_Integration_Weights
-    double precision                                         , parameter                                   :: logTolerance=1.0d-12
-    double precision                                                                                       :: gradientTerm, lx0, lx1, factor0, factor1
-    integer                                                                                                :: i
-    type            (fgsl_function                           )                                             :: integrandFunction
-    type            (fgsl_integration_workspace              )                                             :: integrationWorkspace
-    logical                                                                                                :: integrationReset
+    class           (table1DLogarithmicLinear       ), intent(inout)                               :: self
+    double precision                                 , intent(in   )                               :: x0, x1
+    procedure       (tablesIntegrationWeightFunction), intent(in   )           , pointer, optional :: integrand
+    double precision                                 , dimension(size(self%xv))                    :: Table_Logarithmic_Integration_Weights
+    double precision                                 , parameter                                   :: logTolerance                         =1.0d-12
+    double precision                                                                               :: gradientTerm                                 , lx0        , &
+         &                                                                                            lx1                                          , factor0    , &
+         &                                                                                            factor1
+    integer                                                                                        :: i
+    type            (integrator                     )                                              :: integrator0                                  , integrator1
 
     if (x1 < x0) call Galacticus_Error_Report('inverted limits'//{introspection:location})
+    integrator0=integrator(factor0Integrand,toleranceRelative=1.0d-4)
+    integrator1=integrator(factor1Integrand,toleranceRelative=1.0d-4)
     Table_Logarithmic_Integration_Weights=0.0d0
     do i=2,size(self%xv)
        ! Evaluate integration range for this interval of the table.
@@ -1079,28 +1081,8 @@ contains
        if (lx1 > lx0+logTolerance) then
           if (present(integrand)) then
              ! An integrand is given, numerically integrate the relevant terms over the integrand.
-             integrationReset=.true.
-             factor0=Integrate(                                       &
-                  &            lx0                                  , &
-                  &            lx1                                  , &
-                  &            factor0Integrand                     , &
-                  &            integrandFunction                    , &
-                  &            integrationWorkspace                 , &
-                  &            toleranceRelative   =1.0d-4          , &
-                  &            reset               =integrationReset  &
-                  &           )
-             call Integrate_Done(integrandFunction,integrationWorkspace)
-             integrationReset=.true.
-             factor1=Integrate(                                       &
-                  &            lx0                                  , &
-                  &            lx1                                  , &
-                  &            factor1Integrand                     , &
-                  &            integrandFunction                    , &
-                  &            integrationWorkspace                 , &
-                  &            toleranceRelative   =1.0d-4          , &
-                  &            reset               =integrationReset  &
-                  &           )
-             call Integrate_Done(integrandFunction,integrationWorkspace)
+             factor0=integrator0%integrate(lx0,lx1)
+             factor1=integrator1%integrate(lx0,lx1)
              Table_Logarithmic_Integration_Weights        (i-1) &
                   & =Table_Logarithmic_Integration_Weights(i-1) &
                   & +factor0                                    &

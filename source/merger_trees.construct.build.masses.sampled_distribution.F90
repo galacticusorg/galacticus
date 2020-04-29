@@ -28,7 +28,7 @@
      !% Implementation of a merger tree masses class which samples masses from a distribution.
      private
      class           (mergerTreeBuildMassDistributionClass), pointer :: mergerTreeBuildMassDistribution_ => null()
-     double precision                                                :: massTreeMinimum                 , massTreeMaximum, &
+     double precision                                                :: massTreeMinimum                           , massTreeMaximum, &
           &                                                             treesPerDecade
    contains
      !@ <objectMethods>
@@ -122,11 +122,11 @@ contains
 
   subroutine sampledDistributionConstruct(self,time,mass,massMinimum,massMaximum,weight)
     !% Construct a set of merger tree masses by sampling from a distribution.
-    use            :: FGSL                   , only : fgsl_function          , fgsl_integration_workspace, fgsl_interp, fgsl_interp_accel
+    use            :: FGSL                   , only : fgsl_interp            , fgsl_interp_accel
     use            :: Galacticus_Error       , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Memory_Management      , only : allocateArray          , deallocateArray
-    use            :: Numerical_Integration  , only : Integrate              , Integrate_Done
+    use            :: Numerical_Integration  , only : integrator
     use            :: Numerical_Interpolation, only : Interpolate            , Interpolate_Done
     use            :: Numerical_Ranges       , only : Make_Range             , rangeTypeLinear
     use            :: Sorting                , only : sort
@@ -144,12 +144,10 @@ contains
     integer                                                                                              :: iSample                              , jSample                                  , &
          &                                                                                                  massFunctionSampleCount
     double precision                                                                                     :: probability                          , massFunctionSampleLogPrevious
-    type            (fgsl_function                           )                                           :: integrandFunction
-    type            (fgsl_integration_workspace              )                                           :: integrationWorkspace
+    type            (integrator                              )                                           :: integrator_
     type            (fgsl_interp                             )                                           :: interpolationObject
     type            (fgsl_interp_accel                       )                                           :: interpolationAccelerator
-    logical                                                                                              :: integrandReset                       , interpolationReset                       , &
-         &                                                                                                  monotonize
+    logical                                                                                              :: interpolationReset                   , monotonize
     !$GLC attributes unused :: weight
 
     ! Generate a randomly sampled set of halo masses.
@@ -165,20 +163,13 @@ contains
     massFunctionSampleLogMass    =Make_Range(log10(self%massTreeMinimum),log10(self%massTreeMaximum),massFunctionSampleCount,rangeType=rangeTypeLinear)
     massFunctionSampleLogPrevious=           log10(self%massTreeMinimum)
     jSample=0
+    integrator_=integrator(distributionIntegrand,toleranceAbsolute=toleranceAbsolute,toleranceRelative=toleranceRelative)
     do iSample=1,massFunctionSampleCount
        if (massFunctionSampleLogMass(iSample) > massFunctionSampleLogPrevious) then
-          integrandReset=.true.
-          probability=Integrate(                                                          &
-               &                                  massFunctionSampleLogPrevious         , &
-               &                                  massFunctionSampleLogMass    (iSample), &
-               &                                  distributionIntegrand                 , &
-               &                                  integrandFunction                     , &
-               &                                  integrationWorkspace                  , &
-               &                toleranceAbsolute=toleranceAbsolute                     , &
-               &                toleranceRelative=toleranceRelative                     , &
-               &                reset            =integrandReset                          &
-               &               )
-          call Integrate_Done(integrandFunction,integrationWorkspace)
+          probability=integrator_%integrate(                                        &
+               &                            massFunctionSampleLogPrevious         , &
+               &                            massFunctionSampleLogMass    (iSample)  &
+               &                           )
        else
           probability=0.0d0
        end if
