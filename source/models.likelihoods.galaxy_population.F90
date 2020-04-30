@@ -149,6 +149,7 @@ contains
           &                                       Galacticus_Verbosity_Level_Set , verbosityStandard
     use :: Galacticus_Error              , only : Galacticus_Error_Report        , errorStatusSuccess
     use :: Kind_Numbers                  , only : kind_int8
+    use :: ISO_Varying_String            , only : char                           , operator(//)                 , var_str
     use :: MPI_Utilities                 , only : mpiBarrier                     , mpiSelf
     use :: Models_Likelihoods_Constants  , only : logImpossible                  , logImprobable
     use :: Model_Parameters              , only : modelParameterDerived
@@ -281,6 +282,15 @@ contains
              ! Overwrite only the indexed parameter in the list.
              parameterText =self%modelParametersActive_(i)%parameter_%get()
              parameterCount=String_Count_Words(char(parameterText))
+             if (self%modelParametersActive_(i)%indexElement > parameterCount)                                      &
+                  & call Galacticus_Error_Report(                                                                   &
+                  &                              var_str('attempt to access non-existant element {')             // &
+                  &                                     (self%modelParametersActive_(i)%indexElement          -1)// &
+                  &                                      '} of parameter "'                                      // &
+                  &                              char   (     modelParametersActive_(i)%modelParameter_%name()  )// &
+                  &                                      '"'                                                     // &
+                  &                              {introspection:location}                                        &
+                  &                             )
              allocate(parameterNames(parameterCount))
              call String_Split_Words(parameterNames,char(parameterText))
              write (valueText,'(e24.16)') modelParametersActive_(i)%modelParameter_%unmap(stateVector(i,iRank))
