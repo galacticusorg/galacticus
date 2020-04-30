@@ -28,12 +28,12 @@ module Numerical_Integration
   public :: integrator
 
   ! Integrator types.
-  integer(c_int), public, bind(C, name="gsl_integ_gauss15") :: GSL_Integ_Gauss15
-  integer(c_int), public, bind(C, name="gsl_integ_gauss21") :: GSL_Integ_Gauss21
-  integer(c_int), public, bind(C, name="gsl_integ_gauss31") :: GSL_Integ_Gauss31
-  integer(c_int), public, bind(C, name="gsl_integ_gauss41") :: GSL_Integ_Gauss41
-  integer(c_int), public, bind(C, name="gsl_integ_gauss51") :: GSL_Integ_Gauss51
-  integer(c_int), public, bind(C, name="gsl_integ_gauss61") :: GSL_Integ_Gauss61
+  !# <gslConstant variable="GSL_Integ_Gauss15" gslSymbol="GSL_INTEG_GAUSS15" gslHeader="gsl_integration" type="integer"/>
+  !# <gslConstant variable="GSL_Integ_Gauss21" gslSymbol="GSL_INTEG_GAUSS21" gslHeader="gsl_integration" type="integer"/>
+  !# <gslConstant variable="GSL_Integ_Gauss31" gslSymbol="GSL_INTEG_GAUSS31" gslHeader="gsl_integration" type="integer"/>
+  !# <gslConstant variable="GSL_Integ_Gauss41" gslSymbol="GSL_INTEG_GAUSS41" gslHeader="gsl_integration" type="integer"/>
+  !# <gslConstant variable="GSL_Integ_Gauss51" gslSymbol="GSL_INTEG_GAUSS51" gslHeader="gsl_integration" type="integer"/>
+  !# <gslConstant variable="GSL_Integ_Gauss61" gslSymbol="GSL_INTEG_GAUSS61" gslHeader="gsl_integration" type="integer"/>
 
   type :: integrator
      !% Class for performing numerical integrations.
