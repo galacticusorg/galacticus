@@ -147,7 +147,7 @@ sub Tree_Node_Builder {
 	     },
 	     {
 		 intrinsic  => "type",
-		 type       => "integerScalarHash",
+		 type       => "integerHash",
 		 variables  => [ "componentIndex" ]
 	     },
 	     {

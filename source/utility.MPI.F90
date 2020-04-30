@@ -269,7 +269,7 @@ contains
          &                            MPI_Character
     use :: Memory_Management , only : allocateArray
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Hashes            , only : integerScalarHash
+    use :: Hashes            , only : integerHash
     use :: ISO_Varying_String, only : assignment(=)          , operator(==), var_str, operator(//), char
     use :: String_Handling   , only : operator(//)
 #endif
@@ -281,7 +281,7 @@ contains
          &                                                                iProcess
     character(len=MPI_Max_Processor_Name), dimension(1)                :: processorName
     character(len=MPI_Max_Processor_Name), dimension(:), allocatable   :: processorNames
-    type     (integerScalarHash         )                              :: processCount
+    type     (integerHash               )                              :: processCount
     type     (varying_string            )                              :: message
     !# <optionalArgument name="mpiThreadingRequired" defaultsTo="MPI_Thread_Funneled" />
 

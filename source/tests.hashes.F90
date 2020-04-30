@@ -22,15 +22,15 @@
 program Test_Hashes
   !% Tests features of the hashes (i.e. associative arrays) module.
   use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: Hashes            , only : genericScalarHash             , integerScalarHash
+  use :: Hashes            , only : genericHash                   , integerHash
   use :: Input_Parameters  , only : inputParameter                , inputParameters
   use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  type (integerScalarHash)              :: myHash
-  type (genericScalarHash)              :: genericHash
-  class(inputParameters  ), allocatable :: inputParameters_
-  type (inputParameter   )              :: inputParameter_
-  class(*                ), pointer     :: generic_
+  type (integerHash    )              :: myHash
+  type (genericHash    )              :: genericHash
+  class(inputParameters), allocatable :: inputParameters_
+  type (inputParameter )              :: inputParameter_
+  class(*              ), pointer     :: generic_
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)

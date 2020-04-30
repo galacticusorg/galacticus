@@ -29,7 +29,7 @@
      type            (universe                  ), pointer         :: hostUniverse           => null()
      type            (treeEvent                 ), pointer, public :: event
      class           (randomNumberGeneratorClass), pointer         :: randomNumberGenerator_ => null()
-     type            (doubleScalarHash          )                  :: properties
+     type            (doubleHash                )                  :: properties
    contains
      ! Tree creation/destruction.
      !@ <objectMethods>

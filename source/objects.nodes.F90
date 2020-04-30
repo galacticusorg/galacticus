@@ -25,7 +25,7 @@ module Galacticus_Nodes
   use            :: Abundances_Structure            , only : abundances
   use            :: Chemical_Abundances_Structure   , only : chemicalAbundances
   use            :: Galacticus_Error                , only : Galacticus_Error_Report
-  use            :: Hashes                          , only : doubleScalarHash              , genericScalarHash
+  use            :: Hashes                          , only : doubleHash                    , genericHash
   use            :: Histories                       , only : history                       , longIntegerHistory
   use            :: IO_HDF5                         , only : hdf5Object
   use, intrinsic :: ISO_C_Binding                   , only : c_size_t

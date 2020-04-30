@@ -19,7 +19,7 @@
 
   !% Implements a merger tree evolve profiler that collects simple data.
 
-  use :: Hashes, only : integerScalarHash
+  use :: Hashes, only : integerHash
   
   !# <mergerTreeEvolveProfiler name="mergerTreeEvolveProfilerSimple">
   !#  <description>
@@ -39,11 +39,11 @@
   type, extends(mergerTreeEvolveProfilerClass) :: mergerTreeEvolveProfilerSimple
      !% A merger tree evolve profiler that collects simple data.
      private
-     double precision                                               :: timeStepMaximum        , timeStepMinimum
-     integer                                                        :: timeStepPointsPerDecade
-     double precision                   , allocatable, dimension(:) :: timeStep
-     integer                            , allocatable, dimension(:) :: timeStepCount
-     type            (integerScalarHash)                            :: propertyHits
+     double precision                                         :: timeStepMaximum        , timeStepMinimum
+     integer                                                  :: timeStepPointsPerDecade
+     double precision             , allocatable, dimension(:) :: timeStep
+     integer                      , allocatable, dimension(:) :: timeStepCount
+     type            (integerHash)                            :: propertyHits
    contains
      final     ::            simpleDestructor
      procedure :: profile => simpleProfile

@@ -27,10 +27,10 @@
 
   type, public :: universe
      !% The universe object class.
-     type   (mergerTreeList   ), pointer         :: trees         => null()
-     logical                                     :: allTreesBuilt =  .false.
-     type   (universeEvent    ), pointer, public :: event
-     type   (genericScalarHash)                  :: attributes
+     type   (mergerTreeList), pointer         :: trees         => null()
+     logical                                  :: allTreesBuilt =  .false.
+     type   (universeEvent ), pointer, public :: event
+     type   (genericHash   )                  :: attributes
    contains
      !@ <objectMethods>
      !@   <object>universe</object>
