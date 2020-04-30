@@ -17,6 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+! Specify an explicit dependence on the interface.GSL.C.root_fiding.o object file.
+!: $(BUILDPATH)/interface.GSL.C.root_finding.o
+
 !% Contains a module which does root finding.
 module Root_Finder
   !% Implements root finding.
@@ -51,12 +54,12 @@ module Root_Finder
   !# </deepCopyActions>
 
   ! Solver types.
-  type(c_ptr), public, bind(C, name="gsl_root_fsolver_bisection"   ) :: gsl_root_fsolver_bisection
-  type(c_ptr), public, bind(C, name="gsl_root_fsolver_brent"       ) :: gsl_root_fsolver_brent
-  type(c_ptr), public, bind(C, name="gsl_root_fsolver_falsepos"    ) :: gsl_root_fsolver_falsepos
-  type(c_ptr), public, bind(C, name="gsl_root_fdfsolver_newton"    ) :: gsl_root_fdfsolver_newton
-  type(c_ptr), public, bind(C, name="gsl_root_fdfsolver_secant"    ) :: gsl_root_fdfsolver_secant
-  type(c_ptr), public, bind(C, name="gsl_root_fdfsolver_steffenson") :: gsl_root_fdfsolver_steffenson
+  integer, public, parameter :: gsl_root_fsolver_bisection   =1
+  integer, public, parameter :: gsl_root_fsolver_brent       =2
+  integer, public, parameter :: gsl_root_fsolver_falsepos    =3
+  integer, public, parameter :: gsl_root_fdfsolver_newton    =4
+  integer, public, parameter :: gsl_root_fdfsolver_secant    =5
+  integer, public, parameter :: gsl_root_fdfsolver_steffenson=6
 
   type :: rootFinder
      !% Type containing all objects required when calling the GSL root solver function.
@@ -64,6 +67,7 @@ module Root_Finder
      type            (c_ptr                         )                  :: gslFunction
      type            (c_ptr                         )                  :: solver
      type            (c_ptr                         )                  :: solverType                   =c_null_ptr
+     integer                                                           :: solverTypeID                 =0
      double precision                                                  :: toleranceAbsolute            =1.0d-10
      double precision                                                  :: toleranceRelative            =1.0d-10
      logical                                                           :: initialized                  =.false.
@@ -285,6 +289,20 @@ module Root_Finder
        import
        type(c_ptr), value :: s
      end function gsl_root_fsolver_x_upper
+
+     function gsl_fsolver_type_get(i) bind(c,name='gsl_fsolver_type_get')
+       !% Template for GSL interface fsolver type function.
+       import c_ptr, c_int
+       type   (c_ptr)                       :: gsl_fsolver_type_get
+       integer(c_int), intent(in   ), value :: i
+     end function gsl_fsolver_type_get
+
+     function gsl_fdfsolver_type_get(i) bind(c,name='gsl_fdfsolver_type_get')
+       !% Template for GSL interface fdfsolver type function.
+       import c_ptr, c_int
+       type   (c_ptr)                       :: gsl_fdfsolver_type_get
+       integer(c_int), intent(in   ), value :: i
+     end function gsl_fdfsolver_type_get
   end interface
   
 contains
@@ -297,6 +315,7 @@ contains
     self%gslFunction                  =c_null_ptr
     self%solver                       =c_null_ptr
     self%solverType                   =c_null_ptr
+    self%solverTypeID                 =0
     self%toleranceAbsolute            =1.0d-10
     self%toleranceRelative            =1.0d-10
     self%initialized                  =.false.
@@ -389,7 +408,10 @@ contains
     if (self%useDerivative) then
        if (.not.self%functionInitialized.or.self%resetRequired) then
           if (     self%functionInitialized  ) call GSL_Root_fdfSolver_Free(self%solver)
-          if (.not.self%solverTypeIsValid  ()) self%solverType=gsl_root_fdfsolver_steffenson
+          if (.not.self%solverTypeIsValid()) then
+             self%solverTypeID    =gsl_root_fdfsolver_steffenson
+             self%solverType      =gsl_fdfsolver_type_get  (self%solverTypeID)
+            end if
           self%gslFunction        =gslFunctionFdF          (                                         &
                &                                            Root_Finder_Wrapper_Function           , &
                &                                            Root_Finder_Wrapper_Function_Derivative, &
@@ -402,9 +424,12 @@ contains
     else
        if (.not.self%functionInitialized.or.self%resetRequired) then
           if (     self%functionInitialized  ) call GSL_Root_fSolver_Free(self%solver)
-          if (.not.self%solverTypeIsValid  ()) self%solverType=gsl_root_fsolver_brent
-          self%gslFunction        =gslFunction             (Root_Finder_Wrapper_Function)
-          self%solver             =GSL_Root_fSolver_Alloc  (self%solverType             )
+          if (.not.self%solverTypeIsValid()) then
+             self%solverTypeID    =gsl_root_fsolver_brent
+             self%solverType      =gsl_fsolver_type_get  (self%solverTypeID           )
+          end if
+          self%gslFunction        =gslFunction           (Root_Finder_Wrapper_Function)
+          self%solver             =GSL_Root_fSolver_Alloc(self%solverType             )
           self%resetRequired      =.false.
           self%functionInitialized=.true.
       end if
@@ -689,11 +714,19 @@ contains
     !% Sets the type to use in a {\normalfont \ttfamily rootFinder} object.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class(rootFinder), intent(inout) :: self
-    type (c_ptr     ), intent(in   ) :: solverType
+    class  (rootFinder), intent(inout) :: self
+    integer            , intent(in   ) :: solverType
 
     ! Set the solver type and indicate that a reset will be required to update the internal GSL objects.
-    self%solverType   =solverType
+    self%solverTypeID =solverType
+    select case (solverType)
+    case (gsl_root_fsolver_bisection,gsl_root_fsolver_brent   ,gsl_root_fsolver_falsepos    )
+       self%solverType=gsl_fsolver_type_get  (self%solverTypeID)
+    case (gsl_root_fdfsolver_newton ,gsl_root_fdfsolver_secant,gsl_root_fdfsolver_steffenson)
+       self%solverType=gsl_fdfsolver_type_get(self%solverTypeID)
+    case default
+       call Galacticus_Error_Report('unknown solver type'//{introspection:location})
+    end select
     self%resetRequired=.true.
     if (.not.self%solverTypeIsValid()) call Galacticus_Error_Report('invalid solver type'//{introspection:location})
     return
@@ -761,27 +794,26 @@ contains
     end if
     return
   end subroutine Root_Finder_Range_Expand
-
+  
   logical function rootFinderSolverTypeIsValid(self)
     !% Sets the tolerances to use in a {\normalfont \ttfamily rootFinder} object.
-      use, intrinsic :: ISO_C_Binding, only : c_associated
-   implicit none
+    implicit none
     class(rootFinder), intent(inout) :: self
 
-    rootFinderSolverTypeIsValid=c_associated(self%solverType)
+    rootFinderSolverTypeIsValid=self%solverTypeID /= 0
     if (.not.rootFinderSolverTypeIsValid) return
     if (self%useDerivative) then
-       rootFinderSolverTypeIsValid= c_associated(self%solverType,gsl_root_fdfsolver_newton    ) &
-            &                      .or.                                                         &
-            &                       c_associated(self%solverType,gsl_root_fdfsolver_secant    ) &
-            &                      .or.                                                         &
-            &                       c_associated(self%solverType,gsl_root_fdfsolver_steffenson)
+       rootFinderSolverTypeIsValid= self%solverTypeID == gsl_root_fdfsolver_newton     &
+            &                      .or.                                                &
+            &                       self%solverTypeID == gsl_root_fdfsolver_secant     &
+            &                      .or.                                                &
+            &                       self%solverTypeID == gsl_root_fdfsolver_steffenson
     else
-       rootFinderSolverTypeIsValid= c_associated(self%solverType,gsl_root_fsolver_bisection   ) &
-            &                      .or.                                                         &
-            &                       c_associated(self%solverType,gsl_root_fsolver_brent       ) &
-            &                      .or.                                                         &
-            &                       c_associated(self%solverType,gsl_root_fsolver_falsepos    )
+       rootFinderSolverTypeIsValid= self%solverTypeID == gsl_root_fsolver_bisection    &
+            &                      .or.                                                &
+            &                       self%solverTypeID == gsl_root_fsolver_brent        &
+            &                      .or.                                                &
+            &                       self%solverTypeID == gsl_root_fsolver_falsepos    
        end if
     return
   end function rootFinderSolverTypeIsValid
