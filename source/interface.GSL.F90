@@ -116,7 +116,8 @@ module Interface_GSL
   end type gsl_sf_result
 
   ! Error codes.
-  integer(c_int), public, bind(C, name="gsl_success") :: gsl_success
+  !# <gslConstant variable="GSL_Success" gslSymbol="GSL_SUCCESS" gslHeader="gsl_errno" type="integer"/>
+  !# <gslConstant variable="GSL_ESing"   gslSymbol="GSL_ESING"   gslHeader="gsl_errno" type="integer"/>
 
 contains
 
