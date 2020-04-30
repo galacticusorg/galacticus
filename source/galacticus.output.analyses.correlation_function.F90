@@ -1294,15 +1294,18 @@ contains
 
   double precision function correlationFunctionLogLikelihood(self)
     !% Return the log-likelihood of a correlationFunction output analysis.
-    use Linear_Algebra          , only : vector                 , matrix, assignment(=), operator(*)
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: Numerical_Constants_Math, only : Pi
+    use :: Linear_Algebra              , only : vector                 , matrix, assignment(=), operator(*)
+    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Math    , only : Pi
+    use :: Interface_GSL               , only : GSL_Success
+    use :: Models_Likelihoods_Constants, only : logImprobable
     implicit none
     class           (outputAnalysisCorrelationFunction), intent(inout)                 :: self
     double precision                                   , allocatable  , dimension(:,:) :: functionCovarianceCombined
     double precision                                   , allocatable  , dimension(:  ) :: functionValueDifference
     type            (vector                           )                                :: residual
     type            (matrix                           )                                :: covariance
+    integer                                                                            :: status
 
     ! Check for existance of a target distribution.
     if (allocated(self%binnedProjectedCorrelationTarget)) then
@@ -1325,9 +1328,10 @@ contains
        residual                  =functionValueDifference
        covariance                =functionCovarianceCombined
        ! Compute the log-likelihood.
-       correlationFunctionLogLikelihood=-0.5d0*covariance%covarianceProduct(residual) &
-            &                           -0.5d0*covariance%determinant()               &
+       correlationFunctionLogLikelihood=-0.5d0*covariance%covarianceProduct(residual,status) &
+            &                           -0.5d0*covariance%determinant()                      &
             &                           -0.5d0*dble(self%binCount)*log(2.0d0*Pi)
+       if (status /= GSL_Success) correlationFunctionLogLikelihood=logImprobable
     else
        correlationFunctionLogLikelihood=0.0d0
        call Galacticus_Error_Report('no target distribution was provided for likelihood calculation'//{introspection:location})

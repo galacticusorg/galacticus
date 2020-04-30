@@ -638,15 +638,18 @@ contains
 
   double precision function scatterFunction1DLogLikelihood(self)
     !% Return the log-likelihood of a scatterFunction1D output analysis.
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: Linear_Algebra          , only : assignment(=)          , matrix, operator(*), vector
-    use :: Numerical_Constants_Math, only : Pi
+    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Linear_Algebra              , only : assignment(=)          , matrix, operator(*), vector
+    use :: Numerical_Constants_Math    , only : Pi
+    use :: Interface_GSL               , only : GSL_Success
+    use :: Models_Likelihoods_Constants, only : logImprobable
     implicit none
     class           (outputAnalysisScatterFunction1D), intent(inout)                 :: self
     double precision                                 , allocatable  , dimension(:,:) :: scatterCovarianceCombined
     double precision                                 , allocatable  , dimension(:  ) :: scatterValueDifference
     type            (vector                         )                                :: residual
     type            (matrix                         )                                :: covariance
+    integer                                                                          :: status
 
     ! Check for existance of a target distribution.
     if (allocated(self%scatterValueTarget)) then
@@ -663,11 +666,15 @@ contains
        residual                 = scatterValueDifference
        covariance               = scatterCovarianceCombined
        ! Compute the log-likelihood.
-       scatterFunction1DLogLikelihood       =-0.5d0*covariance%covarianceProduct(residual)
-       if (self%likelihoodNormalize)                                                      &
-            & scatterFunction1DLogLikelihood=+scatterFunction1DLogLikelihood              &
-            &                             -0.5d0*covariance%determinant()                 &
-            &                             -0.5d0*dble(size(self%binCenter))*log(2.0d0*Pi)
+       scatterFunction1DLogLikelihood          =-0.5d0*covariance%covarianceProduct(residual,status)
+       if (status == GSL_Success) then
+          if (self%likelihoodNormalize)                                                         &
+               & scatterFunction1DLogLikelihood=+scatterFunction1DLogLikelihood                 &
+               &                                -0.5d0*covariance%determinant()                 &
+               &                                -0.5d0*dble(size(self%binCenter))*log(2.0d0*Pi)
+       else
+          scatterFunction1DLogLikelihood       =+logImprobable
+       end if
     else
        scatterFunction1DLogLikelihood=0.0d0
        call Galacticus_Error_Report('no target distribution was provided for likelihood calculation'//{introspection:location})

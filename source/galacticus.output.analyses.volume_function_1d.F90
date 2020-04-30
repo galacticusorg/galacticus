@@ -791,16 +791,19 @@ contains
 
   double precision function volumeFunction1DLogLikelihood(self)
     !% Return the log-likelihood of a volumeFunction1D output analysis.
-    use Linear_Algebra              , only : vector                 , matrix, assignment(=), operator(*)
-    use Numerical_Constants_Math    , only : Pi
-    use Models_Likelihoods_Constants, only : logImprobable
-    use Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Linear_Algebra              , only : vector                 , matrix, assignment(=), operator(*)
+    use :: Numerical_Constants_Math    , only : Pi
+    use :: Models_Likelihoods_Constants, only : logImprobable
+    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Interface_GSL               , only : GSL_Success
+    use :: Models_Likelihoods_Constants, only : logImprobable
     implicit none
     class           (outputAnalysisVolumeFunction1D), intent(inout)                 :: self
     double precision                                , allocatable  , dimension(:,:) :: functionCovarianceCombined
     double precision                                , allocatable  , dimension(:  ) :: functionValueDifference
     type            (vector                        )                                :: residual
     type            (matrix                        )                                :: covariance
+    integer                                                                         :: status
 
     ! Check for existance of a target distribution.
     if (allocated(self%functionValueTarget)) then
@@ -821,12 +824,16 @@ contains
           residual                  = functionValueDifference
           covariance                = functionCovarianceCombined
           ! Compute the log-likelihood.
-          volumeFunction1DLogLikelihood       =-0.5d0*covariance%covarianceProduct(residual)
-          if (self%likelihoodNormalize)                                                      &
-               & volumeFunction1DLogLikelihood=+volumeFunction1DLogLikelihood                &
-               &                               -0.5d0*covariance%determinant      (        ) &
-               &                               -0.5d0*dble(self%binCount)                    &
-               &                               *log(2.0d0*Pi)
+          volumeFunction1DLogLikelihood          =-0.5d0*covariance%covarianceProduct(residual,status)
+          if (status == GSL_Success) then
+             if (self%likelihoodNormalize)                                                      &
+                  & volumeFunction1DLogLikelihood=+volumeFunction1DLogLikelihood                &
+                  &                               -0.5d0*covariance%determinant      (        ) &
+                  &                               -0.5d0*dble(self%binCount)                    &
+                  &                               *log(2.0d0*Pi)
+          else
+             volumeFunction1DLogLikelihood       =+logImprobable
+          end if
        end if
     else
        volumeFunction1DLogLikelihood=0.0d0

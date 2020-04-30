@@ -811,15 +811,18 @@ contains
 
   double precision function meanFunction1DLogLikelihood(self)
     !% Return the log-likelihood of a meanFunction1D output analysis.
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: Linear_Algebra          , only : assignment(=)          , matrix, operator(*), vector
-    use :: Numerical_Constants_Math, only : Pi
+    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Linear_Algebra              , only : assignment(=)          , matrix, operator(*), vector
+    use :: Numerical_Constants_Math    , only : Pi
+    use :: Interface_GSL               , only : GSL_Success
+    use :: Models_Likelihoods_Constants, only : logImprobable
     implicit none
     class           (outputAnalysisMeanFunction1D), intent(inout)                 :: self
     double precision                              , allocatable  , dimension(:,:) :: meanCovarianceCombined
     double precision                              , allocatable  , dimension(:  ) :: meanValueDifference
     type            (vector                      )                                :: residual
     type            (matrix                      )                                :: covariance
+    integer                                                                       :: status
 
     ! Check for existance of a target distribution.
     if (allocated(self%meanValueTarget)) then
@@ -836,11 +839,15 @@ contains
        residual              = meanValueDifference
        covariance            = meanCovarianceCombined
        ! Compute the log-likelihood.
-       meanFunction1DLogLikelihood       =-0.5d0*covariance%covarianceProduct(residual)
-       if (self%likelihoodNormalize)                                                      &
-            & meanFunction1DLogLikelihood=+meanFunction1DLogLikelihood                    &
-            &                             -0.5d0*covariance%determinant()                 &
-            &                             -0.5d0*dble(size(self%binCenter))*log(2.0d0*Pi)
+       meanFunction1DLogLikelihood           =-0.5d0*covariance%covarianceProduct(residual,status)
+       if (status == GSL_Success) then
+          if (self%likelihoodNormalize)                                                      &
+               & meanFunction1DLogLikelihood=+meanFunction1DLogLikelihood                    &
+               &                             -0.5d0*covariance%determinant()                 &
+               &                             -0.5d0*dble(size(self%binCenter))*log(2.0d0*Pi)
+       else
+          meanFunction1DLogLikelihood       =+logImprobable
+       end if
     else
        meanFunction1DLogLikelihood=0.0d0
        call Galacticus_Error_Report('no target distribution was provided for likelihood calculation'//{introspection:location})

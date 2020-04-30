@@ -222,11 +222,11 @@ contains
     end do
     ! Create a half-mass radius property extractor.
     allocate(nodePropertyExtractor_        )
-    !# <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorHalfMassRadius     (                                                                                                                                                            )"/>
+    !# <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorHalfMassRadius     (                                                                                                                                                                      )"/>
     ! Create a stellar mass property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_        )
-    !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassStellar        (                                                                                                                                                            )"/>
-    ! Create multiply, log10, cosmological angular distance, and cosmologyical luminosity distance property operators.
+    !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassStellar        (                                                                                                                                                                      )"/>
+    ! Create multiply, log10, cosmological angular distance, and cosmological luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorMultiply_         )
     !# <referenceConstruct object="outputAnalysisPropertyOperatorMultiply_"          constructor="outputAnalysisPropertyOperatorMultiply            (kilo                                                                                                                                                        )"/>
     allocate(outputAnalysisPropertyOperatorLog10_            )

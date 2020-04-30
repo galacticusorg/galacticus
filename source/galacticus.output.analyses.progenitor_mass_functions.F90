@@ -663,9 +663,11 @@ contains
 
   double precision function progenitorMassFunctionLogLikelihood(self)
     !% Return the log-likelihood of the progenitor mass function.
-    use, intrinsic :: ISO_C_Binding   , only : c_size_t
-    use            :: Linear_Algebra  , only : vector                 , matrix, assignment(=), operator(*)
-    use            :: Galacticus_Error, only : Galacticus_Error_Report
+    use, intrinsic :: ISO_C_Binding               , only : c_size_t
+    use            :: Linear_Algebra              , only : vector                 , matrix   , assignment(=), operator(*)
+    use            :: Galacticus_Error            , only : Galacticus_Error_Report
+    use            :: Interface_GSL               , only : GSL_Success
+    use            :: Models_Likelihoods_Constants, only : logImprobable
     implicit none
     class           (outputAnalysisProgenitorMassFunction), intent(inout)                 :: self
     double precision                                      , allocatable  , dimension(:,:) :: functionCovarianceCombined
@@ -675,6 +677,7 @@ contains
     type            (matrix                              )                                :: covariance
     integer         (c_size_t                            )                                :: i                         , j , &
          &                                                                                   ii                        , jj
+    integer                                                                               :: status
 
     ! Check for existance of a target distribution.
     if (allocated(self%functionValueTarget)) then
@@ -720,7 +723,8 @@ contains
           residual  =functionValueDifference
           covariance=functionCovarianceCombined
           ! Compute the log-likelihood.
-          progenitorMassFunctionLogLikelihood=-0.5d0*covariance%covarianceProduct(residual)
+          progenitorMassFunctionLogLikelihood=-0.5d0*covariance%covarianceProduct(residual,status)
+          if (status /= GSL_Success) progenitorMassFunctionLogLikelihood=logImprobable
        else
           progenitorMassFunctionLogLikelihood=+0.0d0
        end if
