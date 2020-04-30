@@ -491,14 +491,35 @@ contains
     return
   end function matrixLinearSystemSolve
 
-  double precision function matrixCovarianceProduct(self,y)
+  double precision function matrixCovarianceProduct(self,y,status)
     !% Compute the quantity $y C^{-1} y^\mathrm{T}$ as appears in likelihood functions utilizing covariance matrices. Instead of
     !% directly inverting the covariance matrix (which is computationally slow and can be inaccurate), we solve the linear system
     !% $y = C x$ for $x$, and then evaluate $y x$.
+    use :: Interface_GSL, only : GSL_Success, GSL_ESing
     implicit none
-    class(matrix), intent(inout) :: self
-    type (vector), intent(in   ) :: y
+    class  (matrix), intent(inout)           :: self
+    type   (vector), intent(in   )           :: y
+    integer        , intent(  out), optional :: status
+    integer                                  :: i
 
+    if (present(status)) then
+       status=GSL_Success
+       ! Check that the matrix has no zero rows/columns.
+       do i=1,size(self%elements,dim=1)
+          if (all(self%elements(i,:) == 0.0d0)) then
+             matrixCovarianceProduct=0.0d0
+             status                 =GSL_ESing
+             return
+          end if
+       end do
+       do i=1,size(self%elements,dim=2)
+          if (all(self%elements(:,i) == 0.0d0)) then
+             matrixCovarianceProduct=0.0d0
+             status                 =GSL_ESing
+             return
+          end if
+       end do
+    end if
     matrixCovarianceProduct=y*self%linearSystemSolve(y)
     return
   end function matrixCovarianceProduct
