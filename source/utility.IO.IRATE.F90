@@ -199,8 +199,8 @@ contains
     return
   end subroutine irateCopyCosmology
 
-  subroutine irateWriteHalos(self,snapshot,redshift,center,velocity,mass)
-    !% Read requested properties of halos from an \gls{irate} file.
+  subroutine irateWriteHalos(self,snapshot,redshift,center,velocity,mass,overwrite,objectsOverwritable)
+    !% Read requested properties of halos to an \gls{irate} file.
     use :: IO_HDF5                         , only : hdf5Object
     use :: ISO_Varying_String              , only : char
     use :: Numerical_Constants_Astronomical, only : massSolar , megaParsec
@@ -211,13 +211,16 @@ contains
     double precision            , intent(in   )                           :: redshift
     double precision            , intent(in   ), dimension(:,:), optional :: center       , velocity
     double precision            , intent(in   ), dimension(  :), optional :: mass
-    type            (hdf5Object)                                          :: irateFile    , snapshotGroup, &
+    logical                     , intent(in   )                , optional :: overwrite    , objectsOverwritable
+    type            (hdf5Object)                                          :: irateFile    , snapshotGroup      , &
          &                                                                   halosGroup   , thisDataset
     character       (len=13    )                                          :: snapshotLabel
-
+    !# <optionalArgument name="overwrite"           defaultsTo=".false."/>
+    !# <optionalArgument name="objectsOverwritable" defaultsTo=".false."/>
+    
     ! Write data to file.
     write (snapshotLabel,'(a,i5.5)') 'Snapshot',snapshot
-    call irateFile%openFile(char(self%fileName),readOnly=.false.)
+    call irateFile%openFile(char(self%fileName),readOnly=.false.,overWrite=overWrite_,objectsOverwritable=objectsOverwritable_)
     snapshotGroup=irateFile    %openGroup(snapshotLabel)
     halosGroup   =snapshotGroup%openGroup('HaloCatalog')
     call snapshotGroup%writeAttribute(redshift,"Redshift")
