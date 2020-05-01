@@ -368,6 +368,9 @@ contains
     end if
     if (keyExists) then
        iKey=searchArray(thisHash%hashKeys(1:thisHash%elementCount),key)
+#if {Type¦match¦^rank\d+[a-zA-Z]+$¦1¦0}
+       deallocate(thisHash%hashValues(iKey)%object)
+#endif
        thisHash%hashValues(iKey)%object {Type¦assignment} value
     else
        ! Increase hash size if necessary.
