@@ -28,8 +28,6 @@
      private
      class  (nBodyImporterClass), pointer :: nBodyImporter_
      class  (nBodyOperatorClass), pointer :: nBodyOperator_
-     type   (varying_string    )          :: nBodyFileName , nbodyFileNamePrevious
-     logical                              :: usePrevious
    contains
      final     ::                       nbodyAnalyzeDestructor
      procedure :: perform            => nbodyAnalyzePerform
@@ -52,47 +50,24 @@ contains
     type (inputParameters   ), intent(inout) :: parameters
     class(nBodyImporterClass), pointer       :: nBodyImporter_
     class(nBodyOperatorClass), pointer       :: nBodyOperator_
-    type (varying_string    )                :: nBodyFileName , nbodyFileNamePrevious
 
-    !# <inputParameter>
-    !#   <name>nBodyFileName</name>
-    !#   <cardinality>1</cardinality>
-    !#   <description>The name of the file containing the N-body data.</description>
-    !#   <source>parameters</source>
-    !#   <type>string</type>
-    !# </inputParameter>
-    if (parameters%isPresent('nbodyFileNamePrevious')) then
-       !# <inputParameter>
-       !#   <name>nbodyFileNamePrevious</name>
-       !#   <cardinality>1</cardinality>
-       !#   <description>The name of the file containing the N-body data.</description>
-       !#   <source>parameters</source>
-       !#   <type>string</type>
-       !# </inputParameter>
-    end if
     !# <objectBuilder class="nBodyImporter" name="nBodyImporter_" source="parameters"/>
     !# <objectBuilder class="nBodyOperator" name="nBodyOperator_" source="parameters"/>
-    !# <conditionalCall>
-    !#  <call>self=taskNBodyAnalyze(nBodyImporter_,nBodyOperator_,nBodyFileName{conditions})</call>
-    !#  <argument name="nbodyFileNamePrevious" value="nbodyFileNamePrevious" parameterPresent="parameters"/>
-    !# </conditionalCall>
+    self=taskNBodyAnalyze(nBodyImporter_,nBodyOperator_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="nBodyImporter_"/>
     !# <objectDestructor name="nBodyOperator_"/>
     return
   end function nbodyAnalyzeConstructorParameters
 
-  function nbodyAnalyzeConstructorInternal(nBodyImporter_,nBodyOperator_,nBodyFileName,nbodyFileNamePrevious) result(self)
+  function nbodyAnalyzeConstructorInternal(nBodyImporter_,nBodyOperator_) result(self)
     !% Constructor for the {\normalfont \ttfamily nbodyAnalyze} task class which takes a parameter set as input.
     implicit none
     type (taskNBodyAnalyze  )                          :: self
     class(nBodyImporterClass), intent(in   ), target   :: nBodyImporter_
     class(nBodyOperatorClass), intent(in   ), target   :: nBodyOperator_
-    type (varying_string    ), intent(in   )           :: nBodyFileName
-    type (varying_string    ), intent(in   ), optional :: nbodyFileNamePrevious
-    !# <constructorAssign variables="*nBodyImporter_, *nBodyOperator_, nBodyFileName, nbodyFileNamePrevious"/>
+    !# <constructorAssign variables="*nBodyImporter_, *nBodyOperator_"/>
 
-    self%usePrevious=present(nbodyFileNamePrevious)
     return
   end function nbodyAnalyzeConstructorInternal
 
@@ -117,15 +92,12 @@ contains
     type   (nBodyData       )                          :: simulation
 
     call Galacticus_Display_Indent('Begin task: N-body analyze')
-    if (.not.self%usePrevious) then
-       simulation=self%nBodyImporter_%import(char(self%nbodyFileName)                                 )
-    else
-       simulation=self%nBodyImporter_%import(char(self%nbodyFileName),char(self%nbodyFileNamePrevious))
-    end if
+    ! Import N-body data.
+    simulation=self%nBodyImporter_%import()
     ! Operate on the N-body data.
     call self%nBodyOperator_%operate(simulation)
     ! Close the analysis group.
-    call simulation%analysis%close()
+    if (simulation%analysis%isOpen()) call simulation%analysis%close()
     ! Done.
     if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: N-body analyze' )

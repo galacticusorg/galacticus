@@ -27,10 +27,11 @@
   type, extends(nbodyImporterClass) :: nbodyImporterGadgetHDF5
      !% An importer for Gadget HDF5 files.
      private
-     type            (hdf5Object) :: file
-     integer                      :: particleType
-     double precision             :: lengthSoftening, unitMassInSI    , &
-          &                          unitLengthInSI , unitVelocityInSI
+     type            (varying_string) :: fileName
+     type            (hdf5Object    ) :: file
+     integer                          :: particleType
+     double precision                 :: lengthSoftening, unitMassInSI    , &
+          &                              unitLengthInSI , unitVelocityInSI
    contains
      final     ::           gadgetHDF5Destructor
      procedure :: import => gadgetHDF5Import
@@ -53,7 +54,15 @@ contains
     integer                                                  :: particleType
     double precision                                         :: lengthSoftening, unitMassInSI    , &
          &                                                      unitLengthInSI , unitVelocityInSI
+    type            (varying_string         )                :: fileName
 
+    !# <inputParameter>
+    !#   <name>fileName</name>
+    !#   <source>parameters</source>
+    !#   <description>The name of the file to read.</description>
+    !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>particleType</name>
     !#   <source>parameters</source>
@@ -89,19 +98,20 @@ contains
     !#   <type>float</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    self=nbodyImporterGadgetHDF5(particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI)
+    self=nbodyImporterGadgetHDF5(fileName,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI)
     !# <inputParametersValidate source="parameters"/>
     return
   end function gadgetHDF5ConstructorParameters
 
-  function gadgetHDF5ConstructorInternal(particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI) result (self)
+  function gadgetHDF5ConstructorInternal(fileName,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI) result (self)
     !% Internal constructor for the ``gadgetHDF5'' N-body importer class.
     implicit none
     type            (nbodyImporterGadgetHDF5)                :: self
+    type            (varying_string         ), intent(in   ) :: fileName
     integer                                  , intent(in   ) :: particleType
     double precision                         , intent(in   ) :: lengthSoftening, unitMassInSI   , &
          &                                                      unitLengthInSI ,unitVelocityInSI
-    !# <constructorAssign variables="particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI"/>
+    !# <constructorAssign variables="fileName, particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI"/>
 
     return
   end function gadgetHDF5ConstructorInternal
@@ -115,42 +125,20 @@ contains
     return
   end subroutine gadgetHDF5Destructor
 
-  function gadgetHDF5Import(self,fileName,fileNamePrevious)
+  function gadgetHDF5Import(self)
     !% Import data from a Gadget HDF5 file.
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Numerical_Constants_Astronomical, only : massSolar              , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    type            (nBodyData              )                          :: gadgetHDF5Import
-    class           (nbodyImporterGadgetHDF5), intent(inout)           :: self
-    character       (len=*                  ), intent(in   )           :: fileName
-    character       (len=*                  ), intent(in   ), optional :: fileNamePrevious
-    double precision                         , dimension(6)            :: massParticleType
-    character       (len=9                  )                          :: particleGroupName
-    type            (hdf5Object             )                          :: header
+    type            (nBodyData              )                :: gadgetHDF5Import
+    class           (nbodyImporterGadgetHDF5), intent(inout) :: self
+    double precision                         , dimension(6)  :: massParticleType
+    character       (len=9                  )                :: particleGroupName
+    type            (hdf5Object             )                :: header
 
-    ! Read in information from the previous snapshot if requested.
-    if (present(fileNamePrevious)) then
-       ! Open the data file of the previous snapshot.
-       call self%file%openFile(fileNamePrevious,objectsOverwritable=.false.)
-       ! Construct the particle type group to read and verify that it exists.
-       write (particleGroupName,'(a8,i1)') "PartType",self%particleType
-       if (.not.self%file%hasGroup(particleGroupName)) call Galacticus_Error_Report('particle group does not exist'//{introspection:location})
-       ! Check whether the self-bound status at the previous snapshot is available.
-       if (self%file%hasDataset(particleGroupName//'/selfBoundStatus')) then
-          ! Open the particle group.
-          gadgetHDF5Import%analysis=self%file%openGroup(particleGroupName)
-          ! Import the particle IDs, self-bound status amd sampling weights at the previous snapshot.
-          call gadgetHDF5Import%analysis%readDataset('ParticleIDs    ',gadgetHDF5Import%particleIDsPrevious )
-          call gadgetHDF5Import%analysis%readDataset('selfBoundStatus',gadgetHDF5Import%boundStatusPrevious )
-          call gadgetHDF5Import%analysis%readDataset('weight         ',gadgetHDF5Import%sampleWeightPrevious)
-          call gadgetHDF5Import%analysis%close()
-       end if
-       ! Close the data file.
-       call self%file%close()
-    end if
     ! Open the data file of the current snapshot.
-    call self%file%openFile(fileName,objectsOverwritable=.true.)
+    call self%file%openFile(char(self%fileName),objectsOverwritable=.true.)
     ! Construct the particle type group to read and verify that it exists.
     write (particleGroupName,'(a8,i1)') "PartType",self%particleType
     if (.not.self%file%hasGroup(particleGroupName)) call Galacticus_Error_Report('particle group does not exist'//{introspection:location})

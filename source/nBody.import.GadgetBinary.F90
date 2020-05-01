@@ -27,7 +27,7 @@
   type, extends(nbodyImporterClass) :: nbodyImporterGadgetBinary
      !% An importer for Gadget HDF5 files.
      private
-     type            (varying_string) :: outputFileName
+     type            (varying_string) :: outputFileName , fileName
      integer                          :: particleType
      double precision                 :: lengthSoftening, unitMassInSI    , &
           &                              unitLengthInSI , unitVelocityInSI
@@ -49,11 +49,18 @@ contains
     implicit none
     type            (nbodyImporterGadgetBinary)                :: self
     type            (inputParameters          ), intent(inout) :: parameters
-    type            (varying_string           )                :: outputFileName
+    type            (varying_string           )                :: outputFileName , fileName
     integer                                                    :: particleType
     double precision                                           :: lengthSoftening, unitMassInSI    , &
          &                                                        unitLengthInSI , unitVelocityInSI
 
+    !# <inputParameter>
+    !#   <name>fileName</name>
+    !#   <source>parameters</source>
+    !#   <description>The name of the file to read.</description>
+    !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>particleType</name>
     !#   <source>parameters</source>
@@ -103,25 +110,25 @@ contains
     !#   <type>string</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    self=nbodyImporterGadgetBinary(outputFileName,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI)
+    self=nbodyImporterGadgetBinary(fileName,outputFileName,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI)
     !# <inputParametersValidate source="parameters"/>
     return
   end function gadgetBinaryConstructorParameters
 
-  function gadgetBinaryConstructorInternal(outputFileName,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI) result (self)
+  function gadgetBinaryConstructorInternal(fileName,outputFileName,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI) result (self)
     !% Internal constructor for the ``gadgetBinary'' N-body importer class.
     implicit none
     type            (nbodyImporterGadgetBinary)                :: self
-    type            (varying_string           ), intent(in   ) :: outputFileName
+    type            (varying_string           ), intent(in   ) :: outputFileName , fileName
     integer                                    , intent(in   ) :: particleType
     double precision                           , intent(in   ) :: lengthSoftening, unitMassInSI   , &
          &                                                        unitLengthInSI ,unitVelocityInSI
-    !# <constructorAssign variables="outputFileName,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI"/>
+    !# <constructorAssign variables="fileName, outputFileName,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI"/>
 
     return
   end function gadgetBinaryConstructorInternal
 
-  function gadgetBinaryImport(self,fileName,fileNamePrevious)
+  function gadgetBinaryImport(self)
     !% Import data from a Gadget HDF5 file.
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Memory_Management               , only : allocateArray
@@ -130,8 +137,6 @@ contains
     implicit none
     type            (nBodyData                )                                :: gadgetBinaryImport
     class           (nbodyImporterGadgetBinary), intent(inout)                 :: self
-    character       (len=*                    ), intent(in   )                 :: fileName
-    character       (len=*                    ), intent(in   ), optional       :: fileNamePrevious
     integer                                                   , dimension(6  ) :: numberParticleType    , numberParticleTypeFile, &
          &                                                                        numberParticleTypeRead
     real                                       , allocatable  , dimension(:,:) :: position              , velocity
@@ -142,17 +147,13 @@ contains
          &                                                                        numberFiles           , fileNumber
     character       (len=6                    )                                :: fileNumberText
 
-    ! Reading in self-bound status from the previous snapshot is not supported yet for binary Gadget outputs.
-    if (present(fileNamePrevious)) then
-       call Galacticus_Error_Report('reading in self-bound status from the previous snapshot is not supported'//{introspection:location})
-    end if
     ! Open the file.
     numberFiles           =huge(0)
     fileNumber            =     0
     numberParticleTypeRead=     0
     do while (fileNumber < numberFiles)
        write (fileNumberText,'(i4)') fileNumber
-       open(newUnit=file,file=trim(fileName)//"."//trim(adjustl(fileNumberText)),status='old',form='unformatted')
+       open(newUnit=file,file=char(self%fileName)//"."//trim(adjustl(fileNumberText)),status='old',form='unformatted')
        read (file) numberParticleTypeFile, massParticleType, time, redshift, flagSFR, flagFeedback, numberParticleType, flagCooling, numberFiles
        if (fileNumber == 0) then
           call allocateArray(gadgetBinaryImport%position  ,[3,numberParticleType(self%particleType+1)])
