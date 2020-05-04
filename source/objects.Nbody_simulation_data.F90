@@ -21,23 +21,26 @@
 
 module NBody_Simulation_Data
   !% Provides a class to store N-body simulation data.
-  use :: IO_HDF5     , only : hdf5Object
-  use :: Kind_Numbers, only : kind_int8
-  use :: Hashes      , only : rank1IntegerSizeTHash, rank1DoubleHash
+  use :: IO_HDF5           , only : hdf5Object
+  use :: ISO_Varying_String, only : varying_string
+  use :: Kind_Numbers      , only : kind_int8
+  use :: Hashes            , only : rank1IntegerSizeTHash, rank2IntegerSizeTHash, rank1DoubleHash, rank2DoubleHash
   implicit none
   private
   public :: nBodyData, nBodyDataPropertyType
 
   type :: nBodyData
      !% A class to store N-body simulation data.
+     type            (varying_string       )                              :: label
      type            (hdf5Object           )                              :: analysis
-     double precision                       , allocatable, dimension(:,:) :: position           , velocity
+     double precision                       , allocatable, dimension(:,:) :: position              , velocity
      integer                                , allocatable, dimension(  :) :: identifier
-     double precision                                                     :: lengthSoftening    , massParticle
-     integer         (kind_int8            ), allocatable, dimension(  :) :: particleIDs        , particleIDsPrevious
-     integer                                , allocatable, dimension(:,:) :: boundStatusPrevious, sampleWeightPrevious
+     double precision                                                     :: lengthSoftening       , massParticle
+     integer         (kind_int8            ), allocatable, dimension(  :) :: particleIDs
      type            (rank1IntegerSizeTHash)                              :: propertiesInteger
      type            (rank1DoubleHash      )                              :: propertiesReal
+     type            (rank2IntegerSizeTHash)                              :: propertiesIntegerRank1
+     type            (rank2DoubleHash      )                              :: propertiesRealRank1
   end type nBodyData
 
   interface nBodyData

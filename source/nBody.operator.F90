@@ -33,7 +33,7 @@ module NBody_Operators
   !#   <description>Operate on the provided N-body simulation.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(nBodyData), intent(inout) :: simulation</argument>
+  !#   <argument>type(nBodyData), intent(inout), dimension(:) :: simulations</argument>
   !#  </method>
   !# </functionClass>
 

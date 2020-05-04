@@ -122,14 +122,15 @@ contains
     return
   end subroutine pairCountsDestructor
   
-  subroutine pairCountsOperate(self,simulation)
+  subroutine pairCountsOperate(self,simulations)
     !% Determine the mean position and velocity of N-body particles.
-    use :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear
+    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
+         &                            verbosityStandard
     use :: Nearest_Neighbors , only : nearestNeighbors
-    use :: Numerical_Ranges  , only : Make_Range                , rangeTypeLogarithmic
+    use :: Numerical_Ranges  , only : Make_Range               , rangeTypeLogarithmic
     implicit none
     class           (nbodyOperatorPairCounts), intent(inout)                 :: self
-    type            (nBodyData              ), intent(inout)                 :: simulation
+    type            (nBodyData              ), intent(inout), dimension(:  ) :: simulations
     double precision                         , parameter                     :: toleranceZero       =0.0d0
     integer                                  , allocatable  , dimension(:  ) :: neighborIndex
     double precision                         , allocatable  , dimension(:  ) :: neighborDistance          , separationCentralBin, &
@@ -141,12 +142,14 @@ contains
     type            (nearestNeighbors       )                                :: neighborFinder
     integer                                                                  :: neighborCount
 
+    call Galacticus_Display_Indent('compute pair counts',verbosityStandard)
+    if (size(simulations) /= 1) call Galacticus_Error_Report('precisely 1 simulation should be supplied'//{introspection:location})
     ! Construct bins of separation.
     allocate(separationCentralBin(self%separationCount                                     ))
     allocate(separationMinimumBin(self%separationCount                                     ))
     allocate(separationMaximumBin(self%separationCount                                     ))
     allocate(pairCountBin        (self%separationCount           ,self%bootstrapSampleCount))
-    allocate(weight              (size(simulation%position,dim=2)                          ))
+    allocate(weight              (size(simulations(1)%position,dim=2)                          ))
     separationCentralBin=Make_Range(self%separationMinimum,self%separationMaximum,int(self%separationCount),rangeTypeLogarithmic,rangeBinned=.true.)
     separationMinimumBin=separationCentralBin/sqrt(separationCentralBin(2)/separationCentralBin(1))
     separationMaximumBin=separationCentralBin*sqrt(separationCentralBin(2)/separationCentralBin(1))
@@ -155,18 +158,18 @@ contains
     call Galacticus_Display_Counter(0,.true.)
     do iSample=1,self%bootstrapSampleCount
        ! Determine weights for particles.
-       do i=1,size(simulation%position,dim=2,kind=c_size_t)
+       do i=1,size(simulations(1)%position,dim=2,kind=c_size_t)
           weight(i)=self%randomNumberGenerator_%poissonSample(self%bootstrapSampleRate)
        end do
        ! Iterate over particles.
        !$omp parallel private(neighborCount,neighborIndex,neighborDistance,neighborFinder)
        ! Construct the nearest neighbor finder object.
-       neighborFinder=nearestNeighbors(transpose(simulation%position))
+       neighborFinder=nearestNeighbors(transpose(simulations(1)%position))
        !$omp do schedule(dynamic)
-       do i=1_c_size_t,size(simulation%position,dim=2,kind=c_size_t)
+       do i=1_c_size_t,size(simulations(1)%position,dim=2,kind=c_size_t)
           if (weight(i) <= 0.0d0) cycle
           ! Locate particles nearby.
-          call neighborFinder%searchFixedRadius(simulation%position(:,i),self%separationMaximum,toleranceZero,neighborCount,neighborIndex,neighborDistance)
+          call neighborFinder%searchFixedRadius(simulations(1)%position(:,i),self%separationMaximum,toleranceZero,neighborCount,neighborIndex,neighborDistance)
           ! Accumulate particles into bins.
           do j=1,self%separationCount
              if (weight(j) <= 0.0d0) cycle
@@ -174,14 +177,15 @@ contains
              pairCountBin(j,iSample)=pairCountBin(j,iSample)+int(weight(i),c_size_t)*int(weight(j),c_size_t)*count(neighborDistance >= separationMinimumBin(j) .and. neighborDistance < separationMaximumBin(j))
           end do
           ! Update progress.
-          call Galacticus_Display_Counter(int(100.0d0*float(i+(iSample-1_c_size_t)*size(simulation%position,dim=2,kind=c_size_t))/float(size(simulation%position,dim=2,kind=c_size_t))/float(self%bootstrapSampleCount)),.false.)
+          call Galacticus_Display_Counter(int(100.0d0*float(i+(iSample-1_c_size_t)*size(simulations(1)%position,dim=2,kind=c_size_t))/float(size(simulations(1)%position,dim=2,kind=c_size_t))/float(self%bootstrapSampleCount)),.false.)
        end do
        !$omp end do
        !$omp end parallel
     end do
     call Galacticus_Display_Counter_Clear()
-    call simulation%analysis%writeDataset(pairCountBin        ,'pairCountCount'     )
-    call simulation%analysis%writeDataset(separationCentralBin,'pairCountSeparation')
+    call simulations(1)%analysis%writeDataset(pairCountBin        ,'pairCountCount'     )
+    call simulations(1)%analysis%writeDataset(separationCentralBin,'pairCountSeparation')
+    call Galacticus_Display_Unindent('done',verbosityStandard)
     return
   end subroutine pairCountsOperate
 

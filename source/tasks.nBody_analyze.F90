@@ -87,17 +87,20 @@ contains
     use :: Galacticus_Error     , only : errorStatusSuccess
     use :: NBody_Simulation_Data, only : nBodyData
     implicit none
-    class  (taskNBodyAnalyze), intent(inout), target   :: self
-    integer                  , intent(  out), optional :: status
-    type   (nBodyData       )                          :: simulation
-
+    class  (taskNBodyAnalyze), intent(inout), target       :: self
+    integer                  , intent(  out), optional     :: status
+    type   (nBodyData       ), allocatable  , dimension(:) :: simulations
+    integer                                                :: i
+    
     call Galacticus_Display_Indent('Begin task: N-body analyze')
     ! Import N-body data.
-    simulation=self%nBodyImporter_%import()
+    call self%nBodyImporter_%import (simulations)
     ! Operate on the N-body data.
-    call self%nBodyOperator_%operate(simulation)
+    call self%nBodyOperator_%operate(simulations)
     ! Close the analysis group.
-    if (simulation%analysis%isOpen()) call simulation%analysis%close()
+    do i=1,size(simulations)
+       if (simulations(i)%analysis%isOpen()) call simulations(i)%analysis%close()
+    end do
     ! Done.
     if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: N-body analyze' )

@@ -68,32 +68,34 @@ contains
     return
   end function deletePropertiesConstructorInternal
 
-  subroutine deletePropertiesOperate(self,simulation)
+  subroutine deletePropertiesOperate(self,simulations)
     !% Identify and flag particles which have been always isolated.
     use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Message, verbosityStandard
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     implicit none
-    class  (nbodyOperatorDeleteProperties), intent(inout) :: self
-    type   (nBodyData                    ), intent(inout) :: simulation
-    logical                                               :: propertyFound
-    integer                                               :: i
-    
+    class  (nbodyOperatorDeleteProperties), intent(inout)               :: self
+    type   (nBodyData                    ), intent(inout), dimension(:) :: simulations
+    logical                                                             :: propertyFound
+    integer                                                             :: i
+
     call Galacticus_Display_Indent('delete named properties',verbosityStandard)
     do i=1,size(self%propertyNames)
-       propertyFound=.false.
-       if (simulation%propertiesInteger%exists(self%propertyNames(i))) then
-          propertyFound=.true.
-          call simulation%propertiesInteger%delete(self%propertyNames(i))
-       end if
-       if (simulation%propertiesReal   %exists(self%propertyNames(i))) then
-          propertyFound=.true.
-          call simulation%propertiesReal   %delete(self%propertyNames(i))
-       end if
-       if (propertyFound) then
-          call Galacticus_Display_Message('deleted "' //self%propertyNames(i)//'"'                                    )
-       else
-          call Galacticus_Error_Report   ('property "'//self%propertyNames(i)//'" not found'//{introspection:location})
-       end if
+       do j=1,size(simulations)
+          propertyFound=.false.
+          if (simulations(j)%propertiesInteger%exists(self%propertyNames(i))) then
+             propertyFound=.true.
+             call simulations(j)%propertiesInteger%delete(self%propertyNames(i))
+          end if
+          if (simulations(j)%propertiesReal   %exists(self%propertyNames(i))) then
+             propertyFound=.true.
+             call simulations(j)%propertiesReal   %delete(self%propertyNames(i))
+          end if
+          if (propertyFound) then
+             call Galacticus_Display_Message('deleted "' //self%propertyNames(i)//'"'                                    )
+          else
+             call Galacticus_Error_Report   ('property "'//self%propertyNames(i)//'" not found'//{introspection:location})
+          end if
+       end do
     end do
     call Galacticus_Display_Unindent('done',verbosityStandard)
     return

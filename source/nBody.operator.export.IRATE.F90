@@ -109,49 +109,51 @@ contains
     return
   end subroutine exportIRATEDestructor
 
-  subroutine exportIRATEOperate(self,simulation)
+  subroutine exportIRATEOperate(self,simulations)
     !% Output simulation data to an IRATE-format file.
     use :: Galacticus_Display              , only : Galacticus_Display_Indent, Galacticus_Display_Unindent, verbosityStandard
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: IO_HDF5                         , only : hdf5Object, hdf5Access
     use :: IO_IRATE                        , only : irate
     use :: ISO_Varying_String              , only : char
     use :: Numerical_Constants_Astronomical, only : massSolar
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    class           (nbodyOperatorExportIRATE), intent(inout) :: self
-    type            (nBodyData               ), intent(inout) :: simulation
-    type            (irate                   )                :: irate_
-    character       (len=13                  )                :: snapshotLabel
-    type            (hdf5Object              )                :: irateFile         , snapshotGroup, &
-         &                                                       halosGroup        , dataset
-    integer                                                   :: i
-    type            (varying_string          )                :: datasetDescription, unitName
-    double precision                          , dimension(3)  :: unitscgs
+    class           (nbodyOperatorExportIRATE), intent(inout)               :: self
+    type            (nBodyData               ), intent(inout), dimension(:) :: simulations
+    type            (irate                   )                              :: irate_
+    character       (len=13                  )                              :: snapshotLabel
+    type            (hdf5Object              )                              :: irateFile         , snapshotGroup, &
+         &                                                                     halosGroup        , dataset
+    integer                                                                 :: i
+    type            (varying_string          )                              :: datasetDescription, unitName
+    double precision                                         , dimension(3) :: unitscgs
 
     call Galacticus_Display_Indent('export simulation to IRATE file',verbosityStandard)
+    if (size(simulations) /= 1) call Galacticus_Error_Report('precisely 1 simulation should be supplied'//{introspection:location})
     irate_=irate(char(self%fileName),self%cosmologyParameters_,self%cosmologyFunctions_)
-    call irate_%writeHalos(                                            &
-         &                                     self      %snapshot   , &
-         &                                     self      %redshift   , &
-         &                 center             =simulation%position   , &
-         &                 velocity           =simulation%velocity   , &
-         &                 IDs                =simulation%particleIDs, &
-         &                 overwrite          =.true.                , &
-         &                 objectsOverwritable=.true.                  &
+    call irate_%writeHalos(                                                &
+         &                                     self      %snapshot       , &
+         &                                     self      %redshift       , &
+         &                 center             =simulations(1)%position   , &
+         &                 velocity           =simulations(1)%velocity   , &
+         &                 IDs                =simulations(1)%particleIDs, &
+         &                 overwrite          =.true.                    , &
+         &                 objectsOverwritable=.true.                      &
          &                )
     ! Write any additional properties to the file.
     if     (                                         &
-         &   simulation%propertiesInteger%size() > 0 &
+         &   simulations(1)%propertiesInteger%size() > 0 &
          &  .or.                                     &
-         &   simulation%propertiesReal   %size() > 0 &
+         &   simulations(1)%propertiesReal   %size() > 0 &
          & ) then       
        write (snapshotLabel,'(a,i5.5)') 'Snapshot',self%snapshot
        !$ call hdf5Access%set()
        call irateFile%openFile(char(self%fileName),readOnly=.false.)
        snapshotGroup=irateFile    %openGroup(snapshotLabel)
        halosGroup   =snapshotGroup%openGroup('HaloCatalog')
-       do i=1,simulation%propertiesInteger%size()
-          select case (char(simulation%propertiesInteger%key(i)))
+       do i=1,simulations(1)%propertiesInteger%size()
+          select case (char(simulations(1)%propertiesInteger%key(i)))
           case ('particleID'               )
              datasetDescription="Unique ID for each particle."
           case ('descendentID'             )
@@ -169,10 +171,10 @@ contains
           case default
              datasetDescription="Unknown property."
           end select
-          call halosGroup%writeDataset  (simulation%propertiesInteger%value(i),char(simulation%propertiesInteger%key(i)),char(datasetDescription)                        )
+          call halosGroup%writeDataset  (simulations(1)%propertiesInteger%value(i),char(simulations(1)%propertiesInteger%key(i)),char(datasetDescription)                        )
        end do
-       do i=1,simulation%propertiesReal   %size()
-          select case (char(simulation%propertiesReal   %key(i)))
+       do i=1,simulations(1)%propertiesReal   %size()
+          select case (char(simulations(1)%propertiesReal   %key(i)))
           case ('expansionFactor'          )
              datasetDescription="Cosmological expansion factor."
              unitName="dimensionless"
@@ -188,10 +190,10 @@ contains
           case default
              datasetDescription="Unknown property."
           end select
-          call halosGroup%writeDataset  (simulation%propertiesReal   %value(i),char(simulation%propertiesReal   %key(i)),char(datasetDescription),datasetReturned=dataset)
-          call dataset   %writeAttribute(char(unitName)                       ,'unitname'                                                                                )
-          call dataset   %writeAttribute(     unitscgs                        ,'unitscgs'                                                                                )
-          call dataset   %close         (                                                                                                                                )
+          call halosGroup%writeDataset  (simulations(1)%propertiesReal   %value(i),char(simulations(1)%propertiesReal   %key(i)),char(datasetDescription),datasetReturned=dataset)
+          call dataset   %writeAttribute(char(unitName)                           ,'unitname'                                                                                    )
+          call dataset   %writeAttribute(     unitscgs                            ,'unitscgs'                                                                                    )
+          call dataset   %close         (                                                                                                                                        )
        end do
        call halosGroup   %close()
        call snapshotGroup%close()

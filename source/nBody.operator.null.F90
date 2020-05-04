@@ -48,12 +48,12 @@ contains
     return
   end function nullConstructorParameters
 
-  subroutine nullOperate(self,simulation)
+  subroutine nullOperate(self,simulations)
     !% Perform a null operation on N-body simulation data.
     implicit none
-    class(nbodyOperatorNull), intent(inout) :: self
-    type (nBodyData        ), intent(inout) :: simulation
-    !$GLC attributes unused :: self, simulation
+    class(nbodyOperatorNull), intent(inout)               :: self
+    type (nBodyData        ), intent(inout), dimension(:) :: simulations
+    !$GLC attributes unused :: self, simulations
 
     ! Nothing to do.
     return

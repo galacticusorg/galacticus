@@ -30,7 +30,7 @@
      class  (cosmologyParametersClass)              , pointer     :: cosmologyParameters_    => null()
      integer                          , dimension(:), allocatable :: readColumns                      , readColumnsType
      integer                                                      :: readColumnsIntegerCount          , readColumnsRealCount
-     type   (varying_string          )                            :: fileName
+     type   (varying_string          )                            :: fileName                         , label
    contains
      final     ::           rockstarDestructor
      procedure :: import => rockstarImport
@@ -81,12 +81,20 @@ contains
     class  (cosmologyParametersClass), pointer                     :: cosmologyParameters_
     type   (varying_string          ), allocatable  , dimension(:) :: readColumnsText
     integer                          , allocatable  , dimension(:) :: readColumns
-    type   (varying_string          )                              :: fileName
+    type   (varying_string          )                              :: fileName            , label
 
     !# <inputParameter>
     !#   <name>fileName</name>
     !#   <source>parameters</source>
     !#   <description>The name of the file to read.</description>
+    !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>label</name>
+    !#   <source>parameters</source>
+    !#   <description>A label for the simulation</description>
+    !#   <defaultValue>var_str('primary')</defaultValue>
     !#   <type>string</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
@@ -108,7 +116,7 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <conditionalCall>
     !# <call>
-    !#  self=nbodyImporterRockstar(fileName,cosmologyParameters_{conditions})
+    !#  self=nbodyImporterRockstar(fileName,label,cosmologyParameters_{conditions})
     !# </call>
     !# <argument name="readColumns" value="readColumns" parameterPresent="parameters" />
     !# </conditionalCall>
@@ -117,15 +125,15 @@ contains
     return
   end function rockstarConstructorParameters
 
-  function rockstarConstructorInternal(fileName,cosmologyParameters_,readColumns) result (self)
+  function rockstarConstructorInternal(fileName,label,cosmologyParameters_,readColumns) result (self)
     !% Internal constructor for the {\normalfont \ttfamily rockstar} N-body importer class.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (nbodyImporterRockstar   )                                        :: self
     class  (cosmologyParametersClass), intent(in   ), target                 :: cosmologyParameters_
     integer                          , intent(in   ), dimension(:), optional :: readColumns
-    type   (varying_string          ), intent(in   )                         :: fileName
-    !# <constructorAssign variables="fileName, *cosmologyParameters_, readColumns"/>
+    type   (varying_string          ), intent(in   )                         :: fileName            , label
+    !# <constructorAssign variables="fileName, label, *cosmologyParameters_, readColumns"/>
 
     ! If extra read columns are requested, determine the number of integer and real columns.
     if (allocated(self%readColumns)) then
@@ -169,7 +177,7 @@ contains
     return
   end subroutine rockstarDestructor
 
-  function rockstarImport(self)
+  subroutine rockstarImport(self,simulations)
     !% Import data from a Rockstar file.
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     use :: Galacticus_Display  , only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
@@ -178,30 +186,32 @@ contains
     use :: File_Utilities      , only : Count_Lines_in_File
     use :: Hashes              , only : rank1IntegerSizeTHash    , rank1DoubleHash
     implicit none
-    type            (nBodyData            )                                 :: rockstarImport
-    class           (nbodyImporterRockstar), intent(inout)                  :: self
-    double precision                       , dimension( :    ), allocatable :: expansionFactor
-    double precision                       , dimension( :  ,:), allocatable :: propertiesReal
-    integer         (c_size_t             ), dimension( :  ,:), allocatable :: propertiesInteger
-    double precision                       , dimension(0:22  )              :: columnsReal
-    integer         (c_size_t             ), dimension(0:22  )              :: columnsInteger
-    integer         (c_size_t             )                                 :: countHalos       , countTrees, &
-         &                                                                     i
-    integer                                                                 :: status           , j         , &
-         &                                                                     file             , jInteger  , &
-         &                                                                     jReal
-    character       (len=1024             )                                 :: line
-    character       (len=64               )                                 :: columnName
-    logical                                                                 :: isComment
+    class           (nbodyImporterRockstar), intent(inout)                                 :: self
+    type            (nBodyData            ), intent(  out), dimension( :    ), allocatable :: simulations
+    double precision                                      , dimension( :    ), allocatable :: expansionFactor
+    double precision                                      , dimension( :  ,:), allocatable :: propertiesReal
+    integer         (c_size_t             )               , dimension( :  ,:), allocatable :: propertiesInteger
+    double precision                                      , dimension(0:22  )              :: columnsReal
+    integer         (c_size_t             ), dimension(0:22  )                             :: columnsInteger
+    integer         (c_size_t             )                                                :: countHalos       , countTrees, &
+         &                                                                                    i
+    integer                                                                                :: status           , j         , &
+         &                                                                                    file             , jInteger  , &
+         &                                                                                    jReal
+    character       (len=1024             )                                                :: line
+    character       (len=64               )                                                :: columnName
+    logical                                                                                :: isComment
 
     call Galacticus_Display_Indent('import simulation from Rockstar file',verbosityStandard)
+    allocate(simulations(1))
+    simulations(1)%label=self%label
     ! Count lines in file. (Subtract 1 since one lines gives the number of distinct trees.)
     countHalos=Count_Lines_In_File(self%fileName,comment_char="#")-1_c_size_t
-    countTrees=                                               0_c_size_t
+    countTrees=                                                    0_c_size_t
     ! Allocate storage
-    call allocateArray(rockstarImport%position       ,[3_c_size_t,countHalos])
-    call allocateArray(rockstarImport%velocity       ,[3_c_size_t,countHalos])
-    call allocateArray(rockstarImport%particleIDs    ,[           countHalos])
+    call allocateArray(simulations(1)%position       ,[3_c_size_t,countHalos])
+    call allocateArray(simulations(1)%velocity       ,[3_c_size_t,countHalos])
+    call allocateArray(simulations(1)%particleIDs    ,[           countHalos])
     call allocateArray(               expansionFactor,[           countHalos])
     if (allocated(self%readColumns)) then
        allocate(propertiesInteger(countHalos,self%readColumnsIntegerCount))
@@ -226,9 +236,9 @@ contains
                   &        columnsInteger(3: 8), &
                   &        columnsReal   (9:22)
              expansionFactor            (  i)=columnsReal   ( 0   )
-             rockstarImport %particleIDs(  i)=columnsInteger( 1   )
-             rockstarImport %position   (:,i)=columnsReal   (17:19)
-             rockstarImport %velocity   (:,i)=columnsReal   (20:22)
+             simulations(1) %particleIDs(  i)=columnsInteger( 1   )
+             simulations(1) %position   (:,i)=columnsReal   (17:19)
+             simulations(1) %velocity   (:,i)=columnsReal   (20:22)
              ! Read any extra columns.
              if (allocated(self%readColumns)) then
                 jInteger=0
@@ -257,14 +267,14 @@ contains
     close(file)
     ! Convert position to internal units (physical Mpc).
     do i=1_c_size_t,countHalos
-       rockstarImport%position(:,i)=+rockstarImport           %position       (:,i                 ) &
+       simulations(1)%position(:,i)=+simulations(1)           %position       (:,i                 ) &
             &                       *                          expansionFactor(  i                 ) &
             &                       /self%cosmologyParameters_%HubbleConstant (  hubbleUnitsLittleH)
     end do
     call deallocateArray(expansionFactor)
     ! Add any additional properties.
-    rockstarImport%propertiesInteger=rank1IntegerSizeTHash()
-    rockstarImport%propertiesReal   =rank1DoubleHash      ()
+    simulations(1)%propertiesInteger=rank1IntegerSizeTHash()
+    simulations(1)%propertiesReal   =rank1DoubleHash      ()
     if (allocated(self%readColumns)) then
        jInteger                        =0
        jReal                           =0
@@ -288,7 +298,7 @@ contains
              case (rockstarColumnPhantom   )
                 columnName='isPhantom'
              end select
-             call rockstarImport%propertiesInteger%set(columnName,propertiesInteger(:,jInteger))
+             call simulations(1)%propertiesInteger%set(columnName,propertiesInteger(:,jInteger))
           case (columnTypeReal   )
              jReal   =jReal   +1
              select case (self%readColumns(j))
@@ -300,11 +310,11 @@ contains
                 columnName='massVirial'
                 propertiesReal(:,jReal)=+propertiesReal                                    (:,jReal             ) &
                      &                  /self          %cosmologyParameters_%HubbleConstant(  hubbleUnitsLittleH)
-            end select
-             call rockstarImport%propertiesReal  %set(columnName,propertiesReal   (:,jReal   ))
+             end select
+             call simulations(1)%propertiesReal   %set(columnName,propertiesReal   (:,jReal   ))
           end select
        end do
     end if
     call Galacticus_Display_Unindent('done',verbosityStandard)
     return
-  end function rockstarImport
+  end subroutine rockstarImport

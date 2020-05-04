@@ -30,7 +30,7 @@
      private
      class  (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class  (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
-     type   (varying_string          )          :: fileName
+     type   (varying_string          )          :: fileName                      , label
      integer                                    :: snapshot
    contains
      final     ::           irateDestructor
@@ -53,7 +53,7 @@ contains
     type   (inputParameters         ), intent(inout) :: parameters
     class  (cosmologyParametersClass), pointer       :: cosmologyParameters_
     class  (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
-    type   (varying_string          )                :: fileName
+    type   (varying_string          )                :: fileName            , label
     integer                                          :: snapshot
 
     !# <inputParameter>
@@ -72,22 +72,22 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    self=nbodyImporterIRATE(fileName,snapshot,cosmologyParameters_,cosmologyFunctions_)
+    self=nbodyImporterIRATE(fileName,label,snapshot,cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="cosmologyFunctions_" />
     return
   end function irateConstructorParameters
 
-  function irateConstructorInternal(fileName,snapshot,cosmologyParameters_,cosmologyFunctions_) result (self)
+  function irateConstructorInternal(fileName,label,snapshot,cosmologyParameters_,cosmologyFunctions_) result (self)
     !% Internal constructor for the {\normalfont \ttfamily irate} N-body importer class.
     implicit none
     type   (nbodyImporterIRATE      )                        :: self
-    type   (varying_string          ), intent(in   )         :: fileName
+    type   (varying_string          ), intent(in   )         :: fileName            , label
     integer                          , intent(in   )         :: snapshot
     class  (cosmologyParametersClass), intent(in   ), target :: cosmologyParameters_
     class  (cosmologyFunctionsClass ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="fileName, snapshot, *cosmologyParameters_, *cosmologyFunctions_"/>
+    !# <constructorAssign variables="fileName, label, snapshot, *cosmologyParameters_, *cosmologyFunctions_"/>
 
     return
   end function irateConstructorInternal
@@ -102,21 +102,23 @@ contains
     return
   end subroutine irateDestructor
 
-  function irateImport(self) result(simulation)
+  subroutine irateImport(self,simulations)
     !% Import data from a IRATE file.
     use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, verbosityStandard
     use :: Hashes            , only : rank1IntegerSizeTHash    , rank1DoubleHash
     use :: IO_IRATE          , only : irate
     implicit none
-    type (nBodyData         )                :: simulation
-    class(nbodyImporterIRATE), intent(inout) :: self
-    type (irate             )                :: irate_
+    class(nbodyImporterIRATE), intent(inout)                            :: self
+    type (nBodyData         ), intent(  out), dimension(:), allocatable :: simulations
+    type (irate             )                                           :: irate_
 
     call Galacticus_Display_Indent('import simulation from IRATE file',verbosityStandard)
+    allocate(simulations(1))
+    simulations(1)%label=self%label
     irate_=irate(char(self%fileName),self%cosmologyParameters_,self%cosmologyFunctions_)
-    call irate_%readHalos(self%snapshot,center=simulation%position,velocity=simulation%velocity,IDs=simulation%particleIDs)
-    simulation%propertiesInteger=rank1IntegerSizeTHash()
-    simulation%propertiesReal   =rank1DoubleHash      ()
+    call irate_%readHalos(self%snapshot,center=simulations(1)%position,velocity=simulations(1)%velocity,IDs=simulations(1)%particleIDs)
+    simulations(1)%propertiesInteger=rank1IntegerSizeTHash()
+    simulations(1)%propertiesReal   =rank1DoubleHash      ()
     call Galacticus_Display_Unindent('done',verbosityStandard)
     return
-  end function irateImport
+  end subroutine irateImport

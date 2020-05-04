@@ -105,16 +105,16 @@ contains
     return
   end subroutine sequenceDestructor
 
-  subroutine sequenceOperate(self,simulation)
+  subroutine sequenceOperate(self,simulations)
     !% Apply a sequence of N-body simulation operators.
     implicit none
-    class(nbodyOperatorSequence), intent(inout) :: self
-    type (nBodyData            ), intent(inout) :: simulation
-    type (nbodyOperatorList    ), pointer       :: operator_
+    class(nbodyOperatorSequence), intent(inout)               :: self
+    type (nBodyData            ), intent(inout), dimension(:) :: simulations
+    type (nbodyOperatorList    ), pointer                     :: operator_
 
     operator_       => self%operators
     do while (associated(operator_))
-       call operator_%operator_%operate(simulation)
+       call operator_%operator_%operate(simulations)
        operator_ => operator_%next
     end do
     return

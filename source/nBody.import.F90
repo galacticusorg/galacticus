@@ -31,9 +31,17 @@ module NBody_Importers
   !#  <default>gadgetHDF5</default>
   !#  <method name="import" >
   !#   <description>Import position and velocity data from the named N-body data file.</description>
-  !#   <type>type(nBodyData)</type>
+  !#   <type>void</type>
   !#   <pass>yes</pass>
+  !#   <argument>type(nBodyData), intent(  out), allocatable, dimension(:) :: simulations</argument>
   !#  </method>
   !# </functionClass>
+
+  type, public :: nbodyImporterList
+     !% Class used to build linked list of N-body data importers.
+     class(nbodyImporterClass), pointer                   :: importer_
+     type (nbodyImporterList ), pointer                   :: next        => null()
+     type (nBodyData         ), allocatable, dimension(:) :: simulations
+  end type nbodyImporterList
 
 end module NBody_Importers

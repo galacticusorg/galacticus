@@ -27,7 +27,7 @@
   type, extends(nbodyImporterClass) :: nbodyImporterGadgetHDF5
      !% An importer for Gadget HDF5 files.
      private
-     type            (varying_string) :: fileName
+     type            (varying_string) :: fileName       , label
      type            (hdf5Object    ) :: file
      integer                          :: particleType
      double precision                 :: lengthSoftening, unitMassInSI    , &
@@ -54,12 +54,20 @@ contains
     integer                                                  :: particleType
     double precision                                         :: lengthSoftening, unitMassInSI    , &
          &                                                      unitLengthInSI , unitVelocityInSI
-    type            (varying_string         )                :: fileName
+    type            (varying_string         )                :: fileName       , label
 
     !# <inputParameter>
     !#   <name>fileName</name>
     !#   <source>parameters</source>
     !#   <description>The name of the file to read.</description>
+    !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>label</name>
+    !#   <source>parameters</source>
+    !#   <description>A label for the simulation</description>
+    !#   <defaultValue>var_str('primary')</defaultValue>
     !#   <type>string</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
@@ -98,20 +106,20 @@ contains
     !#   <type>float</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    self=nbodyImporterGadgetHDF5(fileName,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI)
+    self=nbodyImporterGadgetHDF5(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI)
     !# <inputParametersValidate source="parameters"/>
     return
   end function gadgetHDF5ConstructorParameters
 
-  function gadgetHDF5ConstructorInternal(fileName,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI) result (self)
+  function gadgetHDF5ConstructorInternal(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI) result (self)
     !% Internal constructor for the ``gadgetHDF5'' N-body importer class.
     implicit none
     type            (nbodyImporterGadgetHDF5)                :: self
-    type            (varying_string         ), intent(in   ) :: fileName
+    type            (varying_string         ), intent(in   ) :: fileName       , label
     integer                                  , intent(in   ) :: particleType
     double precision                         , intent(in   ) :: lengthSoftening, unitMassInSI   , &
          &                                                      unitLengthInSI ,unitVelocityInSI
-    !# <constructorAssign variables="fileName, particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI"/>
+    !# <constructorAssign variables="fileName, label, particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI"/>
 
     return
   end function gadgetHDF5ConstructorInternal
@@ -125,18 +133,20 @@ contains
     return
   end subroutine gadgetHDF5Destructor
 
-  function gadgetHDF5Import(self)
+  subroutine gadgetHDF5Import(self,simulations)
     !% Import data from a Gadget HDF5 file.
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Numerical_Constants_Astronomical, only : massSolar              , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    type            (nBodyData              )                :: gadgetHDF5Import
-    class           (nbodyImporterGadgetHDF5), intent(inout) :: self
-    double precision                         , dimension(6)  :: massParticleType
-    character       (len=9                  )                :: particleGroupName
-    type            (hdf5Object             )                :: header
+    class           (nbodyImporterGadgetHDF5), intent(inout)                            :: self
+    type            (nBodyData              ), intent(  out), allocatable, dimension(:) :: simulations
+    double precision                                                     , dimension(6) :: massParticleType
+    character       (len=9                  )                                           :: particleGroupName
+    type            (hdf5Object             )                                           :: header
 
+    allocate(simulations(1))
+    simulations(1)%label=self%label
     ! Open the data file of the current snapshot.
     call self%file%openFile(char(self%fileName),objectsOverwritable=.true.)
     ! Construct the particle type group to read and verify that it exists.
@@ -147,24 +157,24 @@ contains
     call header%readAttributeStatic('MassTable',massParticleType)
     call header%close()
     ! Set softening length and particle mass.
-    gadgetHDF5Import%lengthSoftening=+self%lengthSoftening                  &
-         &                           *self%unitLengthInSI                   &
-         &                           /megaParsec
-    gadgetHDF5Import%massParticle   =+massParticleType(self%particleType+1) &
-         &                           *self%unitMassInSI                     &
-         &                           /massSolar
+    simulations(1)%lengthSoftening=+self%lengthSoftening                  &
+         &                         *self%unitLengthInSI                   &
+         &                         /megaParsec
+    simulations(1)%massParticle   =+massParticleType(self%particleType+1) &
+         &                         *self%unitMassInSI                     &
+         &                         /massSolar
     ! Open the particle group - this group will be used for analysis output.
-    gadgetHDF5Import%analysis=self%file%openGroup(particleGroupName)
+    simulations(1)%analysis=self%file%openGroup(particleGroupName)
     ! Import the particle postions, velocities and IDs.
-    call gadgetHDF5Import%analysis%readDataset('Coordinates',gadgetHDF5Import%position   )
-    call gadgetHDF5Import%analysis%readDataset('Velocities' ,gadgetHDF5Import%velocity   )
-    call gadgetHDF5Import%analysis%readDataset('ParticleIDs',gadgetHDF5Import%particleIDs)
+    call simulations(1)%analysis%readDataset('Coordinates',simulations(1)%position   )
+    call simulations(1)%analysis%readDataset('Velocities' ,simulations(1)%velocity   )
+    call simulations(1)%analysis%readDataset('ParticleIDs',simulations(1)%particleIDs)
     ! Convert position and velocities to internal units.
-    gadgetHDF5Import%position=+gadgetHDF5Import%position &
-         &                    *self%unitLengthInSI       &
-         &                    /megaParsec
-    gadgetHDF5Import%velocity=+gadgetHDF5Import%velocity &
-         &                    *self%unitVelocityInSI     &
-         &                    /kilo
+    simulations(1)%position=+simulations(1)%position         &
+         &                  *self          %unitLengthInSI   &
+         &                  /megaParsec
+    simulations(1)%velocity=+simulations(1)%velocity         &
+         &                  *self          %unitVelocityInSI &
+         &                  /kilo
     return
-  end function gadgetHDF5Import
+  end subroutine gadgetHDF5Import

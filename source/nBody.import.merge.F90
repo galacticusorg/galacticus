@@ -19,11 +19,6 @@
 
 !% Contains a module which implements an N-body data importer which merges data from other importers.
   
-  type, public :: nbodyImporterList
-     class(nbodyImporterClass), pointer :: importer_
-     type (nbodyImporterList ), pointer :: next      => null()
-  end type nbodyImporterList
-
   !# <nbodyImporter name="nbodyImporterMerge">
   !#  <description>An importer which merges data from other importers.</description>
   !#  <deepCopy>
@@ -34,6 +29,7 @@
      !% An importer which merges data from other importers.
      private
      type(nbodyImporterList), pointer :: importers => null()
+     type(varying_string   )          :: label
    contains
      final     ::           mergeDestructor
      procedure :: import => mergeImport
@@ -56,6 +52,15 @@ contains
     type   (nbodyImporterList ), pointer       :: importer_
     integer                                    :: i
 
+    !# <inputParameter>
+    !#   <name>label</name>
+    !#   <source>parameters</source>
+    !#   <variable>self%label</variable>
+    !#   <description>A label for the simulation</description>
+    !#   <defaultValue>var_str('')</defaultValue>
+    !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     self     %importers => null()
     importer_           => null()
     do i=1,parameters%copiesCount('nbodyImporterMethod',zeroIfNotPresent=.true.)
@@ -71,13 +76,15 @@ contains
     return
   end function mergeConstructorParameters
 
-  function mergeConstructorInternal(importers) result (self)
+  function mergeConstructorInternal(label,importers) result (self)
     !% Internal constructor for the {\normalfont \ttfamily merge} N-body importer class.
     implicit none
-    type(nbodyImporterMerge)                        :: self
-    type(nbodyImporterList ), target, intent(in   ) :: importers
-    type(nbodyImporterList ), pointer               :: importer_
-
+    type(nbodyImporterMerge)                         :: self
+    type(nbodyImporterList ), target , intent(in   ) :: importers
+    type(varying_string    )         , intent(in   ) :: label
+    type(nbodyImporterList ), pointer                :: importer_
+    !# <constructorAssign variables="label"/>
+    
     self     %importers => importers
     importer_           => importers
     do while (associated(importer_))
@@ -105,78 +112,88 @@ contains
     return
   end subroutine mergeDestructor
 
-  function mergeImport(self) result(simulation)
+  subroutine mergeImport(self,simulations)
     !% Merge data from multiple importers.
     use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, verbosityStandard
     use :: Hashes            , only : rank1IntegerSizeTHash    , rank1DoubleHash
     implicit none
-    type            (nBodyData         )                            :: simulation
-    class           (nbodyImporterMerge), intent(inout)             :: self
-    type            (nbodyImporterList ), pointer                   :: importer_
-    type            (nBodyData         ), allocatable, dimension(:) :: simulations
-    integer         (c_size_t          ), allocatable, dimension(:) :: propertyInteger
-    double precision                    , allocatable, dimension(:) :: propertyReal
-    integer                                                         :: countImporters , i, &
-         &                                                             j
-    integer         (c_size_t          )                            :: countObjects
+    class           (nbodyImporterMerge), intent(inout)                            :: self
+    type            (nBodyData         ), intent(  out), allocatable, dimension(:) :: simulations
+    type            (nbodyImporterList )               , pointer                   :: importer_
+    integer         (c_size_t          )               , allocatable, dimension(:) :: propertyInteger
+    double precision                                   , allocatable, dimension(:) :: propertyReal
+    integer                                                                        :: j              , k
+    integer         (c_size_t          )                                           :: countObjects
 
     call Galacticus_Display_Indent('merging imported data',verbosityStandard)
-    countImporters =  0
-    importer_      => self%importers
+    allocate(simulations(1))
+    countObjects          =  0_c_size_t
+    importer_             => self%importers
     do while (associated(importer_))
-       countImporters =  countImporters+1
-       importer_      => importer_%next
+       call importer_%importer_%import(importer_%simulations)
+       do j=1,size(importer_%simulations)
+          countObjects =  countObjects+size(importer_%simulations(j)%particleIDs)
+       end do
+       importer_ => importer_%next
     end do
-    allocate(simulations(countImporters))
-    i            = 0
-    countObjects = 0_c_size_t
+    allocate(simulations(1)%particleIDs    (  countObjects))
+    allocate(simulations(1)%position       (3,countObjects))
+    allocate(simulations(1)%velocity       (3,countObjects))
+    allocate(               propertyInteger(  countObjects))
+    allocate(               propertyReal   (  countObjects))
+    ! Set a label.
+    if (self%label == "") then
+       simulations(1)%label=self%importers%simulations(1)%label
+    else
+       simulations(1)%label=self%label
+    end if
+    ! Default properties.
+    countObjects =  0_c_size_t
     importer_    => self%importers
     do while (associated(importer_))
-       i              =  i+1
-       simulations(i) =  importer_%importer_%import()
-       importer_      => importer_%next
-       countObjects   =  countObjects+size(simulations(i)%particleIDs)
-    end do
-    allocate(simulation%particleIDs    (  countObjects))
-    allocate(simulation%position       (3,countObjects))
-    allocate(simulation%velocity       (3,countObjects))
-    allocate(           propertyInteger(  countObjects))
-    allocate(           propertyReal   (  countObjects))
-    countObjects=0_c_size_t
-    ! Default properties.
-    do i=1,countImporters
-       simulation%particleIDs(countObjects+1:countObjects+size(simulations(i)%particleIDs))=simulations(i)%particleIDs
-       do j=1,3
-          simulation%position(j,countObjects+1:countObjects+size(simulations(i)%particleIDs))=simulations(i)%position(j,:)
-          simulation%velocity(j,countObjects+1:countObjects+size(simulations(i)%particleIDs))=simulations(i)%velocity(j,:)
+       do j=1,size(importer_%simulations)
+          simulations   (1)%particleIDs(  countObjects+1:countObjects+size(importer_%simulations(j)%particleIDs))=importer_%simulations(j)%particleIDs
+          do k=1,3
+             simulations(1)%position   (k,countObjects+1:countObjects+size(importer_%simulations(j)%particleIDs))=importer_%simulations(j)%position   (k,:)
+             simulations(1)%velocity   (k,countObjects+1:countObjects+size(importer_%simulations(j)%particleIDs))=importer_%simulations(j)%velocity   (k,:)
+          end do
+          countObjects=countObjects+size(importer_%simulations(j)%particleIDs)
        end do
-       countObjects=countObjects+size(simulations(i)%particleIDs)
+       importer_ => importer_%next
     end do
     ! Extra properties.
     !! Integer properties.
-    simulation%propertiesInteger=rank1IntegerSizeTHash()
-    if (simulations(1)%propertiesInteger%size() > 0) then
-       do j=1,simulations(1)%propertiesInteger%size()
-          countObjects=0_c_size_t
-          do i=1,countImporters
-             propertyInteger(countObjects+1:countObjects+size(simulations(i)%particleIDs))=simulations(i)%propertiesInteger%value(j)
-             countObjects=countObjects+size(simulations(i)%particleIDs)
+    simulations(1)%propertiesInteger=rank1IntegerSizeTHash()
+    if (self%importers%simulations(1)%propertiesInteger%size() > 0) then
+       do k=1,self%importers%simulations(1)%propertiesInteger%size()
+          countObjects = 0_c_size_t
+          importer_    => self%importers
+          do while (associated(importer_))
+             do j=1,size(importer_%simulations)
+                propertyInteger(countObjects+1:countObjects+size(importer_%simulations(k)%particleIDs))=importer_%simulations(j)%propertiesInteger%value(k)
+                countObjects=countObjects+size(importer_%simulations(j)%particleIDs)
+             end do
+             importer_ => importer_%next
           end do
-          call simulation%propertiesInteger%set(simulations(i)%propertiesInteger%key(j),propertyInteger)
+          call simulations(1)%propertiesInteger%set(importer_%simulations(j)%propertiesInteger%key(k),propertyInteger)
        end do
     end if
     !! Real properties.
-    simulation%propertiesReal   =rank1DoubleHash      ()
-    if (simulations(1)%propertiesReal   %size() > 0) then
-       do j=1,simulations(1)%propertiesReal   %size()
-          countObjects=0_c_size_t
-          do i=1,countImporters
-             propertyReal   (countObjects+1:countObjects+size(simulations(i)%particleIDs))=simulations(i)%propertiesReal   %value(j)
-             countObjects=countObjects+size(simulations(i)%particleIDs)
+    simulations(1)%propertiesReal   =rank1DoubleHash      ()
+    if (self%importers%simulations(1)%propertiesReal   %size() > 0) then
+       do k=1,self%importers%simulations(1)%propertiesReal   %size()
+          countObjects = 0_c_size_t
+          importer_    => self%importers
+          do while (associated(importer_))
+             do j=1,size(importer_%simulations)
+                propertyReal   (countObjects+1:countObjects+size(importer_%simulations(k)%particleIDs))=importer_%simulations(j)%propertiesReal   %value(k)
+                countObjects=countObjects+size(importer_%simulations(j)%particleIDs)
+             end do
+             importer_ => importer_%next
           end do
-          call simulation%propertiesReal   %set(simulations(i)%propertiesReal   %key(j),propertyReal   )
+          call simulations(1)%propertiesReal   %set(importer_%simulations(j)%propertiesReal   %key(k),propertyReal   )
        end do
     end if
     call Galacticus_Display_Unindent('done',verbosityStandard)
     return
-  end function mergeImport
+  end subroutine mergeImport

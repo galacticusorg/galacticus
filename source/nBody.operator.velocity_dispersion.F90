@@ -118,13 +118,13 @@ contains
     return
   end subroutine velocityDispersionDestructor
 
-  subroutine velocityDispersionOperate(self,simulation)
+  subroutine velocityDispersionOperate(self,simulations)
     !% Determine the mean position and velocity of N-body particles.
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none
     class           (nbodyOperatorVelocityDispersion), intent(inout)                 :: self
-    type            (nBodyData                      ), intent(inout)                 :: simulation
+    type            (nBodyData                      ), intent(inout), dimension(:  ) :: simulations
     integer                                          , allocatable  , dimension(:,:) :: selfBoundStatus
     double precision                                 , parameter                     :: sampleRate           =1.0d0
     double precision                                 , allocatable  , dimension(:,:) :: positionMean                , velocityDispersion
@@ -133,71 +133,69 @@ contains
     logical                                          , allocatable  , dimension(:  ) :: mask
     double precision                                                , dimension(3  ) :: velocityMean                , velocityMeanSquared
     integer                                                                          :: k
-    integer         (c_size_t                       )                                :: i                           , j
+    integer         (c_size_t                       )                                :: i                           , j                  , &
+         &                                                                              iSimulation
 
-    ! Allocate workspace.
-    call allocateArray(distanceRadialSquared,[  size(simulation%position   ,dim =2       )                          ])
-    call allocateArray(positionRelative     ,[3,size(simulation%position   ,dim =2       )                          ])
-    call allocateArray(velocityDispersion   ,[  size(self      %radiusInner,kind=c_size_t),self%bootstrapSampleCount])
-    call allocateArray(mask                 ,[  size(simulation%position   ,dim =2       )                          ])
-    ! Determine the particle mask to use.
-    if (self%selfBoundParticlesOnly) then
-       if (simulation%analysis%hasDataset('selfBoundStatus')) then
-          call simulation%analysis%readDataset('selfBoundStatus',selfBoundStatus)
-          if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
+    do iSimulation=1,size(simulations)
+       ! Allocate workspace.
+       call allocateArray(distanceRadialSquared,[  size(simulations(iSimulation)%position   ,dim =2       )                          ])
+       call allocateArray(positionRelative     ,[3,size(simulations(iSimulation)%position   ,dim =2       )                          ])
+       call allocateArray(velocityDispersion   ,[  size(self                    %radiusInner,kind=c_size_t),self%bootstrapSampleCount])
+       call allocateArray(mask                 ,[  size(simulations(iSimulation)%position   ,dim =2       )                          ])
+       ! Determine the particle mask to use.
+       if (self%selfBoundParticlesOnly) then
+          if (simulations(iSimulation)%analysis%hasDataset('selfBoundStatus')) then
+             call simulations(iSimulation)%analysis%readDataset('selfBoundStatus',selfBoundStatus)
+             if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
+          else
+             call Galacticus_Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
+          end if
        else
-          call Galacticus_Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
+          call allocateArray(selfBoundStatus,[size(simulations(iSimulation)%position,dim=2,kind=c_size_t),self%bootstrapSampleCount])
+          do i=1,self%bootstrapSampleCount
+             do j=1,size(simulations(iSimulation)%position,dim=2)
+                selfBoundStatus(j,i)=self%randomNumberGenerator_%poissonSample(sampleRate)
+             end do
+          end do
        end if
-    else
-       call allocateArray(selfBoundStatus,[size(simulation%position,dim=2,kind=c_size_t),self%bootstrapSampleCount])
+       ! Get mean position.
+       if (.not.simulations(iSimulation)%analysis%hasDataset('positionMean')) call Galacticus_Error_Report('mean position not available - apply the mean position operator first'//{introspection:location})
+       call simulations(iSimulation)%analysis%readDataset('positionMean',positionMean)
+       if (size(positionMean,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of positionMean samples must equal number of requested bootstrap samples'//{introspection:location})
        do i=1,self%bootstrapSampleCount
-          do j=1,size(simulation%position,dim=2)
-             selfBoundStatus(j,i)=self%randomNumberGenerator_%poissonSample(sampleRate)
+          !$omp parallel workshare
+          ! Compute radial distance from the mean position.
+          forall(k=1:3)
+             positionRelative(k,:)=+simulations(iSimulation)  %position(k,:) &
+                  &                -positionMean         (k,i)
+          end forall
+          distanceRadialSquared=sum(positionRelative**2,dim=1)
+          !$omp end parallel workshare
+          ! Compute velocity dispersion within each shell.
+          do k=1,size(self%radiusInner)
+             !$omp parallel workshare
+             mask   = distanceRadialSquared >= self%radiusInner(k)**2 &
+                  &  .and.                                            &
+                  &   distanceRadialSquared <  self%radiusOuter(k)**2
+             forall(j=1:3)
+                velocityMean       (j)=sum(simulations(iSimulation)%velocity(j,:)   *dble(selfBoundStatus(:,i)),mask=mask)/dble(sum(selfBoundStatus(:,i),mask))
+                velocityMeanSquared(j)=sum(simulations(iSimulation)%velocity(j,:)**2*dble(selfBoundStatus(:,i)),mask=mask)/dble(sum(selfBoundStatus(:,i),mask))
+             end forall
+             velocityDispersion(k,i)=sqrt(sum(velocityMeanSquared-velocityMean**2)/3.0d0)
+             !$omp end parallel workshare
           end do
        end do
-    end if
-    ! Get mean position.
-    if (.not.simulation%analysis%hasDataset('positionMean')) call Galacticus_Error_Report('mean position not available - apply the mean position operator first'//{introspection:location})
-    call simulation%analysis%readDataset('positionMean',positionMean)
-    if (size(positionMean,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of positionMean samples must equal number of requested bootstrap samples'//{introspection:location})
-    do i=1,self%bootstrapSampleCount
-       !$omp parallel workshare
-       ! Compute radial distance from the mean position.
-       forall(k=1:3)
-          positionRelative(k,:)=+simulation  %position(k,:) &
-               &                -positionMean         (k,i)
-       end forall
-       distanceRadialSquared=sum(positionRelative**2,dim=1)
-       !$omp end parallel workshare
-       ! Compute velocity dispersion within each shell.
-       do k=1,size(self%radiusInner)
-          !$omp parallel workshare
-          mask   = distanceRadialSquared >= self%radiusInner(k)**2 &
-               &  .and.                                            &
-               &   distanceRadialSquared <  self%radiusOuter(k)**2
-          forall(j=1:3)
-             velocityMean       (j)=sum(simulation%velocity(j,:)   *dble(selfBoundStatus(:,i)),mask=mask)/dble(sum(selfBoundStatus(:,i),mask))
-             velocityMeanSquared(j)=sum(simulation%velocity(j,:)**2*dble(selfBoundStatus(:,i)),mask=mask)/dble(sum(selfBoundStatus(:,i),mask))
-          end forall
-          velocityDispersion(k,i)=sqrt(sum(velocityMeanSquared-velocityMean**2)/3.0d0)
-          !$omp end parallel workshare
-       end do
+       ! Store results to file.
+       call simulations(iSimulation)%analysis%writeDataset(self%radiusInner  ,'velocityDispersionRadiusInner')
+       call simulations(iSimulation)%analysis%writeDataset(self%radiusInner  ,'velocityDispersionRadiusOuter')
+       call simulations(iSimulation)%analysis%writeDataset(velocityDispersion,'velocityDispersion'           )
+       ! Deallocate workspace.
+       call deallocateArray(selfBoundStatus      )
+       call deallocateArray(distanceRadialSquared)
+       call deallocateArray(positionRelative     )
+       call deallocateArray(velocityDispersion   )
+       call deallocateArray(mask                 )
     end do
-    ! Store results to file.
-    call simulation%analysis%writeDataset(self%radiusInner  ,'velocityDispersionRadiusInner')
-    call simulation%analysis%writeDataset(self%radiusInner  ,'velocityDispersionRadiusOuter')
-    call simulation%analysis%writeDataset(velocityDispersion,'velocityDispersion'           )
-
-do i=1,size(simulation%position   ,dim =2       )
-   write (404,*)  simulation%velocity(:,i),simulation%position(:,i)
-end do
-
-    ! Deallocate workspace.
-    call deallocateArray(selfBoundStatus      )
-    call deallocateArray(distanceRadialSquared)
-    call deallocateArray(positionRelative     )
-    call deallocateArray(velocityDispersion   )
-    call deallocateArray(mask                 )
-     return
+    return
   end subroutine velocityDispersionOperate
 

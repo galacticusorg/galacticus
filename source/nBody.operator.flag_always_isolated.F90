@@ -69,7 +69,7 @@ contains
     return
   end function flagAlwaysIsolatedConstructorInternal
 
-  subroutine flagAlwaysIsolatedOperate(self,simulation)
+  subroutine flagAlwaysIsolatedOperate(self,simulations)
     !% Identify and flag particles which have been always isolated.
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
     use    :: Arrays_Search     , only : searchIndexed
@@ -81,63 +81,70 @@ contains
     use    :: String_Handling   , only : operator(//)
     implicit none
     class           (nbodyOperatorFlagAlwaysIsolated), intent(inout)               :: self
-    type            (nBodyData                      ), intent(inout)               :: simulation
+    type            (nBodyData                      ), intent(inout), dimension(:) :: simulations
     integer         (c_size_t                       ), allocatable  , dimension(:) :: alwaysIsolated, hostID , &
          &                                                                            descendentID  , indexID
     double precision                                 , allocatable  , dimension(:) :: massVirial
     double precision                                                               :: massReference
-    integer         (c_size_t                       )                              :: i             , j      , &
-         &                                                                            k
+    integer         (c_size_t                       )                              :: i             , j          , &
+         &                                                                            k             , iSimulation
 
     call Galacticus_Display_Indent('flag always isolated objects',verbosityStandard)
-    ! Allocate workspace.
-    allocate(indexID       (size(simulation%particleIDs)))
-    allocate(hostID        (size(simulation%particleIDs)))
-    allocate(descendentID  (size(simulation%particleIDs)))
-    allocate(massVirial    (size(simulation%particleIDs)))
-    allocate(alwaysIsolated(size(simulation%particleIDs)))
-    ! Retrieve required properties.
-    hostID      =simulation%propertiesInteger%value('hostID'      )
-    descendentID=simulation%propertiesInteger%value('descendentID')
-    massVirial  =simulation%propertiesReal   %value('massVirial'  )
-    ! Build a sort index.
-    indexID=sortIndex(simulation%particleIDs)
-    ! Initialize status - assuming all particles are always-isolated initially.
-    alwaysIsolated=1_c_size_t
-    ! Visit each particle.
-    countParticles=0_c_size_t
-    !$omp parallel do private(j,k,massReference) schedule(dynamic)
-    do i=1_c_size_t,size(alwaysIsolated)
-       ! Skip isolated halos.
-       if (hostID(i) < 0_c_size_t) cycle
-       ! Trace descendents, marking as not-always-isolated until mass increases sufficiently.
-       j            =           i
-       massReference=massVirial(i)
-       do while (massVirial(j) < self%massFactor*massReference)
-          alwaysIsolated(j)=0_c_size_t
-          if (descendentID(j) < 0_c_size_t) exit
-          k=searchIndexed(simulation%particleIDs,indexID,descendentID(j))
-          if     (                                              &
-               &   k                         < 1_c_size_t       &
-               &  .or.                                          &
-               &   k                         >  size(indexID)   &
-               & )                                              &
-               & call Galacticus_Error_Report('failed to find descendent'//{introspection:location})
-          k=indexID(k)
-          if     (                                              &
-               &   simulation%particleIDs(k) /= descendentID(j) &
-               & )                                              &
-               & call Galacticus_Error_Report(var_str('failed to find descendent [')//descendentID(j)//'] of ['//simulation%particleIDs(j)//']'//{introspection:location})
-          j=k
-       end do
-       !$ if (OMP_Get_Thread_Num() == 0) then
+    do iSimulation=1,size(simulations)
+       ! Allocate workspace.
+       allocate(indexID       (size(simulations(iSimulation)%particleIDs)))
+       allocate(hostID        (size(simulations(iSimulation)%particleIDs)))
+       allocate(descendentID  (size(simulations(iSimulation)%particleIDs)))
+       allocate(massVirial    (size(simulations(iSimulation)%particleIDs)))
+       allocate(alwaysIsolated(size(simulations(iSimulation)%particleIDs)))
+       ! Retrieve required properties.
+       hostID      =simulations(iSimulation)%propertiesInteger%value('hostID'      )
+       descendentID=simulations(iSimulation)%propertiesInteger%value('descendentID')
+       massVirial  =simulations(iSimulation)%propertiesReal   %value('massVirial'  )
+       ! Build a sort index.
+       indexID=sortIndex(simulations(iSimulation)%particleIDs)
+       ! Initialize status - assuming all particles are always-isolated initially.
+       alwaysIsolated=1_c_size_t
+       ! Visit each particle.
+       countParticles=0_c_size_t
+       !$omp parallel do private(j,k,massReference) schedule(dynamic)
+       do i=1_c_size_t,size(alwaysIsolated)
+          ! Skip isolated halos.
+          if (hostID(i) < 0_c_size_t) cycle
+          ! Trace descendents, marking as not-always-isolated until mass increases sufficiently.
+          j            =           i
+          massReference=massVirial(i)
+          do while (massVirial(j) < self%massFactor*massReference)
+             alwaysIsolated(j)=0_c_size_t
+             if (descendentID(j) < 0_c_size_t) exit
+             k=searchIndexed(simulations(iSimulation)%particleIDs,indexID,descendentID(j))
+             if     (                                              &
+                  &   k                         < 1_c_size_t       &
+                  &  .or.                                          &
+                  &   k                         >  size(indexID)   &
+                  & )                                              &
+                  & call Galacticus_Error_Report('failed to find descendent'//{introspection:location})
+             k=indexID(k)
+             if     (                                                            &
+                  &   simulations(iSimulation)%particleIDs(k) /= descendentID(j) &
+                  & )                                                            &
+                  & call Galacticus_Error_Report(var_str('failed to find descendent [')//descendentID(j)//'] of ['//simulations(iSimulation)%particleIDs(j)//']'//{introspection:location})
+             j=k
+          end do
+          !$ if (OMP_Get_Thread_Num() == 0) then
           call Galacticus_Display_Counter(int(100.0d0*dble(i)/dble(size(alwaysIsolated))),verbosity=verbosityStandard,isNew=i == 1_c_size_t)
-       !$ end if
+          !$ end if
+       end do
+       !$omp end parallel do
+       call Galacticus_Display_Counter_Clear(verbosityStandard)
+       ! Store results.
+       call simulations(iSimulation)%propertiesInteger%set('alwaysIsolated',alwaysIsolated)
+       deallocate(indexID       )
+       deallocate(hostID        )
+       deallocate(descendentID  )
+       deallocate(massVirial    )
+       deallocate(alwaysIsolated)
     end do
-    !$omp end parallel do
-    call Galacticus_Display_Counter_Clear(verbosityStandard)
-    ! Store results.
-    call simulation%propertiesInteger%set('alwaysIsolated',alwaysIsolated)
     call Galacticus_Display_Unindent('done',verbosityStandard)
     return
   end subroutine flagAlwaysIsolatedOperate

@@ -147,92 +147,95 @@ contains
     return
   end function filterPropertiesConstructorInternal
 
-  subroutine filterPropertiesOperate(self,simulation)
+  subroutine filterPropertiesOperate(self,simulations)
     !% Identify and flag particles which have been always isolated.
     use :: Galacticus_Display   , only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Message, verbosityStandard
     use :: Galacticus_Error     , only : Galacticus_Error_Report
     use :: NBody_Simulation_Data, only : propertyTypeInteger      , propertyTypeReal
     implicit none
     class           (nbodyOperatorFilterProperties), intent(inout)                 :: self
-    type            (nBodyData                    ), intent(inout)                 :: simulation
+    type            (nBodyData                    ), intent(inout), dimension(  :) :: simulations
     logical                                        , allocatable  , dimension(  :) :: mask
     integer         (c_size_t                     ), allocatable  , dimension(  :) :: propertyInteger, propertyIntegerFiltered
     double precision                               , allocatable  , dimension(  :) :: propertyReal   , propertyRealFiltered
     double precision                               , allocatable  , dimension(:,:) :: position
-    integer                                                                        :: i
+    integer                                                                        :: i              , j
     integer         (c_size_t                     )                                :: countFiltered
     
     call Galacticus_Display_Indent('filter on property ranges',verbosityStandard)
-    allocate(mask(size(simulation%particleIDs)))
-    mask=.true.
-    do i=1,size(self%propertyRanges)
-       select case (self%propertyRanges(i)%type)
-       case (propertyTypeInteger)
-          if (simulation%propertiesInteger%exists(self%propertyRanges(i)%name)) then
-             propertyInteger=simulation%propertiesInteger%value(self%propertyRanges(i)%name)
-             mask           = mask                                                       &
-                  &          .and.                                                       &
-                  &           propertyInteger >= self%propertyRanges(i)%rangeLowInteger  &
-                  &          .and.                                                       &
-                  &           propertyInteger <= self%propertyRanges(i)%rangeHighInteger
-             deallocate(propertyInteger)
-          else
-             call Galacticus_Error_Report('property "'//self%propertyRanges(i)%name//'"does not exist'//{introspection:location})
-          end if
-       case (propertyTypeReal   )
-          if (simulation%propertiesReal   %exists(self%propertyRanges(i)%name)) then
-             propertyReal   =simulation%propertiesReal   %value(self%propertyRanges(i)%name)
-             mask           = mask                                                       &
-                  &          .and.                                                       &
-                  &           propertyReal    >= self%propertyRanges(i)%rangeLowReal     &
-                  &          .and.                                                       &
-                  &           propertyReal    <= self%propertyRanges(i)%rangeHighReal   
-             deallocate(propertyReal   )
-          else
-             call Galacticus_Error_Report('property "'//self%propertyRanges(i)%name//'"does not exist'//{introspection:location})
-          end if
-       case default
-          call Galacticus_Error_Report('unsupported property type'//{introspection:location})
-       end select
+    do i=1,size(simulations)
+       allocate(mask(size(simulations(i)%particleIDs)))
+       mask=.true.
+       do j=1,size(self%propertyRanges)
+          select case (self%propertyRanges(j)%type)
+          case (propertyTypeInteger)
+             if (simulations(i)%propertiesInteger%exists(self%propertyRanges(j)%name)) then
+                propertyInteger=simulations(i)%propertiesInteger%value(self%propertyRanges(j)%name)
+                mask           = mask                                                       &
+                     &          .and.                                                       &
+                     &           propertyInteger >= self%propertyRanges(j)%rangeLowInteger  &
+                     &          .and.                                                       &
+                     &           propertyInteger <= self%propertyRanges(j)%rangeHighInteger
+                deallocate(propertyInteger)
+             else
+                call Galacticus_Error_Report('property "'//self%propertyRanges(j)%name//'"does not exist'//{introspection:location})
+             end if
+          case (propertyTypeReal   )
+             if (simulations(i)%propertiesReal   %exists(self%propertyRanges(j)%name)) then
+                propertyReal   =simulations(i)%propertiesReal   %value(self%propertyRanges(j)%name)
+                mask           = mask                                                       &
+                     &          .and.                                                       &
+                     &           propertyReal    >= self%propertyRanges(j)%rangeLowReal     &
+                     &          .and.                                                       &
+                     &           propertyReal    <= self%propertyRanges(j)%rangeHighReal   
+                deallocate(propertyReal   )
+             else
+                call Galacticus_Error_Report('property "'//self%propertyRanges(j)%name//'"does not exist'//{introspection:location})
+             end if
+          case default
+             call Galacticus_Error_Report('unsupported property type'//{introspection:location})
+          end select
+       end do
+       ! Filter default properties.
+       countFiltered=count(mask)
+       !! Position
+       allocate(position(3,countFiltered))
+       do j=1,3
+          position(i,:)=pack(simulations(i)%position(i,:),mask)
+       end do
+       deallocate(simulations(i)%position)
+       call move_alloc(position,simulations(i)%position)
+       !! Velocity
+       allocate(position(3,countFiltered))
+       do j=1,3
+          position(i,:)=pack(simulations(i)%velocity(i,:),mask)
+       end do
+       deallocate(simulations(i)%velocity)
+       call move_alloc(position,simulations(i)%velocity)
+       !! IDs
+       allocate(propertyInteger(countFiltered))
+       propertyInteger=pack(simulations(i)%particleIDs,mask)
+       deallocate(simulations(i)%particleIDs)
+       call move_alloc(propertyInteger,simulations(i)%particleIDs)
+       ! Filter other properties.
+       !! Integer properties.
+       allocate(propertyIntegerFiltered(countFiltered))
+       do j=1,simulations(i)%propertiesInteger%size()
+          propertyInteger        =simulations(i)%propertiesInteger%value(j)
+          propertyIntegerFiltered=pack(propertyInteger,mask)
+          call simulations(i)%propertiesInteger%set(simulations(i)%propertiesInteger%key(j),propertyIntegerFiltered)
+       end do
+       deallocate(propertyIntegerFiltered)
+       !! Real properties.
+       allocate(propertyRealFiltered   (countFiltered))
+       do j=1,simulations(i)%propertiesReal   %size()
+          propertyReal           =simulations(i)%propertiesReal   %value(j)
+          propertyRealFiltered   =pack(propertyReal   ,mask)
+          call simulations(i)%propertiesReal   %set(simulations(i)%propertiesReal   %key(j),propertyRealFiltered   )
+       end do
+       deallocate(propertyRealFiltered   )
+       deallocate(mask                   )
     end do
-    ! Filter default properties.
-    countFiltered=count(mask)
-    !! Position
-    allocate(position(3,countFiltered))
-    do i=1,3
-       position(i,:)=pack(simulation%position(i,:),mask)
-    end do
-    deallocate(simulation%position)
-    call move_alloc(position,simulation%position)
-    !! Velocity
-    allocate(position(3,countFiltered))
-    do i=1,3
-       position(i,:)=pack(simulation%velocity(i,:),mask)
-    end do
-    deallocate(simulation%velocity)
-    call move_alloc(position,simulation%velocity)
-    !! IDs
-    allocate(propertyInteger(countFiltered))
-    propertyInteger=pack(simulation%particleIDs,mask)
-    deallocate(simulation%particleIDs)
-    call move_alloc(propertyInteger,simulation%particleIDs)
-    ! Filter other properties.
-    !! Integer properties.
-    allocate(propertyIntegerFiltered(countFiltered))
-    do i=1,simulation%propertiesInteger%size()
-       propertyInteger        =simulation%propertiesInteger%value(i)
-       propertyIntegerFiltered=pack(propertyInteger,mask)
-       call simulation%propertiesInteger%set(simulation%propertiesInteger%key(i),propertyIntegerFiltered)
-    end do
-    deallocate(propertyIntegerFiltered)
-    !! Real properties.
-    allocate(propertyRealFiltered   (countFiltered))
-    do i=1,simulation%propertiesReal   %size()
-       propertyReal           =simulation%propertiesReal   %value(i)
-       propertyRealFiltered   =pack(propertyReal   ,mask)
-       call simulation%propertiesReal   %set(simulation%propertiesReal   %key(i),propertyRealFiltered   )
-    end do
-    deallocate(propertyRealFiltered   )
     call Galacticus_Display_Unindent('done',verbosityStandard)
     return
   end subroutine filterPropertiesOperate
