@@ -4411,22 +4411,25 @@ contains
     return
   end subroutine IO_HDF5_Datasets
 
-  subroutine IO_HDF5_Assert_Dataset_Type(datasetObject,datasetAssertedType,datasetAssertedRank)
+  subroutine IO_HDF5_Assert_Dataset_Type(datasetObject,datasetAssertedType,datasetAssertedRank,status)
     !% Asserts that an dataset is of a certain type and rank.
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: HDF5              , only : HID_T                       , h5dget_space_f, h5dget_type_f, h5sclose_f, &
-          &                           h5sget_simple_extent_ndims_f, h5tclose_f    , h5tequal_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report     , errorStatusSuccess, errorStatusFail
+    use :: HDF5              , only : HID_T                       , h5dget_space_f    , h5dget_type_f  , h5sclose_f, &
+          &                           h5sget_simple_extent_ndims_f, h5tclose_f        , h5tequal_f
     use :: ISO_Varying_String, only : assignment(=)               , operator(//)
     implicit none
     class  (hdf5Object    )              , intent(in   ) :: datasetObject
     integer                              , intent(in   ) :: datasetAssertedRank
     integer(kind=HID_T    ), dimension(:), intent(in   ) :: datasetAssertedType
+    integer                , optional    , intent(  out) :: status
     integer                                              :: datasetRank        , errorCode
     integer(kind=HID_T    )                              :: datasetDataspaceID , datasetTypeID
     logical                                              :: isCorrectType
     integer                                              :: iType
     type   (varying_string)                              :: message
 
+    ! Set status to success by default.
+    if (present(status)) status=errorStatusSuccess
     ! Check the dataset type
     call h5dget_type_f(datasetObject%objectID,datasetTypeID,errorCode)
     if (errorCode /= 0) then
@@ -4449,8 +4452,13 @@ contains
        call Galacticus_Error_Report(message//{introspection:location})
     end if
     if (.not.isCorrectType) then
-       message="dataset '"//datasetObject%objectName//"' is of incorrect type"
-       call Galacticus_Error_Report(message//{introspection:location})
+       if (present(status)) then
+          status=errorStatusFail
+          return
+       else
+          message="dataset '"//datasetObject%objectName//"' is of incorrect type"
+          call Galacticus_Error_Report(message//{introspection:location})
+       end if
     end if
 
     ! Check that the dataset has the correct rank.
@@ -4465,8 +4473,13 @@ contains
        call Galacticus_Error_Report(message//{introspection:location})
     end if
     if (datasetRank /= datasetAssertedRank) then
-       message="dataset '"//datasetObject%objectName//"' has incorrect rank"
-       call Galacticus_Error_Report(message//{introspection:location})
+       if (present(status)) then
+          status=errorStatusFail
+          return
+       else
+          message="dataset '"//datasetObject%objectName//"' has incorrect rank"
+          call Galacticus_Error_Report(message//{introspection:location})
+       end if
     end if
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
