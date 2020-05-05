@@ -57,7 +57,7 @@ contains
     !#   <source>parameters</source>
     !#   <variable>self%label</variable>
     !#   <description>A label for the simulation</description>
-    !#   <defaultValue>var_str('')</defaultValue>
+    !#   <defaultValue>var_str('*')</defaultValue>
     !#   <type>string</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
@@ -142,7 +142,7 @@ contains
     allocate(               propertyInteger(  countObjects))
     allocate(               propertyReal   (  countObjects))
     ! Set a label.
-    if (self%label == "") then
+    if (self%label == "*") then
        simulations(1)%label=self%importers%simulations(1)%label
     else
        simulations(1)%label=self%label
