@@ -105,12 +105,21 @@ contains
   subroutine irateImport(self,simulations)
     !% Import data from a IRATE file.
     use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, verbosityStandard
+    use :: Galacticus_Error, only : errorStatusSuccess
     use :: Hashes            , only : rank1IntegerSizeTHash    , rank1DoubleHash
+    use :: IO_HDF5           , only : hdf5Object               , hdf5Access                 , H5T_NATIVE_INTEGERS, H5T_NATIVE_DOUBLES
     use :: IO_IRATE          , only : irate
     implicit none
-    class(nbodyImporterIRATE), intent(inout)                            :: self
-    type (nBodyData         ), intent(  out), dimension(:), allocatable :: simulations
-    type (irate             )                                           :: irate_
+    class           (nbodyImporterIRATE), intent(inout)                            :: self
+    type            (nBodyData         ), intent(  out), dimension(:), allocatable :: simulations
+    type            (varying_string    )               , dimension(:), allocatable :: datasetNames
+    integer         (c_size_t          )               , dimension(:), allocatable :: propertyInteger
+    double precision                                   , dimension(:), allocatable :: propertyReal
+    type            (irate             )                                           :: irate_
+    type            (hdf5Object        )                                           :: irateFile      , snapshotGroup, &
+         &                                                                            halosGroup     , dataset
+    character       (len=13            )                                           :: snapshotLabel
+    integer                                                                        :: status
 
     call Galacticus_Display_Indent('import simulation from IRATE file',verbosityStandard)
     allocate(simulations(1))
@@ -119,6 +128,38 @@ contains
     call irate_%readHalos(self%snapshot,center=simulations(1)%position,velocity=simulations(1)%velocity,IDs=simulations(1)%particleIDs)
     simulations(1)%propertiesInteger=rank1IntegerSizeTHash()
     simulations(1)%propertiesReal   =rank1DoubleHash      ()
+    write (snapshotLabel,'(a,i5.5)') 'Snapshot',self%snapshot
+    !$ call hdf5Access%set()
+    call irateFile%openFile(char(self%fileName),readOnly=.false.)
+    snapshotGroup=irateFile    %openGroup(snapshotLabel)
+    halosGroup   =snapshotGroup%openGroup('HaloCatalog')
+    call halosGroup%datasets(datasetNames)
+    do i=1,size(datasetNames)
+       if     (                               &
+            &   datasetNames(i) == "Center"   &
+            &  .or.                           &
+            &   datasetNames(i) == "Velocity" &
+            &  .or.                           &
+            &   datasetNames(i) == "HaloID"   &
+            & ) cycle
+       dataset=halosGroup%openDataset(char(datasetNames(i)))
+       call dataset%assertDatasetType(H5T_NATIVE_INTEGERS,1,status)
+       if (status == errorStatusSuccess) then
+          call dataset       %readDataset          (                datasetValue=propertyInteger)
+          call simulations(1)%propertiesInteger%set(datasetNames(i),             propertyInteger)
+       end if
+       call dataset%assertDatasetType(H5T_NATIVE_DOUBLES ,1,status)
+       if (status == errorStatusSuccess) then
+          call dataset       %readDataset          (                datasetValue=propertyReal   )
+          call simulations(1)%propertiesReal   %set(datasetNames(i),             propertyReal   )
+       end if
+       call dataset%close()
+    end do
+    call halosGroup   %close()
+    call snapshotGroup%close()
+    call irateFile    %close()
+    !$ call hdf5Access%unset()
     call Galacticus_Display_Unindent('done',verbosityStandard)
     return
   end subroutine irateImport
+  
