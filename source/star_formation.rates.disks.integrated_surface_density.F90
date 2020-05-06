@@ -105,9 +105,12 @@ contains
     type            (treeNode                                   ), intent(inout), target         :: node
     double precision                                             , allocatable  , dimension(:,:) :: intervals
     class           (nodeComponentDisk                          ), pointer                       :: disk
-    double precision                                             , parameter                     :: radiusInnerDimensionless=0.0d0, radiusOuterDimensionless=10.0d0
-    double precision                                                                             :: radiusDisk                    , massGas                        , &
-         &                                                                                          radiusInner                   , radiusOuter
+    double precision                                             , parameter                     :: radiusInnerDimensionless=0.0d+00, radiusOuterDimensionless=10.0d0
+    ! Set an absolute tolerance for star formation rate integration. The value chosen is such that below this tolerance much less
+    ! than a single star would form over the age of the Universe.
+    double precision                                             , parameter                     :: toleranceAbsolute       =1.0d-12
+    double precision                                                                             :: radiusDisk                      , massGas                        , &
+         &                                                                                          radiusInner                     , radiusOuter
     type            (integrator                                 )                                :: integrator_
     integer                                                                                      :: i
 
@@ -133,7 +136,7 @@ contains
           ! Get a set of intervals into which this integral should be broken.
           intervals=self%starFormationRateSurfaceDensityDisks_%intervals(node,radiusInner,radiusOuter)
           ! Compute the star formation rate. A low order integration rule (GSL_Integ_Gauss15) works well here.
-          integrator_=integrator(intgrtdSurfaceDensityIntegrand,toleranceRelative=self%tolerance,integrationRule=GSL_Integ_Gauss15)
+          integrator_=integrator(intgrtdSurfaceDensityIntegrand,toleranceAbsolute=toleranceAbsolute,toleranceRelative=self%tolerance,integrationRule=GSL_Integ_Gauss15)
           intgrtdSurfaceDensityRate=0.0d0
           do i=1,size(intervals,dim=2)
              intgrtdSurfaceDensityRate=+intgrtdSurfaceDensityRate                            &
