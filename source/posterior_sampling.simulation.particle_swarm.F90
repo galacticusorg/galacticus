@@ -44,7 +44,7 @@
           &                                                                            reportCount                                , logFlushCount
      double precision                                                               :: accelerationCoefficientPersonal            , accelerationCoefficientGlobal         , &
           &                                                                            inertiaWeight                              , velocityCoefficient
-     logical                                                                        :: isInteractive                              , resume
+     logical                                                                        :: isInteractive                              , resume                    
      type            (varying_string                       )                        :: logFileRoot                                , interactionRoot                       , &
           &                                                                            logFilePreviousRoot
    contains
@@ -345,22 +345,18 @@ contains
     ! Write start-up message.
     message="Process "//mpiSelf%rankLabel()//" [PID: "
     message=message//getPID()//"] is running on host '"//mpiSelf%hostAffinity()//"'"
-    call Galacticus_Display_Message(message)
-    ! Initialize the particle state vector.
-    logPosterior=logImpossible
-    do while (logPosterior <= logImpossible)
-       ! Initialize particle to some state vector.
-       call self%posteriorSampleStateInitialize_%initialize(self%posteriorSampleState_,self%modelParametersActive_,self%posteriorSampleLikelihood_,timeEvaluateInitial,logLikelihood,logPosterior)
-       ! Evaluate the posterior in the initial state.
-       timeEvaluate        =-1.0
-       timeEvaluatePrevious=real(timeEvaluateInitial)
-       forceAcceptance     =.false.
-       call CPU_Time(timePreEvaluate )
-       call self%posterior(self%posteriorSampleState_,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious,forceAcceptance)
-       call CPU_Time(timePostEvaluate)
-       if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
-       timeEvaluatePrevious=timeEvaluate
-    end do
+    call Galacticus_Display_Message(message)  
+    ! Initialize particle to some state vector.
+    call self%posteriorSampleStateInitialize_%initialize(self%posteriorSampleState_,self%modelParametersActive_,self%posteriorSampleLikelihood_,timeEvaluateInitial,logLikelihood,logPosterior)
+    ! Evaluate the posterior in the initial state.
+    forceAcceptance     =.false.
+    timeEvaluate        =-1.0
+    timeEvaluatePrevious=real(timeEvaluateInitial)
+    call CPU_Time(timePreEvaluate )
+    call self%posterior(self%posteriorSampleState_,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious,forceAcceptance)
+    call CPU_Time(timePostEvaluate)
+    if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
+    timeEvaluatePrevious=timeEvaluate    
     ! Set the personal best state to the initial state.
     logPosteriorBestPersonal         =logPosterior
     logLikelihoodVarianceBestPersonal=logLikelihoodVariance
@@ -396,8 +392,16 @@ contains
     logLikelihoodVarianceBestGlobal=sum    (mpiSelf%requestData([0],[logLikelihoodVarianceBestGlobal])                      )
     ! Compute maximum velocities.
     do i=1,self%parameterCount
-       positionMinimum(i)=self%modelParametersActive_(i)%modelParameter_%priorMinimum()
-       positionMaximum(i)=self%modelParametersActive_(i)%modelParameter_%priorMaximum()
+       positionMinimum(i)=self%modelParametersActive_(i)%modelParameter_%map(self%modelParametersActive_(i)%modelParameter_%priorMinimum())
+       positionMaximum(i)=self%modelParametersActive_(i)%modelParameter_%map(self%modelParametersActive_(i)%modelParameter_%priorMaximum())
+       ! Adjust minimum and maximum positions to ensure that, when unmapped, they are within the prior ranges of the
+       ! boundaries. (They may not be initially due to finite precision.)
+       do while (self%modelParametersActive_(i)%modelParameter_%unmap(positionMinimum(i)) < self%modelParametersActive_(i)%modelParameter_%priorMinimum())
+          positionMinimum(i)=nearest(positionMinimum(i),+1.0d0)
+       end do
+       do while (self%modelParametersActive_(i)%modelParameter_%unmap(positionMaximum(i)) > self%modelParametersActive_(i)%modelParameter_%priorMaximum())
+          positionMaximum(i)=nearest(positionMaximum(i),-1.0d0)
+       end do
        velocityMaximum(i)=self%velocityCoefficient*(positionMaximum(i)-positionMinimum(i))
     end do
     ! Set initial velocities.
@@ -428,9 +432,9 @@ contains
     logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.log'
     open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
     isConverged=.false.
-    do while (                                                                                                                  &
-         &          self%posteriorSampleState_            %count(                                               ) < self%stepsMaximum &
-         &    .and.                                                                                                             &
+    do while (                                                                                                   &
+         &          self%posteriorSampleState_            %count(                          ) < self%stepsMaximum &
+         &    .and.                                                                                              &
          &     .not.self%posteriorSampleStoppingCriterion_%stop (self%posteriorSampleState_)                     &
          &   )
        ! Get the current particle state.
@@ -438,11 +442,11 @@ contains
        ! Update the state vector
        stateVector=stateVector+velocityParticle
        do i=1,self%parameterCount
-          if (stateVector(i) < positionMinimum(i)) then
+          if (stateVector(i) <= positionMinimum(i)) then
              velocityParticle(i)=-velocityParticle(i)
              stateVector     (i)=+positionMinimum (i)
           end if
-          if (stateVector(i) > positionMaximum(i)) then
+          if (stateVector(i) >= positionMaximum(i)) then
              velocityParticle(i)=-velocityParticle(i)
              stateVector     (i)=+positionMaximum (i)
           end if
