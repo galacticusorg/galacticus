@@ -146,7 +146,7 @@ contains
     !% Return the log-likelihood for the \glc\ likelihood function.
     use :: Functions_Global              , only : Tasks_Evolve_Forest_Construct_ , Tasks_Evolve_Forest_Destruct_, Tasks_Evolve_Forest_Perform_
     use :: Galacticus_Display            , only : Galacticus_Display_Indent      , Galacticus_Display_Message   , Galacticus_Display_Unindent , Galacticus_Verbosity_Level, &
-          &                                       Galacticus_Verbosity_Level_Set , verbosityStandard
+          &                                       Galacticus_Verbosity_Level_Set , verbosityStandard            , verbositySilent
     use :: Galacticus_Error              , only : Galacticus_Error_Report        , errorStatusSuccess
     use :: Kind_Numbers                  , only : kind_int8
     use :: ISO_Varying_String            , only : char                           , operator(//)                 , var_str
@@ -183,7 +183,7 @@ contains
     character       (len=24                                   )                                :: valueText
     logical                                                                                    :: firstIteration        , dependenciesResolved    , &
          &                                                                                        dependenciesUpdated
-    type            (varying_string                           )                                :: parameterText
+    type            (varying_string                           )                                :: parameterText         , message
     ! Declarations of GNU libmatheval procedures used.
     integer         (kind_int8                                ), external                      :: Evaluator_Create_
     double precision                                           , external                      :: Evaluator_Evaluate_
@@ -427,6 +427,11 @@ contains
           ! Record timing information.
           call CPU_Time(timeEnd)
           timeEvaluate=timeEnd-timeBegin
+          if (verbosityLevel >= verbosityStandard) then
+             write (valueText,'(e12.4)') logLikelihoodProposed
+             message=var_str("Chain ")//simulationState%chainIndex()//" has logℒ="//trim(valueText)
+             call Galacticus_Display_Message(message,verbositySilent)
+          end if
        end if
        call mpiBarrier()
        call Tasks_Evolve_Forest_Destruct_(self%task_)
