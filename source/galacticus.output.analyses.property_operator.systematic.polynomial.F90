@@ -96,13 +96,20 @@ contains
     !$GLC attributes unused :: outputIndex, propertyType, node
 
     systmtcPolynomialOperate=propertyValue
-    do i=1,size(self%coefficient)
-       systmtcPolynomialOperate=+systmtcPolynomialOperate      &
-            &                   +self%coefficient(i)           &
-            &                   *(                             &
-            &                     +     propertyValue          &
-            &                     -self%propertyValueZeroPoint &
-            &                    )**(i-1)
-    end do
+    ! Do not attempt to modify out-of-range values.
+    if     (                              &
+         &   propertyValue > -huge(0.0d0) &
+         &  .and.                         &
+         &   propertyValue < +huge(0.0d0) &
+         & ) then
+       do i=1,size(self%coefficient)
+          systmtcPolynomialOperate=+systmtcPolynomialOperate      &
+               &                   +self%coefficient(i)           &
+               &                   *(                             &
+               &                     +     propertyValue          &
+               &                     -self%propertyValueZeroPoint &
+               &                    )**(i-1)
+       end do
+    end if
     return
   end function systmtcPolynomialOperate
