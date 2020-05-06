@@ -406,7 +406,8 @@ contains
              call self%parametersModel%serializeToXML(self%failedParametersFileName//"."//iRank//".errCode"//status)
              ! Return impossible likelihood. We use a somewhat-less-than-impossible value to avoid this being rejected as the
              ! initial state.
-             galaxyPopulationEvaluate=logImprobable
+             logLikelihoodProposed   =logImprobable
+             galaxyPopulationEvaluate=logLikelihoodProposed
           end if
        else
           ! Forest evolution was successful - evaluate the likelihood.
