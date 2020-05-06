@@ -280,10 +280,12 @@ contains
              molecularFraction    =krumholz2009MolecularFractionMinimum
           end if
           ! Compute the cloud density factor.
-          if (surfaceDensityGasDimensionless < 1.0d0) then
-             surfaceDensityFactor=self%surfaceDensityExponentiator%exponentiate(1.0d0/surfaceDensityGasDimensionless)
+          if      (surfaceDensityGasDimensionless <= 0.0d0) then
+             surfaceDensityFactor=0.0d0
+          else if (surfaceDensityGasDimensionless <  1.0d0) then
+             surfaceDensityFactor=1.0d0/self%surfaceDensityExponentiator%exponentiate(surfaceDensityGasDimensionless)
           else
-             surfaceDensityFactor=self%surfaceDensityExponentiator%exponentiate(      surfaceDensityGasDimensionless)
+             surfaceDensityFactor=1.0d0*self%surfaceDensityExponentiator%exponentiate(surfaceDensityGasDimensionless)
           end if
           ! Compute the star formation rate surface density.
           krumholz2009Rate=+self%frequencyStarFormation &
