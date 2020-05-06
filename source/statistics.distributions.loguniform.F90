@@ -30,6 +30,8 @@
      procedure :: density    => logUniformDensity
      procedure :: cumulative => logUniformCumulative
      procedure :: inverse    => logUniformInverse
+     procedure :: minimum    => logUniformMinimum
+     procedure :: maximum    => logUniformMaximum
   end type distributionFunction1DLogUniform
 
   interface distributionFunction1DLogUniform
@@ -126,3 +128,21 @@ contains
     logUniformInverse=exp(log(self%limitLower)+p*(log(self%limitUpper)-log(self%limitLower)))
     return
   end function logUniformInverse
+
+  double precision function logUniformMinimum(self)
+    !% Return the minimum possible value of a logUniform distribution.
+    implicit none
+    class(distributionFunction1DLogUniform), intent(inout) :: self
+
+    logUniformMinimum=self%limitLower
+    return
+  end function logUniformMinimum
+
+  double precision function logUniformMaximum(self)
+    !% Return the maximum possible value of a logUniform distribution.
+    implicit none
+    class(distributionFunction1DLogUniform), intent(inout) :: self
+
+    logUniformMaximum=self%limitUpper
+    return
+  end function logUniformMaximum
