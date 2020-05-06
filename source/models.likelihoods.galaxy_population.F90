@@ -39,7 +39,7 @@
      private
      type   (varying_string     )                            :: baseParametersFileName          , failedParametersFileName
      logical                                                 :: randomize
-     integer                                                 :: cpuLimit                        , evolveForestsVerbosity
+     integer                                                 :: evolveForestsVerbosity
      type   (inputParameters    ), pointer                   :: parametersModel        => null()
      class  (*                  ), pointer                   :: task_
      class  (outputAnalysisClass), pointer                   :: outputAnalysis_        => null()
@@ -69,7 +69,7 @@ contains
     type   (inputParameters                          ), intent(inout) :: parameters
     type   (varying_string)                                           :: baseParametersFileName, failedParametersFileName
     logical                                                           :: randomize
-    integer                                                           :: cpuLimit              , evolveForestsVerbosity
+    integer                                                           :: evolveForestsVerbosity
     type   (inputParameters                          ), pointer       :: parametersModel
 
     !# <inputParameter>
@@ -86,14 +86,6 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <source>parameters</source>
     !#   <type>boolean</type>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>cpuLimit</name>
-    !#   <cardinality>1</cardinality>
-    !#   <description>The maximum average CPU time per thread for which a model should be allowed to run.</description>
-    !#   <defaultValue>31557600</defaultValue>
-    !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>evolveForestsVerbosity</name>
@@ -113,21 +105,21 @@ contains
     !# </inputParameter>
     allocate(parametersModel)
     parametersModel=inputParameters                          (baseParametersFileName,noOutput=.true.)
-    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,randomize,cpuLimit,evolveForestsVerbosity,failedParametersFileName)
+    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,randomize,evolveForestsVerbosity,failedParametersFileName)
     !# <inputParametersValidate source="parameters"/>
     nullify(parametersModel)
     return
   end function galaxyPopulationConstructorParameters
 
-  function galaxyPopulationConstructorInternal(parametersModel,randomize,cpuLimit,evolveForestsVerbosity,failedParametersFileName) result(self)
+  function galaxyPopulationConstructorInternal(parametersModel,randomize,evolveForestsVerbosity,failedParametersFileName) result(self)
     !% Constructor for ``galaxyPopulation'' posterior sampling likelihood class.
     implicit none
     type   (posteriorSampleLikelihoodGalaxyPopulation)                        :: self
     type   (inputParameters                          ), intent(inout), target :: parametersModel
     logical                                           , intent(in   )         :: randomize
-    integer                                           , intent(in   )         :: cpuLimit                , evolveForestsVerbosity
+    integer                                           , intent(in   )         :: evolveForestsVerbosity
     type   (varying_string                           ), intent(in   )         :: failedParametersFileName
-    !# <constructorAssign variables="*parametersModel, randomize, cpuLimit, evolveForestsVerbosity, failedParametersFileName"/>
+    !# <constructorAssign variables="*parametersModel, randomize, evolveForestsVerbosity, failedParametersFileName"/>
 
     return
   end function galaxyPopulationConstructorInternal
