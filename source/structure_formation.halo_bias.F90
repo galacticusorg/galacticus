@@ -34,17 +34,19 @@ module Dark_Matter_Halo_Biases
   !#   <description>Returns the bias of a halo specified by a mass (in $M_\odot$) and time (in Gyr).</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: mass, time</argument>
+  !#   <argument>double precision, intent(in   )           :: mass, time</argument>
+  !#   <argument>double precision, intent(in   ), optional :: radius</argument>
   !#  </method>
   !#  <method name="biasByNode" >
   !#   <description>Returns the bias of the halo in the supplied \gls{node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#   <argument>type            (treeNode), intent(inout)           :: node</argument>
+  !#   <argument>double precision          , intent(in   ), optional :: radius</argument>
   !#   <code>
   !#    class(nodeComponentBasic), pointer :: basic
-  !#    basic                        => node%basic     (                         )
-  !#    darkMatterHaloBiasBiasByNode =  self%biasByMass(basic%mass(),basic%time())
+  !#    basic                        => node%basic     (                                )
+  !#    darkMatterHaloBiasBiasByNode =  self%biasByMass(basic%mass(),basic%time(),radius)
   !#   </code>
   !#  </method>
   !#  <generic name="bias">

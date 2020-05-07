@@ -95,15 +95,17 @@ contains
     return
   end subroutine tinker2010Destructor
 
-  double precision function tinker2010BiasByMass(self,mass,time)
+  double precision function tinker2010BiasByMass(self,mass,time,radius)
     !% Returns the bias of a dark matter halo given the mass and time.
     implicit none
-    class           (darkMatterHaloBiasTinker2010 ), intent(inout) :: self
-    double precision                               , intent(in   ) :: mass                 , time
-    double precision                               , parameter     :: lowerB       =1.500d0, lowerC=2.400d0, &
-         &                                                            upperB       =0.183d0
-    double precision                                               :: deltaCritical        , nu            , &
-         &                                                            sigma                , y
+    class           (darkMatterHaloBiasTinker2010), intent(inout)           :: self
+    double precision                              , intent(in   )           :: mass                 , time
+    double precision                              , intent(in   ), optional :: radius
+    double precision                              , parameter               :: lowerB       =1.500d0, lowerC=2.400d0, &
+         &                                                                     upperB       =0.183d0
+    double precision                                                        :: deltaCritical        , nu            , &
+         &                                                                     sigma                , y
+    !$GLC attributes unused :: radius
 
     ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
     deltaCritical=self%criticalOverdensity_     %value       (time=time,mass=mass)
