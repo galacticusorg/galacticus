@@ -917,10 +917,14 @@ contains
              if (electronsOscillatingCount > 0) &
                   & electronsOscillatingCount=electronsOscillatingCount-1
              ! Scale heating rates by the relevant ionization state fraction.
-             if (elementsReference         (i)%ionizationStateFraction(j) > 0.0d0)                                                    &
-                  & atomicElementsPhotoRate(i)%photoHeatingRate       (j)=+properties%elements         (i)%photoHeatingRate       (j) &
-                  &                                                       *properties%elements         (i)%ionizationStateFraction(j) &
-                  &                                                       /           elementsReference(i)%ionizationStateFraction(j)
+             do i=1,self%countElements
+                do j=0,self%elementAtomicNumbers(i)-1
+                   if (elementsReference         (i)%ionizationStateFraction(j) > 0.0d0)                                                    &
+                        & atomicElementsPhotoRate(i)%photoHeatingRate       (j)=+properties%elements         (i)%photoHeatingRate       (j) &
+                        &                                                       *properties%elements         (i)%ionizationStateFraction(j) &
+                        &                                                       /           elementsReference(i)%ionizationStateFraction(j)
+                end do
+             end do
              ! Solve for temperature - updating only if we find a solution in range.
              temperatureEquilibrium=finder%find(rootGuess=properties%temperature,status=statusTemperature)
              if (statusTemperature == errorStatusSuccess) then
