@@ -26,11 +26,12 @@
   !#  <description>An N-body data operator which computes pair counts in bins of separation.</description>
   !# </nbodyOperator>
   type, extends(nbodyOperatorClass) :: nbodyOperatorPairCounts
-     !% An N-body data operator which determines the environmental overoverdensity around particles.
+     !% An N-body data operator which computes pair counts in bins of separation.
      private
-     double precision                                       :: separationMinimum              , separationMaximum   , &
+     double precision                                      :: separationMinimum               , separationMaximum   , &
           &                                                   bootstrapSampleRate
      integer         (c_size_t                  )          :: separationCount                 , bootstrapSampleCount
+     logical                                               :: includeUnbootstrapped           , crossCount
      class           (randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()
    contains
      final     ::            pairCountsDestructor
@@ -55,7 +56,16 @@ contains
     double precision                                            :: separationMinimum     , separationMaximum   , &
          &                                                         bootstrapSampleRate
     integer         (c_size_t                  )                :: separationCount       , bootstrapSampleCount
+    logical                                                     :: includeUnbootstrapped , crossCount
 
+    !# <inputParameter>
+    !#   <name>crossCount</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true, compute cross-simulation pair counts between the first and all simulations. Otherwise, compute pair counts within each simulation.</description>
+    !#   <type>logical</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>bootstrapSampleCount</name>
     !#   <source>parameters</source>
@@ -93,28 +103,37 @@ contains
     !#   <type>integer</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>includeUnbootstrapped</name>
+    !#   <source>parameters</source>
+    !#   <description>If true, include results for the unbootstrapped (i.e. original) sample.</description>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <type>logical</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
-    self=nbodyOperatorPairCounts(separationMinimum,separationMaximum,separationCount,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_)
+    self=nbodyOperatorPairCounts(separationMinimum,separationMaximum,separationCount,crossCount,includeUnbootstrapped,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="randomNumberGenerator_"/>
     return
   end function pairCountsConstructorParameters
 
-  function pairCountsConstructorInternal(separationMinimum,separationMaximum,separationCount,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_) result (self)
+  function pairCountsConstructorInternal(separationMinimum,separationMaximum,separationCount,crossCount,includeUnbootstrapped,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_) result (self)
     !% Internal constructor for the ``pairCounts'' N-body operator class.
     implicit none
     type            (nbodyOperatorPairCounts)                           :: self
     double precision                            , intent(in   )         :: separationMinimum     , separationMaximum   , &
          &                                                                 bootstrapSampleRate
     integer         (c_size_t                  ), intent(in   )         :: separationCount       , bootstrapSampleCount
+    logical                                     , intent(in   )         :: includeUnbootstrapped , crossCount
     class           (randomNumberGeneratorClass), intent(in   ), target :: randomNumberGenerator_
-    !# <constructorAssign variables="separationMinimum, separationMaximum, separationCount, bootstrapSampleCount, bootstrapSampleRate, *randomNumberGenerator_"/>
+    !# <constructorAssign variables="separationMinimum, separationMaximum, separationCount, crossCount, includeUnbootstrapped, bootstrapSampleCount, bootstrapSampleRate, *randomNumberGenerator_"/>
 
     return
   end function pairCountsConstructorInternal
 
   subroutine pairCountsDestructor(self)
-    !% Destructor for the ``meanPosition'' N-body operator class.
+    !% Destructor for the ``pairCounts'' N-body operator class.
     implicit none
     type(nbodyOperatorPairCounts), intent(inout) :: self
 
@@ -123,68 +142,155 @@ contains
   end subroutine pairCountsDestructor
   
   subroutine pairCountsOperate(self,simulations)
-    !% Determine the mean position and velocity of N-body particles.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                            verbosityStandard
-    use :: Nearest_Neighbors , only : nearestNeighbors
-    use :: Numerical_Ranges  , only : Make_Range               , rangeTypeLogarithmic
+    !% Compute pair counts of the particles in bins of separation.
+    !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num
+    use    :: Galacticus_Display, only : Galacticus_Display_Indent , Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
+         &                               Galacticus_Display_Message, verbosityStandard
+    use    :: ISO_Varying_String, only : var_str
+    use    :: Memory_Management , only : deallocateArray
+    use    :: Nearest_Neighbors , only : nearestNeighbors
+    use    :: Numerical_Ranges  , only : Make_Range                , rangeTypeLogarithmic
     implicit none
-    class           (nbodyOperatorPairCounts), intent(inout)                 :: self
-    type            (nBodyData              ), intent(inout), dimension(:  ) :: simulations
-    double precision                         , parameter                     :: toleranceZero       =0.0d0
-    integer                                  , allocatable  , dimension(:  ) :: neighborIndex
-    double precision                         , allocatable  , dimension(:  ) :: neighborDistance          , separationCentralBin, &
-         &                                                                      separationMinimumBin      , separationMaximumBin
-    integer                                  , allocatable  , dimension(:  ) :: weight
-    integer         (c_size_t               ), allocatable  , dimension(:,:) :: pairCountBin
-    integer         (c_size_t               )                                :: i                         , j                   , &
-         &                                                                      iSample
-    type            (nearestNeighbors       )                                :: neighborFinder
-    integer                                                                  :: neighborCount
+    class           (nbodyOperatorPairCounts   ), intent(inout)                 :: self
+    type            (nBodyData                 ), intent(inout), dimension(:  ) :: simulations
+    double precision                            , parameter                     :: toleranceZero              =0.0d0
+    integer                                     , allocatable  , dimension(:  ) :: neighborIndex
+    double precision                            , allocatable  , dimension(:  ) :: neighborDistanceSquared          , separationCentralBin       , &
+         &                                                                         separationSquaredMinimumBin      , separationSquaredMaximumBin
+    integer         (c_size_t                  ), allocatable  , dimension(:  ) :: weight1                          , weight2                    , &
+         &                                                                         weightPair
+    integer         (c_size_t                  ), allocatable  , dimension(:,:) :: pairCountBin
+    class           (randomNumberGeneratorClass), pointer                       :: randomNumberGenerator_
+    integer         (c_size_t                  )                                :: i                                , j                          , &
+         &                                                                         iSample                          , bootstrapSampleCount       , &
+         &                                                                         iSimulation                      , jSimulation                , &
+         &                                                                         pairCountTotal
+    type            (nearestNeighbors          )                                :: neighborFinder
+    integer                                                                     :: neighborCount
+    type            (varying_string            )                                :: label
 
     call Galacticus_Display_Indent('compute pair counts',verbosityStandard)
-    if (size(simulations) /= 1) call Galacticus_Error_Report('precisely 1 simulation should be supplied'//{introspection:location})
     ! Construct bins of separation.
-    allocate(separationCentralBin(self%separationCount                                     ))
-    allocate(separationMinimumBin(self%separationCount                                     ))
-    allocate(separationMaximumBin(self%separationCount                                     ))
-    allocate(pairCountBin        (self%separationCount           ,self%bootstrapSampleCount))
-    allocate(weight              (size(simulations(1)%position,dim=2)                          ))
-    separationCentralBin=Make_Range(self%separationMinimum,self%separationMaximum,int(self%separationCount),rangeTypeLogarithmic,rangeBinned=.true.)
-    separationMinimumBin=separationCentralBin/sqrt(separationCentralBin(2)/separationCentralBin(1))
-    separationMaximumBin=separationCentralBin*sqrt(separationCentralBin(2)/separationCentralBin(1))
-    pairCountBin=0_c_size_t
-    ! Iterate over bootstrap samplings.
-    call Galacticus_Display_Counter(0,.true.)
-    do iSample=1,self%bootstrapSampleCount
-       ! Determine weights for particles.
-       do i=1,size(simulations(1)%position,dim=2,kind=c_size_t)
-          weight(i)=self%randomNumberGenerator_%poissonSample(self%bootstrapSampleRate)
-       end do
-       ! Iterate over particles.
-       !$omp parallel private(neighborCount,neighborIndex,neighborDistance,neighborFinder)
+    bootstrapSampleCount=self%bootstrapSampleCount
+    if (self%includeUnbootstrapped) bootstrapSampleCount=bootstrapSampleCount+1
+    allocate(separationCentralBin       (self%separationCount                     ))
+    allocate(separationSquaredMinimumBin(self%separationCount                     ))
+    allocate(separationSquaredMaximumBin(self%separationCount                     ))
+    allocate(pairCountBin               (self%separationCount,bootstrapSampleCount))
+    separationCentralBin       =Make_Range(self%separationMinimum,self%separationMaximum,int(self%separationCount),rangeTypeLogarithmic,rangeBinned=.true.)
+    separationSquaredMinimumBin=(separationCentralBin/sqrt(separationCentralBin(2)/separationCentralBin(1)))**2
+    separationSquaredMaximumBin=(separationCentralBin*sqrt(separationCentralBin(2)/separationCentralBin(1)))**2
+    ! Iterate over simulations.
+    do iSimulation=1_c_size_t,size(simulations)
+       call Galacticus_Display_Message(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityStandard)
+       if (self%crossCount) then
+          allocate(weight1(size(simulations(          1)%position,dim=2)))
+       else
+          allocate(weight1(size(simulations(iSimulation)%position,dim=2)))
+       end if
+       allocate   (weight2(size(simulations(iSimulation)%position,dim=2)))
+       ! Iterate over bootstrap samplings.
+       call Galacticus_Display_Counter(0,.true.)
+       pairCountBin=0_c_size_t
+       !$omp parallel private(iSample,j,weightPair,neighborCount,neighborIndex,neighborDistanceSquared,neighborFinder,randomNumberGenerator_) reduction(+:pairCountBin)
+       ! Allocate worksapce.
+       allocate(weightPair(size(simulations(iSimulation)%position,dim=2)))
        ! Construct the nearest neighbor finder object.
-       neighborFinder=nearestNeighbors(transpose(simulations(1)%position))
-       !$omp do schedule(dynamic)
-       do i=1_c_size_t,size(simulations(1)%position,dim=2,kind=c_size_t)
-          if (weight(i) <= 0.0d0) cycle
-          ! Locate particles nearby.
-          call neighborFinder%searchFixedRadius(simulations(1)%position(:,i),self%separationMaximum,toleranceZero,neighborCount,neighborIndex,neighborDistance)
-          ! Accumulate particles into bins.
-          do j=1,self%separationCount
-             if (weight(j) <= 0.0d0) cycle
-             !$omp atomic
-             pairCountBin(j,iSample)=pairCountBin(j,iSample)+int(weight(i),c_size_t)*int(weight(j),c_size_t)*count(neighborDistance >= separationMinimumBin(j) .and. neighborDistance < separationMaximumBin(j))
+       neighborFinder=nearestNeighbors(transpose(simulations(iSimulation)%position))
+       ! Deep copy random number generator.
+       allocate(randomNumberGenerator_,mold=self%randomNumberGenerator_)
+       !$omp critical(pairCountDeepCopy)
+       !# <deepCopyReset variables="self%randomNumberGenerator_"/>
+       !# <deepCopy      source="self%randomNumberGenerator_" destination="randomNumberGenerator_"/>
+       !$omp end critical(pairCountDeepCopy)
+       do iSample=1,bootstrapSampleCount
+          ! Determine weights for particles.
+          if (iSample == 1 .and. self%includeUnbootstrapped) then
+             !$omp single
+             weight1=1_c_size_t
+             weight2=1_c_size_t
+             !$omp end single
+          else
+             !$omp do schedule(dynamic)
+             do i=1,size(weight1)
+                weight1(i)=int(randomNumberGenerator_%poissonSample(self%bootstrapSampleRate),c_size_t)
+             end do
+             !$omp end do
+             if (self%crossCount) then
+                !$omp do schedule(dynamic)
+                do i=1,size(weight2)
+                   weight2(i)=int(randomNumberGenerator_%poissonSample(self%bootstrapSampleRate),c_size_t)
+                end do
+                !$omp end do
+             else
+                weight2=weight1
+             end if
+          end if
+          ! Iterate over particles.
+          if (self%crossCount) then
+             jSimulation=1
+          else
+             jSimulation=iSimulation
+          end if
+          !$omp do schedule(dynamic)
+          do i=1_c_size_t,size(simulations(jSimulation)%position,dim=2,kind=c_size_t)
+             if (weight1(i) <= 0.0d0) cycle
+             ! Locate particles nearby.
+             call neighborFinder%searchFixedRadius(simulations(jSimulation)%position(:,i),self%separationMaximum,toleranceZero,neighborCount,neighborIndex,neighborDistanceSquared)
+             ! Find weights of paired particles.
+             do j=1_c_size_t,neighborCount
+                weightPair(j)=weight2(neighborIndex(j))
+             end do
+             ! Accumulate particles into bins.
+             do j=1,self%separationCount
+                pairCountBin(j,iSample)=+     pairCountBin           (j,iSample      )                                    &
+                     &                  +     weight1                (i              )                                    &
+                     &                  *sum(                                                                             &
+                     &                        weightPair             (1:neighborCount)                                  , &
+                     &                        neighborDistanceSquared                  >= separationSquaredMinimumBin(j)  &
+                     &                       .and.                                                                        &
+                     &                        neighborDistanceSquared                  <  separationSquaredMaximumBin(j)  &
+                     &                      )
+             end do
+             call deallocateArray(neighborIndex          )
+             call deallocateArray(neighborDistanceSquared)
+             ! Update progress.
+             !$ if (OMP_Get_Thread_Num() == 0) then
+             call Galacticus_Display_Counter(                                                                                        &
+                  &                          int(                                                                                    &
+                  &                              +100.0d0                                                                            &
+                  &                              *float(i+(iSample-1_c_size_t  )*size(simulations(1)%position,dim=2,kind=c_size_t))  &
+                  &                              /float(                         size(simulations(1)%position,dim=2,kind=c_size_t))  &
+                  &                              /float(   bootstrapSampleCount                                                   )  &
+                  &                             )                                                                                  , &
+                  &                          .false.                                                                                 &
+                  &                         )
+             !$ end if
           end do
-          ! Update progress.
-          call Galacticus_Display_Counter(int(100.0d0*float(i+(iSample-1_c_size_t)*size(simulations(1)%position,dim=2,kind=c_size_t))/float(size(simulations(1)%position,dim=2,kind=c_size_t))/float(self%bootstrapSampleCount)),.false.)
+          !$omp end do
        end do
-       !$omp end do
+       !# <objectDestructor name="randomNumberGenerator_"/>
        !$omp end parallel
+       call Galacticus_Display_Counter_Clear()
+       deallocate(weight1)
+       deallocate(weight2)
+       if (self%crossCount) then
+          jSimulation   = 1
+          pairCountTotal=+size(simulations(          1)%position,dim=2,kind=c_size_t) &
+               &         *size(simulations(iSimulation)%position,dim=2,kind=c_size_t)
+          label         = ":"//simulations(          1)%label// &
+               &          ":"//simulations(iSimulation)%label
+       else
+          jSimulation   = iSimulation
+          pairCountTotal=+size(simulations(iSimulation)%position,dim=2,kind=c_size_t) &
+               &         *size(simulations(iSimulation)%position,dim=2,kind=c_size_t)
+          label         = ":"//simulations(iSimulation)%label
+       end if
+       if (.not.self%crossCount .or. iSimulation == 1 ) &
+            & call simulations(jSimulation)%analysis%writeDataset  (separationCentralBin,'pairCountSeparation'             )
+       call        simulations(jSimulation)%analysis%writeDataset  (pairCountBin        ,'pairCountCount'     //char(label))
+       call        simulations(jSimulation)%analysis%writeAttribute(pairCountTotal      ,'pairCountTotal'     //char(label))
     end do
-    call Galacticus_Display_Counter_Clear()
-    call simulations(1)%analysis%writeDataset(pairCountBin        ,'pairCountCount'     )
-    call simulations(1)%analysis%writeDataset(separationCentralBin,'pairCountSeparation')
     call Galacticus_Display_Unindent('done',verbosityStandard)
     return
   end subroutine pairCountsOperate
