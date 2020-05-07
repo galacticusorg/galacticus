@@ -33,6 +33,7 @@
    contains
      final     ::           mergeDestructor
      procedure :: import => mergeImport
+     procedure :: isHDF5 => mergeIsHDF5
   end type nbodyImporterMerge
 
   interface nbodyImporterMerge
@@ -197,3 +198,12 @@ contains
     call Galacticus_Display_Unindent('done',verbosityStandard)
     return
   end subroutine mergeImport
+
+  logical function mergeIsHDF5(self)
+    !% Return whether or not the imported data is from an HDF5 file.
+    implicit none
+    class(nbodyImporterMerge), intent(inout) :: self
+
+    mergeIsHDF5=.false.
+    return
+  end function mergeIsHDF5

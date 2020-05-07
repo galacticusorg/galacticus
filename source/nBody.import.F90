@@ -35,6 +35,11 @@ module NBody_Importers
   !#   <pass>yes</pass>
   !#   <argument>type(nBodyData), intent(  out), allocatable, dimension(:) :: simulations</argument>
   !#  </method>
+  !#  <method name="isHDF5" >
+  !#   <description>Return true if the imported data is from an HDF5 file (to which new data can be written).</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#  </method>
   !# </functionClass>
 
   type, public :: nbodyImporterList

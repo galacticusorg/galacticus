@@ -34,7 +34,6 @@ module NBody_Simulation_Data
      type            (varying_string       )                              :: label
      type            (hdf5Object           )                              :: analysis
      double precision                       , allocatable, dimension(:,:) :: position              , velocity
-     integer                                , allocatable, dimension(  :) :: identifier
      double precision                                                     :: lengthSoftening       , massParticle
      integer         (kind_int8            ), allocatable, dimension(  :) :: particleIDs
      type            (rank1IntegerSizeTHash)                              :: propertiesInteger

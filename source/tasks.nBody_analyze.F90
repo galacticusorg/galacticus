@@ -28,6 +28,7 @@
      private
      class  (nBodyImporterClass), pointer :: nBodyImporter_
      class  (nBodyOperatorClass), pointer :: nBodyOperator_
+     logical                              :: storeBackToImported
    contains
      final     ::                       nbodyAnalyzeDestructor
      procedure :: perform            => nbodyAnalyzePerform
@@ -46,28 +47,39 @@ contains
     !% Constructor for the {\normalfont \ttfamily nbodyAnalyze} task class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (taskNBodyAnalyze  )                :: self
-    type (inputParameters   ), intent(inout) :: parameters
-    class(nBodyImporterClass), pointer       :: nBodyImporter_
-    class(nBodyOperatorClass), pointer       :: nBodyOperator_
+    type   (taskNBodyAnalyze  )                :: self
+    type   (inputParameters   ), intent(inout) :: parameters
+    class  (nBodyImporterClass), pointer       :: nBodyImporter_
+    class  (nBodyOperatorClass), pointer       :: nBodyOperator_
+    logical                                    :: storeBackToImported
 
+    !# <inputParameter>
+    !#   <name>storeBackToImported</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>If true, computed properties and results will be stored back to the file from which a simulation ws imported (assuming it is of HDF5 type).</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     !# <objectBuilder class="nBodyImporter" name="nBodyImporter_" source="parameters"/>
     !# <objectBuilder class="nBodyOperator" name="nBodyOperator_" source="parameters"/>
-    self=taskNBodyAnalyze(nBodyImporter_,nBodyOperator_)
+    self=taskNBodyAnalyze(storeBackToImported,nBodyImporter_,nBodyOperator_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="nBodyImporter_"/>
     !# <objectDestructor name="nBodyOperator_"/>
     return
   end function nbodyAnalyzeConstructorParameters
 
-  function nbodyAnalyzeConstructorInternal(nBodyImporter_,nBodyOperator_) result(self)
+  function nbodyAnalyzeConstructorInternal(storeBackToImported,nBodyImporter_,nBodyOperator_) result(self)
     !% Constructor for the {\normalfont \ttfamily nbodyAnalyze} task class which takes a parameter set as input.
     implicit none
-    type (taskNBodyAnalyze  )                          :: self
-    class(nBodyImporterClass), intent(in   ), target   :: nBodyImporter_
-    class(nBodyOperatorClass), intent(in   ), target   :: nBodyOperator_
-    !# <constructorAssign variables="*nBodyImporter_, *nBodyOperator_"/>
+    type   (taskNBodyAnalyze  )                          :: self
+    logical                    , intent(in   )           :: storeBackToImported
+    class  (nBodyImporterClass), intent(in   ), target   :: nBodyImporter_
+    class  (nBodyOperatorClass), intent(in   ), target   :: nBodyOperator_
+    !# <constructorAssign variables="storeBackToImported, *nBodyImporter_, *nBodyOperator_"/>
 
+    if (.not.self%nBodyImporter_%isHDF5()) self%storeBackToImported=.false.
     return
   end function nbodyAnalyzeConstructorInternal
 
@@ -85,22 +97,38 @@ contains
     !% Compute and output the halo mass function.
     use :: Galacticus_Display   , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
     use :: Galacticus_Error     , only : errorStatusSuccess
+    use :: Galacticus_HDF5      , only : galacticusOutputFile
+    use :: IO_HDF5              , only : hdf5Access
     use :: NBody_Simulation_Data, only : nBodyData
     implicit none
-    class  (taskNBodyAnalyze), intent(inout), target       :: self
-    integer                  , intent(  out), optional     :: status
-    type   (nBodyData       ), allocatable  , dimension(:) :: simulations
-    integer                                                :: i
+    class    (taskNBodyAnalyze), intent(inout), target       :: self
+    integer                    , intent(  out), optional     :: status
+    type     (nBodyData       ), allocatable  , dimension(:) :: simulations
+    integer                                                  :: i
+    character(len=32          )                              :: label
     
     call Galacticus_Display_Indent('Begin task: N-body analyze')
     ! Import N-body data.
     call self%nBodyImporter_%import (simulations)
+    ! Open analysis groups if necessary.
+    !$ call hdf5Access%set()
+    do i=1,size(simulations)
+       if (.not.self%storeBackToImported.or..not.simulations(i)%analysis%isOpen()) then
+          if (simulations(i)%analysis%isOpen()) call simulations(i)%analysis%close()
+          write (label,'(a,i4.4)') 'simulation',i
+          simulations(i)%analysis=galacticusOutputFile%openGroup(label)
+          call simulations(i)%analysis%writeAttribute(simulations(i)%label,'label')
+       end if
+    end do
+    !$ call hdf5Access%unset()
     ! Operate on the N-body data.
     call self%nBodyOperator_%operate(simulations)
     ! Close the analysis group.
+    !$ call hdf5Access%set()
     do i=1,size(simulations)
        if (simulations(i)%analysis%isOpen()) call simulations(i)%analysis%close()
     end do
+    !$ call hdf5Access%unset()
     ! Done.
     if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: N-body analyze' )
@@ -111,8 +139,7 @@ contains
     !% Specifies that this task does not requires the main output file.
     implicit none
     class(taskNBodyAnalyze), intent(inout) :: self
-    !$GLC attributes unused :: self
 
-    nbodyAnalyzeRequiresOutputFile=.false.
+    nbodyAnalyzeRequiresOutputFile=.not.self%storeBackToImported
     return
   end function nbodyAnalyzeRequiresOutputFile

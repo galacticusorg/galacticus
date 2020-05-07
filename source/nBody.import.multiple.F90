@@ -32,6 +32,7 @@
    contains
      final     ::           multipleDestructor
      procedure :: import => multipleImport
+     procedure :: isHDF5 => multipleIsHDF5
   end type nbodyImporterMultiple
 
   interface nbodyImporterMultiple
@@ -132,3 +133,12 @@ contains
     call Galacticus_Display_Unindent('done',verbosityStandard)
     return
   end subroutine multipleImport
+
+  logical function multipleIsHDF5(self)
+    !% Return whether or not the imported data is from an HDF5 file.
+    implicit none
+    class(nbodyImporterMultiple), intent(inout) :: self
+
+    multipleIsHDF5=.false.
+    return
+  end function multipleIsHDF5

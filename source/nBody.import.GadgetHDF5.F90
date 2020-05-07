@@ -35,6 +35,7 @@
    contains
      final     ::           gadgetHDF5Destructor
      procedure :: import => gadgetHDF5Import
+     procedure :: isHDF5 => gadgetHDF5IsHDF5
   end type nbodyImporterGadgetHDF5
 
   interface nbodyImporterGadgetHDF5
@@ -178,3 +179,12 @@ contains
          &                  /kilo
     return
   end subroutine gadgetHDF5Import
+
+  logical function gadgetHDF5IsHDF5(self)
+    !% Return whether or not the imported data is from an HDF5 file.
+    implicit none
+    class(nbodyImporterGadgetHDF5), intent(inout) :: self
+
+    gadgetHDF5IsHDF5=.true.
+    return
+  end function gadgetHDF5IsHDF5

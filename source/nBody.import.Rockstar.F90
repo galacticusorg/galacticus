@@ -34,6 +34,7 @@
    contains
      final     ::           rockstarDestructor
      procedure :: import => rockstarImport
+     procedure :: isHDF5 => rockstarIsHDF5
   end type nbodyImporterRockstar
 
   interface nbodyImporterRockstar
@@ -318,3 +319,12 @@ contains
     call Galacticus_Display_Unindent('done',verbosityStandard)
     return
   end subroutine rockstarImport
+
+  logical function rockstarIsHDF5(self)
+    !% Return whether or not the imported data is from an HDF5 file.
+    implicit none
+    class(nbodyImporterRockstar), intent(inout) :: self
+
+    rockstarIsHDF5=.false.
+    return
+  end function rockstarIsHDF5

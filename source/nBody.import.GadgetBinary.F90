@@ -27,13 +27,13 @@
   type, extends(nbodyImporterClass) :: nbodyImporterGadgetBinary
      !% An importer for Gadget HDF5 files.
      private
-     type            (varying_string) :: outputFileName , fileName        , &
-          &                              label
+     type            (varying_string) :: fileName       , label
      integer                          :: particleType
      double precision                 :: lengthSoftening, unitMassInSI    , &
           &                              unitLengthInSI , unitVelocityInSI
    contains
      procedure :: import => gadgetBinaryImport
+     procedure :: isHDF5 => gadgetBinaryIsHDF5
   end type nbodyImporterGadgetBinary
 
   interface nbodyImporterGadgetBinary
@@ -50,8 +50,7 @@ contains
     implicit none
     type            (nbodyImporterGadgetBinary)                :: self
     type            (inputParameters          ), intent(inout) :: parameters
-    type            (varying_string           )                :: outputFileName , fileName        , &
-         &                                                        label
+    type            (varying_string           )                :: fileName       , label
     integer                                                    :: particleType
     double precision                                           :: lengthSoftening, unitMassInSI    , &
          &                                                        unitLengthInSI , unitVelocityInSI
@@ -113,28 +112,20 @@ contains
     !#   <type>float</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>outputFileName</name>
-    !#   <source>parameters</source>
-    !#   <description>The name of the file to which any output analysis should be written.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>
-    self=nbodyImporterGadgetBinary(fileName,label,outputFileName,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI)
+    self=nbodyImporterGadgetBinary(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI)
     !# <inputParametersValidate source="parameters"/>
     return
   end function gadgetBinaryConstructorParameters
 
-  function gadgetBinaryConstructorInternal(fileName,label,outputFileName,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI) result (self)
+  function gadgetBinaryConstructorInternal(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI) result (self)
     !% Internal constructor for the ``gadgetBinary'' N-body importer class.
     implicit none
     type            (nbodyImporterGadgetBinary)                :: self
-    type            (varying_string           ), intent(in   ) :: outputFileName , fileName       , &
-         &                                                        label
+    type            (varying_string           ), intent(in   ) :: fileName       , label
     integer                                    , intent(in   ) :: particleType
     double precision                           , intent(in   ) :: lengthSoftening, unitMassInSI   , &
          &                                                        unitLengthInSI ,unitVelocityInSI
-    !# <constructorAssign variables="fileName, label, outputFileName,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI"/>
+    !# <constructorAssign variables="fileName, label, particleType, lengthSoftening, unitMassInSI, unitLengthInSI, unitVelocityInSI"/>
 
     return
   end function gadgetBinaryConstructorInternal
@@ -169,20 +160,18 @@ contains
        open(newUnit=file,file=char(self%fileName)//"."//trim(adjustl(fileNumberText)),status='old',form='unformatted')
        read (file) numberParticleTypeFile, massParticleType, time, redshift, flagSFR, flagFeedback, numberParticleType, flagCooling, numberFiles
        if (fileNumber == 0) then
-          call allocateArray(simulations(1)%position  ,[3,numberParticleType(self%particleType+1)])
-          call allocateArray(simulations(1)%velocity  ,[3,numberParticleType(self%particleType+1)])
-          call allocateArray(simulations(1)%identifier,[  numberParticleType(self%particleType+1)])
+          call allocateArray(simulations(1)%position,[3,numberParticleType(self%particleType+1)])
+          call allocateArray(simulations(1)%velocity,[3,numberParticleType(self%particleType+1)])
        end if
        allocate(position(3,numberParticleTypeFile(self%particleType+1)))
        allocate(velocity(3,numberParticleTypeFile(self%particleType+1)))
        read (file) position
        read (file) velocity
+       close(file)
        simulations(1)%position(:,numberParticleTypeRead(self%particleType+1)+1:numberParticleTypeRead(self%particleType+1)+numberParticleTypeFile(self%particleType+1))=position
        simulations(1)%velocity(:,numberParticleTypeRead(self%particleType+1)+1:numberParticleTypeRead(self%particleType+1)+numberParticleTypeFile(self%particleType+1))=velocity
        deallocate(position)
        deallocate(velocity)
-       read (file) simulations(1)%identifier(numberParticleTypeRead(self%particleType+1)+1:numberParticleTypeRead(self%particleType+1)+numberParticleTypeFile(self%particleType+1))
-       close(file)
        numberParticleTypeRead=numberParticleTypeRead+numberParticleTypeFile
        fileNumber            =fileNumber            +1
     end do
@@ -197,8 +186,14 @@ contains
     simulations(1)%velocity   =+simulations(1)%velocity         &
          &                     *self          %unitVelocityInSI &
          &                     /kilo
-    ! Open the particle group - this group will be used for analysis output.
-    call simulations(1)%analysis%openFile    (char(self          %outputFileName)             )
-    call simulations(1)%analysis%writeDataset(     simulations(1)%identifier     ,'identifier')
     return
   end subroutine gadgetBinaryImport
+
+  logical function gadgetBinaryIsHDF5(self)
+    !% Return whether or not the imported data is from an HDF5 file.
+    implicit none
+    class(nbodyImporterGadgetBinary), intent(inout) :: self
+
+    gadgetBinaryIsHDF5=.false.
+    return
+  end function gadgetBinaryIsHDF5

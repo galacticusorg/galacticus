@@ -134,8 +134,11 @@ contains
     do i=1_c_size_t,self%countPoints
        simulations(1)%particleIDs(  i)=i
        simulations(1)%position   (:,i)=[self%randomNumberGenerator_%uniformSample(),self%randomNumberGenerator_%uniformSample(),self%randomNumberGenerator_%uniformSample()]
-       simulations(1)%velocity   (:,i)=[self%randomNumberGenerator_%uniformSample(),self%randomNumberGenerator_%uniformSample(),self%randomNumberGenerator_%uniformSample()]
     end do
+    simulations(1)%velocity(:,:)=0.0d0
+    simulations(1)%position(1,:)=simulations(1)%position(1,:)*(self%xRange(2)-self%xRange(1))+self%xRange(1)
+    simulations(1)%position(2,:)=simulations(1)%position(2,:)*(self%yRange(2)-self%yRange(1))+self%yRange(1)
+    simulations(1)%position(3,:)=simulations(1)%position(3,:)*(self%zRange(2)-self%zRange(1))+self%zRange(1)
     call Galacticus_Display_Unindent('done',verbosityStandard)
     return
   end subroutine randomImport

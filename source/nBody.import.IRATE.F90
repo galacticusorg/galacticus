@@ -21,6 +21,7 @@
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
+  use :: IO_HDF5             , only : hdf5Object
 
   !# <nbodyImporter name="nbodyImporterIRATE">
   !#  <description>An importer for IRATE files.</description>
@@ -31,10 +32,12 @@
      class  (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class  (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
      type   (varying_string          )          :: fileName                      , label
+     type   (hdf5Object              )          :: file
      integer                                    :: snapshot
    contains
      final     ::           irateDestructor
      procedure :: import => irateImport
+     procedure :: isHDF5 => irateIsHDF5
   end type nbodyImporterIRATE
 
   interface nbodyImporterIRATE
@@ -70,6 +73,14 @@ contains
     !#   <type>integer</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>label</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>var_str('primary')</defaultValue>
+    !#   <description>A label for the simulation.</description>
+    !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     self=nbodyImporterIRATE(fileName,label,snapshot,cosmologyParameters_,cosmologyFunctions_)
@@ -99,6 +110,7 @@ contains
 
     !# <objectDestructor name="self%cosmologyParameters_"/>
     !# <objectDestructor name="self%cosmologyFunctions_" />
+    if (self%file%isOpen()) call self%file%close()
     return
   end subroutine irateDestructor
 
@@ -116,8 +128,7 @@ contains
     integer         (c_size_t          )               , dimension(:), allocatable :: propertyInteger
     double precision                                   , dimension(:), allocatable :: propertyReal
     type            (irate             )                                           :: irate_
-    type            (hdf5Object        )                                           :: irateFile      , snapshotGroup, &
-         &                                                                            halosGroup     , dataset
+    type            (hdf5Object        )                                           :: snapshotGroup  , dataset
     character       (len=13            )                                           :: snapshotLabel
     integer                                                                        :: status
 
@@ -130,10 +141,10 @@ contains
     simulations(1)%propertiesReal   =rank1DoubleHash      ()
     write (snapshotLabel,'(a,i5.5)') 'Snapshot',self%snapshot
     !$ call hdf5Access%set()
-    call irateFile%openFile(char(self%fileName),readOnly=.false.)
-    snapshotGroup=irateFile    %openGroup(snapshotLabel)
-    halosGroup   =snapshotGroup%openGroup('HaloCatalog')
-    call halosGroup%datasets(datasetNames)
+    call self%file%openFile(char(self%fileName),readOnly=.false.)
+    snapshotGroup            =self%file         %openGroup(snapshotLabel)
+    simulations  (1)%analysis=     snapshotGroup%openGroup('HaloCatalog')
+    call simulations(1)%analysis%datasets(datasetNames)
     do i=1,size(datasetNames)
        if     (                               &
             &   datasetNames(i) == "Center"   &
@@ -142,7 +153,7 @@ contains
             &  .or.                           &
             &   datasetNames(i) == "HaloID"   &
             & ) cycle
-       dataset=halosGroup%openDataset(char(datasetNames(i)))
+       dataset=simulations(1)%analysis%openDataset(char(datasetNames(i)))
        call dataset%assertDatasetType(H5T_NATIVE_INTEGERS,1,status)
        if (status == errorStatusSuccess) then
           call dataset       %readDataset          (                datasetValue=propertyInteger)
@@ -155,11 +166,17 @@ contains
        end if
        call dataset%close()
     end do
-    call halosGroup   %close()
     call snapshotGroup%close()
-    call irateFile    %close()
     !$ call hdf5Access%unset()
     call Galacticus_Display_Unindent('done',verbosityStandard)
     return
   end subroutine irateImport
-  
+
+  logical function irateIsHDF5(self)
+    !% Return whether or not the imported data is from an HDF5 file.
+    implicit none
+    class(nbodyImporterIRATE), intent(inout) :: self
+
+    irateIsHDF5=.true.
+    return
+  end function irateIsHDF5
