@@ -201,14 +201,14 @@ contains
        !! Position
        allocate(position(3,countFiltered))
        do j=1,3
-          position(i,:)=pack(simulations(i)%position(i,:),mask)
+          position(j,:)=pack(simulations(i)%position(j,:),mask)
        end do
        deallocate(simulations(i)%position)
        call move_alloc(position,simulations(i)%position)
        !! Velocity
        allocate(position(3,countFiltered))
        do j=1,3
-          position(i,:)=pack(simulations(i)%velocity(i,:),mask)
+          position(j,:)=pack(simulations(i)%velocity(j,:),mask)
        end do
        deallocate(simulations(i)%velocity)
        call move_alloc(position,simulations(i)%velocity)
