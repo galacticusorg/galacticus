@@ -146,10 +146,14 @@ contains
     !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num
     use    :: Galacticus_Display, only : Galacticus_Display_Indent , Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
          &                               Galacticus_Display_Message, verbosityStandard
+    use    :: IO_HDF5           , only : hdf5Access
     use    :: ISO_Varying_String, only : var_str
     use    :: Memory_Management , only : deallocateArray
     use    :: Nearest_Neighbors , only : nearestNeighbors
     use    :: Numerical_Ranges  , only : Make_Range                , rangeTypeLogarithmic
+#ifdef USEMPI
+    use    :: MPI_Utilities     , only : mpiSelf
+#endif
     implicit none
     class           (nbodyOperatorPairCounts   ), intent(inout)                 :: self
     type            (nBodyData                 ), intent(inout), dimension(:  ) :: simulations
@@ -168,8 +172,14 @@ contains
     type            (nearestNeighbors          )                                :: neighborFinder
     integer                                                                     :: neighborCount
     type            (varying_string            )                                :: label
-
-    call Galacticus_Display_Indent('compute pair counts',verbosityStandard)
+    
+#ifdef USEMPI
+    if (mpiSelf%isMaster()) then
+#endif
+       call Galacticus_Display_Indent('compute pair counts',verbosityStandard)
+#ifdef USEMPI
+    end if
+#endif
     ! Construct bins of separation.
     bootstrapSampleCount=self%bootstrapSampleCount
     if (self%includeUnbootstrapped) bootstrapSampleCount=bootstrapSampleCount+1
@@ -182,7 +192,13 @@ contains
     separationSquaredMaximumBin=(separationCentralBin*sqrt(separationCentralBin(2)/separationCentralBin(1)))**2
     ! Iterate over simulations.
     do iSimulation=1_c_size_t,size(simulations)
+#ifdef USEMPI
+       if (mpiSelf%isMaster()) then
+#endif
        call Galacticus_Display_Message(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityStandard)
+#ifdef USEMPI
+       end if
+#endif
        if (self%crossCount) then
           allocate(weight1(size(simulations(          1)%position,dim=2)))
        else
@@ -190,7 +206,13 @@ contains
        end if
        allocate   (weight2(size(simulations(iSimulation)%position,dim=2)))
        ! Iterate over bootstrap samplings.
-       call Galacticus_Display_Counter(0,.true.)
+#ifdef USEMPI
+       if (mpiSelf%isMaster()) then
+#endif
+          call Galacticus_Display_Counter(0,.true.)
+#ifdef USEMPI
+       end if
+#endif
        pairCountBin=0_c_size_t
        !$omp parallel private(iSample,j,weightPair,neighborCount,neighborIndex,neighborDistanceSquared,neighborFinder,randomNumberGenerator_) reduction(+:pairCountBin)
        ! Allocate worksapce.
@@ -234,6 +256,10 @@ contains
           end if
           !$omp do schedule(dynamic)
           do i=1_c_size_t,size(simulations(jSimulation)%position,dim=2,kind=c_size_t)
+#ifdef USEMPI
+             ! If running under MPI with N processes, process only every Nth particle.
+             if (mod(i,mpiSelf%count()) /= mpiSelf%rank()) cycle
+#endif
              if (weight1(i) <= 0.0d0) cycle
              ! Locate particles nearby.
              call neighborFinder%searchFixedRadius(simulations(jSimulation)%position(:,i),self%separationMaximum,toleranceZero,neighborCount,neighborIndex,neighborDistanceSquared)
@@ -256,24 +282,40 @@ contains
              call deallocateArray(neighborDistanceSquared)
              ! Update progress.
              !$ if (OMP_Get_Thread_Num() == 0) then
-             call Galacticus_Display_Counter(                                                                                        &
-                  &                          int(                                                                                    &
-                  &                              +100.0d0                                                                            &
-                  &                              *float(i+(iSample-1_c_size_t  )*size(simulations(1)%position,dim=2,kind=c_size_t))  &
-                  &                              /float(                         size(simulations(1)%position,dim=2,kind=c_size_t))  &
-                  &                              /float(   bootstrapSampleCount                                                   )  &
-                  &                             )                                                                                  , &
-                  &                          .false.                                                                                 &
-                  &                         )
+#ifdef USEMPI
+             if (mpiSelf%isMaster()) then
+#endif
+                call Galacticus_Display_Counter(                                                                                        &
+                     &                          int(                                                                                    &
+                     &                              +100.0d0                                                                            &
+                     &                              *float(i+(iSample-1_c_size_t  )*size(simulations(1)%position,dim=2,kind=c_size_t))  &
+                     &                              /float(                         size(simulations(1)%position,dim=2,kind=c_size_t))  &
+                     &                              /float(   bootstrapSampleCount                                                   )  &
+                     &                             )                                                                                  , &
+                     &                          .false.                                                                                 &
+                     &                         )
+#ifdef USEMPI
+             end if
+#endif
              !$ end if
           end do
           !$omp end do
        end do
        !# <objectDestructor name="randomNumberGenerator_"/>
        !$omp end parallel
-       call Galacticus_Display_Counter_Clear()
+#ifdef USEMPI
+       if (mpiSelf%isMaster()) then
+#endif
+          call Galacticus_Display_Counter_Clear()
+#ifdef USEMPI
+       end if
+#endif
        deallocate(weight1)
        deallocate(weight2)
+#ifdef USEMPI
+       ! Reduce across MPI processes.
+       pairCountBin=mpiSelf%sum(pairCountBin)
+#endif
        if (self%crossCount) then
           jSimulation   = 1
           pairCountTotal=+size(simulations(          1)%position,dim=2,kind=c_size_t) &
@@ -286,12 +328,26 @@ contains
                &         *size(simulations(iSimulation)%position,dim=2,kind=c_size_t)
           label         = ":"//simulations(iSimulation)%label
        end if
-       if (.not.self%crossCount .or. iSimulation == 1 ) &
-            & call simulations(jSimulation)%analysis%writeDataset  (separationCentralBin,'pairCountSeparation'             )
-       call        simulations(jSimulation)%analysis%writeDataset  (pairCountBin        ,'pairCountCount'     //char(label))
-       call        simulations(jSimulation)%analysis%writeAttribute(pairCountTotal      ,'pairCountTotal'     //char(label))
+#ifdef USEMPI
+       if (mpiSelf%isMaster()) then
+#endif
+          !$ call hdf5Access%  set()
+          if (.not.self%crossCount .or. iSimulation == 1 ) &
+               & call simulations(jSimulation)%analysis%writeDataset  (separationCentralBin,'pairCountSeparation'             )
+          call        simulations(jSimulation)%analysis%writeDataset  (pairCountBin        ,'pairCountCount'     //char(label))
+          call        simulations(jSimulation)%analysis%writeAttribute(pairCountTotal      ,'pairCountTotal'     //char(label))
+          !$ call hdf5Access%unset()
+#ifdef USEMPI
+       end if
+#endif
     end do
-    call Galacticus_Display_Unindent('done',verbosityStandard)
+#ifdef USEMPI
+    if (mpiSelf%isMaster()) then
+#endif
+       call Galacticus_Display_Unindent('done',verbosityStandard)
+#ifdef USEMPI
+    end if
+#endif
     return
   end subroutine pairCountsOperate
 
