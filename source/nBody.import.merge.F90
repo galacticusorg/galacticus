@@ -195,6 +195,14 @@ contains
           call simulations(1)%propertiesReal   %set(importer_%simulations(j)%propertiesReal   %key(k),propertyReal   )
        end do
     end if
+    ! Close analysis groups in merged importers.
+    importer_ => self%importers
+    do while (associated(importer_))
+       do j=1,size(importer_%simulations)
+          if (importer_%simulations(j)%analysis%isOpen()) call importer_%simulations(j)%analysis%close()
+      end do
+       importer_ => importer_%next
+    end do
     call Galacticus_Display_Unindent('done',verbosityStandard)
     return
   end subroutine mergeImport
