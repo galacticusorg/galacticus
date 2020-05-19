@@ -278,7 +278,7 @@ contains
     deltaCriticalEarliest=+self%criticalOverdensity_     %value       (time=self%timeEarliest,mass=basic%mass(),node=node) &
          &                *self%cosmologicalMassVariance_%rootVariance(time=self%timeNow     ,mass=basic%mass()          ) &
          &                /self%cosmologicalMassVariance_%rootVariance(time=self%timeEarliest,mass=basic%mass()          )
-    ! Convert time for base node to critical overdensity (which we use as a time coordinate in this module).
+    ! Convert time for base node to critical overdensity (which we use as a time coordinate in this class).
     baseNodeTime            =                                                  basic%time        ()
     rootVarianceGrowthFactor=+self%cosmologicalMassVariance_%rootVariance(time=      baseNodeTime  ,mass=basic%mass()          ) &
          &                   /self%cosmologicalMassVariance_%rootVariance(time=self %timeNow       ,mass=basic%mass()          )
