@@ -45,7 +45,7 @@ contains
     !# <optionalArgument name="static" defaultsTo=".false." />
 
     ! Specify Cloudy version.
-    cloudyVersion="c17.01"
+    cloudyVersion="c17.02"
     ! Specify Cloudy path.
     cloudyPath   =galacticusPath(pathTypeDataDynamic)//cloudyVersion
     ! Check for existance of executable - build if necessary.
