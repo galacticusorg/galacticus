@@ -219,15 +219,13 @@ contains
        if (allocated(neighborIndex)) arraySize=size(neighborIndex)
        neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,arraySize,neighborIndex,neighborDistance,tolerance)
        ! Resize arrays if necessary.
-       if (present(neighborIndex)) then
-          if (neighborCount > arraySize) then
-             if (allocated(neighborIndex   )) call deallocateArray(neighborIndex   )
-             if (allocated(neighborDistance)) call deallocateArray(neighborDistance)
-             call allocateArray(neighborIndex   ,[neighborCount])
-             call allocateArray(neighborDistance,[neighborCount])
-             ! Call again to get all neighbors.
-             neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,neighborCount,neighborIndex,neighborDistance,tolerance)
-          end if
+       if (neighborCount > arraySize) then
+          if (allocated(neighborIndex   )) call deallocateArray(neighborIndex   )
+          if (allocated(neighborDistance)) call deallocateArray(neighborDistance)
+          call allocateArray(neighborIndex   ,[neighborCount])
+          call allocateArray(neighborDistance,[neighborCount])
+          ! Call again to get all neighbors.
+          neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,neighborCount,neighborIndex,neighborDistance,tolerance)
        end if
     else
        neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,arraySize,neighborIndex0,neighborDistance0,tolerance)
