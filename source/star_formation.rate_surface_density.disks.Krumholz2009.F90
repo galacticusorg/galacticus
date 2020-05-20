@@ -89,6 +89,10 @@
   ! Minimum fraction of molecular hydrogen allowed.
   double precision                                                  , parameter :: krumholz2009MolecularFractionMinimum=1.0d-4
 
+  ! Range of s-parameter to tabulate.
+  double precision                                                  , parameter :: sMinimum                            =0.0d+0, sMaximum=8.0d0
+
+
 contains
 
   function krumholz2009ConstructorParameters(parameters) result(self)
@@ -150,7 +154,6 @@ contains
     type            (starFormationRateSurfaceDensityDisksKrumholz2009)                :: self
     double precision                                                  , intent(in   ) :: frequencyStarFormation      , clumpingFactorMolecularComplex
     logical                                                           , intent(in   ) :: molecularFractionFast       , assumeMonotonicSurfaceDensity
-    double precision                                                  , parameter     :: sMinimum              =0.0d0, sMaximum                      =8.0d0
     integer                                                           , parameter     :: sCount                =1000
     integer                                                                           :: i
     !# <constructorAssign variables="frequencyStarFormation, clumpingFactorMolecularComplex, molecularFractionFast, assumeMonotonicSurfaceDensity"/>
@@ -274,10 +277,18 @@ contains
           ! Compute the molecular fraction.
           if (self%metallicityRelativeToSolar > 0.0d0) then
              sigmaMolecularComplex=self%sigmaMolecularComplexNormalization*surfaceDensityGas
-             s                    =self%sNormalization/sigmaMolecularComplex
-             molecularFraction    =self%molecularFraction%interpolate(s)
+             if (sigmaMolecularComplex > 0.0d0) then
+                if (sigmaMolecularComplex < self%sNormalization/sMaximum) then
+                   s=sMaximum
+                else
+                   s=self%sNormalization/sigmaMolecularComplex
+                end if
+                molecularFraction=self%molecularFraction%interpolate(s)
+             else
+                molecularFraction=krumholz2009MolecularFractionMinimum
+             end if
           else
-             molecularFraction    =krumholz2009MolecularFractionMinimum
+             molecularFraction   =krumholz2009MolecularFractionMinimum
           end if
           ! Compute the cloud density factor.
           if      (surfaceDensityGasDimensionless <= 0.0d0) then
