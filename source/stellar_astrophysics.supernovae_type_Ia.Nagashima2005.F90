@@ -82,6 +82,7 @@ contains
     ! Allocate an array to store individual element yields.
     call allocateArray(self%elementYield,[Atomic_Data_Atoms_Count()])
     self%elementYield=0.0d0
+    self%totalYield  =0.0d0
     ! Read in Type Ia yields.
     !$omp critical (FoX_DOM_Access)
     ! Open the XML file containing yields.
