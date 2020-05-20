@@ -43,7 +43,8 @@
      integer                                                                        :: parameterCount                             , stepsMaximum                          , &
           &                                                                            reportCount                                , logFlushCount
      double precision                                                               :: accelerationCoefficientPersonal            , accelerationCoefficientGlobal         , &
-          &                                                                            inertiaWeight                              , velocityCoefficient
+          &                                                                            inertiaWeight                              , velocityCoefficient                   , &
+          &                                                                            velocityCoefficientInitial
      logical                                                                        :: isInteractive                              , resume                    
      type            (varying_string                       )                        :: logFileRoot                                , interactionRoot                       , &
           &                                                                            logFilePreviousRoot
@@ -97,7 +98,8 @@ contains
          &                                                                                           activeParameterCount             , iActive                        , &
          &                                                                                           iInactive                        , i
     double precision                                                                              :: inertiaWeight                    , accelerationCoefficientPersonal, &
-         &                                                                                           accelerationCoefficientGlobal    , velocityCoefficient
+         &                                                                                           accelerationCoefficientGlobal    , velocityCoefficient            , &
+         &                                                                                           velocityCoefficientInitial
     logical                                                                                       :: resume
 
     !# <inputParameter>
@@ -187,6 +189,14 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>velocityCoefficientInitial</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>Velocity parameter.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
     !# <objectBuilder class="posteriorSampleLikelihood"        name="posteriorSampleLikelihood_"        source="parameters"/>
     !# <objectBuilder class="posteriorSampleConvergence"       name="posteriorSampleConvergence_"       source="parameters"/>
     !# <objectBuilder class="posteriorSampleStoppingCriterion" name="posteriorSampleStoppingCriterion_" source="parameters"/>
@@ -231,7 +241,7 @@ contains
        end select
        !# <objectDestructor name="modelParameter_"/>
     end do
-    self=posteriorSampleSimulationParticleSwarm(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,randomNumberGenerator_,stepsMaximum,char(logFileRoot),logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,char(interactionRoot),resume,char(logFilePreviousRoot))
+    self=posteriorSampleSimulationParticleSwarm(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,randomNumberGenerator_,stepsMaximum,char(logFileRoot),logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,velocityCoefficientInitial,char(interactionRoot),resume,char(logFilePreviousRoot))
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="posteriorSampleLikelihood_"       />
     !# <objectDestructor name="posteriorSampleConvergence_"      />
@@ -250,7 +260,7 @@ contains
     return
   end function particleSwarmConstructorParameters
 
-  function particleSwarmConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,randomNumberGenerator_,stepsMaximum,logFileRoot,logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,interactionRoot,resume,logFilePreviousRoot) result(self)
+  function particleSwarmConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,randomNumberGenerator_,stepsMaximum,logFileRoot,logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,velocityCoefficientInitial,interactionRoot,resume,logFilePreviousRoot) result(self)
     !% Internal constructor for the ``particleSwarm'' simulation class.
     implicit none
     type            (posteriorSampleSimulationParticleSwarm)                                      :: self
@@ -266,10 +276,11 @@ contains
     integer                                                 , intent(in   )                       :: stepsMaximum                     , reportCount                    , &
          &                                                                                           logFlushCount
     double precision                                        , intent(in   )                       :: inertiaWeight                    , accelerationCoefficientPersonal, &
-         &                                                                                           accelerationCoefficientGlobal    , velocityCoefficient
+         &                                                                                           accelerationCoefficientGlobal    , velocityCoefficient            , &
+         &                                                                                           velocityCoefficientInitial
     logical                                                 , intent(in   )                       :: resume
     integer                                                                                       :: i
-    !# <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *randomNumberGenerator_, stepsMaximum, logFileRoot, logFlushCount, reportCount, inertiaWeight, accelerationCoefficientPersonal, accelerationCoefficientGlobal, velocityCoefficient, interactionRoot, resume, logFilePreviousRoot"/>
+    !# <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *randomNumberGenerator_, stepsMaximum, logFileRoot, logFlushCount, reportCount, inertiaWeight, accelerationCoefficientPersonal, accelerationCoefficientGlobal, velocityCoefficient, velocityCoefficientInitial, interactionRoot, resume, logFilePreviousRoot"/>
 
     allocate(self%modelParametersActive_  (size(modelParametersActive_  )))
     allocate(self%modelParametersInactive_(size(modelParametersInactive_)))
@@ -425,7 +436,7 @@ contains
     else
        ! Simulation is not being resumed, so set an initial velocity for the particle.
        do i=1,self%parameterCount
-          velocityParticle(i)=(2.0d0*self%randomNumberGenerator_%uniformSample()-1.0d0)*velocityMaximum(i)
+          velocityParticle(i)=(2.0d0*self%randomNumberGenerator_%uniformSample()-1.0d0)*velocityMaximum(i)*self%velocityCoefficientInitial
        end do
     end if
     ! Begin the simulation.
