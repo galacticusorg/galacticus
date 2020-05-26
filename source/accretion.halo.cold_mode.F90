@@ -179,7 +179,7 @@ contains
          &                *self                    %coldModeFraction(node,accretionMode     )
     return
   end function coldModeAccretionRate
-
+  
   double precision function coldModeAccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
     implicit none
@@ -203,7 +203,7 @@ contains
          &                      *self                    %coldModeFraction   (node,accretionMode     )
     return
   end function coldModeFailedAccretionRate
-
+  
   double precision function coldModeFailedAccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
     implicit none
@@ -444,7 +444,7 @@ contains
                &          /densityPreShock          &
                &          *radiusShock              &
                &          *coolingFunctionValue     &
-               &          /velocityPreShock**3
+               &          /velocityPreShock     **3
           ! Compute the cold fraction using the model from eqn. (2) of Benson & Bower (2011). The original form doesn't allow the
           ! cold fraction to go to zero in high mass halos, since "shockStability" can never be less than zero. This form is
           ! basically the equivalent functional form, but defined in terms of ln(epsilon) rather than epsilon.
