@@ -621,7 +621,7 @@ contains
              ! Compute probability factors. The logic here becomes complicated, as we use various optimizations and tabulations to
              ! speed up calculation.
              !
-             ! Tabulations will only be used if self%abulateHypergeometric is true.
+             ! Tabulations will only be used if self%tabulateHypergeometric is true.
              !
              ! Set status to success by default.
              statusLower=FGSL_Success
