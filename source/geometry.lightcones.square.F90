@@ -62,14 +62,14 @@
   type, extends(geometryLightconeClass) :: geometryLightconeSquare
      !% A lightcone geometry class which assumes a square field of view.
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null()
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_       => null()
      double precision                         , dimension(3,3)            :: unitVector
      double precision                         , dimension(3  )            :: origin
-     double precision                         , dimension(:), allocatable :: outputTimes              , distanceMinimum        , &
+     double precision                         , dimension(:), allocatable :: outputTimes                        , distanceMinimum        , &
           &                                                                  distanceMaximum
-     double precision                                                     :: lengthReplication        , angularSize            , &
+     double precision                                                     :: lengthReplication                  , angularSize            , &
           &                                                                  solidAngleSubtended
-     logical                                                              :: timeEvolvesAlongLightcone, positionGettableChecked, &
+     logical                                                              :: timeEvolvesAlongLightcone          , positionGettableChecked, &
           &                                                                  mergeTimeGettableChecked
    contains
      !@ <objectMethods>
