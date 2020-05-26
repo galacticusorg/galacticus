@@ -159,7 +159,7 @@ contains
     implicit none
     type            (outputAnalysisMassFunctionStellarBernardi2013SDSS  )                              :: self
     class           (cosmologyFunctionsClass                            ), intent(in   ), target       :: cosmologyFunctions_
-    class           (outputTimesClass                                   ), intent(in   ), target       :: outputTimes_
+    class           (outputTimesClass                                   ), intent(inout), target       :: outputTimes_
     class           (gravitationalLensingClass                          ), intent(in   ), target       :: gravitationalLensing_
     double precision                                                     , intent(in   )               :: randomErrorMinimum                                         , randomErrorMaximum                  , &
          &                                                                                                sizeSourceLensing

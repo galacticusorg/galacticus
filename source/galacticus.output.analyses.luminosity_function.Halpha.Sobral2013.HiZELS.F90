@@ -191,7 +191,7 @@ contains
     implicit none
     type            (outputAnalysisLuminosityFunctionSobral2013HiZELS   )                              :: self
     class           (cosmologyFunctionsClass                            ), intent(in   ), target       :: cosmologyFunctions_
-    class           (outputTimesClass                                   ), intent(in   ), target       :: outputTimes_
+    class           (outputTimesClass                                   ), intent(inout), target       :: outputTimes_
     class           (gravitationalLensingClass                          ), intent(in   ), target       :: gravitationalLensing_
     class           (stellarSpectraDustAttenuationClass                 ), intent(in   ), target       :: stellarSpectraDustAttenuation_
     class           (starFormationRateDisksClass                        ), intent(in   ), target       :: starFormationRateDisks_
@@ -211,7 +211,7 @@ contains
     type            (cosmologyParametersSimple                          )               , pointer      :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                     )               , pointer      :: cosmologyFunctionsData
     type            (distributionOperatorList                           )               , pointer      :: distributionOperatorSequence
-    double precision                                                                                   :: errorPolynomialZeroPoint
+    double precision                                                                    , parameter    :: errorPolynomialZeroPoint                            =40.0d0
     type            (varying_string                                     )                              :: fileName
 
     ! Build a filter which select galaxies with stellar mass 10³M☉ or greater.
@@ -323,6 +323,7 @@ contains
     !# <objectDestructor name="galacticFilter_"                                     />
     !# <objectDestructor name="cosmologyParametersData"                             />
     !# <objectDestructor name="cosmologyFunctionsData"                              />
+    !# <objectDestructor name="outputAnalysisPropertyOperator_"                     />
     !# <objectDestructor name="outputAnalysisDistributionOperator_"                 />
     !# <objectDestructor name="outputAnalysisDistributionOperatorGrvtnlLnsng_"      />
     !# <objectDestructor name="outputAnalysisDistributionOperatorRandomErrorPlynml_"/>

@@ -136,8 +136,10 @@ contains
     type            (outputAnalysisDistributionOperatorSequence     ), pointer                     :: outputAnalysisDistributionOperator_
     type            (outputAnalysisDistributionOperatorGrvtnlLnsng  ), pointer                     :: outputAnalysisDistributionOperatorGrvtnlLnsng_
     class           (outputAnalysisDistributionOperatorClass        ), pointer                     :: outputAnalysisDistributionOperatorProjection_
-    type            (distributionOperatorList                       )               , pointer      :: distributionOperatorSequence
+    type            (distributionOperatorList                       ), pointer                     :: distributionOperatorSequence
     type            (surveyGeometryLiWhite2009SDSS                  ), pointer                     :: surveyGeometry_
+    type            (outputAnalysisDistributionNormalizerBinWidth   ), pointer                     :: outputAnalysisDistributionNormalizerBinWidth_
+    type            (outputAnalysisDistributionNormalizerUnitarity  ), pointer                     :: outputAnalysisDistributionNormalizerUnitarity_
     type            (normalizerList                                 ), pointer                     :: normalizerSequence                              , normalizer_
     type            (propertyOperatorList                           ), pointer                     :: propertyOperatorSequence                        , weightPropertyOperatorSequence
     type            (galacticFilterStellarMass                      ), pointer                     :: galacticFilterMassStellarMinimum_               , galacticFilterMassStellarMaximum_
@@ -324,20 +326,14 @@ contains
     allocate   (galacticFilterAll_                       )
     !# <referenceConstruct object="galacticFilterAll_"                                constructor="galacticFilterAll                               (filters_                                                                                                                                                  )"/>
     ! Create a distribution normalizer which normalizes to bin width.
-    allocate(normalizerSequence)
-    normalizer_ => normalizerSequence
-    allocate(outputAnalysisDistributionNormalizerUnitarity  :: normalizer_%normalizer_)
-    select type (normalizer_ => normalizer_%normalizer_)
-    type is (outputAnalysisDistributionNormalizerUnitarity  )
-       !# <referenceConstruct object="normalizer_" constructor="outputAnalysisDistributionNormalizerUnitarity ()"/>
-    end select
-    allocate(normalizer_%next)
-    normalizer_ => normalizer_%next
-    allocate(outputAnalysisDistributionNormalizerBinWidth   :: normalizer_%normalizer_)
-    select type (normalizer_ => normalizer_%normalizer_)
-    type is (outputAnalysisDistributionNormalizerBinWidth  )
-       !# <referenceConstruct object="normalizer_" constructor="outputAnalysisDistributionNormalizerBinWidth  ()"/>
-    end select
+    allocate(outputAnalysisDistributionNormalizerBinWidth_ )
+    !# <referenceConstruct object="outputAnalysisDistributionNormalizerBinWidth_"  constructor="outputAnalysisDistributionNormalizerBinWidth ()"/>
+    allocate(outputAnalysisDistributionNormalizerUnitarity_)
+    !# <referenceConstruct object="outputAnalysisDistributionNormalizerUnitarity_" constructor="outputAnalysisDistributionNormalizerUnitarity()"/>
+    allocate(normalizerSequence     )
+    allocate(normalizerSequence%next)
+    normalizerSequence     %normalizer_ => outputAnalysisDistributionNormalizerUnitarity_
+    normalizerSequence%next%normalizer_ => outputAnalysisDistributionNormalizerBinWidth_
     allocate(outputAnalysisDistributionNormalizer_)
     !# <referenceConstruct object="outputAnalysisDistributionNormalizer_" constructor="outputAnalysisDistributionNormalizerSequence(normalizerSequence)"/>
     ! Construct the object. We convert radii to log10(radii) here.
@@ -387,9 +383,11 @@ contains
          &                                functionValueTarget                                   , &
          &                                functionCovarianceTarget                                &
          &                               )
+    !# <objectDestructor name="surveyGeometry_"                                 />
     !# <objectDestructor name="nodePropertyExtractor_"                          />
     !# <objectDestructor name="outputAnalysisPropertyOperatorSequence_"         />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperatorSequence_"   />
+    !# <objectDestructor name="outputAnalysisPropertyOperatorMultiply_"         />
     !# <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
     !# <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyAnglrDstnc_" />
     !# <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>
@@ -408,6 +406,8 @@ contains
     !# <objectDestructor name="galacticFilterMorphologyInverted_"               />
     !# <objectDestructor name="cosmologyParametersData"                         />
     !# <objectDestructor name="cosmologyFunctionsData"                          />
+    !# <objectDestructor name="outputAnalysisDistributionNormalizerBinWidth_"   />
+    !# <objectDestructor name="outputAnalysisDistributionNormalizerUnitarity_"  />
     nullify(propertyOperatorSequence      )
     nullify(weightPropertyOperatorSequence)
     nullify(normalizerSequence            )

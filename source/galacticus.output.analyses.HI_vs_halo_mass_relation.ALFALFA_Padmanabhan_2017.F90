@@ -369,6 +369,7 @@ contains
          &                                                         massHILogarithmicCovarianceTarget                       &
          &                                                        )
     ! Clean up.
+    !# <objectDestructor name="surveyGeometry_"                                       />
     !# <objectDestructor name="galacticFilterAll_"                                    />
     !# <objectDestructor name="galacticFilterISMMass_"                                />
     !# <objectDestructor name="galacticFilterHaloIsolated_"                           />
@@ -378,7 +379,7 @@ contains
     !# <objectDestructor name="outputAnalysisPropertyUnoperator_"                     />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperator_"                 />
     !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"                />
-    !# <objectDestructor name="nodePropertyExtractor_"                      />
+    !# <objectDestructor name="nodePropertyExtractor_"                                />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperatorFilterHighPass_"   />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_"/>
     !# <objectDestructor name="outputAnalysisWeightPropertyOperatorSystmtcPolynomial_"/>

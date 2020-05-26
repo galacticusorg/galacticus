@@ -188,7 +188,7 @@ contains
     character       (len=*                                  ), intent(in   )               :: fileName
     class           (galacticFilterClass                    ), intent(in   ) , target      :: galacticFilter_
     class           (surveyGeometryClass                    ), intent(in   ) , target      :: surveyGeometry_
-    class           (outputTimesClass                       ), intent(in   ) , target      :: outputTimes_
+    class           (outputTimesClass                       ), intent(inout) , target      :: outputTimes_
     class           (cosmologyFunctionsClass                ), intent(in   ) , target      :: cosmologyFunctions_                , cosmologyFunctionsData
     class           (outputAnalysisPropertyOperatorClass    ), intent(inout) , target      :: outputAnalysisPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass), intent(in   ) , target      :: outputAnalysisDistributionOperator_
@@ -255,7 +255,7 @@ contains
     double precision                                                  , intent(in   )          , dimension(:  ) :: magnitudesAbsolute
     class           (galacticFilterClass                             ), intent(in   ), target                   :: galacticFilter_
     class           (surveyGeometryClass                             ), intent(in   ), target                   :: surveyGeometry_
-    class           (outputTimesClass                                ), intent(in   ), target                   :: outputTimes_
+    class           (outputTimesClass                                ), intent(inout), target                   :: outputTimes_
     class           (cosmologyFunctionsClass                         ), intent(in   ), target                   :: cosmologyFunctions_                                   , cosmologyFunctionsData
     class           (outputAnalysisPropertyOperatorClass             ), intent(inout), target                   :: outputAnalysisPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass         ), intent(in   ), target                   :: outputAnalysisDistributionOperator_
@@ -278,13 +278,13 @@ contains
     double precision                                                  , parameter                               :: bufferWidth                                     =7.5d0
     integer         (c_size_t                                        ), parameter                               :: bufferCountMinimum                              =5
     integer         (c_size_t                                        )                                          :: iBin                                                  , bufferCount
-    !# <constructorAssign variables="*surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *outputTimes_"/>
+    !# <constructorAssign variables="*surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData"/>
 
     ! Compute weights that apply to each output redshift.
     self%binCount=size(magnitudesAbsolute,kind=c_size_t)
-    call allocateArray(outputWeight,[self%binCount,self%outputTimes_%count()])
+    call allocateArray(outputWeight,[self%binCount,outputTimes_%count()])
     do iBin=1,self%binCount
-       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctions_,self%outputTimes_,magnitudeAbsoluteLimit=magnitudesAbsolute(iBin))
+       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctions_,outputTimes_,magnitudeAbsoluteLimit=magnitudesAbsolute(iBin))
     end do
     ! Create a luminosity property extractor.
     allocate(nodePropertyExtractor_)
@@ -360,7 +360,7 @@ contains
          &                                functionCovarianceTarget                                  &
          &                               )
     ! Clean up.
-    !# <objectDestructor name="nodePropertyExtractor_"                />
+    !# <objectDestructor name="nodePropertyExtractor_"                          />
     !# <objectDestructor name="outputAnalysisPropertyOperatorMagnitude_"        />
     !# <objectDestructor name="outputAnalysisPropertyOperatorIdentity_"         />
     !# <objectDestructor name="outputAnalysisPropertyOperatorSequence_"         />

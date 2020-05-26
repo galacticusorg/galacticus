@@ -29,7 +29,8 @@
      private
      type (table1DLinearLinear)              :: inclinationTable
      class(table1D            ), allocatable :: sizeTable
-  contains
+   contains
+     final     ::                        diskSizeInclinationDestructor
      procedure :: operateScalar       => diskSizeInclinationOperateScalar
      procedure :: operateDistribution => diskSizeInclinationOperateDistribution
   end type outputAnalysisDistributionOperatorDiskSizeInclntn
@@ -138,6 +139,17 @@ contains
     call self%inclinationTable%reverse(self%sizeTable)
     return
   end function diskSizeInclinationConstructorInternal
+
+  subroutine diskSizeInclinationDestructor(self)
+    !% Destructor for the ``diskSizeInclination'' output analysis distribution operator operator class.
+    implicit none
+    type(outputAnalysisDistributionOperatorDiskSizeInclntn), intent(inout) :: self
+
+    call self%inclinationTable%destroy()
+    call self%sizeTable       %destroy()
+    deallocate(self%sizeTable)
+    return
+  end subroutine diskSizeInclinationDestructor
 
   double precision function diskSizeInclntnRoot(xHalf)
     !% Function used in solving for the half-light radii of inclined disks.

@@ -260,7 +260,7 @@ contains
     type            (varying_string                                 ), intent(in   ), optional                 :: targetLabel
     double precision                                                 , intent(in   ), optional, dimension(:  ) :: functionValueTarget
     double precision                                                 , intent(in   ), optional, dimension(:,:) :: functionCovarianceTarget
-    type            (nodePropertyExtractorMassISM         )               , pointer                  :: nodePropertyExtractor_
+    type            (nodePropertyExtractorMassISM                   )               , pointer                  :: nodePropertyExtractor_
     type            (outputAnalysisPropertyOperatorHIMass           )               , pointer                  :: outputAnalysisPropertyOperatorHIMass_
     type            (outputAnalysisPropertyOperatorLog10            )               , pointer                  :: outputAnalysisPropertyOperatorLog10_
     type            (outputAnalysisPropertyOperatorAntiLog10        )               , pointer                  :: outputAnalysisPropertyOperatorAntiLog10_
@@ -268,7 +268,9 @@ contains
     type            (outputAnalysisPropertyOperatorSequence         )               , pointer                  :: outputAnalysisPropertyOperatorSequence_
     type            (outputAnalysisWeightOperatorCsmlgyVolume       )               , pointer                  :: outputAnalysisWeightOperator_
     type            (outputAnalysisDistributionNormalizerSequence   )               , pointer                  :: outputAnalysisDistributionNormalizer_
-    type            (normalizerList                                 )               , pointer                  :: normalizerSequence                                    , normalizer_
+    type            (outputAnalysisDistributionNormalizerBinWidth   )               , pointer                  :: outputAnalysisDistributionNormalizerBinWidth_
+    type            (outputAnalysisDistributionNormalizerLog10ToLog )               , pointer                  :: outputAnalysisDistributionNormalizerLog10ToLog_
+    type            (normalizerList                                 )               , pointer                  :: normalizerSequence
     type            (propertyOperatorList                           )               , pointer                  :: propertyOperatorSequence
     double precision                                                 , allocatable            , dimension(:,:) :: outputWeight
     double precision                                                 , parameter                               :: bufferWidthLogarithmic                          =3.0d0
@@ -318,20 +320,14 @@ contains
     allocate(outputAnalysisWeightOperator_)
     !# <referenceConstruct object="outputAnalysisWeightOperator_" constructor="outputAnalysisWeightOperatorCsmlgyVolume(cosmologyFunctions_,cosmologyFunctionsData,surveyGeometry_)"/>
     ! Create a bin width distribution normalizer.
-    allocate(normalizerSequence)
-    normalizer_ => normalizerSequence
-    allocate(outputAnalysisDistributionNormalizerBinWidth   :: normalizer_%normalizer_)
-    select type (normalizer_ => normalizer_%normalizer_)
-    type is (outputAnalysisDistributionNormalizerBinWidth  )
-       !# <referenceConstruct object="normalizer_" constructor="outputAnalysisDistributionNormalizerBinWidth  ()"/>
-    end select
-    allocate(normalizer_%next)
-    normalizer_ => normalizer_%next
-    allocate(outputAnalysisDistributionNormalizerLog10ToLog :: normalizer_%normalizer_)
-    select type (normalizer_ => normalizer_%normalizer_)
-    type is (outputAnalysisDistributionNormalizerLog10ToLog)
-       !# <referenceConstruct object="normalizer_" constructor="outputAnalysisDistributionNormalizerLog10ToLog()"/>
-    end select
+    allocate(outputAnalysisDistributionNormalizerBinWidth_  )
+    !# <referenceConstruct object="outputAnalysisDistributionNormalizerBinWidth_"   constructor="outputAnalysisDistributionNormalizerBinWidth  ()"/>
+    allocate(outputAnalysisDistributionNormalizerLog10ToLog_)
+    !# <referenceConstruct object="outputAnalysisDistributionNormalizerLog10ToLog_" constructor="outputAnalysisDistributionNormalizerLog10ToLog()"/>
+    allocate(normalizerSequence     )
+    allocate(normalizerSequence%next)
+    normalizerSequence     %normalizer_ => outputAnalysisDistributionNormalizerBinWidth_
+    normalizerSequence%next%normalizer_ => outputAnalysisDistributionNormalizerLog10ToLog_
     allocate(outputAnalysisDistributionNormalizer_)
     !# <referenceConstruct object="outputAnalysisDistributionNormalizer_" constructor="outputAnalysisDistributionNormalizerSequence(normalizerSequence)"/>
     ! Compute the number of buffer bins to add to either side of the mass function - these are needed to ensure that, e.g.,
@@ -380,8 +376,11 @@ contains
     !# <objectDestructor name="outputAnalysisPropertyOperatorAntiLog10_"        />
     !# <objectDestructor name="outputAnalysisPropertyOperatorSequence_"         />
     !# <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>
+    !# <objectDestructor name="outputAnalysisPropertyOperatorHIMass_"           />
     !# <objectDestructor name="outputAnalysisDistributionNormalizer_"           />
     !# <objectDestructor name="outputAnalysisWeightOperator_"                   />
+    !# <objectDestructor name="outputAnalysisDistributionNormalizerBinWidth_"   />
+    !# <objectDestructor name="outputAnalysisDistributionNormalizerLog10ToLog_" />
     nullify(propertyOperatorSequence)
     nullify(normalizerSequence      )
     return

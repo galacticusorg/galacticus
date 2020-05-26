@@ -34,6 +34,8 @@
      double precision                   , allocatable, dimension(:,:,:) :: luminosity
      logical                                                            :: resetAge                   =.true. , resetMetallicity                   =.true.
      type            (fgsl_interp_accel)                                :: interpolationAcceleratorAge        , interpolationAcceleratorMetallicity
+   contains
+     final :: luminosityTableDestructorScalar, luminosityTableDestructor1D
   end type luminosityTable
 
   !# <stellarPopulationBroadBandLuminosities name="stellarPopulationBroadBandLuminositiesStandard">
@@ -80,6 +82,29 @@
   !$omp threadprivate(standardAge,standardRedshift,standardAbundances,standardFilterIndex,standardPopulationID,standardStellarPopulationSpectraPostprocessor,standardStellarPopulationSpectra)
 
 contains
+
+  subroutine luminosityTableDestructorScalar(self)
+    !% Scalar destructor for luminisity tables.
+    use :: Numerical_Interpolation, only : Interpolate_Done
+    implicit none
+    type(luminosityTable), intent(inout) :: self
+
+    call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorAge        ,reset=self%resetAge        )
+    call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorMetallicity,reset=self%resetMetallicity)
+    return
+  end subroutine luminosityTableDestructorScalar
+  
+  subroutine luminosityTableDestructor1D(self)
+    !% Rank-1 destructor for luminisity tables.
+    implicit none
+    type   (luminosityTable), intent(inout), dimension(:) :: self
+    integer                                               :: i
+    
+    do i=1,size(self)
+       call luminosityTableDestructorScalar(self(i))
+    end do
+    return
+  end subroutine luminosityTableDestructor1D
   
   function standardConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily standard} stellar population broad band luminosities class which takes a

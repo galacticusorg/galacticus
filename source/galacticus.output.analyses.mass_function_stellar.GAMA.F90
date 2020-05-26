@@ -159,7 +159,7 @@ contains
     implicit none
     type            (outputAnalysisMassFunctionStellarBaldry2012GAMA    )                              :: self
     class           (cosmologyFunctionsClass                            ), intent(in   ), target       :: cosmologyFunctions_
-    class           (outputTimesClass                                   ), intent(in   ), target       :: outputTimes_
+    class           (outputTimesClass                                   ), intent(inout), target       :: outputTimes_
     class           (gravitationalLensingClass                          ), intent(in   ), target       :: gravitationalLensing_
     double precision                                                     , intent(in   )               :: randomErrorMinimum                                         , randomErrorMaximum                  , &
          &                                                                                                sizeSourceLensing
@@ -266,6 +266,7 @@ contains
     !# <objectDestructor name="galacticFilter_"                                     />
     !# <objectDestructor name="cosmologyParametersData"                             />
     !# <objectDestructor name="cosmologyFunctionsData"                              />
+    !# <objectDestructor name="outputAnalysisPropertyOperator_"                     />
     !# <objectDestructor name="outputAnalysisDistributionOperator_"                 />
     !# <objectDestructor name="outputAnalysisDistributionOperatorGrvtnlLnsng_"      />
     !# <objectDestructor name="outputAnalysisDistributionOperatorRandomErrorPlynml_"/>

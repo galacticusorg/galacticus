@@ -163,6 +163,7 @@ contains
     type            (cosmologyParametersSimple                            ), pointer                       :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                       ), pointer                       :: cosmologyFunctionsData
     type            (propertyOperatorList                                 ), pointer                       :: propertyOperators_
+    type            (surveyGeometryBaldry2012GAMA                         ), pointer                       :: surveyGeometry_
     logical                                                                , parameter                     :: likelihoodNormalize                             =.false.
     double precision                                                       , parameter                     :: errorPolynomialZeroPoint                        =11.300d00
     double precision                                                       , parameter                     :: confidenceLevel                                 = 0.683d00 ! 1-sigma confidence level
@@ -170,7 +171,6 @@ contains
     integer         (c_size_t                                             ), parameter                     :: bufferCount                                     =10
     type            (distributionFunction1DBeta                           )                                :: betaDistributionLower                                                  , betaDistributionUpper
     integer         (c_size_t                                             )                                :: iBin                                                                   , binCount
-    type            (surveyGeometryBaldry2012GAMA                         )                                :: surveyGeometry_
     type            (hdf5Object                                           )                                :: dataFile
     double precision                                                                                       :: probit,sqrtArg
 
@@ -236,6 +236,7 @@ contains
     self%functionErrorLowerTarget=-self%functionErrorLowerTarget+functionValueTarget
     self%functionErrorUpperTarget=+self%functionErrorUpperTarget-functionValueTarget
     ! Construct survey geometry.
+    allocate(surveyGeometry_)
     !# <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryBaldry2012GAMA(cosmologyFunctions_)"/>
     ! Compute weights that apply to each output redshift.
     call allocateArray(outputWeight,[binCount,outputTimes_%count()])
@@ -356,6 +357,7 @@ contains
          &                                                         functionCovarianceTarget                         &
          &                                                        )
     ! Clean up.
+    !# <objectDestructor name="surveyGeometry_"                                 />
     !# <objectDestructor name="galacticFilter_"                                 />
     !# <objectDestructor name="outputAnalysisDistributionOperator_"             />
     !# <objectDestructor name="outputAnalysisWeightOperator_"                   />
@@ -366,7 +368,7 @@ contains
     !# <objectDestructor name="outputAnalysisPropertyUnoperator_"               />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperator_"           />
     !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"          />
-    !# <objectDestructor name="nodePropertyExtractor_"                />
+    !# <objectDestructor name="nodePropertyExtractor_"                          />
     !# <objectDestructor name="cosmologyParametersData"                         />
     !# <objectDestructor name="cosmologyFunctionsData"                          />
     nullify(propertyOperators_)

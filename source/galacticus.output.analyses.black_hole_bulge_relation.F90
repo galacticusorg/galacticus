@@ -283,13 +283,15 @@ contains
     !# <objectDestructor name="outputAnalysisDistributionOperator_"             />
     !# <objectDestructor name="outputAnalysisWeightOperator_"                   />
     !# <objectDestructor name="outputAnalysisPropertyOperator_"                 />
+    !# <objectDestructor name="outputAnalysisWeightPropertyOperatorMinMax_"     />
+    !# <objectDestructor name="outputAnalysisWeightPropertyOperatorLog10_"      />
     !# <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
     !# <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>
     !# <objectDestructor name="outputAnalysisPropertyOperatorSystmtcPolynomial_"/>
     !# <objectDestructor name="outputAnalysisPropertyUnoperator_"               />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperator_"           />
     !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"          />
-    !# <objectDestructor name="nodePropertyExtractor_"                />
+    !# <objectDestructor name="nodePropertyExtractor_"                          />
     !# <objectDestructor name="cosmologyParametersData"                         />
     !# <objectDestructor name="cosmologyFunctionsData"                          />
     nullify(propertyOperators_      )

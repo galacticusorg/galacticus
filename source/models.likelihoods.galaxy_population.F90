@@ -393,6 +393,13 @@ contains
              firstIteration=.false.
           end do
        end if
+
+
+!! AJB HACK
+if (iRank == mpiSelf%rank()) then
+       call self%parametersModel%serializeToXML(var_str("currenParameters")//iRank//".xml")
+end if
+
        ! Build the task and outputter objects.
        call Tasks_Evolve_Forest_Construct_(self%parametersModel,self%task_)
        !# <objectBuilder class="outputAnalysis" name="self%outputAnalysis_" source="self%parametersModel"/>

@@ -232,6 +232,7 @@ contains
          &                             )
     ! Clean up.
     !# <objectDestructor name="surveyGeometry_"                               />
+    !# <objectDestructor name="outputAnalysisPropertyOperator_"               />
     !# <objectDestructor name="galacticFilter_"                               />
     !# <objectDestructor name="cosmologyParametersData"                       />
     !# <objectDestructor name="cosmologyFunctionsData"                        />
