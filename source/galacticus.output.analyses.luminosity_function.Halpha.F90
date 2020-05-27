@@ -312,7 +312,7 @@ contains
     type            (outputAnalysisDistributionNormalizerSequence   )               , pointer                  :: outputAnalysisDistributionNormalizer_
     type            (outputAnalysisDistributionNormalizerBinWidth   )               , pointer                  :: outputAnalysisDistributionNormalizerBinWidth_
     type            (outputAnalysisDistributionNormalizerLog10ToLog )               , pointer                  :: outputAnalysisDistributionNormalizerLog10ToLog_
-    type            (normalizerList                                 )               , pointer                  :: normalizerSequence                                    , normalizer_
+    type            (normalizerList                                 )               , pointer                  :: normalizerSequence
     type            (propertyOperatorList                           )               , pointer                  :: propertyOperatorSequence
     double precision                                                 , allocatable            , dimension(:,:) :: outputWeight
     type            (varying_string                                 ), allocatable            , dimension(:  ) :: lineNames

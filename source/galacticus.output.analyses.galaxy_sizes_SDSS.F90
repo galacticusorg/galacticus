@@ -140,7 +140,7 @@ contains
     type            (surveyGeometryLiWhite2009SDSS                  ), pointer                     :: surveyGeometry_
     type            (outputAnalysisDistributionNormalizerBinWidth   ), pointer                     :: outputAnalysisDistributionNormalizerBinWidth_
     type            (outputAnalysisDistributionNormalizerUnitarity  ), pointer                     :: outputAnalysisDistributionNormalizerUnitarity_
-    type            (normalizerList                                 ), pointer                     :: normalizerSequence                              , normalizer_
+    type            (normalizerList                                 ), pointer                     :: normalizerSequence
     type            (propertyOperatorList                           ), pointer                     :: propertyOperatorSequence                        , weightPropertyOperatorSequence
     type            (galacticFilterStellarMass                      ), pointer                     :: galacticFilterMassStellarMinimum_               , galacticFilterMassStellarMaximum_
     type            (galacticFilterStellarMassMorphology            ), pointer                     :: galacticFilterMorphology_
