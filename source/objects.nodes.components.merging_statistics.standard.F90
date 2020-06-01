@@ -300,8 +300,9 @@ contains
     do while (treeWalker%next(nodeWork))
        ! Create a merger statistics component and initialize it.
        mergingStatistics => nodeWork%mergingStatistics(autoCreate=.true.)
-       ! If merging statistics are already set in this node, we can skip it.
-       if (mergingStatistics%nodeFormationTime() >= 0.0d0) cycle
+       ! If merging statistics are already set in this node, then they have been set in all nodes in this tree and we can simply
+       ! return.
+       if (mergingStatistics%nodeFormationTime() >= 0.0d0) return
        nodeHierarchyLevel =  0
        nodeHost           => nodeWork
        do while (nodeHost%isSatellite())
