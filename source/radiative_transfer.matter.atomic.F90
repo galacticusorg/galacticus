@@ -113,7 +113,7 @@
 
   ! Tolerance parameters.
   double precision                                         , parameter                   :: atomicIonizationStateFractionToleranceAbsolute=1.0d-12, atomicIonizationStateFractionToleranceRelative=1.0d-2
-
+  
 contains
 
   function atomicConstructorParameters(parameters) result(self)
@@ -684,23 +684,23 @@ contains
     class           (radiativeTransferMatterAtomic    ), intent(inout) , target      :: self
     class           (radiativeTransferPropertiesMatter), intent(inout) , target      :: properties
     integer                                            , intent(  out) , optional    :: status
-    double precision                                   , dimension(2)                :: temperaturePrevious                            , densityElectronsPrevious
-    double precision                                   , parameter                   :: temperatureToleranceRelative            =1.0d-2, temperatureToleranceAbsolute =1.0d+0
-    integer                                            , parameter                   :: countIterationMaximum                   =1000  , temperatureOscillatingCounts =30    , &
+    double precision                                   , dimension(2)                :: temperaturePrevious                             , densityElectronsPrevious
+    double precision                                   , parameter                   :: temperatureToleranceRelative            =1.0d-02, temperatureToleranceAbsolute =1.0d+0
+    integer                                            , parameter                   :: countIterationMaximum                   =1000   , temperatureOscillatingCounts =30    , &
          &                                                                              electronsOscillatingCounts              =30
-    double precision                                   , parameter                   :: degreesOfFreedom                        =3.0d+0
-    double precision                                   , parameter                   :: temperatureMaximum                      =1.0d+7
-    type            (element                          ), dimension( : ), allocatable :: elementsPrevious                               , elementsReference
-    double precision                                                                 :: rateRecombinationRadiative                     , rateRecombinationDielectronic       , &
-         &                                                                              temperatureChangePrevious                      , temperatureEquilibrium              , &
-         &                                                                              rateUpward                                     , rateDownward                        , &
+    double precision                                   , parameter                   :: degreesOfFreedom                        =3.0d+00
+    double precision                                   , parameter                   :: temperatureMaximum                      =1.0d+10
+    type            (element                          ), dimension( : ), allocatable :: elementsPrevious                                , elementsReference
+    double precision                                                                 :: rateRecombinationRadiative                      , rateRecombinationDielectronic       , &
+         &                                                                              temperatureChangePrevious                       , temperatureEquilibrium              , &
+         &                                                                              rateUpward                                      , rateDownward                        , &
          &                                                                              temperatureReference
-    logical                                                                          :: converged                                      , temperatureOscillating              , &
-         &                                                                              electronsOscillating                           , heatingNonZero
-    integer                                                                          :: countIteration                                 , i                                   , &
-         &                                                                              temperatureOscillatingCount                    , j                                   , &
-         &                                                                              electronsOscillatingCount                      , statusTemperature                   , &
-         &                                                                              exponentIonizationStateFractionMaximum         , exponentIonizationState
+    logical                                                                          :: converged                                       , temperatureOscillating              , &
+         &                                                                              electronsOscillating                            , heatingNonZero
+    integer                                                                          :: countIteration                                  , i                                   , &
+         &                                                                              temperatureOscillatingCount                     , j                                   , &
+         &                                                                              electronsOscillatingCount                       , statusTemperature                   , &
+         &                                                                              exponentIonizationStateFractionMaximum          , exponentIonizationState
     type            (rootFinder                       ), save                        :: finder
     !$omp threadprivate(finder)
 #ifdef RADTRANSDEBUG
@@ -902,7 +902,7 @@ contains
                               &                                               /rateDownward
                       end if
                    end if
-                   ! Normalize all ionization states computed so far.                
+                   ! Normalize all ionization states computed so far.
                    properties%elements(i)%ionizationStateFraction(0:j)=+    properties%elements(i)%ionizationStateFraction(0:j)  &
                         &                                              /sum(properties%elements(i)%ionizationStateFraction(0:j))
                 end do
@@ -978,7 +978,7 @@ contains
 #ifdef RADTRANSDEBUG
                 call Signal(8,handlerPrevious)
 #endif
-                deallocate(atomicElementsPhotoRate)
+                deallocate(atomicElementsPhotoRate)                
                 return
              else
                 ! No solution was found - report on the state of this domain cell.
@@ -1034,7 +1034,7 @@ contains
           temperaturePrevious           (1)=    properties%temperature
           densityElectronsPrevious      (2)=               densityElectronsPrevious(1)
           densityElectronsPrevious      (1)=               atomicDensityNumberElectrons
-       end do       
+       end do
     class default
        call Galacticus_Error_Report('incorrect class'//{introspection:location})
     end select
@@ -1042,7 +1042,7 @@ contains
     call Signal(8,handlerPrevious)
 #endif
     deallocate(atomicElementsPhotoRate)
-   return
+    return
 
   contains
     
