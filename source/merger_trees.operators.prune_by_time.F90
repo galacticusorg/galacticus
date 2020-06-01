@@ -132,7 +132,7 @@ contains
           timeNow   =basic  %time()
           timeParent=basicParent%time()
           ! If the branch from node to parent spans the earliest time, insert a new node at that time.
-          if (timeParent > self%timeEarliest .and. timeNow < self%timeEarliest) then
+          if (timeParent >= self%timeEarliest .and. timeNow < self%timeEarliest) then
              ! Get masses of these halos.
              massNow   =basic  %mass()
              massParent=basicParent%mass()
@@ -157,30 +157,45 @@ contains
                   &  .and.                                   &
                   &   massAtTimeEarliest <= self%massMaximum &
                   & ) then
-                ! Create new node.
-                nodeNew => treeNode(hostTree=node%hostTree)
-                call nodeNew%indexSet(node%index())
-                ! Assign a time and a mass
-                basic => nodeNew%basic(autoCreate=.true.)
-                call basic%timeSet(self%timeEarliest )
-                call basic%massSet(massAtTimeEarliest)
-                ! No child node.
-                nodeNew%firstChild => null()
-                ! Link to parent node.
-                nodeNew%parent     => node%parent
-                ! Link  sibling to current node sibling.
-                nodeNew%sibling    => node%sibling
-                ! Link the parent if necessary.
-                if (node%isPrimaryProgenitor()) then
-                   ! Node is the main progenitor of its parent, so simply replace it with the final node in our list.
-                   node%parent%firstChild  => nodeNew
+                ! Decide whether or not to create a new, interpolated node.                
+                if (timeParent == self%timeEarliest) then
+                   ! Parent exists precisely at the pruning time. No need to create a new node. Simply uncouple the node to be
+                   ! pruned from the parent.
+                   if (node%isPrimaryProgenitor()) then
+                      node%parent%firstChild  => node%sibling
+                   else
+                      nodeChild => node%parent%firstChild
+                      do while (.not.associated(nodeChild%sibling,node))
+                         nodeChild => nodeChild%sibling
+                      end do
+                      nodeChild%sibling => node%sibling
+                  end if
                 else
-                   ! Node is not the main progenitor of its parent, so find the child node that has it as a sibling.
-                   nodeChild => node%parent%firstChild
-                   do while (.not.associated(nodeChild%sibling,node))
-                      nodeChild => nodeChild%sibling
-                   end do
-                   nodeChild%sibling => nodeNew
+                   ! Create new interpolated node at the pruning time.
+                   nodeNew => treeNode(hostTree=node%hostTree)
+                   call nodeNew%indexSet(node%index())
+                   ! Assign a time and a mass
+                   basic => nodeNew%basic(autoCreate=.true.)
+                   call basic%timeSet(self%timeEarliest )
+                   call basic%massSet(massAtTimeEarliest)
+                   ! No child node.
+                   nodeNew%firstChild => null()
+                   ! Link to parent node.
+                   nodeNew%parent     => node%parent
+                   ! Link  sibling to current node sibling.
+                   nodeNew%sibling    => node%sibling
+                   ! Link the parent if necessary.
+                   if (node%isPrimaryProgenitor()) then
+                      ! Node is the main progenitor of its parent, so simply replace it with the final node in our list.
+                      node%parent%firstChild  => nodeNew
+                   else
+                      ! Node is not the main progenitor of its parent, so find the child node that has it as a sibling.
+                      nodeChild => node%parent%firstChild
+                      do while (.not.associated(nodeChild%sibling,node))
+                         nodeChild => nodeChild%sibling
+                      end do
+                      nodeChild%sibling => nodeNew
+                   end if
                 end if
                 ! Clean the branch.
                 call Merger_Tree_Prune_Clean_Branch(node)
