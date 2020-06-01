@@ -510,11 +510,13 @@ contains
          &                                                                                  timeMinimum               , timeMaximum
     logical                                                , allocatable  , dimension(:) :: rootVarianceIsUnique
     type            (varying_string                       ), save                        :: message
-    !$omp threadprivate(message)
     character       (len=12                               )                              :: label                     , labelLow               , &
          &                                                                                  labelHigh                 , labelTarget
-    type            (lockDescriptor                       )                              :: fileLock
-    
+    type            (lockDescriptor                       ), save                        :: fileLock
+    ! The variables "message", and "fileLock" are saved (and made threadprivate) as their destructors are expensive, and this
+    ! functions gets called a lot.
+    !$omp threadprivate(message,fileLock)
+
     if (self%remakeTable(mass,time)) then
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
