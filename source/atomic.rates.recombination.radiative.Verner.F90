@@ -727,7 +727,17 @@ contains
                      &          )
              else
                 ! Fit behaves badly above 10⁶K.
-                verner1996Rate=0.0d0
+                logTemperature=6.0d0
+                verner1996Rate=+2.06d-11            &
+                     &         *4.00d+00            &
+                     &         /sqrt(temperature)   &
+                     &         *(                   &
+                     &           +6.572345200d0     &
+                     &           -1.361055000d0     &
+                     &           *logTemperature    &
+                     &           +0.045686398d0     &
+                     &           *logTemperature**2 &
+                     &          )
              end if
           case default
              call Galacticus_Error_Report('ionization state invalid for helium'//{introspection:location})
