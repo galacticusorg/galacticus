@@ -25,6 +25,7 @@
   type, extends(mergerTreeEvolverClass) :: mergerTreeEvolverNonEvolving
      !% Implementation of a non-evolving  merger tree evolver.
      private
+     logical :: pruneTree
    contains
      procedure :: evolve => nonEvolvingEvolve
   end type mergerTreeEvolverNonEvolving
@@ -32,6 +33,7 @@
   interface mergerTreeEvolverNonEvolving
      !% Constructors for the {\normalfont \ttfamily nonEvolving} merger tree evolver.
      module procedure nonEvolvingConstructorParameters
+     module procedure nonEvolvingConstructorInternal
   end interface mergerTreeEvolverNonEvolving
 
 contains
@@ -40,32 +42,55 @@ contains
     !% Constructor for the {\normalfont \ttfamily nonEvolving} merger tree evolver class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(mergerTreeEvolverNonEvolving)                :: self
-    type(inputParameters             ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
+    type   (mergerTreeEvolverNonEvolving)                :: self
+    type   (inputParameters             ), intent(inout) :: parameters
+    logical                                              :: pruneTree
 
-    self=mergerTreeEvolverNonEvolving()
+    !# <inputParameter>
+    !#   <name>pruneTree</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true, prune the tree to the evolve-to-time after each evolution.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    self=mergerTreeEvolverNonEvolving(pruneTree)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function nonEvolvingConstructorParameters
+
+  function nonEvolvingConstructorInternal(pruneTree) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily nonEvolving} merger tree evolver class.
+    implicit none
+    type   (mergerTreeEvolverNonEvolving)                :: self
+    logical                              , intent(in   ) :: pruneTree
+    !# <constructorAssign variables="pruneTree"/>
+
+    return
+  end function nonEvolvingConstructorInternal
 
   subroutine nonEvolvingEvolve(self,tree,timeEnd,treeDidEvolve,suspendTree,deadlockReporting,systemClockMaximum,initializationLock,status)
     !% Evolves all properties of a merger tree to the specified time.
     use    :: Galacticus_Error       , only : errorStatusSuccess
     use    :: Merger_Trees_Initialize, only : Merger_Tree_Initialize
-    !$ use :: OMP_Lib                , only : OMP_Set_Lock          , OMP_Unset_Lock, omp_lock_kind
+    use    :: Merger_Tree_Operators  , only : mergerTreeOperatorPruneByTime
+    !$ use :: OMP_Lib                , only : OMP_Set_Lock                 , OMP_Unset_Lock, omp_lock_kind
     implicit none
-    class           (mergerTreeEvolverNonEvolving)                   , intent(inout) :: self
-    integer                                       , optional         , intent(  out) :: status
-    type            (mergerTree                  )          , target , intent(inout) :: tree
-    double precision                                                 , intent(in   ) :: timeEnd
-    logical                                                          , intent(  out) :: treeDidEvolve     , suspendTree
-    logical                                                          , intent(in   ) :: deadlockReporting
-    integer         (kind_int8                   ), optional         , intent(in   ) :: systemClockMaximum
-    integer         (omp_lock_kind               ), optional         , intent(inout) :: initializationLock
-    type            (mergerTree                  )          , pointer                :: currentTree
+    class           (mergerTreeEvolverNonEvolving )                   , intent(inout) :: self
+    integer                                        , optional         , intent(  out) :: status
+    type            (mergerTree                   )          , target , intent(inout) :: tree
+    double precision                                                  , intent(in   ) :: timeEnd
+    logical                                                           , intent(  out) :: treeDidEvolve     , suspendTree
+    logical                                                           , intent(in   ) :: deadlockReporting
+    integer         (kind_int8                    ), optional         , intent(in   ) :: systemClockMaximum
+    integer         (omp_lock_kind                ), optional         , intent(inout) :: initializationLock
+    type            (mergerTree                   )          , pointer                :: currentTree
+    type            (mergerTreeOperatorPruneByTime)                                   :: pruner
+    
     !$GLC attributes unused :: self, deadlockReporting, systemClockMaximum
 
     if (present(status)) status=errorStatusSuccess
+    if (self%pruneTree) pruner=mergerTreeOperatorPruneByTime(timeEnd,0.0d0,huge(0.0d0))
     suspendTree   =  .false.
     treeDidEvolve =  .true.
     currentTree   => tree
@@ -74,6 +99,7 @@ contains
           !$ if (present(initializationLock)) call OMP_Set_Lock  (initializationLock)
           call Merger_Tree_Initialize(currentTree,timeEnd)
           !$ if (present(initializationLock)) call OMP_Unset_Lock(initializationLock)
+          if (self%pruneTree) call pruner%operatePreEvolution(currentTree)
        end if
        currentTree => currentTree%nextTree
     end do
