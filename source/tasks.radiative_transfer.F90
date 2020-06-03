@@ -283,6 +283,8 @@ contains
              call self%radiativeTransferPhotonPacket_%wavelengthMaximumSet  (self%wavelengthsMaximum                              (iWavelength              ))
              call self%radiativeTransferSource_      %initializePhotonPacket(self%radiativeTransferPhotonPacket_                                             )
              call self%radiativeTransferPhotonPacket_%luminositySet         (self%radiativeTransferPhotonPacket_%luminosity()/dble(countPhotonsPerWavelength))
+             ! If the photon packet has no luminosity, we can simply ignore it.
+             if (self%radiativeTransferPhotonPacket_%luminosity() <= 0.0d0) cycle
              ! Find the indices of the domain cell in which the photon is located.
              call self%computationalDomain_%indicesFromPosition(self%radiativeTransferPhotonPacket_%position(),domainIndices)
              ! Iterate photon packet steps until the photon is absorbed or reaches the domain boundary.
