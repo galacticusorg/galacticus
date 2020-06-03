@@ -136,6 +136,9 @@ sub maximumPosteriorParameterVector {
 	}
 	close(iHndl);
     }
+    # Check that parameters were found.
+    die('found no acceptable states')
+	unless ( @maximumLikelihoodParameters );
     # Convert parameters to a PDL.
     my $maximumLikelihoodVector = pdl @maximumLikelihoodParameters;
     # Return the vector.
