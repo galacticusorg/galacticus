@@ -27,7 +27,7 @@ program Test_Hashes
   use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type (integerHash    )              :: myHash
-  type (genericHash    )              :: genericHash
+  type (genericHash    )              :: genericHash_
   class(inputParameters), allocatable :: inputParameters_
   type (inputParameter )              :: inputParameter_
   class(*              ), pointer     :: generic_
@@ -79,15 +79,15 @@ program Test_Hashes
   call Assert("changed hash entry has correct value",myHash%value("dude"),876)
   !! Tests of generic scalar hashes.
   !! Initialize the hash.
-  call genericHash%initialize()
+  call genericHash_%initialize()
   !! Create some entries in the hash.
   allocate(inputParameters :: inputParameters_)
-  call genericHash%set("class",inputParameters_)
-  call genericHash%set("type" ,inputParameter_ )
+  call genericHash_%set("class",inputParameters_)
+  call genericHash_%set("type" ,inputParameter_ )
   !! Assert types of entries.
-  generic_ => genericHash%value("class")
+  generic_ => genericHash_%value("class")
   call Assert("correct class for polymoprhic object"    ,same_type_as(generic_,inputParameters_),.true.)
-  generic_ => genericHash%value("type" )
+  generic_ => genericHash_%value("type" )
   call Assert("correct class for non-polymoprhic object",same_type_as(generic_,inputParameter_ ),.true.)
   ! End unit tests.
   call Unit_Tests_End_Group()
