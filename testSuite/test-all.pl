@@ -686,7 +686,6 @@ foreach $mpi ( "noMPI", "MPI" ) {
 
 # Close the log file.
 close(lHndl);
-exit;
 
 # Scan the log file for FAILED.
 my $lineNumber = 0;
