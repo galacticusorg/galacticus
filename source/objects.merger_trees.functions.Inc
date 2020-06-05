@@ -218,7 +218,12 @@ integer(c_size_t) function Merger_Tree_Size_Of(self)
   Merger_Tree_Size_Of=0_c_size_t
   event => self%event
   do while (associated(event))
-     Merger_Tree_Size_Of=Merger_Tree_Size_Of+0_c_size_t !! AJB HACK sizeof(event)
+     !# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+     !#  <description>
+     !#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+     !#  </description>
+     !# </workaround>
+     ! Merger_Tree_Size_Of=Merger_Tree_Size_Of+sizeof(event)
      event => event%next
   end do
   return
