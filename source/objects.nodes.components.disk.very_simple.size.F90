@@ -26,7 +26,8 @@ module Node_Component_Disk_Very_Simple_Size
   private
   public :: Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility, Node_Component_Disk_Very_Simple_Size_Radius_Solver    , &
        &    Node_Component_Disk_Very_Simple_Size_Initialize                , Node_Component_Disk_Very_Simple_Size_Thread_Initialize, &
-       &    Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize
+       &    Node_Component_Disk_Very_Simple_Size_State_Store               , Node_Component_Disk_Very_Simple_Size_State_Retrieve   , &
+       &    Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize       , Node_Component_Disk_Very_Simple_Size_Calculation_Reset
 
   !# <component>
   !#  <class>disk</class>
@@ -59,6 +60,10 @@ module Node_Component_Disk_Very_Simple_Size
   !#     <output unitsInSI="kilo" comment="Circular velocity of the disk."/>
   !#   </property>
   !#  </properties>
+  !#  <bindings>
+  !#   <binding method="enclosedMass"   function="Node_Component_Disk_Very_Simple_Size_Enclosed_Mass"   bindsTo="component" />
+  !#   <binding method="surfaceDensity" function="Node_Component_Disk_Very_Simple_Size_Surface_Density" bindsTo="component" />
+  !#  </bindings>
   !#  <functions>objects.nodes.components.disk.very_simple.size.bound_functions.inc</functions>
   !# </component>
 
@@ -94,19 +99,30 @@ contains
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Initialize
-
+  
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Disk_Very_Simple_Size_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Disk_Very_Simple_Size_Thread_Initialize(parameters_)
-    !% Initializes the tree node standard merging statistics module.
-    use :: Galacticus_Nodes, only : defaultDiskComponent
-    use :: Input_Parameters, only : inputParameter      , inputParameters
+    !% Initializes the tree node very simple size disk module.
+    use :: Galacticus_Error                         , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                         , only : defaultDiskComponent
+    use :: Input_Parameters                         , only : inputParameter             , inputParameters
+    use :: Mass_Distributions                       , only : massDistributionCylindrical
+    use :: Node_Component_Disk_Very_Simple_Size_Data, only : diskMassDistribution
     implicit none
     type(inputParameters), intent(inout) :: parameters_
 
     if (defaultDiskComponent%verySimpleSizeIsActive()) then
        !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters_"/>
+       !# <objectBuilder class="massDistribution" parameterName="diskMassDistribution" name="diskMassDistribution" source="parameters_" threadPrivate="yes">
+       !#  <default>
+       !#   <diskMassDistribution value="exponentialDisk">
+       !#    <dimensionless value="true"/>
+       !#   </diskMassDistribution>
+       !#  </default>
+       !# </objectBuilder>
+       if (.not.diskMassDistribution%isDimensionless()) call Galacticus_Error_Report('disk mass distribution must be dimensionless'//{introspection:location})
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Thread_Initialize
@@ -116,14 +132,30 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize()
     !% Uninitializes the tree node standard merging statistics module.
-    use :: Galacticus_Nodes, only : defaultDiskComponent
+    use :: Galacticus_Nodes                         , only : defaultDiskComponent
+    use :: Node_Component_Disk_Very_Simple_Size_Data, only : diskMassDistribution
     implicit none
 
     if (defaultDiskComponent%verySimpleSizeIsActive()) then
        !# <objectDestructor name="darkMatterProfileDMO_"/>
+       !# <objectDestructor name="diskMassDistribution" />
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize
+
+  !# <calculationResetTask>
+  !#   <unitName>Node_Component_Disk_Very_Simple_Size_Calculation_Reset</unitName>
+  !# </calculationResetTask>
+  subroutine Node_Component_Disk_Very_Simple_Size_Calculation_Reset(node)
+    !% Reset very simple size disk structure calculations.
+    use :: Galacticus_Nodes                         , only : treeNode
+    use :: Node_Component_Disk_Very_Simple_Size_Data, only : Node_Component_Disk_Very_Simple_Size_Reset
+    implicit none
+    type(treeNode), intent(inout) :: node
+
+    call Node_Component_Disk_Very_Simple_Size_Reset(node%uniqueID())
+    return
+  end subroutine Node_Component_Disk_Very_Simple_Size_Calculation_Reset
 
   !# <radiusSolverPlausibility>
   !#  <unitName>Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility</unitName>
@@ -233,5 +265,66 @@ contains
     call disk%velocitySet(velocity)
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Velocity_Set
+
+  !# <galacticusStateStoreTask>
+  !#  <unitName>Node_Component_Disk_Very_Simple_Size_State_Store</unitName>
+  !# </galacticusStateStoreTask>
+  subroutine Node_Component_Disk_Very_Simple_Size_State_Store(stateFile,gslStateFile,stateOperationID)
+    !% Write the tablulation state to file.
+    use            :: Galacticus_Display                       , only : Galacticus_Display_Message, verbosityInfo
+    use, intrinsic :: ISO_C_Binding                            , only : c_size_t                  , c_ptr
+    use            :: Node_Component_Disk_Very_Simple_Size_Data, only : diskMassDistribution
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call Galacticus_Display_Message('Storing state for: treeNodeMethodDisk -> standard',verbosity=verbosityInfo)
+    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    !# </workaround>
+#ifdef THREADSAFEIO
+    !$omp critical(gfortranInternalIO)
+#endif
+    write (stateFile) associated(diskMassDistribution)
+#ifdef THREADSAFEIO
+    !$omp end critical(gfortranInternalIO)
+#endif
+    if (associated(diskMassDistribution)) call diskMassDistribution%stateStore(stateFile,gslStateFile,stateOperationID)
+    return
+  end subroutine Node_Component_Disk_Very_Simple_Size_State_Store
+
+  !# <galacticusStateRetrieveTask>
+  !#  <unitName>Node_Component_Disk_Very_Simple_Size_State_Retrieve</unitName>
+  !# </galacticusStateRetrieveTask>
+  subroutine Node_Component_Disk_Very_Simple_Size_State_Retrieve(stateFile,gslStateFile,stateOperationID)
+    !% Retrieve the tabulation state from the file.
+    use            :: Galacticus_Display                       , only : Galacticus_Display_Message, verbosityInfo
+    use            :: Galacticus_Error                         , only : Galacticus_Error_Report
+    use, intrinsic :: ISO_C_Binding                            , only : c_size_t                  , c_ptr
+    use            :: Node_Component_Disk_Very_Simple_Size_Data, only : diskMassDistribution
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+    logical                          :: wasAllocated
+
+    call Galacticus_Display_Message('Retrieving state for: treeNodeMethodDisk -> standard',verbosity=verbosityInfo)
+    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    !# </workaround>
+#ifdef THREADSAFEIO
+    !$omp critical(gfortranInternalIO)
+#endif
+    read (stateFile) wasAllocated
+#ifdef THREADSAFEIO
+    !$omp end critical(gfortranInternalIO)
+#endif
+    if (wasAllocated) then
+       if (.not.associated(diskMassDistribution)) call Galacticus_Error_Report('diskMassDistribution was stored, but is now not allocated'//{introspection:location})
+       call diskMassDistribution%stateRestore(stateFile,gslStateFile,stateOperationID)
+    end if
+    return
+  end subroutine Node_Component_Disk_Very_Simple_Size_State_Retrieve
 
 end module Node_Component_Disk_Very_Simple_Size
