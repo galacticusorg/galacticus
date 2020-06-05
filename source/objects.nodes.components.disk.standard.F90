@@ -451,7 +451,7 @@ contains
     use :: Galacticus_Nodes              , only : nodeComponentDisk         , nodeComponentDiskStandard, nodeComponentSpin, treeNode, &
          &                                        defaultDiskComponent
     use :: ISO_Varying_String            , only : assignment(=)             , operator(//)             , varying_string
-    use :: Stellar_Luminosities_Structure, only : abs                       , zeroStellarLuminosities
+    use :: Stellar_Luminosities_Structure, only : stellarLuminosities       , abs
     use :: String_Handling               , only : operator(//)
     implicit none
     type            (treeNode                ), intent(inout), pointer :: node
@@ -465,6 +465,8 @@ contains
     character       (len=20                  )                         :: valueString
     type            (varying_string          ), save                   :: message
     !$omp threadprivate(message)
+    type            (stellarLuminosities     ), save                   :: luminositiesStellar
+    !$omp threadprivate(luminositiesStellar)
 
     ! Return immediately if this class is not in use.
     if (.not.defaultDiskComponent%standardIsActive()) return
@@ -511,7 +513,15 @@ contains
              specificAngularMomentum=0.0d0
              call disk%        massStellarSet(                  0.0d0)
              call disk%  abundancesStellarSet(         zeroAbundances)
-             call disk%luminositiesStellarSet(zeroStellarLuminosities)
+             ! We need to reset the stellar luminosities to zero. We can't simply use the "zeroStellarLuminosities" instance since
+             ! our luminosities may have been truncated. If we were to use "zeroStellarLuminosities" then the number of stellar
+             ! luminosities associated with the disk would change - but we are in the middle of differential evolution here and we
+             ! cannot change the number of evolvable properties as doing so will lead to invalid memory accesses during
+             ! deserialization of properties from the ODE solver.
+             call luminositiesStellar%destroy()
+             luminositiesStellar=disk%luminositiesStellar()
+             call luminositiesStellar%reset()
+             call disk%luminositiesStellarSet(luminositiesStellar)
           else
              specificAngularMomentum=disk%angularMomentum()/diskMass
              if (specificAngularMomentum < 0.0d0) specificAngularMomentum=disk%radius()*disk%velocity()
