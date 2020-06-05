@@ -112,8 +112,8 @@ contains
        call finder%rangeExpand (                                                             &
             &                   rangeExpandDownward          =0.5d0                        , &
             &                   rangeExpandUpward            =2.0d0                        , &
-            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
             &                   rangeExpandType              =rangeExpandMultiplicative      &
             &                  )
        call finder%rootFunction(Surface_Density_Root                            )
