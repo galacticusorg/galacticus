@@ -25,7 +25,7 @@ module Numerical_Integration2
   public :: integrand1D                                     , integrandVectorized1D                          , &
        &    integratorCompositeTrapezoidal1D                , integratorVectorizedCompositeTrapezoidal1D     , &
        &    integratorAdaptiveCompositeTrapezoidal1D        , integratorCompositeGaussKronrod1D              , &
-       &    integratorVectorizedCompositeGaussKronrod1D     , integrator                                     , &
+       &    integratorVectorizedCompositeGaussKronrod1D     , integrator2                                    , &
        &    integrator1D                                    , integratorVectorized1D                         , &
        &    integratorMulti1D                               , integratorMultiVectorized1D                    , &
        &    integratorMultiVectorizedCompositeGaussKronrod1D, integrandMulti1D                               , &
@@ -55,12 +55,12 @@ module Numerical_Integration2
   end type intervalMultiList
 
   ! Generic integrator.
-  type :: integrator
+  type :: integrator2
      !% Generic numerical integrator class.
      double precision :: toleranceAbsolute, toleranceRelative
    contains
      !@ <objectMethods>
-     !@   <object>integrator</object>
+     !@   <object>integrator2</object>
      !@   <objectMethod>
      !@     <method>toleranceSet</method>
      !@     <type>\void</type>
@@ -69,10 +69,10 @@ module Numerical_Integration2
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: toleranceSet => toleranceSetGeneric
-  end type integrator
+  end type integrator2
 
   ! Generic one-dimensional integrator.
-  type, abstract, extends(integrator) :: integrator1D
+  type, abstract, extends(integrator2) :: integrator1D
      !% Generic one-dimensional numerical integrator class.
      private
      procedure       (integrand1D), pointer, nopass :: integrand
@@ -163,7 +163,7 @@ module Numerical_Integration2
   end type integratorCompositeGaussKronrod1D
 
   ! Generic one-dimensional vectorized integrator.
-  type, abstract, extends(integrator) :: integratorVectorized1D
+  type, abstract, extends(integrator2) :: integratorVectorized1D
      !% Generic one-dimensional vectorized numerical integrator class.
      private
      procedure       (integrandVectorized1D), pointer, nopass :: integrand
@@ -416,8 +416,8 @@ contains
     !% Initialize the tolerances for numerical integrators.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class           (integrator), intent(inout)           :: self
-    double precision            , intent(in   ), optional :: toleranceAbsolute,toleranceRelative
+    class           (integrator2), intent(inout)           :: self
+    double precision             , intent(in   ), optional :: toleranceAbsolute,toleranceRelative
 
     if (.not.(present(toleranceAbsolute).or.present(toleranceRelative)))                                 &
          &  call Galacticus_Error_Report(                                                                &

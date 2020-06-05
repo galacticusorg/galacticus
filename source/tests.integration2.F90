@@ -26,7 +26,7 @@ program Test_Integration2
   use :: Galacticus_Error           , only : Galacticus_Error_Report
   use :: Kind_Numbers               , only : kind_int8
   use :: Numerical_Integration      , only : integrator1                      => integrator, GSL_Integ_Gauss15                          , GSL_Integ_Gauss61
-  use :: Numerical_Integration2     , only : integrator                                    , integrator1D                               , integratorAdaptiveCompositeTrapezoidal1D        , integratorCompositeGaussKronrod1D              , &
+  use :: Numerical_Integration2     , only : integrator2                                   , integrator1D                               , integratorAdaptiveCompositeTrapezoidal1D        , integratorCompositeGaussKronrod1D              , &
           &                                  integratorCompositeTrapezoidal1D              , integratorMultiVectorized1D                , integratorMultiVectorizedCompositeGaussKronrod1D, integratorMultiVectorizedCompositeTrapezoidal1D, &
           &                                  integratorVectorized1D                        , integratorVectorizedCompositeGaussKronrod1D, integratorVectorizedCompositeTrapezoidal1D
   use :: ISO_Varying_String         , only : assignment(=)                                 , len                                        , char
