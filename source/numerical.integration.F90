@@ -45,6 +45,21 @@ module Numerical_Integration
      double precision                                         :: toleranceAbsolute, toleranceRelative
      logical                                                  :: hasSingularities
    contains
+     !@ <objectMethods>
+     !@   <object>integrator</object>
+     !@   <objectMethod>
+     !@     <method>integrate</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ limitLower\argin, \doublezero\ limitUpper\argin, \intzero\ [status]\argout</arguments>
+     !@     <description>Evaluate the integral.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>toleranceSet</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ [toleranceAbsolute]\argin, \doublezero\ [toleranceRelative]\argin</arguments>
+     !@     <description>Set tolerances to use in this integrator.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      final     ::                 integratorDestructor
      procedure :: integrate    => integratorIntegrate
      procedure :: toleranceSet => integratorToleranceSet
