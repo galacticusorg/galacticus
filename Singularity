@@ -38,4 +38,4 @@ From:galacticusorg/buildenv:latest
 	cd /opt/galacticus
 	make -j2 Galacticus.exe
 	./Galacticus.exe parameters/buildTools.xml
-	rm /opt/datasets/dynamic/c17.01.tar.gz /opt/datasets/dynamic/CAMB.tar.gz
+	rm /opt/datasets/dynamic/c17.02.tar.gz /opt/datasets/dynamic/CAMB.tar.gz
