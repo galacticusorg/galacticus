@@ -176,7 +176,7 @@ sub Process_Enumerations {
 	    foreach ( &List::ExtraUtils::as_array($node->{'directive'}->{'entry'}) ) {
 		print $defHndl "Members:"
 		    if ( $first == 1 );
-		print $defHndl " & {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}.ucfirst($_->{'label'})."}\\\\\n";
+		print $defHndl " & {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}.latex_encode(ucfirst($_->{'label'}))."}\\\\\n";
 		$first = 0;
 	    }
 	    print $defHndl "\\end{tabular}\n";
