@@ -556,6 +556,7 @@ contains
     !# <objectDestructor name="outputAnalysisDistributionNormalizerBinWidth_"  />
     !# <objectDestructor name="outputAnalysisDistributionNormalizerLog10ToLog_"/>
     !# <objectDestructor name="outputAnalysisDistributionNormalizer_"          />
+    !# <objectDestructor name="outputAnalysisPropertyIdentity_"                />
     !# <objectDestructor name="outputAnalysisPropertyOperator_"                />
     !# <objectDestructor name="outputAnalysisPropertyUnoperator_"              />
     !# <objectDestructor name="outputAnalysisWeightOperator_"                  />
