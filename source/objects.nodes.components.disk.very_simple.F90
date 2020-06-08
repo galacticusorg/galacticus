@@ -32,10 +32,10 @@ module Node_Component_Disk_Very_Simple
   use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
   implicit none
   private
-  public :: Node_Component_Disk_Very_Simple_Scale_Set  , Node_Component_Disk_Very_Simple_Thread_Uninitialize, &
-       &    Node_Component_Disk_Very_Simple_Initialize , Node_Component_Disk_Very_Simple_Pre_Evolve         , &
-       &    Node_Component_Disk_Very_Simple_Rates      , Node_Component_Disk_Very_Simple_Analytic_Solver    , &
-       &    Node_Component_Disk_Very_Simple_Post_Step  , Node_Component_Disk_Very_Simple_Thread_Initialize  , &
+  public :: Node_Component_Disk_Very_Simple_Scale_Set   , Node_Component_Disk_Very_Simple_Thread_Uninitialize, &
+       &    Node_Component_Disk_Very_Simple_Initialize  , Node_Component_Disk_Very_Simple_Pre_Evolve         , &
+       &    Node_Component_Disk_Very_Simple_Rates       , Node_Component_Disk_Very_Simple_Analytic_Solver    , &
+       &    Node_Component_Disk_Very_Simple_Post_Step   , Node_Component_Disk_Very_Simple_Thread_Initialize  , &
        &    Node_Component_Disk_Very_Simple_Rate_Compute
 
   !# <component>
@@ -92,8 +92,8 @@ module Node_Component_Disk_Very_Simple
   !#   </property>
   !#  </properties>
   !#  <bindings>
-  !#   <binding method="attachPipe"   function="Node_Component_Disk_Very_Simple_Attach_Pipe" description="Attach pipes to the very simple disk component." bindsTo="component" returnType="\void" arguments="" />
-  !#   <binding method="enclosedMass" function="Node_Component_Disk_Very_Simple_Enclosed_Mass" bindsTo="component" />
+  !#   <binding method="attachPipe"     function="Node_Component_Disk_Very_Simple_Attach_Pipe" description="Attach pipes to the very simple disk component." bindsTo="component" returnType="\void" arguments="" />
+  !#   <binding method="enclosedMass"   function="Node_Component_Disk_Very_Simple_Enclosed_Mass"   bindsTo="component" />
   !#  </bindings>
   !#  <functions>objects.nodes.components.disk.very_simple.bound_functions.inc</functions>
   !# </component>
@@ -200,11 +200,11 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Disk_Very_Simple_Thread_Initialize(parameters_)
     !% Initializes the tree node very simple disk profile module.
-    use :: Events_Hooks    , only : satelliteMergerEvent    , postEvolveEvent, openMPThreadBindingAtLevel, dependencyRegEx, &
-         &                          dependencyDirectionAfter
-    use :: Galacticus_Nodes, only : defaultDiskComponent
-    use :: Input_Parameters, only : inputParameter          , inputParameters
-    implicit none
+    use :: Events_Hooks                        , only : satelliteMergerEvent       , postEvolveEvent, openMPThreadBindingAtLevel, dependencyRegEx, &
+         &                                              dependencyDirectionAfter
+    use :: Galacticus_Nodes                    , only : defaultDiskComponent
+    use :: Input_Parameters                    , only : inputParameter             , inputParameters
+     implicit none
     type(inputParameters), intent(inout) :: parameters_
     type(dependencyRegEx), dimension(1)  :: dependencies
 
@@ -235,7 +235,7 @@ contains
     use :: Events_Hooks    , only : satelliteMergerEvent, postEvolveEvent
     use :: Galacticus_Nodes, only : defaultDiskComponent
     implicit none
-
+    
     if (defaultDiskComponent%verySimpleIsActive()) then
        !# <objectDestructor name="cosmologyFunctions_"         />
        !# <objectDestructor name="stellarPopulationProperties_"/>

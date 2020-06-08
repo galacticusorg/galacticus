@@ -79,7 +79,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The timescale for star formation in the halo scaling timescale model.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -88,7 +87,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The exponent of virial velocity in the timescale for star formation in the halo scaling timescale model.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -97,7 +95,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The exponent of redshift in the timescale for star formation in the halo scaling timescale model.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>

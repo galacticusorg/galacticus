@@ -123,6 +123,7 @@ contains
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>includeNitrogenII</name>
+    !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, include contimination by the [NII] (6548\AA $+$ 6584\AA) doublet.</description>
     !#   <type>real</type>

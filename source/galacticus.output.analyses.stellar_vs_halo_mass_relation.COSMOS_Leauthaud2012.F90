@@ -117,7 +117,6 @@ contains
     !% Constructor for the ``stellarVsHaloMassRelationLeauthaud2012'' output analysis class for internal use.
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                    , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersClass                   , cosmologyParametersSimple
-    use :: FGSL                                  , only : fgsl_interp_cspline
     use :: Galactic_Filters                      , only : filterList                                 , galacticFilterAll                              , galacticFilterHaloIsolated                  , galacticFilterStellarMass
     use :: Galacticus_Error                      , only : Galacticus_Error_Report
     use :: Galacticus_Paths                      , only : galacticusPath                             , pathTypeDataStatic
@@ -127,6 +126,7 @@ contains
     use :: Memory_Management                     , only : allocateArray
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassHalo              , nodePropertyExtractorMassStellar
     use :: Numerical_Constants_Astronomical      , only : massSolar
+    use :: Numerical_Interpolation               , only : gsl_interp_cspline
     use :: Numerical_Ranges                      , only : Make_Range                                 , rangeTypeLinear
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorIdentity
@@ -257,9 +257,9 @@ contains
          &                         +massHaloHighDataLogarithmic &
          &                         -massHaloLowDataLogarithmic  &
          &                        )
-    call interpolator%create  (massHaloMeanDataLogarithmic ,tableCount=2,interpolationType=fgsl_interp_cspline)
-    call interpolator%populate(massStellarDataLogarithmic  ,table     =1                                      )
-    call interpolator%populate(massHaloErrorDataLogarithmic,table     =2                                      )
+    call interpolator%create  (massHaloMeanDataLogarithmic ,tableCount=2,interpolationType=gsl_interp_cspline)
+    call interpolator%populate(massStellarDataLogarithmic  ,table     =1                                     )
+    call interpolator%populate(massHaloErrorDataLogarithmic,table     =2                                     )
     ! Interpolate observational data to model points.
     allocate(massStellarLogarithmicTarget          (massHaloCount              ))
     allocate(massStellarLogarithmicCovarianceTarget(massHaloCount,massHaloCount))

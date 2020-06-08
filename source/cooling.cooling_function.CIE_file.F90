@@ -19,7 +19,7 @@
 
   !% Implements a cooling function class which interpolates in a tabulated cooling function read from file.
 
-  use :: FGSL, only : fgsl_interp_accel
+  use :: Numerical_Interpolation, only : interpolator
 
   !# <coolingFunction name="coolingFunctionCIEFile">
   !#  <description>
@@ -127,21 +127,20 @@
   type, extends(coolingFunctionClass) :: coolingFunctionCIEFile
      !% A cooling function class which interpolates in a tabulated cooling function read from file.
      private
-     type            (varying_string   )                              :: fileName
-     double precision                                                 :: metallicityMaximum               , metallicityMinimum                 , &
-          &                                                              temperatureMaximum               , temperatureMinimum
-     integer                                                          :: extrapolateMetallicityHigh       , extrapolateMetallicityLow          , &
-          &                                                              extrapolateTemperatureHigh       , extrapolateTemperatureLow
-     logical                                                          :: firstMetallicityIsZero           , logarithmicTable
-     integer                                                          :: metallicityCount                 , temperatureCount
-     double precision                                                 :: firstNonZeroMetallicity
-     double precision                   , allocatable, dimension(:)   :: metallicities                    , temperatures
-     double precision                   , allocatable, dimension(:,:) :: coolingFunctionTable
-     logical                                                          :: resetMetallicity          =.true., resetTemperature            =.true.
-     type            (fgsl_interp_accel)                              :: acceleratorMetallicity           , acceleratorTemperature
-     double precision                                                 :: temperaturePrevious              , metallicityPrevious                , &
-          &                                                              temperatureSlopePrevious         , metallicitySlopePrevious           , &
-          &                                                              coolingFunctionPrevious          , coolingFunctionSlopePrevious
+     type            (varying_string)                              :: fileName
+     double precision                                              :: metallicityMaximum        , metallicityMinimum          , &
+          &                                                           temperatureMaximum        , temperatureMinimum
+     integer                                                       :: extrapolateMetallicityHigh, extrapolateMetallicityLow   , &
+          &                                                           extrapolateTemperatureHigh, extrapolateTemperatureLow
+     logical                                                       :: firstMetallicityIsZero    , logarithmicTable
+     integer                                                       :: metallicityCount          , temperatureCount
+     double precision                                              :: firstNonZeroMetallicity
+     double precision                , allocatable, dimension(:)   :: metallicities             , temperatures
+     double precision                , allocatable, dimension(:,:) :: coolingFunctionTable
+     type            (interpolator  )                              :: interpolatorMetallicity   , interpolatorTemperature
+     double precision                                              :: temperaturePrevious       , metallicityPrevious         , &
+          &                                                           temperatureSlopePrevious  , metallicitySlopePrevious    , &
+          &                                                           coolingFunctionPrevious   , coolingFunctionSlopePrevious
    contains
      !@ <objectMethods>
      !@   <object>coolingFunctionCIEFile</object>
@@ -164,7 +163,6 @@
      !@     <description>Interpolate in the cooling function.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                                       cieFileDestructor
      procedure :: readFile                           => cieFileReadFile
      procedure :: interpolatingFactors               => cieFileInterpolatingFactors
      procedure :: interpolate                        => cieFileInterpolate
@@ -182,76 +180,42 @@
   ! Current file format version for CIE cooling function files.
   integer, parameter :: cieFileFormatVersionCurrent=1
 
-  ! Initialization status and default parameters.
-  logical                 :: cieFileInitialized         =.false.
-  type   (varying_string) :: cieFileFileName
-
 contains
 
-  function cieFileConstructorParameters(parameters)
+  function cieFileConstructorParameters(parameters) result(self)
     !% Constructor for the ``CIE file'' cooling function class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(coolingFunctionCIEFile)                :: cieFileConstructorParameters
+    type(coolingFunctionCIEFile)                :: self
     type(inputParameters       ), intent(inout) :: parameters
-
-    if (.not.cieFileInitialized) then
-       !$omp critical(cieFileInitialize)
-       if (.not.cieFileInitialized) then
-          !# <inputParameter>
-          !#   <name>fileName</name>
-          !#   <source>parameters</source>
-          !#   <variable>cieFileFileName</variable>
-          !#   <description>The name of the file containing a tabulation of the collisional ionization equilibrium cooling function.</description>
-          !#   <type>string</type>
-          !#   <cardinality>1</cardinality>
-          !# </inputParameter>
-          cieFileInitialized=.true.
-       end if
-       !$omp end critical(cieFileInitialize)
-    end if
-    ! Construct the instance.
-    cieFileConstructorParameters=cieFileConstructorInternal(char(cieFileFileName))
+    type(varying_string        )                :: fileName
+    
+    !# <inputParameter>
+    !#   <name>fileName</name>
+    !#   <source>parameters</source>
+    !#   <description>The name of the file containing a tabulation of the collisional ionization equilibrium cooling function.</description>
+    !#   <type>string</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    self=coolingFunctionCIEFile(fileName)
     !# <inputParametersValidate source="parameters"/>
     return
   end function cieFileConstructorParameters
 
-  function cieFileConstructorInternal(fileName)
+  function cieFileConstructorInternal(fileName) result(self)
     !% Internal constructor for the ``CIE file'' cooling function class.
     implicit none
-    type     (coolingFunctionCIEFile)                :: cieFileConstructorInternal
-    character(len=*                 ), intent(in   ) :: fileName
-
-    ! Read the file.
-    cieFileConstructorInternal%fileName=fileName
-    call cieFileConstructorInternal%readFile(fileName)
-    !initialize
-    cieFileConstructorInternal%temperaturePrevious     =-1.0d0
-    cieFileConstructorInternal%metallicityPrevious     =-1.0d0
-    cieFileConstructorInternal%temperatureSlopePrevious=-1.0d0
-    cieFileConstructorInternal%metallicitySlopePrevious=-1.0d0
-    cieFileConstructorInternal%resetMetallicity        =.true.
-    cieFileConstructorInternal%resetTemperature        =.true.
+    type(coolingFunctionCIEFile)                :: self
+    type(varying_string        ), intent(in   ) :: fileName
+    !# <constructorAssign variables="fileName"/>
+    
+    call self%readFile(fileName)
+    self%temperaturePrevious     =-1.0d0
+    self%metallicityPrevious     =-1.0d0
+    self%temperatureSlopePrevious=-1.0d0
+    self%metallicitySlopePrevious=-1.0d0
     return
   end function cieFileConstructorInternal
-
-  subroutine cieFileDestructor(self)
-    !% Destructor for the ``CIE file'' cooling function class.
-    use :: Numerical_Interpolation, only : Interpolate_Done
-    implicit none
-    type(coolingFunctionCIEFile), intent(inout) :: self
-
-    ! Free all FGSL objects.
-    call Interpolate_Done(                                                      &
-         &                interpolationAccelerator=self%acceleratorMetallicity, &
-         &                reset                   =self%      resetMetallicity  &
-         &               )
-    call Interpolate_Done(                                                      &
-         &                interpolationAccelerator=self%acceleratorTemperature, &
-         &                reset                   =self%      resetTemperature  &
-         &               )
-    return
-  end subroutine cieFileDestructor
 
   double precision function cieFileCoolingFunction(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the cooling function by interpolating in tabulated CIE data read from a file.
@@ -460,7 +424,7 @@ contains
     use :: Table_Labels      , only : enumerationExtrapolationTypeEncode, extrapolationTypeFix       , extrapolationTypePowerLaw, extrapolationTypeZero
     implicit none
     class           (coolingFunctionCIEFile), intent(inout) :: self
-    character       (len=*                 ), intent(in   ) :: fileName
+    type            (varying_string        ), intent(in   ) :: fileName
     double precision                        , parameter     :: metallicityLogarithmicZero=-999.0d0
     type            (varying_string        )                :: limitType
     integer                                                 :: fileFormatVersion
@@ -469,8 +433,8 @@ contains
 
     call hdf5Access%set()
     ! Read the file.
-    call Galacticus_Display_Indent('Reading file: '//fileName,verbosityWorking)
-    call coolingFunctionFile%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
+    call Galacticus_Display_Indent('Reading file: '//char(fileName),verbosityWorking)
+    call coolingFunctionFile%openFile(char(File_Name_Expand(char(fileName))),readOnly=.true.)
     ! Check the file format version of the file.
     call coolingFunctionFile%readAttribute('fileFormat',fileFormatVersion)
     if (fileFormatVersion /= cieFileFormatVersionCurrent) call Galacticus_Error_Report('file format version is out of date'//{introspection:location})
@@ -563,16 +527,15 @@ contains
          &  self%extrapolateMetallicityHigh == extrapolationTypePowerLaw &
          & )                                                             &
          & call Galacticus_Error_Report('power law extrapolation not allowed in metallicity'//{introspection:location})
-    ! Force interpolation accelerators to be reset.
-    self%resetTemperature=.true.
-    self%resetMetallicity=.true.
+    ! Build interpolators.
+    self%interpolatorMetallicity=interpolator(self%metallicities)
+    self%interpolatorTemperature=interpolator(self%temperatures )
     return
   end subroutine cieFileReadFile
 
   subroutine cieFileInterpolatingFactors(self,temperature,metallicity,iTemperature,hTemperature,iMetallicity,hMetallicity)
     !% Determine the interpolating paramters.
-    use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Numerical_Interpolation, only : Interpolate_Locate
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (coolingFunctionCIEFile), intent(inout) :: self
     double precision                        , intent(in   ) :: metallicity , temperature
@@ -585,17 +548,12 @@ contains
     metallicityUse=max(metallicity,0.0d0)
     ! Get interpolation in temperature.
     if (self%logarithmicTable) temperatureUse=log(temperatureUse)
-    iTemperature=max(                                                    &
-         &           min(                                                &
-         &               Interpolate_Locate(                             &
-         &                                  self%temperatures          , &
-         &                                  self%acceleratorTemperature, &
-         &                                  temperatureUse             , &
-         &                                  self%resetTemperature        &
-         &                                 )                           , &
-         &               self%temperatureCount-1                         &
-         &              )                                              , &
-         &               1                                               &
+    iTemperature=max(                                                         &
+         &           min(                                                     &
+         &               self%interpolatorTemperature%locate(temperatureUse), &
+         &               self%temperatureCount-1                              &
+         &              )                                                   , &
+         &               1                                                    &
          &          )
     hTemperature=+(     temperatureUse                -self%temperatures(iTemperature)) &
          &       /(self%temperatures  (iTemperature+1)-self%temperatures(iTemperature))
@@ -605,17 +563,12 @@ contains
        hMetallicity=metallicityUse/self%firstNonZeroMetallicity
     else
        if (self%logarithmicTable) metallicityUse=log(metallicityUse)
-       iMetallicity=max(                                                    &
-            &           min(                                                &
-            &               Interpolate_Locate(                             &
-            &                                  self%metallicities         , &
-            &                                  self%acceleratorMetallicity, &
-            &                                  metallicityUse             , &
-            &                                  self%resetMetallicity        &
-            &                                 )                           , &
-            &               self%metallicityCount-1                         &
-            &              )                                              , &
-            &               1                                               &
+       iMetallicity=max(                                                         &
+            &           min(                                                     &
+            &               self%interpolatorMetallicity%locate(metallicityUse), &
+            &               self%metallicityCount-1                              &
+            &              )                                                   , &
+            &               1                                                    &
             &          )
        hMetallicity=+(     metallicityUse                -self%metallicities(iMetallicity)) &
             &       /(self%metallicities (iMetallicity+1)-self%metallicities(iMetallicity))

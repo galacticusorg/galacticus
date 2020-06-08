@@ -696,18 +696,18 @@ contains
            end if
            ! Compute recombination rates to this ion.
            if (electronNumber  > 0) then
-              recombinationRateTo        =+intergalacticMediumStateEvolveSelf%atomicRecombinationRateRadiative_       %rate(atomicNumber,ionizationState  ,temperature,recombinationCaseB) &
-                   &                      *densityUpperIon                                                                                                                                 &
+              recombinationRateTo        =+intergalacticMediumStateEvolveSelf%atomicRecombinationRateRadiative_       %rate(atomicNumber,ionizationState,temperature,recombinationCaseB) &
+                   &                      *densityUpperIon                                                                                                                               &
                    &                      *densityElectron
-              heatingRate                =+heatingRate                                                                                                                                     &
-                   &                      -intergalacticMediumStateEvolveSelf%atomicRecombinationRateRadiativeCooling_%rate(atomicNumber,ionizationState-1,temperature,recombinationCaseB) &
-                   &                      *densityThisIon                                                                                                                                  &
-                   &                      *densityElectron                                                                                                                                 &
-                   &                      *gigaYear                                                                                                                                        &
-                   &                      *centi**3                                                                                                                                        &
-                   &                      *clumpingFactor                                                                                                                                  &
-                   &                      *0.75d0                                                                                                                                          &
-                   &                      *boltzmannsConstant                                                                                                                              &
+              heatingRate                =+heatingRate                                                                                                                                   &
+                   &                      -intergalacticMediumStateEvolveSelf%atomicRecombinationRateRadiativeCooling_%rate(atomicNumber,ionizationState,temperature,recombinationCaseB) &
+                   &                      *densityThisIon                                                                                                                                &
+                   &                      *densityElectron                                                                                                                               &
+                   &                      *gigaYear                                                                                                                                      &
+                   &                      *centi**3                                                                                                                                      &
+                   &                      *clumpingFactor                                                                                                                                &
+                   &                      *0.75d0                                                                                                                                        &
+                   &                      *boltzmannsConstant                                                                                                                            &
                    &                      *temperature
            else
               recombinationRateTo        =+0.0d0

@@ -209,14 +209,14 @@ contains
 
   subroutine fileReadFile(self,fileName)
     !% Internal constructor for the file transfer function class.
-    use :: Cosmology_Parameters, only : cosmologyParametersSimple
-    use :: FGSL                , only : FGSL_Interp_cSpline
-    use :: File_Utilities      , only : File_Name_Expand
-    use :: Galacticus_Display  , only : Galacticus_Display_Message
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
-    use :: IO_HDF5             , only : hdf5Access                        , hdf5Object
-    use :: Numerical_Comparison, only : Values_Differ
-    use :: Table_Labels        , only : enumerationExtrapolationTypeEncode
+    use :: Cosmology_Parameters   , only : cosmologyParametersSimple
+    use :: File_Utilities         , only : File_Name_Expand
+    use :: Galacticus_Display     , only : Galacticus_Display_Message
+    use :: Galacticus_Error       , only : Galacticus_Error_Report
+    use :: IO_HDF5                , only : hdf5Access                        , hdf5Object
+    use :: Numerical_Comparison   , only : Values_Differ
+    use :: Numerical_Interpolation, only : GSL_Interp_cSpline
+    use :: Table_Labels           , only : enumerationExtrapolationTypeEncode
     implicit none
     class           (transferFunctionFile    ), intent(inout)             :: self
     character       (len=*                   ), intent(in   )             :: fileName
@@ -294,7 +294,7 @@ contains
          &                                         extrapolateWavenumberLow       , &
          &                                         extrapolateWavenumberHigh        &
          &                                        ]                               , &
-         &                      interpolationType= FGSL_Interp_cSpline              &
+         &                      interpolationType= GSL_Interp_cSpline               &
          &                     )
     call self%transfer%populate(                                                    &
          &                      transferLogarithmic                                 &

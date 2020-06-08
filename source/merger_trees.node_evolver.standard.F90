@@ -139,7 +139,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.01d0</defaultValue>
     !#   <description>The absolute tolerance used in solving differential equations for node evolution.</description>
-    !#   <group>timeStepping</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -148,7 +147,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-2</defaultValue>
     !#   <description>The relative tolerance used in solving differential equations for node evolution.</description>
-    !#   <group>timeStepping</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -157,7 +155,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.01d0</defaultValue>
     !#   <description>The relative step size to use when perturbing properties for purposes of computing a finite difference approximation to the ODE system Jacobian.</description>
-    !#   <group>timeStepping</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -166,7 +163,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('rungeKuttaCashKarp')</defaultValue>
     !#   <description>The algorithm to use in the ODE solver.</description>
-    !#   <group>timeStepping</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -175,7 +171,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('rungeKuttaCashKarp')</defaultValue>
     !#   <description>The algorithm to use in the ODE solver.</description>
-    !#   <group>timeStepping</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -208,7 +203,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether or not to profile the ODE evolver.</description>
-    !#   <group>timeStepping</group>
     !#   <source>parameters</source>
     !#   <type>boolean</type>
     !# </inputParameter>

@@ -159,7 +159,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>5.0d0</defaultValue>
     !#   <description>The factor by which the Bondi-Hoyle accretion rate of spheroid gas onto black holes in enhanced.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
@@ -168,7 +167,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>6.0d0</defaultValue>
     !#   <description>The factor by which the Bondi-Hoyle accretion rate of hot halo gas onto black holes in enhanced.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
@@ -177,7 +175,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Determines whether accretion from the hot halo should only occur if the halo is in the hot accretion mode.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
@@ -188,7 +185,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d2</defaultValue>
     !#   <description>The assumed temperature (in Kelvin) of gas in the spheroid when computing Bondi-Hoyle accretion rates onto black holes.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
@@ -199,7 +195,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.4d-3</defaultValue>
     !#   <description>The efficiency of the black hole-driven wind: $L_\mathrm{wind} = \epsilon_\mathrm{wind} \dot{M}_\bullet \clight^2$.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
@@ -208,7 +203,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether the black hole wind efficiency should scale with the radiative efficiency of the accretion disk.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
@@ -219,7 +213,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether or not the black hole launched jets should heat the hot halo.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
     !#   <type>boolean</type>
     !# </inputParameter>
@@ -228,7 +221,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>Efficiency with which radio-mode feedback is coupled to the hot halo.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
@@ -239,7 +231,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not accretion rates and jet powers will be output.</description>
-    !#   <group>output</group>
     !#   <source>parameters_</source>
     !#   <type>boolean</type>
     !# </inputParameter>
@@ -250,7 +241,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not properties for all black holes (rather than just the central black hole) will be output.</description>
-    !#   <group>output</group>
     !#   <source>parameters_</source>
     !#   <type>boolean</type>
     !# </inputParameter>
@@ -260,7 +250,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not properties of black hole mergers will be output.</description>
-    !#   <group>output</group>
     !#   <source>parameters_</source>
     !#   <type>boolean</type>
     !# </inputParameter>

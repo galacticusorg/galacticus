@@ -73,7 +73,6 @@ contains
     !#   <description>The name of the \gls{hdf5} group to output mass accretion histories to.</description>
     !#   <type>string</type>
     !#   <cardinality>1</cardinality>
-    !#   <group>output</group>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>includeSpin</name>
@@ -82,7 +81,6 @@ contains
     !#   <description>If true, include the spin of the halo in the output.</description>
     !#   <type>boolean</type>
     !#   <cardinality>1</cardinality>
-    !#   <group>output</group>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>includeSpinVector</name>
@@ -91,7 +89,6 @@ contains
     !#   <description>If true, include the spin vector of the halo in the output.</description>
     !#   <type>boolean</type>
     !#   <cardinality>1</cardinality>
-    !#   <group>output</group>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=mergerTreeOperatorMassAccretionHistory(char(outputGroupName),includeSpin,includeSpinVector,cosmologyFunctions_)

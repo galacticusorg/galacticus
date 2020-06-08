@@ -20,9 +20,9 @@
 !% Implements a merger tree evolution timestepping class which limits the step to the next epoch at which to record evolution of the
 !% main branch galaxy.
 
-  use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
-  use :: FGSL               , only : fgsl_interp_accel
-  use :: Output_Times       , only : outputTimes       , outputTimesClass
+  use :: Cosmology_Functions    , only : cosmologyFunctions, cosmologyFunctionsClass
+  use :: Numerical_Interpolation, only : interpolator
+  use :: Output_Times           , only : outputTimes       , outputTimesClass
 
   !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepRecordEvolution">
   !#  <description>A merger tree evolution timestepping class which limits the step to the next epoch at which to record evolution of the main branch galaxy.</description>
@@ -31,14 +31,14 @@
      !% Implementation of a merger tree evolution timestepping class which limits the step to the next epoch at which to record
      !% evolution of the main branch galaxy.
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null()
-     class           (outputTimesClass       ), pointer                   :: outputTimes_ => null()
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_    => null()
+     class           (outputTimesClass       ), pointer                   :: outputTimes_           => null()
      logical                                                              :: oneTimeDatasetsWritten
      integer                                                              :: countSteps
-     double precision                                                     :: timeBegin               , timeEnd
-     double precision                         , allocatable, dimension(:) :: expansionFactor         , massStellar, &
-          &                                                                  time                    , massTotal
-     type            (fgsl_interp_accel      )                            :: interpolationAccelerator
+     double precision                                                     :: timeBegin                       , timeEnd
+     double precision                         , allocatable, dimension(:) :: expansionFactor                 , massStellar, &
+          &                                                                  time                            , massTotal
+     type            (interpolator           )                            :: interpolator_
    contains
      !@ <objectMethods>
      !@   <object>mergerTreeEvolveTimestepRecordEvolution</object>
@@ -133,6 +133,7 @@ contains
     end do
     call self%reset()
     self%oneTimeDatasetsWritten=.false.
+    self%interpolator_         =interpolator(self%time)
     return
   end function recordEvolutionConstructorInternal
 
@@ -162,7 +163,6 @@ contains
     use            :: Galacticus_Nodes       , only : nodeComponentBasic   , treeNode
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: ISO_Varying_String     , only : varying_string
-    use            :: Numerical_Interpolation, only : Interpolate_Locate
     implicit none
     class           (mergerTreeEvolveTimestepRecordEvolution), intent(inout), target            :: self
     type            (treeNode                               ), intent(inout), target            :: node
@@ -183,7 +183,7 @@ contains
     if (node%isOnMainBranch()) then
        basic     => node %basic()
        time      =  basic%time ()
-       indexTime =  Interpolate_Locate(self%time,self%interpolationAccelerator,time)
+       indexTime =  self%interpolator_%locate(time)
        if (time < self%time(indexTime+1)) then
           recordEvolutionTimeEvolveTo     =  self%time(indexTime+1)
           if (present(lockNode)) lockNode => node
@@ -203,7 +203,6 @@ contains
     use            :: Galacticus_Error                  , only : Galacticus_Error_Report
     use            :: Galacticus_Nodes                  , only : mergerTree                      , nodeComponentBasic, treeNode
     use, intrinsic :: ISO_C_Binding                     , only : c_size_t
-    use            :: Numerical_Interpolation           , only : Interpolate_Locate
     implicit none
     class           (*                 ), intent(inout)          :: self
     type            (mergerTree        ), intent(in   )          :: tree
@@ -221,7 +220,7 @@ contains
        if (time == self%time(self%countSteps)) then
           indexTime=self%countSteps
        else
-          indexTime=Interpolate_Locate(self%time,self%interpolationAccelerator,time)
+          indexTime=self%interpolator_%locate(time)
        end if
        self%massStellar(indexTime)=Galactic_Structure_Enclosed_Mass(node,massType=massTypeStellar )
        self%massTotal  (indexTime)=Galactic_Structure_Enclosed_Mass(node,massType=massTypeGalactic)

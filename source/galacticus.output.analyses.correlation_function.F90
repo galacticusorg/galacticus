@@ -180,7 +180,6 @@ contains
     !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch galaxies.</description>
-    !#   <group>output</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -189,7 +188,6 @@ contains
     !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>1.0d8</defaultValue>
     !#   <description>The minimum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
-    !#   <group>output</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -198,7 +196,6 @@ contains
     !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>1.0d16</defaultValue>
     !#   <description>The maximum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
-    !#   <group>output</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -207,7 +204,6 @@ contains
     !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>60_c_size_t</defaultValue>
     !#   <description>The number of bins in wavenumber to use in computing the correlation function.</description>
-    !#   <group>output</group>
     !#   <source>parameters</source>
     !#   <type>integer</type>
     !# </inputParameter>
@@ -216,7 +212,6 @@ contains
     !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>1.0d-3</defaultValue>
     !#   <description>The minimum wavenumber to use when computing the correlation function.</description>
-    !#   <group>output</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -225,7 +220,6 @@ contains
     !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>1.0d4</defaultValue>
     !#   <description>The maximum wavenumber to use when computing the correlation function.</description>
-    !#   <group>output</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -233,7 +227,6 @@ contains
     !#   <name>integralConstraint</name>
     !#   <cardinality>0..1</cardinality>
     !#   <description>The integral constraint for these correlation functions.</description>
-    !#   <group>output</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -241,7 +234,6 @@ contains
     !#   <name>depthLineOfSight</name>
     !#   <cardinality>0..1</cardinality>
     !#   <description>The line-of-sight depth over which the correlation function was projected.</description>
-    !#   <group>output</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -249,7 +241,6 @@ contains
     !#   <name>halfIntegral</name>
     !#   <cardinality>0..1</cardinality>
     !#   <description>Set to true if the projection integrand should be over line-of-sight depths greater than zero.</description>
-    !#   <group>output</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>

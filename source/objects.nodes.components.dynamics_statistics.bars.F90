@@ -87,7 +87,6 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>0.1d0</defaultValue>
        !#   <description>The frequency (in fractions of the host halo dynamical time) at which to record the bar dynamical status of satellite galaxies.</description>
-       !#   <group>timeStepping</group>
        !#   <source>parameters_</source>
        !#   <type>double</type>
        !# </inputParameter>

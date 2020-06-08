@@ -52,18 +52,16 @@ end subroutine Node_Component_Satellite_Preset_Merge_Time_Set
 
 double precision function SatellitePresetMergeBoundMass(self)
   !% Return the satellite bound mass at the current time.
-  use            :: FGSL                   , only : fgsl_interp_accel
   use            :: Histories              , only : history
   use, intrinsic :: ISO_C_Binding          , only : c_size_t
-  use            :: Numerical_Interpolation, only : Interpolate_Done , Interpolate_Locate
+  use            :: Numerical_Interpolation, only : interpolator
   implicit none
   class  (nodeComponentSatellitePreset), intent(inout) :: self
   class  (nodeComponentBasic          ), pointer       :: selfBasicComponent
   type   (treeNode                    ), pointer       :: selfNode
   integer(c_size_t                    )                :: iTime
-  logical                                              :: interpolationReset
   type   (history                     )                :: boundMassHistory
-  type   (fgsl_interp_accel           )                :: interpolationAccelerator
+  type   (interpolator                )                :: interpolator_
 
   ! Get the hosting node and the basic component.
   selfNode           => self    %host ()
@@ -75,11 +73,9 @@ double precision function SatellitePresetMergeBoundMass(self)
      ! Check if the history exists.
      if (boundMassHistory%exists()) then
         ! It does, so find the preset time closest to the present one and return the mass at that time.
-        interpolationReset=.true.
-        iTime=Interpolate_Locate(boundMassHistory%time,interpolationAccelerator&
-             &,selfBasicComponent%time(),reset=interpolationReset,closest=.true.)
+        interpolator_=interpolator(boundMassHistory%time)
+        iTime=interpolator_%locate(selfBasicComponent%time(),closest=.true.)
         SatellitePresetMergeBoundMass=boundMassHistory%data(iTime,1)
-        call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
      else
         ! It does not, so return the basic mass.
         SatellitePresetMergeBoundMass=selfBasicComponent%mass()
@@ -94,20 +90,18 @@ end function SatellitePresetMergeBoundMass
 
 function SatellitePresetNodeIndex(self)
   !% Return the satellite node index.
-  use            :: FGSL                   , only : fgsl_interp_accel
   use            :: Histories              , only : longIntegerHistory
   use, intrinsic :: ISO_C_Binding          , only : c_size_t
   use            :: Kind_Numbers           , only : kind_int8
-  use            :: Numerical_Interpolation, only : Interpolate_Done  , Interpolate_Locate
+  use            :: Numerical_Interpolation, only : interpolator
   implicit none
   integer(kind=kind_int8              )                :: SatellitePresetNodeIndex
   class  (nodeComponentSatellitePreset), intent(inout) :: self
   class  (nodeComponentBasic          ), pointer       :: selfBasicComponent
   type   (treeNode                    ), pointer       :: selfNode
   integer(c_size_t                    )                :: iTime
-  logical                                              :: interpolationReset
   type   (longIntegerHistory          )                :: nodeIndexHistory
-  type   (fgsl_interp_accel           )                :: interpolationAccelerator
+  type   (interpolator                )                :: interpolator_
 
   ! Get the node.
   selfNode         => self%host            ()
@@ -121,11 +115,9 @@ function SatellitePresetNodeIndex(self)
      ! Node is a satellite with a node index history, so find the preset time closest to the
      ! present one and return the index at that time.
      selfBasicComponent => selfNode%basic()
-     interpolationReset=.true.
-     iTime=Interpolate_Locate(nodeIndexHistory%time,interpolationAccelerator&
-          &,selfBasicComponent%time(),reset=interpolationReset,closest=.true.)
+     interpolator_=interpolator(nodeIndexHistory%time)
+     iTime=interpolator_%locate(selfBasicComponent%time(),closest=.true.)
      SatellitePresetNodeIndex=nodeIndexHistory%data(iTime,1)
-     call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
   end if
   call nodeIndexHistory%destroy()
   return

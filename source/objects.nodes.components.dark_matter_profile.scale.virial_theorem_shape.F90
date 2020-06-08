@@ -81,7 +81,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not dark matter halo shape parameter is included in outputs of merger trees.</description>
-    !#   <group>output</group>
     !#   <source>parameters_</source>
     !#   <type>boolean</type>
     !# </inputParameter>

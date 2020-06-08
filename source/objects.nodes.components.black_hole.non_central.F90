@@ -84,7 +84,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not triple black hole interactions will be accounted for.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
     !#   <type>boolean</type>
     !# </inputParameter>

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
 !!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
@@ -19,7 +19,7 @@
 
 !% Contains a module which implements a stellar mass output analysis property extractor class.
 
-  use    :: FGSL                             , only : fgsl_interp_accel
+  use    :: Numerical_Interpolation          , only : interpolator
   use    :: ISO_Varying_String               , only : varying_string
   !$ use :: OMP_Lib                          , only : omp_lock_kind
   use    :: Output_Times                     , only : outputTimesClass
@@ -45,8 +45,7 @@
      double precision                                    , allocatable, dimension(:,:,:,:,:,:) :: luminosity
      integer                                             , allocatable, dimension(:,:        ) :: ionizingContinuumIndex
      double precision                                                 , dimension(2,3        ) :: filterExtent
-     type            (fgsl_interp_accel                  )            , dimension(5          ) :: accelerator
-     logical                                                          , dimension(5          ) :: interpolateReset
+     type            (interpolator                       )            , dimension(5          ) :: interpolator_
      double precision                                                                          :: depthOpticalISMCoefficient
      !$ integer      (omp_lock_kind                      )                                     :: interpolateLock
    contains
@@ -221,8 +220,12 @@ contains
     self%filterExtent(:,ionizingContinuumHydrogen)=Filter_Extent(Filter_Get_Index(var_str('Lyc'            )))
     self%filterExtent(:,ionizingContinuumHelium  )=Filter_Extent(Filter_Get_Index(var_str('HeliumContinuum')))
     self%filterExtent(:,ionizingContinuumOxygen  )=Filter_Extent(Filter_Get_Index(var_str('OxygenContinuum')))
-    ! Initialize interpolations.
-    self%interpolateReset=.true.
+    ! Initialize interpolators.
+    self%interpolator_(interpolantMetallicity)=interpolator(self%metallicity                 )
+    self%interpolator_(interpolantDensity    )=interpolator(self%densityHydrogen             )
+    self%interpolator_(interpolantHydrogen   )=interpolator(self%ionizingFluxHydrogen        )
+    self%interpolator_(interpolantHelium     )=interpolator(self%ionizingFluxHeliumToHydrogen)
+    self%interpolator_(interpolantOxygen     )=interpolator(self%ionizingFluxOxygenToHydrogen)
     !$ call OMP_Init_Lock(self%interpolateLock)
     ! Construct name and description.
     self%name_       ="luminosityEmissionLine:"//String_Join(lineNames,"+")
@@ -234,17 +237,9 @@ contains
 
   subroutine lmnstyEmssnLineDestructor(self)
     !% Destructor for the ``lmnstyEmssnLine'' output analysis property extractor class.
-    use :: Numerical_Interpolation, only : Interpolate_Done
     implicit none
-    type   (nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
-    integer                                                                :: i
+    type(nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
 
-    do i=1,5
-       call Interpolate_Done(                                                   &
-            &                interpolationAccelerator=self%accelerator     (i), &
-            &                reset                   =self%interpolateReset(i)  &
-            &               )
-    end do
     !$ call OMP_Destroy_Lock(self%interpolateLock)
     !# <objectDestructor name="self%starFormationRateDisks_"       />
     !# <objectDestructor name="self%starFormationRateSpheroids_"   />
@@ -255,17 +250,16 @@ contains
 
   double precision function lmnstyEmssnLineExtract(self,node,instance)
     !% Implement an emission line output analysis property extractor.
-    use            :: Abundances_Structure            , only : abundances                         , max                  , metallicityTypeLogarithmicByMassSolar
-    use            :: Galacticus_Nodes                , only : nodeComponentBasic                 , nodeComponentDisk    , nodeComponentSpheroid                , treeNode
+    use            :: Abundances_Structure            , only : abundances         , max                  , metallicityTypeLogarithmicByMassSolar
+    use            :: Galacticus_Nodes                , only : nodeComponentBasic , nodeComponentDisk    , nodeComponentSpheroid                , treeNode
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use            :: Numerical_Constants_Astronomical, only : hydrogenByMassSolar                , luminosityZeroPointAB, massSolar                            , megaParsec, &
-          &                                                    metallicitySolar                   , parsec
-    use            :: Numerical_Constants_Atomic      , only : atomicMassHydrogen                 , atomicMassUnit
+    use            :: Numerical_Constants_Astronomical, only : hydrogenByMassSolar, luminosityZeroPointAB, massSolar                            , megaParsec, &
+          &                                                    metallicitySolar   , parsec
+    use            :: Numerical_Constants_Atomic      , only : atomicMassHydrogen , atomicMassUnit
     use            :: Numerical_Constants_Math        , only : Pi
     use            :: Numerical_Constants_Physical    , only : plancksConstant
-    use            :: Numerical_Constants_Prefixes    , only : centi                              , hecto                , mega
-    use            :: Numerical_Interpolation         , only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
-    use            :: Stellar_Luminosities_Structure  , only : max                                , stellarLuminosities
+    use            :: Numerical_Constants_Prefixes    , only : centi              , hecto                , mega
+    use            :: Stellar_Luminosities_Structure  , only : max                , stellarLuminosities
     implicit none
     class           (nodePropertyExtractorLmnstyEmssnLine), intent(inout)           :: self
     type            (treeNode                            ), intent(inout), target   :: node
@@ -491,17 +485,12 @@ contains
        if (.not.isPhysical(component)) cycle
        ! Find interpolating factors in all five interpolants, preventing extrapolation beyond the tabulated ranges.
        !$ call OMP_Set_Lock  (self%interpolateLock)
-       interpolateIndex (0,interpolantMetallicity)=Interpolate_Locate                 (self%metallicity                 ,self            %accelerator(  interpolantMetallicity),metallicityGas                 (component),reset=self%interpolateReset(interpolantMetallicity))
-       interpolateIndex (0,interpolantDensity    )=Interpolate_Locate                 (self%densityHydrogen             ,self            %accelerator(  interpolantDensity    ),densityHydrogen                (component),reset=self%interpolateReset(interpolantDensity    ))
-       interpolateIndex (0,interpolantHydrogen   )=Interpolate_Locate                 (self%ionizingFluxHydrogen        ,self            %accelerator(  interpolantHydrogen   ),luminosityLymanContinuum       (component),reset=self%interpolateReset(interpolantHydrogen   ))
-       interpolateIndex (0,interpolantHelium     )=Interpolate_Locate                 (self%ionizingFluxHeliumToHydrogen,self            %accelerator(  interpolantHelium     ),ratioLuminosityHeliumToHydrogen(component),reset=self%interpolateReset(interpolantHelium     ))
-       interpolateIndex (0,interpolantOxygen     )=Interpolate_Locate                 (self%ionizingFluxOxygenToHydrogen,self            %accelerator(  interpolantOxygen     ),ratioLuminosityOxygenToHydrogen(component),reset=self%interpolateReset(interpolantOxygen     ))
+       call self%interpolator_(interpolantMetallicity)%linearFactors(metallicityGas                 (component),interpolateIndex(0,interpolantMetallicity),interpolateFactor(:,interpolantMetallicity))
+       call self%interpolator_(interpolantDensity    )%linearFactors(densityHydrogen                (component),interpolateIndex(0,interpolantDensity    ),interpolateFactor(:,interpolantDensity    ))
+       call self%interpolator_(interpolantHydrogen   )%linearFactors(luminosityLymanContinuum       (component),interpolateIndex(0,interpolantHydrogen   ),interpolateFactor(:,interpolantHydrogen   ))
+       call self%interpolator_(interpolantHelium     )%linearFactors(ratioLuminosityHeliumToHydrogen(component),interpolateIndex(0,interpolantHelium     ),interpolateFactor(:,interpolantHelium     ))
+       call self%interpolator_(interpolantOxygen     )%linearFactors(ratioLuminosityOxygenToHydrogen(component),interpolateIndex(0,interpolantOxygen     ),interpolateFactor(:,interpolantOxygen     ))
        !$ call OMP_Unset_Lock(self%interpolateLock)
-       interpolateFactor(:,interpolantMetallicity)=Interpolate_Linear_Generate_Factors(self%metallicity                 ,interpolateIndex            (0,interpolantMetallicity),metallicityGas                 (component)                                                    )
-       interpolateFactor(:,interpolantDensity    )=Interpolate_Linear_Generate_Factors(self%densityHydrogen             ,interpolateIndex            (0,interpolantDensity    ),densityHydrogen                (component)                                                    )
-       interpolateFactor(:,interpolantHydrogen   )=Interpolate_Linear_Generate_Factors(self%ionizingFluxHydrogen        ,interpolateIndex            (0,interpolantHydrogen   ),luminosityLymanContinuum       (component)                                                    )
-       interpolateFactor(:,interpolantHelium     )=Interpolate_Linear_Generate_Factors(self%ionizingFluxHeliumToHydrogen,interpolateIndex            (0,interpolantHelium     ),ratioLuminosityHeliumToHydrogen(component)                                                    )
-       interpolateFactor(:,interpolantOxygen     )=Interpolate_Linear_Generate_Factors(self%ionizingFluxOxygenToHydrogen,interpolateIndex            (0,interpolantOxygen     ),ratioLuminosityOxygenToHydrogen(component)                                                    )
        interpolateIndex (1,:                     )=interpolateIndex(0,:)+1
        interpolateFactor=max(min(interpolateFactor,1.0d0),0.0d0)
        ! Iterate over lines.

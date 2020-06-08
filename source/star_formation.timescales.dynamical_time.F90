@@ -55,7 +55,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.01d0</defaultValue>
     !#   <description>The efficiency of star formation for the dynamical time method.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -64,7 +63,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>-1.50d0</defaultValue>
     !#   <description>The velocity exponent for star formation for the dynamical time method.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -73,7 +71,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-3</defaultValue>
     !#   <description>The minimum timescale for star formation.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>

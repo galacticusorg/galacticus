@@ -21,7 +21,7 @@
 
   !% An implementation of the intergalactic medium state class in which state is read from file.
 
-  use :: FGSL, only : fgsl_interp, fgsl_interp_accel
+  use :: Numerical_Interpolation, only : interpolator
 
   ! Current file format version for intergalactic medium state files.
   integer, parameter :: fileFormatVersionCurrent=1
@@ -33,22 +33,17 @@
      !% An \gls{igm} state class which reads state from file.
      private
      ! Name of the file from which to read intergalactic medium state data.
-     type            (varying_string   )                            :: fileName
+     type            (varying_string)                            :: fileName
      ! Flag indicating whether or not data has been read.
-     logical                                                        :: dataRead                                       =.false.
+     logical                                                     :: dataRead                           =.false.
      ! Data tables.
-     integer                                                        :: redshiftCount
-     double precision                   , allocatable, dimension(:) :: electronFractionTable                                  , temperatureTable                                    , &
-          &                                                            timeTable                                              , ionizedHydrogenFractionTable                        , &
-          &                                                            ionizedHeliumFractionTable
-     ! Interpolation objects.
-     type            (fgsl_interp_accel)                            :: interpolationAcceleratorElectronFraction               , interpolationAcceleratorTemperature                 , &
-          &                                                            interpolationAcceleratorIonizedHydrogenFraction        , interpolationAcceleratorIonizedHeliumFraction
-     type            (fgsl_interp      )                            :: interpolationObjectElectronFraction                    , interpolationObjectTemperature                      , &
-          &                                                            interpolationObjectIonizedHydrogenFraction             , interpolationObjectIonizedHeliumFraction
-     logical                                                        :: interpolationResetElectronFraction             =.true. , interpolationResetTemperature                =.true., &
-          &                                                            interpolationResetIonizedHydrogenFraction      =.true. , interpolationResetIonizedHeliumFraction      =.true.
-     integer                                                        :: extrapolationType
+     integer                                                     :: redshiftCount
+     double precision                , allocatable, dimension(:) :: electronFractionTable                      , temperatureTable                 , &
+          &                                                         timeTable                                  , ionizedHydrogenFractionTable     , &
+          &                                                         ionizedHeliumFractionTable
+     type            (interpolator  )                            :: interpolatorElectronFraction               , interpolatorTemperature          , &
+          &                                                         interpolatorIonizedHydrogenFraction        , interpolatorIonizedHeliumFraction
+     integer                                                     :: extrapolationType
    contains
      final     ::                                fileDestructor
      procedure :: electronFraction            => fileElectronFraction
@@ -158,6 +153,11 @@ contains
        do iRedshift=1,self%redshiftCount
           self%timeTable(iRedshift)=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(self%timeTable(iRedshift)))
        end do
+       ! Build interpolators.
+       self%interpolatorElectronFraction       =interpolator(self%timeTable,self%electronFractionTable,extrapolationType=self%extrapolationType)
+       self%interpolatorTemperature            =interpolator(self%timeTable,self%temperatureTable,extrapolationType=self%extrapolationType)
+       self%interpolatorIonizedHydrogenFraction=interpolator(self%timeTable,self%ionizedHydrogenFractionTable,extrapolationType=self%extrapolationType)
+       self%interpolatorIonizedHeliumFraction  =interpolator(self%timeTable,self%ionizedHeliumFractionTable,extrapolationType=self%extrapolationType)
        ! Flag that data has now been read.
        self%dataRead=.true.
     end if
@@ -166,32 +166,19 @@ contains
 
   double precision function fileTemperature(self,time)
     !% Return the temperature of the intergalactic medium at the specified {\normalfont \ttfamily time} by interpolating in tabulated data.
-    use :: Numerical_Interpolation, only : Interpolate
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self
     double precision                              , intent(in   ) :: time
 
     ! Ensure that data has been read.
     call fileReadData(self)
-    ! Interpolate in the tables to get the electron fraction.
-    fileTemperature=max(                                                                        &
-         &              0.0d0                                                                 , &
-         &              Interpolate(                                                            &
-         &                                            self%timeTable                          , &
-         &                                            self%temperatureTable                   , &
-         &                                            self%interpolationObjectTemperature     , &
-         &                                            self%interpolationAcceleratorTemperature, &
-         &                                                 time                               , &
-         &                          reset            =self%interpolationResetTemperature      , &
-         &                          extrapolationType=self%extrapolationType                    &
-         &                         )                                                            &
-         &             )
+    ! Interpolate in the tables to get the temperature.
+    fileTemperature=max(0.0d0,self%interpolatorTemperature%interpolate(time))
     return
   end function fileTemperature
 
   double precision function fileElectronFraction(self,time)
     !% Return the electron fraction in the intergalactic medium at the specified {\normalfont \ttfamily time} by interpolating in tabulated data,
-    use :: Numerical_Interpolation, only : Interpolate
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self
     double precision                              , intent(in   ) :: time
@@ -199,27 +186,12 @@ contains
     ! Ensure that data has been read.
     call fileReadData(self)
     ! Interpolate in the tables to get the electron fraction.
-    fileElectronFraction=min(                                                                                 &
-         &                       1.0d0                                                                      , &
-         &                   max(                                                                             &
-         &                       0.0d0                                                                      , &
-         &                       Interpolate(                                                                 &
-         &                                                     self%timeTable                               , &
-         &                                                     self%electronFractionTable                   , &
-         &                                                     self%interpolationObjectElectronFraction     , &
-         &                                                     self%interpolationAcceleratorElectronFraction, &
-         &                                                          time                                    , &
-         &                                   reset            =self%interpolationResetElectronFraction      , &
-         &                                   extrapolationType=self%extrapolationType                         &
-         &                                  )                                                                 &
-         &                       )                                                                            &
-         &                  )
+    fileElectronFraction=min(1.0d0,max(0.0d0,self%interpolatorElectronFraction%interpolate(time)))
     return
   end function fileElectronFraction
 
   double precision function fileNeutralHydrogenFraction(self,time)
     !% Return the neutral hydrogen fraction in the intergalactic medium at the specified {\normalfont \ttfamily time} by interpolating in tabulated data,
-    use :: Numerical_Interpolation, only : Interpolate
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self
     double precision                              , intent(in   ) :: time
@@ -227,28 +199,13 @@ contains
     ! Ensure that data has been read.
     call fileReadData(self)
     ! Interpolate in the tables to get the electron fraction.
-    fileNeutralHydrogenFraction=+1.0d0                                                                                       &
-         &                      -min(                                                                                        &
-         &                               1.0d0                                                                             , &
-         &                           max(                                                                                    &
-         &                               0.0d0                                                                             , &
-         &                               Interpolate(                                                                        &
-         &                                                             self%timeTable                                      , &
-         &                                                             self%ionizedHydrogenFractionTable                   , &
-         &                                                             self%interpolationObjectIonizedHydrogenFraction     , &
-         &                                                             self%interpolationAcceleratorIonizedHydrogenFraction, &
-         &                                                                  time                                           , &
-         &                                           reset            =self%interpolationResetIonizedHydrogenFraction      , &
-         &                                           extrapolationType=self%extrapolationType                                &
-         &                                          )                                                                        &
-         &                              )                                                                                    &
-         &                          )
+    fileNeutralHydrogenFraction=+1.0d0                                                                            &
+         &                      -min(1.0d0,max(0.0d0,self%interpolatorIonizedHydrogenFraction%interpolate(time)))
     return
   end function fileNeutralHydrogenFraction
 
   double precision function fileNeutralHeliumFraction(self,time)
     !% Return the neutral helium fraction in the intergalactic medium at the specified {\normalfont \ttfamily time} by interpolating in tabulated data,
-    use :: Numerical_Interpolation, only : Interpolate
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self
     double precision                              , intent(in   ) :: time
@@ -256,28 +213,13 @@ contains
     ! Ensure that data has been read.
     call fileReadData(self)
     ! Interpolate in the tables to get the electron fraction.
-    fileNeutralHeliumFraction=+1.0d0                                                                                     &
-         &                    -min(                                                                                      &
-         &                             1.0d0                                                                           , &
-         &                         max(                                                                                  &
-         &                             0.0d0                                                                           , &
-         &                             Interpolate(                                                                      &
-         &                                                           self%timeTable                                    , &
-         &                                                           self%ionizedHeliumFractionTable                   , &
-         &                                                           self%interpolationObjectIonizedHeliumFraction     , &
-         &                                                           self%interpolationAcceleratorIonizedHeliumFraction, &
-         &                                                                time                                         , &
-         &                                         reset            =self%interpolationResetIonizedHeliumFraction      , &
-         &                                         extrapolationType=self%extrapolationType                              &
-         &                                        )                                                                      &
-         &                            )                                                                                  &
-         &                        )
+    fileNeutralHeliumFraction=+1.0d0                                                                          &
+         &                    -min(1.0d0,max(0.0d0,self%interpolatorIonizedHeliumFraction%interpolate(time)))
     return
   end function fileNeutralHeliumFraction
 
   double precision function fileSinglyIonizedHeliumFraction(self,time)
     !% Return the neutral helium fraction in the intergalactic medium at the specified {\normalfont \ttfamily time} by interpolating in tabulated data,
-    use :: Numerical_Interpolation, only : Interpolate
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self
     double precision                              , intent(in   ) :: time
@@ -285,20 +227,6 @@ contains
     ! Ensure that data has been read.
     call fileReadData(self)
     ! Interpolate in the tables to get the electron fraction.
-    fileSinglyIonizedHeliumFraction=min(                                                                                      &
-         &                                  1.0d0                                                                           , &
-         &                              max(                                                                                  &
-         &                                  0.0d0                                                                           , &
-         &                                  Interpolate(                                                                      &
-         &                                                                self%timeTable                                    , &
-         &                                                                self%ionizedHeliumFractionTable                   , &
-         &                                                                self%interpolationObjectIonizedHeliumFraction     , &
-         &                                                                self%interpolationAcceleratorIonizedHeliumFraction, &
-         &                                                                     time                                         , &
-         &                                              reset            =self%interpolationResetIonizedHeliumFraction      , &
-         &                                              extrapolationType=self%extrapolationType                              &
-         &                                             )                                                                      &
-         &                                 )                                                                                  &
-         &                             )
+    fileSinglyIonizedHeliumFraction=min(1.0d0,max(0.0d0,self%ionizedHeliumFractionTable%interpolate(time)))
     return
   end function fileSinglyIonizedHeliumFraction

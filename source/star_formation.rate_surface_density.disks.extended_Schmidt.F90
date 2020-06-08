@@ -70,7 +70,6 @@ contains
     !#   <defaultSource>\citep{shi_extended_2011}</defaultSource>
     !#   <defaultValue>0.5248d-10</defaultValue>
     !#   <description>The normalization of the extended Schmidt star formation law [$M_\odot$ yr$^{-1}$pc$^{-2}$].</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -80,7 +79,6 @@ contains
     !#   <defaultSource>\citep{shi_extended_2011}</defaultSource>
     !#   <defaultValue>1.0000d+0</defaultValue>
     !#   <description>The exponent of gas surface density in the extended Schmidt star formation law.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -90,7 +88,6 @@ contains
     !#   <defaultSource>\citep{shi_extended_2011}</defaultSource>
     !#   <defaultValue>0.4800d+0</defaultValue>
     !#   <description>The exponent of stellar surface density in the extended Schmidt star formation law.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>

@@ -101,7 +101,6 @@ contains
     !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The parameter $\alpha_\mathrm{sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
-    !#   <group>haloModel</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -111,7 +110,6 @@ contains
     !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
     !#   <defaultValue>12.520d0</defaultValue>
     !#   <description>The parameter $\log_{10}M_1$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
-    !#   <group>haloModel</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -121,7 +119,6 @@ contains
     !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
     !#   <defaultValue>10.916d0</defaultValue>
     !#   <description>The parameter $\log_{10}M_{\star,0}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
-    !#   <group>haloModel</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -131,7 +128,6 @@ contains
     !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
     !#   <defaultValue>0.457d0</defaultValue>
     !#   <description>The parameter $\beta$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
-    !#   <group>haloModel</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -141,7 +137,6 @@ contains
     !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
     !#   <defaultValue>0.5666d0</defaultValue>
     !#   <description>The parameter $\delta$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
-    !#   <group>haloModel</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -151,7 +146,6 @@ contains
     !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
     !#   <defaultValue>1.53d0</defaultValue>
     !#   <description>The parameter $\gamma$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
-    !#   <group>haloModel</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -161,7 +155,6 @@ contains
     !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
     !#   <defaultValue>0.206d0</defaultValue>
     !#   <description>The parameter $\sigma_{\log M_\star}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
-    !#   <group>haloModel</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -171,7 +164,6 @@ contains
     !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
     !#   <defaultValue>1.47d0</defaultValue>
     !#   <description>The parameter $B_\mathrm{cut}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
-    !#   <group>haloModel</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -181,7 +173,6 @@ contains
     !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
     !#   <defaultValue>10.62d0</defaultValue>
     !#   <description>The parameter $B_\mathrm{sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
-    !#   <group>haloModel</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -191,7 +182,6 @@ contains
     !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
     !#   <defaultValue>-0.13d0</defaultValue>
     !#   <description>The parameter $\beta_\mathrm{cut}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
-    !#   <group>haloModel</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -201,7 +191,6 @@ contains
     !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
     !#   <defaultValue>0.859d0</defaultValue>
     !#   <description>The parameter $\beta_\mathrm{sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
-    !#   <group>haloModel</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>

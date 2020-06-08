@@ -21,15 +21,18 @@
 
   !% An implementation of the intergalactic medium state class for an internal model of instantaneous and full reionization.
 
+  use :: Numerical_Interpolation, only : interpolator
+
   !# <intergalacticMediumState name="intergalacticMediumStateInternal">
   !#  <description>The state of the intergalactic medium is solved for internally.</description>
   !# </intergalacticMediumState>
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateInternal
      !% An \gls{igm} state class for an internally consistent model.
-     double precision, allocatable, dimension(:  ) :: time            , temperatureIGM  , &
-          &                                           massFiltering   , densityHydrogen1, &
-          &                                           densityHydrogen2, densityHelium1  , &
-          &                                           densityHelium2  , densityHelium3
+     double precision              , allocatable, dimension(:  ) :: time            , temperatureIGM  , &
+          &                                                         massFiltering   , densityHydrogen1, &
+          &                                                         densityHydrogen2, densityHelium1  , &
+          &                                                         densityHelium2  , densityHelium3
+     type            (interpolator), allocatable                 :: interpolator_
    contains
      final     ::                                internalDestructor
      procedure :: electronFraction            => internalElectronFraction
@@ -115,21 +118,16 @@ contains
 
   double precision function internalElectronFraction(self,time)
     !% Return the electron fraction of the \gls{igm} in the internal model.
-    use            :: FGSL                   , only : fgsl_interp_accel
-    use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (intergalacticMediumStateInternal), intent(inout)   :: self
     double precision                                  , intent(in   )   :: time
     double precision                                  , dimension(0:1)  :: h
-    integer         (c_size_t                        )                  :: i                              , j
-    logical                                           , save            :: interpolationReset      =.true.
-    type            (fgsl_interp_accel               ), save            :: interpolationAccelerator
-    !$omp threadprivate(interpolationReset,interpolationAccelerator)
-    double precision                                                    :: densityHydrogen                , densityHelium
+    integer         (c_size_t                        )                  :: i              , j
+    double precision                                                    :: densityHydrogen, densityHelium
 
     if (size(self%time) > 1) then
-       i=Interpolate_Locate(self%time,interpolationAccelerator,time,reset=interpolationReset)
+       i=self%interpolator_%locate(time)
     else
        densityHydrogen         =self%densityHydrogen1(1)+self%densityHydrogen2(1)
        densityHelium           =self%densityHelium1  (1)+self%densityHelium2  (1)+self%densityHelium3(1)
@@ -138,7 +136,7 @@ contains
        return
     end if
     if (self%time(i+1)-self%time(i) > 0.0d0) then
-       h   =Interpolate_Linear_Generate_Factors(self%time,i,time)
+       call self%interpolator_%linearWeights(time,i,h)
     else
        h(0)=0.0d0
        h(1)=1.0d0
@@ -162,28 +160,23 @@ contains
 
   double precision function internalNeutralHydrogenFraction(self,time)
     !% Return the neutral hydrogen fraction of the \gls{igm} in the internal model.
-    use            :: FGSL                   , only : fgsl_interp_accel
-    use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (intergalacticMediumStateInternal), intent(inout)   :: self
     double precision                                  , intent(in   )   :: time
     double precision                                  , dimension(0:1)  :: h
-    logical                                           , save            :: interpolationReset      =.true.
-    type            (fgsl_interp_accel               ), save            :: interpolationAccelerator
-    !$omp threadprivate(interpolationReset,interpolationAccelerator)
-    integer         (c_size_t                        )                  :: i                              , j
+    integer         (c_size_t                        )                  :: i              , j
     double precision                                                    :: densityHydrogen
 
     if (size(self%time) > 1) then
-       i=Interpolate_Locate(self%time,interpolationAccelerator,time,reset=interpolationReset)
+       i=self%interpolator_%locate(time)
     else
        densityHydrogen                =self%densityHydrogen1(1)+self%densityHydrogen2(1)
        internalNeutralHydrogenFraction=self%densityHydrogen1(1)/densityHydrogen
        return
     end if
     if (self%time(i+1)-self%time(i) > 0.0d0) then
-       h   =Interpolate_Linear_Generate_Factors(self%time,i,time)
+       call self%interpolator_%linearWeights(time,i,h)
     else
        h(0)=0.0d0
        h(1)=1.0d0
@@ -202,28 +195,23 @@ contains
 
   double precision function internalNeutralHeliumFraction(self,time)
     !% Return the neutral helium fraction of the \gls{igm} in the internal model.
-    use            :: FGSL                   , only : fgsl_interp_accel
-    use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (intergalacticMediumStateInternal), intent(inout)  :: self
     double precision                                  , intent(in   )  :: time
     double precision                                  , dimension(0:1) :: h
-    logical                                           , save           :: interpolationReset      =.true.
-    type            (fgsl_interp_accel               ), save           :: interpolationAccelerator
-    !$omp threadprivate(interpolationReset,interpolationAccelerator)
-    integer         (c_size_t                        )                  :: i                              , j
-    double precision                                                   :: densityHelium
+    integer         (c_size_t                        )                  :: i            , j
+    double precision                                                    :: densityHelium
 
     if (size(self%time) > 1) then
-       i=Interpolate_Locate(self%time,interpolationAccelerator,time,reset=interpolationReset)
+       i=self%interpolator_%locate(time)
     else
        densityHelium                =self%densityHelium1(1)+self%densityHelium2(1)+self%densityHelium3(1)
        internalNeutralHeliumFraction=self%densityHelium1(1)/densityHelium
        return
     end if
     if (self%time(i+1)-self%time(i) > 0.0d0) then
-       h   =Interpolate_Linear_Generate_Factors(self%time,i,time)
+       call self%interpolator_%linearWeights(time,i,h)
     else
        h(0)=0.0d0
        h(1)=1.0d0
@@ -242,28 +230,23 @@ contains
 
   double precision function internalSinglyIonizedHeliumFraction(self,time)
     !% Return the singly ionized helium fraction of the \gls{igm} in the internal model.
-    use            :: FGSL                   , only : fgsl_interp_accel
-    use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (intergalacticMediumStateInternal), intent(inout)   :: self
     double precision                                  , intent(in   )   :: time
     double precision                                  , dimension(0:1)  :: h
-    logical                                           , save            :: interpolationReset      =.true.
-    type            (fgsl_interp_accel)               , save            :: interpolationAccelerator
-    !$omp threadprivate(interpolationReset,interpolationAccelerator)
-    integer         (c_size_t                        )                  :: i                              , j
+    integer         (c_size_t                        )                  :: i            , j
     double precision                                                    :: densityHelium
 
     if (size(self%time) > 1) then
-       i=Interpolate_Locate(self%time,interpolationAccelerator,time,reset=interpolationReset)
+       i=self%interpolator_%locate(time)
     else
        densityHelium                      =self%densityHelium1(1)+self%densityHelium2(1)+self%densityHelium3(1)
        internalSinglyIonizedHeliumFraction=self%densityHelium2(1)/densityHelium
        return
     end if
     if (self%time(i+1)-self%time(i) > 0.0d0) then
-       h   =Interpolate_Linear_Generate_Factors(self%time,i,time)
+       call self%interpolator_%linearWeights(time,i,h)
     else
        h(0)=0.0d0
        h(1)=1.0d0
@@ -282,26 +265,21 @@ contains
 
   double precision function internalTemperature(self,time)
     !% Return the temperature of the \gls{igm} in the internal model.
-    use            :: FGSL                   , only : fgsl_interp_accel
-    use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (intergalacticMediumStateInternal), intent(inout)   :: self
     double precision                                  , intent(in   )   :: time
     double precision                                  , dimension(0:1)  :: h
-    logical                                           , save            :: interpolationReset      =.true.
-    type            (fgsl_interp_accel)               , save            :: interpolationAccelerator
-    !$omp threadprivate(interpolationReset,interpolationAccelerator)
-    integer         (c_size_t                        )                  :: i                              , j
+    integer         (c_size_t                        )                  :: i   , j
 
     if (size(self%time) > 1) then
-       i=Interpolate_Locate(self%time,interpolationAccelerator,time,reset=interpolationReset)
+       i=self%interpolator_%locate(time)
     else
        internalTemperature=self%temperatureIGM(1)
        return
     end if
     if (self%time(i+1)-self%time(i) > 0.0d0) then
-       h   =Interpolate_Linear_Generate_Factors(self%time,i,time)
+       call self%interpolator_%linearWeights(time,i,h)
     else
        h(0)=0.0d0
        h(1)=1.0d0
@@ -350,6 +328,10 @@ contains
        self%densityHelium2  =densityHelium2
        self%densityHelium3  =densityHelium3
        self%massFiltering   =massFiltering
+       ! Build interpolator.
+       if (allocated(self%interpolator_)) deallocate(self%interpolator_)
+       allocate(self%interpolator_)
+       self%interpolator_=interpolator(self%time)
     class default
        call Galacticus_Error_Report('incorrect class'//{introspection:location})
     end select

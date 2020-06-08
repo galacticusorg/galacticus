@@ -100,7 +100,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-3</defaultValue>
     !#   <description>The ratio of the rates of black hole growth and spheroid stellar mass growth.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
@@ -110,7 +109,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether or not the black hole should heat the hot halo.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
     !#   <type>boolean</type>
     !# </inputParameter>
@@ -120,7 +118,6 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-3</defaultValue>
        !#   <description>The efficiency with which accretion onto a black hole heats the hot halo.</description>
-       !#   <group>blackHoles</group>
        !#   <source>parameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
@@ -133,7 +130,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.2157d-3</defaultValue>
     !#   <description>The efficiency of the black hole accretion-driven wind.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
     !#   <type>double</type>
     !# </inputParameter>

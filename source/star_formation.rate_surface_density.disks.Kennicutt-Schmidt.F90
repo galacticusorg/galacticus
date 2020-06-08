@@ -75,7 +75,6 @@ contains
     !#   <defaultSource>\citep{kennicutt_global_1998}</defaultSource>
     !#   <defaultValue>0.147d0</defaultValue>
     !#   <description>The normalization of the Kennicutt-Schmidt star formation law [$M_\odot$ Gyr$^{-1}$pc$^{-2}$].</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -85,7 +84,6 @@ contains
     !#   <defaultSource>\citep{kennicutt_global_1998}</defaultSource>
     !#   <defaultValue>1.400d0</defaultValue>
     !#   <description>The exponent in the Kennicutt-Schmidt star formation law.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -94,7 +92,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether or not to truncate star formation below a critical surface density in disks.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>boolean</type>
     !# </inputParameter>
@@ -103,7 +100,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>6.0d0</defaultValue>
     !#   <description>The exponent of the $\Sigma_\mathrm{gas}/\Sigma_\mathrm{crit}$ term used in truncating the Kennicutt-Schmidt star formation law.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -113,7 +109,6 @@ contains
     !#   <defaultSource>\citep{leroy_star_2008}</defaultSource>
     !#   <defaultValue>10.0d0</defaultValue>
     !#   <description>The velocity dispersion of gas in disks.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -123,7 +118,6 @@ contains
     !#   <defaultSource>\citep{kennicutt_star_1989}</defaultSource>
     !#   <defaultValue>0.4d0</defaultValue>
     !#   <description>The critical Toomre parameter for star formation in disks.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>

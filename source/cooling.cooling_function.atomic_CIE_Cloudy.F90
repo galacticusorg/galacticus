@@ -74,31 +74,29 @@
 
 contains
 
-  function atomicCIECloudyConstructorParameters(parameters)
+  function atomicCIECloudyConstructorParameters(parameters) result(self)
     !% Constructor for the ``atomic CIE Cloudy'' cooling function class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(coolingFunctionAtomicCIECloudy)                :: atomicCIECloudyConstructorParameters
+    type(coolingFunctionAtomicCIECloudy)                :: self
     type(inputParameters               ), intent(inout) :: parameters
     !$GLC attributes unused :: parameters
 
-    atomicCIECloudyConstructorParameters=atomicCIECloudyConstructorInternal()
+    self=coolingFunctionAtomicCIECloudy()
     return
   end function atomicCIECloudyConstructorParameters
 
-  function atomicCIECloudyConstructorInternal()
+  function atomicCIECloudyConstructorInternal() result(self)
     !% Internal constructor for the ``atomic CIE Cloudy'' cooling function class.
     implicit none
-    type(coolingFunctionAtomicCIECloudy) :: atomicCIECloudyConstructorInternal
+    type(coolingFunctionAtomicCIECloudy) :: self
 
     ! Initialize.
-    atomicCIECloudyConstructorInternal%temperaturePrevious     =-1.0d0
-    atomicCIECloudyConstructorInternal%metallicityPrevious     =-1.0d0
-    atomicCIECloudyConstructorInternal%temperatureSlopePrevious=-1.0d0
-    atomicCIECloudyConstructorInternal%metallicitySlopePrevious=-1.0d0
-    atomicCIECloudyConstructorInternal%resetMetallicity        =.true.
-    atomicCIECloudyConstructorInternal%resetTemperature        =.true.
-    atomicCIECloudyConstructorInternal%initialized             =.false.
+    self%temperaturePrevious     =-1.0d0
+    self%metallicityPrevious     =-1.0d0
+    self%temperatureSlopePrevious=-1.0d0
+    self%metallicitySlopePrevious=-1.0d0
+    self%initialized             =.false.
    return
   end function atomicCIECloudyConstructorInternal
 
@@ -166,7 +164,7 @@ contains
             &                                   cieFileFormatVersionCurrent                                                       &
             &                            )
        ! Call routine to read in the tabulated data.
-       call self%readFile(char(galacticusPath(pathTypeDataStatic)//trim(atomicCIECloudyCoolingFunctionFileName)))
+       call self%readFile(galacticusPath(pathTypeDataStatic)//trim(atomicCIECloudyCoolingFunctionFileName))
        ! Flag that cooling function is now initialized.
        self%initialized=.true.
     end if

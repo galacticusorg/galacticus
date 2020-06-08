@@ -107,7 +107,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not dark matter halo scale radius is included in outputs of merger trees.</description>
-    !#   <group>output</group>
     !#   <source>parameters_</source>
     !#   <type>boolean</type>
     !# </inputParameter>

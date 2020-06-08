@@ -23,16 +23,15 @@
   !#  <description>Accretion disk spectra are interpolated from tables read from file.</description>
   !# </accretionDiskSpectra>
 
-  use :: FGSL, only : fgsl_interp_accel
+  use :: Numerical_Interpolation, only : interpolator
 
   type, extends(accretionDiskSpectraClass) :: accretionDiskSpectraFile
      !% An accretion disk spectra class which interpolates in spectra read from file.
      private
-     type            (varying_string   )                              :: fileName
-     double precision                   , allocatable, dimension(:  ) :: luminosity                        , wavelength
-     double precision                   , allocatable, dimension(:,:) :: SED
-     type            (fgsl_interp_accel)                              :: interpolationAcceleratorLuminosity, interpolationAcceleratorWavelength
-     logical                                                          :: resetLuminosity                   , resetWavelength
+     type            (varying_string)                              :: fileName
+     double precision                , allocatable, dimension(:  ) :: luminosity            , wavelength
+     double precision                , allocatable, dimension(:,:) :: SED
+     type            (interpolator  )                              :: interpolatorLuminosity, interpolatorWavelength
    contains
      !@ <objectMethods>
      !@   <object>accretionDiskSpectraFile</object>
@@ -109,26 +108,20 @@ contains
     ! Load the file.
     fileConstructorInternal%fileName=fileName
     call fileConstructorInternal%loadFile(fileName)
-    ! Initialize interpolators.
-    fileConstructorInternal%resetLuminosity=.true.
-    fileConstructorInternal%resetWavelength=.true.
     return
   end function fileConstructorInternal
 
   subroutine fileDestructor(self)
     !% Default destructor for the {\normalfont \ttfamily file} accretion disk spectra class.
-    use :: Memory_Management      , only : deallocateArray
-    use :: Numerical_Interpolation, only : Interpolate_Done
+    use :: Memory_Management, only : deallocateArray
     implicit none
     type(accretionDiskSpectraFile), intent(inout) :: self
 
     if (allocated(self%wavelength)) then
        call deallocateArray(self%wavelength)
-       call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorWavelength,reset=self%resetWavelength)
     end if
     if (allocated(self%luminosity)) then
        call deallocateArray(self%luminosity)
-       call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorLuminosity,reset=self%resetLuminosity)
     end if
     if (allocated(self%SED       )) call deallocateArray(self%SED)
     return
@@ -159,6 +152,9 @@ contains
     !$ call hdf5Access%unset()
     ! Convert luminosities to logarithmic form for interpolation.
     self%luminosity=log(self%luminosity)
+    ! Build interpolators.
+    self%interpolatorLuminosity=interpolator(self%luminosity)
+    self%interpolatorWavelength=interpolator(self%wavelength)
     return
   end subroutine fileLoadFile
 
@@ -179,8 +175,7 @@ contains
   double precision function fileSpectrumMassRate(self,accretionRate,efficiencyRadiative,wavelength)
     !% Return the accretion disk spectrum for tabulated spectra.
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use            :: Numerical_Constants_Astronomical, only : gigaYear                           , luminositySolar   , massSolar
-    use            :: Numerical_Interpolation         , only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
+    use            :: Numerical_Constants_Astronomical, only : gigaYear  , luminositySolar   , massSolar
     use            :: Numerical_Constants_Physical    , only : speedLight
     implicit none
     class           (accretionDiskSpectraFile), intent(inout)  :: self
@@ -209,10 +204,8 @@ contains
          &   wavelength > self%wavelength(size(self%wavelength)) &
          & ) return
     ! Get the interpolating factors.
-    iLuminosity=Interpolate_Locate                 (self%luminosity,self%interpolationAcceleratorLuminosity,log(luminosityBolometric),self%resetLuminosity)
-    iWavelength=Interpolate_Locate                 (self%wavelength,self%interpolationAcceleratorWavelength,    wavelength           ,self%resetWavelength)
-    hLuminosity=Interpolate_Linear_Generate_Factors(self%luminosity,iLuminosity                            ,log(luminosityBolometric)                     )
-    hWavelength=Interpolate_Linear_Generate_Factors(self%wavelength,iWavelength                            ,    wavelength                                )
+    call self%interpolatorLuminosity%linearFactors(log(luminosityBolometric),iLuminosity,hLuminosity)
+    call self%interpolatorWavelength%linearFactors(    wavelength           ,iWavelength,hWavelength)
     ! Do the interpolation.
     do jLuminosity=0,1
        do jWavelength=0,1

@@ -70,14 +70,13 @@ contains
   double precision function farahiMidpointProbability(self,variance,time,node)
     !% Return the excursion set barrier at the given variance and time.
     use :: Error_Functions        , only : erfApproximate
-    use :: File_Utilities         , only : File_Lock                  , File_Unlock                        , lockDescriptor
-    use :: Galacticus_Display     , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear   , Galacticus_Display_Indent, Galacticus_Display_Message, &
+    use :: File_Utilities         , only : File_Lock                  , File_Unlock                     , lockDescriptor
+    use :: Galacticus_Display     , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
           &                                Galacticus_Display_Unindent, verbosityWorking
     use :: Kind_Numbers           , only : kind_dble                  , kind_quad
     use :: MPI_Utilities          , only : mpiBarrier                 , mpiSelf
     use :: Memory_Management      , only : allocateArray              , deallocateArray
-    use :: Numerical_Interpolation, only : Interpolate_Done           , Interpolate_Linear_Generate_Factors, Interpolate_Locate
-    use :: Numerical_Ranges       , only : Make_Range                 , rangeTypeLogarithmic               , rangeTypeLinear
+    use :: Numerical_Ranges       , only : Make_Range                 , rangeTypeLogarithmic            , rangeTypeLinear
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                 :: self
     double precision                                         , intent(in   )                 :: variance                     , time
@@ -307,11 +306,13 @@ contains
           self%firstCrossingProbabilityTable=mpiSelf%sum(self%firstCrossingProbabilityTable)
        end if
 #endif
-       ! Reset the interpolators.
-       call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVariance,reset=self%interpolationResetVariance)
-       call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorTime    ,reset=self%interpolationResetTime    )
-       self%interpolationResetVariance=.true.
-       self%interpolationResetTime    =.true.
+       ! Build the interpolators.
+       if (allocated(self%interpolatorVariance)) deallocate(self%interpolatorVariance)
+       if (allocated(self%interpolatorTime    )) deallocate(self%interpolatorTime    )
+       allocate(self%interpolatorVariance)
+       allocate(self%interpolatorTime    )
+       self%interpolatorVariance=interpolator(self%varianceTable)
+       self%interpolatorTime    =interpolator(self%timeTable    )
        ! Record that the table is now built.
        self%tableInitialized=.true.
        ! Write the table to file if possible.
@@ -329,12 +330,9 @@ contains
     end if
     !$omp end critical(farahiMidpointProbabilityTabulate)
     end if
-    ! Get interpolation in time.
-    iTime    =Interpolate_Locate                 (self%timeTable    ,self%interpolationAcceleratorTime    ,time    ,reset=self%interpolationResetTime    )
-    hTime    =Interpolate_Linear_Generate_Factors(self%timeTable    ,iTime    ,time    )
-    ! Get interpolation in variance.
-    iVariance=Interpolate_Locate                 (self%varianceTable,self%interpolationAcceleratorVariance,variance,reset=self%interpolationResetVariance)
-    hVariance=Interpolate_Linear_Generate_Factors(self%varianceTable,iVariance,variance)
+    ! Get interpolating factors.
+    call self%interpolatorTime%linearFactors    (time    ,iTime    ,hTime    )
+    call self%interpolatorVariance%linearFactors(variance,iVariance,hVariance)
     ! Compute first crossing probability by interpolating.
     farahiMidpointProbability=0.0d0
     do jTime=0,1
@@ -350,15 +348,14 @@ contains
 
   subroutine farahiMidpointRateTabulate(self,varianceProgenitor,time,node)
     !% Tabulate the excursion set crossing rate.
-    use :: Error_Functions        , only : erfApproximate
-    use :: File_Utilities         , only : File_Lock                  , File_Unlock                     , lockDescriptor
-    use :: Galacticus_Display     , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
-          &                                Galacticus_Display_Unindent, verbosityWorking
-    use :: Kind_Numbers           , only : kind_dble                  , kind_quad
-    use :: MPI_Utilities          , only : mpiBarrier                 , mpiSelf
-    use :: Memory_Management      , only : allocateArray              , deallocateArray
-    use :: Numerical_Interpolation, only : Interpolate_Done
-    use :: Numerical_Ranges       , only : Make_Range                 , rangeTypeLinear                 , rangeTypeLogarithmic
+    use :: Error_Functions   , only : erfApproximate
+    use :: File_Utilities    , only : File_Lock                  , File_Unlock                     , lockDescriptor
+    use :: Galacticus_Display, only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
+          &                           Galacticus_Display_Unindent, verbosityWorking
+    use :: Kind_Numbers      , only : kind_dble                  , kind_quad
+    use :: MPI_Utilities     , only : mpiBarrier                 , mpiSelf
+    use :: Memory_Management , only : allocateArray              , deallocateArray
+    use :: Numerical_Ranges  , only : Make_Range                 , rangeTypeLinear                 , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                   :: self
     double precision                                         , intent(in   )                   :: time                             , varianceProgenitor
@@ -748,13 +745,16 @@ contains
              self%  nonCrossingTableRate=mpiSelf%sum(self%  nonCrossingTableRate)
           end if
 #endif
-          ! Reset the interpolators.
-          call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVarianceRate    ,reset=self%interpolationResetVarianceRate    )
-          call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVarianceRateBase,reset=self%interpolationResetVarianceRateBase)
-          call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorTimeRate        ,reset=self%interpolationResetTimeRate        )
-          self%interpolationResetVarianceRate    =.true.
-          self%interpolationResetVarianceRateBase=.true.
-          self%interpolationResetTimeRate        =.true.
+          ! Build the interpolators.
+          if (allocated(self%interpolatorVarianceRate    )) deallocate(self%interpolatorVarianceRate    )
+          if (allocated(self%interpolatorVarianceRateBase)) deallocate(self%interpolatorVarianceRateBase)
+          if (allocated(self%interpolatorTimeRate        )) deallocate(self%interpolatorTimeRate        )
+          allocate(self%interpolatorVarianceRate    )
+          allocate(self%interpolatorVarianceRateBase)
+          allocate(self%interpolatorTimeRate        )
+          self%interpolatorVarianceRate    =interpolator(self%varianceTableRate    )
+          self%interpolatorVarianceRateBase=interpolator(self%varianceTableRateBase)
+          self%interpolatorTimeRate        =interpolator(self%timeTableRate        )
           ! Set previous variance and time to unphysical values to force recompute of interpolation factors on next call.
           self%varianceRatePrevious=-1.0d0
           self%timeRatePrevious    =-1.0d0

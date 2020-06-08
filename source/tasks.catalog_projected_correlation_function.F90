@@ -202,6 +202,7 @@ contains
     !#   <defaultValue>[randomNumberGenerator_%uniformSample(),randomNumberGenerator_%uniformSample(),randomNumberGenerator_%uniformSample()]</defaultValue>
     !#   <defaultSource>Uniformly random distribution within the box.</defaultSource>
     !#   <description>The vector (in units of the box length) giving the origin of the coordinate system to use in mock catalog construction.</description>
+    !#   <source>parameters</source>
     !#   <type>float</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -210,6 +211,7 @@ contains
     !#   <defaultValue>[acos(2.0d0*randomNumberGenerator_%uniformSample()-1.0d0),2.0d0*Pi*randomNumberGenerator_%uniformSample()]</defaultValue>
     !#   <defaultSource>Isotropically random on the unit sphere.</defaultSource>
     !#   <description>The vector, in spherical coordinates $(\theta,\phi)$, about which the mock catalog should be rotated.</description>
+    !#   <source>parameters</source>
     !#   <type>float</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -218,6 +220,7 @@ contains
     !#   <defaultValue>2.0d0*Pi*randomNumberGenerator_%uniformSample()</defaultValue>
     !#   <defaultSource>Uniformly random distribution between $0$ and $2\pi$.</defaultSource>
     !#   <description>The angle through which the mock catalog should be rotated.</description>
+    !#   <source>parameters</source>
     !#   <type>float</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>

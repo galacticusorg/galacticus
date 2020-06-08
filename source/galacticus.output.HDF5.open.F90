@@ -59,7 +59,6 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>var_str('galacticus.hdf5')</defaultValue>
        !#   <description>The name of the file to which \glc\ results will be written.</description>
-       !#   <group>output</group>
        !#   <source>parameters</source>
        !#   <type>string</type>
        !# </inputParameter>
@@ -68,7 +67,6 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>galacticusOutputFileName</defaultValue>
        !#   <description>The name of the file to which \glc\ results will be written temporarily during runs.</description>
-       !#   <group>output</group>
        !#   <source>parameters</source>
        !#   <type>string</type>
        !# </inputParameter>
@@ -77,7 +75,6 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>65536</defaultValue>
        !#   <description>The size of the sieve buffer used by the HDF5 library to speed reading/writing of partial datasets.</description>
-       !#   <group>output</group>
        !#   <source>parameters</source>
        !#   <type>integer</type>
        !#   <variable>sieveBufferSize</variable>
@@ -88,7 +85,6 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether to use the latest HDF5 file format.</description>
-       !#   <group>output</group>
        !#   <source>parameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
@@ -97,7 +93,6 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>521_size_t</defaultValue>
        !#   <description>Number of elements in the raw data chunk cache.</description>
-       !#   <group>output</group>
        !#   <source>parameters</source>
        !#   <type>boolean</type>
        !#   <variable>cacheElementsCount</variable>
@@ -108,7 +103,6 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1048576_size_t</defaultValue>
        !#   <description>Size of the raw data chunk cache in bytes.</description>
-       !#   <group>output</group>
        !#   <source>parameters</source>
        !#   <type>boolean</type>
        !#   <variable>cacheSizeBytes</variable>
@@ -147,7 +141,6 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1024_hsize_t</defaultValue>
        !#   <description>The chunk size used for outputting HDF5 datasets.</description>
-       !#   <group>output</group>
        !#   <source>parameters</source>
        !#   <type>integer</type>
        !#   <variable>chunksize</variable>
@@ -158,7 +151,6 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>-1</defaultValue>
        !#   <description>The compression level used for outputting HDF5 datasets.</description>
-       !#   <group>output</group>
        !#   <source>parameters</source>
        !#   <type>integer</type>
        !# </inputParameter>

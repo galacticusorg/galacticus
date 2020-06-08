@@ -75,7 +75,6 @@ contains
     !#   <defaultSource>\citep{leroy_star_2008}</defaultSource>
     !#   <defaultValue>10.0d0</defaultValue>
     !#   <description>The velocity dispersion of gas in disks.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -85,7 +84,6 @@ contains
     !#   <defaultSource>\citep{kregel_flattening_2002}</defaultSource>
     !#   <defaultValue>0.137d0</defaultValue>
     !#   <description>The ratio of scale height to scale radius for disks in the ``Blitz-Rosolowsky2006'' star formation timescale calculation.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -95,7 +93,6 @@ contains
     !#   <defaultSource>\citep{bigiel_star_2008}</defaultSource>
     !#   <defaultValue>200.0d0</defaultValue>
     !#   <description>The surface density (in units of $M_\odot$ pc$^{-2}$) in the ``Blitz-Rosolowsky2006'' star formation timescale calculation at which low-density truncation begins.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -105,7 +102,6 @@ contains
     !#   <defaultSource>\citep{bigiel_star_2008}</defaultSource>
     !#   <defaultValue>0.4d0</defaultValue>
     !#   <description>The exponent for surface density in the ``Blitz-Rosolowsky2006'' star formation timescale calculation at in the high density regime.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -115,7 +111,6 @@ contains
     !#   <defaultSource>\citep{leroy_star_2008}</defaultSource>
     !#   <defaultValue>5.25d-10</defaultValue>
     !#   <description>The star formation frequency (in the low-density limit and in units of yr$^{-1}$) in the ``Blitz-Rosolowsky2006'' star formation timescale calculation.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -125,7 +120,6 @@ contains
     !#   <defaultSource>\citep{blitz_role_2006}</defaultSource>
     !#   <defaultValue>4.54d0</defaultValue>
     !#   <description>The characteristic pressure (given as $P_0/k_\mathrm{B}$ in units of K cm$^{-3}$) in the scaling relation of molecular hydrogen fraction with disk pressure in the ``Blitz-Rosolowsky2006'' star formation timescale calculation.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -135,7 +129,6 @@ contains
     !#   <defaultSource>\citep{blitz_role_2006}</defaultSource>
     !#   <defaultValue>0.92d0</defaultValue>
     !#   <description>The exponent in the scaling relation of molecular hydrogen fraction with disk pressure in the ``Blitz-Rosolowsky2006'' star formation timescale calculation.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>

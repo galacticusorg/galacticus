@@ -55,7 +55,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.010d0</defaultValue>
     !#   <description>The maximum absolute time difference (in Gyr) allowed between merging pairs of galaxies.</description>
-    !#   <group>timeStepping</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -64,7 +63,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.001d0</defaultValue>
     !#   <description>The maximum time difference (relative to the cosmic time at the merger epoch) allowed between merging pairs of galaxies.</description>
-    !#   <group>timeStepping</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>

@@ -19,7 +19,7 @@
 
   !% Implements a standard stellar population class.
 
-  use :: FGSL                                      , only : fgsl_interp             , fgsl_interp_accel
+  use :: Numerical_Interpolation                   , only : interpolator
   use :: Stellar_Astrophysics                      , only : stellarAstrophysics     , stellarAstrophysicsClass
   use :: Stellar_Feedback                          , only : stellarFeedback         , stellarFeedbackClass
   use :: Stellar_Population_Spectra                , only : stellarPopulationSpectra, stellarPopulationSpectraClass
@@ -40,10 +40,8 @@
      double precision                   , allocatable, dimension(:  ) :: age              , metallicity
      double precision                   , allocatable, dimension(:,:) :: property
      double precision                                                 :: toleranceAbsolute, toleranceRelative
-     type            (fgsl_interp      )                              :: interpolatorAge
-     type            (fgsl_interp_accel)                              :: acceleratorAge   , acceleratorMetallicity
-     logical                                                          :: resetAge         , resetMetallicity      , &
-          &                                                              computed
+     type            (interpolator     )                              :: interpolatorAge  , interpolatorMetallicity
+     logical                                                          :: computed
   end type populationTable
 
   interface populationTable
@@ -57,16 +55,16 @@
   type, extends(stellarPopulationClass) :: stellarPopulationStandard
      !% A standard stellar population class.
      private
-     logical                                                                    :: instantaneousRecyclingApproximation, metalYieldInitialized, &
+     logical                                                                    :: instantaneousRecyclingApproximation          , metalYieldInitialized, &
           &                                                                        recycledFractionInitialized
-     double precision                                                           :: massLongLived                      , ageEffective         , &
-          &                                                                        recycledFraction_                  , metalYield_          , &
-          &                                                                        recycledFraction                   , metalYield
-     class           (stellarAstrophysicsClass     ), pointer                   :: stellarAstrophysics_ => null()
-     class           (initialMassFunctionClass     ), pointer                   :: initialMassFunction_ => null()
-     class           (stellarFeedbackClass         ), pointer                   :: stellarFeedback_ => null()
-     class           (supernovaeTypeIaClass        ), pointer                   :: supernovaeTypeIa_ => null()
-     class           (stellarPopulationSpectraClass), pointer                   :: stellarPopulationSpectra_ => null()
+     double precision                                                           :: massLongLived                                , ageEffective         , &
+          &                                                                        recycledFraction_                            , metalYield_          , &
+          &                                                                        recycledFraction                             , metalYield
+     class           (stellarAstrophysicsClass     ), pointer                   :: stellarAstrophysics_                => null()
+     class           (initialMassFunctionClass     ), pointer                   :: initialMassFunction_                => null()
+     class           (stellarFeedbackClass         ), pointer                   :: stellarFeedback_                    => null()
+     class           (supernovaeTypeIaClass        ), pointer                   :: supernovaeTypeIa_                   => null()
+     class           (stellarPopulationSpectraClass), pointer                   :: stellarPopulationSpectra_           => null()
      type            (populationTable              )                            :: recycleFraction
      type            (populationTable              )                            :: energyOutput
      type            (populationTable              ), allocatable, dimension(:) :: yield
@@ -135,9 +133,7 @@ contains
     double precision                 , intent(in   ) :: toleranceAbsolute, toleranceRelative
     !# <constructorAssign variables="label, *integrand, toleranceAbsolute, toleranceRelative"/>
 
-    self%computed        =.false.
-    self%resetAge        =.true.
-    self%resetMetallicity=.true.
+    self%computed=.false.
     return
   end function populationTableConstructor
 
@@ -344,7 +340,6 @@ contains
     use            :: Memory_Management               , only : allocateArray
     use            :: Numerical_Constants_Astronomical, only : metallicitySolar
     use            :: Numerical_Integration2          , only : integratorCompositeGaussKronrod1D
-    use            :: Numerical_Interpolation         , only : Interpolate                      , Interpolate_Linear_Generate_Factors, Interpolate_Locate
     use            :: Numerical_Ranges                , only : Make_Range                       , rangeTypeLogarithmic
     use            :: Table_Labels                    , only : extrapolationTypeExtrapolate
     implicit none
@@ -394,10 +389,10 @@ contains
        if (.not.makeFile) then
           ! Read the cumulative property data from file.
           call hdf5Access%set()
-          call file%readDataset("age",property%age)
-          call file%readDataset("metallicity",property%metallicity)
-          call file%readDataset(char(property%label),property%property)
-          call file%close()
+          call file%readDataset("age"               ,property%age        )
+          call file%readDataset("metallicity"       ,property%metallicity)
+          call file%readDataset(char(property%label),property%property   )
+          call file%close      (                                         )
           call hdf5Access%unset()
           call Galacticus_Display_Unindent('done',verbosityWorking)
        else
@@ -498,6 +493,9 @@ contains
           call hdf5Access%unset()
        end if
        call File_Unlock(lock)
+       ! Build interpolators.
+       property%interpolatorMetallicity=interpolator(property%metallicity                                               )
+       property%interpolatorAge        =interpolator(property%age        ,extrapolationType=extrapolationTypeExtrapolate)
        ! Record that this IMF has now been tabulated.
        property%computed=.true.
     end if
@@ -507,8 +505,7 @@ contains
        metallicityIndex=size(property%metallicity)
        metallicityFactors=[1.0d0,0.0d0]
     else
-       metallicityIndex  =Interpolate_Locate                 (property%metallicity,property%acceleratorMetallicity,metallicity,reset=property%resetMetallicity)
-       metallicityFactors=Interpolate_Linear_Generate_Factors(property%metallicity,         metallicityIndex      ,metallicity                                )
+       call property%interpolatorMetallicity%linearFactors(metallicity,metallicityIndex,metallicityFactors)
     end if
     ! Interpolate in age at both metallicities.
     age=[ageMinimum,ageMaximum]
@@ -517,15 +514,7 @@ contains
           ! Get average property between ageMinimum and ageMaximum.
           do iAge=1,2
              if (age(iAge) > 0.0d0) then
-                propertyCumulative(iAge)=Interpolate(                                                                                 &
-                     &                                        property%age                                                          , &
-                     &                                        property%property                    (:,metallicityIndex+iMetallicity), &
-                     &                                        property%interpolatorAge                                              , &
-                     &                                        property%acceleratorAge                                               , &
-                     &                                                 age                         (  iAge                         ), &
-                     &                      reset            =property%resetAge                                                     , &
-                     &                      extrapolationType=         extrapolationTypeExtrapolate                                   &
-                     &                     )
+                propertyCumulative(iAge)=property%interpolatorAge%interpolate(age(iAge),property%property(:,metallicityIndex+iMetallicity))
              else
                 propertyCumulative(iAge)=0.0d0
              end if

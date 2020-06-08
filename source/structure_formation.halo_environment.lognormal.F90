@@ -35,7 +35,7 @@
      class           (cosmologicalMassVarianceClass  ), pointer :: cosmologicalMassVariance_   => null()
      class           (linearGrowthClass              ), pointer :: linearGrowth_               => null()
      class           (criticalOverdensityClass       ), pointer :: criticalOverdensity_        => null()
-     type            (distributionFunction1DLogNormal)          :: distributionDensityContrast
+     type            (distributionFunction1DLogNormal), pointer :: distributionDensityContrast => null()
      double precision                                           :: radiusEnvironment                    , variance
    contains
      final     ::                                  logNormalDestructor
@@ -119,12 +119,17 @@ contains
          &                                                                        self%cosmologyFunctions_ %cosmicTime       (1.0d0)     &
          &                                                                      )                                                   **2
     ! Construct a log-normal distribution, for 1+δ.
-    self%distributionDensityContrast= distributionFunction1DLogNormal(                                                                    &
-         &                                                                       +densityContrastMean                                   , &
-         &                                                                       +self%variance                                         , &
-         &                                                            limitUpper=+1.0d0                                                   &
-         &                                                                       +self%criticalOverdensity_%value(expansionFactor=1.0d0)  &
-         &                                                           )
+    allocate(self%distributionDensityContrast)
+    !# <referenceConstruct owner="self" isResult="yes" object="distributionDensityContrast">
+    !#  <constructor>
+    !#   distributionFunction1DLogNormal(                                                                    &amp;
+    !#     &amp;                                    +densityContrastMean                                   , &amp;
+    !#     &amp;                                    +self%variance                                         , &amp;
+    !#     &amp;                         limitUpper=+1.0d0                                                   &amp;
+    !#     &amp;                                    +self%criticalOverdensity_%value(expansionFactor=1.0d0)  &amp;
+    !#     &amp;                        )
+    !#  </constructor>
+    !# </referenceConstruct>
     return
   end function logNormalConstructorInternal
 

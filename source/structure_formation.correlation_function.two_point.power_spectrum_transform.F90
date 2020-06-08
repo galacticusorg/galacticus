@@ -103,22 +103,20 @@ contains
 
   double precision function powerSpectrumTransformCorrelation(self,separation,time)
     !% Return a two-point correlation function by Fourier transforming a power spectrum.
-    use :: Numerical_Interpolation
-    use :: Numerical_Constants_Math, only : Pi
     use :: FFTLogs                 , only : FFTLogSineTransform, fftLogForward 
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Interpolation , only : interpolator
     use :: Numerical_Ranges        , only : Make_Range         , rangeTypeLogarithmic
-    use :: FGSL                    , only : fgsl_interp        , fgsl_interp_accel
     implicit none
     class           (correlationFunctionTwoPointPowerSpectrumTransform), intent(inout)             :: self
-    double precision                                                   , intent(in   )             :: time                          , separation
-    double precision                                                   , allocatable, dimension(:) :: wavenumbers                   , powerSpectrum    , &
-         &                                                                                            correlation                   , separations
-    integer                                                            , parameter                 :: wavenumbersPerDecade    =125
-    double precision                                                   , parameter                 :: wavenumbersRange        =1.0d4
-    type            (fgsl_interp                                      )                            :: interpolationObject
-    type            (fgsl_interp_accel                                )                            :: interpolationAccelerator
-    double precision                                                                               :: wavenumberMinimum             , wavenumberMaximum
-    integer         (c_size_t                                         )                            :: countWavenumbers              , i
+    double precision                                                   , intent(in   )             :: time                      , separation
+    double precision                                                   , allocatable, dimension(:) :: wavenumbers               , powerSpectrum    , &
+         &                                                                                            correlation               , separations
+    integer                                                            , parameter                 :: wavenumbersPerDecade=125
+    double precision                                                   , parameter                 :: wavenumbersRange    =1.0d4
+    type            (interpolator                                     )                            :: interpolator_
+    double precision                                                                               :: wavenumberMinimum         , wavenumberMaximum
+    integer         (c_size_t                                         )                            :: countWavenumbers          , i
 
     wavenumberMinimum=1.0d0/wavenumbersRange/separation
     wavenumberMaximum=1.0d0*wavenumbersRange/separation
@@ -146,8 +144,8 @@ contains
          &                    fftLogForward  &
          &                  )
     correlation=correlation/separations
-    powerSpectrumTransformCorrelation=Interpolate(separations,correlation,interpolationObject,interpolationAccelerator,separation)
-    call Interpolate_Done(interpolationObject,interpolationAccelerator)
+    interpolator_                    =interpolator             (separations,correlation)
+    powerSpectrumTransformCorrelation=interpolator_%interpolate(separation             )
     return
   end function powerSpectrumTransformCorrelation
   
@@ -165,22 +163,20 @@ contains
     !% \begin{equation}
     !%  \bar{\xi}(r) = 3 \int \mathrm{d}k {P(k) \over (2 \pi)^3} 4 \pi {k^2 \over (k r)^2} \left[ {\sin (k r) \over k r} - \cos(k r) \right].
     !% \end{equation}
-    use :: Numerical_Interpolation
-    use :: Numerical_Constants_Math, only : Pi
     use :: FFTLogs                 , only : FFTLog     , fftLogForward
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Interpolation , only : interpolator
     use :: Numerical_Ranges        , only : Make_Range , rangeTypeLogarithmic
-    use :: FGSL                    , only : fgsl_interp, fgsl_interp_accel
     implicit none
     class           (correlationFunctionTwoPointPowerSpectrumTransform), intent(inout)             :: self
-    double precision                                                   , intent(in   )             :: time                          , separation
-    double precision                                                   , allocatable, dimension(:) :: wavenumbers                   , powerSpectrum    , &
-         &                                                                                            correlation                   , separations
-    integer                                                            , parameter                 :: wavenumbersPerDecade    =125
-    double precision                                                   , parameter                 :: wavenumbersRange        =1.0d4
-    type            (fgsl_interp                                      )                            :: interpolationObject
-    type            (fgsl_interp_accel                                )                            :: interpolationAccelerator
-    double precision                                                                               :: wavenumberMinimum             , wavenumberMaximum
-    integer         (c_size_t                                         )                            :: countWavenumbers              , i
+    double precision                                                   , intent(in   )             :: time                      , separation
+    double precision                                                   , allocatable, dimension(:) :: wavenumbers               , powerSpectrum    , &
+         &                                                                                            correlation               , separations
+    integer                                                            , parameter                 :: wavenumbersPerDecade=125
+    double precision                                                   , parameter                 :: wavenumbersRange    =1.0d4
+    type            (interpolator                                     )                            :: interpolator_
+    double precision                                                                               :: wavenumberMinimum         , wavenumberMaximum
+    integer         (c_size_t                                         )                            :: countWavenumbers          , i
 
     wavenumberMinimum=1.0d0/wavenumbersRange/separation
     wavenumberMaximum=1.0d0*wavenumbersRange/separation
@@ -220,7 +216,7 @@ contains
          &            *Pi             &
          &            /2.0d0          &
          &           )
-    powerSpectrumTransformCorrelationVolumeAveraged=Interpolate(separations,correlation,interpolationObject,interpolationAccelerator,separation)
-    call Interpolate_Done(interpolationObject,interpolationAccelerator)
+    interpolator_                                  =interpolator             (separations,correlation)
+    powerSpectrumTransformCorrelationVolumeAveraged=interpolator_%interpolate(separation             )
     return
   end function powerSpectrumTransformCorrelationVolumeAveraged

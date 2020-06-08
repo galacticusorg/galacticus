@@ -20,7 +20,7 @@
 !% Implements a merger tree evolution timestepping class which limits the step the next epoch at which to store global history.
 
   use :: Cosmology_Functions           , only : cosmologyFunctions             , cosmologyFunctionsClass
-  use :: FGSL                          , only : fgsl_interp_accel
+  use :: Numerical_Interpolation       , only : interpolator
   use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
   use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
 
@@ -41,7 +41,7 @@
           &                                                                          rateStarFormationSpheroid            , densityStellarSpheroid, &
           &                                                                          rateStarFormation                    , densityStellar        , &
           &                                                                          time
-     type            (fgsl_interp_accel              )                            :: interpolationAccelerator
+     type            (interpolator                   )                            :: interpolator_
    contains
      final     ::                 historyDestructor
      procedure :: timeEvolveTo => historyTimeEvolveTo
@@ -78,7 +78,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.05d0*ageUniverse</defaultValue>
     !#   <description>The earliest time at which to tabulate the volume averaged history of galaxies (in Gyr).</description>
-    !#   <group>timeStepping</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -87,7 +86,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>ageUniverse</defaultValue>
     !#   <description>The latest time at which to tabulate the volume averaged history of galaxies (in Gyr).</description>
-    !#   <group>timeStepping</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -96,7 +94,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>30</defaultValue>
     !#   <description>The number of steps (spaced logarithmically in cosmic time) at which to tabulate the volume averaged history of galaxies.</description>
-    !#   <group>timeStepping</group>
     !#   <source>parameters</source>
     !#   <type>integer</type>
     !# </inputParameter>
@@ -149,6 +146,7 @@ contains
     self%densityColdGas           =0.0d0
     self%densityHotHaloGas        =0.0d0
     self%densityNode              =0.0d0
+    self%interpolator_            =interpolator(self%time)
     return
   end function historyConstructorInternal
 
@@ -175,11 +173,10 @@ contains
 
   double precision function historyTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
     !% Determine a suitable timestep for {\normalfont \ttfamily node} using the history method.
-    use            :: Evolve_To_Time_Reports , only : Evolve_To_Time_Report
-    use            :: Galacticus_Nodes       , only : nodeComponentBasic   , treeNode
-    use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: ISO_Varying_String     , only : varying_string
-    use            :: Numerical_Interpolation, only : Interpolate_Locate
+    use            :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
+    use            :: Galacticus_Nodes      , only : nodeComponentBasic   , treeNode
+    use, intrinsic :: ISO_C_Binding         , only : c_size_t
+    use            :: ISO_Varying_String    , only : varying_string
     implicit none
     class           (mergerTreeEvolveTimestepHistory), intent(inout), target            :: self
     type            (treeNode                       ), intent(inout), target            :: node
@@ -195,7 +192,7 @@ contains
     ! Determine how long until next available timestep.
     basic     => node %basic()
     time      =  basic%time ()
-    timeIndex =  Interpolate_Locate(self%time,self%interpolationAccelerator,time)
+    timeIndex =  self%interpolator_%locate(time)
     if (time < self%time(timeIndex+1)) then
        historyTimeEvolveTo =  self%time(timeIndex+1)
        task                => historyStore
@@ -220,7 +217,6 @@ contains
     use            :: Galacticus_Nodes                  , only : mergerTree                      , nodeComponentBasic  , nodeComponentDisk    , nodeComponentSpheroid, &
           &                                                      treeNode
     use, intrinsic :: ISO_C_Binding                     , only : c_size_t
-    use            :: Numerical_Interpolation           , only : Interpolate_Locate
     implicit none
     class           (*                    ), intent(inout)          :: self
     type            (mergerTree           ), intent(in   )          :: tree
@@ -246,7 +242,7 @@ contains
        if (time == self%time(self%historyCount)) then
           timeIndex=self%historyCount
        else
-          timeIndex=Interpolate_Locate(self%time,self%interpolationAccelerator,time)
+          timeIndex=self%interpolator_%locate(time)
        end if
        ! Extract disk and spheroid star formation rates.
        rateStarFormationDisk    =self%starFormationRateDisks_    %rate(node)

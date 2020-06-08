@@ -110,7 +110,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('matterLambda')</defaultValue>
     !#   <description>The type of spherical collapse model to assume in the extended basic node component class.</description>
-    !#   <group>cosmology</group>
     !#   <source>parameters_</source>
     !#   <type>string</type>
     !#   <variable>nodeComponentBasicExtendedSphericalCollapseTypeText</variable>
@@ -127,7 +126,6 @@ contains
        !#   <description>Selects the epoch at which the energy of a spherical top hat perturbation in a dark energy cosmology should be
        !#     ``fixed'' for the purposes of computing virial density contrasts. (See the discussion in
        !#     \citealt{percival_cosmological_2005}; \S8.).</description>
-       !#   <group>cosmology</group>
        !#   <source>parameters_</source>
        !#   <type>string</type>
        !#   <variable>nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText</variable>

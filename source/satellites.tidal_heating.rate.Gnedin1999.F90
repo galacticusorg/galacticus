@@ -61,7 +61,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>3.0d0</defaultValue>
     !#   <description>Parameter, $\epsilon$, controlling the tidal heating rate of satellites in the {\normalfont \ttfamily Gnedin1999} method.</description>
-    !#   <group></group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -70,7 +69,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.5d0</defaultValue>
     !#   <description>Parameter, $\gamma$, controlling the tidal heating rate of satellites in the {\normalfont \ttfamily Gnedin1999} method.</description>
-    !#   <group></group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>

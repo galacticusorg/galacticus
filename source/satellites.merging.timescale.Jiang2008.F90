@@ -72,7 +72,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>Specifies whether or not to add random scatter to the dynamical friction timescales in the {\normalfont \ttfamily Jiang2008} satellite merging time implementation.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>string</type>
     !# </inputParameter>

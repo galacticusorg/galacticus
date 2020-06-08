@@ -105,7 +105,6 @@ contains
     !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch galaxies.</description>
-    !#   <group>output</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -114,7 +113,6 @@ contains
     !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>1.0d8</defaultValue>
     !#   <description>The minimum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
-    !#   <group>output</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -123,7 +121,6 @@ contains
     !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>1.0d16</defaultValue>
     !#   <description>The maximum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
-    !#   <group>output</group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>

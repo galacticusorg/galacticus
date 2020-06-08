@@ -132,10 +132,9 @@ contains
        &,rateAbundancesFuel,rateAbundancesStellar,rateLuminosityStellar,computeRateLuminosityStellar)
     !% Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
     use            :: Abundances_Structure          , only : zeroAbundances
-    use            :: FGSL                          , only : fgsl_interp_accel
     use            :: Galacticus_Nodes              , only : nodeComponent         , nodeComponentBasic , treeNode
     use, intrinsic :: ISO_C_Binding                 , only : c_size_t
-    use            :: Numerical_Interpolation       , only : Interpolate_Done      , Interpolate_Locate
+    use            :: Numerical_Interpolation       , only : interpolator
     use            :: Stellar_Luminosities_Structure, only : max                   , stellarLuminosities, zeroStellarLuminosities
     use            :: Stellar_Populations           , only : stellarPopulationClass
     implicit none
@@ -159,8 +158,7 @@ contains
     integer         (c_size_t                                   )                                :: iHistory
     double precision                                                                             :: ageMaximum                   , ageMinimum            , &
          &                                                                                          currentTime                  , recyclingRate
-    type            (fgsl_interp_accel                          )                                :: interpolationAccelerator
-    logical                                                                                      :: interpolationReset
+    type            (interpolator                               )                                :: interpolator_
 
     ! If a history exists, compute rates.
     if (history_%exists()) then
@@ -168,9 +166,8 @@ contains
        basic       => node %basic()
        currentTime =  basic%time ()
        ! Get interpolating factors in stellar population history.
-       interpolationReset=.true.
-       iHistory          =Interpolate_Locate(history_%time,interpolationAccelerator,currentTime,interpolationReset)
-       call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
+       interpolator_=interpolator(history_%time)
+       iHistory          =interpolator_%locate(currentTime)
        ! Get recycling, energy input, metal recycling and metal yield rates.
        recyclingRate  =history_%data(iHistory,self%          recycledRateIndex                               )
        rateEnergyInput=history_%data(iHistory,self%       rateEnergyInputIndex                               )

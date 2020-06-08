@@ -261,7 +261,7 @@ contains
     use            :: Merger_Tree_Walkers    , only : mergerTreeWalkerAllNodes , mergerTreeWalkerIsolatedNodes
     use            :: Merger_Trees_Dump      , only : Merger_Tree_Dump
     use            :: Numerical_Comparison   , only : Values_Agree
-    use            :: Numerical_Interpolation, only : Interpolate_Done         , Interpolate_Locate
+    use            :: Numerical_Interpolation, only : interpolator
     use            :: String_Handling        , only : operator(//)
     implicit none
     class           (mergerTreeOperatorRegridTimes), intent(inout), target                :: self
@@ -278,8 +278,7 @@ contains
     type            (mergerTreeWalkerAllNodes     )                                       :: treeWalkerAllNodes
     type            (mergerTreeWalkerIsolatedNodes)                                       :: treeWalkerIsolatedNodes
     logical                                                                               :: mergeTargetWarningIssued=.false.
-    type            (fgsl_interp_accel            )                                       :: interpolationAccelerator
-    logical                                                                               :: interpolationReset
+    type            (interpolator                 )                                       :: interpolator_
     integer         (c_size_t                     )                                       :: iNow                            , iParent    , &
          &                                                                                   iTime                           , countNodes
     integer                                                                               :: allocErr
@@ -287,6 +286,8 @@ contains
          &                                                                                   timeNow                         , timeParent
     integer         (kind=kind_int8               )                                       :: firstNewNode                    , nodeIndex
 
+    ! Build an interpolator.
+    interpolator_=interpolator(self%timeGrid)
     ! Iterate over trees.
     currentTree => tree
     do while (associated(currentTree))
@@ -305,8 +306,6 @@ contains
             &                                    scaleNodesByLogMass=.true.  , &
             &                                    edgeLengthsToTimes =.true.    &
             &                                   )
-       ! Ensure interpolation accelerator gets reset.
-       interpolationReset=.true.
        ! Iterate through to tree to:
        !  a) Find the current maximum node index in the tree, and;
        !  b) Snap halos to snapshot times if requested, and;
@@ -340,7 +339,7 @@ contains
              ! Get the time for this node.
              timeNow =  basic%time ()
              ! Find the closest time in the new time grid.
-             iNow    =  Interpolate_Locate(self%timeGrid,interpolationAccelerator,timeNow,reset=interpolationReset,closest=.true.)
+             iNow    =  interpolator_%locate(timeNow,closest=.true.)
              ! Test how close the node is to this time.
              if (Values_Agree(timeNow,self%timeGrid(iNow),relTol=self%snapTolerance)) then
                 ! Adjust the time of the node.
@@ -352,7 +351,7 @@ contains
                    ! Get the merge time for this mergee.
                    timeNow         =  mergeeSatellite%timeOfMerging()
                    ! Find the closest time in the new time grid.
-                   iNow    =  Interpolate_Locate(self%timeGrid,interpolationAccelerator,timeNow,reset=interpolationReset,closest=.true.)
+                   iNow    =  interpolator_%locate(timeNow,closest=.true.)
                    if (Values_Agree(timeNow,self%timeGrid(iNow),relTol=self%snapTolerance)) &
                         & call mergeeSatellite%timeOfMergingSet(self%timeGrid(iNow))
                    mergee => mergee%siblingMergee
@@ -363,7 +362,7 @@ contains
                    ! Get the merge time for this event.
                    timeNow=event%time
                    ! Find the closest time in the new time grid.
-                   iNow   =Interpolate_Locate(self%timeGrid,interpolationAccelerator,timeNow,reset=interpolationReset,closest=.true.)
+                   iNow   =interpolator_%locate(timeNow,closest=.true.)
                    if (Values_Agree(timeNow,self%timeGrid(iNow),relTol=self%snapTolerance)) then
                       event%time=self%timeGrid(iNow)
                       if (associated(event%node)) then
@@ -414,8 +413,8 @@ contains
                 massParent=massNow
              end if
              ! Locate these times in the list of grid times.
-             iNow   =Interpolate_Locate(self%timeGrid,interpolationAccelerator,timeNow   ,reset=interpolationReset)
-             iParent=Interpolate_Locate(self%timeGrid,interpolationAccelerator,timeParent,reset=interpolationReset)
+             iNow   =interpolator_%locate(timeNow   )
+             iParent=interpolator_%locate(timeParent)
              ! For nodes existing precisely at a grid time, ignore this grid point. (These are,
              ! typically, nodes which have been created at these points.)
              if (timeParent == self%timeGrid(iParent)) iParent=iParent-1
@@ -501,7 +500,7 @@ contains
           ! Get the time for this node.
           timeNow=basic%time()
           ! Find the closest time in the new time grid.
-          iNow   =Interpolate_Locate(self%timeGrid,interpolationAccelerator,timeNow,reset=interpolationReset,closest=.true.)
+          iNow   =interpolator_%locate(timeNow,closest=.true.)
           ! If this node does not lie precisely on the grid then remove it.
           if (associated(node%parent) .and. timeNow /= self%timeGrid(iNow)) then
              if (node%isPrimaryProgenitor()) then
@@ -566,8 +565,6 @@ contains
           end if
        end do
        call Galacticus_Display_Message(var_str('Tree contains ')//countNodes//' nodes after regridding',verbosityWorking)
-       ! Clean up interpolation objects.
-       call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
        ! Dump the processed tree if required.
        if (self%dumpTrees) call Merger_Tree_Dump(                              &
             &                                    currentTree                 , &

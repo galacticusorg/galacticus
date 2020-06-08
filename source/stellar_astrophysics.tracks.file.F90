@@ -19,26 +19,25 @@
 
   !% Implements a stellar tracks class in which the tracks are read from file and interpolated.
 
-  use :: FGSL, only : fgsl_interp_accel
-
+  use :: Numerical_Interpolation, only : interpolator
+  
   !# <stellarTracks name="stellarTracksFile">
   !#  <description>A stellar tracks class in which the tracks are read from file and interpolated.</description>
   !# </stellarTracks>
   type, extends(stellarTracksClass) :: stellarTracksFile
      !% A stellar tracks class in which the tracks are read from file and interpolated.
      private
-     type            (varying_string   )                                :: fileName
-     double precision                   , allocatable, dimension(:    ) :: metallicityLogarithmic
-     double precision                   , allocatable, dimension(:,:  ) :: massInitial
-     double precision                   , allocatable, dimension(:,:,:) :: age                                       , luminosityTrack            , &
-          &                                                                temperatureTrack
-     integer                            , allocatable, dimension(:    ) :: countMassInitial
-     integer                            , allocatable, dimension(:,:  ) :: countAge
-     integer                                                            :: countMetallicity
-     type            (fgsl_interp_accel)                                :: interpolationAcceleratorMetallicity       , interpolationAcceleratorAge, &
-          &                                                                interpolationAcceleratorMass
-     logical                                                            :: interpolationResetMetallicity             , interpolationResetAge      , &
-          &                                                                interpolationResetMass
+     type            (varying_string)                                :: fileName
+     double precision                , allocatable, dimension(:    ) :: metallicityLogarithmic
+     double precision                , allocatable, dimension(:,:  ) :: massInitial
+     double precision                , allocatable, dimension(:,:,:) :: age                    , luminosityTrack, &
+          &                                                             temperatureTrack
+     integer                         , allocatable, dimension(:    ) :: countMassInitial
+     integer                         , allocatable, dimension(:,:  ) :: countAge
+     integer                                                         :: countMetallicity
+     type            (interpolator  )                                :: interpolatorMetallicity
+     type            (interpolator  ), allocatable, dimension(:,:  ) :: interpolatorAge
+     type            (interpolator  ), allocatable, dimension(:    ) :: interpolatorMass
    contains
      !@ <objectMethods>
      !@   <object>stellarTracksFile</object>
@@ -202,9 +201,15 @@ contains
     call stellarTracks%close()
     !$ call hdf5Access%unset()
     ! Initialize interpolators.
-    self%interpolationResetMetallicity=.true.
-    self%interpolationResetAge        =.true.
-    self%interpolationResetMass       =.true.
+    allocate(self%interpolatorMass(                        metallicityCountMaximum))
+    allocate(self%interpolatorAge (initialMassCountMaximum,metallicityCountMaximum))
+    self%interpolatorMetallicity=interpolator(self%metallicityLogarithmic)
+    do metallicityCount=1,metallicityCountMaximum
+       self%interpolatorMass(metallicityCount)=interpolator(self%massInitial(1:self%countMassInitial(metallicityCount),metallicityCount))
+       do initialMassCount=1,self%countMassInitial(metallicityCount)
+          self%interpolatorAge(initialMassCount,metallicityCount)=interpolator(self%age(1:self%countAge(initialMassCount,metallicityCount),initialMassCount,metallicityCount))
+       end do
+    end do
     return
   end function fileConstructorInternal
 
@@ -342,8 +347,7 @@ contains
 
   subroutine fileInterpolationCompute(self,initialMass,metallicity,age,interpolationIndicesMetallicity,interpolationIndicesMass,interpolationIndicesAge,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge,metallicityOutOfRange,massOutOfRange,ageOutOfRange)
     !% Get interpolating factors for stellar tracks.
-    use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Numerical_Interpolation, only : Interpolate_Done, Interpolate_Linear_Generate_Factors, Interpolate_Locate
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (stellarTracksFile), intent(inout)                   :: self
     double precision                   , intent(in   )                   :: age                            , initialMass   , &
@@ -379,9 +383,8 @@ contains
        interpolationFactorsMetallicity=[0.0d0,1.0d0]
        metallicityOutOfRange=.true.
     else
-       interpolationIndicesMetallicity(1)=Interpolate_Locate(self%metallicityLogarithmic,self%interpolationAcceleratorMetallicity,logMetallicity,reset=self%interpolationResetMetallicity)
+       call self%interpolatorMetallicity%linearFactors(logMetallicity,interpolationIndicesMetallicity(1),interpolationFactorsMetallicity)
        interpolationIndicesMetallicity(2)=interpolationIndicesMetallicity(1)+1
-       interpolationFactorsMetallicity=Interpolate_Linear_Generate_Factors(self%metallicityLogarithmic,interpolationIndicesMetallicity(1),logMetallicity)
     end if
     ! Loop over metallicities.
     do iMetallicity=1,2
@@ -396,11 +399,8 @@ contains
           interpolationFactorsMass(iMetallicity,:)=[0.0d0,1.0d0]
           massOutOfRange=.true.
        else
-          self%interpolationResetMass=.true.
-          interpolationIndicesMass(iMetallicity,1)=Interpolate_Locate(self%massInitial(1:self%countMassInitial(jMetallicity),jMetallicity),self%interpolationAcceleratorMass,initialMass,reset=self%interpolationResetMass)
-          call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorMass,reset=self%interpolationResetMass)
+          call self%interpolatorMass(iMetallicity)%linearFactors(initialMass,interpolationIndicesMass(iMetallicity,1),interpolationFactorsMass(iMetallicity,:))
           interpolationIndicesMass(iMetallicity,2)=interpolationIndicesMass(iMetallicity,1)+1
-          interpolationFactorsMass(iMetallicity,:)=Interpolate_Linear_Generate_Factors(self%massInitial(1:self%countMassInitial(jMetallicity),jMetallicity),interpolationIndicesMass(iMetallicity,1),initialMass)
        end if
        ! Loop over masses.
        do iMass=1,2
@@ -415,11 +415,8 @@ contains
              interpolationFactorsAge(iMetallicity,iMass,:)=[0.0d0,1.0d0]
              ageOutOfRange=.true.
           else
-             self%interpolationResetAge=.true.
-             interpolationIndicesAge(iMetallicity,iMass,1)=Interpolate_Locate(self%age(1:self%countAge(jMass,jMetallicity),jMass,jMetallicity),self%interpolationAcceleratorAge,age,reset=self%interpolationResetAge)
-             call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorAge,reset=self%interpolationResetAge)
+             call self%interpolatorAge(iMass,iMetallicity)%linearFactors(age,interpolationIndicesAge(iMetallicity,iMass,1),interpolationFactorsAge(iMetallicity,iMass,:))
              interpolationIndicesAge(iMetallicity,iMass,2)=interpolationIndicesAge(iMetallicity,iMass,1)+1
-             interpolationFactorsAge(iMetallicity,iMass,:)=Interpolate_Linear_Generate_Factors(self%age(1:self%countAge(jMass,jMetallicity),jMass,jMetallicity),interpolationIndicesAge(iMetallicity,iMass,1),age)
           end if
        end do
     end do

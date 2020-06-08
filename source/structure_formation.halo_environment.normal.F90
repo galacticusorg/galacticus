@@ -30,10 +30,10 @@
   !# <haloEnvironment name="haloEnvironmentNormal">
   !#  <description>Implements a normally-distributed halo environment.</description>
   !#  <deepCopy>
-  !#   <functionClass variables="sphericalCollapseSolver_"/>
+  !#   <functionClass variables="sphericalCollapseSolver_ ,distributionOverdensity, distributionOverdensityMassive"/>
   !#  </deepCopy>
   !#  <stateStorable>
-  !#   <functionClass variables="sphericalCollapseSolver_"/>
+  !#   <functionClass variables="sphericalCollapseSolver_,distributionOverdensity, distributionOverdensityMassive"/>
   !#  </stateStorable>
   !# </haloEnvironment>
   type, extends(haloEnvironmentClass) :: haloEnvironmentNormal
@@ -45,8 +45,8 @@
      class           (linearGrowthClass                                ), pointer :: linearGrowth_                   => null()
      class           (criticalOverdensityClass                         ), pointer :: criticalOverdensity_            => null()
      type            (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt ), pointer :: sphericalCollapseSolver_        => null()
-     type            (distributionFunction1DPeakBackground             )          :: distributionOverdensity
-     type            (distributionFunction1DNormal                     )          :: distributionOverdensityMassive
+     type            (distributionFunction1DPeakBackground             ), pointer :: distributionOverdensity         => null()
+     type            (distributionFunction1DNormal                     ), pointer :: distributionOverdensityMassive  => null()
      type            (table2DLinLinLin                                 )          :: linearToNonLinear
      double precision                                                             :: radiusEnvironment                        , variance           , &
           &                                                                          environmentalOverdensityMaximum          , overdensityPrevious, &
@@ -149,16 +149,12 @@ contains
          &                                 +1.0d0                                                  &
          &                                 -limitUpperBuffer                                       &
          &                                )
-    self%distributionOverdensity        =distributionFunction1DPeakBackground(                                      &
-         &                                                                         overdensityVariance            , &
-         &                                                                    self%environmentalOverdensityMaximum  &
-         &                                                                   )
+    allocate(self%distributionOverdensity)
+    !# <referenceConstruct owner="self" isResult="yes" object="distributionOverdensity" constructor="distributionFunction1DPeakBackground(overdensityVariance,self%environmentalOverdensityMaximum)"/>
     ! Construct a standard normal distribution function which will be used for assigning the overdensity for trees which exceed
     ! the mass of the background.
-    self%distributionOverdensityMassive=distributionFunction1DNormal         (                &
-         &                                                                    mean    =0.0d0, &
-         &                                                                    variance=1.0d0  &
-         &                                                                   )
+    allocate(self%distributionOverdensityMassive)
+    !# <referenceConstruct owner="self" isResult="yes" object="distributionOverdensityMassive" constructor="distributionFunction1DNormal(mean=0.0d0,variance=1.0d0)"/>
     ! Find the fraction of cosmological volume which is included in regions below the collapse threshold. This is used to scale
     ! the PDF such that when the mass function is averaged over the PDF we get the correct mass function.
     self%includedVolumeFraction         =Error_Function(self%environmentalOverdensityMaximum/sqrt(2.0d0)/sqrt(overdensityVariance))
@@ -177,12 +173,14 @@ contains
     implicit none
     type(haloEnvironmentNormal), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"      />
-    !# <objectDestructor name="self%cosmologicalMassVariance_" />
-    !# <objectDestructor name="self%cosmologyFunctions_"       />
-    !# <objectDestructor name="self%criticalOverdensity_"      />
-    !# <objectDestructor name="self%linearGrowth_"             />
-    !# <objectDestructor name="self%sphericalCollapseSolver_"  />
+    !# <objectDestructor name="self%cosmologyParameters_"          />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"     />
+    !# <objectDestructor name="self%cosmologyFunctions_"           />
+    !# <objectDestructor name="self%criticalOverdensity_"          />
+    !# <objectDestructor name="self%linearGrowth_"                 />
+    !# <objectDestructor name="self%sphericalCollapseSolver_"      />
+    !# <objectDestructor name="self%distributionOverdensity"       />
+    !# <objectDestructor name="self%distributionOverdensityMassive"/>
     return
   end subroutine normalDestructor
 

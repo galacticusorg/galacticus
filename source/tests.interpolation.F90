@@ -21,43 +21,64 @@
 
 program Test_Interpolation
   !% Tests that numerical interpolation code works correctly.
-  use :: FGSL                   , only : fgsl_interp                   , fgsl_interp_accel
-  use :: Galacticus_Display     , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: Numerical_Interpolation, only : Interpolate                   , Interpolate_Derivative
-  use :: Table_Labels           , only : extrapolationTypeExtrapolate  , extrapolationTypeFix
-  use :: Unit_Tests             , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use, intrinsic :: ISO_C_Binding, only : c_size_t
+  use :: Galacticus_Display      , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Numerical_Interpolation , only : interpolator
+  use :: Table_Labels            , only : extrapolationTypeExtrapolate  , extrapolationTypeFix
+  use :: Unit_Tests              , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish, &
+       &                                  compareLessThan               , compareGreaterThan
   implicit none
-  type            (fgsl_interp      )                 :: interpolationObject
-  type            (fgsl_interp_accel)                 :: interpolationAccelerator
-  logical                                             :: interpolationReset      =.true.
-  double precision                   , dimension(0:9) :: xArray                  =[1.0d0,3.0d0,3.3d0,4.3d0,6.7d0,7.2d0,8.9d0,9.1d0,12.0d0,13.0d0]
-  double precision                   , dimension(0:9) :: yArray                  =[2.0d0,3.0d0,-23.0d0,4.0d0,6.0d0,-1.0d0,-5.0d0,-0.1d0,5.0d0,9.0d0]
-  double precision                                    :: x                                                                                          , y
-
+  type            (interpolator), allocatable   :: interpolator_
+  double precision              , dimension(10) :: xArray       =[1.0d0,3.0d0,3.3d0,4.3d0,6.7d0,7.2d0,8.9d0,9.1d0,12.0d0,13.0d0]
+  double precision              , dimension(10) :: yArray       =[2.0d0,3.0d0,-23.0d0,4.0d0,6.0d0,-1.0d0,-5.0d0,-0.1d0,5.0d0,9.0d0]
+  double precision                              :: x                                                                               , y
+  integer         (c_size_t    )                :: i
+  
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Numerical interpolation")
 
-  ! Test interpolations.
+  ! Test location.
+  allocate(interpolator_)
+  interpolator_=interpolator(xArray,yArray)
   x=5.5d0
-  y=Interpolate(xArray,yArray,interpolationObject,interpolationAccelerator,x,reset=interpolationReset)
+  i=interpolator_%locate(x)
+  deallocate(interpolator_)
+  call Assert("location (lower bound)",xArray(i           ),x,compare=compareLessThan   )
+  call Assert("location (upper bound)",xArray(i+1_c_size_t),x,compare=compareGreaterThan)
+
+  ! Test interpolations.
+  allocate(interpolator_)
+  interpolator_=interpolator(xArray,yArray)
+  x=5.5d0
+  y=interpolator_%interpolate(x)
+  deallocate(interpolator_)
   call Assert("linear interpolation",y,5.0d0)
 
   ! Test derivative interpolations.
+  allocate(interpolator_)
+  interpolator_=interpolator(xArray,yArray)
   x=5.5d0
-  y=Interpolate_Derivative(xArray,yArray,interpolationObject,interpolationAccelerator,x,reset=interpolationReset)
+  y=interpolator_%derivative(x)
+  deallocate(interpolator_)
   call Assert("linear derivative interpolation",y,2.0d0/2.4d0,relTol=1.0d-6)
 
   ! Test linear extrapolation.
+  allocate(interpolator_)
+  interpolator_=interpolator(xArray,yArray,extrapolationType=extrapolationTypeExtrapolate)
   x=15.0d0
-  y=Interpolate(xArray,yArray,interpolationObject,interpolationAccelerator,x,reset=interpolationReset,extrapolationType=extrapolationTypeExtrapolate)
+  y=interpolator_%interpolate(x)
+  deallocate(interpolator_)
   call Assert("linear extrapolation",y,17.0d0)
 
   ! Test fixed extrapolation.
+  allocate(interpolator_)
+  interpolator_=interpolator(xArray,yArray,extrapolationType=extrapolationTypeFix)
   x=15.0d0
-  y=Interpolate(xArray,yArray,interpolationObject,interpolationAccelerator,x,reset=interpolationReset,extrapolationType=extrapolationTypeFix)
+  y=interpolator_%interpolate(x)
+  deallocate(interpolator_)
   call Assert("fixed extrapolation",y,9.0d0)
 
   ! End unit tests.

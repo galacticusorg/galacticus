@@ -883,14 +883,14 @@ CODE
 				      $declaration->{'intrinsic'} eq "type"
 				     )
 				     &&
-				     (grep {$_->{'type'} eq $type} @{$deepCopyActions->{'deepCopyActions'}})
+				     (grep {$_->{'type'} eq $type} &List::ExtraUtils::as_array($deepCopyActions->{'deepCopyActions'}))
 				    ) {
 					my $rank = 0;
 					if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
-					    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,]+)\)/} @{$declaration->{'attributes'}});
+					    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
 					    $rank        = ($dimensionDeclarator =~ tr/,//)+1;
 					    $rankMaximum = $rank
-						if ( $rank > $rankMaximum );
+						if ( $rank > $rankMaximum );					    
 					}
 					foreach my $variableName ( @{$declaration->{'variables'}} ) {
 					    $assignments .= "if (allocated(self%".$variableName.")) then\n"
@@ -995,25 +995,6 @@ CODE
 					    }
 					}
 				    }
-				}
-				# Deallocate FGSL interpolators.
-				if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     $declaration->{'type'     } =~ m/^\s*fgsl_interp\s*$/i
-				    ) {
-					$assignments .= "destination%".$_."=fgsl_interp()\n"
-					    foreach ( @{$declaration->{'variables'}} );
-				}
-				if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     $declaration->{'type'     } =~ m/^\s*fgsl_interp_accel\s*$/i
-				    ) {
-					$assignments .= "destination%".$_."=fgsl_interp_accel()\n"
-					    foreach ( @{$declaration->{'variables'}} );
 				}
 				# Reinitialize OpenMP locks.
 				if
@@ -1127,11 +1108,11 @@ CODE
 			  $declaration->{'intrinsic'} eq "type"
 			 )
 			 &&
-			 (grep {$_->{'type'} eq $type} @{$deepCopyActions->{'deepCopyActions'}})
+			 (grep {$_->{'type'} eq $type} &List::ExtraUtils::as_array($deepCopyActions->{'deepCopyActions'}))
 			) {
 			    my $rank = 0;
 			    if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
-				my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,]+)\)/} @{$declaration->{'attributes'}});
+				my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
 				$rank        = ($dimensionDeclarator =~ tr/,//)+1;
 				$rankMaximum = $rank
 				    if ( $rank > $rankMaximum );
@@ -1232,25 +1213,6 @@ CODE
 			    }
 			}
 		    }
-		    # Deallocate FGSL interpolators.
-		    if
-			(
-			 $declaration->{'intrinsic'} eq "type"
-			 &&
-			 $declaration->{'type'     } =~ m/^\s*fgsl_interp\s*$/i
-			) {
-			    $assignments .= "destination%".$_."=fgsl_interp()\n"
-				foreach ( @{$declaration->{'variables'}} );
-		    }
-		    if
-			(
-			 $declaration->{'intrinsic'} eq "type"
-			 &&
-			 $declaration->{'type'     } =~ m/^\s*fgsl_interp_accel\s*$/i
-			) {
-			    $assignments .= "destination%".$_."=fgsl_interp_accel()\n"
-				foreach ( @{$declaration->{'variables'}} );
-		    }
 		}
 		# Add any objects declared in the functionClassType class.
 		if ( defined($functionClassType) ) {
@@ -1344,25 +1306,6 @@ CODE
 					    }
 					}
 				    }
-				}
-				# Deallocate FGSL interpolators.
-				if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     $declaration->{'type'     } =~ m/^\s*fgsl_interp\s*$/i
-				    ) {
-					$assignments .= "destination%".$_."=fgsl_interp()\n"
-					    foreach ( @{$declaration->{'variables'}} );
-				}
-				if
-				    (
-				     $declaration->{'intrinsic'} eq "type"
-				     &&
-				     $declaration->{'type'     } =~ m/^\s*fgsl_interp_accel\s*$/i
-				    ) {
-					$assignments .= "destination%".$_."=fgsl_interp_accel()\n"
-					    foreach ( @{$declaration->{'variables'}} );
 				}
 				# Reinitialize OpenMP locks.
 				if
@@ -1564,9 +1507,9 @@ CODE
 					    $gslStateFileUsed = 1;
 					}
 				    } elsif (
-					(  grep {$_->{'type'} eq $type    } @{$stateStorables->{'stateStorables'        }})
+					(  grep {$_->{'type'} eq $type    } &List::ExtraUtils::as_array($stateStorables->{'stateStorables'        }))
 					||
-					(  grep {$_           eq $type    } @{$stateStorables->{'functionClassInstances'}})
+					(  grep {$_           eq $type    } &List::ExtraUtils::as_array($stateStorables->{'functionClassInstances'}))
 					){
 					# This is a non-pointer object which is explicitly stateStorable.
 					# Get presence of pointer attribute.
@@ -1583,7 +1526,7 @@ CODE
 						unless ( (! $isPointer) || grep {lc($_) eq lc($variableName)} @explicits );
 					    my $rank = 0;
 					    if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
-						my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,]+)\)/} @{$declaration->{'attributes'}});
+						my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
 						$rank        = ($dimensionDeclarator =~ tr/,//)+1;
 						$rankMaximum = $rank
 						    if ( $rank > $rankMaximum );
@@ -1802,9 +1745,9 @@ CODE
 				$gslStateFileUsed = 1;
 			    }
 			} elsif (
-			    (  grep {$_->{'type'} eq $type    } @{$stateStorables->{'stateStorables'        }})
+			    (  grep {$_->{'type'} eq $type    } &List::ExtraUtils::as_array($stateStorables->{'stateStorables'        }))
 			    ||
-			    (  grep {$_           eq $type    } @{$stateStorables->{'functionClassInstances'}})
+			    (  grep {$_           eq $type    } &List::ExtraUtils::as_array($stateStorables->{'functionClassInstances'}))
 			    ){
 			    # Get presence of pointer attribute.
 			    my $isPointer = grep {$_ eq "pointer"} @{$declaration->{'attributes'}};
@@ -1842,7 +1785,7 @@ CODE
 					$inputCode  .= &performIO("  read (stateFile) storedShape\n");
 				    }
 				    if ( $declaration->{'intrinsic'} eq "class" ) {
-					(my $storable) = grep {$_->{'type'} eq $type} @{$stateStorables->{'stateStorables'}};
+					(my $storable) = grep {$_->{'type'} eq $type} &List::ExtraUtils::as_array($stateStorables->{'stateStorables'});
 					my $functionName = $type."ClassRestore".($rank > 0 ? $rank."D" : "");
 					$stateRestoreModules{$storable->{'module'}.",only:".$functionName} = 1;
 					$inputCode  .= "  call ".$functionName."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";
@@ -1999,9 +1942,9 @@ CODE
 					}
 				    } elsif (
 					(
-					 (  grep {$_->{'type'} eq $type    } @{$stateStorables->{'stateStorables'        }})
+					 (  grep {$_->{'type'} eq $type    } &List::ExtraUtils::as_array($stateStorables->{'stateStorables'        }))
 					 ||
-					 (  grep {$_           eq $type    } @{$stateStorables->{'functionClassInstances'}})
+					 (  grep {$_           eq $type    } &List::ExtraUtils::as_array($stateStorables->{'functionClassInstances'}))
 					)
 					&&
 					(! grep {$_           eq "pointer"} @{$declaration   ->{'attributes'            }})
@@ -2023,7 +1966,7 @@ CODE
 						if ( grep {lc($_) eq lc($variableName)} @excludes );
 					    my $rank = 0;
 					    if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
-						my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,]+)\)/} @{$declaration->{'attributes'}});
+						my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
 						$rank        = ($dimensionDeclarator =~ tr/,//)+1;
 						$rankMaximum = $rank
 						    if ( $rank > $rankMaximum );
@@ -2045,7 +1988,7 @@ CODE
 						    $inputCode  .= &performIO("  read (stateFile) storedShape\n");
 						}
 						if ( $declaration->{'intrinsic'} eq "class" ) {
-						    (my $storable) = grep {$_->{'type'} eq $type} @{$stateStorables->{'stateStorables'}};
+						    (my $storable) = grep {$_->{'type'} eq $type} &List::ExtraUtils::as_array($stateStorables->{'stateStorables'});
 						    my $functionName = $type."ClassRestore".($rank > 0 ? $rank."D" : "");
 						    $stateRestoreModules{$storable->{'module'}.",only:".$functionName} = 1;
 						    $inputCode  .= "  call ".$functionName."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";

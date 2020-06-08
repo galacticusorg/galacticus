@@ -61,7 +61,6 @@ contains
     !#   <defaultSource>\citep{villalobos_improved_2013}</defaultSource>
     !#   <defaultValue>0.44d0</defaultValue>
     !#   <description>The exponent of $1+z$ appearing in the \cite{villalobos_improved_2013} modifier for satellite merging timescales.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
     !#   <type>string</type>
     !# </inputParameter>

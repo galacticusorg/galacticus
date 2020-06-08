@@ -87,12 +87,11 @@ contains
 
   double precision function zhangHuiHighOrderProbability(self,variance,time,node)
     !% Return the excursion set barrier at the given variance and time.
-    use            :: Galacticus_Display     , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear   , Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-          &                                           verbosityWorking
-    use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Memory_Management      , only : allocateArray             , deallocateArray
-    use            :: Numerical_Interpolation, only : Interpolate_Done          , Interpolate_Linear_Generate_Factors, Interpolate_Locate
-    use            :: Numerical_Ranges       , only : Make_Range                , rangeTypeLinear                    , rangeTypeLogarithmic
+    use            :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
+          &                                      verbosityWorking
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
+    use            :: Memory_Management , only : allocateArray             , deallocateArray
+    use            :: Numerical_Ranges  , only : Make_Range                , rangeTypeLinear                 , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingZhangHuiHighOrder), intent(inout)                 :: self
     double precision                                            , intent(in   )                 :: variance                             , time
@@ -274,20 +273,19 @@ contains
        end do
        call Galacticus_Display_Counter_Clear(verbosityWorking)
        call Galacticus_Display_Unindent("done",verbosityWorking)
-       ! Reset the interpolators.
-       call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVariance,reset=self%interpolationResetVariance)
-       call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorTime    ,reset=self%interpolationResetTime    )
-       self%interpolationResetVariance=.true.
-       self%interpolationResetTime    =.true.
+       ! Build the interpolators.
+       if (allocated(self%interpolatorVariance)) deallocate(self%interpolatorVariance)
+       if (allocated(self%interpolatorTime    )) deallocate(self%interpolatorTime    )
+       allocate(self%interpolatorVariance)
+       allocate(self%interpolatorTime    )
+       self%interpolatorVariance=interpolator(self%varianceTable)
+       self%interpolatorTime    =interpolator(self%timeTable    )
        ! Record that the table is now built.
        self%tableInitialized=.true.
     end if
-    ! Get interpolation in time.
-    iTime    =Interpolate_Locate                 (self%timeTable    ,self%interpolationAcceleratorTime    ,time    ,reset=self%interpolationResetTime    )
-    hTime    =Interpolate_Linear_Generate_Factors(self%timeTable    ,iTime                                ,time                                          )
-    ! Get interpolation in variance.
-    iVariance=Interpolate_Locate                 (self%varianceTable,self%interpolationAcceleratorVariance,variance,reset=self%interpolationResetVariance)
-    hVariance=Interpolate_Linear_Generate_Factors(self%varianceTable,iVariance                            ,variance                                      )
+    ! Get interpolating factors.
+    call self%interpolatorTime    %linearFactors(time    ,iTime    ,hTime    )
+    call self%interpolatorVariance%linearFactors(variance,iVariance,hVariance)
     ! Compute first crossing probability by interpolating.
     zhangHuiHighOrderProbability=0.0d0
     do jTime=0,1

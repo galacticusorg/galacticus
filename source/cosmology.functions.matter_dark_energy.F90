@@ -142,8 +142,7 @@ contains
 
   double precision function matterDarkEnergyCosmicTime(self,expansionFactor,collapsingPhase)
     !% Return the cosmological matter density in units of the critical density at the present day.
-    use :: Galacticus_Error       , only : Galacticus_Error_Report
-    use :: Numerical_Interpolation, only : Interpolate
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     double precision                                    , intent(in   )           :: expansionFactor
@@ -176,15 +175,7 @@ contains
        end do
     end if
     ! Interpolate to get cosmic time.
-    matterDarkEnergyCosmicTime                         &
-         & =Interpolate(                               &
-         &              self%ageTableExpansionFactor , &
-         &              self%ageTableTime            , &
-         &              self%interpolationObject     , &
-         &              self%interpolationAccelerator, &
-         &              expansionFactor              , &
-         &              reset=self%resetInterpolation  &
-         &             )
+    matterDarkEnergyCosmicTime=self%interpolatorTime%interpolate(expansionFactor)
     ! Release lock on interpolation tables.
     !$ call OMP_Unset_Lock(self%expansionFactorTableLock)
     return
@@ -467,10 +458,9 @@ contains
 
   subroutine matterDarkEnergyMakeExpansionFactorTable(self,time)
     !% Builds a table of expansion factor vs. time for dark energy universes.
-    use :: Cosmology_Parameters   , only : hubbleUnitsTime
-    use :: Memory_Management      , only : allocateArray   , deallocateArray
-    use :: Numerical_Interpolation, only : Interpolate_Done
-    use :: Numerical_Ranges       , only : Make_Range      , rangeTypeLogarithmic
+    use :: Cosmology_Parameters, only : hubbleUnitsTime
+    use :: Memory_Management   , only : allocateArray  , deallocateArray
+    use :: Numerical_Ranges    , only : Make_Range     , rangeTypeLogarithmic
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy)             , intent(inout), target   :: self
     double precision                                                 , intent(in   ), optional :: time
@@ -612,10 +602,11 @@ contains
           end if
        end if
     end do
-    call Interpolate_Done(self%interpolationObject,self%interpolationAccelerator,self%resetInterpolation)
-    self%resetInterpolation       =.true.
+    if (allocated(self%interpolatorTime)) deallocate(self%interpolatorTime)
+    allocate(self%interpolatorTime)
+    self%interpolatorTime=interpolator(self%ageTableExpansionFactor,self%ageTableTime)
     ! Flag that the table is now initialized.
-    self%ageTableInitialized      =.true.
+    self%ageTableInitialized=.true.
     return
   end subroutine matterDarkEnergyMakeExpansionFactorTable
 

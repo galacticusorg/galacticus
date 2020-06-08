@@ -122,12 +122,11 @@ contains
 
   subroutine sampledDistributionConstruct(self,time,mass,massMinimum,massMaximum,weight)
     !% Construct a set of merger tree masses by sampling from a distribution.
-    use            :: FGSL                   , only : fgsl_interp            , fgsl_interp_accel
     use            :: Galacticus_Error       , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Memory_Management      , only : allocateArray          , deallocateArray
     use            :: Numerical_Integration  , only : integrator
-    use            :: Numerical_Interpolation, only : Interpolate            , Interpolate_Done
+    use            :: Numerical_Interpolation, only : interpolator
     use            :: Numerical_Ranges       , only : Make_Range             , rangeTypeLinear
     use            :: Sorting                , only : sort
     use            :: Table_Labels           , only : extrapolationTypeFix
@@ -145,9 +144,8 @@ contains
          &                                                                                                  massFunctionSampleCount
     double precision                                                                                     :: probability                          , massFunctionSampleLogPrevious
     type            (integrator                              )                                           :: integrator_
-    type            (fgsl_interp                             )                                           :: interpolationObject
-    type            (fgsl_interp_accel                       )                                           :: interpolationAccelerator
-    logical                                                                                              :: interpolationReset                   , monotonize
+    type            (interpolator                            )                                           :: interpolator_
+    logical                                                                                              :: monotonize
     !$GLC attributes unused :: weight
 
     ! Generate a randomly sampled set of halo masses.
@@ -213,40 +211,19 @@ contains
        end if
     end do
     ! Compute the corresponding halo masses by interpolation in the cumulative probability distribution function.
-    interpolationReset=.true.
+    interpolator_=interpolator(                                                                                 &
+            &                                    massFunctionSampleProbability     (1:massFunctionSampleCount), &
+            &                                    massFunctionSampleLogMassMonotonic(1:massFunctionSampleCount), &
+            &                  extrapolationType=extrapolationTypeFix                                           &
+            &                 )
     do iTree=1,treeCount
-       mass       (iTree)=Interpolate(                                                                                 &
-            &                                           massFunctionSampleProbability     (1:massFunctionSampleCount), &
-            &                                           massFunctionSampleLogMassMonotonic(1:massFunctionSampleCount), &
-            &                                           interpolationObject                                          , &
-            &                                           interpolationAccelerator                                     , &
-            &                                           mass                              (  iTree                  ), &
-            &                         reset            =interpolationReset                                           , &
-            &                         extrapolationType=extrapolationTypeFix                                           &
-            &                        )
-       massMinimum(iTree)=Interpolate(                                                                                 &
-            &                                           massFunctionSampleProbability     (1:massFunctionSampleCount), &
-            &                                           massFunctionSampleLogMassMonotonic(1:massFunctionSampleCount), &
-            &                                           interpolationObject                                          , &
-            &                                           interpolationAccelerator                                     , &
-            &                                           massMinimum                       (  iTree                  ), &
-            &                         reset            =interpolationReset                                           , &
-            &                         extrapolationType=extrapolationTypeFix                                           &
-            &                        )
-       massMaximum(iTree)=Interpolate(                                                                                 &
-            &                                           massFunctionSampleProbability     (1:massFunctionSampleCount), &
-            &                                           massFunctionSampleLogMassMonotonic(1:massFunctionSampleCount), &
-            &                                           interpolationObject                                          , &
-            &                                           interpolationAccelerator                                     , &
-            &                                           massMaximum                       (  iTree                  ), &
-            &                         reset            =interpolationReset                                           , &
-            &                         extrapolationType=extrapolationTypeFix                                           &
-            &                        )
+       mass       (iTree)=interpolator_%interpolate(mass       (iTree ))
+       massMinimum(iTree)=interpolator_%interpolate(massMinimum(iTree ))
+       massMaximum(iTree)=interpolator_%interpolate(massMaximum(iTree ))
     end do
     mass       =10.0d0**mass
     massMinimum=10.0d0**massMinimum
     massMaximum=10.0d0**massMaximum
-    call Interpolate_Done(interpolationObject,interpolationAccelerator,interpolationReset)
     call deallocateArray(massFunctionSampleLogMass         )
     call deallocateArray(massFunctionSampleProbability     )
     call deallocateArray(massFunctionSampleLogMassMonotonic)

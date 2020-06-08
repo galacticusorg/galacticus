@@ -72,7 +72,6 @@ contains
        !#   <name>times</name>
        !#   <cardinality>1..*</cardinality>
        !#   <description>A list of (space-separated) times at which \glc\ results should be output. Times need not be in any particular order.</description>
-       !#   <group>output</group>
        !#   <source>parameters</source>
        !#   <type>real</type>
        !# </inputParameter>
@@ -86,7 +85,6 @@ contains
        !#   <type>real</type>
        !#   <cardinality>1..*</cardinality>
        !#   <source>parameters</source>
-       !#   <group>output</group>
        !# </inputParameter>
        call sort(times)
        times=Array_Reverse(times)

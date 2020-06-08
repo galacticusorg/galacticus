@@ -66,9 +66,9 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type   (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)                :: self
-    type   (inputParameters                                                ), intent(inout) :: parameters
-    class  (cosmologyFunctionsClass                                        ), pointer       :: cosmologyFunctions_
-    logical                                                                                 :: tableStore
+    type   (inputParameters                                               ), intent(inout) :: parameters
+    class  (cosmologyFunctionsClass                                       ), pointer       :: cosmologyFunctions_
+    logical                                                                                :: tableStore
 
     !# <inputParameter>
     !#   <name>tableStore</name>
@@ -125,8 +125,8 @@ contains
     !% Recompute the look-up tables for virial density contrast.
     implicit none
     class           (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout) :: self
-    double precision                                                                 , intent(in   ) :: time
-    logical                                                                                          :: remakeTable
+    double precision                                                                , intent(in   ) :: time
+    logical                                                                                         :: remakeTable
 
     ! Check if we need to recompute our table.
     if (self%tableInitialized) then
@@ -176,7 +176,7 @@ contains
     end if
     ! Remake the table if necessary.
     call self%retabulate(timeActual)
-    ! Interpolate to get the expansion factor.
+    ! Interpolate to get the density contrast.
     sphericalCollapseClsnlssMttrCsmlgclCnstntDensityContrast=self%deltaVirial%interpolate(timeActual)
     return
   end function sphericalCollapseClsnlssMttrCsmlgclCnstntDensityContrast
@@ -186,11 +186,11 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
-    double precision                                                                 , intent(in   )           :: mass
-    double precision                                                                 , intent(in   ), optional :: time            , expansionFactor
-    logical                                                                          , intent(in   ), optional :: collapsing
-    logical                                                                                                    :: collapsingActual
-    double precision                                                                                           :: timeActual
+    double precision                                                                , intent(in   )           :: mass
+    double precision                                                                , intent(in   ), optional :: time            , expansionFactor
+    logical                                                                         , intent(in   ), optional :: collapsing
+    logical                                                                                                   :: collapsingActual
+    double precision                                                                                          :: timeActual
     !$GLC attributes unused :: mass
 
     ! Determine which type of input we have.

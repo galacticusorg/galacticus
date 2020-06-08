@@ -136,7 +136,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>alpha</variable>
     !#   <defaultValue>1.12d0</defaultValue>
-    !#   <attachedTo>module</attachedTo>
     !#   <description>The parameter $\alpha$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>

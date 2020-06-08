@@ -128,7 +128,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins in the mass function for covariance calculations.</description>
-    !#   <group>output</group>
     !#   <source>parameters</source>
     !#   <type>boolean</type>
     !# </inputParameter>
@@ -161,7 +160,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether or not to include the halo contribution to mass function covariance matrices.</description>
-    !#   <group>output</group>
     !#   <source>parameters</source>
     !#   <type>boolean</type>
     !# </inputParameter>
@@ -806,28 +804,17 @@ contains
 
   double precision function massFunctionCovarianceLargeScaleStructureIntegrand(timePrime)
     !% Integral for LSS contribution to the covariance matrix.
-    use :: FGSL                   , only : fgsl_interp, fgsl_interp_accel
-    use :: Numerical_Interpolation, only : Interpolate, Interpolate_Done
+    use :: Numerical_Interpolation, only : interpolator
     implicit none
-    double precision                   , intent(in   ) :: timePrime
-    type            (fgsl_interp      )                :: interpolationObject
-    type            (fgsl_interp_accel)                :: interpolationAccelerator
-    logical                                            :: interpolationReset
-    double precision                                   :: bias                    , powerSpectrumValue
+    double precision              , intent(in   ) :: timePrime
+    type            (interpolator)                :: interpolator_
+    double precision                              :: bias         , powerSpectrumValue
 
     ! Copy the time to module scope.
     massFunctionCovarianceSelfCopy%time=timePrime
     ! Get the bias-mass function product for the I bin.
-    interpolationReset=.true.
-    bias              =Interpolate(                                                                                         &
-         &                               massFunctionCovarianceSelfCopy%timeTable                                         , &
-         &                               massFunctionCovarianceSelfCopy%biasTable(:,massFunctionCovarianceSelfCopy%lssBin), &
-         &                               interpolationObject                                                              , &
-         &                               interpolationAccelerator                                                         , &
-         &                               massFunctionCovarianceSelfCopy%time                                              , &
-         &                         reset=interpolationReset                                                                 &
-         &                        )
-    call Interpolate_Done(interpolationObject,interpolationAccelerator,interpolationReset)
+    interpolator_=interpolator             (massFunctionCovarianceSelfCopy%timeTable,massFunctionCovarianceSelfCopy%biasTable(:,massFunctionCovarianceSelfCopy%lssBin))
+    bias         =interpolator_%interpolate(massFunctionCovarianceSelfCopy%time                                                                                       )
     ! Get the nonlinear power spectrum for the current wavenumber and time.
     powerSpectrumValue=massFunctionCovarianceSelfCopy%powerSpectrumNonlinear_%value(massFunctionCovarianceSelfCopy%waveNumberGlobal,massFunctionCovarianceSelfCopy%time)
     ! Return the cross-correlation biased power spectrum multiplied by the volume element.

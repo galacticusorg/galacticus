@@ -52,7 +52,7 @@ module Root_Finder
   !#   <setTo variables="functionInitialized" state=".false."/>
   !#  </rootFinder>
   !# </deepCopyActions>
-
+  
   ! Solver types.
   integer, public, parameter :: gsl_root_fsolver_bisection   =1
   integer, public, parameter :: gsl_root_fsolver_brent       =2

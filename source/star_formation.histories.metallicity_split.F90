@@ -139,10 +139,10 @@ contains
        !# <inputParameter>
        !#   <name>metallicityBoundaries</name>
        !#   <description>The metallicities corresponding to boundaries between metallicity bins to use when tabulating star formation histories.</description>
+       !#   <source>parameters</source>
        !#   <variable>metallicityBoundaries(1:size(metallicityBoundaries)-1)</variable>
        !#   <type>real</type>
        !#   <cardinality>1..</cardinality>
-       !#   <group>output</group>
        !# </inputParameter>
        metallicityBoundaries(size(metallicityBoundaries))=metallicitySplitMetallicityInfinite
     else

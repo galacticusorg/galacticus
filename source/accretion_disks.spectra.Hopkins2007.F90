@@ -74,12 +74,9 @@ contains
     call self%buildFile()
     ! Load the file.
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock           (char(self%fileName),self%fileLock,lockIsShared=.true.)
-    call self%loadFile       (char(self%fileName)                                  )
-    call File_Unlock         (                    self%fileLock                    )
-    ! Initialize interpolators.
-    self%resetLuminosity=.true.
-    self%resetWavelength=.true.
+    call File_Lock    (char(self%fileName),self%fileLock,lockIsShared=.true.)
+    call self%loadFile(char(self%fileName)                                  )
+    call File_Unlock  (                    self%fileLock                    )
     return
   end function hopkins2007ConstructorInternal
 

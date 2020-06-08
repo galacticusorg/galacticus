@@ -118,6 +118,7 @@ module Interface_GSL
   ! Error codes.
   !# <gslConstant variable="GSL_Success" gslSymbol="GSL_SUCCESS" gslHeader="gsl_errno" type="integer"/>
   !# <gslConstant variable="GSL_ESing"   gslSymbol="GSL_ESING"   gslHeader="gsl_errno" type="integer"/>
+  !# <gslConstant variable="GSL_EDom"    gslSymbol="GSL_EDOM"    gslHeader="gsl_errno" type="integer"/>
 
 contains
 

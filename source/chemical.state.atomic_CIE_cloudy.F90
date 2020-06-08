@@ -73,37 +73,35 @@
 
 contains
 
-  function atomicCIECloudyConstructorParameters(parameters)
+  function atomicCIECloudyConstructorParameters(parameters) result(self)
     !% Constructor for the ``atomic CIE Cloudy'' chemical state class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(chemicalStateAtomicCIECloudy)                :: atomicCIECloudyConstructorParameters
+    type(chemicalStateAtomicCIECloudy)                :: self
     type(inputParameters             ), intent(inout) :: parameters
     !$GLC attributes unused :: parameters
 
-    atomicCIECloudyConstructorParameters=atomicCIECloudyConstructorInternal()
+    self=chemicalStateAtomicCIECloudy()
     return
   end function atomicCIECloudyConstructorParameters
 
-  function atomicCIECloudyConstructorInternal()
+  function atomicCIECloudyConstructorInternal() result(self)
     !% Internal constructor for the ``atomic CIE Cloudy'' chemical state class.
     use :: Chemical_Abundances_Structure, only : unitChemicalAbundances
     implicit none
-    type(chemicalStateAtomicCIECloudy) :: atomicCIECloudyConstructorInternal
+    type(chemicalStateAtomicCIECloudy) :: self
 
     ! Initialize.
-    atomicCIECloudyConstructorInternal%electronDensityPrevious        =-1.0d0
-    atomicCIECloudyConstructorInternal%electronDensitySlopePrevious   =-1.0d0
-    atomicCIECloudyConstructorInternal%chemicalDensitiesPrevious      =-unitChemicalAbundances
-    atomicCIECloudyConstructorInternal%    metallicityPrevious        =-1.0d0
-    atomicCIECloudyConstructorInternal%    metallicitySlopePrevious   =-1.0d0
-    atomicCIECloudyConstructorInternal%    metallicityChemicalPrevious=-1.0d0
-    atomicCIECloudyConstructorInternal%    temperaturePrevious        =-1.0d0
-    atomicCIECloudyConstructorInternal%    temperatureSlopePrevious   =-1.0d0
-    atomicCIECloudyConstructorInternal%    temperatureChemicalPrevious=-1.0d0
-    atomicCIECloudyConstructorInternal%resetMetallicity               =.true.
-    atomicCIECloudyConstructorInternal%resetTemperature               =.true.
-    atomicCIECloudyConstructorInternal%initialized                    =.false.
+    self%electronDensityPrevious        =-1.0d0
+    self%electronDensitySlopePrevious   =-1.0d0
+    self%chemicalDensitiesPrevious      =-unitChemicalAbundances
+    self%    metallicityPrevious        =-1.0d0
+    self%    metallicitySlopePrevious   =-1.0d0
+    self%    metallicityChemicalPrevious=-1.0d0
+    self%    temperaturePrevious        =-1.0d0
+    self%    temperatureSlopePrevious   =-1.0d0
+    self%    temperatureChemicalPrevious=-1.0d0
+    self%initialized                    =.false.
    return
   end function atomicCIECloudyConstructorInternal
 

@@ -1183,13 +1183,14 @@ contains
      !% the times in {\normalfont \ttfamily thisHistory} and added to the rates in {\normalfont \ttfamily thisHistory}.
      use            :: Galacticus_Error       , only : Galacticus_Error_Report
      use, intrinsic :: ISO_C_Binding          , only : c_size_t
-     use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors
+     use            :: Numerical_Interpolation, only : interpolator
      implicit none
-     class           (history ), intent(inout) :: thisHistory
-     type            (history ), intent(in   ) :: addHistory
-     integer                                   :: iPoint                     , iHistory
-     integer         (c_size_t)                :: interpolationPoint         , addHistoryPointCount
-     double precision                          :: interpolationFactors    (2)
+     class           (history     ), intent(inout) :: thisHistory
+     type            (history     ), intent(in   ) :: addHistory
+     double precision              , dimension(2)  :: interpolationFactors
+     integer                                       :: iPoint              , iHistory
+     integer         (c_size_t    )                :: interpolationPoint  , addHistoryPointCount
+     type            (interpolator)                :: interpolator_
 
      select type (thisHistory)
      type is (history)
@@ -1217,6 +1218,7 @@ contains
         if (size(thisHistory%data,dim=2) /= size(addHistory%data,dim=2)) call Galacticus_Error_Report('two objects contain differing numbers of histories'//{introspection:location})
         ! Loop over each entry in thisHistory.
         interpolationPoint=1
+        interpolator_     =interpolator(addHistory%time)
         do iPoint=1,size(thisHistory%time)
            ! If within range of history spanned by addHistory then....
            if (thisHistory%time(iPoint) >= addHistory%time(1) .and. thisHistory%time(iPoint) <= addHistory%time(addHistoryPointCount)) then
@@ -1224,7 +1226,7 @@ contains
               do while (thisHistory%time(iPoint) > addHistory%time(interpolationPoint) .and. interpolationPoint < addHistoryPointCount-1)
                  interpolationPoint=interpolationPoint+1
               end do
-              interpolationFactors=Interpolate_Linear_Generate_Factors(addHistory%time,interpolationPoint,thisHistory%time(iPoint))
+              call interpolator_%linearWeights(thisHistory%time(iPoint),interpolationPoint,interpolationFactors)
               ! Add them.
               forall(iHistory=1:size(thisHistory%data,dim=2))
                  thisHistory%data (iPoint,iHistory)=thisHistory%data (iPoint,iHistory)+addHistory%data(interpolationPoint,iHistory)&

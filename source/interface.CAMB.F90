@@ -112,7 +112,6 @@ contains
   subroutine Interface_CAMB_Transfer_Function(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,countPerDecade,fileName,wavenumberMaximumReached,transferFunctionDarkMatter,transferFunctionBaryons)
     !% Run CAMB as necessary to compute transfer functions.
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
-    use               :: FGSL                            , only : FGSL_Interp_cSpline
     use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists , File_Lock     , &
           &                                                       File_Path                   , File_Remove        , File_Unlock , lockDescriptor
     use               :: Galacticus_Error                , only : Galacticus_Error_Report
@@ -125,6 +124,7 @@ contains
           &                                                       operator(==)                , varying_string     , operator(//)
     use               :: Input_Parameters                , only : inputParameters
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
+    use               :: Numerical_Interpolation         , only : GSL_Interp_cSpline
     !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num
     use               :: Sorting                         , only : sortIndex
     use               :: String_Handling                 , only : operator(//)                , String_C_To_Fortran
@@ -478,7 +478,7 @@ contains
             &                                                    extrapolationTypeExtrapolate, &
             &                                                    extrapolationTypeExtrapolate  &
             &                                                   ]                            , &
-            &                                 interpolationType=FGSL_Interp_cSpline            &
+            &                                 interpolationType=GSL_Interp_cSpline             &
             &                                )
        deallocate(wavenumbersLogarithmic)
        speciesGroup=cambOutput%openGroup('darkMatter')
@@ -505,7 +505,7 @@ contains
             &                                                    extrapolationTypeExtrapolate, &
             &                                                    extrapolationTypeExtrapolate  &
             &                                                   ]                            , &
-            &                                 interpolationType=FGSL_Interp_cSpline            &
+            &                                 interpolationType=GSL_Interp_cSpline             &
             &                                )
        deallocate(wavenumbersLogarithmic)
        speciesGroup=cambOutput%openGroup('baryons')

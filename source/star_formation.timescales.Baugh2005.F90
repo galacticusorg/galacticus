@@ -63,7 +63,6 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
-    !#   <group>starFormation</group>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentVelocity</name>
@@ -72,7 +71,6 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
-    !#   <group>starFormation</group>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentExpansionFactor</name>
@@ -81,7 +79,6 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
-    !#   <group>starFormation</group>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=starFormationTimescaleBaugh2005(timescale,exponentVelocity,exponentExpansionFactor,cosmologyFunctions_)

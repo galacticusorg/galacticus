@@ -335,7 +335,6 @@ contains
           !#      \item [present] Output only those luminosities computed for the present output time.
           !#      \end{description}
           !#   </description>
-          !#   <group>output</group>
           !#   <source>globalParameters</source>
           !#   <type>integer</type>
           !#   <variable>luminosityOutputOptionText</variable>

@@ -174,7 +174,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>inverseSigma1</variable>
     !#   <defaultValue>1.646d0</defaultValue>
-    !#   <attachedTo>module</attachedTo>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $\sigma^{-1}_1$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
     !#   <type>real</type>

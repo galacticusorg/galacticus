@@ -20,7 +20,7 @@
   !% Contains a module which implements a excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}.
 
   use :: Excursion_Sets_Barriers, only : excursionSetBarrierClass
-  use :: FGSL                   , only : fgsl_interp_accel
+  use :: Numerical_Interpolation, only : interpolator
 
   !# <excursionSetFirstCrossing name="excursionSetFirstCrossingZhangHui">
   !#  <description>An excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}.</description>
@@ -28,25 +28,24 @@
   type, extends(excursionSetFirstCrossingClass) :: excursionSetFirstCrossingZhangHui
      !% An excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}.
      private
-     class           (excursionSetBarrierClass), pointer                     :: excursionSetBarrier_ => null()
-     double precision                                                        :: timeMaximum                  =0.0d0  , timeMinimum                     =0.0d0 , &
-          &                                                                     varianceMaximum              =0.0d0
-     integer                                                                 :: timeTableCount                       , varianceTableCount
+     class           (excursionSetBarrierClass), pointer                     :: excursionSetBarrier_         => null()
+     double precision                                                        :: timeMaximum                  =  0.0d0  , timeMinimum             =0.0d0 , &
+          &                                                                     varianceMaximum              =  0.0d0
+     integer                                                                 :: timeTableCount                         , varianceTableCount
      double precision                          , allocatable, dimension(:,:) :: firstCrossingProbabilityTable
-     double precision                          , allocatable, dimension(:  ) :: timeTable                            , varianceTable
+     double precision                          , allocatable, dimension(:  ) :: timeTable                              , varianceTable
      double precision                                                        :: varianceTableStep
-     logical                                                                 :: tableInitialized             =.false.
-     type            (fgsl_interp_accel)                                     :: interpolationAcceleratorTime         , interpolationAcceleratorVariance
-     logical                                                                 :: interpolationResetTime       =.true. , interpolationResetVariance      =.true.
+     logical                                                                 :: tableInitialized             =  .false.
+     type            (interpolator            ), allocatable                 :: interpolatorTime                       , interpolatorVariance
      ! Stored values.
-     double precision                                                        :: variancePrevious                     , timePrevious                           , &
-          &                                                                     barrierStored                        , barrierGradientStored
+     double precision                                                        :: variancePrevious                       , timePrevious                   , &
+          &                                                                     barrierStored                          , barrierGradientStored
      ! Stored values for Delta function.
-     integer                                                                 :: iDeltaPrevious                       , jDeltaPrevious
-     double precision                                                        :: timeDeltaPrevious                    , deltaStored
+     integer                                                                 :: iDeltaPrevious                         , jDeltaPrevious
+     double precision                                                        :: timeDeltaPrevious                      , deltaStored
      ! Variables used in integrations.
-     double precision                                                        :: barrierIntegrand                     , barrierGradientIntegrand               , &
-          &                                                                     timeIntegrand                        , varianceIntegrand
+     double precision                                                        :: barrierIntegrand                       , barrierGradientIntegrand       , &
+          &                                                                     timeIntegrand                          , varianceIntegrand
    contains
      !@ <objectMethods>
      !@   <object>excursionSetFirstCrossingZhangHui</object>
@@ -141,12 +140,11 @@ contains
 
   double precision function zhangHuiProbability(self,variance,time,node)
     !% Return the excursion set barrier at the given variance and time.
-    use            :: Galacticus_Display     , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear   , Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-          &                                           verbosityWorking
-    use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Memory_Management      , only : allocateArray             , deallocateArray
-    use            :: Numerical_Interpolation, only : Interpolate_Done          , Interpolate_Linear_Generate_Factors, Interpolate_Locate
-    use            :: Numerical_Ranges       , only : Make_Range                , rangeTypeLinear                    , rangeTypeLogarithmic
+    use            :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
+          &                                      verbosityWorking
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
+    use            :: Memory_Management , only : allocateArray             , deallocateArray
+    use            :: Numerical_Ranges  , only : Make_Range                , rangeTypeLinear                 , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout)  :: self
     double precision                                   , intent(in   )  :: variance         , time
@@ -237,20 +235,19 @@ contains
        end do
        call Galacticus_Display_Counter_Clear(verbosityWorking)
        call Galacticus_Display_Unindent("done",verbosityWorking)
-       ! Reset the interpolators.
-       call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVariance,reset=self%interpolationResetVariance)
-       call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorTime    ,reset=self%interpolationResetTime    )
-       self%interpolationResetVariance=.true.
-       self%interpolationResetTime    =.true.
+       ! Build the interpolators.
+       if (allocated(self%interpolatorVariance)) deallocate(self%interpolatorVariance)
+       if (allocated(self%interpolatorTime    )) deallocate(self%interpolatorTime    )
+       allocate(self%interpolatorVariance)
+       allocate(self%interpolatorTime    )
+       self%interpolatorVariance=interpolator(self%varianceTable)
+       self%interpolatorTime    =interpolator(self%timeTable    )
        ! Record that the table is now built.
        self%tableInitialized          =.true.
     end if
-    ! Get interpolation in time.
-    iTime    =Interpolate_Locate                 (self%timeTable    ,self%interpolationAcceleratorTime    ,time    ,reset=self%interpolationResetTime    )
-    hTime    =Interpolate_Linear_Generate_Factors(self%timeTable    ,iTime    ,time    )
-    ! Get interpolation in variance.
-    iVariance=Interpolate_Locate                 (self%varianceTable,self%interpolationAcceleratorVariance,variance,reset=self%interpolationResetVariance)
-    hVariance=Interpolate_Linear_Generate_Factors(self%varianceTable,iVariance,variance)
+    ! Get interpolating factors.
+    call self%interpolatorTime    %linearFactors(time    ,iTime    ,hTime    )
+    call self%interpolatorVariance%linearFactors(variance,iVariance,hVariance)
     ! Compute first crossing probability by interpolating.
     zhangHuiProbability=0.0d0
     do jTime=0,1

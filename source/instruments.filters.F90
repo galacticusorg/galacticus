@@ -23,23 +23,20 @@
 
 module Instruments_Filters
   !% Implements calculations of filter response curves.
-  use :: FGSL              , only : fgsl_interp   , fgsl_interp_accel
-  use :: ISO_Varying_String, only : varying_string
+  use :: Numerical_Interpolation, only : interpolator
+  use :: ISO_Varying_String     , only : varying_string
   implicit none
   private
   public :: Filter_Get_Index, Filter_Response, Filter_Extent, Filter_Vega_Offset, Filter_Name, Filter_Wavelength_Effective
 
   type filterType
      !% A structure which holds filter response curves.
-     integer                                                        :: nPoints
-     double precision                   , allocatable, dimension(:) :: response                       , wavelength
-     type            (varying_string   )                            :: name
-     logical                                                        :: vegaOffsetAvailable            , wavelengthEffectiveAvailable
-     double precision                                               :: vegaOffset                     , wavelengthEffective
-     ! Interpolation structures.
-     logical                                                        :: reset                   =.true.
-     type            (fgsl_interp_accel)                            :: interpolationAccelerator
-     type            (fgsl_interp      )                            :: interpolationObject
+     integer                                                     :: nPoints
+     double precision                , allocatable, dimension(:) :: response           , wavelength
+     type            (varying_string)                            :: name
+     logical                                                     :: vegaOffsetAvailable, wavelengthEffectiveAvailable
+     double precision                                            :: vegaOffset         , wavelengthEffective
+     type            (interpolator  )                            :: interpolator_
   end type filterType
 
   ! Array to hold filter data.
@@ -137,7 +134,10 @@ contains
        call Move_Alloc(filterResponses,filterResponsesTemporary)
        allocate(filterResponses(size(filterResponsesTemporary)+1))
        filterResponses(1:size(filterResponsesTemporary))=filterResponsesTemporary
-       deallocate(filterResponsesTemporary)
+       do filterIndex=1,size(filterResponsesTemporary)
+          call filterResponses(filterIndex)%interpolator_%GSLReallocate(gslFree=.false.)
+       end do
+       deallocate(filterResponsesTemporary)       
        call Memory_Usage_Record(sizeof(filterResponses(1)),blockCount=0)
     else
        allocate(filterResponses(1))
@@ -307,6 +307,8 @@ contains
        call filtersGroup%close()
        call hdf5Access%unset()
     end if
+    ! Build an interpolator for this filter.
+    filterResponses(filterIndex)%interpolator_=interpolator(filterResponses(filterIndex)%wavelength,filterResponses(filterIndex)%response)
     return
   end subroutine Filter_Response_Load
 
@@ -315,16 +317,12 @@ contains
     !% convention of \cite{hogg_k_2002} and assume that the filter response gives the fraction of incident photons received by the
     !% detector at a given wavelength, multiplied by the relative photon response (which will be 1 for a photon-counting detector
     !% such as a CCD, or proportional to the photon energy for a bolometer/calorimeter type detector.
-    use :: Numerical_Interpolation, only : Interpolate
     implicit none
     integer         , intent(in   ) :: filterIndex
     double precision, intent(in   ) :: wavelength
 
-    ! Interpolate in the tabulated response curve.
     !$omp critical (Filter_Get_Index_Lock)
-    Filter_Response=Interpolate(filterResponses(filterIndex)%wavelength&
-         &,filterResponses(filterIndex)%response,filterResponses(filterIndex)%interpolationObject&
-         &,filterResponses(filterIndex)%interpolationAccelerator,wavelength ,reset=filterResponses(filterIndex)%reset)
+    Filter_Response=filterResponses(filterIndex)%interpolator_%interpolate(wavelength)
     !$omp end critical (Filter_Get_Index_Lock)
     return
   end function Filter_Response

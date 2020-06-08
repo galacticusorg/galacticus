@@ -23,8 +23,8 @@
   use :: Atomic_Cross_Sections_Ionization_Photo, only : atomicCrossSectionIonizationPhotoClass
   use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters                  , only : cosmologyParametersClass
-  use :: FGSL                                  , only : fgsl_interp_accel
   use :: Intergalactic_Medium_State            , only : intergalacticMediumStateClass
+  use :: Numerical_Interpolation               , only : interpolator
   use :: Output_Times                          , only : outputTimesClass
   use :: Star_Formation_Rates_Disks            , only : starFormationRateDisksClass
   use :: Star_Formation_Rates_Spheroids        , only : starFormationRateSpheroidsClass
@@ -57,8 +57,7 @@
      double precision                                        , allocatable, dimension(:,:) :: emissivityODE                               , emissivity
      double precision                                                     , dimension(0:1) :: timeODE
      double precision                                                                      :: timeCurrent
-     logical                                                                               :: interpolationReset                          , interpolationResetTime
-     type            (fgsl_interp_accel                     )                              :: interpolationAccelerator                    , interpolationAcceleratorTime
+     type            (interpolator                          )                              :: interpolatorWavelength                      , interpolatorTime
    contains
      final     ::             intergalacticBackgroundInternalDestructor
      procedure :: flux     => intergalacticBackgroundInternalFlux
@@ -263,9 +262,9 @@ contains
        self%crossSectionNeutralHelium      (iWavelength)=self%atomicCrossSectionIonizationPhoto_%crossSection(2,1,1,self%wavelength(iWavelength))
        self%crossSectionSinglyIonizedHelium(iWavelength)=self%atomicCrossSectionIonizationPhoto_%crossSection(2,2,1,self%wavelength(iWavelength))
     end do
-    ! Initialize interpolators.
-    self%interpolationReset    =.true.
-    self%interpolationResetTime=.true.
+    ! Build interpolators.
+    self%interpolatorWavelength=interpolator(self%wavelength)
+    self%interpolatorTime      =interpolator(self%time      )
     return
   end function intergalacticBackgroundInternalConstructorInternal
 
@@ -310,9 +309,8 @@ contains
 
  double precision function intergalacticBackgroundInternalFlux(self,wavelength,node)
     !% Return the flux in the internally-computed intergalatic background.
-    use            :: Galacticus_Error       , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
+    use            :: Galacticus_Error, only : Galacticus_Error_Report
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
     implicit none
     class           (radiationFieldIntergalacticBackgroundInternal), intent(inout)  :: self
     double precision                                               , intent(in   )  :: wavelength
@@ -331,11 +329,9 @@ contains
        ! Check that the time is within the applicable range.
        if (self%timeCurrent > state%timeNext*(1.0d0+timeTolerance)) call Galacticus_Error_Report('time is out of range'//{introspection:location})
        ! Find interpolation in the array of wavelengths.
-       iWavelength =  Interpolate_Locate                 (self%wavelength,self%interpolationAccelerator    ,     wavelength,reset=self%interpolationReset     )
-       hWavelength =  Interpolate_Linear_Generate_Factors(self%wavelength,iWavelength                      ,     wavelength                                   )
+       call self%interpolatorWavelength%linearFactors(     wavelength ,iWavelength,hWavelength)
        ! Find interpolation in array of times.
-       iTime       =  Interpolate_Locate                 (self%time      ,self%interpolationAcceleratorTime,self%timeCurrent,reset=self%interpolationResetTime)
-       hTime       =  Interpolate_Linear_Generate_Factors(self%time      ,iTime                            ,self%timeCurrent                                  )
+       call self%interpolatorTime      %linearFactors(self%timeCurrent,iTime      ,hTime      )
        if (self%timeCurrent > state%timePrevious) hTime=[1.0d0,0.0d0]
        ! Interpolate in wavelength and time.
        intergalacticBackgroundInternalFlux=0.0d0

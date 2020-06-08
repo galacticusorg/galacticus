@@ -77,7 +77,6 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.5d0</defaultValue>
     !#   <description>The dimensionless rate coefficient apeparing in the \cite{zentner_physics_2005} expression for the tidal mass loss rate from subhalos.</description>
-    !#   <group></group>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>

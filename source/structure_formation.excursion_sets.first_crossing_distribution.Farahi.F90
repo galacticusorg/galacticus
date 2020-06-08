@@ -23,7 +23,7 @@
 
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Excursion_Sets_Barriers   , only : excursionSetBarrierClass
-  use :: FGSL                      , only : fgsl_interp_accel
+  use :: Numerical_Interpolation   , only : interpolator
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
   use :: Excursion_Sets_Barriers   , only : excursionSetBarrierClass
 
@@ -33,45 +33,42 @@
   type, extends(excursionSetFirstCrossingClass) :: excursionSetFirstCrossingFarahi
      !% An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}.
      private
-     class           (cosmologyFunctionsClass      ), pointer                       :: cosmologyFunctions_                      => null()
-     class           (excursionSetBarrierClass     ), pointer                       :: excursionSetBarrier_                     => null()
-     class           (cosmologicalMassVarianceClass), pointer                       :: cosmologicalMassVariance_                => null()
+     class           (cosmologyFunctionsClass      ), pointer                       :: cosmologyFunctions_              => null()
+     class           (excursionSetBarrierClass     ), pointer                       :: excursionSetBarrier_             => null()
+     class           (cosmologicalMassVarianceClass), pointer                       :: cosmologicalMassVariance_        => null()
      ! Variables used in tabulation the first crossing function.
-     double precision                                                               :: timeMaximum                                       , timeMinimum                                , &
+     double precision                                                               :: timeMaximum                               , timeMinimum             , &
           &                                                                            varianceMaximum
-     integer                                                                        :: timeTableCount                                    , varianceTableCount
+     integer                                                                        :: timeTableCount                            , varianceTableCount
      double precision                               , allocatable, dimension(:,:)   :: firstCrossingProbabilityTable
-     double precision                               , allocatable, dimension(:  )   :: timeTable                                         , varianceTable
+     double precision                               , allocatable, dimension(:  )   :: timeTable                                 , varianceTable
      double precision                                                               :: varianceTableStep
-     logical                                                                        :: tableInitialized                                  , fileNameInitialized
-     type            (fgsl_interp_accel            )                                :: interpolationAcceleratorTime                      , interpolationAcceleratorVariance
-     logical                                                                        :: interpolationResetTime                   =  .true., interpolationResetVariance          =.true.
+     logical                                                                        :: tableInitialized                          , fileNameInitialized
+     type            (interpolator                 ), allocatable                   :: interpolatorTime                          , interpolatorVariance
      ! Variables used in tabulation the first crossing rate function.
-     double precision                                                               :: timeMaximumRate                                   , timeMinimumRate                            , &
+     double precision                                                               :: timeMaximumRate                           , timeMinimumRate         , &
           &                                                                            varianceMaximumRate
-     integer                                                                        :: timeTableCountRate                                , varianceTableCountRate                     , &
+     integer                                                                        :: timeTableCountRate                        , varianceTableCountRate  , &
           &                                                                            varianceTableCountRateBase
      double precision                               , allocatable, dimension(:,:,:) :: firstCrossingTableRate
      double precision                               , allocatable, dimension(:,:  ) :: nonCrossingTableRate
-     double precision                               , allocatable, dimension(:    ) :: timeTableRate                                     , varianceTableRate                          , &
+     double precision                               , allocatable, dimension(:    ) :: timeTableRate                             , varianceTableRate       , &
           &                                                                            varianceTableRateBase
      logical                                                                        :: tableInitializedRate
-     type            (fgsl_interp_accel            )                                :: interpolationAcceleratorTimeRate                  , interpolationAcceleratorVarianceRate       , &
-          &                                                                            interpolationAcceleratorVarianceRateBase
-     logical                                                                        :: interpolationResetTimeRate                = .true., interpolationResetVarianceRate      =.true., &
-          &                                                                            interpolationResetVarianceRateBase        =.true.
+     type            (interpolator                 ), allocatable                   :: interpolatorTimeRate                      , interpolatorVarianceRate, &
+          &                                                                            interpolatorVarianceRateBase
      ! File name used to store tabulations.
      type            (varying_string               )                                :: fileName
      logical                                                                        :: useFile
      ! Tabulation resolutions.
-     integer                                                                        :: varianceNumberPerUnitProbability                  , varianceNumberPerUnit                      , &
-          &                                                                            timeNumberPerDecade                               , varianceNumberPerDecade
+     integer                                                                        :: varianceNumberPerUnitProbability          , varianceNumberPerUnit   , &
+          &                                                                            timeNumberPerDecade                       , varianceNumberPerDecade
      ! The fractional step in time used to compute barrier crossing rates.
      double precision                                                               :: timeStepFractional
      ! Record of variance and time in previous call to rate functions.
-     double precision                                                               :: timeRatePrevious                                  , varianceRatePrevious
-     double precision                                            , dimension(0:1)   :: hTimeRate                                         , hVarianceRate
-     integer         (c_size_t                     )                                :: iTimeRate                                         , iVarianceRate
+     double precision                                                               :: timeRatePrevious                          , varianceRatePrevious
+     double precision                                            , dimension(0:1)   :: hTimeRate                                 , hVarianceRate
+     integer         (c_size_t                     )                                :: iTimeRate                                 , iVarianceRate
    contains
      !@ <objectMethods>
      !@   <object>excursionSetFirstCrossingFarahi</object>
@@ -215,12 +212,7 @@ contains
     !# <constructorAssign variables="timeStepFractional, fileName, varianceNumberPerUnitProbability, varianceNumberPerUnit, varianceNumberPerDecade, timeNumberPerDecade, *cosmologyFunctions_, *excursionSetBarrier_, *cosmologicalMassVariance_"/>
 
     self%tableInitialized                  =.false.
-    self%interpolationResetTime            =.true.
-    self%interpolationResetVariance        =.true.
     self%tableInitializedRate              =.false.
-    self%interpolationResetTimeRate        =.true.
-    self%interpolationResetVarianceRate    =.true.
-    self%interpolationResetVarianceRateBase=.true.
     self%timeMaximum                       =-huge(0.0d0)
     self%timeMinimum                       =+huge(0.0d0)
     self%varianceMaximum                   =      0.0d0
@@ -254,32 +246,25 @@ contains
 
   subroutine farahiDestructor(self)
     !% Destructor for the Farahi excursion set first crossing class.
-    use :: Numerical_Interpolation, only : Interpolate_Done
     implicit none
     type(excursionSetFirstCrossingFarahi), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyFunctions_"      />
     !# <objectDestructor name="self%excursionSetBarrier_"     />
     !# <objectDestructor name="self%cosmologicalMassVariance_"/>
-    call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVariance        ,reset=self%interpolationResetVariance        )
-    call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorTime            ,reset=self%interpolationResetTime            )
-    call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVarianceRate    ,reset=self%interpolationResetVarianceRate    )
-    call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVarianceRateBase,reset=self%interpolationResetVarianceRateBase)
-    call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorTimeRate        ,reset=self%interpolationResetTimeRate        )
     return
   end subroutine farahiDestructor
 
   double precision function farahiProbability(self,variance,time,node)
     !% Return the excursion set barrier at the given variance and time.
-    use :: Error_Functions        , only : erfApproximate
-    use :: File_Utilities         , only : File_Lock                  , File_Unlock                        , lockDescriptor
-    use :: Galacticus_Display     , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear   , Galacticus_Display_Indent, Galacticus_Display_Message, &
-          &                                Galacticus_Display_Unindent, verbosityWorking
-    use :: Kind_Numbers           , only : kind_dble                  , kind_quad
-    use :: MPI_Utilities          , only : mpiBarrier                 , mpiSelf
-    use :: Memory_Management      , only : allocateArray              , deallocateArray
-    use :: Numerical_Interpolation, only : Interpolate_Done           , Interpolate_Linear_Generate_Factors, Interpolate_Locate
-    use :: Numerical_Ranges       , only : Make_Range                 , rangeTypeLogarithmic               , rangeTypeLinear
+    use :: Error_Functions   , only : erfApproximate
+    use :: File_Utilities    , only : File_Lock                  , File_Unlock                     , lockDescriptor
+    use :: Galacticus_Display, only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
+          &                           Galacticus_Display_Unindent, verbosityWorking
+    use :: Kind_Numbers      , only : kind_dble                  , kind_quad
+    use :: MPI_Utilities     , only : mpiBarrier                 , mpiSelf
+    use :: Memory_Management , only : allocateArray              , deallocateArray
+    use :: Numerical_Ranges  , only : Make_Range                 , rangeTypeLogarithmic            , rangeTypeLinear
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)                 :: self
     double precision                                 , intent(in   )                 :: variance                     , time
@@ -471,11 +456,13 @@ contains
              self%firstCrossingProbabilityTable=mpiSelf%sum(self%firstCrossingProbabilityTable)
           end if
 #endif
-          ! Reset the interpolators.
-          call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVariance,reset=self%interpolationResetVariance)
-          call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorTime    ,reset=self%interpolationResetTime    )
-          self%interpolationResetVariance=.true.
-          self%interpolationResetTime    =.true.
+          ! Build the interpolators.
+          if (allocated(self%interpolatorVariance)) deallocate(self%interpolatorVariance)
+          if (allocated(self%interpolatorTime    )) deallocate(self%interpolatorTime    )
+          allocate(self%interpolatorVariance)
+          allocate(self%interpolatorTime    )
+          self%interpolatorVariance=interpolator(self%varianceTable)
+          self%interpolatorTime    =interpolator(self%timeTable    )
           ! Record that the table is now built.
           self%tableInitialized=.true.
           ! Write the table to file if possible.
@@ -493,12 +480,9 @@ contains
        end if
        !$omp end critical(farahiProbabilityTabulate)
     end if
-    ! Get interpolation in time.
-    iTime    =Interpolate_Locate                 (self%timeTable    ,self%interpolationAcceleratorTime    ,time    ,reset=self%interpolationResetTime    )
-    hTime    =Interpolate_Linear_Generate_Factors(self%timeTable    ,iTime    ,time    )
-    ! Get interpolation in variance.
-    iVariance=Interpolate_Locate                 (self%varianceTable,self%interpolationAcceleratorVariance,variance,reset=self%interpolationResetVariance)
-    hVariance=Interpolate_Linear_Generate_Factors(self%varianceTable,iVariance,variance)
+    ! Get interpolating factors.
+    call self%interpolatorTime%linearFactors    (time    ,iTime    ,hTime    )
+    call self%interpolatorVariance%linearFactors(variance,iVariance,hVariance)
     ! Compute first crossing probability by interpolating.
     farahiProbability=0.0d0
     do jTime=0,1
@@ -514,7 +498,6 @@ contains
 
   double precision function farahiRate(self,variance,varianceProgenitor,time,node)
     !% Return the excursion set barrier at the given variance and time.
-    use :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)  :: self
     double precision                                 , intent(in   )  :: variance           , varianceProgenitor, &
@@ -540,18 +523,15 @@ contains
     ! Get interpolation in time.
     if (time /= self%timeRatePrevious) then
        self%timeRatePrevious    =time
-       self%iTimeRate           =Interpolate_Locate                 (self%timeTableRate        ,self%interpolationAcceleratorTimeRate        ,time                       ,reset=self%interpolationResetTimeRate        )
-       self%hTimeRate           =Interpolate_Linear_Generate_Factors(self%timeTableRate        ,self%iTimeRate                               ,time                                                                     )
+       call self%interpolatorTimeRate        %linearFactors(time    ,self%iTimeRate    ,self%hTimeRate    )
     end if
     ! Get interpolation in variance.
     if (variance /= self%varianceRatePrevious) then
        self%varianceRatePrevious=variance
-       self%iVarianceRate       =Interpolate_Locate                 (self%varianceTableRateBase,self%interpolationAcceleratorVarianceRateBase,                   variance,reset=self%interpolationResetVarianceRateBase)
-       self%hVarianceRate       =Interpolate_Linear_Generate_Factors(self%varianceTableRateBase,self%iVarianceRate,variance)
+       call self%interpolatorVarianceRateBase%linearFactors(variance,self%iVarianceRate,self%hVarianceRate)
     end if
-
     ! Get interpolation in progenitor variance.
-    iVarianceProgenitor         =Interpolate_Locate                 (self%varianceTableRate    ,self%interpolationAcceleratorVarianceRate    ,varianceProgenitor-variance,reset=self%interpolationResetVarianceRate    )
+    iVarianceProgenitor=self%interpolatorVarianceRate%locate(varianceProgenitor-variance)
     ! Catch cases where the maximum variance is approached.
     if (self%varianceTableRate(iVarianceProgenitor)+variance > self%varianceMaximumRate) then
        ! Force the rate to drop to zero at the maximum variance. (Necessary because we will not have a tabulated point precisely
@@ -563,7 +543,7 @@ contains
             &               +0.0d0                                                                                &
             &              ]
     else
-       hVarianceProgenitor=Interpolate_Linear_Generate_Factors(self%varianceTableRate,iVarianceProgenitor,varianceProgenitor-variance)
+       call self%interpolatorVarianceRate%linearWeights(varianceProgenitor-variance,iVarianceProgenitor,hVarianceProgenitor)
     end if
     ! Compute first crossing probability by interpolating.
     farahiRate=0.0d0
@@ -582,8 +562,7 @@ contains
   end function farahiRate
 
   double precision function farahiRateNonCrossing(self,variance,time,node)
-   !% Return the rate for excursion set non-crossing.
-    use :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
+    !% Return the rate for excursion set non-crossing.
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout) :: self
     double precision                                 , intent(in   ) :: time , variance
@@ -595,14 +574,12 @@ contains
     ! Get interpolation in time.
     if (time /= self%timeRatePrevious) then
        self%timeRatePrevious    =time
-       self%iTimeRate           =Interpolate_Locate                 (self%timeTableRate        ,self%interpolationAcceleratorTimeRate        ,time    ,reset=self%interpolationResetTimeRate        )
-       self%hTimeRate           =Interpolate_Linear_Generate_Factors(self%timeTableRate        ,self%iTimeRate    ,time    )
+       call self%interpolatorTimeRate        %linearFactors(time    ,self%iTimeRate    ,self%hTimeRate    )
     end if
     ! Get interpolation in variance.
     if (variance /= self%varianceRatePrevious) then
        self%varianceRatePrevious=variance
-       self%iVarianceRate       =Interpolate_Locate                 (self%varianceTableRateBase,self%interpolationAcceleratorVarianceRateBase,variance,reset=self%interpolationResetVarianceRateBase)
-       self%hVarianceRate       =Interpolate_Linear_Generate_Factors(self%varianceTableRateBase,self%iVarianceRate,variance)
+       call self%interpolatorVarianceRateBase%linearFactors(variance,self%iVarianceRate,self%hVarianceRate)
     end if
     ! Compute non-crossing probability by interpolating.
     farahiRateNonCrossing=0.0d0
@@ -619,15 +596,14 @@ contains
 
   subroutine farahiRateTabulate(self,varianceProgenitor,time,node)
     !% Tabulate the excursion set crossing rate.
-    use :: Error_Functions        , only : erfApproximate
-    use :: Galacticus_Display     , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
-          &                                Galacticus_Display_Unindent, verbosityWorking
-    use :: Kind_Numbers           , only : kind_dble                  , kind_quad
-    use :: MPI_Utilities          , only : mpiBarrier                 , mpiSelf
-    use :: Memory_Management      , only : allocateArray              , deallocateArray
-    use :: Numerical_Interpolation, only : Interpolate_Done
-    use :: Numerical_Ranges       , only : Make_Range                 , rangeTypeLinear                 , rangeTypeLogarithmic
-    use :: File_Utilities         , only : File_Lock                  , File_Unlock                     , lockDescriptor
+    use :: Error_Functions   , only : erfApproximate
+    use :: Galacticus_Display, only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
+          &                           Galacticus_Display_Unindent, verbosityWorking
+    use :: Kind_Numbers      , only : kind_dble                  , kind_quad
+    use :: MPI_Utilities     , only : mpiBarrier                 , mpiSelf
+    use :: Memory_Management , only : allocateArray              , deallocateArray
+    use :: Numerical_Ranges  , only : Make_Range                 , rangeTypeLinear                 , rangeTypeLogarithmic
+    use :: File_Utilities    , only : File_Lock                  , File_Unlock                     , lockDescriptor
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)               :: self
     double precision                                 , intent(in   )               :: time                             , varianceProgenitor
@@ -930,13 +906,16 @@ contains
              self%  nonCrossingTableRate=mpiSelf%sum(self%  nonCrossingTableRate)
           end if
 #endif
-          ! Reset the interpolators.
-          call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVarianceRate    ,reset=self%interpolationResetVarianceRate    )
-          call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVarianceRateBase,reset=self%interpolationResetVarianceRateBase)
-          call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorTimeRate        ,reset=self%interpolationResetTimeRate        )
-          self%interpolationResetVarianceRate    =.true.
-          self%interpolationResetVarianceRateBase=.true.
-          self%interpolationResetTimeRate        =.true.
+          ! Build the interpolators.
+          if (allocated(self%interpolatorVarianceRate    )) deallocate(self%interpolatorVarianceRate)
+          if (allocated(self%interpolatorVarianceRateBase)) deallocate(self%interpolatorVarianceRateBase)
+          if (allocated(self%interpolatorTimeRate        )) deallocate(self%interpolatorTimeRate        )
+          allocate(self%interpolatorVarianceRate    )
+          allocate(self%interpolatorVarianceRateBase)
+          allocate(self%interpolatorTimeRate        )
+          self%interpolatorVarianceRate    =interpolator(self%varianceTableRate    )
+          self%interpolatorVarianceRateBase=interpolator(self%varianceTableRateBase)
+          self%interpolatorTimeRate        =interpolator(self%timeTableRate        )
           ! Set previous variance and time to unphysical values to force recompute of interpolation factors on next call.
           self%varianceRatePrevious=-1.0d0
           self%timeRatePrevious    =-1.0d0
@@ -962,12 +941,11 @@ contains
 
   subroutine farahiFileRead(self)
     !% Read tabulated data on excursion set first crossing probabilities from file.
-    use :: File_Utilities         , only : File_Exists              , File_Name_Expand
-    use :: Galacticus_Display     , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, verbosityWorking
-    use :: IO_HDF5                , only : hdf5Access               , hdf5Object
-    use :: ISO_Varying_String     , only : varying_string           , var_str                   , operator(//)
-    use :: Memory_Management      , only : allocateArray            , deallocateArray
-    use :: Numerical_Interpolation, only : Interpolate_Done
+    use :: File_Utilities    , only : File_Exists              , File_Name_Expand
+    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, verbosityWorking
+    use :: IO_HDF5           , only : hdf5Access               , hdf5Object
+    use :: ISO_Varying_String, only : varying_string           , var_str                   , operator(//)
+    use :: Memory_Management , only : allocateArray            , deallocateArray
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)                   :: self
     type            (hdf5Object                     )                                  :: dataFile                   , dataGroup
@@ -1012,11 +990,13 @@ contains
        self%varianceMaximum  =self%varianceTable(self%varianceTableCount)
        self%varianceTableStep=self%varianceTable(1)-self%varianceTable(0)
        self%tableInitialized =.true.
-       ! Reset the interpolators.
-       call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVariance,reset=self%interpolationResetVariance)
-       call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorTime    ,reset=self%interpolationResetTime    )
-       self%interpolationResetVariance=.true.
-       self%interpolationResetTime    =.true.
+       ! Build the interpolators.
+       if (allocated(self%interpolatorVariance)) deallocate(self%interpolatorVariance)
+       if (allocated(self%interpolatorTime    )) deallocate(self%interpolatorTime    )
+       allocate(self%interpolatorVariance)
+       allocate(self%interpolatorTime    )
+       self%interpolatorVariance=interpolator(self%varianceTable)
+       self%interpolatorTime    =interpolator(self%timeTable    )
        ! Report.
        message=var_str('read excursion set first crossing probability from: ')//char(self%fileName)
        call Galacticus_Display_Indent  (message,verbosityWorking)
@@ -1067,13 +1047,16 @@ contains
        self%timeMinimumRate     =self%timeTableRate    (                          1)
        self%timeMaximumRate     =self%timeTableRate    (    self%timeTableCountRate)
        self%tableInitializedRate=.true.
-       ! Reset the interpolators.
-       call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVarianceRate    ,reset=self%interpolationResetVarianceRate    )
-       call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVarianceRateBase,reset=self%interpolationResetVarianceRateBase)
-       call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorTimeRate        ,reset=self%interpolationResetTimeRate        )
-       self%interpolationResetVarianceRate    =.true.
-       self%interpolationResetVarianceRateBase=.true.
-       self%interpolationResetTimeRate        =.true.
+       ! Build the interpolators.
+       if (allocated(self%interpolatorVarianceRate    )) deallocate(self%interpolatorVarianceRate)
+       if (allocated(self%interpolatorVarianceRateBase)) deallocate(self%interpolatorVarianceRateBase)
+       if (allocated(self%interpolatorTimeRate        )) deallocate(self%interpolatorTimeRate        )
+       allocate(self%interpolatorVarianceRate    )
+       allocate(self%interpolatorVarianceRateBase)
+       allocate(self%interpolatorTimeRate        )
+       self%interpolatorVarianceRate    =interpolator(self%varianceTableRate    )
+       self%interpolatorVarianceRateBase=interpolator(self%varianceTableRateBase)
+       self%interpolatorTimeRate        =interpolator(self%timeTableRate        )
        ! Report.
        message=var_str('read excursion set first crossing rates from: ')//char(self%fileName)
        call Galacticus_Display_Indent  (message,verbosityWorking)

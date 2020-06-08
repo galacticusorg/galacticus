@@ -19,9 +19,9 @@
 
   !% Implements a class for intergalactic background light.
 
-  use            :: Cosmology_Functions, only : cosmologyFunctionsClass
-  use            :: FGSL               , only : fgsl_interp_accel
-  use, intrinsic :: ISO_C_Binding      , only : c_size_t
+  use            :: Cosmology_Functions    , only : cosmologyFunctionsClass
+  use, intrinsic :: ISO_C_Binding          , only : c_size_t
+  use            :: Numerical_Interpolation, only : interpolator
 
   !# <radiationField name="radiationFieldIntergalacticBackgroundFile">
   !#  <description>A radiation field class for intergalactic background light with properties read from file.</description>
@@ -35,8 +35,7 @@
      integer                                                                :: spectraTimesCount                , spectraWavelengthsCount
      double precision                         , allocatable, dimension(:  ) :: spectraTimes                     , spectraWavelengths
      double precision                         , allocatable, dimension(:,:) :: spectra
-     logical                                                                :: interpolationReset               , interpolationResetTimes
-     type            (fgsl_interp_accel      )                              :: interpolationAccelerator         , interpolationAcceleratorTimes
+     type            (interpolator           )                              :: interpolatorWavelengths          , interpolatorTimes
      integer         (c_size_t               )                              :: iTime
      double precision                         , dimension(0:1)              :: hTime
    contains
@@ -157,8 +156,8 @@ contains
     ! Destroy the document.
     call destroy(doc)
     !$omp end critical (FoX_DOM_Access)
-    self%interpolationReset     =.true.
-    self%interpolationResetTimes=.true.
+    self%interpolatorWavelengths=interpolator(self%spectraWavelengths)
+    self%interpolatorTimes      =interpolator(self%spectraTimes      )
     return
   end function intergalacticBackgroundFileConstructorInternal
 
@@ -173,7 +172,6 @@ contains
 
   double precision function intergalacticBackgroundFileFlux(self,wavelength,node)
     !% Return the flux in the intergalactic background radiation field.
-    use :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (radiationFieldIntergalacticBackgroundFile), intent(inout)  :: self
     double precision                                           , intent(in   )  :: wavelength
@@ -195,8 +193,7 @@ contains
          &   wavelength > self%spectraWavelengths(self%spectraWavelengthsCount) &
          & ) return
     ! Find interpolation in the array of wavelengths.
-    iWavelength=Interpolate_Locate                 (self%spectraWavelengths,self%interpolationAccelerator,wavelength,reset=self%interpolationReset)
-    hWavelength=Interpolate_Linear_Generate_Factors(self%spectraWavelengths,iWavelength                  ,wavelength                              )
+    call self%interpolatorWavelengths%linearFactors(wavelength,iWavelength,hWavelength)
     do jTime=0,1
        do jWavelength=0,1
           if (self%iTime+jTime > 0)                                                                          &
@@ -211,14 +208,12 @@ contains
 
   subroutine intergalacticBackgroundFileTimeSet(self,time)
     !% Set the time of the intergalactic backgroun radiation field.
-    use :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (radiationFieldIntergalacticBackgroundFile), intent(inout) :: self
     double precision                                           , intent(in   ) :: time
 
     self%time=time
     ! Find interpolating factors in the array of times.
-    self%iTime=Interpolate_Locate                 (self%spectraTimes,self%interpolationAcceleratorTimes,time,reset=self%interpolationResetTimes)
-    self%hTime=Interpolate_Linear_Generate_Factors(self%spectraTimes,self%iTime                        ,time                                   )
+    call self%interpolatorTimes%linearFactors(time,self%iTime,self%hTime)
     return
   end subroutine intergalacticBackgroundFileTimeSet
