@@ -712,7 +712,7 @@ contains
                   &           /1.0d4       &
                   &         )**0.672d0
           case (2) ! HeIII
-             ! Fit from Aparna Venkatesan.
+             ! Fit from Aparna Venkatesan, via Mike Shull. This is a fit to the data in Table 1 of Storey & Hummer (1995; MNRAS; 272; 41) for Z=2 and Ne=100.
              if (temperature < 1.0d6) then
                 logTemperature=log10(temperature)
                 verner1996Rate=+2.06d-11            &
@@ -726,8 +726,9 @@ contains
                      &           *logTemperature**2 &
                      &          )
              else
-                ! Fit behaves badly above 10⁶K.
-                logTemperature=6.0d0
+                ! Fit behaves badly above 10⁶K, so we fix the logarithmic slope of the polynomial part at its value at 10⁵K to
+                ! avoid negative recombination rates at higher temperatures.
+                logTemperature=+5.00d+00
                 verner1996Rate=+2.06d-11            &
                      &         *4.00d+00            &
                      &         /sqrt(temperature)   &
@@ -737,7 +738,11 @@ contains
                      &           *logTemperature    &
                      &           +0.045686398d0     &
                      &           *logTemperature**2 &
-                     &          )
+                     &          )                   &
+                     &         /(                   &
+                     &           +temperature       &
+                     &           /1.0d5             &
+                     &          )**0.392685d0
              end if
           case default
              call Galacticus_Error_Report('ionization state invalid for helium'//{introspection:location})
