@@ -175,47 +175,49 @@ module MPI_Utilities
      procedure :: nodeCount      => mpiGetNodeCount
      procedure :: nodeAffinity   => mpiGetNodeAffinity
      procedure :: hostAffinity   => mpiGetHostAffinity
-     procedure ::                   mpiRequestData1D    , mpiRequestData2D       , &
-          &                         mpiRequestDataInt1D , mpiRequestDataLogical1D
-     generic   :: requestData    => mpiRequestData1D    , mpiRequestData2D       , &
-          &                         mpiRequestDataInt1D , mpiRequestDataLogical1D
-     procedure ::                   mpiBroadcastData1D  , mpiBroadcastData2D     , &
-          &                         mpiBroadcastData3D  , mpiBroadcastDataScalar
-     generic   :: broadcastData  => mpiBroadcastData1D  , mpiBroadcastData2D     , &
-          &                         mpiBroadcastData3D  , mpiBroadcastDataScalar
+     procedure ::                   mpiRequestData1D           , mpiRequestData2D       , &
+          &                         mpiRequestDataInt1D        , mpiRequestDataLogical1D
+     generic   :: requestData    => mpiRequestData1D           , mpiRequestData2D       , &
+          &                         mpiRequestDataInt1D        , mpiRequestDataLogical1D
+     procedure ::                   mpiBroadcastData1D         , mpiBroadcastData2D     , &
+          &                         mpiBroadcastData3D         , mpiBroadcastDataScalar , &
+          &                         mpiBroadcastDataSizeTScalar
+     generic   :: broadcastData  => mpiBroadcastData1D         , mpiBroadcastData2D     , &
+          &                         mpiBroadcastData3D         , mpiBroadcastDataScalar , &
+          &                         mpiBroadcastDataSizeTScalar
      procedure :: messageWaiting => mpiMessageWaiting
-     procedure ::                   mpiAverageScalar    , mpiAverageArray
-     generic   :: average        => mpiAverageScalar    , mpiAverageArray
+     procedure ::                   mpiAverageScalar           , mpiAverageArray
+     generic   :: average        => mpiAverageScalar           , mpiAverageArray
      procedure ::                   mpiMedianArray
      generic   :: median         => mpiMedianArray
-     procedure ::                   mpiSumScalarInt     , mpiSumArrayInt
-     procedure ::                   mpiSumScalarSizeT   , mpiSumArraySizeT       , &
+     procedure ::                   mpiSumScalarInt            , mpiSumArrayInt
+     procedure ::                   mpiSumScalarSizeT          , mpiSumArraySizeT       , &
           &                         mpiSumArrayTwoSizeT
-     procedure ::                   mpiSumScalarDouble  , mpiSumArrayDouble      , &
-          &                         mpiSumArrayTwoDouble, mpiSumArrayThreeDouble
-     generic   :: sum            => mpiSumScalarInt     , mpiSumArrayInt         , &
-          &                         mpiSumScalarDouble  , mpiSumArrayDouble      , &
-          &                         mpiSumArrayTwoDouble, mpiSumArrayThreeDouble , &
-          &                         mpiSumScalarSizeT   , mpiSumArraySizeT       , &
+     procedure ::                   mpiSumScalarDouble         , mpiSumArrayDouble      , &
+          &                         mpiSumArrayTwoDouble       , mpiSumArrayThreeDouble
+     generic   :: sum            => mpiSumScalarInt            , mpiSumArrayInt         , &
+          &                         mpiSumScalarDouble         , mpiSumArrayDouble      , &
+          &                         mpiSumArrayTwoDouble       , mpiSumArrayThreeDouble , &
+          &                         mpiSumScalarSizeT          , mpiSumArraySizeT       , &
           &                         mpiSumArrayTwoSizeT
      procedure ::                   mpiAnyLogicalScalar
      generic   :: any            => mpiAnyLogicalScalar
      procedure ::                   mpiAllLogicalScalar
      generic   :: all            => mpiAllLogicalScalar
      procedure :: maxloc         => mpiMaxloc
-     procedure ::                   mpiMaxvalScalar     , mpiMaxvalArray
-     generic   :: maxval         => mpiMaxvalScalar     , mpiMaxvalArray
+     procedure ::                   mpiMaxvalScalar            , mpiMaxvalArray
+     generic   :: maxval         => mpiMaxvalScalar            , mpiMaxvalArray
      procedure :: minloc         => mpiMinloc
-     procedure ::                   mpiMinvalScalar     , mpiMinvalArray         , &
-          &                         mpiMinValIntScalar  , mpiMinvalIntArray
-     generic   :: minval         => mpiMinvalScalar     , mpiMinvalArray         , &
-          &                         mpiMinValIntScalar  , mpiMinvalIntArray
-     procedure ::                   mpiGather1D         , mpiGather2D            , &
-          &                         mpiGatherScalar     , mpiGatherInt1D         , &
-          &                         mpiGatherIntScalar  , mpiGatherLogicalScalar
-     generic   :: gather         => mpiGather1D         , mpiGather2D            , &
-          &                         mpiGatherScalar     , mpiGatherInt1D         , &
-          &                         mpiGatherIntScalar  , mpiGatherLogicalScalar
+     procedure ::                   mpiMinvalScalar            , mpiMinvalArray         , &
+          &                         mpiMinValIntScalar         , mpiMinvalIntArray
+     generic   :: minval         => mpiMinvalScalar            , mpiMinvalArray         , &
+          &                         mpiMinValIntScalar         , mpiMinvalIntArray
+     procedure ::                   mpiGather1D                , mpiGather2D            , &
+          &                         mpiGatherScalar            , mpiGatherInt1D         , &
+          &                         mpiGatherIntScalar         , mpiGatherLogicalScalar
+     generic   :: gather         => mpiGather1D                , mpiGather2D            , &
+          &                         mpiGatherScalar            , mpiGatherInt1D         , &
+          &                         mpiGatherIntScalar         , mpiGatherLogicalScalar
   end type mpiObject
 
   ! Declare an object for interaction with MPI.
@@ -921,6 +923,29 @@ contains
 #endif
     return
   end subroutine mpiBroadcastDataScalar
+
+  subroutine mpiBroadcastDataSizeTScalar(self,sendFrom,scalar)
+    !% Broadcast data to all other MPI processes.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI_F08         , only : MPI_Comm_World, MPI_Integer8, MPI_Bcast
+#endif
+    implicit none
+    class           (mpiObject), intent(in   ) :: self
+    integer                    , intent(in   ) :: sendFrom
+    integer         (c_size_t ), intent(inout) :: scalar
+#ifdef USEMPI
+    integer                                    :: status
+    !$GLC attributes unused :: self
+    
+    call MPI_Bcast(scalar,1,MPI_Integer8,sendFrom,MPI_Comm_World,status)
+    if (status /= 0) call galacticus_Error_Report('failed to broadcast data'//{introspection:location})
+#else
+    !$GLC attributes unused :: self, sendFrom, scalar
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end subroutine mpiBroadcastDataSizeTScalar
   
   subroutine mpiBroadcastData1D(self,sendFrom,array)
     !% Broadcast data to all other MPI processes.
