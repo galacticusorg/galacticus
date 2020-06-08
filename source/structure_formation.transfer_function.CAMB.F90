@@ -94,6 +94,7 @@ contains
     self=transferFunctionCAMB(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,cambCountPerDecade)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
     !# <objectDestructor name="darkMatterParticle_" />
     return
   end function cambConstructorParameters
