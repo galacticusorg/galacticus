@@ -31,6 +31,7 @@
   <powerSpectrumPrimordialTransferredMethod value="simple"/>
   <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.9"/>
+    <tolerance value="1.0e-3"/>
   </cosmologicalMassVarianceMethod>
   <transferFunctionMethod value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.046"/>
