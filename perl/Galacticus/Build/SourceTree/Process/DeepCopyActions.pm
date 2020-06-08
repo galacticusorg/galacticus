@@ -89,7 +89,7 @@ CODE
 		# This class is derived from the class of interest, so perform actions.
 		$deepCopyAction .= " type is (".$className.")\n";
 		# Search the class node for declarations.
-		my @staticVariables;
+		my @methodCalls;
 		my $parentClassName = $className;
 		while ( defined($parentClassName) ) {
 		    my $classNode = $classes{$parentClassName}->{'node'}->{'firstChild'};
@@ -103,11 +103,19 @@ CODE
 					foreach ( @variables );
 				}
 			    }
+			    # "methodCall" actions - simply call a method.
+			    if ( exists($directive->{$parentClassName}) && exists($directive->{$parentClassName}->{'methodCall'}) ) {
+				foreach my $methodCall ( &List::ExtraUtils::as_array($directive->{$parentClassName}->{'methodCall'}) ) {				    
+				    push(@methodCalls," call self%".$methodCall->{'method'}."(".(exists($methodCall->{'arguments'}) ? $methodCall->{'arguments'} : "").")");
+				}
+			    }
 			}
 			$classNode = $classNode->{'sibling'};
 		    }
 		    $parentClassName = $classes{$parentClassName}->{'extends'};
 		}
+		$deepCopyAction .= join("\n",@methodCalls)."\n"
+		    if ( @methodCalls );
 	    }
 	}
 	# Close function.
