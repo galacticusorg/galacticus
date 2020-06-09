@@ -42,10 +42,10 @@
      class           (atomicIonizationPotentialClass              ), pointer                   :: atomicIonizationPotential_               => null()
      class           (atomicExcitationRateCollisionalClass        ), pointer                   :: atomicExcitationRateCollisional_         => null()
      class           (gauntFactorClass                            ), pointer                   :: gauntFactor_                             => null()
-     integer                                                                                   :: indexAbundancePattern                             , iterationAverageCount, &
+     integer                                                                                   :: indexAbundancePattern                             , iterationAverageCount       , &
           &                                                                                       countElements                                     , indexHydrogen
      integer         (c_size_t                                    )                            :: countOutputs_
-     logical                                                                                   :: outputRates
+     logical                                                                                   :: outputRates                                       , outputAbsorptionCoefficients
      double precision                                                                          :: metallicity                                       , temperatureMinimum
      double precision                                              , allocatable, dimension(:) :: numberDensityMassDensityRatio                     , elementAtomicMasses
      type            (varying_string                              )                            :: abundancePattern
@@ -60,24 +60,31 @@
      !@     <arguments>\textcolor{red}{\textless type(radiativeTransferPropertiesMatterAtomic)\textgreater} properties</arguments>
      !@     <description>Return the total rate of recombinations (in units of s$^{-1}$).</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>absorptionCoefficientSpecies</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\intzero\ atomicNumber\argin, \intzero\ ionizationState\argin, \doublezero\ wavelength\argin, \textcolor{red}{\textless type(radiativeTransferPropertiesMatterAtomic)\textgreater} properties</arguments>
+     !@     <description>Return the total rate of recombinations (in units of s$^{-1}$).</description>
+     !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                              atomicDestructor
-     procedure :: propertyClass             => atomicPropertyClass
-     procedure :: populateDomain            => atomicPopulateDomain
-     procedure :: reset                     => atomicReset
-     procedure :: absorptionCoefficient     => atomicAbsorptionCoefficient
-     procedure :: accumulatePhotonPacket    => atomicAccumulatePhotonPacket
-     procedure :: interactWithPhotonPacket  => atomicInteractWithPhotonPacket
-     procedure :: stateSolve                => atomicStateSolve
-     procedure :: convergenceMeasure        => atomicConvergenceMeasure
-     procedure :: outputProperty            => atomicOutputProperty
-     procedure :: countOutputs              => atomicCountOutputs
-     procedure :: outputName                => atomicOutputName
-     procedure :: recombinationRateHydrogen => atomicRecombinationRateHydrogen
+     final     ::                                 atomicDestructor
+     procedure :: propertyClass                => atomicPropertyClass
+     procedure :: populateDomain               => atomicPopulateDomain
+     procedure :: reset                        => atomicReset
+     procedure :: absorptionCoefficient        => atomicAbsorptionCoefficient
+     procedure :: absorptionCoefficientSpecies => atomicAbsorptionCoefficientSpecies
+     procedure :: accumulatePhotonPacket       => atomicAccumulatePhotonPacket
+     procedure :: interactWithPhotonPacket     => atomicInteractWithPhotonPacket
+     procedure :: stateSolve                   => atomicStateSolve
+     procedure :: convergenceMeasure           => atomicConvergenceMeasure
+     procedure :: outputProperty               => atomicOutputProperty
+     procedure :: countOutputs                 => atomicCountOutputs
+     procedure :: outputName                   => atomicOutputName
+     procedure :: recombinationRateHydrogen    => atomicRecombinationRateHydrogen
 #ifdef USEMPI
-     procedure :: accumulationReduction    => atomicAccumulationReduction
-     procedure :: broadcastDomain          => atomicBroadcastDomain
-     procedure :: broadcastState           => atomicBroadcastState
+     procedure :: accumulationReduction        => atomicAccumulationReduction
+     procedure :: broadcastDomain              => atomicBroadcastDomain
+     procedure :: broadcastState               => atomicBroadcastState
 #endif
   end type radiativeTransferMatterAtomic
   
@@ -136,7 +143,7 @@ contains
     integer                                                                                    :: iterationAverageCount    
     double precision                                                                           :: temperatureMinimum                      , metallicity
     type            (varying_string                              )                             :: abundancePattern
-    logical                                                                                    :: outputRates
+    logical                                                                                    :: outputRates                             , outputAbsorptionCoefficients
     
     !# <inputParameter>
     !#   <name>iterationAverageCount</name>
@@ -191,6 +198,14 @@ contains
     !#   <source>parameters</source>
     !#   <type>boolean</type>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>outputAbsorptionCoefficients</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true, output absorption coefficients of each species (at the hydrogen Lyman continuum edge).</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
     !# <objectBuilder class="massDistribution"                        name="massDistribution_"                        source="parameters"/>
     !# <objectBuilder class="atomicCrossSectionIonizationPhoto"       name="atomicCrossSectionIonizationPhoto_"       source="parameters"/>
     !# <objectBuilder class="atomicRecombinationRateRadiative"        name="atomicRecombinationRateRadiative_"        source="parameters"/>
@@ -200,7 +215,7 @@ contains
     !# <objectBuilder class="atomicIonizationPotential"               name="atomicIonizationPotential_"               source="parameters"/>
     !# <objectBuilder class="atomicExcitationRateCollisional"         name="atomicExcitationRateCollisional_"         source="parameters"/>
     !# <objectBuilder class="gauntFactor"                             name="gauntFactor_"                             source="parameters"/>
-    self=radiativeTransferMatterAtomic(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,outputRates,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_)
+    self=radiativeTransferMatterAtomic(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,outputRates,outputAbsorptionCoefficients,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_)
     !# <objectDestructor name="massDistribution_"                       />
     !# <objectDestructor name="atomicCrossSectionIonizationPhoto_"      />
     !# <objectDestructor name="atomicRecombinationRateRadiative_"       />
@@ -213,7 +228,7 @@ contains
     return
   end function atomicConstructorParameters
 
-  function atomicConstructorInternal(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,outputRates,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_) result(self)
+  function atomicConstructorInternal(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,outputRates,outputAbsorptionCoefficients,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily atomic} radiative transfer matter class.
     use :: Abundances_Structure            , only : abundances              , metallicityTypeLinearByMassSolar, adjustElementsReset, Abundances_Index_From_Name
     use :: Atomic_Data                     , only : Abundance_Pattern_Lookup, Atomic_Abundance                , Atomic_Mass        , Atomic_Number
@@ -227,7 +242,7 @@ contains
     integer                                                       , intent(in   )               :: iterationAverageCount
     double precision                                              , intent(in   )               :: temperatureMinimum                      , metallicity
     type            (varying_string                              ), intent(in   )               :: abundancePattern
-    logical                                                       , intent(in   )               :: outputRates
+    logical                                                       , intent(in   )               :: outputRates                             , outputAbsorptionCoefficients
     character       (len=2                                       ), intent(in   ), dimension(:) :: elements
     class           (massDistributionClass                       ), intent(in   ), target       :: massDistribution_
     class           (atomicCrossSectionIonizationPhotoClass      ), intent(in   ), target       :: atomicCrossSectionIonizationPhoto_
@@ -242,7 +257,7 @@ contains
     double precision                                                                            :: numberDensityMassDensityRatioHydrogen    , numberDensityMassDensityRatioHelium
     type            (abundances                                  )                              :: abundances_
     integer                                                                                     :: i
-    !# <constructorAssign variables="abundancePattern, metallicity, elements, iterationAverageCount, temperatureMinimum, outputRates, *massDistribution_, *atomicCrossSectionIonizationPhoto_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiativeCooling_, *atomicIonizationRateCollisional_, *atomicRecombinationRateDielectronic_, *atomicIonizationPotential_, *atomicExcitationRateCollisional_, *gauntFactor_"/>
+    !# <constructorAssign variables="abundancePattern, metallicity, elements, iterationAverageCount, temperatureMinimum, outputRates, outputAbsorptionCoefficients, *massDistribution_, *atomicCrossSectionIonizationPhoto_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiativeCooling_, *atomicIonizationRateCollisional_, *atomicRecombinationRateDielectronic_, *atomicIonizationPotential_, *atomicExcitationRateCollisional_, *gauntFactor_"/>
 
     ! Initialize count of outputs. (Just 1, for temperature.)
     self%countOutputs_=1_c_size_t
@@ -274,7 +289,8 @@ contains
        self%elementAtomicNumbers(i)=Atomic_Number(shortLabel=trim(self%elements(i)))
        self%elementAtomicMasses (i)=Atomic_Mass  (shortLabel=trim(self%elements(i)))
        self%countOutputs_=self%countOutputs_+self%elementAtomicNumbers(i)+1_c_size_t
-       if (outputRates) self%countOutputs_=self%countOutputs_+2*self%elementAtomicNumbers(i)
+       if (outputRates                 ) self%countOutputs_=self%countOutputs_+2*self%elementAtomicNumbers(i)
+       if (outputAbsorptionCoefficients) self%countOutputs_=self%countOutputs_+  self%elementAtomicNumbers(i)
        select case (self%elementAtomicNumbers(i))
        case (1)     ! Hydrogen
           self%numberDensityMassDensityRatio(i)=+numberDensityMassDensityRatioHydrogen
@@ -427,64 +443,75 @@ contains
 
   double precision function atomicAbsorptionCoefficient(self,properties,photonPacket)
     !% Return the absorption coefficient for the given photon packet and matter properties.
+    implicit none
+    class(radiativeTransferMatterAtomic     ), intent(inout) :: self
+    class(radiativeTransferPropertiesMatter ), intent(inout) :: properties
+    class(radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket
+
+    atomicAbsorptionCoefficient=0.0d0
+    do i=1,self%countElements
+       do j=0,self%elementAtomicNumbers(i)-1 ! j=0 is neutral atom; j=1 is first ionized state, etc.
+          atomicAbsorptionCoefficient=+     atomicAbsorptionCoefficient                                            &
+               &                      +self%absorptionCoefficientSpecies(i,j,photonPacket%wavelength(),properties)
+       end do
+    end do
+    return
+  end function atomicAbsorptionCoefficient
+
+  double precision function atomicAbsorptionCoefficientSpecies(self,elementIndex,ionizationState,wavelength,properties)
+    !% Compute the absorption coefficient for the given species and wavelength.
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Prefixes    , only : centi
     use :: Numerical_Constants_Units       , only : angstromsPerMeter
     implicit none
-    class           (radiativeTransferMatterAtomic     ), intent(inout) :: self
-    class           (radiativeTransferPropertiesMatter ), intent(inout) :: properties
-    class           (radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket
-    double precision                                                    :: crossSectionPhotoIonization
-    integer                                                             :: i                          , j, &
-         &                                                                 k                          , n, &
-         &                                                                 l                          , m, &
-         &                                                                 countElectrons
-    
+    class           (radiativeTransferMatterAtomic    ), intent(inout) :: self
+    integer                                            , intent(in   ) :: elementIndex               , ionizationState
+    double precision                                   , intent(in   ) :: wavelength
+    class           (radiativeTransferPropertiesMatter), intent(inout) :: properties
+    integer                                                            :: k                          , n              , &
+         &                                                                l                          , m              , &
+         &                                                                countElectrons
+    double precision                                                   :: crossSectionPhotoIonization
+
     select type (properties)
     type is (radiativeTransferPropertiesMatterAtomic)
-       atomicAbsorptionCoefficient=0.0d0
-       do i=1,self%countElements
-          do j=0,self%elementAtomicNumbers(i)-1 ! j=0 is neutral atom; j=1 is first ionized state, etc.
-             ! Determine the maximum sub-shell occupied by electrons. Sub-shell number is 1s=1, 2s=2, 2p=3, 3s=4, etc.
-             countElectrons=0
-             n             =0
-             m             =0
-             do while (countElectrons < self%elementAtomicNumbers(i)-j)
-                n=n+1
-                l=-1
-                do while (l < n-1)
-                   l             =l             +1
-                   m             =m             +1
-                   countElectrons=countElectrons+4*l+2
-                   if (countElectrons >= self%elementAtomicNumbers(i)-j) exit
-                end do
-             end do
-             crossSectionPhotoIonization=0.0d0
-             do k=1,m
-                crossSectionPhotoIonization=+crossSectionPhotoIonization                                                                                  &
-                     &                      +self%atomicCrossSectionIonizationPhoto_%crossSection(                                                        &
-                     &                                                                            atomicNumber   =self        %elementAtomicNumbers(i  ), &
-                     &                                                                            ionizationState=                                  j+1 , &
-                     &                                                                            shellNumber    =                                  k   , &
-                     &                                                                            wavelength     =photonPacket%wavelength          (   )  &
-                     &                                                                           )
-             end do
-             atomicAbsorptionCoefficient=+atomicAbsorptionCoefficient                       &
-                  &                      +crossSectionPhotoIonization                       &
-                  &                      *properties%elements(i)%densityNumber              &
-                  &                      *properties%elements(i)%ionizationStateFraction(j) &
-                  &                      /centi                                             &
-                  &                      *megaParsec
+       ! Determine the maximum sub-shell occupied by electrons. Sub-shell number is 1s=1, 2s=2, 2p=3, 3s=4, etc.
+       countElectrons=0
+       n             =0
+       m             =0
+       do while (countElectrons < self%elementAtomicNumbers(elementIndex)-ionizationState)
+          n=n+1
+          l=-1
+          do while (l < n-1)
+             l             =l             +1
+             m             =m             +1
+             countElectrons=countElectrons+4*l+2
+             if (countElectrons >= self%elementAtomicNumbers(elementIndex)-ionizationState) exit
           end do
        end do
+       crossSectionPhotoIonization=0.0d0
+       do k=1,m
+          crossSectionPhotoIonization=+crossSectionPhotoIonization                                                                                        &
+               &                      +self%atomicCrossSectionIonizationPhoto_%crossSection(                                                              &
+               &                                                                            atomicNumber   =self%elementAtomicNumbers(elementIndex     ), &
+               &                                                                            ionizationState=                          ionizationState+1 , &
+               &                                                                            shellNumber    =                          k                 , &
+               &                                                                            wavelength     =     wavelength                               &
+               &                                                                           )
+       end do
+       atomicAbsorptionCoefficientSpecies=+crossSectionPhotoIonization                                                &
+            &                             *properties%elements(elementIndex)%densityNumber                            &
+            &                             *properties%elements(elementIndex)%ionizationStateFraction(ionizationState) &
+            &                             /centi                                                                      &
+            &                             *megaParsec
     class default
-       atomicAbsorptionCoefficient=0.0d0
+       atomicAbsorptionCoefficientSpecies=0.0d0
        call Galacticus_Error_Report('incorrect class'//{introspection:location})
     end select
     return
-  end function atomicAbsorptionCoefficient
-
+  end function atomicAbsorptionCoefficientSpecies
+  
   subroutine atomicAccumulatePhotonPacket(self,properties,photonPacket,absorptionCoefficient,lengthTraversed)
     !% Accumulate a photon packet.
     use :: Galacticus_Error                , only : Galacticus_Error_Report
@@ -1184,12 +1211,15 @@ contains
   
   double precision function atomicOutputProperty(self,properties,output)
     !% Return a scalar property to be output.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen
     implicit none
     class  (radiativeTransferMatterAtomic    ), intent(inout) :: self
     class  (radiativeTransferPropertiesMatter), intent(inout) :: properties
     integer(c_size_t                         ), intent(in   ) :: output
-    integer(c_size_t                         )                :: output_   , outputCountElement
+    integer(c_size_t                         )                :: output_                     , outputCountElement     , &
+         &                                                       offsetPhotoionizationRates  , offsetPhotoheatingRates, &
+         &                                                       offsetAbsorptionCoefficients
     integer                                                   :: i
     
     select type (properties)
@@ -1200,23 +1230,34 @@ contains
           output_                  =output                                                    -1_c_size_t
           i                        =                                                           1
           outputCountElement       =                              self%elementAtomicNumbers(i)+1_c_size_t
-          if (self%outputRates)                                                                           &
+          if (self%outputRates                 )                                                                    &
                & outputCountElement=outputCountElement+2_c_size_t*self%elementAtomicNumbers(i)
+          if (self%outputAbsorptionCoefficients)                                                                    &
+               & outputCountElement=outputCountElement+           self%elementAtomicNumbers(i)
           do while (output_ > outputCountElement)
              output_                  =output_                                                  -outputCountElement
              i                        =i                                                         +1
              outputCountElement       =                              self%elementAtomicNumbers(i)+1_c_size_t
-             if (self%outputRates)                                                                                  &
+             if (self%outputRates                )                                                                  &
                   & outputCountElement=outputCountElement+2_c_size_t*self%elementAtomicNumbers(i)
+             if (self%outputAbsorptionCoefficients)                                                                 &
+                  & outputCountElement=outputCountElement+           self%elementAtomicNumbers(i)
           end do
-          if      (output_                                                    == 1_c_size_t                  ) then
+          offsetPhotoionizationRates  =1_c_size_t*self%elementAtomicNumbers(i)+1_c_size_t
+          offsetPhotoheatingRates     =2_c_size_t*self%elementAtomicNumbers(i)+1_c_size_t
+          offsetAbsorptionCoefficients=1_c_size_t*self%elementAtomicNumbers(i)+1_c_size_t
+          if (self%outputRates                 )                                                                    &
+               offsetAbsorptionCoefficients=offsetAbsorptionCoefficients+2_c_size_t*self%elementAtomicNumbers(i)
+          if      (                                         output_                             == 1_c_size_t                  ) then
              atomicOutputProperty=properties%elements(i)%densityNumber
-          else if (output_                                        -1_c_size_t <= self%elementAtomicNumbers(i)) then
-             atomicOutputProperty=properties%elements(i)%ionizationStateFraction(output_                                        -1_c_size_t)
-          else if (output_-           self%elementAtomicNumbers(i)-1_c_size_t <= self%elementAtomicNumbers(i)) then
-             atomicOutputProperty=properties%elements(i)%photoIonizationRate    (output_-           self%elementAtomicNumbers(i)-2_c_size_t)
-          else if (output_-2_c_size_t*self%elementAtomicNumbers(i)-1_c_size_t <= self%elementAtomicNumbers(i)) then
-             atomicOutputProperty=properties%elements(i)%photoHeatingRate       (output_-2_c_size_t*self%elementAtomicNumbers(i)-2_c_size_t)
+          else if (                                         output_-1_c_size_t                  <= self%elementAtomicNumbers(i)) then
+             atomicOutputProperty=properties%elements(i)%ionizationStateFraction(output_-1_c_size_t                )
+          else if (self%outputRates                   .and. output_-offsetPhotoionizationRates  <= self%elementAtomicNumbers(i)) then
+             atomicOutputProperty=properties%elements(i)%photoIonizationRate    (output_-offsetPhotoionizationRates)
+          else if (self%outputRates                  .and. output_-offsetPhotoheatingRates      <= self%elementAtomicNumbers(i)) then
+             atomicOutputProperty=properties%elements(i)%photoHeatingRate       (output_-offsetPhotoheatingRates   )
+          else if (self%outputAbsorptionCoefficients .and. output_-offsetAbsorptionCoefficients <= self%elementAtomicNumbers(i)) then
+             atomicOutputProperty=self%absorptionCoefficientSpecies(i,int(output_-offsetAbsorptionCoefficients-1_c_size_t),(1.0d0-1.0d-3)*lymanSeriesLimitWavelengthHydrogen,properties)
           else
              atomicOutputProperty=0.0d0
              call Galacticus_Error_Report('output is out of range (this should not happen)'//{introspection:location})
@@ -1252,7 +1293,9 @@ contains
     type   (varying_string               )                :: atomicOutputName
     class  (radiativeTransferMatterAtomic), intent(inout) :: self
     integer(c_size_t                     ), intent(in   ) :: output
-    integer(c_size_t                     )                :: output_         , outputCountElement
+    integer(c_size_t                     )                :: output_                     , outputCountElement     , &
+         &                                                   offsetPhotoionizationRates  , offsetPhotoheatingRates, &
+         &                                                   offsetAbsorptionCoefficients
     integer                                               :: i
     
     if      (output == 1_c_size_t                                   ) then
@@ -1261,23 +1304,34 @@ contains
        output_                  =output                                                    -1_c_size_t
        i                        =                                                           1
        outputCountElement       =                              self%elementAtomicNumbers(i)+1_c_size_t
-       if (self%outputRates)                                                                           &
+       if (self%outputRates                 )                                                                     &
             & outputCountElement=outputCountElement+2_c_size_t*self%elementAtomicNumbers(i)
+       if (self%outputAbsorptionCoefficients)                                                                     &
+            & outputCountElement=outputCountElement+           self%elementAtomicNumbers(i)
        do while (output_ > outputCountElement)
           output_                  =output_                                                  -outputCountElement
           i                        =i                                                         +1
           outputCountElement       =                              self%elementAtomicNumbers(i)+1_c_size_t
-          if (self%outputRates)                                                                                  &
+          if (self%outputRates                 )                                                                  &
                & outputCountElement=outputCountElement+2_c_size_t*self%elementAtomicNumbers(i)
+          if (self%outputAbsorptionCoefficients)                                                                  &
+               & outputCountElement=outputCountElement+           self%elementAtomicNumbers(i)
        end do
-       if      (output_                                                    == 1_c_size_t                  ) then
-          atomicOutputName=var_str('densityNumber'      )//trim(adjustl(self%elements(i)))
-       else if (output_                                        -1_c_size_t <= self%elementAtomicNumbers(i)) then
-          atomicOutputName=var_str('fraction'           )//trim(adjustl(self%elements(i)))//Roman_Numerals(int(output_                                                   ))
-       else if (output_-           self%elementAtomicNumbers(i)-1_c_size_t <= self%elementAtomicNumbers(i)) then
-          atomicOutputName=var_str('photoIonizationRate')//trim(adjustl(self%elements(i)))//Roman_Numerals(int(output_-           self%elementAtomicNumbers(i)-1_c_size_t))
-       else if (output_-2_c_size_t*self%elementAtomicNumbers(i)-1_c_size_t <= self%elementAtomicNumbers(i)) then
-          atomicOutputName=var_str('photoHeatingRate'   )//trim(adjustl(self%elements(i)))//Roman_Numerals(int(output_-2_c_size_t*self%elementAtomicNumbers(i)-1_c_size_t))
+       offsetPhotoionizationRates  =1_c_size_t*self%elementAtomicNumbers(i)+1_c_size_t
+       offsetPhotoheatingRates     =2_c_size_t*self%elementAtomicNumbers(i)+1_c_size_t
+       offsetAbsorptionCoefficients=1_c_size_t*self%elementAtomicNumbers(i)+1_c_size_t
+       if (self%outputRates                 )                                                                    &
+            offsetAbsorptionCoefficients=offsetAbsorptionCoefficients+2_c_size_t*self%elementAtomicNumbers(i)
+       if      (                                         output_                             == 1_c_size_t                  ) then
+          atomicOutputName=var_str('densityNumber'        )//trim(adjustl(self%elements(i)))
+       else if (                                         output_-1_c_size_t                  <= self%elementAtomicNumbers(i)) then
+          atomicOutputName=var_str('fraction'             )//trim(adjustl(self%elements(i)))//Roman_Numerals(int(output_                             ))
+       else if (self%outputRates                   .and. output_-offsetPhotoionizationRates  <= self%elementAtomicNumbers(i)) then
+          atomicOutputName=var_str('photoIonizationRate'  )//trim(adjustl(self%elements(i)))//Roman_Numerals(int(output_-offsetPhotoionizationRates  ))
+       else if (self%outputRates                  .and. output_-offsetPhotoheatingRates      <= self%elementAtomicNumbers(i)) then
+          atomicOutputName=var_str('photoHeatingRate'     )//trim(adjustl(self%elements(i)))//Roman_Numerals(int(output_-offsetPhotoheatingRates     ))
+       else if (self%outputAbsorptionCoefficients .and. output_-offsetAbsorptionCoefficients <= self%elementAtomicNumbers(i)) then
+          atomicOutputName=var_str('absorptionCoefficient')//trim(adjustl(self%elements(i)))//Roman_Numerals(int(output_-offsetAbsorptionCoefficients))
        else
           atomicOutputName=var_str(''                   )
           call Galacticus_Error_Report('output is out of range (this should not happen)'//{introspection:location})
