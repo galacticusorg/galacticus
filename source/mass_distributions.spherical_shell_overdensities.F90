@@ -189,8 +189,8 @@ contains
        end do
        ! Sort the clouds by radial coordinate. (We don't need to sort impact parameters as they're independent of the radii.)
        call sort(self%radii)
-    end if
 #ifdef USEMPI
+    end if
     call mpiSelf%broadcastData(0,self%radii          )
     call mpiBarrier()
     call mpiSelf%broadcastData(0,self%impactParameter)
