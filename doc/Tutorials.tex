@@ -8,7 +8,7 @@ See \S\ref{sec:MergerTreeBuilder} for details of how to build merger tree files 
 
 \subsection{Setting Input Parameters}
 
-To utilize merger trees from the file\footnote{The following assumes that merger trees will be read from a file following \protect\glc's standard HDF5 format which is described in Appendix~\protect\ref{sec:MergerTreeFileFormat}.} that you created in a \glc\ run it's necessary to set two parameters in the input parameter file that you will use for the run:
+To utilize merger trees from the file\footnote{The following assumes that merger trees will be read from a file following \protect\glc's standard HDF5 format which is described \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here}.} that you created in a \glc\ run it's necessary to set two parameters in the input parameter file that you will use for the run:
 \begin{verbatim}
   <!-- Specify that merger trees are to be read from file, and give the name of the file to read -->
   <mergerTreeConstructMethod value="read"             />
@@ -294,7 +294,7 @@ To add particle tracking data to a merger tree file, follow these steps:
 \item Identify all subhalos which are lost from the simulation prior to the final timestep;
 \item Determine the index of the most bound particle in each such subhalo in the last timestep in which it was identified;
 \item For each subhalo, extract the redshift, position, and velocity of that particle (which is usally trivial to do once its index is known) at each subsequent timestep in the simulation;
-\item Write these data (along with the particle index) to the {\normalfont \ttfamily particles} group in the merger tree file as described in \S\ref{sec:MergerTreeFormatDescription:Particles};
+\item Write these data (along with the particle index) to the {\normalfont \ttfamily particles} group in the merger tree file as described \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#particles-group}{here};
 \item Add two datasets to the {\normalfont \ttfamily forestHalos} group:
   \begin{enumerate}
   \item {\normalfont \ttfamily particleIndexStart} which should indicate the index in the datasets in the {\normalfont \ttfamily particles} group at which the data for each halo begins (or $-1$ if no particle data is included for the halo);
@@ -336,7 +336,7 @@ Suppose that you want to create a catalog of galaxies as would be found in a sur
 
 Generating such a mock catalog using \glc\ involves first extracting the halos (and their merger trees) within this ``lightcone'' from a suitable N-body simulation, and then processing them through \glc. In this tutorial, we will specifically make use of the \href{http://gavo.mpa-garching.mpg.de/MyMillennium3/MyDB}{Millennium Simulation database} to provide the merger trees, but the same principles apply to any N-body simulation.
 
-The script, {\normalfont \ttfamily scripts/aux/Millennium\_Lightcone\_Grab.pl} can be used to retrieve merger trees that intersect a given lightcone from the Millennium Database and to store them in \glc's format (see \S\ref{sec:MergerTreeFileFormat}). The script is used as follows:
+The script, {\normalfont \ttfamily scripts/aux/Millennium\_Lightcone\_Grab.pl} can be used to retrieve merger trees that intersect a given lightcone from the Millennium Database and to store them in \glc's format (see \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here}). The script is used as follows:
 \begin{verbatim}
 scripts/aux/Millennium_Lightcone_Grab.pl <lightconeDirectory> <fieldSize> <maximumRedshift>
     --user <myUserName> --password <myPassword> --treesPerFile <treesPerFile>
