@@ -24,10 +24,17 @@ module Gamma_Functions
   use, intrinsic :: ISO_C_Binding, only : c_double
   implicit none
   private
-  public :: Gamma_Function_Incomplete        , Gamma_Function_Incomplete_Complementary        , Gamma_Function_Logarithmic, Gamma_Function, &
-       &    Inverse_Gamma_Function_Incomplete, Inverse_Gamma_Function_Incomplete_Complementary
+  public :: Gamma_Function_Incomplete        , Gamma_Function_Incomplete_Complementary        , Gamma_Function_Logarithmic            , Gamma_Function, &
+       &    Inverse_Gamma_Function_Incomplete, Inverse_Gamma_Function_Incomplete_Complementary, Gamma_Function_Incomplete_Unnormalized
 
   interface
+     function gsl_sf_gamma_inc(a,x) bind(c,name='gsl_sf_gamma_inc')
+       !% Template for the GSL unnormalized incomplete Gamma function.
+       import
+       real(c_double)        :: gsl_sf_gamma_inc
+       real(c_double), value :: a               , x
+     end function gsl_sf_gamma_inc
+
      function gsl_sf_gamma_inc_Q(a,x) bind(c,name='gsl_sf_gamma_inc_Q')
        !% Template for the GSL incomplete Gamma function.
        import
@@ -51,6 +58,15 @@ module Gamma_Functions
   end interface
   
 contains
+
+  double precision function Gamma_Function_Incomplete_Unnormalized(exponent,argument)
+    !% Computes the unnormalized incomplete Gamma function.
+    implicit none
+    double precision, intent(in   ) :: argument, exponent
+
+    Gamma_Function_Incomplete_Unnormalized=GSL_SF_Gamma_Inc(exponent,argument)
+    return
+  end function Gamma_Function_Incomplete_Unnormalized
 
   double precision function Gamma_Function_Incomplete(exponent,argument)
     !% Computes the incomplete Gamma function.
