@@ -136,6 +136,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.random.quasi.exe",                                             # Tests of quasi-random number generators.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.arrays.exe",                                                   # Tests of array functions.
 	valgrind => 0,
 	mpi      => 0

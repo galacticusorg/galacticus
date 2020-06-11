@@ -19,14 +19,17 @@
 
 !% Contains a module which implements quasi-random sequences.
 
-module Quasi_Random
+! Specify an explicit dependence on the interface.GSL.C.quasi_random.o object file.
+!: $(BUILDPATH)/interface.GSL.C.quasi_random.o
+
+module Numerical_Quasi_Random_Sequences
   !% Implements quasi-random sequences.
   use, intrinsic :: ISO_C_Binding, only : c_ptr            , c_int          , c_double
   use            :: FGSL         , only : FGSL_Well_Defined, FGSL_qRng_Alloc, FGSL_qRng_Free, FGSL_qRng_Get, &
           &                               FGSL_qRng_Sobol  , fgsl_qrng      , fgsl_qrng_type
   implicit none
   private
-  public :: Quasi_Random_Get, Quasi_Random_Free
+  public :: quasiRandomNumberGenerator
 
   ! Sequence types.
   integer, public, parameter :: gsl_qrng_niederreiter_2=1
@@ -54,86 +57,83 @@ module Quasi_Random
        type   (c_ptr   ), value        :: q
        real   (c_double), dimension(*) :: x
      end function gsl_qrng_get
+     function gsl_qrng_type_get(i) bind(c,name='gsl_qrng_type_get')
+       !% Template for GSL interface quasi-random number generator type function.
+       import c_ptr, c_int
+       type   (c_ptr)                       :: gsl_qrng_type_get
+       integer(c_int), intent(in   ), value :: i
+     end function gsl_qrng_type_get
   end interface
-  
-  interface Quasi_Random_Get
-     module procedure Quasi_Random_Get_Scalar
-     module procedure Quasi_Random_Get_Array
-  end interface Quasi_Random_Get
 
+  type :: quasiRandomNumberGenerator
+     !% Type providing quasi-random number generators.
+     private
+     type            (c_ptr   ), allocatable               :: gsl_qrng , gsl_qrng_type
+     integer                                               :: qrngType
+   contains
+     !@ <objectMethods>
+     !@   <object>qrng</object>
+     !@   <objectMethod>
+  !@     <method>get</method>
+  !@     <description>Get numbers from the sequence.</description>
+  !@     <type>(\doublezero|\doubleone)</type>
+  !@     <arguments>\intzero\ [n]\argin</arguments>
+  !@   </objectMethod>
+     !@ </objectMethods>
+     final :: quasiRandomNumberGeneratorDestructor
+     procedure :: get => quasiRandomNumberGeneratorGet
+  end type quasiRandomNumberGenerator
+  
+  interface quasiRandomNumberGenerator
+     !% Constructor for the {\normalfont \ttfamily quasiRandomNumberGenerator} class.
+     module procedure quasiRandomNumberGeneratorConstructor
+  end interface quasiRandomNumberGenerator
+  
 contains
 
-  double precision function Quasi_Random_Get_Scalar(quasiSequenceObject,reset,quasiSequenceType)
-    !% Returns a scalar giving a quasi-random point in a 1-dimensional space.
+  function quasiRandomNumberGeneratorConstructor(qrngType) result(self)
+    !% Constructor for {\normalfont \ttfamily quasiRandomNumberGenerator} obejcts.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    type            (fgsl_qrng     ), intent(inout)           :: quasiSequenceObject
-    logical                         , intent(inout), optional :: reset
-    type            (fgsl_qrng_type), intent(in   ), optional :: quasiSequenceType
-    integer         (kind=4        ), parameter               :: nGet                      =1
-    double precision                                          :: pointArray             (1)
-    logical                                                   :: resetActual
-    type            (fgsl_qrng_type)                          :: quasiSequenceTypeActual
-
-    ! Determine what type of quasi-random sequence to use.
-    if (present(quasiSequenceType)) then
-       quasiSequenceTypeActual=quasiSequenceType
-    else
-       quasiSequenceTypeActual=FGSL_qRng_Sobol
-    end if
-
-    ! Determine if we need to reset.
-    if (present(reset)) then
-       resetActual=reset
-       reset=.false.
-    else
-       resetActual=.false.
-    end if
-    if (resetActual.or..not.FGSL_Well_Defined(quasiSequenceObject)) quasiSequenceObject=FGSL_qRng_Alloc(quasiSequenceTypeActual&
-         &,1)
-    pointArray=Quasi_Random_Get_Array(quasiSequenceObject,nGet,resetActual,quasiSequenceTypeActual)
-    Quasi_Random_Get_Scalar=pointArray(1)
+    type            (quasiRandomNumberGenerator)                                        :: self
+    integer                       , intent(in   )              , optional :: qrngType
+    !# <optionalArgument name="qrngType" defaultsTo="gsl_qrng_sobol"     />
+    
+    ! Get the interpolator type.
+    self%qrngType=qrngType_
+    allocate(self%gsl_qrng_type)
+    self%gsl_qrng_type=gsl_qrng_type_get(qrngType_)
+    ! Allocate the sequence.
+    allocate(self%gsl_qrng)
+    self%gsl_qrng=gsl_qrng_alloc(self%gsl_qrng_type,1)
     return
-  end function Quasi_Random_Get_Scalar
+  end function quasiRandomNumberGeneratorConstructor
 
-  function Quasi_Random_Get_Array(quasiSequenceObject,quasiSequenceDimension,reset,quasiSequenceType) result (quasiSequencePoint)
-    !% Returns an array giving a quasi-random points in a {\normalfont \ttfamily quasiSequenceDimension}-dimensional space.
+  subroutine quasiRandomNumberGeneratorDestructor(self)
+    !% Destructor for {\normalfont \ttfamily quasiRandomNumberGenerator} objects.
     implicit none
-    type            (fgsl_qrng     ), intent(inout)                               :: quasiSequenceObject
-    integer         (kind=4        ), intent(in   )                               :: quasiSequenceDimension
-    logical                         , intent(inout)                    , optional :: reset
-    type            (fgsl_qrng_type), intent(in   )                    , optional :: quasiSequenceType
-    double precision                , dimension(quasiSequenceDimension)           :: quasiSequencePoint
-    logical                                                                       :: resetActual
-    integer                                                                       :: status
-    type            (fgsl_qrng_type)                                              :: quasiSequenceTypeActual
+    type(quasiRandomNumberGenerator), intent(inout) :: self
 
-    ! Determine what type of quasi-random sequence to use.
-    if (present(quasiSequenceType)) then
-       quasiSequenceTypeActual=quasiSequenceType
-    else
-       quasiSequenceTypeActual=FGSL_qRng_Sobol
+    if (allocated (self%gsl_qrng      )) then
+       call gsl_qrng_free      (self%gsl_qrng      )
+       deallocate(self%gsl_qrng      )
     end if
-
-    ! Determine if we need to reset.
-    if (present(reset)) then
-       resetActual=reset
-       reset=.false.
-    else
-       resetActual=.false.
-    end if
-    if (resetActual.or..not.FGSL_Well_Defined(quasiSequenceObject)) quasiSequenceObject=FGSL_qRng_Alloc(quasiSequenceTypeActual&
-         &,quasiSequenceDimension)
-    status=FGSL_qRng_Get(quasiSequenceObject,quasiSequencePoint)
     return
-  end function Quasi_Random_Get_Array
-
-  subroutine Quasi_Random_Free(quasiSequenceObject)
-    !% Frees a quasi-random sequence object.
+  end subroutine quasiRandomNumberGeneratorDestructor
+  
+  double precision function quasiRandomNumberGeneratorGet(self)
+    !% Return the next entry in the quasi-random sequence.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Interface_GSL, only : GSL_Success
     implicit none
-    type(fgsl_qrng), intent(inout) :: quasiSequenceObject
+    class(quasiRandomNumberGenerator), intent(inout) :: self
+    integer(c_int) :: status
+    double precision, dimension(1) :: sequenceNext
 
-    call FGSL_qRng_Free(quasiSequenceObject)
+    status=GSL_qRng_Get(self%gsl_qrng,sequenceNext)
+    if (status /= GSL_Success) call Galacticus_Error_Report('failed to get next entry in quasi-random sequence'//{introspection:location})
+    quasiRandomNumberGeneratorGet=sequenceNext(1)
     return
-  end subroutine Quasi_Random_Free
-
-end module Quasi_Random
+  end function quasiRandomNumberGeneratorGet
+  
+end module Numerical_Quasi_Random_Sequences
