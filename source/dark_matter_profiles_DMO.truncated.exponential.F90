@@ -366,7 +366,7 @@ contains
   double precision function truncatedExponentialEnclosedMass(self,node,radius)
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
-    use :: FGSL                    , only : FGSL_SF_GAMMA_INC
+    use :: Gamma_Functions         , only : Gamma_Function_Incomplete_Unnormalized
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
@@ -381,15 +381,15 @@ contains
     else
        if (self%kappaPrevious == -huge(0.0d0)) call recomputeKappa(self,node)
        radiusDecay                     =+self%radiusFractionalDecay*radiusVirial
-       truncatedExponentialEnclosedMass=+self%darkMatterProfileDMO_%enclosedMass(node,radiusVirial)                      &
-            &                           +4.0d0*Pi                                                                        &
-            &                           *self%darkMatterProfileDMO_%density     (node,radiusVirial)                      &
-            &                           *radiusVirial**3                                                                 &
-            &                           *self%radiusFractionalDecay**(3.0d0+self%kappaPrevious)                          &
-            &                           *exp(1.0d0/self%radiusFractionalDecay)                                           &
-            &                           *(                                                                               &
-            &                             +FGSL_SF_GAMMA_INC(3.0d0+self%kappaPrevious,1.0d0 /self%radiusFractionalDecay) &
-            &                             -FGSL_SF_GAMMA_INC(3.0d0+self%kappaPrevious,radius/     radiusDecay          ) &
+       truncatedExponentialEnclosedMass=+self%darkMatterProfileDMO_%enclosedMass(node,radiusVirial)                                           &
+            &                           +4.0d0*Pi                                                                                             &
+            &                           *self%darkMatterProfileDMO_%density     (node,radiusVirial)                                           &
+            &                           *radiusVirial**3                                                                                      &
+            &                           *self%radiusFractionalDecay**(3.0d0+self%kappaPrevious)                                               &
+            &                           *exp(1.0d0/self%radiusFractionalDecay)                                                                &
+            &                           *(                                                                                                    &
+            &                             +Gamma_Function_Incomplete_Unnormalized(3.0d0+self%kappaPrevious,1.0d0 /self%radiusFractionalDecay) &
+            &                             -Gamma_Function_Incomplete_Unnormalized(3.0d0+self%kappaPrevious,radius/     radiusDecay          ) &
             &                            )
     end if
     return

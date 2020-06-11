@@ -1080,7 +1080,7 @@ contains
     !% {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)
     !% using the result derived by \citeauthor{lokas_properties_2001}~(\citeyear{lokas_properties_2001}; eqn.~14). Note that
     !% approximate solutions are used at small and large radii.
-    use :: FGSL                    , only : FGSL_SF_DILOG
+    use :: Dilogarithms            , only : Dilogarithm
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout)            :: self
@@ -1101,21 +1101,21 @@ contains
             &                          )                                                   &
             &                         /(400.0d0*radius**3)
     else if (radius >= minimumRadiusForExactSolution) then
-       radialVelocityDispersionSquare=+0.5d0*radius*(1.0d0+radius)**2   &
-            &                         *(                                &
-            &                           +Pi**2                          &
-            &                           -log(radius)                    &
-            &                           -1.0d0/       radius            &
-            &                           -1.0d0/(1.0d0+radius)**2        &
-            &                           -6.0d0/(1.0d0+radius)           &
-            &                           +(                              &
-            &                             +1.0d0+ 1.0d0/radius**2       &
-            &                                   - 4.0d0/radius          &
-            &                             -2.0d0/(1.0d0+radius)         &
-            &                            )                              &
-            &                           *log(1.0d0+radius)              &
-            &                           +3.0d0*log(1.0d0+radius)**2     &
-            &                           +6.0d0*FGSL_SF_DILOG(-radius)   &
+       radialVelocityDispersionSquare=+0.5d0*radius*(1.0d0+radius)**2 &
+            &                         *(                              &
+            &                           +Pi**2                        &
+            &                           -log(radius)                  &
+            &                           -1.0d0/       radius          &
+            &                           -1.0d0/(1.0d0+radius)**2      &
+            &                           -6.0d0/(1.0d0+radius)         &
+            &                           +(                            &
+            &                             +1.0d0+ 1.0d0/radius**2     &
+            &                                   - 4.0d0/radius        &
+            &                             -2.0d0/(1.0d0+radius)       &
+            &                            )                            &
+            &                           *log(1.0d0+radius)            &
+            &                           +3.0d0*log(1.0d0+radius)**2   &
+            &                           +6.0d0*Dilogarithm(-radius)   &
             &                          )
     else if (radius > 0.0d0) then
        radialVelocityDispersionSquare=+0.25d0      *(-23.0d0       + 2.0d0*Pi**2- 2.0d0*log(radius))*radius    &
