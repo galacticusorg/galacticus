@@ -358,8 +358,8 @@ contains
   subroutine cllsnlssMttrDarkEnergyPerturbationDynamicsSolver(epsilonPerturbation,time,radiusPerturbation,expansionRatePerturbation)
     !% Integrate the dynamics of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
     !% amplitude {\normalfont \ttfamily epsilonPerturbation}.
-    use :: FGSL         , only : FGSL_Success
     use :: FODEIV2      , only : fodeiv2_driver, fodeiv2_system
+    use :: Interface_GSL, only : GSL_Success
     use :: ODEIV2_Solver, only : ODEIV2_Solve  , ODEIV2_Solver_Free
     implicit none
     double precision                                                , intent(in   )           :: epsilonPerturbation            , time
@@ -425,12 +425,12 @@ contains
        ! If the ODE solver did not succeed, it is because the perturbation collapsed to zero radius (causing a divergence). This
        ! means it collapsed prior to the current time. We extrapolate to negative radius (using the velocity at the final step) to
        ! permit our root finder to locate the point at which collapse occurs at the current time.
-       if (odeStatus /= FGSL_Success) propertyValues(1)=+propertyValues(1) &
-            &                                           +propertyValues(2) &
-            &                                           *(                 &
-            &                                             +time            &
-            &                                             -timeInitial     &
-            &                                            )
+       if (odeStatus /= GSL_Success) propertyValues(1)=+propertyValues(1) &
+            &                                          +propertyValues(2) &
+            &                                          *(                 &
+            &                                            +time            &
+            &                                            -timeInitial     &
+            &                                           )
     end if
     ! Return the computed quantities.
     if (present(radiusPerturbation       )) radiusPerturbation       =propertyValues(1)
@@ -440,7 +440,7 @@ contains
 
   integer function cllsnlssMttrDarkEnergyPerturbationODEs(time,y,dydt)
     !% Differential equations describing the evolution of spherical perturbations in a universe containing collisionless dark matter and dark energy.
-    use :: FGSL, only : FGSL_Success
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     double precision, intent(in   )               :: time
     double precision, intent(in   ), dimension(:) :: y
@@ -462,7 +462,7 @@ contains
             &   )
     end if
     ! Return success.
-    cllsnlssMttrDarkEnergyPerturbationODEs=FGSL_Success
+    cllsnlssMttrDarkEnergyPerturbationODEs=GSL_Success
     return
   end function cllsnlssMttrDarkEnergyPerturbationODEs
 

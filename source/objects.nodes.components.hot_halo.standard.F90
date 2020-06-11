@@ -560,8 +560,8 @@ contains
   !# </postStepTask>
   subroutine Node_Component_Hot_Halo_Standard_Post_Step(node,status)
     !% Do processing of the node required after evolution.
-    use :: FGSL            , only : FGSL_Failure
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode, defaultHotHaloComponent
+    use :: Interface_GSL   , only : GSL_Failure
     implicit none
     type   (treeNode            ), intent(inout), pointer :: node
     integer                      , intent(inout)          :: status
@@ -574,11 +574,11 @@ contains
     select type (hotHalo)
     class is (nodeComponentHotHaloStandard)
        if (hotHalo%       mass() < 0.0d0) then
-          status=FGSL_Failure
+          status=GSL_Failure
           call hotHalo%       massSet(0.0d0)
        end if
        if (hotHalo%outerRadius() < 0.0d0) then
-          status=FGSL_Failure
+          status=GSL_Failure
           call hotHalo%outerRadiusSet(0.0d0)
        end if
     end select

@@ -45,10 +45,10 @@ contains
   subroutine ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,x0,x1,yCount,y,odes,toleranceAbsolute,toleranceRelative,yScale,reset)
     !% Interface to the GNU Scientific Library ODEIV differential equation solvers.
     use            :: FGSL                  , only : FGSL_ODEiv_Control_Scaled_New, FGSL_ODEiv_Control_y_New, FGSL_ODEiv_Evolve_Alloc, FGSL_ODEiv_Evolve_Apply, &
-          &                                          FGSL_ODEiv_Step_Alloc        , FGSL_ODEiv_Step_RKCK    , FGSL_ODEiv_System_Init , FGSL_Success           , &
-          &                                          FGSL_Well_Defined            , fgsl_odeiv_control      , fgsl_odeiv_evolve      , fgsl_odeiv_step        , &
-          &                                          fgsl_odeiv_system
+          &                                          FGSL_ODEiv_Step_Alloc        , FGSL_ODEiv_Step_RKCK    , FGSL_ODEiv_System_Init , fgsl_odeiv_system      , &
+          &                                          FGSL_Well_Defined            , fgsl_odeiv_control      , fgsl_odeiv_evolve      , fgsl_odeiv_step
     use            :: Galacticus_Error      , only : Galacticus_Error_Report
+    use            :: Interface_GSL         , only : GSL_Success
     use, intrinsic :: ISO_C_Binding         , only : c_ptr                        , c_size_t
     use            :: ODE_Solver_Error_Codes, only : interruptedAtX               , odeSolverInterrupt
     implicit none
@@ -104,7 +104,7 @@ contains
     do while ((forwardEvolve.and.x<x1Internal).or.(.not.forwardEvolve.and.x>x1Internal))
        status=FGSL_ODEiv_Evolve_Apply(odeEvolver,odeController,odeStepper,odeSystem,x,x1Internal,h,y)
        select case (status)
-       case (FGSL_Success)
+       case (GSL_Success)
           ! Successful completion of the step - do nothing.
        case (odeSolverInterrupt)
           ! The evolution was interrupted. Reset the end time of the evolution and continue.

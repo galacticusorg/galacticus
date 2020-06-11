@@ -324,7 +324,7 @@ contains
 
     integer function massFilteringODEs(time,properties,propertiesRateOfChange)
       !% Evaluates the ODEs controlling the evolution temperature.
-      use :: FGSL                            , only : FGSL_Success
+      use ::Interface_GSL                    , only : GSL_Success
       use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial, hydrogenByMassPrimordial
       use :: Numerical_Constants_Atomic      , only : electronMass          , massHeliumAtom          , massHydrogenAtom
       implicit none
@@ -341,7 +341,7 @@ contains
       ! Compute the rates of change for the ODE system.
       propertiesRateOfChange=gnedin2000ODEs(self%cosmologyParameters_,self%cosmologyFunctions_,self%linearGrowth_,time,massParticleMean,temperature,properties)
       ! Return success.
-      massFilteringODEs=FGSL_Success
+      massFilteringODEs=GSL_Success
       return
     end function massFilteringODEs
 

@@ -421,10 +421,10 @@ contains
   subroutine Node_Component_Spheroid_Standard_Post_Step(node,status)
     !% Trim histories attached to the spheroid.
     use :: Abundances_Structure          , only : abs                       , zeroAbundances
-    use :: FGSL                          , only : FGSL_Failure
     use :: Galacticus_Display            , only : Galacticus_Display_Message, verbosityWarn
     use :: Galacticus_Error              , only : Galacticus_Error_Report
     use :: Galacticus_Nodes              , only : nodeComponentSpheroid     , nodeComponentSpheroidStandard, treeNode      , defaultSpheroidComponent
+    use :: Interface_GSL                 , only : GSL_Failure
     use :: ISO_Varying_String            , only : assignment(=)             , operator(//)                 , varying_string
     use :: Stellar_Luminosities_Structure, only : stellarLuminosities       , abs
     use :: String_Handling               , only : operator(//)
@@ -504,7 +504,7 @@ contains
           call spheroid%        massGasSet(                                                      0.0d0)
           call spheroid%  abundancesGasSet(                                             zeroAbundances)
           call spheroid%angularMomentumSet(specificAngularMomentum*spheroid%massStellar())
-          status=FGSL_Failure
+          status=GSL_Failure
        end if
        ! Trap negative stellar masses.
        if (spheroid%massStellar() < 0.0d0) then
@@ -551,7 +551,7 @@ contains
           call spheroid%        massStellarSet(                                 0.0d0)
           call spheroid%  abundancesStellarSet(                        zeroAbundances)
           call spheroid%angularMomentumSet(specificAngularMomentum*spheroid%massGas())
-          status=FGSL_Failure
+          status=GSL_Failure
        end if
     end select
     return

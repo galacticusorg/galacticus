@@ -21,12 +21,12 @@
 
 module Linear_Algebra
   !% Implements linear algebra calculations.
-  use :: FGSL, only : FGSL_Eigen_SymmV     , FGSL_Eigen_SymmV_Alloc    , FGSL_Eigen_Symmv_Free, FGSL_LinAlg_Cholesky_Decomp, &
-          &           FGSL_LinAlg_LU_Decomp, FGSL_LinAlg_LU_Det        , FGSL_LinAlg_LU_Invert, FGSL_LinAlg_LU_Solve       , &
-          &           FGSL_LinAlg_LU_lnDet , FGSL_Matrix_Align         , FGSL_Matrix_Free     , FGSL_Permutation_Alloc     , &
-          &           FGSL_Permutation_Free, FGSL_Vector_Align         , FGSL_Vector_Free     , FGSL_Vector_Init           , &
-          &           fgsl_double          , fgsl_eigen_symmv_workspace, fgsl_int             , fgsl_matrix                , &
-          &           fgsl_matrix_init     , fgsl_permutation          , fgsl_size_t          , fgsl_vector
+  use :: FGSL, only : FGSL_Eigen_SymmV          , FGSL_Eigen_SymmV_Alloc, FGSL_Eigen_Symmv_Free, FGSL_LinAlg_Cholesky_Decomp, &
+          &           FGSL_LinAlg_LU_Decomp     , FGSL_LinAlg_LU_Det    , FGSL_LinAlg_LU_Invert, FGSL_LinAlg_LU_Solve       , &
+          &           FGSL_LinAlg_LU_lnDet      , FGSL_Matrix_Align     , FGSL_Matrix_Free     , FGSL_Permutation_Alloc     , &
+          &           FGSL_Permutation_Free     , FGSL_Vector_Align     , FGSL_Vector_Free     , FGSL_Vector_Init           , &
+          &           fgsl_eigen_symmv_workspace, fgsl_matrix           , fgsl_matrix_init     , fgsl_permutation           , &
+          &           fgsl_vector
   implicit none
   private
   public :: assignment(=), operator(*), matrixRotation, matrixRotationPlusTranslation
@@ -313,13 +313,14 @@ contains
     !% Make a matrix semi-positive definite by setting any negative
     !% eigenvalues to zero and reconstructing the matrix from its
     !% eigenvectors.
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
-    class           (matrix          ), intent(inout)                 :: self
-    double precision                  , allocatable  , dimension(:,:) :: eigenValuesMatrixArray
-    double precision                  , allocatable  , dimension(:  ) :: eigenValueArray
-    integer         (kind=fgsl_size_t)                                :: selfMatrixSize        , i
-    type            (matrix          )                                :: eigenValuesMatrix     , eigenVectors, eigenVectorsInverse
-    type            (vector          )                                :: eigenValues
+    class           (matrix  ), intent(inout)                 :: self
+    double precision          , allocatable  , dimension(:,:) :: eigenValuesMatrixArray
+    double precision          , allocatable  , dimension(:  ) :: eigenValueArray
+    integer         (c_size_t)                                :: selfMatrixSize        , i
+    type            (matrix  )                                :: eigenValuesMatrix     , eigenVectors, eigenVectorsInverse
+    type            (vector  )                                :: eigenValues
 
     selfMatrixSize=size(self%elements,dim=1)
     call self%eigenSystem(eigenVectors,eigenValues)
@@ -342,21 +343,22 @@ contains
 
   function matrixInvert(self)
     !% Invert a matrix.
+    use, intrinsic :: ISO_C_Binding, only : c_size_t, c_int, c_double
     implicit none
     type            (matrix          )                                                                         :: matrixInvert
     class           (matrix          ), intent(inout)                                                          :: self
     type            (fgsl_matrix     )                                                                         :: selfMatrix       , selfInverse
     type            (fgsl_permutation)                                                                         :: permutations
-    integer         (kind=fgsl_int   )                                                                         :: decompositionSign, status
-    integer         (kind=fgsl_size_t)                                                                         :: selfMatrixSize
+    integer         (c_int           )                                                                         :: decompositionSign, status
+    integer         (c_size_t        )                                                                         :: selfMatrixSize
     double precision                  , dimension(size(self%elements,dim=1),size(self%elements,dim=2)), target :: inverse
     double precision                  , dimension(size(self%elements,dim=1),size(self%elements,dim=2))         :: selfArray
 
     selfMatrixSize=size(self%elements,dim=1)
-    selfMatrix    =FGSL_Matrix_Init(type=1.0_fgsl_double)
+    selfMatrix    =FGSL_Matrix_Init(type=1.0_c_double)
     selfArray     =self%elements
     status        =FGSL_Matrix_Align(self%elements,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfMatrix )
-    selfInverse   =FGSL_Matrix_Init      (type=1.0_fgsl_double)
+    selfInverse   =FGSL_Matrix_Init      (type=1.0_c_double)
     status        =FGSL_Matrix_Align     (inverse      ,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfInverse)
     permutations  =FGSL_Permutation_Alloc(selfMatrixSize                               )
     status        =FGSL_LinAlg_LU_Decomp (selfMatrix    ,permutations,decompositionSign)
@@ -373,16 +375,17 @@ contains
 
   double precision function matrixLogarithmicDeterminant(self)
     !% Return the logarithm of the determinant of a matrix.
+    use, intrinsic :: ISO_C_Binding, only : c_size_t, c_int, c_double
     implicit none
     class           (matrix          ), intent(inout)                                                  :: self
     type            (fgsl_matrix     )                                                                 :: selfMatrix
     type            (fgsl_permutation)                                                                 :: permutations
-    integer         (kind=fgsl_int   )                                                                 :: decompositionSign, status
-    integer         (kind=fgsl_size_t)                                                                 :: selfMatrixSize
+    integer         (c_int           )                                                                 :: decompositionSign, status
+    integer         (c_size_t        )                                                                 :: selfMatrixSize
     double precision                  , dimension(size(self%elements,dim=1),size(self%elements,dim=2)) :: selfArray
 
     selfMatrixSize              =size(self%elements,dim=1)
-    selfMatrix                  =FGSL_Matrix_Init(type=1.0_fgsl_double)
+    selfMatrix                  =FGSL_Matrix_Init(type=1.0_c_double)
     permutations                =FGSL_Permutation_Alloc(selfMatrixSize)
     selfArray                   =self%elements
     status                      =FGSL_Matrix_Align(self%elements,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfMatrix )
@@ -397,16 +400,17 @@ contains
 
   double precision function matrixDeterminant(self)
     !% Return the of a matrix.
+    use, intrinsic :: ISO_C_Binding, only : c_size_t, c_int, c_double
     implicit none
     class           (matrix          ), intent(inout)                                                  :: self
     type            (fgsl_matrix     )                                                                 :: selfMatrix
     type            (fgsl_permutation)                                                                 :: permutations
-    integer         (kind=fgsl_int   )                                                                 :: decompositionSign, status
-    integer         (kind=fgsl_size_t)                                                                 :: selfMatrixSize
+    integer         (c_int           )                                                                 :: decompositionSign, status
+    integer         (c_size_t        )                                                                 :: selfMatrixSize
     double precision                  , dimension(size(self%elements,dim=1),size(self%elements,dim=2)) :: selfArray
 
     selfMatrixSize   =size(self%elements,dim=1)
-    selfMatrix       =FGSL_Matrix_Init(type=1.0_fgsl_double)
+    selfMatrix       =FGSL_Matrix_Init(type=1.0_c_double)
     permutations     =FGSL_Permutation_Alloc(selfMatrixSize)
     selfArray        =self%elements
     status           =FGSL_Matrix_Align(self%elements,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfMatrix )
@@ -459,6 +463,7 @@ contains
 
   function matrixLinearSystemSolve(self,y)
     !% Solve the linear system $y = A \cdot x$.
+    use, intrinsic :: ISO_C_Binding, only : c_size_t, c_int, c_double
     implicit none
     type            (vector          )                                                                 :: matrixLinearSystemSolve
     class           (matrix          ), intent(inout)                                                  :: self
@@ -466,19 +471,19 @@ contains
     type            (fgsl_matrix     )                                                                 :: selfMatrix
     type            (fgsl_vector     )                                                                 :: xVector          , yVector
     type            (fgsl_permutation)                                                                 :: permutations
-    integer         (kind=fgsl_int   )                                                                 :: decompositionSign, status
-    integer         (kind=fgsl_size_t)                                                                 :: selfMatrixSize
+    integer         (c_int           )                                                                 :: decompositionSign, status
+    integer         (c_size_t        )                                                                 :: selfMatrixSize
     double precision                  , dimension(size(self%elements,dim=1),size(self%elements,dim=2)) :: selfArray
 
     selfMatrixSize              =size(self%elements,dim=1)
-    selfMatrix                  =FGSL_Matrix_Init(type=1.0_fgsl_double)
-    xVector                     =FGSL_Vector_Init(type=1.0_fgsl_double)
-    yVector                     =FGSL_Vector_Init(type=1.0_fgsl_double)
+    selfMatrix                  =FGSL_Matrix_Init(type=1.0_c_double)
+    xVector                     =FGSL_Vector_Init(type=1.0_c_double)
+    yVector                     =FGSL_Vector_Init(type=1.0_c_double)
     permutations                =FGSL_Permutation_Alloc(selfMatrixSize)
     selfArray                   =self%elements
     matrixLinearSystemSolve     =y
-    status                      =FGSL_Vector_Align(matrixLinearSystemSolve%elements,selfMatrixSize,xVector,selfMatrixSize,0_FGSL_Size_T,1_FGSL_Size_T)
-    status                      =FGSL_Vector_Align(                      y%elements,selfMatrixSize,yVector,selfMatrixSize,0_FGSL_Size_T,1_FGSL_Size_T)
+    status                      =FGSL_Vector_Align(matrixLinearSystemSolve%elements,selfMatrixSize,xVector,selfMatrixSize,0_c_size_t,1_c_size_t)
+    status                      =FGSL_Vector_Align(                      y%elements,selfMatrixSize,yVector,selfMatrixSize,0_c_size_t,1_c_size_t)
     status                      =FGSL_Matrix_Align(self%elements,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfMatrix)
     status                      =FGSL_LinAlg_LU_Decomp(selfMatrix,permutations,decompositionSign)
     status                      =FGSL_LinAlg_LU_Solve(selfMatrix,permutations,yVector,xVector)
@@ -537,6 +542,7 @@ contains
 
   subroutine matrixEigensystem(self,eigenVectors,eigenValues)
     !% Find eigenvectors and eigenvalues of a real symmetric matrix.
+    use, intrinsic :: ISO_C_Binding, only : c_size_t, c_int, c_double
     implicit none
     class           (matrix                    ), intent(inout)                                                          :: self
     type            (matrix                    ), intent(  out)                                                          :: eigenVectors
@@ -544,22 +550,22 @@ contains
     type            (fgsl_matrix               )                                                                         :: selfMatrix      , eigenVectorMatrix
     type            (fgsl_vector               )                                                                         :: eigenValueVector
     type            (fgsl_eigen_symmv_workspace)                                                                         :: workspace
-    integer         (kind=fgsl_int             )                                                                         :: status
-    integer         (kind=fgsl_size_t          )                                                                         :: selfMatrixSize
+    integer         (c_int                     )                                                                         :: status
+    integer         (c_size_t                  )                                                                         :: selfMatrixSize
     double precision                            , dimension(size(self%elements,dim=1),size(self%elements,dim=2)), target :: eigenVectorArray
     double precision                            , dimension(size(self%elements,dim=1)                          ), target :: eigenValueArray
     double precision                            , dimension(size(self%elements,dim=1),size(self%elements,dim=2))         :: selfArray
 
     selfMatrixSize   =size(self%elements,dim=1)
     selfArray        =self%elements
-    selfMatrix       =FGSL_Matrix_Init      (type=1.0_fgsl_double)
-    eigenVectorMatrix=FGSL_Matrix_Init      (type=1.0_fgsl_double)
-    eigenValueVector =FGSL_Vector_Init      (type=1.0_fgsl_double)
-    status           =FGSL_Matrix_Align     (self%elements   ,selfMatrixSize,selfMatrixSize  ,selfMatrixSize,selfMatrix                 )
-    status           =FGSL_Matrix_Align     (eigenVectorArray,selfMatrixSize,selfMatrixSize  ,selfMatrixSize,eigenVectorMatrix          )
-    status           =FGSL_Vector_Align     (eigenValueArray ,selfMatrixSize,eigenValueVector,selfMatrixSize,0_FGSL_Size_T,1_FGSL_Size_T)
-    workspace        =FGSL_Eigen_SymmV_Alloc(                 selfMatrixSize                                                            )
-    status           =FGSL_Eigen_SymmV      (selfMatrix                     ,eigenValueVector,eigenVectorMatrix,workspace               )
+    selfMatrix       =FGSL_Matrix_Init      (type=1.0_c_double)
+    eigenVectorMatrix=FGSL_Matrix_Init      (type=1.0_c_double)
+    eigenValueVector =FGSL_Vector_Init      (type=1.0_c_double)
+    status           =FGSL_Matrix_Align     (self%elements   ,selfMatrixSize,selfMatrixSize  ,selfMatrixSize,selfMatrix                  )
+    status           =FGSL_Matrix_Align     (eigenVectorArray,selfMatrixSize,selfMatrixSize  ,selfMatrixSize,eigenVectorMatrix           )
+    status           =FGSL_Vector_Align     (eigenValueArray ,selfMatrixSize,eigenValueVector,selfMatrixSize,0_c_size_t       ,1_c_size_t)
+    workspace        =FGSL_Eigen_SymmV_Alloc(                 selfMatrixSize                                                             )
+    status           =FGSL_Eigen_SymmV      (selfMatrix                     ,eigenValueVector,eigenVectorMatrix,workspace                )
     eigenVectors     =eigenVectorArray
     eigenValues      =eigenValueArray
     call FGSL_Eigen_Symmv_Free(workspace        )
@@ -582,14 +588,15 @@ contains
 
   subroutine matrixCholeskyDecompose(self)
     !% Find the Cholesky decomposition of a matrix.
+    use, intrinsic :: ISO_C_Binding, only : c_size_t, c_int, c_double
     implicit none
-    class  (matrix          ), intent(inout) :: self
-    type   (fgsl_matrix     )                :: selfMatrix
-    integer(kind=fgsl_int   )                :: status
-    integer(kind=fgsl_size_t)                :: selfMatrixSize
+    class  (matrix     ), intent(inout) :: self
+    type   (fgsl_matrix)                :: selfMatrix
+    integer(c_int      )                :: status
+    integer(c_size_t   )                :: selfMatrixSize
 
     selfMatrixSize=size(self%elements,dim=1)
-    selfMatrix    =FGSL_Matrix_Init           (type=1.0_fgsl_double)
+    selfMatrix    =FGSL_Matrix_Init           (type=1.0_c_double)
     status        =FGSL_Matrix_Align          (self%elements,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfMatrix)
     status        =FGSL_LinAlg_Cholesky_Decomp(selfMatrix)
     call FGSL_Matrix_Free(selfMatrix)

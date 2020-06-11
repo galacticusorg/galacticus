@@ -20,10 +20,10 @@
   !% Implementation of a posterior sampling likelihood class which implements a likelihood using Gaussian regression to emulate
   !% another likelihood.
 
-  use :: FGSL, only : FGSL_Double          , FGSL_Int        , FGSL_LinAlg_LU_Decomp, FGSL_Linalg_LU_SgnDet , &
-          &           FGSL_Matrix_Align    , FGSL_Matrix_Free, FGSL_Matrix_Init     , FGSL_Permutation_Alloc, &
-          &           FGSL_Permutation_Free, FGSL_Size_T     , FGSL_Well_Defined    , fgsl_matrix           , &
-          &           fgsl_permutation
+  use            :: FGSL         , only : FGSL_LinAlg_LU_Decomp, FGSL_Linalg_LU_SgnDet, fgsl_permutation, fgsl_matrix           , &
+          &                               FGSL_Matrix_Align    , FGSL_Matrix_Free     , FGSL_Matrix_Init, FGSL_Permutation_Alloc, &
+          &                               FGSL_Permutation_Free, FGSL_Well_Defined
+  use, intrinsic :: ISO_C_Binding, only : c_size_t
 
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodGaussianRegression">
   !#  <description>A posterior sampling likelihood class which implements a likelihood using Gaussian regression to emulate another likelihood.</description>
@@ -38,7 +38,7 @@
           &                                                                           reportCount               , simulationCount            , &
           &                                                                           evaluationCount           , emulatorCheckCount         , &
           &                                                                           emulatorFailCount         , dumpEmulatorCount
-     integer         (kind=FGSL_Size_T              )                              :: regressionMatrixSize
+     integer         (c_size_t                      )                              :: regressionMatrixSize
      double precision                                , allocatable, dimension(:  ) :: simulatorLikelihood       , polynomialCoefficient      , &
           &                                                                           likelihoodSums            , coefficients               , &
           &                                                                           stateOffset               , weight                     , &
@@ -267,18 +267,19 @@ contains
 
   double precision function gaussianRegressionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for a Gaussian regression likelihood function.
-    use :: Dates_and_Times               , only : Formatted_Date_and_Time
-    use :: Error_Functions               , only : Error_Function
-    use :: Galacticus_Display            , only : Galacticus_Display_Indent      , Galacticus_Display_Message     , Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-          &                                       verbosityInfo
-    use :: Galacticus_Error              , only : Galacticus_Error_Report
-    use :: Linear_Algebra                , only : assignment(=)
-    use :: MPI_Utilities                 , only : mpiSelf
-    use :: Memory_Management             , only : allocateArray
-    use :: Models_Likelihoods_Constants  , only : logImpossible
-    use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
-    use :: Posterior_Sampling_State      , only : posteriorSampleStateClass      , posteriorSampleStateCorrelation
-    use :: String_Handling               , only : operator(//)
+    use, intrinsic :: ISO_C_Binding                 , only : c_int                          , c_double
+    use            :: Dates_and_Times               , only : Formatted_Date_and_Time
+    use            :: Error_Functions               , only : Error_Function
+    use            :: Galacticus_Display            , only : Galacticus_Display_Indent      , Galacticus_Display_Message     , Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
+          &                                                  verbosityInfo
+    use            :: Galacticus_Error              , only : Galacticus_Error_Report
+    use            :: Linear_Algebra                , only : assignment(=)
+    use            :: MPI_Utilities                 , only : mpiSelf
+    use            :: Memory_Management             , only : allocateArray
+    use            :: Models_Likelihoods_Constants  , only : logImpossible
+    use            :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
+    use            :: Posterior_Sampling_State      , only : posteriorSampleStateClass      , posteriorSampleStateCorrelation
+    use            :: String_Handling               , only : operator(//)
     implicit none
     class           (posteriorSampleLikelihoodGaussianRegression), intent(inout)                   :: self
     class           (posteriorSampleStateClass                  ), intent(inout)                   :: simulationState
@@ -302,7 +303,7 @@ contains
     type            (polynomialIterator                         )                                  :: iterator1                                   , iterator2
     type            (vector                                     )                                  :: likelihoodSums                              , coefficients
     type            (matrix                                     )                                  :: stateSums
-    integer         (kind=FGSL_Int                              )                                  :: decompositionSign                           , status
+    integer         (c_int                                      )                                  :: decompositionSign                           , status
     integer                                                                                        :: accumulatedStateCount                       , i                    , &
          &                                                                                            j                                           , k                    , &
          &                                                                                            evaluationsTotal                            , simulationsTotal     , &
@@ -519,7 +520,7 @@ contains
        self%regressionMatrix(  self%emulatorRebuildCount+1,  self%emulatorRebuildCount+1)=0.0d0
        if (FGSL_Well_Defined(self%regressionMatrixLU)) call FGSL_Matrix_Free     (self%regressionMatrixLU)
        if (FGSL_Well_Defined(self%permutations      )) call FGSL_Permutation_Free(self%permutations      )
-       self%regressionMatrixLU=FGSL_Matrix_Init      (type=1.0_FGSL_Double)
+       self%regressionMatrixLU=FGSL_Matrix_Init      (type=1.0_c_double)
        self%permutations      =FGSL_Permutation_Alloc(self%regressionMatrixSize)
        status                 =FGSL_Matrix_Align     (self%regressionMatrix,self%regressionMatrixSize,self%regressionMatrixSize,self%regressionMatrixSize,self%regressionMatrixLU)
        status                 =FGSL_LinAlg_LU_Decomp (self%regressionMatrixLU,self%permutations,decompositionSign)
@@ -656,19 +657,20 @@ contains
 
   subroutine gaussianRegressionFitVariogram(self,separations,semiVariances)
     !% Compute best fit coefficients for the variogram model.
-    use            :: FGSL            , only : FGSL_Continue                  , FGSL_ENoProg                       , FGSL_MultiMin_FDFMinimizer_Alloc  , FGSL_MultiMin_FDFMinimizer_Conjugate_PR, &
-          &                                    FGSL_MultiMin_FDFMinimizer_Free, FGSL_MultiMin_FDFMinimizer_Gradient, FGSL_MultiMin_FDFMinimizer_Iterate, FGSL_MultiMin_FDFMinimizer_Minimum     , &
-          &                                    FGSL_MultiMin_FDFMinimizer_Set , FGSL_MultiMin_Function_FDF_Free    , FGSL_MultiMin_Function_FDF_Init   , FGSL_MultiMin_Test_Gradient            , &
-          &                                    FGSL_Multimin_FDFMinimizer_x   , FGSL_Success                       , FGSL_Vector_Align                 , FGSL_Vector_Free                       , &
-          &                                    FGSL_Vector_Init               , fgsl_multimin_fdfminimizer         , fgsl_multimin_function_fdf        , fgsl_vector
+    use            :: FGSL            , only : fgsl_multimin_fdfminimizer     , FGSL_MultiMin_FDFMinimizer_Alloc   , FGSL_MultiMin_FDFMinimizer_Conjugate_PR, fgsl_multimin_function_fdf        , &
+          &                                    FGSL_MultiMin_FDFMinimizer_Free, FGSL_MultiMin_FDFMinimizer_Gradient, FGSL_MultiMin_FDFMinimizer_Iterate     , FGSL_MultiMin_FDFMinimizer_Minimum, &
+          &                                    FGSL_MultiMin_FDFMinimizer_Set , FGSL_MultiMin_Function_FDF_Free    , FGSL_MultiMin_Function_FDF_Init        , FGSL_MultiMin_Test_Gradient       , &
+          &                                    FGSL_Multimin_FDFMinimizer_x   , fgsl_vector                        , FGSL_Vector_Align                      , FGSL_Vector_Free                  , &
+          &                                    FGSL_Vector_Init
     use            :: Galacticus_Error, only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding   , only : c_ptr                          , c_size_t
+    use            :: Interface_GSL   , only : GSL_Success                    , GSL_ENoProg                        , GSL_Continue
+    use, intrinsic :: ISO_C_Binding   , only : c_ptr                          , c_size_t                           , c_double
     use            :: Sorting         , only : sortIndex
     implicit none
     class           (posteriorSampleLikelihoodGaussianRegression), intent(inout), target       :: self
     double precision                                             , intent(in   ), dimension(:) :: separations                , semiVariances
     double precision                                             , target       , dimension(3) :: C
-    real            (fgsl_double                                ), pointer      , dimension(:) :: cPtr
+    real            (c_double                                   ), pointer      , dimension(:) :: cPtr
     integer         (c_size_t                                   ), allocatable  , dimension(:) :: rank
     integer                                                      , parameter                   :: iterationsMaximum   =10000
     double precision                                             , parameter                   :: gradientTolerance   =1.0d-2
@@ -719,39 +721,39 @@ contains
        end if
     end do
     ! Initialize the minimizer.
-    minimizationFunction=FGSL_MultiMin_Function_FDF_Init(                                              &
+    minimizationFunction=FGSL_MultiMin_Function_FDF_Init(                                    &
          &                                               gaussianRegressionVariogramModelF , &
          &                                               gaussianRegressionVariogramModelD , &
          &                                               gaussianRegressionVariogramModelFD, &
-         &                                               3_FGSL_Size_T                               , &
-         &                                               parameters                                    &
+         &                                               3_c_size_t                        , &
+         &                                               parameters                          &
          &                                              )
-    minimizer=FGSL_MultiMin_FDFMinimizer_Alloc(FGSL_MultiMin_FDFMinimizer_Conjugate_PR,3_FGSL_Size_T)
-    cVector  =FGSL_Vector_Init(type=1.0_FGSL_Double)
+    minimizer=FGSL_MultiMin_FDFMinimizer_Alloc(FGSL_MultiMin_FDFMinimizer_Conjugate_PR,3_c_size_t)
+    cVector  =FGSL_Vector_Init(type=1.0_c_double)
     C        =[self%semiVariancesBinned(1),self%semiVariancesBinned(self%binCount),self%separationsBinned(self%binCount/2)] ! Initial guess for the parameters.
-    status   =FGSL_Vector_Align(C,3_FGSL_Size_T,cVector,3_FGSL_Size_T,0_FGSL_Size_T,1_FGSL_Size_T)
-    if (status /= FGSL_Success) call Galacticus_Error_Report('failed to initialize parameter vector'//{introspection:location})
+    status   =FGSL_Vector_Align(C,3_c_size_t,cVector,3_c_size_t,0_c_size_t,1_c_size_t)
+    if (status /= GSL_Success) call Galacticus_Error_Report('failed to initialize parameter vector'//{introspection:location})
     status   =FGSL_MultiMin_FDFMinimizer_Set(minimizer,minimizationFunction,cVector,0.01d0,0.1d0)
-    if (status /= FGSL_Success) call Galacticus_Error_Report('failed to set minimizer'//{introspection:location})
+    if (status /= GSL_Success) call Galacticus_Error_Report('failed to set minimizer'//{introspection:location})
     ! Iterate the minimizer until a sufficiently good solution is found.
     currentMinimum=0.0d0
     iteration     =0
     do while (                                                                                                                                   &
-         &     FGSL_MultiMin_Test_Gradient(FGSL_MultiMin_FDFMinimizer_Gradient(minimizer),gradientTolerance*currentMinimum) == FGSL_Continue     &
+         &     FGSL_MultiMin_Test_Gradient(FGSL_MultiMin_FDFMinimizer_Gradient(minimizer),gradientTolerance*currentMinimum) == GSL_Continue      &
          &    .and.                                                                                                                              &
          &     iteration                                                                                                    <  iterationsMaximum &
          &   )
        iteration     =iteration+1
        status        =FGSL_MultiMin_FDFMinimizer_Iterate(minimizer)
        currentMinimum=FGSL_MultiMin_FDFMinimizer_Minimum(minimizer)
-       if (status == FGSL_ENoProg) exit
-       if (status /= FGSL_Success) call Galacticus_Error_Report('failed to iterate minimizer'//{introspection:location})
+       if (status == GSL_ENoProg) exit
+       if (status /= GSL_Success) call Galacticus_Error_Report('failed to iterate minimizer'//{introspection:location})
     end do
     ! Extract the best fit parameters.
     call FGSL_Vector_Free(cVector)
-    cVector=FGSL_Vector_Init            (type=1.0_FGSL_Double        )
-    cVector=FGSL_Multimin_FDFMinimizer_x(     minimizer              )
-    status =FGSL_Vector_Align           (     cPtr           ,cVector)
+    cVector=FGSL_Vector_Init            (type=1.0_c_double        )
+    cVector=FGSL_Multimin_FDFMinimizer_x(     minimizer           )
+    status =FGSL_Vector_Align           (     cPtr        ,cVector)
     self%C0=cPtr(1)*self%semiVarianceNormalization
     self%C1=cPtr(2)*self%semiVarianceNormalization
     self%CR=cPtr(3)*self%separationNormalization
@@ -774,9 +776,9 @@ contains
     implicit none
     real   (c_double   )                        :: gaussianRegressionVariogramModelF
     type   (c_ptr      ), value                 :: x                                , parameters
-    real   (FGSL_double), pointer, dimension(:) :: xx
+    real   (c_double   ), pointer, dimension(:) :: xx
     type   (FGSL_vector)                        :: vec
-    integer(FGSL_int   )                        :: status
+    integer(c_int      )                        :: status
     !$GLC attributes unused :: parameters
 
     call FGSL_obj_c_ptr(vec,x)
@@ -799,7 +801,7 @@ contains
          &                                         df
     real   (c_double   ), pointer, dimension(:) :: xx    , ddf
     type   (FGSL_vector)                        :: vec   , grad
-    integer(FGSL_int   )                        :: status
+    integer(c_int      )                        :: status
     !$GLC attributes unused :: parameters
 
     call FGSL_obj_c_ptr(vec ,x )
@@ -1019,8 +1021,9 @@ contains
 
   subroutine gaussianRegressionEmulate(self,simulationState,likelihoodEmulated,likelihoodEmulatedError)
     !% Evaluate the model emulator.
-    use :: FGSL, only : FGSL_Int        , FGSL_LinAlg_LU_Solve, FGSL_Vector_Align, FGSL_Vector_Free, &
-          &             FGSL_Vector_Init, fgsl_vector
+    use            :: FGSL         , only : fgsl_vector     , FGSL_LinAlg_LU_Solve, FGSL_Vector_Align, FGSL_Vector_Free, &
+         &                                  FGSL_Vector_Init
+    use, intrinsic :: ISO_C_Binding, only : c_int           , c_double
     implicit none
     class           (posteriorSampleLikelihoodGaussianRegression), intent(inout)               :: self
     class           (posteriorSampleStateClass                  ), intent(inout)               :: simulationState
@@ -1030,7 +1033,7 @@ contains
     integer                                                                                    :: i                         , j
     double precision                                                                           :: separation                , likelihoodFit
     type            (fgsl_vector                                )                              :: stateOffsetVector         , weightVector
-    integer         (kind=FGSL_Int                              )                              :: status
+    integer         (c_int                                      )                              :: status
     type            (polynomialIterator                         )                              :: iterator1
 
     ! Compute vector D.
@@ -1042,10 +1045,10 @@ contains
     end do
     self%stateOffset(self%emulatorRebuildCount+1)=1.0d0
     ! Solve the linear system.
-    stateOffsetVector=FGSL_Vector_Init(type=1.0_FGSL_Double)
-    weightVector     =FGSL_Vector_Init(type=1.0_FGSL_Double)
-    status           =FGSL_Vector_Align(self%stateOffset,self%regressionMatrixSize,stateOffsetVector,self%regressionMatrixSize,0_FGSL_Size_T,1_FGSL_Size_T)
-    status           =FGSL_Vector_Align(self%weight     ,self%regressionMatrixSize,weightVector     ,self%regressionMatrixSize,0_FGSL_Size_T,1_FGSL_Size_T)
+    stateOffsetVector=FGSL_Vector_Init(type=1.0_c_double)
+    weightVector     =FGSL_Vector_Init(type=1.0_c_double)
+    status           =FGSL_Vector_Align(self%stateOffset,self%regressionMatrixSize,stateOffsetVector,self%regressionMatrixSize,0_c_size_t,1_c_size_t)
+    status           =FGSL_Vector_Align(self%weight     ,self%regressionMatrixSize,weightVector     ,self%regressionMatrixSize,0_c_size_t,1_c_size_t)
     status           =FGSL_LinAlg_LU_Solve(self%regressionMatrixLU,self%permutations,stateOffsetVector,weightVector)
     call FGSL_Vector_Free(weightVector     )
     call FGSL_Vector_Free(stateOffsetVector)

@@ -21,10 +21,10 @@
 
 module Galacticus_Error
   !% Implements error reporting for the {\normalfont \scshape Galacticus} package.
-  use            :: FGSL              , only : FGSL_Char             , FGSL_Error_Handler_Init, FGSL_Failure , FGSL_Name    , &
-          &                                    FGSL_Set_Error_Handler, FGSL_StrError          , FGSL_StrMax  , FGSL_Success , &
-          &                                    FGSL_eDom             , FGSL_eRange            , FGSL_eUndrFlw, FGSL_eZeroDiv, &
-          &                                    fgsl_error_handler_t
+  use            :: FGSL              , only : FGSL_StrError         , FGSL_Error_Handler_Init, fgsl_error_handler_t, FGSL_Name , &
+       &                                       FGSL_Set_Error_Handler
+  use            :: Interface_GSL     , only : GSL_Success           , GSL_Failure            , GSL_eDom            , GSL_eRange, &
+       &                                       GSL_eZeroDiv          , GSL_eUndrFlw
   use, intrinsic :: ISO_C_Binding     , only : c_int
   use            :: ISO_Varying_String, only : varying_string
   implicit none
@@ -53,13 +53,13 @@ module Galacticus_Error
 
   ! Public error codes. Where relevant these copy GSL error codes, otherwise values above 1024
   ! are used so as not to conflict with GSL error codes.
-  integer, parameter, public :: errorStatusSuccess     =FGSL_Success  ! Success.
-  integer, parameter, public :: errorStatusFail        =FGSL_Failure  ! Generic failure.
-  integer, parameter, public :: errorStatusInputDomain =FGSL_eDom     ! Input domain error.
-  integer, parameter, public :: errorStatusOutOfRange  =FGSL_eRange   ! Output range error.
-  integer, parameter, public :: errorStatusDivideByZero=FGSL_eZeroDiv ! Divide by zero.
-  integer, parameter, public :: errorStatusUnderflow   =FGSL_eUndrFlw ! Floating point underflow.
-  integer, parameter, public :: errorStatusXCPU        =1025          ! CPU time limit exceeded.
+  integer, parameter, public :: errorStatusSuccess     =GSL_Success  ! Success.
+  integer, parameter, public :: errorStatusFail        =GSL_Failure  ! Generic failure.
+  integer, parameter, public :: errorStatusInputDomain =GSL_eDom     ! Input domain error.
+  integer, parameter, public :: errorStatusOutOfRange  =GSL_eRange   ! Output range error.
+  integer, parameter, public :: errorStatusDivideByZero=GSL_eZeroDiv ! Divide by zero.
+  integer, parameter, public :: errorStatusUnderflow   =GSL_eUndrFlw ! Floating point underflow.
+  integer, parameter, public :: errorStatusXCPU        =1025         ! CPU time limit exceeded.
 
   ! Time to wait after errors under MPI.
   integer                    :: errorWaitTime          =86400
@@ -455,7 +455,7 @@ contains
 
   subroutine Galacticus_GSL_Error_Handler(reason,file,line,errorNumber) bind(c)
     !% Handle errors from the GSL library, by flushing all data and then aborting.
-    use   , intrinsic :: ISO_C_Binding, only : c_ptr
+    use   , intrinsic :: ISO_C_Binding, only : c_ptr          , c_char
 #ifdef USEMPI
     use               :: MPI          , only : MPI_Initialized, MPI_Comm_Rank     , MPI_Comm_World
 #endif
@@ -463,14 +463,15 @@ contains
 #ifndef UNCLEANEXIT
     use               :: HDF5         , only : H5Close_F
 #endif
-    type     (c_ptr                         ), value :: file       , reason
-    integer  (kind=c_int                    ), value :: errorNumber, line
-    character(kind=FGSL_Char,len=FGSL_StrMax)        :: message
-    integer                                          :: error
+    use               :: FGSL         , only : FGSL_StrMax
+    type     (c_ptr                      ), value :: file       , reason
+    integer  (kind=c_int                 ), value :: errorNumber, line
+    character(kind=c_char,len=FGSL_StrMax)        :: message
+    integer                                       :: error
 #ifdef USEMPI
-    integer                                          :: mpiRank
-    character(len=128                       )        :: hostName
-    logical                                          :: flag
+    integer                                       :: mpiRank
+    character(len=128                    )        :: hostName
+    logical                                       :: flag
 #endif
 
     if (abortOnErrorGSL) then

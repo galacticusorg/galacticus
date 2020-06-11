@@ -21,7 +21,7 @@
 
 module Test_ODE_Solver_Functions
   !% Contains ODEs for unit tests.
-  use :: FGSL, only : FGSL_Success
+  use :: Interface_GSL, only : GSL_Success
   implicit none
   private
   public :: ODE_Set_1     , ODE_Set_2       , &
@@ -38,7 +38,7 @@ contains
     !$GLC attributes unused :: y
 
     dydx(1)=sin(x)
-    ODE_Set_1=FGSL_Success
+    ODE_Set_1=GSL_Success
     return
   end function ODE_Set_1
 
@@ -51,7 +51,7 @@ contains
 
     dfdy(1)=0.0d0
     dfdx(1)=cos(x)
-    Jacobian_Set_1=FGSL_Success
+    Jacobian_Set_1=GSL_Success
     return
   end function Jacobian_Set_1
 
@@ -64,7 +64,7 @@ contains
 
     dydx(1)=       y(2)
     dydx(2)=-1.0d0*y(1)
-    ODE_Set_2=FGSL_Success
+    ODE_Set_2=GSL_Success
     return
   end function ODE_Set_2
 
@@ -80,7 +80,7 @@ contains
     dfdy(3  )=-1.0d0
     dfdy(4  )=+0.0d0
     dfdx(1:2)=+0.0d0
-    Jacobian_Set_2=FGSL_Success
+    Jacobian_Set_2=GSL_Success
     return
   end function Jacobian_Set_2
 

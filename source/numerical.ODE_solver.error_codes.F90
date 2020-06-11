@@ -21,12 +21,12 @@
 
 module ODE_Solver_Error_Codes
   !% Defines internal error codes for the \glc\ ODE solver.
-  use :: FGSL, only : FGSL_EBADFUNC
+  use :: Interface_GSL, only : GSL_EBadFunc
   implicit none
   public
 
   ! An interrupt has been triggered.
-  integer         , parameter :: odeSolverInterrupt=FGSL_EBADFUNC
+  integer         , parameter :: odeSolverInterrupt=GSL_EBadFunc
 
   ! Point during the integration at which an interrupt occurred.
   double precision            :: interruptedAtX

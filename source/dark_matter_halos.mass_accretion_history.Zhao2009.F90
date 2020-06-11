@@ -99,10 +99,10 @@ contains
   double precision function zhao2009Time(self,node,mass)
     !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily
     !% thisNode} using the algorithm of \cite{zhao_accurate_2009}.
-    use :: FGSL            , only : FGSL_Success           , fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_step, &
-          &                         fgsl_odeiv_system
+    use :: FGSL            , only : fgsl_odeiv_control     , fgsl_odeiv_evolve, fgsl_odeiv_step, fgsl_odeiv_system
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic     , treeNode
+    use :: Interface_GSL   , only : GSL_Success
     use :: ODE_Solver      , only : ODE_Solve
     implicit none
     class           (darkMatterHaloMassAccretionHistoryZhao2009), intent(inout) :: self
@@ -165,7 +165,7 @@ contains
       ! Trap unphysical cases.
       if (nowTime(1) <= 0.0d0 .or. nowTime(1) > baseTime .or. mass <= 0.0d0) then
          dNowTimedMass(1)=0.0d0
-         growthRateODEs=FGSL_Success
+         growthRateODEs=GSL_Success
          return
       end if
       ! Get sigma(M) and its logarithmic derivative.
@@ -191,7 +191,7 @@ contains
       ! Convert to dimensionful units.
       dNowTimedMass(1)=(dSigmadMassLogarithmicNow/dDeltaCriticaldtNow)*(deltaCriticalNow/mass)/dSigmadDeltaCriticalLogarithmic
       ! Report success.
-      growthRateODEs=FGSL_Success
+      growthRateODEs=GSL_Success
     end function growthRateODEs
 
   end function zhao2009Time

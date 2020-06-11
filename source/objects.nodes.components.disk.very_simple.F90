@@ -305,9 +305,9 @@ contains
   subroutine Node_Component_Disk_Very_Simple_Post_Step(node,status)
     !% Catch rounding errors in the very simple disk gas evolution.
     use :: Abundances_Structure          , only : abs                       , zeroAbundances
-    use :: FGSL                          , only : FGSL_Failure
     use :: Galacticus_Display            , only : Galacticus_Display_Message, verbosityWarn
     use :: Galacticus_Nodes              , only : nodeComponentDisk         , nodeComponentDiskVerySimple, treeNode    , defaultDiskComponent
+    use :: Interface_GSL                 , only : GSL_Failure
     use :: ISO_Varying_String            , only : varying_string            , assignment(=)              , operator(//)
     use :: Stellar_Luminosities_Structure, only : abs                       , zeroStellarLuminosities
     use :: String_Handling               , only : operator(//)
@@ -371,7 +371,7 @@ contains
           call disk%      massGasSet(         0.0d0)
           call disk%abundancesGasSet(zeroAbundances)
           ! Record that state was changed.
-          status=FGSL_Failure
+          status=GSL_Failure
        end if
     end select
     return

@@ -764,10 +764,10 @@ contains
 
   integer function standardODEs(time,y,dydt)
     !% Function which evaluates the set of ODEs for the evolution of a specific node.
-    use :: FGSL                  , only : FGSL_Success
     use :: FODEIV2               , only : FODEIV2_Driver_Errors
     use :: Galacticus_Error      , only : errorStatusXCPU
     use :: Galacticus_Nodes      , only : interruptTask        , nodeComponentBasic
+    use :: Interface_GSL         , only : GSL_Success
     use :: ODE_Solver_Error_Codes, only : interruptedAtX       , odeSolverInterrupt
     implicit none
     double precision                     , intent(in   )               :: time
@@ -787,7 +787,7 @@ contains
        end if
     end if
     ! Return success by default.
-    standardODEs=FGSL_Success
+    standardODEs=GSL_Success
     ! Check if we can reuse the previous derivatives.
     if   (                                                                                                                                     &
        &   time                                                    == standardSelf%timePrevious                                                &
@@ -848,7 +848,7 @@ contains
 
   integer function standardODEsJacobian(time,propertyValues0,derivativeRatesValues,derivativeRatesTime)
     !% Function which evaluates the set of ODEs for the evolution of a specific node.
-    use :: FGSL, only : FGSL_Success
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     double precision                                                                                             , intent(in   ) :: time
     double precision               , dimension(:                                                                ), intent(in   ) :: propertyValues0
@@ -863,7 +863,7 @@ contains
     double precision                                                                                                             :: propertyValueDelta
 
     ! Return success by default.
-    standardODEsJacobian=FGSL_Success
+    standardODEsJacobian=GSL_Success
     ! No explicit time dependence.
     derivativeRatesTime=0.0d0
     ! Check for interrupts.
@@ -1035,7 +1035,7 @@ contains
 
   subroutine standardPostStepProcessing(y,status) bind(c)
     !% Perform any post-step actions on the node.
-    use            :: FGSL         , only : FGSL_Success
+    use            :: Interface_GSL, only : GSL_Success
     use, intrinsic :: ISO_C_Binding, only : c_double    , c_int
     !# <include directive="postStepTask" type="moduleUse">
     include 'objects.tree_node.post_step.modules.inc'
@@ -1049,14 +1049,14 @@ contains
     !#  <functionArgs>standardSelf%activeNode,status</functionArgs>
     include 'objects.tree_node.post_step.inc'
     !# </include>
-    if (status /= FGSL_Success) call standardSelf%activeNode%serializeValues(y,standardSelf%propertyTypeODE)
+    if (status /= GSL_Success) call standardSelf%activeNode%serializeValues(y,standardSelf%propertyTypeODE)
     return
   end subroutine standardPostStepProcessing
 
   subroutine standardStepErrorAnalyzer(currentPropertyValue,currentPropertyError,timeStep,stepStatus) bind(c)
     !% Profiles ODE solver step sizes and errors.
-    use            :: FGSL         , only : FGSL_Success
-    use, intrinsic :: ISO_C_Binding, only : c_double    , c_int
+    use            :: Interface_GSL, only : GSL_Success
+    use, intrinsic :: ISO_C_Binding, only : c_double   , c_int
     implicit none
     real            (kind=c_double ), dimension(standardSelf%propertyCountActive), intent(in   )        :: currentPropertyValue
     real            (kind=c_double ), dimension(standardSelf%propertyCountActive), intent(in   )        :: currentPropertyError
@@ -1068,7 +1068,7 @@ contains
     type            (varying_string)                                                                    :: propertyName
 
     ! If the step was not good, return immediately.
-    if (stepStatus /= FGSL_Success) return
+    if (stepStatus /= GSL_Success) return
     ! Find the property with the largest error (i.e. that which is limiting the step).
     scaledErrorMaximum=0.0d0
     do iProperty=1,standardSelf%propertyCountActive

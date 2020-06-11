@@ -1091,8 +1091,8 @@ contains
   !# </postStepTask>
   subroutine Node_Component_Black_Hole_Standard_Post_Evolve(node,status)
     !% Keep black hole spin in physical range.
-    use :: FGSL            , only : FGSL_Failure
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, treeNode
+    use :: Interface_GSL   , only : GSL_Failure
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     integer                                 , intent(inout)          :: status
@@ -1111,7 +1111,7 @@ contains
              ! Get the black hole component.
              blackHole => node%blackHole(instance=i)
              if (blackHole%spin() > spinMaximum .or. blackHole%spin() < 0.0d0) then
-                status    =FGSL_Failure
+                status    =GSL_Failure
                 spin      =max(min(blackHole%spin(),spinMaximum),0.0d0)
                 call blackHole%spinSet(spin)
              end if

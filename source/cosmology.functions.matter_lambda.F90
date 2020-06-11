@@ -21,8 +21,8 @@
   !% matter plus a cosmological constant.
 
   use    :: Cosmology_Parameters   , only : cosmologyParameters, cosmologyParametersClass
-  use    :: FGSL                   , only : FGSL_Success       , fgsl_function           , fgsl_odeiv_system, fgsl_odeiv_control, &
-       &                                    fgsl_odeiv_evolve  , fgsl_odeiv_step
+  use    :: FGSL                   , only : fgsl_function      , fgsl_odeiv_system       , fgsl_odeiv_control, fgsl_odeiv_evolve, &
+       &                                    fgsl_odeiv_step
   use    :: Numerical_Interpolation, only : interpolator
   !$ use :: OMP_Lib             , only : omp_lock_kind
 
@@ -450,6 +450,7 @@ contains
 
   integer function matterLambdaCollapseODEs(a,t,dtda)
     !% System of differential equations to solve for age vs. expansion factor.
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     double precision              , intent(in   ) :: a
     double precision, dimension(:), intent(in   ) :: t
@@ -460,7 +461,7 @@ contains
     ! phase of the Universe, so we use the absolute value of the expansion rate in case the universe is defined during a
     ! collapsing phase.
     dtda(1)=1.0d0/a/abs(matterLambdaSelfGlobal%expansionRate(a))
-    matterLambdaCollapseODEs=FGSL_Success
+    matterLambdaCollapseODEs=GSL_Success
     return
   end function matterLambdaCollapseODEs
 
@@ -1015,6 +1016,8 @@ contains
 
   integer function matterLambdaAgeTableODEs(t,a,dadt)
     !% System of differential equations to solve for expansion factor vs. age.
+    use :: Interface_GSL, only : GSL_Success
+    implicit none
     double precision              , intent(in   ) :: t
     double precision, dimension(:), intent(in   ) :: a
     double precision, dimension(:), intent(  out) :: dadt
@@ -1023,7 +1026,7 @@ contains
     ! For this ODE system we are always interested in the expanding phase of the Universe, so we use the absolute value of the
     ! expansion rate in case the universe is defined during a collapsing phase.
     dadt(1)=a(1)*abs(matterLambdaSelfGlobal%expansionRate(a(1)))
-    matterLambdaAgeTableODEs=FGSL_Success
+    matterLambdaAgeTableODEs=GSL_Success
   end function matterLambdaAgeTableODEs
 
   double precision function matterLambdaTimeAtDistanceComoving(self,comovingDistance)

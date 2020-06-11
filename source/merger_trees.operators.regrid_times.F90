@@ -250,7 +250,6 @@ contains
 
   subroutine regridTimesOperatePreEvolution(self,tree)
     !% Perform a regrid times operation on a merger tree.
-    use            :: FGSL                   , only : fgsl_interp_accel
     use            :: Galacticus_Display     , only : Galacticus_Display_Indent, Galacticus_Display_Unindent  , Galacticus_Display_Message, verbosityWorking
     use            :: Galacticus_Error       , only : Galacticus_Error_Report  , Galacticus_Warn
     use            :: Galacticus_Nodes       , only : mergerTree               , nodeComponentBasic           , nodeComponentSatellite    , nodeEvent       , &

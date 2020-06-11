@@ -232,7 +232,7 @@ contains
   subroutine baryonsDarkMatterRetabulate(self,time,wavenumber)
     !% Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
     !% $D(1)=1$ for a baryonsDarkMatter matter plus cosmological constant cosmology.
-    use    :: FGSL            , only : FGSL_Success
+    use    :: Interface_GSL   , only : GSL_Success
     use    :: FODEIV2         , only : fodeiv2_driver                  , fodeiv2_system
     use    :: File_Utilities  , only : File_Lock                       , File_Unlock
     use    :: Galacticus_Error, only : Galacticus_Error_Report
@@ -460,7 +460,7 @@ contains
       derivatives    (2)=perturbationDarkMatterDerivative2nd
       derivatives    (3)=perturbationBaryonsDerivative1st
       derivatives    (4)=perturbationBaryonsDerivative2nd
-      growthFactorODEs  =FGSL_Success
+      growthFactorODEs  =GSL_Success
     end function growthFactorODEs
 
   end subroutine baryonsDarkMatterRetabulate

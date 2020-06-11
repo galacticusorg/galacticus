@@ -559,11 +559,12 @@ contains
     !% Return a bound on the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily
     !% haloMass} at time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than
     !% {\normalfont \ttfamily massResolution}.
-    use :: FGSL                    , only : FGSL_Int                  , FGSL_Success
-    use :: Galacticus_Display      , only : Galacticus_Display_Message, verbosityWarn
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: Hypergeometric_Functions, only : Hypergeometric_2F1
-    use :: Numerical_Constants_Math, only : Pi
+    use, intrinsic :: ISO_C_Binding           , only : c_int
+    use            :: Galacticus_Display      , only : Galacticus_Display_Message, verbosityWarn
+    use            :: Galacticus_Error        , only : Galacticus_Error_Report
+    use            :: Hypergeometric_Functions, only : Hypergeometric_2F1
+    use            :: Interface_GSL           , only : GSL_Success
+    use            :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout)         :: self
     double precision                                                  , intent(in   )         :: deltaCritical                                , haloMass                 , &
@@ -576,7 +577,7 @@ contains
          &                                                                                       gammaEffective
     double precision                                                                          :: hyperGeometricFactorLower                    , hyperGeometricFactorUpper, &
          &                                                                                       resolutionSigmaOverParentSigma
-    integer         (fgsl_int                                        )                        :: statusLower                                  , statusUpper
+    integer         (c_int                                           )                        :: statusLower                                  , statusUpper
     logical                                                                                   :: usingCDMAssumptions
     integer                                                                                   :: iBound
     !$GLC attributes unused :: node
@@ -624,8 +625,8 @@ contains
              ! Tabulations will only be used if self%tabulateHypergeometric is true.
              !
              ! Set status to success by default.
-             statusLower=FGSL_Success
-             statusUpper=FGSL_Success
+             statusLower=GSL_Success
+             statusUpper=GSL_Success
              ! First, check if CDM assumptions are not being used and we're allowed to tabulate hypergeometric factors,
              if (.not.usingCDMAssumptions.and.self%hypergeometricTabulate) then
                 ! CDM assumptions are not being used. In this case we can use the same table of hypergeometric factors as the
@@ -658,7 +659,7 @@ contains
                         &                                       toleranceRelative=self%precisionHypergeometric           , &
                         &                                       status           =statusLower                              &
                         &                                      )
-                   if (statusLower /= FGSL_Success) then
+                   if (statusLower /= GSL_Success) then
                       if (usingCDMAssumptions) then
                          if (.not.self%hypergeometricFailureWarned) then
                             self%hypergeometricFailureWarned=.true.
@@ -688,7 +689,7 @@ contains
                         &                                       toleranceRelative=self%precisionHypergeometric          , &
                         &                                       status           =statusUpper                             &
                         &                                      )
-                   if (statusUpper /= FGSL_Success) then
+                   if (statusUpper /= GSL_Success) then
                       if (usingCDMAssumptions) then
                          if (.not.self%hypergeometricFailureWarned) then
                             self%hypergeometricFailureWarned=.true.
@@ -758,7 +759,7 @@ contains
                 parkinsonColeHellyProbabilityBound=-1.0d0
                 call Galacticus_Error_Report('unknown bound type'//{introspection:location})
              end select
-             if (statusUpper == FGSL_Success .and. statusLower == FGSL_Success) exit
+             if (statusUpper == GSL_Success .and. statusLower == GSL_Success) exit
           end do
        else
           parkinsonColeHellyProbabilityBound=-1.0d0

@@ -389,7 +389,6 @@ contains
     !% Update the radiation background for a given universe.
     use            :: Abundances_Structure        , only : abundances                   , max
     use            :: Arrays_Search               , only : searchArrayClosest
-    use            :: FGSL                        , only : FGSL_Success
     use            :: FODEIV2                     , only : fodeiv2_driver               , fodeiv2_system
     use            :: Galacticus_Display          , only : Galacticus_Display_Indent    , Galacticus_Display_Message, Galacticus_Display_Unindent
     use            :: Galacticus_Error            , only : Galacticus_Error_Report
@@ -643,7 +642,7 @@ contains
 
   integer function intergalacticBackgroundInternalODEs(time,spectrum,spectrumRateOfChange)
     !% Evaluates the ODEs controlling the evolution of cosmic background radiation.
-    use :: FGSL                            , only : FGSL_Success
+    use :: Interface_GSL                   , only : GSL_Success
     use :: Numerical_Constants_Astronomical, only : gigaYear         , heliumByMassPrimordial, hydrogenByMassPrimordial, luminositySolar, &
           &                                         massSolar        , megaParsec
     use :: Numerical_Constants_Atomic      , only : atomicMassHelium , atomicMassHydrogen    , atomicMassUnit
@@ -724,6 +723,6 @@ contains
             &  /  intergalacticBackgroundInternalSelf%cosmologyFunctions_            %expansionFactor            (time)**3
     end where
     ! Return success.
-    intergalacticBackgroundInternalODEs=FGSL_Success
+    intergalacticBackgroundInternalODEs=GSL_Success
     return
   end function intergalacticBackgroundInternalODEs

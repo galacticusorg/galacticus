@@ -445,11 +445,11 @@ contains
   subroutine Node_Component_Disk_Standard_Post_Step(node,status)
     !% Trim histories attached to the disk.
     use :: Abundances_Structure          , only : abs                       , zeroAbundances
-    use :: FGSL                          , only : FGSL_Failure
     use :: Galacticus_Display            , only : Galacticus_Display_Message, verbosityWarn
     use :: Galacticus_Error              , only : Galacticus_Error_Report
     use :: Galacticus_Nodes              , only : nodeComponentDisk         , nodeComponentDiskStandard, nodeComponentSpin, treeNode, &
          &                                        defaultDiskComponent
+    use :: Interface_GSL                 , only : GSL_Failure
     use :: ISO_Varying_String            , only : assignment(=)             , operator(//)             , varying_string
     use :: Stellar_Luminosities_Structure, only : stellarLuminosities       , abs
     use :: String_Handling               , only : operator(//)
@@ -530,7 +530,7 @@ contains
           call disk%        massGasSet(                                     0.0d0)
           call disk%  abundancesGasSet(                            zeroAbundances)
           call disk%angularMomentumSet(specificAngularMomentum*disk%massStellar())
-          status=FGSL_Failure
+          status=GSL_Failure
        end if
        ! Trap negative stellar masses.
        if (disk%massStellar() < 0.0d0) then
@@ -578,7 +578,7 @@ contains
           call disk%      massStellarSet(                                 0.0d0)
           call disk%abundancesStellarSet(                        zeroAbundances)
           call disk%  angularMomentumSet(specificAngularMomentum*disk%massGas())
-          status=FGSL_Failure
+          status=GSL_Failure
        end if
        ! Trap negative angular momentum.
        if (disk%angularMomentum() < 0.0d0) then
@@ -619,7 +619,7 @@ contains
                 call Galacticus_Error_Report(message//{introspection:location})
              end if
           end if
-          status=FGSL_Failure
+          status=GSL_Failure
        end if
     end select
     return

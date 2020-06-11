@@ -21,12 +21,41 @@
 
 module Quasi_Random
   !% Implements quasi-random sequences.
-  use :: FGSL, only : FGSL_Well_Defined, FGSL_qRng_Alloc, FGSL_qRng_Free, FGSL_qRng_Get, &
-          &           FGSL_qRng_Sobol  , fgsl_qrng      , fgsl_qrng_type
+  use, intrinsic :: ISO_C_Binding, only : c_ptr            , c_int          , c_double
+  use            :: FGSL         , only : FGSL_Well_Defined, FGSL_qRng_Alloc, FGSL_qRng_Free, FGSL_qRng_Get, &
+          &                               FGSL_qRng_Sobol  , fgsl_qrng      , fgsl_qrng_type
   implicit none
   private
   public :: Quasi_Random_Get, Quasi_Random_Free
 
+  ! Sequence types.
+  integer, public, parameter :: gsl_qrng_niederreiter_2=1
+  integer, public, parameter :: gsl_qrng_sobol         =2
+  integer, public, parameter :: gsl_qrng_halton        =3
+  integer, public, parameter :: gsl_qrng_reversehalton =4
+
+  interface
+     function gsl_qrng_alloc(T,d) bind(c,name='gsl_qrng_alloc')
+       !% Template for the GSL quasi-random number generator allocator function.
+       import c_ptr, c_int
+       type   (c_ptr)        :: gsl_qrng_alloc
+       type   (c_ptr), value :: T
+       integer(c_int), value :: d
+     end function gsl_qrng_alloc
+     subroutine gsl_qrng_free(q) bind(c,name='gsl_qrng_free')
+       !% Template for the GSL quasi-random number generator free function.
+       import c_ptr
+       type(c_ptr), value :: q
+     end subroutine gsl_qrng_free
+     function gsl_qrng_get(q,x) bind(c,name='gsl_qrng_get')
+       !% Template for the GSL quasi-random number generator get function.
+       import c_ptr, c_double, c_int
+       integer(c_int   )               :: gsl_qrng_get
+       type   (c_ptr   ), value        :: q
+       real   (c_double), dimension(*) :: x
+     end function gsl_qrng_get
+  end interface
+  
   interface Quasi_Random_Get
      module procedure Quasi_Random_Get_Scalar
      module procedure Quasi_Random_Get_Array

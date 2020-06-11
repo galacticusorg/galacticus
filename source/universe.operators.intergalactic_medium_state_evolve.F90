@@ -556,7 +556,7 @@ contains
 
    integer function intergalacticMediumStateEvolveODEs(time,properties,propertiesRateOfChange)
      !% Evaluates the ODEs controlling the evolution temperature.
-     use :: FGSL                                 , only : FGSL_Success
+     use :: Interface_GSL                        , only : GSL_Success
      use :: Intergalactic_Medium_Filtering_Masses, only : gnedin2000ODES    , gnedin2000ODEs
      use :: Numerical_Constants_Astronomical     , only : gigaYear
      use :: Numerical_Constants_Atomic           , only : massHeliumAtom    , massHydrogenAtom
@@ -894,7 +894,7 @@ contains
      propertiesRateOfChange( 9   )=opticalDepthRateOfChange
      propertiesRateOfChange(10   )=massFilteringRateOfChange
      ! Return success.
-     intergalacticMediumStateEvolveODEs=FGSL_Success
+     intergalacticMediumStateEvolveODEs=GSL_Success
 
    contains
 

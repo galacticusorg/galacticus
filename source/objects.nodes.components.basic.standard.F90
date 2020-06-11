@@ -344,8 +344,8 @@ contains
   !# </postStepTask>
   subroutine Node_Component_Basic_Standard_Post_Step(node,status)
     !% Test for failure in the basic mass evolution.
-    use :: FGSL            , only : FGSL_Failure
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandard, treeNode
+    use :: Interface_GSL   , only : GSL_Failure
     implicit none
     type   (treeNode          ), intent(inout), pointer :: node
     integer                    , intent(inout)          :: status
@@ -360,7 +360,7 @@ contains
             &   (basic%accretionRate() > 0.0d0 .and. basic%mass() > basic%massTarget()) &
             & ) then
           call basic%massSet(basic%massTarget())
-          status=FGSL_Failure
+          status=GSL_Failure
        end if
     end select
     return

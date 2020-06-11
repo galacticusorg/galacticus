@@ -122,10 +122,10 @@ contains
   subroutine nonClusteringBaryonsDarkMatterRetabulate(self,time)
     !% Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
     !% $D(1)=1$ for a nonClusteringBaryonsDarkMatter matter plus cosmological constant cosmology.
-    use :: FGSL      , only : FGSL_Success            , fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_step, &
-          &                   fgsl_odeiv_system
-    use :: ODE_Solver, only : ODE_Solve               , ODE_Solver_Free
-    use :: Tables    , only : table1DLogarithmicLinear
+    use :: FGSL         , only : fgsl_odeiv_system       , fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_step
+    use :: Interface_GSL, only : GSL_Success
+    use :: ODE_Solver   , only : ODE_Solve               , ODE_Solver_Free
+    use :: Tables       , only : table1DLogarithmicLinear
     implicit none
     class           (linearGrowthNonClusteringBaryonsDarkMatter), intent(inout) :: self
     double precision                                            , intent(in   ) :: time
@@ -259,7 +259,7 @@ contains
            &             -    2.0d0                                                                           &
            &             *abs(self%cosmologyFunctions_%expansionRate     (                expansionFactor))   &
            &             *    values                                     (                              2)
-      growthFactorODEs  = FGSL_Success
+      growthFactorODEs  = GSL_Success
     end function growthFactorODEs
 
   end subroutine nonClusteringBaryonsDarkMatterRetabulate

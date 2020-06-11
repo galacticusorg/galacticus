@@ -86,7 +86,7 @@ contains
        &                  yScale,errorHandler,algorithm,reset,odeStatus,stepSize,jacobian,zCount,z,integrands,finalState,integrator_,integratorErrorTolerate  &
        &                 )
     !% Interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
-    use            :: FGSL                  , only : FGSL_Failure                   , FGSL_Success
+    use            :: Interface_GSL         , only : GSL_Failure                    , GSL_Success
     use            :: FODEIV2               , only : FODEIV2_Driver_Alloc_Scaled_New, FODEIV2_Driver_Alloc_y_New, FODEIV2_Driver_Apply, FODEIV2_Driver_Reset, &
           &                                          FODEIV2_Driver_Status          , FODEIV2_Driver_h          , FODEIV2_System_Init , Fodeiv2_Step_RKCK   , &
           &                                          fodeiv2_driver                 , fodeiv2_step_type         , fodeiv2_system
@@ -246,10 +246,10 @@ contains
        end if
        status=FODEIV2_Driver_Apply(odeDriver,x,x1Internal,y,postStep_,latentIntegrator_,Error_Analyzer_)
        select case (status)
-       case (FGSL_Success)
+       case (GSL_Success)
           ! Successful completion of the step - do nothing except store the step-size used.
           if (present(stepSize)) stepSize=FODEIV2_Driver_h(odeDriver)
-       case (FGSL_Failure)
+       case (GSL_Failure)
           ! Generic failure - most likely a stepsize underflow.
           if (present(errorHandler)) call errorHandler(status,x,y)
           ! If ODE status was requested, then return it instead of aborting.
