@@ -66,17 +66,17 @@ module Numerical_Quasi_Random_Sequences
   type :: quasiRandomNumberGenerator
      !% Type providing quasi-random number generators.
      private
-     type            (c_ptr   ), allocatable               :: gsl_qrng , gsl_qrng_type
-     integer                                               :: qrngType
+     type   (c_ptr), allocatable :: gsl_qrng , gsl_qrng_type
+     integer                     :: qrngType
    contains
      !@ <objectMethods>
      !@   <object>qrng</object>
      !@   <objectMethod>
-  !@     <method>get</method>
-  !@     <description>Get numbers from the sequence.</description>
-  !@     <type>(\doublezero|\doubleone)</type>
-  !@     <arguments>\intzero\ [n]\argin</arguments>
-  !@   </objectMethod>
+     !@     <method>get</method>
+     !@     <description>Get numbers from the sequence.</description>
+     !@     <type>(\doublezero|\doubleone)</type>
+     !@     <arguments>\intzero\ [n]\argin</arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
      final :: quasiRandomNumberGeneratorDestructor
      procedure :: get => quasiRandomNumberGeneratorGet
@@ -93,9 +93,9 @@ contains
     !% Constructor for {\normalfont \ttfamily quasiRandomNumberGenerator} obejcts.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    type            (quasiRandomNumberGenerator)                                        :: self
-    integer                       , intent(in   )              , optional :: qrngType
-    !# <optionalArgument name="qrngType" defaultsTo="gsl_qrng_sobol"     />
+    type  (quasiRandomNumberGenerator)                          :: self
+    integer                           , intent(in   ), optional :: qrngType
+    !# <optionalArgument name="qrngType" defaultsTo="gsl_qrng_sobol"/>
     
     ! Get the interpolator type.
     self%qrngType=qrngType_
@@ -112,9 +112,9 @@ contains
     implicit none
     type(quasiRandomNumberGenerator), intent(inout) :: self
 
-    if (allocated (self%gsl_qrng      )) then
-       call gsl_qrng_free      (self%gsl_qrng      )
-       deallocate(self%gsl_qrng      )
+    if (allocated (self%gsl_qrng)) then
+       call gsl_qrng_free(self%gsl_qrng)
+       deallocate(self%gsl_qrng)
     end if
     return
   end subroutine quasiRandomNumberGeneratorDestructor
@@ -122,11 +122,11 @@ contains
   double precision function quasiRandomNumberGeneratorGet(self)
     !% Return the next entry in the quasi-random sequence.
     use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Interface_GSL, only : GSL_Success
+    use :: Interface_GSL   , only : GSL_Success
     implicit none
-    class(quasiRandomNumberGenerator), intent(inout) :: self
-    integer(c_int) :: status
-    double precision, dimension(1) :: sequenceNext
+    class           (quasiRandomNumberGenerator), intent(inout) :: self
+    double precision                            , dimension(1)  :: sequenceNext
+    integer         (c_int                     )                :: status
 
     status=GSL_qRng_Get(self%gsl_qrng,sequenceNext)
     if (status /= GSL_Success) call Galacticus_Error_Report('failed to get next entry in quasi-random sequence'//{introspection:location})
