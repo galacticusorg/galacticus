@@ -78,7 +78,7 @@ module Numerical_Quasi_Random_Sequences
      !@     <arguments>\intzero\ [n]\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     final :: quasiRandomNumberGeneratorDestructor
+     final     ::        quasiRandomNumberGeneratorDestructor
      procedure :: get => quasiRandomNumberGeneratorGet
   end type quasiRandomNumberGenerator
   
