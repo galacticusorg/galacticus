@@ -21,7 +21,7 @@
 
 module Exponential_Integrals
   !% Implements exponential integrals.
-  use :: FGSL, only : FGSL_SF_Ci, FGSL_SF_Si
+  use, intrinsic :: ISO_C_Binding, only : c_double
   implicit none
   private
   public :: Sine_Integral, Cosine_Integral, Exponential_Integral
@@ -31,6 +31,21 @@ module Exponential_Integrals
      module procedure Exponential_Integral_Double_Complex
   end interface Exponential_Integral
 
+  interface
+     function gsl_sf_Si(x) bind(c,name='gsl_sf_Si')
+       !% Template for the GSL Sine integral function.
+       import c_double
+       real(c_double)        :: gsl_sf_Si
+       real(c_double), value :: x
+     end function gsl_sf_Si
+     function gsl_sf_Ci(x) bind(c,name='gsl_sf_Ci')
+       !% Template for the GSL Cosine integral function.
+       import c_double
+       real(c_double)        :: gsl_sf_Ci
+       real(c_double), value :: x
+     end function gsl_sf_Ci
+  end interface
+  
 contains
 
   double precision function Sine_Integral(x)
@@ -38,7 +53,7 @@ contains
     implicit none
     double precision, intent(in   ) :: x
 
-    Sine_Integral=FGSL_SF_Si(x)
+    Sine_Integral=GSL_SF_Si(x)
     return
   end function Sine_Integral
 
@@ -47,7 +62,7 @@ contains
     implicit none
     double precision, intent(in   ) :: x
 
-    Cosine_Integral=FGSL_SF_Ci(x)
+    Cosine_Integral=GSL_SF_Ci(x)
     return
   end function Cosine_Integral
 
