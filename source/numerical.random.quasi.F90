@@ -24,9 +24,7 @@
 
 module Numerical_Quasi_Random_Sequences
   !% Implements quasi-random sequences.
-  use, intrinsic :: ISO_C_Binding, only : c_ptr            , c_int          , c_double
-  use            :: FGSL         , only : FGSL_Well_Defined, FGSL_qRng_Alloc, FGSL_qRng_Free, FGSL_qRng_Get, &
-          &                               FGSL_qRng_Sobol  , fgsl_qrng      , fgsl_qrng_type
+  use, intrinsic :: ISO_C_Binding, only : c_ptr, c_int, c_double
   implicit none
   private
   public :: quasiRandomNumberGenerator
