@@ -192,7 +192,7 @@ contains
              end do
              importer_ => importer_%next
           end do
-          call simulations(1)%propertiesReal   %set(importer_%simulations(j)%propertiesReal   %key(k),propertyReal   )
+          call simulations(1)%propertiesReal   %set(self%importers%simulations(1)%propertiesReal   %key(k),propertyReal   )
        end do
     end if
     ! Close analysis groups in merged importers.
