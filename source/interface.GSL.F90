@@ -116,9 +116,16 @@ module Interface_GSL
   end type gsl_sf_result
 
   ! Error codes.
-  !# <gslConstant variable="GSL_Success" gslSymbol="GSL_SUCCESS" gslHeader="gsl_errno" type="integer"/>
-  !# <gslConstant variable="GSL_ESing"   gslSymbol="GSL_ESING"   gslHeader="gsl_errno" type="integer"/>
-  !# <gslConstant variable="GSL_EDom"    gslSymbol="GSL_EDOM"    gslHeader="gsl_errno" type="integer"/>
+  !# <gslConstant variable="GSL_Success"  gslSymbol="GSL_SUCCESS"  gslHeader="gsl_errno" type="integer"/>
+  !# <gslConstant variable="GSL_Failure"  gslSymbol="GSL_FAILURE"  gslHeader="gsl_errno" type="integer"/>
+  !# <gslConstant variable="GSL_ESing"    gslSymbol="GSL_ESING"    gslHeader="gsl_errno" type="integer"/>
+  !# <gslConstant variable="GSL_EDom"     gslSymbol="GSL_EDOM"     gslHeader="gsl_errno" type="integer"/>
+  !# <gslConstant variable="GSL_ERange"   gslSymbol="GSL_ERANGE"   gslHeader="gsl_errno" type="integer"/>
+  !# <gslConstant variable="GSL_EZeroDiv" gslSymbol="GSL_EZERODIV" gslHeader="gsl_errno" type="integer"/>
+  !# <gslConstant variable="GSL_EUndrFlw" gslSymbol="GSL_EUNDRFLW" gslHeader="gsl_errno" type="integer"/>
+  !# <gslConstant variable="GSL_ENoProg"  gslSymbol="GSL_ENOPROG"  gslHeader="gsl_errno" type="integer"/>
+  !# <gslConstant variable="GSL_Continue" gslSymbol="GSL_CONTINUE" gslHeader="gsl_errno" type="integer"/>
+  !# <gslConstant variable="GSL_EBadFunc" gslSymbol="GSL_EBADFUNC" gslHeader="gsl_errno" type="integer"/>
 
 contains
 
