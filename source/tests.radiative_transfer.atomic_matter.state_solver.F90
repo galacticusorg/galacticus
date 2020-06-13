@@ -174,6 +174,7 @@ program Test_Radiative_Transfer_State_Solver
   !#     &amp;                       iterationAverageCount                   =1                                            , &amp;
   !#     &amp;                       temperatureMinimum                      =3.0d0                                        , &amp;
   !#     &amp;                       outputRates                             =.false.                                      , &amp;
+  !#     &amp;                       outputAbsorptionCoefficients            =.false.                                      , &amp;
   !#     &amp;                       massDistribution_                       =massDistribution_                            , &amp;
   !#     &amp;                       atomicCrossSectionIonizationPhoto_      =atomicCrossSectionIonizationPhoto_           , &amp;
   !#     &amp;                       atomicRecombinationRateRadiative_       =atomicRecombinationRateRadiativeFixed_       , &amp;
@@ -262,6 +263,7 @@ program Test_Radiative_Transfer_State_Solver
   !#     &amp;                       iterationAverageCount                   =2                                            , &amp;
   !#     &amp;                       temperatureMinimum                      =3.0d0                                        , &amp;
   !#     &amp;                       outputRates                             =.false.                                      , &amp;
+  !#     &amp;                       outputAbsorptionCoefficients            =.false.                                      , &amp;
   !#     &amp;                       massDistribution_                       =massDistribution_                            , &amp;
   !#     &amp;                       atomicCrossSectionIonizationPhoto_      =atomicCrossSectionIonizationPhoto_           , &amp;
   !#     &amp;                       atomicRecombinationRateRadiative_       =atomicRecombinationRateRadiativeFixed_       , &amp;
@@ -398,6 +400,7 @@ program Test_Radiative_Transfer_State_Solver
   !#     &amp;                       iterationAverageCount                   =2                                            , &amp;
   !#     &amp;                       temperatureMinimum                      =3.0d0                                        , &amp;
   !#     &amp;                       outputRates                             =.false.                                      , &amp;
+  !#     &amp;                       outputAbsorptionCoefficients            =.false.                                      , &amp;
   !#     &amp;                       massDistribution_                       =massDistribution_                            , &amp;
   !#     &amp;                       atomicCrossSectionIonizationPhoto_      =atomicCrossSectionIonizationPhoto_           , &amp;
   !#     &amp;                       atomicRecombinationRateRadiative_       =atomicRecombinationRateRadiativeVerner1996_  , &amp;
@@ -477,6 +480,7 @@ program Test_Radiative_Transfer_State_Solver
   !#     &amp;                       iterationAverageCount                   =2                                             , &amp;
   !#     &amp;                       temperatureMinimum                      =3.0d0                                         , &amp;
   !#     &amp;                       outputRates                             =.false.                                      , &amp;
+  !#     &amp;                       outputAbsorptionCoefficients            =.false.                                      , &amp;
   !#     &amp;                       massDistribution_                       =massDistribution_                             , &amp;
   !#     &amp;                       atomicCrossSectionIonizationPhoto_      =atomicCrossSectionIonizationPhoto_            , &amp;
   !#     &amp;                       atomicRecombinationRateRadiative_       =atomicRecombinationRateRadiativeVerner1996_   , &amp;
@@ -599,6 +603,7 @@ program Test_Radiative_Transfer_State_Solver
   !#     &amp;                       iterationAverageCount                   =2                                             , &amp;
   !#     &amp;                       temperatureMinimum                      =3.0d0                                         , &amp;
   !#     &amp;                       outputRates                             =.false.                                      , &amp;
+  !#     &amp;                       outputAbsorptionCoefficients            =.false.                                      , &amp;
   !#     &amp;                       massDistribution_                       =massDistribution_                             , &amp;
   !#     &amp;                       atomicCrossSectionIonizationPhoto_      =atomicCrossSectionIonizationPhoto_            , &amp;
   !#     &amp;                       atomicRecombinationRateRadiative_       =atomicRecombinationRateRadiativeVerner1996_   , &amp;
