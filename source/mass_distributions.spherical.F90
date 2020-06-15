@@ -109,6 +109,10 @@ contains
     !$omp threadprivate(finder)
     double precision                           , parameter             :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
 
+    if (mass <= 0.0d0) then
+       sphericalRadiusEnclosingMass=0.0d0
+       return
+    end if
     if (.not.finder%isInitialized()) then
        call finder%rootFunction(                                                             &
             &                                                 sphericalMassRoot              &
