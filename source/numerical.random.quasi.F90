@@ -70,7 +70,7 @@ module Numerical_Quasi_Random_Sequences
      integer                     :: qrngType
    contains
      !@ <objectMethods>
-     !@   <object>qrng</object>
+     !@   <object>quasiRandomNumberGenerator</object>
      !@   <objectMethod>
      !@     <method>get</method>
      !@     <description>Get numbers from the sequence.</description>
