@@ -144,6 +144,7 @@ contains
   subroutine pairCountsOperate(self,simulations)
     !% Compute pair counts of the particles in bins of separation.
     !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num
+    use    :: Arrays_Search     , only : searchArray
     use    :: Galacticus_Display, only : Galacticus_Display_Indent , Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
          &                               Galacticus_Display_Message, verbosityStandard
     use    :: IO_HDF5           , only : hdf5Access
@@ -161,13 +162,13 @@ contains
     integer                                     , allocatable  , dimension(:  ) :: neighborIndex
     double precision                            , allocatable  , dimension(:  ) :: neighborDistanceSquared          , separationCentralBin       , &
          &                                                                         separationSquaredMinimumBin      , separationSquaredMaximumBin
-    integer         (c_size_t                  ), allocatable  , dimension(:  ) :: weight1                          , weight2                    , &
+    integer         (c_size_t                  ), allocatable  , dimension(:,:) :: weight1                          , weight2                    , &
          &                                                                         weightPair
     integer         (c_size_t                  ), allocatable  , dimension(:,:) :: pairCountBin
-    class           (randomNumberGeneratorClass), pointer                       :: randomNumberGenerator_
     integer         (c_size_t                  )                                :: i                                , j                          , &
          &                                                                         iSample                          , bootstrapSampleCount       , &
          &                                                                         iSimulation                      , jSimulation                , &
+         &                                                                         jStart                           , jEnd                       , &
          &                                                                         pairCountTotal
     type            (nearestNeighbors          )                                :: neighborFinder
     integer                                                                     :: neighborCount
@@ -200,12 +201,31 @@ contains
        end if
 #endif
        if (self%crossCount) then
-          allocate(weight1(size(simulations(          1)%position,dim=2)))
+          allocate(weight1(bootstrapSampleCount,size(simulations(          1)%position,dim=2)))
        else
-          allocate(weight1(size(simulations(iSimulation)%position,dim=2)))
+          allocate(weight1(bootstrapSampleCount,size(simulations(iSimulation)%position,dim=2)))
        end if
-       allocate   (weight2(size(simulations(iSimulation)%position,dim=2)))
-       ! Iterate over bootstrap samplings.
+       allocate   (weight2(bootstrapSampleCount,size(simulations(iSimulation)%position,dim=2)))
+       ! Generate bootstrap weights.
+       do iSample=1,bootstrapSampleCount
+          ! Determine weights for particles.
+          if (iSample == 1 .and. self%includeUnbootstrapped) then
+             weight1(iSample,:)=1_c_size_t
+             weight2(iSample,:)=1_c_size_t
+          else
+             do i=1,size(weight1,dim=2)
+                weight1(iSample,i)=int(self%randomNumberGenerator_%poissonSample(self%bootstrapSampleRate),c_size_t)
+             end do
+             if (self%crossCount) then
+                do i=1,size(weight2,dim=2)
+                   weight2(iSample,i)=int(self%randomNumberGenerator_%poissonSample(self%bootstrapSampleRate),c_size_t)
+                end do
+             else
+                weight2(iSample,:)=weight1(iSample,:)
+             end if
+          end if
+       end do
+       ! Accumulate pairs
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
@@ -214,94 +234,61 @@ contains
        end if
 #endif
        pairCountBin=0_c_size_t
-       !$omp parallel private(iSample,j,weightPair,neighborCount,neighborIndex,neighborDistanceSquared,neighborFinder,randomNumberGenerator_) reduction(+:pairCountBin)
-       ! Allocate worksapce.
-       allocate(weightPair(size(simulations(iSimulation)%position,dim=2)))
+       !$omp parallel private(j,jStart,jEnd,weightPair,neighborCount,neighborIndex,neighborDistanceSquared,neighborFinder) reduction(+:pairCountBin)
+       ! Allocate workspace.
+       allocate(weightPair             (bootstrapSampleCount,size(simulations(iSimulation)%position,dim=2)))
+       allocate(neighborIndex          (                     size(simulations(iSimulation)%position,dim=2)))
+       allocate(neighborDistanceSquared(                     size(simulations(iSimulation)%position,dim=2)))
        ! Construct the nearest neighbor finder object.
        neighborFinder=nearestNeighbors(transpose(simulations(iSimulation)%position))
-       ! Deep copy random number generator.
-       allocate(randomNumberGenerator_,mold=self%randomNumberGenerator_)
-       !$omp critical(pairCountDeepCopy)
-       !# <deepCopyReset variables="self%randomNumberGenerator_"/>
-       !# <deepCopy      source="self%randomNumberGenerator_" destination="randomNumberGenerator_"/>
-       !$omp end critical(pairCountDeepCopy)
-       do iSample=1,bootstrapSampleCount
-          ! Determine weights for particles.
-          if (iSample == 1 .and. self%includeUnbootstrapped) then
-             !$omp single
-             weight1=1_c_size_t
-             weight2=1_c_size_t
-             !$omp end single
-          else
-             !$omp do schedule(dynamic)
-             do i=1,size(weight1)
-                weight1(i)=int(randomNumberGenerator_%poissonSample(self%bootstrapSampleRate),c_size_t)
-             end do
-             !$omp end do
-             if (self%crossCount) then
-                !$omp do schedule(dynamic)
-                do i=1,size(weight2)
-                   weight2(i)=int(randomNumberGenerator_%poissonSample(self%bootstrapSampleRate),c_size_t)
-                end do
-                !$omp end do
-             else
-                weight2=weight1
-             end if
-          end if
-          ! Iterate over particles.
-          if (self%crossCount) then
-             jSimulation=1
-          else
-             jSimulation=iSimulation
-          end if
-          !$omp do schedule(dynamic)
-          do i=1_c_size_t,size(simulations(jSimulation)%position,dim=2,kind=c_size_t)
+       ! Iterate over particles.
+       if (self%crossCount) then
+          jSimulation=1
+       else
+          jSimulation=iSimulation
+       end if
+       !$omp do schedule(dynamic)
+       do i=1_c_size_t,size(simulations(jSimulation)%position,dim=2,kind=c_size_t)
 #ifdef USEMPI
-             ! If running under MPI with N processes, process only every Nth particle.
-             if (mod(i,mpiSelf%count()) /= mpiSelf%rank()) cycle
+          ! If running under MPI with N processes, process only every Nth particle.
+          if (mod(i,mpiSelf%count()) /= mpiSelf%rank()) cycle
 #endif
-             if (weight1(i) <= 0.0d0) cycle
-             ! Locate particles nearby.
-             call neighborFinder%searchFixedRadius(simulations(jSimulation)%position(:,i),self%separationMaximum,toleranceZero,neighborCount,neighborIndex,neighborDistanceSquared)
-             ! Find weights of paired particles.
-             do j=1_c_size_t,neighborCount
-                weightPair(j)=weight2(neighborIndex(j))
-             end do
-             ! Accumulate particles into bins.
-             do j=1,self%separationCount
-                pairCountBin(j,iSample)=+     pairCountBin           (j,iSample      )                                    &
-                     &                  +     weight1                (i              )                                    &
-                     &                  *sum(                                                                             &
-                     &                        weightPair             (1:neighborCount)                                  , &
-                     &                        neighborDistanceSquared                  >= separationSquaredMinimumBin(j)  &
-                     &                       .and.                                                                        &
-                     &                        neighborDistanceSquared                  <  separationSquaredMaximumBin(j)  &
-                     &                      )
-             end do
-             call deallocateArray(neighborIndex          )
-             call deallocateArray(neighborDistanceSquared)
-             ! Update progress.
-             !$ if (OMP_Get_Thread_Num() == 0) then
-#ifdef USEMPI
-             if (mpiSelf%isMaster()) then
-#endif
-                call Galacticus_Display_Counter(                                                                                        &
-                     &                          int(                                                                                    &
-                     &                              +100.0d0                                                                            &
-                     &                              *float(i+(iSample-1_c_size_t  )*size(simulations(1)%position,dim=2,kind=c_size_t))  &
-                     &                              /float(                         size(simulations(1)%position,dim=2,kind=c_size_t))  &
-                     &                              /float(   bootstrapSampleCount                                                   )  &
-                     &                             )                                                                                  , &
-                     &                          .false.                                                                                 &
-                     &                         )
-#ifdef USEMPI
-             end if
-#endif
-             !$ end if
+          ! Locate particles nearby.
+          call neighborFinder%searchFixedRadius(simulations(jSimulation)%position(:,i),self%separationMaximum,toleranceZero,neighborCount,neighborIndex,neighborDistanceSquared)
+          ! Find weights of paired particles.
+          do j=1_c_size_t,neighborCount
+             weightPair(:,j)=weight2(:,neighborIndex(j))
           end do
-          !$omp end do
+          ! Accumulate particles into bins.
+          jEnd=0
+          do j=1,self%separationCount
+             if (neighborDistanceSquared(1) > separationSquaredMaximumBin(j) .or. neighborDistanceSquared(neighborCount) < separationSquaredMinimumBin(j)) cycle
+             jStart=jEnd
+             jEnd  =searchArray(neighborDistanceSquared(1:neighborCount),separationSquaredMaximumBin(j))
+             if (jStart == jEnd) cycle
+             pairCountBin(j,:)=+    pairCountBin(j        ,:    )        &
+                  &            +    weight1     (:,i            )        &
+                  &            *sum(weightPair  (:,jStart+1:jEnd),dim=2)
+          end do
+          ! Update progress.
+          !$ if (OMP_Get_Thread_Num() == 0) then
+#ifdef USEMPI
+          if (mpiSelf%isMaster()) then
+#endif
+             call Galacticus_Display_Counter(                                                               &
+                  &                          int(                                                           &
+                  &                              +100.0d0                                                   &
+                  &                              *float(i                                                )  &
+                  &                              /float(size(simulations(1)%position,dim=2,kind=c_size_t))  &
+                  &                             )                                                         , &
+                  &                          .false.                                                        &
+                  &                         )
+#ifdef USEMPI
+          end if
+#endif
+          !$ end if
        end do
-       !# <objectDestructor name="randomNumberGenerator_"/>
+       !$omp end do
        !$omp end parallel
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
