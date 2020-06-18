@@ -45,14 +45,32 @@ contains
 
   function nbodyAnalyzeConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily nbodyAnalyze} task class which takes a parameter set as input.
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
+    use :: Input_Parameters, only : inputParameter              , inputParameters
+    use :: Node_Components , only : Node_Components_Initialize  , Node_Components_Thread_Initialize
     implicit none
     type   (taskNBodyAnalyze  )                :: self
     type   (inputParameters   ), intent(inout) :: parameters
     class  (nBodyImporterClass), pointer       :: nBodyImporter_
     class  (nBodyOperatorClass), pointer       :: nBodyOperator_
     logical                                    :: storeBackToImported
+    type   (inputParameters   ), pointer       :: parametersRoot
 
+    ! Ensure the nodes objects are initialized.
+    if (associated(parameters%parent)) then
+       parametersRoot => parameters%parent
+       do while (associated(parametersRoot%parent))
+          parametersRoot => parametersRoot%parent
+       end do
+       call nodeClassHierarchyInitialize     (parametersRoot)
+       call Node_Components_Initialize       (parametersRoot)
+       call Node_Components_Thread_Initialize(parametersRoot)
+    else
+       parametersRoot => null()
+       call nodeClassHierarchyInitialize     (parameters    )
+       call Node_Components_Initialize       (parameters    )
+       call Node_Components_Thread_Initialize(parameters    )
+    end if
     !# <inputParameter>
     !#   <name>storeBackToImported</name>
     !#   <source>parameters</source>
@@ -85,11 +103,14 @@ contains
 
   subroutine nbodyAnalyzeDestructor(self)
     !% Destructor for the {\normalfont \ttfamily nbodyAnalyze} task class.
+    use :: Node_Components, only : Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
     implicit none
     type(taskNBodyAnalyze), intent(inout) :: self
 
     !# <objectDestructor name="self%nBodyOperator_"/>
     !# <objectDestructor name="self%nBodyImporter_"/>
+    call Node_Components_Uninitialize       ()
+    call Node_Components_Thread_Uninitialize()
     return
   end subroutine nbodyAnalyzeDestructor
 
