@@ -32,14 +32,17 @@ sub Parse_Declarations {
 	    my $source             = exists($node->{'source'}) ? $node->{'source'} : "unknown";
 	    my $rawCodeLine        = $lineNumber;
 	    my $rawDeclarationLine = $lineNumber;
+	    my $isImplicitNone     = 0;
 	    open(my $code,"<",\$node->{'content'});
 	    do {
 		# Get a line.
 		&Fortran::Utils::Get_Fortran_Line($code,my $rawLine, my $processedLine, my $bufferedComments);
 		# Determine if line is a declaration line.
 		my $isDeclaration = 0;
-		$isDeclaration    = 1
-		    if ( $processedLine =~ m/^\s*implicit\s+none\s*$/ );
+		if ( $processedLine =~ m/^\s*implicit\s+none\s*$/ ) {
+		    $isImplicitNone   = 1;
+		    $isDeclaration    = 1;
+		}
 		my $declaration;
 		foreach ( keys(%Fortran::Utils::intrinsicDeclarations) ) {
 		    if ( my @matches = ( $processedLine =~ $Fortran::Utils::intrinsicDeclarations{$_}->{'regEx'} ) ) {
@@ -99,7 +102,8 @@ sub Parse_Declarations {
 		    # Create a new node.
 		    my $newNode =
 		    {
-			type         => "declaration"
+			type         => "declaration",
+			implicitNone => $isImplicitNone
 		    };
 		    @{$newNode->{'declarations'}} = @declarations;
 		    $newNode->{'firstChild'} =
@@ -123,8 +127,10 @@ sub Parse_Declarations {
 			$newNode
 			);
 		    push(@newNodes,$codeNode)
-			if ( eof($code) && $isDeclaration == 0 );		    
-		    # Reset the raw module use text.
+			if ( eof($code) && $isDeclaration == 0 );
+		    # Reset implicit none status.
+		    $isImplicitNone = 0;
+		    # Reset the raw declaration text.
 		    undef($rawDeclaration);
 		    undef(@declarations  );
 		    $rawCodeLine        = $lineNumber;
@@ -146,7 +152,7 @@ sub Parse_Declarations {
 sub BuildDeclarations {
     # Build Fortran code from declarations list.
     my $node =   shift() ;
-    $node->{'firstChild'}->{'content'} = "";
+    $node->{'firstChild'}->{'content'} = $node->{'implicitNone'} ? "implicit none\n" : "";
     foreach ( @{$node->{'declarations'}} ) {
 	my $declarationCode  = "  ";
 	$declarationCode    .= "!\$ "
@@ -257,7 +263,7 @@ sub GetDeclaration {
     my $declarationFound;
     while ( $childNode ) {
 	if ( $childNode->{'type'} eq "declaration" ) {
-	    $declarationsFound = 1;
+    	    $declarationsFound = 1;
 	    # Locate the variable in the list of declarations.
 	    foreach my $declaration ( @{$childNode->{'declarations'}} ) {
 		my @variableNames = map {$_ =~ m/^([^=]+)\s*=/ ? $1 : $_} @{$declaration->{'variables'}};
