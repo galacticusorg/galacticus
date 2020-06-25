@@ -83,7 +83,8 @@ contains
     type   (varying_string          ), allocatable  , dimension(:) :: readColumnsText
     integer                          , allocatable  , dimension(:) :: readColumns
     type   (varying_string          )                              :: fileName            , label
-
+    integer                                                        :: i
+    
     !# <inputParameter>
     !#   <name>fileName</name>
     !#   <source>parameters</source>
@@ -134,6 +135,7 @@ contains
     class  (cosmologyParametersClass), intent(in   ), target                 :: cosmologyParameters_
     integer                          , intent(in   ), dimension(:), optional :: readColumns
     type   (varying_string          ), intent(in   )                         :: fileName            , label
+    integer                                                                  :: i
     !# <constructorAssign variables="fileName, label, *cosmologyParameters_, readColumns"/>
 
     ! If extra read columns are requested, determine the number of integer and real columns.

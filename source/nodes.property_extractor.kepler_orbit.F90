@@ -171,6 +171,7 @@ contains
     double precision                                  , dimension(:) , allocatable :: keplerOrbitExtractFromOrbit
     class           (nodePropertyExtractorKeplerOrbit), intent(inout), target      :: self
     type            (keplerOrbit                     ), intent(inout)              :: orbit
+    integer                                                                        :: i
 
     allocate(keplerOrbitExtractFromOrbit(self%count_))
     if (orbit%isDefined()) then

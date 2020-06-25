@@ -88,7 +88,7 @@ contains
     !# <inputParameter>
     !#   <name>magnitudesAbsolute</name>
     !#   <source>parameters</source>
-    !#   <variable>masses</variable>
+    !#   <variable>magnitudesAbsolute</variable>
     !#   <description>The absolute magnitudes corresponding to bin centers.</description>
     !#   <type>float</type>
     !#   <cardinality>0..1</cardinality>

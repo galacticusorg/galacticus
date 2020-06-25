@@ -130,7 +130,7 @@ contains
     type            (irate             )                                           :: irate_
     type            (hdf5Object        )                                           :: snapshotGroup  , dataset
     character       (len=13            )                                           :: snapshotLabel
-    integer                                                                        :: status
+    integer                                                                        :: i              , status
 
     call Galacticus_Display_Indent('import simulation from IRATE file',verbosityStandard)
     allocate(simulations(1))

@@ -83,12 +83,13 @@ contains
     implicit none
     class           (nbodyOperatorFlagAlwaysIsolated), intent(inout)               :: self
     type            (nBodyData                      ), intent(inout), dimension(:) :: simulations
-    integer         (c_size_t                       ), allocatable  , dimension(:) :: alwaysIsolated, hostID , &
+    integer         (c_size_t                       ), allocatable  , dimension(:) :: alwaysIsolated, hostID     , &
          &                                                                            descendentID  , indexID
     double precision                                 , allocatable  , dimension(:) :: massVirial
     double precision                                                               :: massReference
     integer         (c_size_t                       )                              :: i             , j          , &
-         &                                                                            k             , iSimulation
+         &                                                                            k             , iSimulation, &
+         &                                                                            countParticles
 
     call Galacticus_Display_Indent('flag always isolated objects',verbosityStandard)
     do iSimulation=1,size(simulations)

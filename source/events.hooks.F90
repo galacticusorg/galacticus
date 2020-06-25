@@ -269,14 +269,15 @@ contains
     use    :: Galacticus_Error, only : Galacticus_Error_Report
     !$ use :: OMP_Lib         , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
     implicit none
-    class    (eventHookUnspecified), intent(inout)                         :: self
-    class    (*                   ), intent(in   ), target                 :: object_
-    integer                        , intent(in   ), optional               :: openMPThreadBinding
-    character(len=*               ), intent(in   ), optional               :: label
-    class    (dependency          ), intent(in   ), optional, dimension(:) :: dependencies
-    procedure(                    )                                        :: function_
-    class    (hook                )                         , pointer      :: hook_
-     !# <optionalArgument name="openMPThreadBinding" defaultsTo="openMPThreadBindingNone" />
+    class     (eventHookUnspecified), intent(inout)                         :: self
+    class     (*                   ), intent(in   ), target                 :: object_
+    integer                         , intent(in   ), optional               :: openMPThreadBinding
+    character (len=*               ), intent(in   ), optional               :: label
+    class     (dependency          ), intent(in   ), optional, dimension(:) :: dependencies
+    procedure (                    )                                        :: function_
+    class     (hook                )                         , pointer      :: hook_
+    !$ integer                                                              :: i
+    !# <optionalArgument name="openMPThreadBinding" defaultsTo="openMPThreadBindingNone" />
 
     ! Lock the object.
     !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{introspection:location})

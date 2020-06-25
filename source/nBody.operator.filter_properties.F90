@@ -59,7 +59,8 @@ contains
          &                                                                   propertyNames
     type     (propertyRange                ), allocatable  , dimension(:) :: propertyRanges
     character(len=64                       )                              :: range
-
+    integer                                                               :: i
+    
     allocate(propertyNames(parameters%count('propertyNames',zeroIfNotPresent=.true.)))
     allocate(rangeLow     (parameters%count('rangeLow'     ,zeroIfNotPresent=.true.)))
     allocate(rangeHigh    (parameters%count('rangeHigh'    ,zeroIfNotPresent=.true.)))

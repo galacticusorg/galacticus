@@ -444,10 +444,11 @@ contains
   double precision function atomicAbsorptionCoefficient(self,properties,photonPacket)
     !% Return the absorption coefficient for the given photon packet and matter properties.
     implicit none
-    class(radiativeTransferMatterAtomic     ), intent(inout) :: self
-    class(radiativeTransferPropertiesMatter ), intent(inout) :: properties
-    class(radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket
-
+    class  (radiativeTransferMatterAtomic     ), intent(inout) :: self
+    class  (radiativeTransferPropertiesMatter ), intent(inout) :: properties
+    class  (radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket
+    integer                                                    :: i           , j
+    
     atomicAbsorptionCoefficient=0.0d0
     do i=1,self%countElements
        do j=0,self%elementAtomicNumbers(i)-1 ! j=0 is neutral atom; j=1 is first ionized state, etc.

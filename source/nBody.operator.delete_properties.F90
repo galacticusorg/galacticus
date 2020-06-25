@@ -77,7 +77,7 @@ contains
     class  (nbodyOperatorDeleteProperties), intent(inout)               :: self
     type   (nBodyData                    ), intent(inout), dimension(:) :: simulations
     logical                                                             :: propertyFound
-    integer                                                             :: i
+    integer                                                             :: i            , j
 
     call Galacticus_Display_Indent('delete named properties',verbosityStandard)
     do i=1,size(self%propertyNames)

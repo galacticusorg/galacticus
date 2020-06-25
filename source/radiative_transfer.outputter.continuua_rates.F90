@@ -87,6 +87,7 @@ contains
     type   (radiativeTransferOutputterContinuuaRates)                              :: self
     integer                                          , intent(in   ), dimension(:) :: elementIndices
     class  (atomicIonizationPotentialClass          ), intent(in   ), target       :: atomicIonizationPotential_
+    integer                                                                        :: i                         , j
     !# <constructorAssign variables="elementIndices, *atomicIonizationPotential_"/>
 
     ! Determine maximum atomic number.
