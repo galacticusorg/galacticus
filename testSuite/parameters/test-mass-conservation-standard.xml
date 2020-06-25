@@ -291,8 +291,8 @@
     
     <!-- Node evolution and physics -->
     <nodeOperatorMethod value="multi">
-      <nodeOperatorMethod value="starFormationDisks"    />
-      <nodeOperatorMethod value="starFormationSpheroids"/>
+      <nodeOperatorMethod value="starFormationDisks"     iterable="no"/>
+      <nodeOperatorMethod value="starFormationSpheroids" iterable="no"/>
     </nodeOperatorMethod>
     
     <!-- Numerical tolerances -->
