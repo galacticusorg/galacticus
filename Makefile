@@ -462,7 +462,7 @@ Galacticus.exe: $(BUILDPATH)/galacticus.git.patch $(BUILDPATH)/galacticus.git.bu
 $(BUILDPATH)/galacticus.git.patch:
 	git diff > $(BUILDPATH)/galacticus.git.patch || echo unknown > $(BUILDPATH)/galacticus.git.patch
 $(BUILDPATH)/galacticus.git.bundle:
-	git bundle create $(BUILDPATH)/galacticus.git.bundle HEAD ^origin || echo unknown > $(BUILDPATH)/galacticus.git.bundle
+	git bundle create $(BUILDPATH)/galacticus.git.bundle HEAD ^origin >& /dev/null || echo unknown > $(BUILDPATH)/galacticus.git.bundle
 
 # Rules for cleaning up.
 clean: tidy
