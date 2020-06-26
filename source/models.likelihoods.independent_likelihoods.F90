@@ -132,9 +132,10 @@ contains
   subroutine independentLikelihoodsDestructor(self)
     !% Destructor for ``independentLikelihoods'' posterior sampling likelihood class.
     implicit none
-    type(posteriorSampleLikelihoodIndependentLikelihoods), intent(inout) :: self
-    type(posteriorSampleLikelihoodList                  ), pointer       :: modelLikelihood_, modelLikelihoodNext
-
+    type   (posteriorSampleLikelihoodIndependentLikelihoods), intent(inout) :: self
+    type   (posteriorSampleLikelihoodList                  ), pointer       :: modelLikelihood_, modelLikelihoodNext
+    integer                                                                 :: i
+    
     if (associated(self%modelLikelihoods)) then
        modelLikelihood_ => self%modelLikelihoods
        do while (associated(modelLikelihood_))
