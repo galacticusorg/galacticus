@@ -20,8 +20,6 @@
   !% An implementation of the cosmological functions class for cosmologies consisting of collisionless
   !% matter and dark energy with an equation of state of the form: $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.
 
-  use :: FGSL, only : fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_step, fgsl_odeiv_system
-
   integer         , parameter :: matterDarkEnergyAgeTableNPointsPerDecade     =300
   double precision, parameter :: matterDarkEnergyAgeTableNPointsPerOctave     =dble(matterDarkEnergyAgeTableNPointsPerDecade)*log(2.0d0)/log(10.0d0)
   double precision, parameter :: matterDarkEnergyAgeTableIncrementFactor      =exp(int(matterDarkEnergyAgeTableNPointsPerOctave+1.0d0)*log(10.0d0)/dble(matterDarkEnergyAgeTableNPointsPerDecade))
@@ -131,6 +129,7 @@ contains
     double precision                                    , intent(in   )         :: darkEnergyEquationOfStateW0        , darkEnergyEquationOfStateW1
     !# <constructorAssign variables="*cosmologyParameters_, darkEnergyEquationOfStateW0, darkEnergyEquationOfStateW1"/>
 
+    self%enableRangeChecks=.true.
     ! Initialize locks.
     !$ call OMP_Init_Lock(self%expansionFactorTableLock)
     !$ call OMP_Init_Lock(self%distanceTableLock       )
@@ -612,24 +611,19 @@ contains
   double precision function matterDarkEnergyExpansionFactorChange(timeStart,timeEnd,expansionFactorStart)
     !% Compute the expansion factor at time {\normalfont \ttfamily timeEnd} given an initial value {\normalfont \ttfamily
     !% expansionFactorStart} at time {\normalfont \ttfamily timeStart}.
-    use :: ODE_Solver, only : ODE_Solve, ODE_Solver_Free
+    use :: Numerical_ODE_Solvers, only : odeSolver
     implicit none
-    double precision                    , intent(in   ) :: expansionFactorStart       , timeEnd                     , &
-         &                                                 timeStart
-    double precision                    , dimension(1)  :: y
-    double precision                    , parameter     :: odeToleranceAbsolute=1.0d-9, odeToleranceRelative=1.0d-12
-    double precision                                    :: time
-    type            (fgsl_odeiv_step   )                :: odeStepper
-    type            (fgsl_odeiv_control)                :: odeController
-    type            (fgsl_odeiv_evolve )                :: odeEvolver
-    type            (fgsl_odeiv_system )                :: odeSystem
-    logical                                             :: odeReset            =.true.
+    double precision           , intent(in   ) :: expansionFactorStart       , timeEnd                     , &
+         &                                        timeStart
+    double precision           , dimension(1)  :: y
+    double precision           , parameter     :: odeToleranceAbsolute=1.0d-9, odeToleranceRelative=1.0d-12
+    double precision                           :: time
+    type            (odeSolver)                :: solver
 
-    time=timeStart
-    y(1)=expansionFactorStart
-    call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,time,timeEnd,1,y,matterDarkEnergyAgeTableODEs&
-         &,odeToleranceAbsolute,odeToleranceRelative,reset=odeReset)
-    call ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
+    time     =timeStart
+    y     (1)=expansionFactorStart
+    solver   =odeSolver(1_c_size_t,matterDarkEnergyAgeTableODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
+    call solver%solve(time,timeEnd,y)
     matterDarkEnergyExpansionFactorChange=y(1)
     return
   end function matterDarkEnergyExpansionFactorChange

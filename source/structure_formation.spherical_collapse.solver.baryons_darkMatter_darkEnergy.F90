@@ -412,23 +412,20 @@ contains
   subroutine baryonsDarkMatterDarkEnergyPerturbationDynamicsSolver(perturbationOverdensityInitial,time,radiusPerturbation,expansionRatePerturbation)
     !% Integrate the dynamics of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
     !% amplitude {\normalfont \ttfamily epsilonPerturbation}.
-    use :: FODEIV2         , only : fodeiv2_driver         , fodeiv2_system
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Interface_GSL   , only : GSL_Success
-    use :: ODEIV2_Solver   , only : ODEIV2_Solve           , ODEIV2_Solver_Free
+    use :: Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Interface_GSL        , only : GSL_Success
+    use :: Numerical_ODE_Solvers, only : odeSolver
     implicit none
-    double precision                    , intent(in   )                        :: perturbationOverdensityInitial           , time
-    double precision                    , intent(  out)             , optional :: expansionRatePerturbation                , radiusPerturbation
-    integer                             , parameter                            :: countProperties                    =2
-    double precision                    , dimension(countProperties)           :: propertyValues
-    double precision                    , parameter                            :: odeToleranceAbsolute               =0.0d0, odeToleranceRelative             =1.0d-12
-    type            (fodeiv2_system    )                                       :: ode2System
-    type            (fodeiv2_driver    )                                       :: ode2Driver
-    logical                                                                    :: odeReset
-    double precision                                                           :: expansionFactorInitial                   , radiusDifferenceGrowthRateInitial        , &
-         &                                                                        timeInitial                              , exponent                                 , &
-         &                                                                        radiusDifferenceInitial
-    integer                                                                    :: odeStatus
+    double precision           , intent(in   )                        :: perturbationOverdensityInitial           , time
+    double precision           , intent(  out)             , optional :: expansionRatePerturbation                , radiusPerturbation
+    integer         (c_size_t ), parameter                            :: countProperties               =2_c_size_t
+    double precision           , dimension(countProperties)           :: propertyValues
+    double precision           , parameter                            :: odeToleranceAbsolute          =0.0d0     , odeToleranceRelative             =1.0d-12
+    type            (odeSolver)                                       :: solver
+    double precision                                                  :: expansionFactorInitial                   , radiusDifferenceGrowthRateInitial        , &
+         &                                                               timeInitial                              , exponent                                 , &
+         &                                                               radiusDifferenceInitial
+    integer                                                           :: odeStatus
 
     ! Validate the perturbation overdensity.
     if (perturbationOverdensityInitial < 0.0d+0) call Galacticus_Error_Report('initial overdensity of perturbation should be non-negative'//{introspection:location})
@@ -476,21 +473,8 @@ contains
     ! Evolve if the requested time is after the initial time.
     if (time > timeInitial) then
        ! Solve the ODE to find the perturbation radius at the present day.
-       odeReset=.true.
-       call ODEIV2_Solve(                                                       &
-            &                      ode2Driver                                 , &
-            &                      ode2System                                 , &
-            &                      timeInitial                                , &
-            &                      time                                       , &
-            &                      countProperties                            , &
-            &                      propertyValues                             , &
-            &                      baryonsDarkMatterDarkEnergyPerturbationODEs, &
-            &                      odeToleranceAbsolute                       , &
-            &                      odeToleranceRelative                       , &
-            &            reset    =odeReset                                   , &
-            &            odeStatus=odeStatus                                    &
-            &           )
-       call ODEIV2_Solver_Free(ode2Driver,ode2System)
+       solver=odeSolver(countProperties,baryonsDarkMatterDarkEnergyPerturbationODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
+       call solver%solve(timeInitial,time,propertyValues,status=odeStatus)
        ! If the ODE solver did not succeed, it is because the perturbation collapsed to zero radius (causing a divergence). This
        ! means it collapsed prior to the current time. We extrapolate to negative radius (using the velocity at the final step) to
        ! permit our root finder to locate the point at which collapse occurs at the current time.

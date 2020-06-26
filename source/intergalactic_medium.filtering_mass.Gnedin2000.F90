@@ -241,20 +241,17 @@ contains
 
   subroutine gnedin2000Tabulate(self,time)
     !% Construct a table of filtering mass as a function of cosmological time.
-    use :: FODEIV2                 , only : fodeiv2_driver         , fodeiv2_system
     use :: File_Utilities          , only : File_Lock              , File_Unlock
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Numerical_Constants_Math, only : Pi
-    use :: ODEIV2_Solver           , only : ODEIV2_Solve
+    use :: Numerical_ODE_Solvers   , only : odeSolver
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout), target :: self
     double precision                                            , intent(in   )         :: time
     double precision                                            , parameter             :: redshiftMaximumNaozBarkana=150.0d0 ! Maximum redshift at which fitting function of Naoz & Barkana is valid.
     double precision                                            , dimension(3)          :: massFiltering                     , massFilteringScales
     double precision                                            , parameter             :: odeToleranceAbsolute      =1.0d-03, odeToleranceRelative      =1.0d-03
-    type            (fodeiv2_system                            )                        :: ode2System
-    type            (fodeiv2_driver                            )                        :: ode2Driver
-    logical                                                                             :: odeReset
+    type            (odeSolver                                 )                        :: solver
     integer                                                                             :: iTime
     double precision                                                                    :: timeInitial                       , timeCurrent
 
@@ -289,27 +286,14 @@ contains
             &                  self%countTimes    &
             &                 )
        ! Loop over times and populate tables.
+       solver=odeSolver(3_c_size_t,massFilteringODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative,scale=massFilteringScales)    
        do iTime=1,self%countTimes
           ! Set the composite variables used to solve for filtering mass.
           call self%conditionsInitialODEs(timeInitial,massFiltering,massFilteringScales)
           ! Solve the ODE system
-          odeReset   =.true.
           timeCurrent=timeInitial
-          if (self%table%x(iTime) > timeInitial) then
-             call ODEIV2_Solve(                                                     &
-                  &            ode2Driver                                         , &
-                  &            ode2System                                         , &
-                  &            timeCurrent                                        , &
-                  &            self%table%x(iTime)                                , &
-                  &            3                                                  , &
-                  &            massFiltering                                      , &
-                  &            massFilteringODEs                                  , &
-                  &            odeToleranceAbsolute                               , &
-                  &            odeToleranceRelative                               , &
-                  &            yScale                         =massFilteringScales, &
-                  &            reset                          =odeReset             &
-                  &           )
-          end if
+          if (self%table%x(iTime) > timeInitial) &
+               & call solver%solve(timeCurrent,self%table%x(iTime),massFiltering)
           call self%table%populate(massFiltering(3),iTime)
        end do
        ! Specify that tabulation has been made.
@@ -324,7 +308,7 @@ contains
 
     integer function massFilteringODEs(time,properties,propertiesRateOfChange)
       !% Evaluates the ODEs controlling the evolution temperature.
-      use ::Interface_GSL                    , only : GSL_Success
+      use :: Interface_GSL                   , only : GSL_Success
       use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial, hydrogenByMassPrimordial
       use :: Numerical_Constants_Atomic      , only : electronMass          , massHeliumAtom          , massHydrogenAtom
       implicit none

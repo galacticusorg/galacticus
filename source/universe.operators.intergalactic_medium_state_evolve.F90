@@ -379,7 +379,6 @@ contains
    logical function intergalacticMediumStateEvolveUpdate(event,universe_) result (success)
      !% Update the properties for a given universe.
      use            :: Arrays_Search           , only : searchArrayClosest
-     use            :: FODEIV2                 , only : fodeiv2_system           , fodeiv2_driver
      use            :: Galacticus_Display      , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
      use            :: Galacticus_Error        , only : Galacticus_Error_Report
      use            :: Galacticus_HDF5         , only : galacticusOutputFile
@@ -389,29 +388,27 @@ contains
      use, intrinsic :: ISO_C_Binding           , only : c_size_t
      use            :: ISO_Varying_String      , only : varying_string
      use            :: Numerical_Constants_Math, only : Pi
-     use            :: ODEIV2_Solver           , only : ODEIV2_Solve             , ODEIV2_Solver_Free
+     use            :: Numerical_ODE_Solvers   , only : odeSolver
      implicit none
      class           (universeEvent     ), intent(in   )            :: event
      type            (universe          ), intent(inout)            :: universe_
      type            (universeEvent     ), pointer                  :: newEvent
-     double precision                    , parameter                :: odeToleranceAbsolute =1.0d-3,                 &
-          &                                                            odeToleranceRelative =1.0d-3,                 &
+     double precision                    , parameter                :: odeToleranceAbsolute =1.0d-3     ,                 &
+          &                                                            odeToleranceRelative =1.0d-3     ,                 &
           &                                                            timeToleranceRelative=1.0d-6
      type            (mergerTree        ), pointer                  :: tree
      type            (mergerTreeList    ), pointer                  :: forest
      type            (treeNode          ), pointer                  :: node
      class           (nodeComponentBasic), pointer                  :: basic
-     type            (fodeiv2_system    ), save                     :: ode2System
-     type            (fodeiv2_driver    ), save                     :: ode2Driver
-     logical                             , save                     :: odeReset
-     integer                             , parameter                :: propertyCount        =10
+     integer         (c_size_t          ), parameter                :: propertyCount        =10_c_size_t
      double precision                    , parameter                :: massFilteringScale   =1.0d+4
-     double precision                    , dimension(propertyCount) :: properties                  , propertyScales
+     double precision                    , dimension(propertyCount) :: properties                       , propertyScales
+     type            (odeSolver         )                           :: solver
      type            (varying_string    )                           :: message
      character       (len=6             )                           :: label
-     type            (hdf5Object        )                           :: igmGroup                    , igmDataset
+     type            (hdf5Object        )                           :: igmGroup                         , igmDataset
      integer         (c_size_t          )                           :: iNow
-     double precision                                               :: treetimeLatest              , timeCurrent    , &
+     double precision                                               :: treetimeLatest                   , timeCurrent    , &
           &                                                            timeMaximum
 
 #ifdef USEMPI
@@ -459,22 +456,9 @@ contains
            propertyScales(10  )=self%massFiltering(iNow-1)
            ! Display message
            call Galacticus_Display_Message('Solving properties evolution')
-           odeReset=.true.
            timeCurrent=self%time(iNow-1)
-           call ODEIV2_Solve(                                                    &
-                &            ode2Driver                                        , &
-                &            ode2System                                        , &
-                &            timeCurrent                                       , &
-                &            self%time                         (iNow)          , &
-                &            propertyCount                                     , &
-                &            properties                                        , &
-                &            intergalacticMediumStateEvolveODEs                , &
-                &            odeToleranceAbsolute                              , &
-                &            odeToleranceRelative                              , &
-                &            yScale                             =propertyScales, &
-                &            reset                              =odeReset        &
-                &           )
-           call ODEIV2_Solver_Free(ode2Driver,ode2System)
+           solver     =odeSolver(propertyCount,intergalacticMediumStateEvolveODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative,scale=propertyScales)    
+           call solver%solve(timeCurrent,self%time(iNow),properties)
            self%temperature           (iNow    )=max(properties( 1   ),0.0d0)
            self%densityHydrogen       (iNow,1:2)=max(properties( 2: 3),0.0d0)
            self%densityHelium         (iNow,1:3)=max(properties( 4: 6),0.0d0)

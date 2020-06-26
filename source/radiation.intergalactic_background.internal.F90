@@ -45,9 +45,11 @@
      class           (starFormationRateSpheroidsClass       ), pointer                     :: starFormationRateSpheroids_        => null()
      class           (stellarPopulationSelectorClass        ), pointer                     :: stellarPopulationSelector_         => null()
      class           (outputTimesClass                      ), pointer                     :: outputTimes_                       => null()
-     integer                                                                               :: wavelengthCountPerDecade                    , wavelengthCount
+     integer                                                                               :: wavelengthCountPerDecade
+     integer         (c_size_t                              )                              :: wavelengthCount
      double precision                                                                      :: wavelengthMinimum                           , wavelengthMaximum
-     integer                                                                               :: timeCountPerDecade                          , timeCount
+     integer                                                                               :: timeCountPerDecade
+     integer         (c_size_t                              )                              :: timeCount
      double precision                                                                      :: redshiftMinimum                             , redshiftMaximum
      double precision                                                                      :: timeMinimum                                 , timeMaximum
      double precision                                        , allocatable, dimension(:  ) :: wavelength                                  , redshift                       , &
@@ -192,7 +194,7 @@ contains
     class           (starFormationRateSpheroidsClass              ), intent(in   ), target :: starFormationRateSpheroids_
     class           (stellarPopulationSelectorClass               ), intent(in   ), target :: stellarPopulationSelector_
     class           (outputTimesClass                             ), intent(in   ), target :: outputTimes_
-    integer                                                                                :: iTime                             , iWavelength
+    integer         (c_size_t                                     )                        :: iTime                             , iWavelength
     !# <constructorAssign variables="wavelengthMinimum, wavelengthMaximum, wavelengthCountPerDecade, redshiftMinimum, redshiftMaximum, timeCountPerDecade, *cosmologyParameters_, *cosmologyFunctions_, *intergalacticMediumState_, *atomicCrossSectionIonizationPhoto_, *accretionDiskSpectra_, *starFormationRateDisks_, *starFormationRateSpheroids_, *stellarPopulationSelector_, *outputTimes_"/>
 
     ! Build tables of wavelength and time for cosmic background radiation.
@@ -222,23 +224,23 @@ contains
          &                          )                              &
          &                   )                                     &
          &               +1
-    call allocateArray(self%wavelength   ,[self%wavelengthCount               ]                  )
-    call allocateArray(self%spectrum     ,[self%wavelengthCount               ]                  )
-    call allocateArray(self%time         ,[                     self%timeCount]                  )
-    call allocateArray(self%redshift     ,[                     self%timeCount]                  )
-    call allocateArray(self%emissivity   ,[self%wavelengthCount,self%timeCount]                  )
-    call allocateArray(self%emissivityODE,[self%wavelengthCount,2             ],lowerBounds=[1,0])
-    self%wavelength=Make_Range(                        &
-         &                     self%wavelengthMinimum, &
-         &                     self%wavelengthMaximum, &
-         &                     self%wavelengthCount  , &
-         &                     rangeTypeLogarithmic    &
+    call allocateArray(self%wavelength   ,[self%wavelengthCount               ]                                    )
+    call allocateArray(self%spectrum     ,[self%wavelengthCount               ]                                    )
+    call allocateArray(self%time         ,[                     self%timeCount]                                    )
+    call allocateArray(self%redshift     ,[                     self%timeCount]                                    )
+    call allocateArray(self%emissivity   ,[self%wavelengthCount,self%timeCount]                                    )
+    call allocateArray(self%emissivityODE,[self%wavelengthCount,2_c_size_t    ],lowerBounds=[1_c_size_t,0_c_size_t])
+    self%wavelength=Make_Range(                             &
+         &                         self%wavelengthMinimum , &
+         &                         self%wavelengthMaximum , &
+         &                     int(self%wavelengthCount  ), &
+         &                     rangeTypeLogarithmic         &
          &                    )
-    self%time      =Make_Range(                        &
-         &                     self%timeMinimum      , &
-         &                     self%timeMaximum      , &
-         &                     self%timeCount        , &
-         &                     rangeTypeLogarithmic    &
+    self%time      =Make_Range(                             &
+         &                         self%timeMinimum       , &
+         &                         self%timeMaximum       , &
+         &                     int(self%timeCount        ), &
+         &                     rangeTypeLogarithmic         &
          &                    )
     ! Convert times to redshifts.
     do iTime=1,self%timeCount
@@ -389,7 +391,6 @@ contains
     !% Update the radiation background for a given universe.
     use            :: Abundances_Structure        , only : abundances                   , max
     use            :: Arrays_Search               , only : searchArrayClosest
-    use            :: FODEIV2                     , only : fodeiv2_driver               , fodeiv2_system
     use            :: Galacticus_Display          , only : Galacticus_Display_Indent    , Galacticus_Display_Message, Galacticus_Display_Unindent
     use            :: Galacticus_Error            , only : Galacticus_Error_Report
     use            :: Galacticus_HDF5             , only : galacticusOutputFile
@@ -405,7 +406,7 @@ contains
     use            :: Numerical_Constants_Prefixes, only : centi
     use            :: Numerical_Constants_Units   , only : angstromsPerMeter            , ergs
     use            :: Numerical_Integration       , only : integrator
-    use            :: ODEIV2_Solver               , only : ODEIV2_Solve                 , ODEIV2_Solver_Free
+    use            :: Numerical_ODE_Solvers       , only : odeSolver
     use            :: Stellar_Population_Spectra  , only : stellarPopulationSpectraClass
     use            :: Stellar_Populations         , only : stellarPopulationClass
     implicit none
@@ -425,10 +426,8 @@ contains
     type            (abundances                          ), target        :: gasAbundancesDisk                    , gasAbundancesSpheroid
     type            (abundances                          ), pointer       :: gasAbundances
     class           (*                                   ), pointer       :: state
-    type            (fodeiv2_system                      ), save          :: ode2System
-    type            (fodeiv2_driver                      ), save          :: ode2Driver
+    type            (odeSolver                           )                :: solver
     type            (integrator                          )                :: integrator_
-    logical                                               , save          :: odeReset
     type            (mergerTreeWalkerAllNodes            )                :: treeWalker
     double precision                                                      :: starFormationRateDisk                , starFormationRateSpheroid               , &
          &                                                                   gasMassDisk                          , gasMassSpheroid                         , &
@@ -436,11 +435,11 @@ contains
          &                                                                   stellarSpectrumDisk                  , stellarSpectrumSpheroid                 , &
          &                                                                   timeStart                            , timeEnd                                 , &
          &                                                                   treeTimeLatest                       , wavelength
-    integer                                                               :: iTime                                , iWavelength
     type            (varying_string                      )                :: message
     character       (len=6                               )                :: label
     type            (hdf5Object                          )                :: outputGroup                          , outputDataset
-    integer         (c_size_t                            )                :: iNow
+    integer         (c_size_t                            )                :: iTime                                , iWavelength                             , &
+         &                                                                   iNow
     logical                                                               :: firstTime
 
     ! Guard on event creator class.
@@ -534,22 +533,10 @@ contains
              self%emissivityODE(:,0  )=self%emissivity(:,iNow-1     )
              self%emissivityODE(:,  1)=self%emissivity(:,       iNow)
              intergalacticBackgroundInternalSelf => self
-             odeReset=.true.
              timeStart=self%time(iNow-1)
              timeEnd  =self%time(iNow  )
-             call ODEIV2_Solve(                                            &
-                  &            ode2Driver                                , &
-                  &            ode2System                                , &
-                  &            timeStart                                 , &
-                  &            timeEnd                                   , &
-                  &            self%wavelengthCount                      , &
-                  &            self%spectrum                             , &
-                  &            intergalacticBackgroundInternalODEs       , &
-                  &            odeToleranceAbsolute                      , &
-                  &            odeToleranceRelative                      , &
-                  &            reset=odeReset                              &
-                  &           )
-             call ODEIV2_Solver_Free(ode2Driver,ode2System)
+             solver   =odeSolver(self%wavelengthCount,intergalacticBackgroundInternalODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
+             call solver%solve(timeStart,timeEnd,self%spectrum)
              ! Convert
              !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)
              state%flux(:,iNow)=max(                                   &

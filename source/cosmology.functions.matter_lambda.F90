@@ -21,10 +21,8 @@
   !% matter plus a cosmological constant.
 
   use    :: Cosmology_Parameters   , only : cosmologyParameters, cosmologyParametersClass
-  use    :: FGSL                   , only : fgsl_function      , fgsl_odeiv_system       , fgsl_odeiv_control, fgsl_odeiv_evolve, &
-       &                                    fgsl_odeiv_step
   use    :: Numerical_Interpolation, only : interpolator
-  !$ use :: OMP_Lib             , only : omp_lock_kind
+  !$ use :: OMP_Lib                , only : omp_lock_kind
 
   integer         , parameter :: matterLambdaAgeTableNPointsPerDecade     =300
   double precision, parameter :: matterLambdaAgeTableNPointsPerOctave     =dble(matterLambdaAgeTableNPointsPerDecade)*log(2.0d0)/log(10.0d0)
@@ -137,27 +135,23 @@ contains
 
   function matterLambdaConstructorInternal(cosmologyParameters_) result(self)
     !% Constructor for the matter plus cosmological constant cosmological functions class.
-    use :: Cosmology_Parameters, only : hubbleUnitsTime
-    use :: Numerical_Comparison, only : Values_Agree
-    use :: ODE_Solver          , only : ODE_Solve      , ODE_Solver_Free
+    use :: Cosmology_Parameters , only : hubbleUnitsTime
+    use :: Numerical_Comparison , only : Values_Agree
+    use :: Numerical_ODE_Solvers, only : odeSolver
     implicit none
     type            (cosmologyFunctionsMatterLambda)               , target :: self
     class           (cosmologyParametersClass      ), intent(in   ), target :: cosmologyParameters_
-    double precision                                , parameter             :: odeToleranceAbsolute           =1.0d-09, odeToleranceRelative   =1.0d-09
-    double precision                                , parameter             :: omegaTolerance                 =1.0d-09
+    double precision                                , parameter             :: odeToleranceAbsolute  =1.0d-09, odeToleranceRelative   =1.0d-09
+    double precision                                , parameter             :: omegaTolerance        =1.0d-09
     double complex                                  , dimension(3)          :: expansionFactorMaximum
     double precision                                , dimension(1)          :: timeMaximum
-    double precision                                , parameter             :: toleranceRelative              =1.0d-10
-    double precision                                                        :: OmegaDominant                          , expansionFactorDominant        , &
+    double precision                                , parameter             :: toleranceRelative     =1.0d-10
+    double precision                                                        :: OmegaDominant                 , expansionFactorDominant        , &
          &                                                                     densityPower
-    type            (fgsl_odeiv_step               )                        :: odeStepper
-    type            (fgsl_odeiv_control            )                        :: odeController
-    type            (fgsl_odeiv_evolve             )                        :: odeEvolver
-    type            (fgsl_odeiv_system             )                        :: odeSystem
-    logical                                                                 :: odeReset                       =.true.
+    type            (odeSolver                     )                        :: solver
     integer                                                                 :: i
-    double complex                                                          :: omegaMatter                            , omegaDarkEnergy                , &
-         &                                                                     omegaCurvature                         , rootTerm
+    double complex                                                          :: omegaMatter                   , omegaDarkEnergy                , &
+         &                                                                     omegaCurvature                , rootTerm
     !# <constructorAssign variables="*cosmologyParameters_"/>
 
     ! Determine if this universe will collapse. We take the Friedmann equation, which gives H²(a) as a function of expansion
@@ -295,23 +289,8 @@ contains
        timeMaximum(1)=1.0d0/abs(self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime))/sqrt(OmegaDominant)/expansionFactorDominant**(0.5d0*densityPower)
        ! Solve Friedmann equation to get time at turnaround.
        matterLambdaSelfGlobal => self
-       odeReset=.true.
-       call ODE_Solve(                                            &
-            &         odeStepper                                , &
-            &         odeController                             , &
-            &         odeEvolver                                , &
-            &         odeSystem                                 , &
-            &         expansionFactorDominant                   , &
-            &         self%expansionFactorMaximum*(1.0d0-1.0d-4), &
-            &         1                                         , &
-            &         timeMaximum                               , &
-            &         matterLambdaCollapseODEs                  , &
-            &         odeToleranceAbsolute                      , &
-            &         odeToleranceRelative                      , &
-            &         reset=odeReset                              &
-            &        )
-       call ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
-       odeReset=.true.
+       solver                 =  odeSolver(1_c_size_t,matterLambdaCollapseODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
+       call solver%solve(expansionFactorDominant,self%expansionFactorMaximum*(1.0d0-1.0d-4),timeMaximum)
        ! Extract turnaround time from ODE variables and set maximum time to twice turnaround time.
        self%timeTurnaround=timeMaximum(1)
        self%timeMaximum   =2.0d0*self%timeTurnaround
@@ -877,24 +856,21 @@ contains
 
   subroutine matterLambdaMakeExpansionFactorTable(self,time)
     !% Builds a table of expansion factor vs. time.
-    use :: Cosmology_Parameters   , only : hubbleUnitsTime
-    use :: Memory_Management      , only : allocateArray  , deallocateArray
-    use :: Numerical_Ranges       , only : Make_Range     , rangeTypeLogarithmic
-    use :: ODE_Solver             , only : ODE_Solve      , ODE_Solver_Free
+    use :: Cosmology_Parameters , only : hubbleUnitsTime
+    use :: Memory_Management    , only : allocateArray  , deallocateArray
+    use :: Numerical_Ranges     , only : Make_Range     , rangeTypeLogarithmic
+    use :: Numerical_ODE_Solvers, only : odeSolver
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout), target       :: self
     double precision                                , intent(in   ), optional     :: time
-    double precision                                , parameter                   :: odeToleranceAbsolute               =1.0d-9, odeToleranceRelative   =1.0d-9
-    double precision                                , allocatable  , dimension(:) :: ageTableExpansionFactorTemporary          , ageTableTimeTemporary
-    integer                                                                       :: iTime                                     , prefixPointCount
-    double precision                                                              :: OmegaDominant                             , densityPower                  , &
-         &                                                                           expansionFactor                 (1)       , expansionFactorDominant       , &
-         &                                                                           tDominant                                 , timeActual
-    type            (fgsl_odeiv_step               )                              :: odeStepper
-    type            (fgsl_odeiv_control            )                              :: odeController
-    type            (fgsl_odeiv_evolve             )                              :: odeEvolver
-    type            (fgsl_odeiv_system             )                              :: odeSystem
-    logical                                                                       :: odeReset
+    double precision                                , parameter                   :: odeToleranceAbsolute            =1.0d-9, odeToleranceRelative =1.0d-9
+    double precision                                , allocatable  , dimension(:) :: ageTableExpansionFactorTemporary       , ageTableTimeTemporary
+    double precision                                               , dimension(1) :: expansionFactor
+    integer                                                                       :: iTime                                  , prefixPointCount
+    double precision                                                              :: OmegaDominant                          , densityPower                , &
+         &                                                                           tDominant                              , timeActual                  , &
+         &                                                                           expansionFactorDominant
+    type            (odeSolver                     )                              :: solver
 
     ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
     call self%densityScalingEarlyTime(matterLambdaDominateFactor,densityPower,expansionFactorDominant,OmegaDominant)
@@ -973,8 +949,8 @@ contains
     ! Solve ODE to get corresponding expansion factors.
     self%iTableTurnaround  =  self%ageTableNumberPoints
     matterLambdaSelfGlobal => self
-    odeReset               =  .true.
-   do iTime=2,self%ageTableNumberPoints
+    solver                 =  odeSolver(1_c_size_t,matterLambdaAgeTableODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
+    do iTime=2,self%ageTableNumberPoints
        ! Find the position in the table corresponding to turn around if we have a collapsing Universe.
        if     (                                                   &
             &   self%collapsingUniverse                           &
@@ -987,24 +963,10 @@ contains
        if (self%ageTableExpansionFactor(iTime) < 0.0d0) then
           timeActual        =self%ageTableTime           (iTime-1)
           expansionFactor(1)=self%ageTableExpansionFactor(iTime-1)
-          call ODE_Solve(                          &
-               &         odeStepper              , &
-               &         odeController           , &
-               &         odeEvolver              , &
-               &         odeSystem               , &
-               &         timeActual              , &
-               &         self%ageTableTime(iTime), &
-               &         1                       , &
-               &         expansionFactor         , &
-               &         matterLambdaAgeTableODEs, &
-               &         odeToleranceAbsolute    , &
-               &         odeToleranceRelative    , &
-               &         reset=odeReset            &
-               &        )
+          call solver%solve(timeActual,self%ageTableTime(iTime),expansionFactor)
           self%ageTableExpansionFactor(iTime)=expansionFactor(1)
        end if
     end do
-    if (.not.odeReset) call ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
     ! Build the interpolator.
     if (allocated(self%interpolatorTime)) deallocate(self%interpolatorTime)
     allocate(self%interpolatorTime)

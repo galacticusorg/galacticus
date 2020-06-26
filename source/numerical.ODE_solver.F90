@@ -17,141 +17,573 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides an interface to the GNU Scientific Library ODEIV differential equation solvers.
+!% Contains a module which implements quasi-random sequences.
 
-module ODE_Solver
-  !% Contains an interface to the GNU Scientific Library ODEIV differential equation solvers.
-  use, intrinsic :: ISO_C_Binding, only : c_size_t
+! Specify an explicit dependence on the interface.GSL.C.odeiv2.o object file.
+!: $(BUILDPATH)/interface.GSL.C.odeiv2.o
+! Specify an explicit dependence on  the Multi-Step Backward Differentiation Formula with Active/Inactive
+! variables, and LU decomposition with Active/Inactive variables object files.
+!: $(BUILDPATH)/gslODEInitVal2/driver2.o
+!: $(BUILDPATH)/gslODEInitVal2/cscal2.o
+!: $(BUILDPATH)/gslODEInitVal2/msbdfactive.o
+!: $(BUILDPATH)/gslODEInitVal2/lu.o
+
+module Numerical_ODE_Solvers
+  !% Implements quasi-random sequences.
+  use, intrinsic :: ISO_C_Binding         , only : c_ptr                      , c_funptr, c_size_t, c_int, &
+       &                                           c_double
+  use            :: Numerical_Integration2, only : integratorMultiVectorized1D
   implicit none
   private
-  public :: ODE_Solve, ODE_Solver_Free
+  public :: odeSolver
 
-  ! Integrand interface.
+  ! Stepper types.
+  integer, public, parameter :: gsl_odeiv2_step_rk2        = 1
+  integer, public, parameter :: gsl_odeiv2_step_rk4        = 2
+  integer, public, parameter :: gsl_odeiv2_step_rkf45      = 3
+  integer, public, parameter :: gsl_odeiv2_step_rkck       = 4
+  integer, public, parameter :: gsl_odeiv2_step_rk8pd      = 5
+  integer, public, parameter :: gsl_odeiv2_step_rk1imp     = 6
+  integer, public, parameter :: gsl_odeiv2_step_rk2imp     = 7
+  integer, public, parameter :: gsl_odeiv2_step_rk4imp     = 8
+  integer, public, parameter :: gsl_odeiv2_step_bsimp      = 9
+  integer, public, parameter :: gsl_odeiv2_step_msadams    =10
+  integer, public, parameter :: gsl_odeiv2_step_msbdf      =11
+  integer, public, parameter :: gsl_odeiv2_step_msbdfactive=12
+
+  interface
+     function gsl_odeiv2_step_type_get(i) bind(c,name='gsl_odeiv2_step_type_get')
+       !% Template for GSL interface ODEIV2 stepper type function.
+       import c_ptr, c_int
+       type   (c_ptr)                       :: gsl_odeiv2_step_type_get
+       integer(c_int), intent(in   ), value :: i
+     end function gsl_odeiv2_step_type_get
+     function gsl_odeiv2_system_init(dim,func,jacobian) bind(c,name='gsl_odeiv2_system_init')
+       !% Template for GSL interface ODEIV2 system initialization function.
+       import c_ptr, c_funptr, c_size_t
+       type   (c_ptr   )                       :: gsl_odeiv2_system_init
+       integer(c_size_t), intent(in   ), value :: dim
+       type   (c_funptr), intent(in   ), value :: func                  , jacobian
+     end function gsl_odeiv2_system_init
+     subroutine gsl_odeiv2_system_free(system) bind(c,name='gsl_odeiv2_system_free')
+       !% Template for GSL interface ODEIV2 system free function.
+       import c_ptr
+       type(c_ptr), intent(in   ), value :: system
+     end subroutine gsl_odeiv2_system_free
+     function gsl_odeiv2_driver_alloc_y_new(sys,T,hstart,epsabs,epsrel) bind(c,name='gsl_odeiv2_driver_alloc_y_new')
+       !% Template for GSL interface ODEIV2 step allocation function.
+       import c_ptr, c_double
+       type(c_ptr   )                       :: gsl_odeiv2_driver_alloc_y_new
+       type(c_ptr   ), intent(in   ), value :: sys                          , T
+       real(c_double), intent(in   ), value :: epsabs                       , epsrel, &
+            &                                  hstart
+     end function gsl_odeiv2_driver_alloc_y_new
+     function gsl_odeiv2_driver_alloc_scaled_new(sys,T,hstart,epsabs,epsrel,a_y,a_dydt,scale_abs) bind(c,name='gsl_odeiv2_driver_alloc_scaled_new')
+       !% Template for GSL interface ODEIV2 step allocation function.
+       import c_ptr, c_double
+       type(c_ptr   )                              :: gsl_odeiv2_driver_alloc_scaled_new
+       type(c_ptr   ), intent(in   ), value        :: sys                               , T
+       real(c_double), intent(in   ), value        :: epsabs                            , epsrel, &
+            &                                         a_y                               , a_dydt, &
+            &                                         hstart
+       real(c_double), intent(in   ), dimension(*) :: scale_abs
+     end function gsl_odeiv2_driver_alloc_scaled_new
+     subroutine gsl_odeiv2_driver_free(d) bind(c,name='gsl_odeiv2_driver_free')
+       !% Template for GSL interface ODEIV2 driver free function.
+       import c_ptr
+       type(c_ptr), intent(in   ), value :: d
+     end subroutine gsl_odeiv2_driver_free     
+     function gsl_odeiv2_driver_reset(d) bind(c,name='gsl_odeiv2_driver_reset')
+       !% Template for GSL interface ODEIV2 driver reset function.
+       import c_ptr, c_int
+       integer(c_int)                       :: gsl_odeiv2_driver_reset
+       type   (c_ptr), intent(in   ), value :: d
+     end function gsl_odeiv2_driver_reset
+     function gsl_odeiv2_driver_reset_hstart(d,hstart) bind(c,name='gsl_odeiv2_driver_reset_hstart')
+       !% Template for GSL interface ODEIV2 driver timestep reset function.
+       import c_ptr, c_int, c_double
+       integer(c_int   )                       :: gsl_odeiv2_driver_reset_hstart
+       type   (c_ptr   ), intent(in   ), value :: d
+       real   (c_double), intent(in   ), value :: hstart
+     end function gsl_odeiv2_driver_reset_hstart
+     function gsl_odeiv2_driver2_apply(d,t,t1,y,ps,li,sa) bind(c,name='gsl_odeiv2_driver2_apply')
+       !% Interface for GSL interface ODEIV2 driver apply function.
+       import c_ptr, c_funptr, c_double, c_int
+       integer(c_int   )                              :: gsl_odeiv2_driver2_apply
+       type   (c_ptr   ), intent(in   ), value        :: d
+       real   (c_double), intent(inout)               :: t
+       real   (c_double), intent(in   ), value        :: t1
+       real   (c_double), intent(inout), dimension(*) :: y
+       type   (c_funptr), intent(in   ), value        :: ps
+       type   (c_funptr), intent(in   ), value        :: li
+       type   (c_funptr), intent(in   ), value        :: sa
+     end function gsl_odeiv2_driver2_apply
+     function gsl_odeiv2_driver_h(d) bind(c,name='gsl_odeiv2_driver_h')
+       !% Template for GSL interface to ODEIV2 driver timestep get function.
+       import c_ptr, c_double
+       real(c_double)                       :: gsl_odeiv2_driver_h
+       type(c_ptr   ), intent(in   ), value :: d
+     end function gsl_odeiv2_driver_h     
+     subroutine msbdfactive_context(d,dim,t,y,dydt) bind(c)
+       !% Template for MSBDF active stepper context.
+       import c_ptr, c_size_t, c_double
+       type   (c_ptr   ), intent(in   ), value        :: d
+       integer(c_size_t), intent(in   ), value        :: dim
+       real   (c_double), intent(in   ), value        :: t
+       real   (c_double), intent(inout), dimension(*) :: y  , dydt
+     end subroutine msbdfactive_context
+     subroutine msbdfactive_state(d,dim,y) bind(c,name='msbdfactive_state')
+       !% Template for MSBDF active ODE stepper state function.
+       import c_ptr, c_size_t, c_double
+       type   (c_ptr   ), intent(in   ), value        :: d
+       integer(c_size_t), intent(in   ), value        :: dim
+       real   (c_double), intent(inout), dimension(*) :: y
+     end subroutine msbdfactive_state
+     subroutine gsl_odeiv2_driver_errors(d,yerr) bind(c,name='gsl_odeiv2_driver_errors')
+       !% Template for GSL ODE driver errors.
+       import c_ptr, c_double
+       type   (c_ptr   ), intent(in   ), value        :: d
+       real   (c_double), intent(  out), dimension(*) :: yerr
+     end subroutine gsl_odeiv2_driver_errors
+     subroutine gsl_odeiv2_driver_init_errors(d) bind(c,name='gsl_odeiv2_driver_init_errors')
+       !% Template for GSL ODE driver error initialization.
+       import c_ptr
+       type(c_ptr), intent(in   ), value :: d
+     end subroutine gsl_odeiv2_driver_init_errors
+  end interface
+  
+  type :: odeSolver
+     !% Type providing ODE solving.
+     private
+     procedure(derivativesTemplate        ), pointer    , nopass :: derivatives
+     procedure(jacobianTemplate           ), pointer    , nopass :: jacobian
+     procedure(integrandTemplate          ), pointer    , nopass :: integrands              => null()
+     procedure(finalStateTemplate         ), pointer    , nopass :: finalState              => null()
+     procedure(postStepTemplate           ), pointer    , nopass :: postStep                => null()
+     procedure(errorAnalyzerTemplate      ), pointer    , nopass :: errorAnalyzer           => null()
+     procedure(errorHandlerTemplate       ), pointer    , nopass :: errorHandler            => null()
+     class    (integratorMultiVectorized1D), pointer             :: integrator
+     type     (c_ptr                      ), allocatable         :: gsl_odeiv2_driver                , gsl_odeiv2_system, &
+          &                                                         gsl_odeiv2_step_type
+     integer                                                     :: stepperType
+     integer  (c_size_t                   )                      :: dim
+     logical                                                     :: integratorErrorTolerant
+   contains
+     !@ <objectMethods>
+     !@   <object>odeSolver</object>
+     !@   <objectMethod>
+     !@     <method>solve</method>
+     !@     <description>Solve the ODE system.</description>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>errors</method>
+     !@     <description>Return estimates of the errors in ODE variables.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doubleone\ yError\argout</arguments>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::           odeSolverDestructor
+     procedure :: solve  => odeSolverSolve
+     procedure :: errors => odeSolverErrors
+  end type odeSolver
+  
+  interface odeSolver
+     !% Constructor for the {\normalfont \ttfamily odeSolver} class.
+     module procedure odeSolverConstructor
+  end interface odeSolver
+  
+  ! Interface for the derivatives function.
   abstract interface
-     integer function odesTemplate(x,y,dydx)
+     integer function derivativesTemplate(x,y,dydx)
        double precision, intent(in   )               :: x
        double precision, intent(in   ), dimension(:) :: y
        double precision, intent(  out), dimension(:) :: dydx
-     end function odesTemplate
+     end function derivativesTemplate
   end interface
 
-  ! Integrand function.
-  procedure(odesTemplate), pointer :: currentODEs
-  integer  (c_size_t    )          :: currentODENumber
-  !$omp threadprivate(currentODEs,currentODENumber)
+  ! Interface for the Jacobian function
+  abstract interface
+     integer function jacobianTemplate(x,y,dfdy,dfdx)
+       double precision, intent(in   )               :: x
+       double precision, intent(in   ), dimension(:) :: y
+       double precision, intent(  out), dimension(:) :: dfdy
+       double precision, intent(  out), dimension(:) :: dfdx
+     end function jacobianTemplate
+  end interface
+
+  ! Integrand interface.
+  abstract interface
+     subroutine integrandTemplate(x,y,dydx,z0,e,dzdx)
+       double precision, intent(in   ), dimension(  :) :: x
+       double precision, intent(in   ), dimension(:,:) :: y   , dydx
+       double precision, intent(in   ), dimension(:  ) :: z0
+       logical         , intent(inout), dimension(:  ) :: e
+       double precision, intent(  out), dimension(:,:) :: dzdx
+     end subroutine integrandTemplate
+  end interface
+
+  ! Final state interface.
+  abstract interface
+     subroutine finalStateTemplate(y)
+       double precision, intent(in   ), dimension(:) :: y
+     end subroutine finalStateTemplate
+  end interface
+  
+  ! Post-step interface.
+  abstract interface
+     subroutine postStepTemplate(y,status)
+       import c_int, c_double
+       real   (c_double), intent(inout), dimension(*) :: y
+       integer(c_int   ), intent(inout)               :: status
+     end subroutine postStepTemplate
+  end interface
+
+  ! Error analyzer interface.
+  abstract interface
+     subroutine errorAnalyzerTemplate(y,yerr,xStep,status)
+       import c_int, c_double
+       real   (c_double), intent(in   ), dimension(*) :: y     , yerr
+       real   (c_double), intent(in   ), value        :: xStep
+       integer(c_int   ), intent(in   ), value        :: status
+     end subroutine errorAnalyzerTemplate
+  end interface
+
+  ! Error handler interface.
+  abstract interface
+     subroutine errorHandlerTemplate(status,x,y)
+       import c_int, c_double
+       integer(c_int   ), intent(in   )               :: status
+       real   (c_double), intent(in   )               :: x
+       real   (c_double), intent(in   ), dimension(:) :: y
+     end subroutine errorHandlerTemplate
+  end interface
+
+  type :: solverList
+     !% Type used to maintain a list of ODE solvers when ODE solving is performed recursively.
+     type(odeSolver), pointer :: solver => null()
+  end type solverList
+
+  ! List of currently active ODE solvers.
+  integer                                        :: active =0
+  type   (solverList), allocatable, dimension(:) :: solvers
+  !$omp threadprivate(solvers,active)
 
 contains
 
-  subroutine ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,x0,x1,yCount,y,odes,toleranceAbsolute,toleranceRelative,yScale,reset)
-    !% Interface to the GNU Scientific Library ODEIV differential equation solvers.
-    use            :: FGSL                  , only : FGSL_ODEiv_Control_Scaled_New, FGSL_ODEiv_Control_y_New, FGSL_ODEiv_Evolve_Alloc, FGSL_ODEiv_Evolve_Apply, &
-          &                                          FGSL_ODEiv_Step_Alloc        , FGSL_ODEiv_Step_RKCK    , FGSL_ODEiv_System_Init , fgsl_odeiv_system      , &
-          &                                          FGSL_Well_Defined            , fgsl_odeiv_control      , fgsl_odeiv_evolve      , fgsl_odeiv_step
-    use            :: Galacticus_Error      , only : Galacticus_Error_Report
-    use            :: Interface_GSL         , only : GSL_Success
-    use, intrinsic :: ISO_C_Binding         , only : c_ptr                        , c_size_t
-    use            :: ODE_Solver_Error_Codes, only : interruptedAtX               , odeSolverInterrupt
+  function odeSolverConstructor(dim,derivatives,jacobian,integrator,integrands,integratorErrorTolerant,stepperType,toleranceAbsolute,toleranceRelative,hStart,dydtScale,yScale,scale,finalState,postStep,errorAnalyzer,errorHandler) result(self)
+    !% Constructor for {\normalfont \ttfamily odeSolver} obejcts.
+    use, intrinsic :: ISO_C_Binding   , only : c_funloc               , c_null_funptr
+    use            :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    double precision                    , intent(in   )           :: toleranceAbsolute              , toleranceRelative              , x1
-    integer                             , intent(in   )           :: yCount
-    double precision                    , intent(inout)           :: x0                             , y                (yCount)
-    double precision                    , intent(in   ), optional :: yScale           (yCount)
-    type            (fgsl_odeiv_step   ), intent(inout)           :: odeStepper
-    type            (fgsl_odeiv_control), intent(inout)           :: odeController
-    type            (fgsl_odeiv_evolve ), intent(inout)           :: odeEvolver
-    type            (fgsl_odeiv_system ), intent(inout)           :: odeSystem
-    logical                             , intent(inout), optional :: reset
-    procedure       (odesTemplate      )                          :: odes
-    procedure       (odesTemplate      ), pointer                 :: previousODEs
-    double precision                    , parameter               :: dydtScaleUniform         =0.0d0, yScaleUniform            =1.0d0
-    integer                                                       :: status
-    integer         (kind=c_size_t     )                          :: previousODENumber
-    double precision                                              :: h                              , x                              , x1Internal
-    logical                                                       :: forwardEvolve                  , resetActual
-    type            (c_ptr             )                          :: parameterPointer
+    type            (odeSolver                  )                                        :: self
+    integer         (c_size_t                   ), intent(in   )                         :: dim
+    procedure       (derivativesTemplate        )                                        :: derivatives
+    procedure       (jacobianTemplate           )               , optional               :: jacobian
+    procedure       (integrandTemplate          )               , optional               :: integrands
+    class           (integratorMultiVectorized1D), intent(in   ), optional, target       :: integrator
+    logical                                      , intent(in   ), optional               :: integratorErrorTolerant
+    procedure       (finalStateTemplate         )               , optional               :: finalState
+    procedure       (postStepTemplate           )               , optional               :: postStep
+    procedure       (errorAnalyzerTemplate      )               , optional               :: errorAnalyzer
+    procedure       (errorHandlerTemplate       )               , optional               :: errorHandler
+    integer                                      , intent(in   ), optional               :: stepperType
+    double precision                             , intent(in   ), optional               :: toleranceAbsolute      , toleranceRelative, &
+         &                                                                                  yScale                 , dydtScale        , &
+         &                                                                                  hStart
+    double precision                             , intent(in   ), optional, dimension(:) :: scale
+    !# <optionalArgument name="stepperType"             defaultsTo="gsl_odeiv2_step_rkck"/>
+    !# <optionalArgument name="toleranceAbsolute"       defaultsTo="0.0d0"               />
+    !# <optionalArgument name="toleranceRelative"       defaultsTo="0.0d0"               />
+    !# <optionalArgument name="yScale"                  defaultsTo="1.0d0"               />
+    !# <optionalArgument name="dydtScale"               defaultsTo="0.0d0"               />
+    !# <optionalArgument name="hStart"                  defaultsTo="1.0d0"               />
+    !# <optionalArgument name="integratorErrorTolerant" defaultsTo=".false."             />
+    !# <constructorAssign variables="dim, *derivatives, *jacobian, *integrator, *integrands, *finalState, *postStep, *errorAnalyzer, *errorHandler"/>
 
-    ! Store the current ODE function (and system size) so that we can restore it on exit. This allows the ODE function to be
-    ! called recursively.
-    previousODEs      => currentODEs
-    previousODENumber =  currentODENumber
-    currentODEs       => ODEs
-    currentODENumber  =  yCount
-    ! Decide whether to reset.
-    resetActual=.false.
-    if (present(reset)) then
-       resetActual=reset
-       reset=.false.
+    ! Validate.
+    if (toleranceAbsolute_ <= 0.0d0 .and. toleranceRelative_ <= 0.0d0) &
+         & call Galacticus_Error_Report('at least one of absolute and relative tolerance must be greater than zero'//{introspection:location})
+    ! Get the stepper type.
+    self   %stepperType=stepperType_
+    allocate(self%gsl_odeiv2_step_type)
+    self   %gsl_odeiv2_step_type=gsl_odeiv2_step_type_get         (stepperType_)
+    ! Allocate and initialize the system object.
+    allocate(self%gsl_odeiv2_system )
+    if (present(jacobian)) then
+       self%gsl_odeiv2_system   =gsl_odeiv2_system_init           (self%dim,c_funloc(derivativesWrapper),c_funloc     (jacobianWrapper))
+    else    
+       self%gsl_odeiv2_system   =gsl_odeiv2_system_init           (self%dim,c_funloc(derivativesWrapper),c_null_funptr                 )
     end if
-    if (resetActual.or..not.FGSL_Well_Defined(odeSystem)) then
-       odeStepper      =FGSL_ODEiv_Step_Alloc        (FGSL_ODEiv_Step_RKCK,currentODENumber)
-       if (present(yScale)) then
-          odeController=FGSL_ODEiv_Control_Scaled_New(toleranceAbsolute,toleranceRelative,yScaleUniform,dydtScaleUniform,yScale,currentODENumber)
-       else
-          odeController=FGSL_ODEiv_Control_y_New     (toleranceAbsolute,toleranceRelative                                                )
+    ! Allocate and initialize the driver object.
+    allocate(self%gsl_odeiv2_driver)
+    if (present(scale)) then
+       self%gsl_odeiv2_driver   =gsl_odeiv2_driver_alloc_scaled_new(self%gsl_odeiv2_system,self%gsl_odeiv2_step_type,hStart_,toleranceAbsolute_,toleranceRelative_,yScale_,dydtScale_,scale)
+       call gsl_odeiv2_driver_init_errors(self%gsl_odeiv2_driver)
+    else
+       self%gsl_odeiv2_driver   =gsl_odeiv2_driver_alloc_y_new     (self%gsl_odeiv2_system,self%gsl_odeiv2_step_type,hStart_,toleranceAbsolute_,toleranceRelative_                         )
+    end if
+    ! set integrator error tolerance behavior.
+    self%integratorErrorTolerant=integratorErrorTolerant_
+    return
+  end function odeSolverConstructor
+
+  subroutine odeSolverDestructor(self)
+    !% Destructor for {\normalfont \ttfamily odeSolver} objects.
+    implicit none
+    type(odeSolver), intent(inout) :: self
+
+    nullify(self%integrator)
+    if (allocated (self%gsl_odeiv2_system)) then
+       call gsl_odeiv2_system_free(self%gsl_odeiv2_system)
+       deallocate(self%gsl_odeiv2_system)
+    end if
+    if (allocated (self%gsl_odeiv2_driver)) then
+       call gsl_odeiv2_driver_free(self%gsl_odeiv2_driver)
+       deallocate(self%gsl_odeiv2_driver)
+    end if
+    return
+  end subroutine odeSolverDestructor
+
+  subroutine odeSolverSolve(self,x0,x1,y,z,xStep,status)
+    !% Solve the ODE system.
+    use, intrinsic :: ISO_C_Binding         , only : c_null_ptr             , c_null_funptr, c_funloc
+    use            :: Galacticus_Error      , only : Galacticus_Error_Report
+    use            :: Interface_GSL         , only : GSL_Success            , GSL_Failure
+    use            :: ISO_Varying_String    , only : var_str                , operator(//)
+    use            :: ODE_Solver_Error_Codes, only : odeSolverInterrupt     , interruptedAtX
+    use            :: String_Handling       , only : operator(//)
+    implicit none
+    class           (odeSolver ), intent(inout), target                        :: self
+    double precision            , intent(inout)                                :: x0
+    double precision            , intent(in   )                                :: x1
+    double precision            , intent(inout), dimension(self%dim)           :: y
+    double precision            , intent(inout), dimension(:       ), optional :: z
+    double precision                           , dimension(self%dim)           :: y0
+    double precision            , intent(inout)                     , optional :: xStep
+    integer                     , intent(  out)                     , optional :: status
+    integer                     , parameter                                    :: solversIncrement=3
+    type            (solverList), allocatable  , dimension(:       )           :: solversTmp
+    double precision            , allocatable  , dimension(:       )           :: z0
+    integer                                                                    :: zCount
+    type            (c_funptr  )                                               :: latentIntegrator_, errorAnalyzer_, &
+         &                                                                        postStep_
+    double precision                                                           :: xStep_           , x             , &
+         &                                                                        x1_              , x0Step
+    logical                                                                    :: evolveForward
+    integer         (c_int     )                                               :: status_
+
+    ! Add the current solver to the list of solvers. This allows us to track back to the previously used solver if this function
+    ! is called recursively.
+    active=active+1
+    if (allocated(solvers)) then
+       if (size(solvers) < active) then
+          call move_alloc(solvers,solversTmp)
+          allocate(solvers(size(solversTmp)+solversIncrement))
+          solvers(1:size(solversTmp))=solversTmp
+          deallocate(solversTmp)
        end if
-       odeEvolver      =FGSL_ODEiv_Evolve_Alloc      (currentODENumber)
-       odeSystem       =FGSL_ODEiv_System_Init       (odesWrapper,currentODENumber,parameterPointer)
+    else
+       allocate(solvers(solversIncrement))
     end if
-    ! Keep a local copy of the end point as we may reset it.
-    x1Internal=x1
-    ! Set initial value of x variable.
-    x=x0
+    solvers(active)%solver => self
     ! Make initial guess for timestep.
-    h=(x1-x0)
+    xStep_=(x1-x0)
+    if (present(xStep)) then
+       if (xStep > 0.0d0) xStep_=min(xStep,xStep_)
+    end if
+    ! Keep a local copy of the initial y values so that we can repeat the step if necessary.
+    y0 =y    
+    ! Keep a local copy of the end point as we may reset it.
+    x1_=x1
+    ! Set initial value of x variable.
+    x  =x0
     ! Determine if we want forward or backward evolution.
-    forwardEvolve=x1>x0
+    evolveForward=x1 > x0
+    ! Reset the driver.
+    status_   =GSL_ODEIV2_Driver_Reset       (self%gsl_odeiv2_driver       )
+    if    (status_ /= GSL_Success) call Galacticus_Error_Report('failed to reset ODE driver'    //{introspection:location})
+    if (xStep_ /= 0.0d0) then
+       status_=GSL_ODEIV2_Driver_Reset_hStart(self%gsl_odeiv2_driver,xStep_)
+       if (status_ /= GSL_Success) call Galacticus_Error_Report('failed to reset ODE step size'//{introspection:location})
+    end if
+    ! Initialize integrator.
+    if (present(z)) then
+       zCount=size(z)
+       allocate(z0(zCount))
+       z0=z
+       call self%integrator%integrandSet (zCount,integrandsWrapper)
+       latentIntegrator_=C_FunLoc(latentIntegrator)
+    else
+       latentIntegrator_=C_NULL_FUNPTR 
+    end if
+    ! Initialize error analzyer.
+    if (associated(self%errorAnalyzer)) then
+       errorAnalyzer_=c_funloc(self%errorAnalyzer)
+    else
+       errorAnalyzer_=c_null_funptr
+    end if
+    ! Initialize post-step processor.
+    if (associated(self%postStep)) then
+       postStep_=c_funloc(self%postStep)
+    else
+       postStep_=c_null_funptr
+    end if
     ! Evolve the system until the final time is reached.
-    do while ((forwardEvolve.and.x<x1Internal).or.(.not.forwardEvolve.and.x>x1Internal))
-       status=FGSL_ODEiv_Evolve_Apply(odeEvolver,odeController,odeStepper,odeSystem,x,x1Internal,h,y)
-       select case (status)
+    do while (                                  &
+         &          evolveForward .and. x < x1_ &
+         &    .or.                              &
+         &     .not.evolveForward .and. x > x1_ &
+         &   )
+       ! Store current time.
+       x0Step=x
+       ! Apply the ODE solver.
+       status_=GSL_ODEIV2_Driver2_Apply(self%gsl_odeiv2_driver,x,x1_,y,postStep_,latentIntegrator_,errorAnalyzer_)
+       select case (status_)
        case (GSL_Success)
-          ! Successful completion of the step - do nothing.
+          ! Successful completion of the step - do nothing except store the step-size used.
+          if (present(xStep)) xStep=GSL_ODEIV2_Driver_h(self%gsl_odeiv2_driver)
+       case (GSL_Failure)
+         ! Generic failure - most likely a stepsize underflow.
+          if (associated(self%errorHandler)) call self%errorHandler(status_,x,y)
+          ! If ODE status was requested, then return it instead of aborting.
+          if (present(status)) then
+             x0    =x
+             status=status_
+             ! Restore state.
+             active=active-1
+             return
+          end if
+          call Galacticus_Error_Report(var_str('ODE integration failed with status ')//status_//' [generic failure] => most likely a stepsize underflow'//{introspection:location})
        case (odeSolverInterrupt)
           ! The evolution was interrupted. Reset the end time of the evolution and continue.
-          x1Internal=interruptedAtX
+          x1_=interruptedAtX
+          if (x > x1_) then
+             ! The timestep exceeded the time at which an interrupt occured. To maintain accuracy we need to repeat the step.
+             y=y0
+             x=x0
+             if (present(z)) z=z0
+             status_=GSL_ODEIV2_Driver_Reset(self%gsl_odeiv2_driver)
+             if (status_ /= GSL_Success) call Galacticus_Error_Report('failed to reset ODE driver'//{introspection:location})
+          end if
        case default
-          ! Some other error condition.
-          call Galacticus_Error_Report('ODE integration failed'//{introspection:location})
+          ! If ODE status was requested, then return it instead of aborting.
+          if (present(status)) then
+             x0    =x
+             status=status_
+             ! Restore state.
+             active=active-1
+             return
+          end if
+          call Galacticus_Error_Report(var_str('ODE integration failed with status ')//status//{introspection:location})
        end select
     end do
     ! Return the new value of x.
     x0=x
-    ! Restore the previous OODEs.
-    currentODEs      => previousODEs
-    currentODENumber =  previousODENumber
+    if (present(status)) status=status_
+    ! Move back to the previous active solver.
+    active=active-1
     return
-  end subroutine ODE_Solve
 
-  function odesWrapper(x,y,dydx,parameterPointer) bind(c)
-    !% Wrapper function used for \gls{gsl} ODE functions.
+  contains
+
+    subroutine latentIntegrator(x)
+      !% Wrapper function which performs integration of latent variables.
+      use :: Galacticus_Display, only : Galacticus_Display_Message
+      use :: Galacticus_Error  , only : Galacticus_Error_Report   , errorStatusSuccess
+      implicit none
+      double precision, intent(in   )       :: x
+      double precision, dimension(self%dim) :: y
+      integer                               :: status
+      
+      ! Call with the final state.
+      if (associated(solvers(active)%solver%finalState)) then
+         call MSBDFActive_State(self%gsl_odeiv2_driver,solvers(active)%solver%dim,y)
+         call solvers(active)%solver%finalState(y)
+      end if
+      ! Evaluate the integrals, and update the stored time ready for the next step.
+      z      =+z                                         &
+           &  +self%integrator%evaluate(x0Step,x,status)
+      x0Step =+                                x
+      if (status /= errorStatusSuccess) then
+         if (self%integratorErrorTolerant) then
+            call Galacticus_Display_Message('integration of latent variables failed - ignoring'                          )
+         else
+            call Galacticus_Error_Report   ('integration of latent variables failed'           //{introspection:location})
+         end if
+      end if
+      return
+    end subroutine latentIntegrator
+    
+    subroutine integrandsWrapper(nz,x,e,dzdx)
+      !% Wrapper function which calls the integrands functions.
+      implicit none
+      integer         , intent(in   )                              :: nz
+      double precision, intent(in   ), dimension(              : ) :: x
+      logical         , intent(inout), dimension(              : ) :: e
+      double precision, intent(  out), dimension(nz      ,size(x)) :: dzdx
+      double precision               , dimension(self%dim,size(x)) :: dydx, y
+      integer                                                      :: i
+
+      ! Evaluate the active parameters.
+      do i=1,size(x)
+         call msbdfactive_context(self%gsl_odeiv2_driver,self%dim,x(i),y(:,i),dydx(:,i))
+      end do
+      ! Call the integrand function.
+      call self%integrands(x,y,dydx,z,e,dzdx)
+      return
+    end subroutine integrandsWrapper
+
+  end subroutine odeSolverSolve
+  
+  function derivativesWrapper(x,y,dydx,parameterPointer) bind(c)
+    !% Wrapper function used for \gls{gsl} ODEIV2 derivative functions.
     use, intrinsic :: ISO_C_Binding, only : c_double, c_int, c_ptr
     implicit none
-    integer(kind=c_int   )                              :: odesWrapper
-    real   (kind=c_double), value                       :: x
-    real   (kind=c_double), dimension(*), intent(in   ) :: y
-    real   (kind=c_double), dimension(*)                :: dydx
-    type   (     c_ptr   ), value                       :: parameterPointer
+    integer(c_int   )                              :: derivativesWrapper
+    real   (c_double), value                       :: x
+    real   (c_double), dimension(*), intent(in   ) :: y
+    real   (c_double), dimension(*)                :: dydx
+    type   (c_ptr   ), value                       :: parameterPointer
     !$GLC attributes unused :: parameterPointer
-
-    odesWrapper=currentODEs(x,y(1:currentODENumber),dydx(1:currentODENumber))
+    
+    derivativesWrapper=solvers(active)%solver%derivatives(                                       &
+         &                                                x                                    , &
+         &                                                y   (1:solvers(active)%solver%dim   ), &
+         &                                                dydx(1:solvers(active)%solver%dim   )  &
+         &                                               )
     return
-  end function odesWrapper
+  end function derivativesWrapper
 
-  subroutine ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
-    !% Free up workspace allocated to ODE solving.
-    use :: FGSL, only : FGSL_ODEiv_Control_Free, FGSL_ODEiv_Evolve_Free, FGSL_ODEiv_Step_Free, FGSL_ODEiv_System_Free, &
-          &             fgsl_odeiv_control     , fgsl_odeiv_evolve     , fgsl_odeiv_step     , fgsl_odeiv_system
+  function jacobianWrapper(x,y,dfdy,dfdx,parameterPointer) bind(c)
+    !% Wrapper function used for \gls{gsl} ODEIV2 Jacobian functions.
+    use, intrinsic :: ISO_C_Binding, only : c_double, c_int, c_ptr
     implicit none
-    type(fgsl_odeiv_step   ), intent(inout) :: odeStepper
-    type(fgsl_odeiv_control), intent(inout) :: odeController
-    type(fgsl_odeiv_evolve ), intent(inout) :: odeEvolver
-    type(fgsl_odeiv_system ), intent(inout) :: odeSystem
-
-    call FGSL_ODEiv_Evolve_Free (odeEvolver   )
-    call FGSL_ODEiv_Control_Free(odeController)
-    call FGSL_ODEiv_Step_Free   (odeStepper   )
-    call FGSL_ODEiv_System_Free (odeSystem    )
+    integer(c_int   )                              :: jacobianWrapper
+    real   (c_double), value                       :: x
+    real   (c_double), dimension(*), intent(in   ) :: y
+    real   (c_double), dimension(*)                :: dfdy              , dfdx
+    type   (c_ptr   ), value                       :: parameterPointer
+    !$GLC attributes unused :: parameterPointer
+    
+    jacobianWrapper=solvers(active)%solver%jacobian      (                                       &
+         &                                                x                                    , &
+         &                                                y   (1:solvers(active)%solver%dim   ), &
+         &                                                dfdy(1:solvers(active)%solver%dim**2), &
+         &                                                dfdx(1:solvers(active)%solver%dim   )  &
+         &                                               )
     return
-  end subroutine ODE_Solver_Free
+  end function jacobianWrapper
 
-end module ODE_Solver
+  subroutine odeSolverErrors(self,yError)
+    !% Return estimates of the errors in ODE properties.
+    implicit none
+    class           (odeSolver), intent(inout)               :: self
+    double precision           , intent(  out), dimension(:) :: yError
+
+    call gsl_odeiv2_driver_errors(self%gsl_odeiv2_driver,yError)
+    return
+  end subroutine odeSolverErrors
+  
+end module Numerical_ODE_Solvers

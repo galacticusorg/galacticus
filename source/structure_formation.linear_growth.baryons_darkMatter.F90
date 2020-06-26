@@ -232,15 +232,14 @@ contains
   subroutine baryonsDarkMatterRetabulate(self,time,wavenumber)
     !% Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
     !% $D(1)=1$ for a baryonsDarkMatter matter plus cosmological constant cosmology.
-    use    :: Interface_GSL   , only : GSL_Success
-    use    :: FODEIV2         , only : fodeiv2_driver                  , fodeiv2_system
-    use    :: File_Utilities  , only : File_Lock                       , File_Unlock
-    use    :: Galacticus_Error, only : Galacticus_Error_Report
-    use    :: Interfaces_CAMB , only : Interface_CAMB_Transfer_Function
-    use    :: ODEIV2_Solver   , only : ODEIV2_Solve                    , ODEIV2_Solver_Free
-    !$ use :: OMP_Lib         , only : omp_lock_kind
-    use    :: Table_Labels    , only : extrapolationTypeAbort          , extrapolationTypeFix
-    use    :: Tables          , only : table1DGeneric
+    use    :: Interface_GSL        , only : GSL_Success
+    use    :: File_Utilities       , only : File_Lock                       , File_Unlock
+    use    :: Galacticus_Error     , only : Galacticus_Error_Report
+    use    :: Interfaces_CAMB      , only : Interface_CAMB_Transfer_Function
+    use    :: Numerical_ODE_Solvers, only : odeSolver
+    !$ use :: OMP_Lib              , only : omp_lock_kind
+    use    :: Table_Labels         , only : extrapolationTypeAbort          , extrapolationTypeFix
+    use    :: Tables               , only : table1DGeneric
     implicit none
     class           (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
     double precision                               , intent(in   )           :: time
@@ -255,9 +254,7 @@ contains
          &                                                                      timePresent                              , timeBigCrunch                                , &
          &                                                                      wavenumberLogarithmic
     integer                                                                  :: growthTableNumberPoints
-    type            (fodeiv2_system               )                          :: ode2System
-    type            (fodeiv2_driver               )                          :: ode2Driver
-    logical                                                                  :: odeReset
+    type            (odeSolver                    )                          :: solver
     type            (table1DGeneric               )                          :: transferFunctionDarkMatter               , transferFunctionBaryons
     integer                                                                  :: countWavenumbers
     !$ integer      (omp_lock_kind                )                          :: lockBaryons                              , lockDarkMatter
@@ -310,7 +307,7 @@ contains
        ! Iterate over wavenumber.
        !$ call OMP_Init_Lock(lockBaryons   )
        !$ call OMP_Init_Lock(lockDarkMatter)
-       !$omp parallel private(i,j,wavenumberLogarithmic,growthFactorDerivativeDarkMatter,growthFactorDerivativeBaryons,timeNow,growthFactorODEVariables,odeReset,ode2Driver,ode2System,linearGrowthFactorPresent)
+       !$omp parallel private(i,j,wavenumberLogarithmic,growthFactorDerivativeDarkMatter,growthFactorDerivativeBaryons,timeNow,growthFactorODEVariables,solver,linearGrowthFactorPresent)
        allocate(baryonsDarkMatterCosmologyFunctions_      ,mold=self%cosmologyFunctions_      )
        allocate(baryonsDarkMatterIntergalacticMediumState_,mold=self%intergalacticMediumState_)
        !$omp critical(linearGrowthBaryonsDrkMttrDeepCopy)
@@ -331,28 +328,16 @@ contains
           call self%growthFactor%populate(exp(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1)),1,j,table=baryonsDarkMatterBaryons   )
           growthFactorDerivativeBaryons   =(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=2)-transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1))*exp(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1))/(timesInitial(2)-timesInitial(1))
           !$ call OMP_Unset_Lock(lockBaryons   )
+          solver=odeSolver(4_c_size_t,growthFactorODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
           do i=2,growthTableNumberPoints
              timeNow                    =self%growthFactor                    %x(i-1                                    )
              growthFactorODEVariables(1)=self%growthFactor                    %z(i-1,j,table=baryonsDarkMatterDarkMatter)
              growthFactorODEVariables(2)=growthFactorDerivativeDarkMatter
              growthFactorODEVariables(3)=self%growthFactor                    %z(i-1,j,table=baryonsDarkMatterBaryons   )
              growthFactorODEVariables(4)=growthFactorDerivativeBaryons
-             odeReset=.true.
-             call ODEIV2_Solve(                                   &
-                  &            ode2Driver                       , &
-                  &            ode2System                       , &
-                  &            timeNow                          , &
-                  &            self%growthFactor%x(i)           , &
-                  &            4                                , &
-                  &            growthFactorODEVariables         , &
-                  &            growthFactorODEs                 , &
-                  &            odeToleranceAbsolute             , &
-                  &            odeToleranceRelative             , &
-                  &            reset                   =odeReset  &
-                  &           )
-             call ODEIV2_Solver_Free(ode2Driver,ode2System)
-             call self%growthFactor%populate(growthFactorODEVariables(1),i,j,table=baryonsDarkMatterDarkMatter)
-             call self%growthFactor%populate(growthFactorODEVariables(3),i,j,table=baryonsDarkMatterBaryons   )
+             call solver             %solve   (timeNow,self%growthFactor%x(i),growthFactorODEVariables                                         )
+             call self  %growthFactor%populate(                               growthFactorODEVariables(1),i,j,table=baryonsDarkMatterDarkMatter)
+             call self  %growthFactor%populate(                               growthFactorODEVariables(3),i,j,table=baryonsDarkMatterBaryons   )
              growthFactorDerivativeDarkMatter=growthFactorODEVariables(2)
              growthFactorDerivativeBaryons   =growthFactorODEVariables(4)
           end do

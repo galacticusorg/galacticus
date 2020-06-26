@@ -19,11 +19,11 @@
 
   !% Implements the standard class for evolving nodes in merger trees.
 
-  use :: FODEIV2                     , only : fodeiv2_driver               , fodeiv2_step_type        , fodeiv2_system
   use :: Kind_Numbers                , only : kind_int8
   use :: Merger_Tree_Evolve_Profilers, only : mergerTreeEvolveProfilerClass
   use :: Merger_Trees_Merge_Node     , only : mergerTreeNodeMerger         , mergerTreeNodeMergerClass
   use :: Nodes_Operators             , only : nodeOperatorClass
+  use :: Numerical_ODE_Solvers       , only : odeSolver
   
   !# <mergerTreeNodeEvolver name="mergerTreeNodeEvolverStandard">
   !#  <description>The standard merger tree node evolver.</description>
@@ -31,26 +31,22 @@
   !#   <ignore variables="galacticStructureSolver_"/>
   !#  </deepCopy>
   !#  <stateStorable>
-  !#   <exclude   variables="galacticStructureSolver_"               />
-  !#   <restoreTo variables="odeReset"                 state=".true."/>
+  !#   <exclude variables="galacticStructureSolver_"/>
   !#  </stateStorable>
   !# </mergerTreeNodeEvolver>
   type, extends(mergerTreeNodeEvolverClass) :: mergerTreeNodeEvolverStandard
      !% Implementation of the standard merger tree node evolver.
      private
      class           (mergerTreeNodeMergerClass    ), pointer                   :: mergerTreeNodeMerger_
-     type            (fodeiv2_driver               )                            :: ode2Driver
-     type            (fodeiv2_system               )                            :: ode2System
-     type            (fodeiv2_step_type            )                            :: odeAlgorithm                       , odeAlgorithmNonJacobian
-     logical                                                                    :: odeReset
      double precision                                                           :: odeToleranceAbsolute               , odeToleranceRelative         , &
           &                                                                        odeJacobianStepSizeRelative
+     integer                                                                    :: odeAlgorithm                       , odeAlgorithmNonJacobian
      class           (galacticStructureSolverClass ), pointer                   :: galacticStructureSolver_
      class           (nodeOperatorClass            ), pointer                   :: nodeOperator_
      class           (mergerTreeEvolveProfilerClass), pointer                   :: mergerTreeEvolveProfiler_
      integer                                                                    :: odeLatentIntegratorType            , odeLatentIntegratorOrder     , &
           &                                                                        odeLatentIntegratorIntervalsMaximum
-     integer                                                                    :: propertyCountAll                   , propertyCountMaximum         , &
+     integer         (c_size_t                     )                            :: propertyCountAll                   , propertyCountMaximum         , &
           &                                                                        propertyCountInactive              , propertyCountActive          , &
           &                                                                        propertyCountPrevious
      double precision                               , allocatable, dimension(:) :: propertyScalesActive               , propertyValuesActive         , &
@@ -88,10 +84,12 @@
   ! Maximum number of trials to solve ODEs.
   integer                               , parameter :: standardTrialCountMaximum=8
 
-  ! Pointer to self.
+  ! Pointer to self and solver.
   class  (mergerTreeNodeEvolverStandard), pointer   :: standardSelf
-  !$omp threadprivate(standardSelf)
-
+  type   (odeSolver                    ), pointer   :: standardSolver
+  !$omp threadprivate(standardSelf,standardSolver)
+  !$GLC ignore outlive :: standardSolver
+  
   ! Enumeration of latent variable integrator.
   !# <enumeration>
   !#  <name>latentIntegratorType</name>
@@ -232,9 +230,9 @@ contains
 
    function standardConstructorInternal(odeToleranceAbsolute,odeToleranceRelative,odeAlgorithm,odeAlgorithmNonJacobian,odeJacobianStepSizeRelative,odeLatentIntegratorType,odeLatentIntegratorOrder,odeLatentIntegratorIntervalsMaximum,profileOdeEvolver,mergerTreeNodeMerger_,nodeOperator_,mergerTreeEvolveProfiler_) result(self)
      !% Internal constructor for the {\normalfont \ttfamily standard} merger tree node evolver class.
-     use :: FODEIV2         , only : Fodeiv2_Step_RK2       , Fodeiv2_Step_RK4    , Fodeiv2_Step_RK8PD, Fodeiv2_Step_RKCK       , &
-          &                          Fodeiv2_Step_RKF45     , Fodeiv2_Step_msAdams, Fodeiv2_step_BSimp, Fodeiv2_step_MSBDFActive
-     use :: Galacticus_Error, only : Galacticus_Error_Report
+     use :: Numerical_ODE_Solvers, only : GSL_ODEIV2_Step_RK2    , GSL_ODEIV2_Step_RK4    , GSL_ODEIV2_Step_RK8PD, GSL_ODEIV2_Step_RKCK       , &
+          &                               GSL_ODEIV2_Step_RKF45  , GSL_ODEIV2_Step_msAdams, GSL_ODEIV2_step_BSimp, GSL_ODEIV2_step_MSBDFActive
+     use :: Galacticus_Error     , only : Galacticus_Error_Report
      implicit none
      type            (mergerTreeNodeEvolverStandard)                        :: self
      integer                                        , intent(in   )         :: odeLatentIntegratorType            , odeLatentIntegratorOrder, &
@@ -252,22 +250,22 @@ contains
      self%useJacobian=.false.
      select case (odeAlgorithm           )
      case (standardODEAlgorithmRungeKuttaCashKarp     )
-        self%odeAlgorithm=Fodeiv2_Step_RKCK
+        self%odeAlgorithm=GSL_ODEIV2_Step_RKCK
      case (standardODEAlgorithmRungeKuttaSecondOrder  )
-        self%odeAlgorithm=Fodeiv2_Step_RK2
+        self%odeAlgorithm=GSL_ODEIV2_Step_RK2
      case (standardODEAlgorithmRungeKutta             )
-        self%odeAlgorithm=Fodeiv2_Step_RK4
+        self%odeAlgorithm=GSL_ODEIV2_Step_RK4
      case (standardODEAlgorithmRungeKuttaFehlberg     )
-        self%odeAlgorithm=Fodeiv2_Step_RKF45
+        self%odeAlgorithm=GSL_ODEIV2_Step_RKF45
      case (standardODEAlgorithmRungeKuttaPrinceDormand)
-        self%odeAlgorithm=Fodeiv2_Step_RK8PD
+        self%odeAlgorithm=GSL_ODEIV2_Step_RK8PD
      case (standardODEAlgorithmMultistepAdams         )
-        self%odeAlgorithm=Fodeiv2_Step_msAdams
+        self%odeAlgorithm=GSL_ODEIV2_Step_msAdams
      case (standardODEAlgorithmBulirschStoer          )
-        self%odeAlgorithm=Fodeiv2_step_BSimp
+        self%odeAlgorithm=GSL_ODEIV2_step_BSimp
         self%useJacobian             =.true.
      case (standardODEAlgorithmBDF                    )
-        self%odeAlgorithm=Fodeiv2_step_MSBDFActive
+        self%odeAlgorithm=GSL_ODEIV2_step_MSBDFActive
         self%useJacobian             =.true.
      case default
         call Galacticus_Error_Report('odeAlgorithm is unrecognized'//{introspection:location})
@@ -275,24 +273,23 @@ contains
      ! Construct non-Jacobian ODE solver object.
      select case (odeAlgorithmNonJacobian)
      case (standardODEAlgorithmRungeKuttaCashKarp     )
-        self%odeAlgorithmNonJacobian=Fodeiv2_Step_RKCK
+        self%odeAlgorithmNonJacobian=GSL_ODEIV2_Step_RKCK
      case (standardODEAlgorithmRungeKuttaSecondOrder  )
-        self%odeAlgorithmNonJacobian=Fodeiv2_Step_RK2
+        self%odeAlgorithmNonJacobian=GSL_ODEIV2_Step_RK2
      case (standardODEAlgorithmRungeKutta             )
-        self%odeAlgorithmNonJacobian=Fodeiv2_Step_RK4
+        self%odeAlgorithmNonJacobian=GSL_ODEIV2_Step_RK4
      case (standardODEAlgorithmRungeKuttaFehlberg     )
-        self%odeAlgorithmNonJacobian=Fodeiv2_Step_RKF45
+        self%odeAlgorithmNonJacobian=GSL_ODEIV2_Step_RKF45
      case (standardODEAlgorithmRungeKuttaPrinceDormand)
-        self%odeAlgorithmNonJacobian=Fodeiv2_Step_RK8PD
+        self%odeAlgorithmNonJacobian=GSL_ODEIV2_Step_RK8PD
      case (standardODEAlgorithmMultistepAdams         )
-        self%odeAlgorithmNonJacobian=Fodeiv2_Step_msAdams
+        self%odeAlgorithmNonJacobian=GSL_ODEIV2_Step_msAdams
      case default
         call Galacticus_Error_Report('odeAlgorithm is unrecognized'//{introspection:location})
      end select
      ! Initialize
      self%propertyCountPrevious=-1
      self%propertyCountMaximum = 0
-     self%odeReset             =.true.
      self%timePrevious         =-1.0d0
      return
    end function standardConstructorInternal
@@ -310,7 +307,6 @@ contains
   subroutine standardDestructor(self)
     !% Destructor for the {\normalfont \ttfamily standard} merger tree node evolver class.
     use :: Events_Hooks , only : subhaloPromotionEvent
-    use :: ODEIV2_Solver, only : ODEIV2_Solver_Free
     implicit none
     type(mergerTreeNodeEvolverStandard), intent(inout) :: self
 
@@ -318,7 +314,6 @@ contains
     !# <objectDestructor name="self%nodeOperator_"            />
     !# <objectDestructor name="self%mergerTreeEvolveProfiler_"/>
     call subhaloPromotionEvent%detach(self,standardNodeSubhaloPromotion)
-    if (.not.self%odeReset) call ODEIV2_Solver_Free(self%ode2Driver,self%ode2System)
     return
   end subroutine standardDestructor
 
@@ -334,7 +329,6 @@ contains
     use, intrinsic :: ISO_C_Binding                 , only : c_funloc                     , c_funptr                                        , c_null_funptr
     use            :: Memory_Management             , only : Memory_Usage_Record
     use            :: Numerical_Integration2        , only : integratorMultiVectorized1D  , integratorMultiVectorizedCompositeGaussKronrod1D, integratorMultiVectorizedCompositeTrapezoidal1D
-    use            :: ODEIV2_Solver                 , only : ODEIV2_Solve                 , ODEIV2_Solver_Free
     use            :: ODE_Solver_Error_Codes        , only : odeSolverInterrupt
     !# <include directive="preEvolveTask"      type="moduleUse">
     include 'objects.tree_node.pre_evolve.modules.inc'
@@ -361,16 +355,17 @@ contains
     procedure       (standardErrorHandler         )                            , pointer :: errorHandler
     class           (nodeComponentBasic           )                            , pointer :: basic
     class           (integratorMultiVectorized1D  ), allocatable                         :: integrator_
+    type            (odeSolver                    )                            , target  :: solver
     logical                                                                              :: solvedAnalytically       , solvedNumerically, &
-         &                                                                                  jacobianSolver
+         &                                                                                  jacobianSolver           , solverInitialized
     double precision                                                                     :: timeStart                , stepSize         , &
          &                                                                                  timeStartSaved
-    integer                                                                              :: lengthMaximum            , i                , &
-         &                                                                                  odeStatus
+    integer                                                                              :: lengthMaximum            , odeStatus        , &
+         &                                                                                  odeAlgorithm
+    integer         (c_size_t                     )                                      :: i
     integer         (kind_int8                    )                                      :: systemClockCount
     type            (varying_string               )                                      :: message                  , line
     character       (len =12                      )                                      :: label
-    type            (c_funptr                     )                                      :: errorAnalyzer            , postStep
 
     ! Set status to success.
     if (present(status)) status=errorStatusSuccess
@@ -513,14 +508,14 @@ contains
              call Galacticus_Display_Indent(message)
              lengthMaximum=0
              do i=1,self%propertyCountActive
-                lengthMaximum=max(lengthMaximum,len(node%nameFromIndex(i,self%propertyTypeODE)))
+                lengthMaximum=max(lengthMaximum,len(node%nameFromIndex(int(i),self%propertyTypeODE)))
              end do
              line=repeat("―",lengthMaximum)//repeat("―――――――――――――――",2)
              call Galacticus_Display_Message(line)
              call Galacticus_Display_Message(repeat(" ",lengthMaximum)//' : y            : yScale')
              call Galacticus_Display_Message(line)
              do i=1,self%propertyCountActive
-                message=node%nameFromIndex(i,self%propertyTypeODE)
+                message=node%nameFromIndex(int(i),self%propertyTypeODE)
                 message=repeat(" ",lengthMaximum-len(message))//message
                 write (label,'(e12.6)') self%propertyValuesActive(i)
                 message=message//" : "//label
@@ -531,9 +526,10 @@ contains
              call Galacticus_Display_Message(line)
              call node%serializeASCII()
              call Galacticus_Display_Unindent('done')
-          end if
+          end if          
           ! Assign module global pointer to this node.
           standardSelf         => self
+          standardSolver       => solver
           self%activeTreeIndex =  tree%index
           self%activeNode      => node
           ! Reset interrupt variables.
@@ -541,92 +537,70 @@ contains
           self%timeInterruptFirst     =  0.0d0
           self%functionInterruptFirst => null()
           ! Call ODE solver routines.
-          if (self%profileOdeEvolver) then
-             errorAnalyzer=c_funloc(standardStepErrorAnalyzer)
-          else
-             errorAnalyzer=c_null_funptr
-          end if
-          errorHandler  => standardErrorHandler
-          postStep=c_funloc(standardPostStepProcessing)
           solvedNumerically=.true.
           if (timeStart /= timeEnd) then
-             if (self%propertyCountPrevious > 0 .and. .not.self%odeReset) call ODEIV2_Solver_Free(self%ode2Driver,self%ode2System)
              self%propertyCountPrevious=self%propertyCountActive
              self%trialCount           =0
+             solverInitialized         =.false.
              odeStatus                 =errorStatusFail
              do while (self%trialCount < standardTrialCountMaximum .and. .not.(odeStatus == errorStatusSuccess .or. odeStatus == odeSolverInterrupt))
                 ! Initialize state. Stepsize is reduced by half on each successive trial.
-                self%odeReset    =.true.
+                if (.not.solverInitialized) then
+                   if (jacobianSolver) then
+                      ! Initialize integrator.
+                      if (.not.allocated(integrator_)) then
+                         select case (self%odeLatentIntegratorType)
+                         case (latentIntegratorTypeGaussKronrod)
+                            allocate(integratorMultiVectorizedCompositeGaussKronrod1D :: integrator_)
+                            select type (integrator_)
+                            type is (integratorMultiVectorizedCompositeGaussKronrod1D)
+                               call integrator_%initialize(self%odeLatentIntegratorIntervalsMaximum,self%odeLatentIntegratorOrder)
+                            end select
+                         case (latentIntegratorTypeTrapezoidal )
+                            allocate(integratorMultiVectorizedCompositeTrapezoidal1D  :: integrator_)
+                            select type (integrator_)
+                            type is (integratorMultiVectorizedCompositeTrapezoidal1D )
+                               call integrator_%initialize(self%odeLatentIntegratorIntervalsMaximum                              )
+                            end select
+                         end select
+                      end if
+                      odeAlgorithm=self%odeAlgorithm
+                   else
+                      odeAlgorithm=self%odeAlgorithmNonJacobian
+                   end if
+                   !# <conditionalCall>
+		   !#  <call>
+                   !#   solver=odeSolver(                                                     &amp;
+                   !#    &amp;                             self%propertyCountActive         , &amp;
+                   !#    &amp;                                  standardODEs                , &amp;
+                   !#    &amp;           toleranceAbsolute=self%odeToleranceAbsolute        , &amp;
+                   !#    &amp;           toleranceRelative=self%odeToleranceRelative        , &amp;
+                   !#    &amp;           scale            =self%propertyScalesActive        , &amp;
+                   !#    &amp;           stepperType      =     odeAlgorithm                , &amp;
+                   !#    &amp;           postStep         =     standardPostStepProcessing  , &amp;
+                   !#    &amp;           finalState       =     standardFinalStateProcessing, &amp;
+                   !#    &amp;           errorHandler     =     standardErrorHandler          &amp;                                      
+                   !#    &amp;           {conditions}                                         &amp;
+                   !#    &amp;          )
+		   !#  </call>
+                   !#  <argument name="jacobian"                value="standardODEsJacobian"      condition="jacobianSolver"        />
+                   !#  <argument name="integrator"              value="integrator_"               condition="jacobianSolver"        />
+                   !#  <argument name="integratorErrorTolerant" value=".true."                    condition="jacobianSolver"        />
+                   !#  <argument name="integrands"              value="standardIntegrands"        condition="jacobianSolver"        />
+                   !#  <argument name="errorAnalyzer"           value="standardStepErrorAnalyzer" condition="self%profileOdeEvolver"/>
+                   !# </conditionalCall>
+                   solverInitialized=.true.
+                end if
                 self%timePrevious=-1.0d0
                 stepSize         =node%timeStep()/2.0d0**self%trialCount
                 timeStart        =timeStartSaved
                 if (jacobianSolver) then
-                   ! Initialize integrator.
-                   if (.not.allocated(integrator_)) then
-                      select case (self%odeLatentIntegratorType)
-                      case (latentIntegratorTypeGaussKronrod)
-                         allocate(integratorMultiVectorizedCompositeGaussKronrod1D :: integrator_)
-                         select type (integrator_)
-                         type is (integratorMultiVectorizedCompositeGaussKronrod1D)
-                            call integrator_%initialize(self%odeLatentIntegratorIntervalsMaximum,self%odeLatentIntegratorOrder)
-                         end select
-                      case (latentIntegratorTypeTrapezoidal )
-                         allocate(integratorMultiVectorizedCompositeTrapezoidal1D  :: integrator_)
-                         select type (integrator_)
-                         type is (integratorMultiVectorizedCompositeTrapezoidal1D )
-                            call integrator_%initialize(self%odeLatentIntegratorIntervalsMaximum                              )
-                         end select
-                      end select
-                   end if
                    self%odeTolerancesInactiveRelative(1:self%propertyCountInactive)=self%odeToleranceRelative
                    self%odeTolerancesInactiveAbsolute(1:self%propertyCountInactive)=self%odeToleranceAbsolute*self%propertyScalesInactive(1:self%propertyCountInactive)
                    call integrator_%tolerancesSet(self%odeTolerancesInactiveAbsolute(1:self%propertyCountInactive),self%odeTolerancesInactiveRelative(1:self%propertyCountInactive))
-                   call ODEIV2_Solve(                                                                                   &
-                        &                                    self%ode2Driver                                          , &
-                        &                                    self%ode2System                                          , &
-                        &                                    timeStart                                                , &
-                        &                                    timeEnd                                                  , &
-                        &                                    self%propertyCountActive                                 , &
-                        &                                    self%propertyValuesActive                                , &
-                        &                                    standardODEs                                             , &
-                        &                                    self%odeToleranceAbsolute                                , &
-                        &                                    self%odeToleranceRelative                                , &
-                        &                                    postStep                                                 , &
-                        &                                    errorAnalyzer                                            , &
-                        &                                    self%propertyScalesActive                                , &
-                        &            reset                  =self%odeReset                                            , &
-                        &            errorHandler           =errorHandler                                             , &
-                        &            odeStatus              =odeStatus                                                , &
-                        &            algorithm              =self%odeAlgorithm                                        , &
-                        &            stepSize               =stepSize                                                 , &
-                        &            jacobian               =standardODEsJacobian                                     , &
-                        &            integrator_            =integrator_                                              , &
-                        &            integratorErrorTolerate=.true.                                                   , &
-                        &            zCount                 =self%propertyCountInactive                               , &
-                        &            z                      =self%propertyValuesInactive(1:self%propertyCountInactive), &
-                        &            integrands             =standardIntegrands                                       , &
-                        &            finalState             =standardFinalStateProcessing                               &
-                        &           )
+                   call solver     %solve(timeStart,timeEnd,self%propertyValuesActive,status=odeStatus,xStep=stepSize,z=self%propertyValuesInactive(1:self%propertyCountInactive))
                 else
-                   call ODEIV2_Solve(                                                                                   &
-                        &                                    self%ode2Driver                                          , &
-                        &                                    self%ode2System                                          , &
-                        &                                    timeStart                                                , &
-                        &                                    timeEnd                                                  , &
-                        &                                    self%propertyCountActive                                 , &
-                        &                                    self%propertyValuesActive                                , &
-                        &                                    standardODEs                                             , &
-                        &                                    self%odeToleranceAbsolute                                , &
-                        &                                    self%odeToleranceRelative                                , &
-                        &                                    postStep                                                 , &
-                        &                                    errorAnalyzer                                            , &
-                        &                                    self%propertyScalesActive                                , &
-                        &            reset                  =self%odeReset                                            , &
-                        &            errorHandler           =errorHandler                                             , &
-                        &            odeStatus              =odeStatus                                                , &
-                        &            algorithm              =self%odeAlgorithmNonJacobian                             , &
-                        &            stepSize               =stepSize                                                   &
-                        &           )
+                   call solver     %solve(timeStart,timeEnd,self%propertyValuesActive,status=odeStatus,xStep=stepSize                                                            )
                 end if
                 ! Check for failure.
                 if (.not.(odeStatus == errorStatusSuccess .or. odeStatus == odeSolverInterrupt)) then
@@ -655,6 +629,7 @@ contains
                    ! Restore state of the node, switch to using a non-jacobian solver, and indicate that the step was not solved numerically.
                    solvedNumerically=.false.
                    jacobianSolver   =.false.
+                   solverInitialized=.false.
                    self%propertyValuesActive  (1:self%propertyCountActive  )=self%propertyValuesActiveSaved  (1:self%propertyCountActive  )
                    self%propertyValuesInactive(1:self%propertyCountInactive)=self%propertyValuesInactiveSaved(1:self%propertyCountInactive)
                 else if (present(status)) then
@@ -705,20 +680,19 @@ contains
     return
   end function standardIsAccurate
 
-  subroutine standardIntegrands(propertyCountActive,propertyCountInactive,time,propertyValues,propertyRates,inactivePropertyInitialValues,evaluate,integrands)
-    !% A set of integrands for unit tests.
+  subroutine standardIntegrands(time,propertyValues,propertyRates,inactivePropertyInitialValues,evaluate,integrands)
+    !% Evaluates integrands for node evolution.
     use :: Galacticus_Nodes, only : interruptTask, propertyTypeInactive, rateComputeState
     implicit none
-    integer                        , intent(in   )                                              :: propertyCountActive                 , propertyCountInactive
-    double precision               , intent(in   ), dimension(                              : ) :: time
-    double precision               , intent(in   ), dimension(propertyCountActive  ,size(time)) :: propertyValues                      , propertyRates
-    double precision               , intent(in   ), dimension(propertyCountInactive           ) :: inactivePropertyInitialValues
-    logical                        , intent(inout), dimension(                              : ) :: evaluate
-    double precision               , intent(  out), dimension(propertyCountInactive,size(time)) :: integrands
-    logical                        , parameter                                                  :: odeConverged                 =.true.
-    procedure       (interruptTask), pointer                                                    :: functionInterrupt
-    logical                                                                                     :: interrupt
-    integer                                                                                     :: iTime
+    double precision               , intent(in   ), dimension(:  ) :: time
+    double precision               , intent(in   ), dimension(:,:) :: propertyValues                      , propertyRates
+    double precision               , intent(in   ), dimension(:  ) :: inactivePropertyInitialValues
+    logical                        , intent(inout), dimension(:  ) :: evaluate
+    double precision               , intent(  out), dimension(:,:) :: integrands
+    logical                        , parameter                     :: odeConverged                 =.true.
+    procedure       (interruptTask), pointer                       :: functionInterrupt
+    logical                                                        :: interrupt
+    integer                                                        :: iTime
     ! "evaluate" array is currently not used. It indicates which integrands must be evaluated, and which can (optionally) be
     ! ignored as they have already converged to the required tolerance. It is currently not used because the potential for
     ! significant speed up appears to be small based on profiling. This will be model-depdendent though, so this decision can be
@@ -730,9 +704,9 @@ contains
     ! Iterate over times.
     do iTime=1,size(time)
        ! Deserialize the active values.
-       call standardSelf%activeNode%deserializeValues(propertyValues               (1:propertyCountActive  ,iTime),standardSelf%propertyTypeODE     )
-       call standardSelf%activeNode%deserializeRates (propertyRates                (1:propertyCountActive  ,iTime),standardSelf%propertyTypeODE     )
-       call standardSelf%activeNode%deserializeValues(inactivePropertyInitialValues(1:propertyCountInactive      ),             propertyTypeInactive)
+       call standardSelf%activeNode%deserializeValues(propertyValues               (1:standardSelf%propertyCountActive  ,iTime),standardSelf%propertyTypeODE     )
+       call standardSelf%activeNode%deserializeRates (propertyRates                (1:standardSelf%propertyCountActive  ,iTime),standardSelf%propertyTypeODE     )
+       call standardSelf%activeNode%deserializeValues(inactivePropertyInitialValues(1:standardSelf%propertyCountInactive      ),             propertyTypeInactive)
        ! If past the time of the first interrupt, integrands are set to zero. Otherwise, evaluate integrands.
        if (standardSelf%interruptFirstFound .and. time(iTime) >= standardSelf%timeInterruptFirst) then
           integrands(:,iTime)=0.0d0
@@ -751,24 +725,22 @@ contains
     return
   end subroutine standardIntegrands
 
-  subroutine standardFinalStateProcessing(propertyCountActive,propertyValues)
+  subroutine standardFinalStateProcessing(propertyValues)
     !% Perform any actions based on the final state of the ODE step.
     implicit none
-    integer         , intent(in   )                                 :: propertyCountActive
-    double precision, intent(in   ), dimension(propertyCountActive) :: propertyValues
+    double precision, intent(in   ), dimension(:) :: propertyValues
 
-    call standardSelf%activeNode   %deserializeValues                  (propertyValues(1:propertyCountActive),standardSelf%propertyTypeODE)
-    call standardSelf%nodeOperator_%differentialEvolutionStepFinalState(                                      standardSelf%activeNode     )
+    call standardSelf%activeNode   %deserializeValues                  (propertyValues(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
+    call standardSelf%nodeOperator_%differentialEvolutionStepFinalState(                                                   standardSelf%activeNode     )
     return
   end subroutine standardFinalStateProcessing
 
   integer function standardODEs(time,y,dydt)
     !% Function which evaluates the set of ODEs for the evolution of a specific node.
-    use :: FODEIV2               , only : FODEIV2_Driver_Errors
     use :: Galacticus_Error      , only : errorStatusXCPU
-    use :: Galacticus_Nodes      , only : interruptTask        , nodeComponentBasic
+    use :: Galacticus_Nodes      , only : interruptTask  , nodeComponentBasic
     use :: Interface_GSL         , only : GSL_Success
-    use :: ODE_Solver_Error_Codes, only : interruptedAtX       , odeSolverInterrupt
+    use :: ODE_Solver_Error_Codes, only : interruptedAtX , odeSolverInterrupt
     implicit none
     double precision                     , intent(in   )               :: time
     double precision                     , intent(in   ), dimension(:) :: y
@@ -812,7 +784,7 @@ contains
     ! Set derivatives to zero initially.
     call standardSelf%activeNode%odeStepRatesInitialize()
     ! Determine if the ODE evolver has reached sufficiently small errors for this step.
-    call FODEIV2_Driver_Errors(standardSelf%ode2Driver,standardSelf%propertyErrors(1:standardSelf%propertyCountActive))
+    call standardSolver%errors(standardSelf%propertyErrors(1:standardSelf%propertyCountActive))
     standardSelf%propertyTolerances(1:standardSelf%propertyCountActive)=standardODEStepTolerances(y)
     odeConverged=all(standardSelf%propertyErrors(1:standardSelf%propertyCountActive) <= standardSelf%propertyTolerances(1:standardSelf%propertyCountActive))
     if (standardSelf%interruptFirstFound .and. time >= standardSelf%timeInterruptFirst) then
@@ -859,7 +831,7 @@ contains
     procedure       (interruptTask), pointer                                                                                     :: functionInterrupt
     double precision               , parameter                                                                                   :: deltaTiny            =1.0d-10
     logical                                                                                                                      :: interrupt                    , odeConverged
-    integer                                                                                                                      :: i
+    integer   (c_size_t)                                                                                                                   :: i
     double precision                                                                                                             :: propertyValueDelta
 
     ! Return success by default.
@@ -952,7 +924,6 @@ contains
 
   subroutine standardErrorHandler(status,time,y)
     !% Handles errors in the ODE solver when evolving \glc\ nodes. Dumps the content of the node.
-    use            :: FODEIV2           , only : FODEIV2_Driver_Errors
     use            :: Galacticus_Display, only : Galacticus_Display_Indent     , Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
           &                                      Galacticus_Verbosity_Level_Set, verbosityStandard
     use, intrinsic :: ISO_C_Binding     , only : c_double                      , c_int
@@ -960,12 +931,12 @@ contains
     implicit none
     integer         (kind=c_int    ), intent(in   )                                              :: status
     real            (kind=c_double ), intent(in   )                                              :: time
-    real            (kind=c_double ), intent(in   ), dimension(standardSelf%propertyCountActive) :: y
-    real            (kind=c_double )               , dimension(standardSelf%propertyCountActive) :: dydt          , yError       , &
+    real            (kind=c_double ), intent(in   ), dimension(:                               ) :: y
+    real            (kind=c_double )               , dimension(standardSelf%propertyCountActive) :: dydt         , yError        , &
          &                                                                                          yTolerance
-    type            (varying_string)                                                             :: message       , line
-    integer                                                                                      :: i             , lengthMaximum, &
-         &                                                                                          verbosityLevel
+    type            (varying_string)                                                             :: message      , line
+    integer                                                                                      :: lengthMaximum, verbosityLevel
+    integer         (c_size_t      )                                                             :: i
     character       (len =12       )                                                             :: label
     integer         (kind=c_int    )                                                             :: odeStatus
     double precision                                                                             :: stepFactor
@@ -973,7 +944,7 @@ contains
     ! Check if this is the final trial for this node.
     if (standardSelf%trialCount == standardTrialCountMaximum-1) then
        ! Get the current errors and tolerances in the ODE driver.
-       call FODEIV2_Driver_Errors(standardSelf%ode2Driver,yError)
+       call standardSolver%errors(yError)
        yTolerance=standardODEStepTolerances(y)
        ! Report the failure message.
        verbosityLevel=Galacticus_Verbosity_Level()
@@ -988,7 +959,7 @@ contains
        call Galacticus_Display_Indent('ODE system parameters')
        lengthMaximum=0
        do i=1,standardSelf%propertyCountActive
-          lengthMaximum=max(lengthMaximum,len(standardSelf%activeNode%nameFromIndex(i,standardSelf%propertyTypeODE)))
+          lengthMaximum=max(lengthMaximum,len(standardSelf%activeNode%nameFromIndex(int(i),standardSelf%propertyTypeODE)))
        end do
        line=repeat("―",lengthMaximum)//repeat("―――――――――――――――",5)
        call Galacticus_Display_Message(line)
@@ -996,7 +967,7 @@ contains
        call Galacticus_Display_Message(line)
        do i=1,standardSelf%propertyCountActive
           stepFactor=abs(yError(i))/yTolerance(i)
-          message=standardSelf%activeNode%nameFromIndex(i,standardSelf%propertyTypeODE)
+          message=standardSelf%activeNode%nameFromIndex(int(i),standardSelf%propertyTypeODE)
           message=repeat(" ",lengthMaximum-len(message))//message
           write (label,'(e12.6)') y                                (i)
           message=message//" : "//label
@@ -1020,9 +991,9 @@ contains
   function standardODEStepTolerances(propertyValues)
     !% Compute the tolerances on each property being evolved in the ODE stystem at the current timestep.
     implicit none
-    double precision               , dimension(standardSelf%propertyCountActive) :: standardODEStepTolerances
-    double precision, intent(in   ), dimension(standardSelf%propertyCountActive) :: propertyValues
-    integer                                                                      :: i
+    double precision                         , dimension(standardSelf%propertyCountActive) :: standardODEStepTolerances
+    double precision          , intent(in   ), dimension(standardSelf%propertyCountActive) :: propertyValues
+    integer         (c_size_t)                                                             :: i
 
     forall(i=1:standardSelf%propertyCountActive)
        standardODEStepTolerances(i)=+    standardSelf%odeToleranceRelative     &
@@ -1036,20 +1007,20 @@ contains
   subroutine standardPostStepProcessing(y,status) bind(c)
     !% Perform any post-step actions on the node.
     use            :: Interface_GSL, only : GSL_Success
-    use, intrinsic :: ISO_C_Binding, only : c_double    , c_int
+    use, intrinsic :: ISO_C_Binding, only : c_double   , c_int
     !# <include directive="postStepTask" type="moduleUse">
     include 'objects.tree_node.post_step.modules.inc'
     !# </include>
     implicit none
-    real   (kind=c_double), intent(inout), dimension(standardSelf%propertyCountActive) :: y
-    integer(kind=c_int   ), intent(inout)                                              :: status
+    real   (kind=c_double), intent(inout), dimension(*) :: y
+    integer(kind=c_int   ), intent(inout)               :: status
 
-    call standardSelf%activeNode%deserializeValues(y,standardSelf%propertyTypeODE)
+    call standardSelf%activeNode%deserializeValues(y(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
     !# <include directive="postStepTask" type="functionCall" functionType="void">
     !#  <functionArgs>standardSelf%activeNode,status</functionArgs>
     include 'objects.tree_node.post_step.inc'
     !# </include>
-    if (status /= GSL_Success) call standardSelf%activeNode%serializeValues(y,standardSelf%propertyTypeODE)
+    if (status /= GSL_Success) call standardSelf%activeNode%serializeValues(y(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
     return
   end subroutine standardPostStepProcessing
 
@@ -1058,19 +1029,20 @@ contains
     use            :: Interface_GSL, only : GSL_Success
     use, intrinsic :: ISO_C_Binding, only : c_double   , c_int
     implicit none
-    real            (kind=c_double ), dimension(standardSelf%propertyCountActive), intent(in   )        :: currentPropertyValue
-    real            (kind=c_double ), dimension(standardSelf%propertyCountActive), intent(in   )        :: currentPropertyError
-    real            (kind=c_double )                                             , intent(in   ), value :: timeStep
-    integer         (kind=c_int    )                                             , intent(in   ), value :: stepStatus
-    double precision                                                                                    :: scale               , scaledError     , &
-         &                                                                                                 scaledErrorMaximum
-    integer                                                                                             :: iProperty           , limitingProperty
-    type            (varying_string)                                                                    :: propertyName
+    real            (kind=c_double ), intent(in   ), dimension(*) :: currentPropertyValue
+    real            (kind=c_double ), intent(in   ), dimension(*) :: currentPropertyError
+    real            (kind=c_double ), intent(in   ), value        :: timeStep
+    integer         (kind=c_int    ), intent(in   ), value        :: stepStatus
+    double precision                                              :: scale               , scaledError     , &
+         &                                                           scaledErrorMaximum
+    integer         (c_size_t      )                              :: iProperty           , limitingProperty
+    type            (varying_string)                              :: propertyName
 
     ! If the step was not good, return immediately.
     if (stepStatus /= GSL_Success) return
     ! Find the property with the largest error (i.e. that which is limiting the step).
     scaledErrorMaximum=0.0d0
+    limitingProperty  =-1_c_size_t
     do iProperty=1,standardSelf%propertyCountActive
        scale      =standardSelf%odeToleranceAbsolute*standardSelf%propertyScalesActive(iProperty)+standardSelf%odeToleranceRelative*abs(currentPropertyValue(iProperty))
        scaledError=abs(currentPropertyError(iProperty))/scale
@@ -1082,7 +1054,7 @@ contains
     ! Check that we found a limiting property.
     if (scaledErrorMaximum > 0.0d0) then
        ! Decode the step limiting property.
-       propertyName=standardSelf%activeNode%nameFromIndex(limitingProperty,standardSelf%propertyTypeODE)
+       propertyName=standardSelf%activeNode%nameFromIndex(int(limitingProperty),standardSelf%propertyTypeODE)
        ! Profile the step.
        call standardSelf%mergerTreeEvolveProfiler_%profile(timeStep,propertyName)
     end if

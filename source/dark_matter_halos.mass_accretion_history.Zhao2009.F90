@@ -99,11 +99,10 @@ contains
   double precision function zhao2009Time(self,node,mass)
     !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily
     !% thisNode} using the algorithm of \cite{zhao_accurate_2009}.
-    use :: FGSL            , only : fgsl_odeiv_control     , fgsl_odeiv_evolve, fgsl_odeiv_step, fgsl_odeiv_system
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentBasic     , treeNode
-    use :: Interface_GSL   , only : GSL_Success
-    use :: ODE_Solver      , only : ODE_Solve
+    use :: Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes     , only : nodeComponentBasic     , treeNode
+    use :: Interface_GSL        , only : GSL_Success
+    use :: Numerical_ODE_Solvers, only : odeSolver
     implicit none
     class           (darkMatterHaloMassAccretionHistoryZhao2009), intent(inout) :: self
     type            (treeNode                                  ), intent(inout) :: node
@@ -116,11 +115,7 @@ contains
        &                                                                           pObserved                             , sObserved                    , &
        &                                                                           sigmaObserved                         , wObserved                    , &
        &                                                                           currentMass
-    type            (fgsl_odeiv_step                           )                :: odeStepper
-    type            (fgsl_odeiv_control                        )                :: odeController
-    type            (fgsl_odeiv_evolve                         )                :: odeEvolver
-    type            (fgsl_odeiv_system                         )                :: odeSystem
-    logical                                                                     :: odeReset                      =.true.
+    type            (odeSolver                                 )                :: solver
 
     ! Get properties of the base node.
     baseBasicComponent => node%basic()
@@ -142,9 +137,8 @@ contains
     ! Solve the ODE for the mass evolution.
     nowTime(1) =baseTime
     currentMass=baseMass
-    call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,currentMass,mass,1,nowTime &
-         &,growthRateODEs,odeToleranceAbsolute,odeToleranceRelative,reset=odeReset)
-    odeReset=.true.
+    solver     =odeSolver(1_c_size_t,growthRateODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
+    call solver%solve(currentMass,mass,nowTime)
     ! Extract the time corresponding to the specified mass.
     zhao2009Time=nowTime(1)
     return

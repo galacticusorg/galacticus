@@ -122,10 +122,9 @@ contains
   subroutine collisionlessMatterRetabulate(self,time)
     !% Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
     !% $D(1)=1$ for a collisionless matter plus cosmological constant cosmology.
-    use :: FGSL         , only : fgsl_odeiv_system       , fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_step
-    use :: Interface_GSL, only : GSL_Success
-    use :: ODE_Solver   , only : ODE_Solve               , ODE_Solver_Free
-    use :: Tables       , only : table1DLogarithmicLinear
+    use :: Interface_GSL        , only : GSL_Success
+    use :: Numerical_ODE_Solvers, only : odeSolver
+    use :: Tables                , only : table1DLogarithmicLinear
     implicit none
     class           (linearGrowthCollisionlessMatter), intent(inout) :: self
     double precision                                 , intent(in   ) :: time
@@ -140,11 +139,7 @@ contains
          &                                                              timeMatterDominant                      , timePresent                      , &
          &                                                              timeBigCrunch
     integer                                                          :: growthTableNumberPoints
-    type            (fgsl_odeiv_step                )                :: odeStepper
-    type            (fgsl_odeiv_control             )                :: odeController
-    type            (fgsl_odeiv_evolve              )                :: odeEvolver
-    type            (fgsl_odeiv_system              )                :: odeSystem
-    logical                                                          :: odeReset
+    type            (odeSolver                      )                :: solver
 
     ! Check if we need to recompute our table.
     if (self%tableInitialized) then
@@ -195,29 +190,15 @@ contains
                &                                                               )                  &
                &                                                              )                   &
                &                    )
-          odeReset=.true.
+          solver=odeSolver(2_c_size_t,growthFactorODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
           do i=2,growthTableNumberPoints
              timeNow                    =growthFactor          %x(i-1)
              growthFactorODEVariables(1)=growthFactor          %y(i-1)
              growthFactorODEVariables(2)=growthFactorDerivative
-             call ODE_Solve(                                   &
-                  &         odeStepper                       , &
-                  &         odeController                    , &
-                  &         odeEvolver                       , &
-                  &         odeSystem                        , &
-                  &         timeNow                          , &
-                  &         growthFactor%x(i)                , &
-                  &         2                                , &
-                  &         growthFactorODEVariables         , &
-                  &         growthFactorODEs                 , &
-                  &         odeToleranceAbsolute             , &
-                  &         odeToleranceRelative             , &
-                  &         reset                   =odeReset  &
-                  &        )
-             call growthFactor%populate(growthFactorODEVariables(1),i)
+             call solver      %solve   (timeNow,growthFactor%x(i),growthFactorODEVariables     )
+             call growthFactor%populate(                          growthFactorODEVariables(1),i)
              growthFactorDerivative=growthFactorODEVariables(2)
           end do
-          call ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
           ! Normalize to growth factor of unity at present day.
           linearGrowthFactorPresent=growthFactor%interpolate(timePresent)
           call growthFactor%populate(reshape(growthFactor%ys(),[growthTableNumberPoints])/linearGrowthFactorPresent)
