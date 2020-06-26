@@ -54,9 +54,9 @@ module Interface_GSL
   abstract interface
      !% Interface for {\normalfont \ttfamily  gsl\_error\_handler\_t} type.
      subroutine gslErrorHandlerTemplate(reason,file,line,errorNumber)
-       import c_ptr, c_int
-       type   (c_ptr), value :: file       , reason
-       integer(c_int), value :: errorNumber, line
+       import c_char, c_int
+       character(c_char), dimension(*) :: file       , reason
+       integer  (c_int ), value        :: errorNumber, line
      end subroutine gslErrorHandlerTemplate
   end interface
 

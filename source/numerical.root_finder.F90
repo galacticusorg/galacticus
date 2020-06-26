@@ -667,9 +667,9 @@ contains
 
     subroutine Root_Finder_GSL_Error_Handler(reason,file,line,errorNumber) bind(c)
       !% Handle errors from the GSL library during root finding.
-      use, intrinsic :: ISO_C_Binding, only : c_int, c_ptr
-      type   (c_ptr     ), value :: file       , reason
-      integer(kind=c_int), value :: errorNumber, line
+      use, intrinsic :: ISO_C_Binding, only : c_int, c_char
+      character(c_char), dimension(*) :: file       , reason
+      integer  (c_int ), value        :: errorNumber, line
       !$GLC attributes unused :: reason, file, line
 
       statusActual=errorNumber

@@ -21,10 +21,8 @@
 
 module Galacticus_Error
   !% Implements error reporting for the {\normalfont \scshape Galacticus} package.
-  use            :: FGSL              , only : FGSL_StrError         , FGSL_Error_Handler_Init, fgsl_error_handler_t, FGSL_Name , &
-       &                                       FGSL_Set_Error_Handler
-  use            :: Interface_GSL     , only : GSL_Success           , GSL_Failure            , GSL_eDom            , GSL_eRange, &
-       &                                       GSL_eZeroDiv          , GSL_eUndrFlw
+  use            :: Interface_GSL     , only : GSL_Success   , GSL_Failure , GSL_eDom, GSL_eRange, &
+       &                                       GSL_eZeroDiv  , GSL_eUndrFlw
   use, intrinsic :: ISO_C_Binding     , only : c_int
   use            :: ISO_Varying_String, only : varying_string
   implicit none
@@ -185,8 +183,10 @@ contains
 
   subroutine Galacticus_Error_Handler_Register()
     !% Register signal handlers.
+    use, intrinsic :: ISO_C_Binding, only : c_funptr
+    use            :: Interface_GSL, only : gslSetErrorHandler
     implicit none
-    type(fgsl_error_handler_t) :: galacticusGslErrorHandler, standardGslErrorHandler
+    type(c_funptr) :: standardGslErrorHandler
 
     call Signal( 2,Galacticus_Signal_Handler_SIGINT )
     call Signal( 4,Galacticus_Signal_Handler_SIGILL )
@@ -195,8 +195,9 @@ contains
     call Signal(11,Galacticus_Signal_Handler_SIGSEGV)
     call Signal(15,Galacticus_Signal_Handler_SIGINT )
     call Signal(24,Galacticus_Signal_Handler_SIGXCPU)
-    galacticusGslErrorHandler=FGSL_Error_Handler_Init(Galacticus_GSL_Error_Handler)
-    standardGslErrorHandler  =FGSL_Set_Error_Handler (galacticusGslErrorHandler   )
+    !$omp critical(gslErrorHandler)
+    standardGslErrorHandler=gslSetErrorHandler(Galacticus_GSL_Error_Handler)
+    !$omp end critical(gslErrorHandler)
     return
   end subroutine Galacticus_Error_Handler_Register
 
@@ -455,30 +456,29 @@ contains
 
   subroutine Galacticus_GSL_Error_Handler(reason,file,line,errorNumber) bind(c)
     !% Handle errors from the GSL library, by flushing all data and then aborting.
-    use   , intrinsic :: ISO_C_Binding, only : c_ptr          , c_char
+    use   , intrinsic :: ISO_C_Binding     , only : c_char
 #ifdef USEMPI
-    use               :: MPI          , only : MPI_Initialized, MPI_Comm_Rank     , MPI_Comm_World
+    use               :: MPI               , only : MPI_Initialized    , MPI_Comm_Rank     , MPI_Comm_World
 #endif
-    !$ use            :: OMP_Lib      , only : OMP_In_Parallel, OMP_Get_Thread_Num
+    !$ use            :: OMP_Lib           , only : OMP_In_Parallel    , OMP_Get_Thread_Num
 #ifndef UNCLEANEXIT
-    use               :: HDF5         , only : H5Close_F
+    use               :: HDF5              , only : H5Close_F
 #endif
-    use               :: FGSL         , only : FGSL_StrMax
-    type     (c_ptr                      ), value :: file       , reason
-    integer  (kind=c_int                 ), value :: errorNumber, line
-    character(kind=c_char,len=FGSL_StrMax)        :: message
-    integer                                       :: error
+    use               :: String_Handling   , only : String_C_To_Fortran
+    use               :: ISO_Varying_String, only : char
+    character(c_char), dimension(*) :: file       , reason
+    integer  (c_int ), value        :: errorNumber, line
+    integer                         :: error
 #ifdef USEMPI
-    integer                                       :: mpiRank
-    character(len=128                    )        :: hostName
-    logical                                       :: flag
+    integer                         :: mpiRank
+    character(len=128)              :: hostName
+    logical                         :: flag
 #endif
 
     if (abortOnErrorGSL) then
-       message=FGSL_StrError(errorNumber)
        write (0,*) 'Galacticus experienced an error in the GSL library - will try to flush data before exiting.'
-       write (0,*) ' => Error occurred in ',trim(FGSL_Name(file  )),' at line ',line
-       write (0,*) ' => Reason was: '      ,trim(FGSL_Name(reason))
+       write (0,*) ' => Error occurred in ',char(String_C_to_Fortran(file  )),' at line ',line
+       write (0,*) ' => Reason was: '      ,char(String_C_to_Fortran(reason))
        !$ if (omp_in_parallel()) then
        !$    write (0,*) " => Error occurred in thread ",omp_get_thread_num()
        !$ else

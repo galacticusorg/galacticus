@@ -275,10 +275,12 @@ contains
 
   subroutine integratorGSLErrorHandler(reason,file,line,errorNumber) bind(c)
     !% Handle errors from the GSL library during integration.
-    type   (c_ptr), value :: file       , reason
-    integer(c_int), value :: errorNumber, line
+    use, intrinsic :: ISO_C_Binding, only : c_char
+    implicit none
+    character(c_char), dimension(*) :: file       , reason
+    integer  (c_int ), value        :: errorNumber, line
     !$GLC attributes unused :: reason, file, line
-
+    
     statusGlobal=errorNumber
     return
   end subroutine integratorGSLErrorHandler
