@@ -19,6 +19,9 @@
 
 !% Contains a module which implements calculations of factorials.
 
+! Add dependency on GSL library.
+!; gsl
+
 module Factorials
   !% Implements calculations of factorials
   use, intrinsic :: ISO_C_Binding, only : c_double, c_int

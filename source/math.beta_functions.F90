@@ -19,6 +19,9 @@
 
 !% Contains a module which implements beta functions.
 
+! Add dependency on GSL library.
+!; gsl
+
 module Beta_Functions
   !% Implements beta functions.
   use, intrinsic :: ISO_C_Binding, only : c_double

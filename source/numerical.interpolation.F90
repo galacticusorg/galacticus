@@ -23,6 +23,9 @@
 ! Specify an explicit dependence on the interface.GSL.C.interpolation.o object file.
 !: $(BUILDPATH)/interface.GSL.C.interpolation.o
 
+! Add dependency on GSL library.
+!; gsl
+
 module Numerical_Interpolation
   !% A simple interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library}
   !% \href{http://www.gnu.org/software/gsl/manual/html_node/Interpolation.html}{interpolation routines}.

@@ -19,6 +19,9 @@
 
 !% Contains a module which implements sorting sequences.
 
+! Add dependency on GSL library.
+!; gsl
+
 module Sorting
   !% Implements sorting.
   use, intrinsic :: ISO_C_Binding     , only : c_ptr, c_funptr, c_size_t, c_int

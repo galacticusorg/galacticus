@@ -19,6 +19,9 @@
 
   !% Implementation of a 1D Student-t distribution function.
 
+  ! Add dependency on GSL library.
+  !; gsl
+  
   use, intrinsic :: ISO_C_Binding, only : c_double
   
   !# <distributionFunction1D name="distributionFunction1DStudentT">

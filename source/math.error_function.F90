@@ -19,6 +19,9 @@
 
 !% Contains a module which implements calculations of error functions.
 
+! Add dependency on GSL library.
+!; gsl
+
 module Error_Functions
   !% Implements calculations of error functions.
   use, intrinsic :: ISO_C_Binding, only : c_double

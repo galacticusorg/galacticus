@@ -19,6 +19,9 @@
 
 !% Contains a module which implements binomial coefficients.
 
+! Add dependency on GSL library.
+!; gsl
+
 module Binomial_Coefficients
   !% Implements binomial coefficients.
   use, intrinsic :: ISO_C_Binding, only : c_double, c_int

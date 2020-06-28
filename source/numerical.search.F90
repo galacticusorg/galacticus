@@ -19,6 +19,9 @@
 
 !% Contains a module which implements searching of ordered arrays.
 
+! Add dependency on GSL library.
+!; gsl
+
 module Arrays_Search
   !% Implements searching of ordered arrays.
   use, intrinsic :: ISO_C_Binding, only : c_size_t, c_double

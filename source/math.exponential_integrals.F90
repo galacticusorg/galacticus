@@ -19,6 +19,9 @@
 
 !% Contains a module which implements exponential integrals.
 
+! Add dependency on GSL library.
+!; gsl
+
 module Exponential_Integrals
   !% Implements exponential integrals.
   use, intrinsic :: ISO_C_Binding, only : c_double

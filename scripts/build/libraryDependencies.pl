@@ -24,10 +24,7 @@ my %dependencies =
      gsl            => [ "gslcblas"                         ],
      FoX_dom        => [ "FoX_fsys", "FoX_utils", "FoX_sax" ],
      FoX_sax        => [ "FoX_common"                       ],
-     FoX_utils      => [ "FoX_wxml"                         ],
-     yepLibrary     => [ "yeppp"                            ],
-     yepCore        => [ "yeppp"                            ],
-     yepMath        => [ "yeppp"                            ]
+     FoX_utils      => [ "FoX_wxml"                         ]
     );
 # Library order dependencies for static linking. Each key specifies a library name. The associated value is a list of libraries
 # before which the key library must appear in the link command when static linking is used.
@@ -42,10 +39,7 @@ my %staticLinkDependencies =
      FoX_dom        => [ "FoX_fsys", "FoX_utils", "FoX_sax", "FoX_wxml" ],
      FoX_sax        => [ "FoX_common"                                   ],
      FoX_wxml       => [ "FoX_utils"                                    ],
-     FoX_common     => [ "FoX_fsys"                                     ],
-     YEPLibrary     => [ "yeppp"                                        ],
-     YEPCore        => [ "yeppp"                                        ],
-     YEPMath        => [ "yeppp"                                        ]
+     FoX_common     => [ "FoX_fsys"                                     ]
     );
 # Detect static linking.
 my $isStatic = grep {$_ eq "-static"} @compilerOptions;
@@ -86,9 +80,6 @@ while ( scalar(keys(%libraries)) != $libraryCount) {
 	}
     }
 }
-# Remove YEPPP library if not used.
-delete($libraries{'yeppp'})
-    if ( exists($libraries{'yeppp'}) && ! grep {$_ eq "-DYEPPP"} @compilerOptions );
 # Remove ANN library if not used.
 delete($libraries{'ANN'})
     if ( exists($libraries{'ANN'}) && ! grep {$_ eq "-DANNAVAIL"} @compilerOptions );

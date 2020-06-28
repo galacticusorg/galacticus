@@ -19,6 +19,9 @@
 
 !% Contains a module which implements calculations of Gamma functions.
 
+! Add dependency on GSL library.
+!; gsl
+
 module Gamma_Functions
   !% Implements calculations of Gamma functions.
   use, intrinsic :: ISO_C_Binding, only : c_double

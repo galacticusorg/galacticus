@@ -19,6 +19,9 @@
 
 !% Contains a module which performs numerical integration.
 
+! Add dependency on GSL library.
+!; gsl
+
 module Numerical_Integration
   !% Implements numerical integration.
   use, intrinsic :: ISO_C_Binding, only : c_ptr      , c_size_t, c_int, c_double

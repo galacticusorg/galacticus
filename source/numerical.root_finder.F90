@@ -20,6 +20,9 @@
 ! Specify an explicit dependence on the interface.GSL.C.root_fiding.o object file.
 !: $(BUILDPATH)/interface.GSL.C.root_finding.o
 
+! Add dependency on GSL library.
+!; gsl
+
 !% Contains a module which does root finding.
 module Root_Finder
   !% Implements root finding.

@@ -28,6 +28,9 @@
 !: $(BUILDPATH)/gslODEInitVal2/msbdfactive.o
 !: $(BUILDPATH)/gslODEInitVal2/lu.o
 
+! Add dependency on GSL library.
+!; gsl
+
 module Numerical_ODE_Solvers
   !% Implements quasi-random sequences.
   use, intrinsic :: ISO_C_Binding         , only : c_ptr                      , c_funptr, c_size_t, c_int, &

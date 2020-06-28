@@ -19,6 +19,9 @@
 
 !% Contains a module which performs numerical differentiation.
 
+! Add dependency on GSL library.
+!; gsl
+
 module Numerical_Differentiation
   !% Implements numerical differentiation.
   use, intrinsic :: ISO_C_Binding, only : c_double   , c_int             , c_ptr

@@ -26,7 +26,7 @@ my $xml                     = new XML::Simple();
 my $locations               = -e $workDirectoryName."directiveLocations.xml" ? $xml->XMLin($workDirectoryName."directiveLocations.xml") : undef();
 # List of external modules (which will be ignored for dependency analysis of the source code).
 my @externalModules = ( "omp_lib", "hdf5", "h5tb", "h5lt", "h5global", "h5fortran_types", "fox_common", "fox_dom", "fox_wxml", "fox_utils",
-			"fgsl", "mpi", "mpi_f08", "yeplibrary", "yepcore", "yepmath");
+			"fgsl", "mpi", "mpi_f08" );
 # Modules that require a library to be linked. These are key-value pairs with the key being the module name, and the value the
 # name of the required library.
 my %moduleLibararies = (
@@ -40,10 +40,8 @@ my %moduleLibararies = (
     hdf5                => "hdf5_fortran"  ,
     h5tb                => "hdf5hl_fortran",
     vectors             => "blas"          ,
-    yeplibrary          => "yeppp"         ,
-    yepcore             => "yeppp"         ,
-    yepmath             => "yeppp"         ,
-    models_likelihoods  => "matheval"
+    models_likelihoods  => "matheval"      ,
+    interface_gsl       => "gsl"
     );
 # C includes that require a library to be linked. These are key-value pairs with the key being the include name, and the value the
 # name of the required library.

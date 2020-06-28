@@ -22,6 +22,8 @@
 ! Specify an explicit dependence on the interface.GSL.C.o object file.
 !: $(BUILDPATH)/interface.GSL.C.o
 
+! Add dependency on GSL library.
+!; gsl
 
 module Interface_GSL
   !% Interfaces with low-level aspects of the GSL library.

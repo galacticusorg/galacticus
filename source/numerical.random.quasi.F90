@@ -22,6 +22,9 @@
 ! Specify an explicit dependence on the interface.GSL.C.quasi_random.o object file.
 !: $(BUILDPATH)/interface.GSL.C.quasi_random.o
 
+! Add dependency on GSL library.
+!; gsl
+
 module Numerical_Quasi_Random_Sequences
   !% Implements quasi-random sequences.
   use, intrinsic :: ISO_C_Binding, only : c_ptr, c_int, c_double

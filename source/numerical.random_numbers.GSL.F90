@@ -19,6 +19,9 @@
 
   !% Implements a random number generator class which utilizes the \gls{gsl} random number generators.
 
+  ! Add dependency on GSL library.
+  !; gsl
+
   use, intrinsic :: ISO_C_Binding, only : c_long, c_ptr
   
   !# <randomNumberGenerator name="randomNumberGeneratorGSL">

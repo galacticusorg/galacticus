@@ -20,6 +20,9 @@
 !: $(BUILDPATH)/pFq/pfq.new.o
 !: $(BUILDPATH)/gslSpecFuncApprox/hyperg_2F1.o
 
+! Add dependency on GSL library.
+!; gsl
+
 !% Contains a module which implements hypergeometric functions.
 
 module Hypergeometric_Functions

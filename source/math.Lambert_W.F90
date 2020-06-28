@@ -19,6 +19,9 @@
 
 !% Contains a module which implements Lambert W functions.
 
+! Add dependency on GSL library.
+!; gsl
+
 module Lambert_Ws
   !% Implements Lambert W functions.
   use, intrinsic :: ISO_C_Binding, only : c_double
