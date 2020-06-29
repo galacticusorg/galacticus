@@ -81,16 +81,16 @@ module Numerical_ODE_Solvers
        real(c_double), intent(in   ), value :: epsabs                       , epsrel, &
             &                                  hstart
      end function gsl_odeiv2_driver_alloc_y_new
-     function gsl_odeiv2_driver_alloc_scaled_new(sys,T,hstart,epsabs,epsrel,a_y,a_dydt,scale_abs) bind(c,name='gsl_odeiv2_driver_alloc_scaled_new')
+     function gsl_odeiv2_driver_alloc_scaled2_new(sys,T,hstart,epsabs,epsrel,a_y,a_dydt,scale_abs) bind(c,name='gsl_odeiv2_driver_alloc_scaled2_new')
        !% Template for GSL interface ODEIV2 step allocation function.
        import c_ptr, c_double
-       type(c_ptr   )                              :: gsl_odeiv2_driver_alloc_scaled_new
-       type(c_ptr   ), intent(in   ), value        :: sys                               , T
-       real(c_double), intent(in   ), value        :: epsabs                            , epsrel, &
-            &                                         a_y                               , a_dydt, &
+       type(c_ptr   )                              :: gsl_odeiv2_driver_alloc_scaled2_new
+       type(c_ptr   ), intent(in   ), value        :: sys                                , T
+       real(c_double), intent(in   ), value        :: epsabs                             , epsrel, &
+            &                                         a_y                                , a_dydt, &
             &                                         hstart
        real(c_double), intent(in   ), dimension(*) :: scale_abs
-     end function gsl_odeiv2_driver_alloc_scaled_new
+     end function gsl_odeiv2_driver_alloc_scaled2_new
      subroutine gsl_odeiv2_driver_free(d) bind(c,name='gsl_odeiv2_driver_free')
        !% Template for GSL interface ODEIV2 driver free function.
        import c_ptr
@@ -322,10 +322,10 @@ contains
     ! Allocate and initialize the driver object.
     allocate(self%gsl_odeiv2_driver)
     if (present(scale)) then
-       self%gsl_odeiv2_driver   =gsl_odeiv2_driver_alloc_scaled_new(self%gsl_odeiv2_system,self%gsl_odeiv2_step_type,hStart_,toleranceAbsolute_,toleranceRelative_,yScale_,dydtScale_,scale)
+       self%gsl_odeiv2_driver   =gsl_odeiv2_driver_alloc_scaled2_new(self%gsl_odeiv2_system,self%gsl_odeiv2_step_type,hStart_,toleranceAbsolute_,toleranceRelative_,yScale_,dydtScale_,scale)
        call gsl_odeiv2_driver_init_errors(self%gsl_odeiv2_driver)
     else
-       self%gsl_odeiv2_driver   =gsl_odeiv2_driver_alloc_y_new     (self%gsl_odeiv2_system,self%gsl_odeiv2_step_type,hStart_,toleranceAbsolute_,toleranceRelative_                         )
+       self%gsl_odeiv2_driver   =gsl_odeiv2_driver_alloc_y_new      (self%gsl_odeiv2_system,self%gsl_odeiv2_step_type,hStart_,toleranceAbsolute_,toleranceRelative_                         )
     end if
     ! set integrator error tolerance behavior.
     self%integratorErrorTolerant=integratorErrorTolerant_
