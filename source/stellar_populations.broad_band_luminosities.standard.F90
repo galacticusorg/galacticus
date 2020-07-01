@@ -39,7 +39,7 @@
   !#  <description>The standard stellar populations broad band luminosities class.</description>
   !# </stellarPopulationBroadBandLuminosities>
   type, extends(stellarPopulationBroadBandLuminositiesClass) :: stellarPopulationBroadBandLuminositiesStandard
-     !% A merger tree evolve profiler that collects standard data.
+     !% The standard stellar population broad band luminosities class.
      private
      type            (luminosityTable ), allocatable, dimension(:) :: luminosityTables
      double precision                                              :: integrationToleranceRelative
@@ -55,7 +55,7 @@
      !@     <method>tabulate</method>
      !@     <type>\void</type>
      !@     <arguments>\intone\ luminosityIndex\argin,\intone\ filterIndex\argin, \textcolor{red}{\textless type(stellarLuminosities)(:)\textgreater} stellarPopulationSpectraPostprocessor_\argin, \textcolor{red}{\textless type(stellarLuminosities)\textgreater} stellarPopulation_\arginout, \doublezero\ redshift\argin</arguments>
-     !@     <description>Multiply stellar luminosities by a scalar.</description>
+     !@     <description>Tabulate broad band stellar luminosities.</description>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: luminosities     => standardLuminosities
