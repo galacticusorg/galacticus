@@ -45,9 +45,9 @@
      double precision                                    , allocatable, dimension(:,:,:,:,:,:) :: luminosity
      integer                                             , allocatable, dimension(:,:        ) :: ionizingContinuumIndex
      double precision                                                 , dimension(2,3        ) :: filterExtent
-     type            (interpolator                       )            , dimension(5          ) :: interpolator_
+     type            (interpolator                      ), allocatable, dimension(:          ) :: interpolator_
      double precision                                                                          :: depthOpticalISMCoefficient
-     !$ integer      (omp_lock_kind                      )                                     :: interpolateLock
+     !$ integer      (omp_lock_kind                     )                                      :: interpolateLock
    contains
      final     ::                lmnstyEmssnLineDestructor
      procedure :: extract     => lmnstyEmssnLineExtract
@@ -221,6 +221,7 @@ contains
     self%filterExtent(:,ionizingContinuumHelium  )=Filter_Extent(Filter_Get_Index(var_str('HeliumContinuum')))
     self%filterExtent(:,ionizingContinuumOxygen  )=Filter_Extent(Filter_Get_Index(var_str('OxygenContinuum')))
     ! Initialize interpolators.
+    allocate(self%interpolator_(5))
     self%interpolator_(interpolantMetallicity)=interpolator(self%metallicity                 )
     self%interpolator_(interpolantDensity    )=interpolator(self%densityHydrogen             )
     self%interpolator_(interpolantHydrogen   )=interpolator(self%ionizingFluxHydrogen        )
