@@ -23,8 +23,14 @@
 
   use :: Numerical_Interpolation, only : interpolator
 
+  !# <deepCopyActions class="spectralTable">
+  !#  <spectralTable>
+  !#   <methodCall method="interpolatorsDeepCopy"/>
+  !#  </spectralTable>
+  !# </deepCopyActions>
+
   type spectralTable
-     !% Structure to hold tabulated stellar population  data.
+     !% Structure to hold tabulated stellar population data.
      ! The spectra tables.
      integer                                                       :: agesCount             , metallicityCount       , &
           &                                                           wavelengthsCount
@@ -33,6 +39,17 @@
      double precision              , allocatable, dimension(:,:,:) :: table
      type            (interpolator)                                :: interpolatorAge       , interpolatorMetallicity, &
           &                                                           interpolatorWavelength
+   contains
+     !@ <objectMethods>
+     !@   <object>spectralTable</object>
+     !@   <objectMethod>
+     !@     <method>interpolatorsDeepCopy</method>
+     !@     <type>void</type>
+     !@     <arguments></arguments>
+     !@     <description>Perform deep copy actions on interpolators.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure :: interpolatorsDeepCopy => spectralTableInterpolatorsDeepCopy
   end type spectralTable
 
   !# <stellarPopulationSpectra name="stellarPopulationSpectraFile">
@@ -74,9 +91,9 @@
   type, extends(stellarPopulationSpectraClass) :: stellarPopulationSpectraFile
      !% A stellar population spectra class which interpolates spectra given in a file.
      private
-     type   (spectralTable ):: spectra
-     logical                :: forceZeroMetallicity, fileRead
-     type   (varying_string):: fileName
+     type   (spectralTable ) :: spectra
+     logical                 :: forceZeroMetallicity, fileRead
+     type   (varying_string) :: fileName
    contains
      !@ <objectMethods>
      !@   <object>stellarPopulationSpectraFile</object>
@@ -208,7 +225,7 @@ contains
        fileLuminosity=0.0d0
        return
     end if
-    ! Get the interpolating factors.
+    ! Get the interpolating factors.    
     call self%spectra%interpolatorAge       %linearFactors(age       ,iAge       ,hAge       )
     call self%spectra%interpolatorWavelength%linearFactors(wavelength,iWavelength,hWavelength)
     if      (                                                                         &
@@ -278,7 +295,7 @@ contains
        call spectraFile%readDataset('metallicities'               ,self%spectra%metallicities)
        self%spectra%metallicityCount=size(self%spectra%metallicities)
        ! Read the spectra.
-       call spectraFile%readDataset('spectra'                     ,self%spectra%Table        )
+       call spectraFile%readDataset('spectra'                     ,self%spectra%table        )
        ! Close the HDF5 file.
        call spectraFile%close()
        !$ call hdf5Access%unset()
@@ -354,7 +371,7 @@ contains
     else
        ! Compute difference in wavelength at position of interest
        call allocateArray(wavelengthDifference,[wavelengthsCount])
-       wavelengthDifference  =+       wavelengths&
+       wavelengthDifference  =+       wavelengths &
             &                 -       wavelength
        fileWavelengthInterval=+minval(wavelengths,dim=1,mask=wavelengthDifference >  0.0d0) &
             &                 -maxval(wavelengths,dim=1,mask=wavelengthDifference <= 0.0d0)
@@ -363,3 +380,14 @@ contains
     if(allocated(wavelengthDifference)) call deallocateArray(wavelengthDifference)
     return
   end function fileWavelengthInterval
+
+  subroutine spectralTableInterpolatorsDeepCopy(self)
+    !% Perform deep copy actions on interpolators.
+    implicit none
+    class(spectralTable), intent(inout) :: self
+
+    call self%interpolatorAge        %GSLReallocate(gslFree=.false.)
+    call self%interpolatorMetallicity%GSLReallocate(gslFree=.false.)
+    call self%interpolatorWavelength %GSLReallocate(gslFree=.false.)
+    return
+  end subroutine spectralTableInterpolatorsDeepCopy
