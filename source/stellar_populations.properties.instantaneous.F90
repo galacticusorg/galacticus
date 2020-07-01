@@ -29,9 +29,9 @@
   type, extends(stellarPopulationPropertiesClass) :: stellarPopulationPropertiesInstantaneous
      !% A stellar population properties class based on the instantaneous recycling approximation.
      private
-     class           (stellarPopulationSelectorClass), pointer      :: stellarPopulationSelector_ => null()
+     class           (stellarPopulationSelectorClass), pointer      :: stellarPopulationSelector_    => null()
      type            (stellarLuminosities           ), dimension(2) :: rateLuminosityStellarPrevious
-     double precision                                , dimension(2) :: rateStarFormationPrevious    , fuelMetallicityPrevious, &
+     double precision                                , dimension(2) :: rateStarFormationPrevious              , fuelMetallicityPrevious, &
           &                                                            timePrevious
      integer         (c_size_t                      ), dimension(2) :: populationIDPrevious
      integer                                                        :: abundanceIndex
