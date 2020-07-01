@@ -23,16 +23,11 @@ sub Process_DeepCopyActions {
     # Initialize deep copy actions database.
     my $deepCopyActions;
     # Walk the tree.
-    my $node       = $tree;
-    my $moduleNode        ;
-    my $depth      = 0    ;
+    my $node  = $tree;
+    my $depth = 0    ;
     while ( $node ) {
 	# Capture deepCopyActions directives.
 	if ( $node->{'type'} eq "deepCopyActions" ) {
-	    # Assert that our parent is a module (for now).
-	    die("Process_DeepCopyActions: parent node must be a module")
-		unless ( $node->{'parent'}->{'type'} eq "module" );
-	    $moduleNode = $node->{'parent'};
 	    # Extract the directive.
 	    push(@directiveNodes,$node);	    
 	    # Get state storables database if we do not have it.
@@ -164,6 +159,24 @@ CODE
 	     }
 	    ];
 	&Galacticus::Build::SourceTree::InsertPostContains($directiveNode->{'parent'},$postContains);
+
+	# If the parent node is a file, then this must be a functionClass instance which will be built into a submodule. In this
+	# case we must provide our own interface to the deepCopyActions function.
+	if ( $directiveNode->{'parent'}->{'type'} eq "file" ) {
+	    my $interface = fill_in_string(<<'CODE', PACKAGE => 'code');
+interface
+   module subroutine {$className}DeepCopyActions(self)
+      class({$className}), intent(inout) :: self
+   end subroutine {$className}DeepCopyActions
+end interface
+CODE
+	my $treeTmp = &Galacticus::Build::SourceTree::ParseCode($interface,'null');
+	&Galacticus::Build::SourceTree::ProcessTree($treeTmp);
+	my $preContains = [ $treeTmp->{'firstChild'} ];
+	&Galacticus::Build::SourceTree::InsertPreContains($directiveNode->{'parent'},$preContains);
+	}
+
+
     }
 }
 
