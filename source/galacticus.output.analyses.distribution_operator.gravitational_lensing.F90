@@ -52,8 +52,8 @@
   end interface outputAnalysisDistributionOperatorGrvtnlLnsng
 
   ! Module scope lensing object used in parallel evaluation of the lensing matrix.
-  integer(c_size_t                 )              :: grvtnLnsngK
-  class  (gravitationalLensingClass), allocatable :: grvtnlLnsngGravitationalLensing_
+  integer(c_size_t                 )          :: grvtnLnsngK
+  class  (gravitationalLensingClass), pointer :: grvtnlLnsngGravitationalLensing_
   !$omp threadprivate(grvtnLnsngK,grvtnlLnsngGravitationalLensing_)
 
   !# <enumeration>
@@ -173,7 +173,7 @@ contains
     double precision                                                                                                      :: redshift
     integer         (c_size_t                                     )                                                       :: j                    , k                   , &
          &                                                                                                                   i                    , l
-    type            (integrator                                   )                                                       :: integrator_
+    type            (integrator                                   )               , allocatable                           :: integrator_
     !$GLC attributes unused :: node
 
     ! Construct the lensing transfer matrix if not already done.
@@ -189,6 +189,7 @@ contains
           !# <deepCopyReset variables="self%gravitationalLensing_"/>
           !# <deepCopy source="self%gravitationalLensing_" destination="grvtnlLnsngGravitationalLensing_"/>
           !$omp end critical(analysesGravitationalLensingDeepCopy)
+          allocate(integrator_)
           integrator_=integrator(magnificationCDFIntegrand,toleranceRelative=1.0d-3)
           !$omp do schedule(dynamic)
           do l=1,size(propertyValueMinimum)
@@ -203,7 +204,8 @@ contains
              end do
           end do
           !$omp end do
-          deallocate(grvtnlLnsngGravitationalLensing_)
+          !# <objectDestructor name="grvtnlLnsngGravitationalLensing_"/>
+          deallocate(integrator_)
           !$omp end parallel
           do j=2,size(propertyValueMinimum)
              do k=2,size(propertyValueMinimum)
