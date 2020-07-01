@@ -73,7 +73,7 @@ contains
     !# <objectBuilder class="starFormationHistory"        name="starFormationHistory_"        source="parameters"/>
     self=nodeOperatorStarFormationDisks(luminositiesStellarInactive,starFormationRateDisks_,stellarPopulationProperties_,starFormationHistory_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="starFormationRateDisks_ "    />
+    !# <objectDestructor name="starFormationRateDisks_"     />
     !# <objectDestructor name="stellarPopulationProperties_"/>
     !# <objectDestructor name="starFormationHistory_"       />
     return

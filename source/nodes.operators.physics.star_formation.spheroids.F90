@@ -70,7 +70,7 @@ contains
     !# <objectBuilder class="starFormationHistory"        name="starFormationHistory_"        source="parameters"/>
     self=nodeOperatorStarFormationSpheroids(luminositiesStellarInactive,starFormationRateSpheroids_,stellarPopulationProperties_,starFormationHistory_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="starFormationRateSpheroids_ "/>
+    !# <objectDestructor name="starFormationRateSpheroids_" />
     !# <objectDestructor name="stellarPopulationProperties_"/>
     !# <objectDestructor name="starFormationHistory_"       />
     return
