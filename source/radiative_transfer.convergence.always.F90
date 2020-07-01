@@ -24,7 +24,8 @@
      !% A convergence criterion for radiative transfer which always passes.
      private
    contains
-     procedure :: testConvergence => alwaysTestConvergence
+     procedure :: testConvergence     => alwaysTestConvergence
+     procedure :: photonPacketEscapes => alwaysPhotonPacketEscapes
   end type radiativeTransferConvergenceAlways
   
   interface radiativeTransferConvergenceAlways
@@ -59,3 +60,13 @@ contains
     converged=.true.
     return
   end subroutine alwaysTestConvergence
+
+  subroutine alwaysPhotonPacketEscapes(self,photonPacket)
+    !% Process an escaping photon packet.
+    implicit none
+    class(radiativeTransferConvergenceAlways), intent(inout) :: self
+    class(radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket
+    !$GLC attributes unused :: self, photonPacket
+
+    return
+  end subroutine alwaysPhotonPacketEscapes

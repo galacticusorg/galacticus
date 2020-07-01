@@ -20,6 +20,7 @@
   use, intrinsic :: ISO_C_Binding                   , only : c_size_t
   use            :: Computational_Domains           , only : computationalDomainClass
   use            :: Numerical_Random_Numbers        , only : randomNumberGeneratorClass
+  use            :: Radiative_Transfer_Convergences , only : radiativeTransferConvergenceClass
   use            :: Radiative_Transfer_Photon_Packet, only : radiativeTransferPhotonPacketClass
   use            :: Radiative_Transfer_Sources      , only : radiativeTransferSourceClass
   use            :: Radiative_Transfer_Outputters   , only : radiativeTransferOutputterClass
@@ -32,6 +33,7 @@
      private
      type            (varying_string                    )                            :: outputGroupName
      class           (computationalDomainClass          ), pointer                   :: computationalDomain_           => null()
+     class           (radiativeTransferConvergenceClass ), pointer                   :: radiativeTransferConvergence_  => null()
      class           (radiativeTransferPhotonPacketClass), pointer                   :: radiativeTransferPhotonPacket_ => null()
      class           (radiativeTransferSourceClass      ), pointer                   :: radiativeTransferSource_       => null()
      class           (radiativeTransferOutputterClass   ), pointer                   :: radiativeTransferOutputter_    => null()
@@ -63,6 +65,7 @@ contains
     type            (taskRadiativeTransfer             )                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
     class           (computationalDomainClass          ), pointer       :: computationalDomain_
+    class           (radiativeTransferConvergenceClass ), pointer       :: radiativeTransferConvergence_
     class           (radiativeTransferPhotonPacketClass), pointer       :: radiativeTransferPhotonPacket_
     class           (radiativeTransferSourceClass      ), pointer       :: radiativeTransferSource_
     class           (radiativeTransferOutputterClass   ), pointer       :: radiativeTransferOutputter_
@@ -138,13 +141,15 @@ contains
     !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="computationalDomain"           name="computationalDomain_"           source="parameters"/>
+    !# <objectBuilder class="radiativeTransferConvergence"  name="radiativeTransferConvergence_"  source="parameters"/>
     !# <objectBuilder class="radiativeTransferPhotonPacket" name="radiativeTransferPhotonPacket_" source="parameters"/>
     !# <objectBuilder class="radiativeTransferSource"       name="radiativeTransferSource_"       source="parameters"/>
     !# <objectBuilder class="radiativeTransferOutputter"    name="radiativeTransferOutputter_"    source="parameters"/>
     !# <objectBuilder class="randomNumberGenerator"         name="randomNumberGenerator_"         source="parameters"/>
-    self=taskRadiativeTransfer(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,countPhotonsPerWavelength,countPhotonsPerWavelengthFinalIteration,countIterationsMinimum,countIterationsMaximum,outputGroupName,computationalDomain_,radiativeTransferPhotonPacket_,radiativeTransferSource_,radiativeTransferOutputter_,randomNumberGenerator_)
+    self=taskRadiativeTransfer(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,countPhotonsPerWavelength,countPhotonsPerWavelengthFinalIteration,countIterationsMinimum,countIterationsMaximum,outputGroupName,computationalDomain_,radiativeTransferPhotonPacket_,radiativeTransferSource_,radiativeTransferOutputter_,radiativeTransferConvergence_,randomNumberGenerator_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="computationalDomain_"          />
+    !# <objectDestructor name="radiativeTransferConvergence_" />
     !# <objectDestructor name="radiativeTransferPhotonPacket_"/>
     !# <objectDestructor name="radiativeTransferSource_"      />
     !# <objectDestructor name="radiativeTransferOutputter_"   />
@@ -152,7 +157,7 @@ contains
    return
   end function radiativeTransferConstructorParameters
 
-  function radiativeTransferConstructorInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,countPhotonsPerWavelength,countPhotonsPerWavelengthFinalIteration,countIterationsMinimum,countIterationsMaximum,outputGroupName,computationalDomain_,radiativeTransferPhotonPacket_,radiativeTransferSource_,radiativeTransferOutputter_,randomNumberGenerator_) result(self)
+  function radiativeTransferConstructorInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,countPhotonsPerWavelength,countPhotonsPerWavelengthFinalIteration,countIterationsMinimum,countIterationsMaximum,outputGroupName,computationalDomain_,radiativeTransferPhotonPacket_,radiativeTransferSource_,radiativeTransferOutputter_,radiativeTransferConvergence_,randomNumberGenerator_) result(self)
     !% Constructor for the {\normalfont \ttfamily radiativeTransfer} task class which takes a parameter set as input.
     use :: ISO_Varying_String, only : char
     use :: Numerical_Ranges  , only : Make_Range          , rangeTypeLogarithmic
@@ -164,13 +169,14 @@ contains
     double precision                                    , intent(in   )         :: wavelengthMinimum             , wavelengthMaximum
     type            (varying_string                    ), intent(in   )         :: outputGroupName
     class           (computationalDomainClass          ), intent(in   ), target :: computationalDomain_
+    class           (radiativeTransferConvergenceClass ), intent(in   ), target  :: radiativeTransferConvergence_
     class           (radiativeTransferPhotonPacketClass), intent(in   ), target :: radiativeTransferPhotonPacket_
     class           (radiativeTransferSourceClass      ), intent(in   ), target :: radiativeTransferSource_
     class           (radiativeTransferOutputterClass   ), intent(in   ), target :: radiativeTransferOutputter_
     class           (randomNumberGeneratorClass        ), intent(in   ), target :: randomNumberGenerator_
     integer                                                                     :: wavelengthCount
     double precision                                                            :: wavelengthFactor
-    !# <constructorAssign variables="wavelengthMinimum, wavelengthMaximum, wavelengthCountPerDecade, countPhotonsPerWavelength, countPhotonsPerWavelengthFinalIteration, countIterationsMinimum, countIterationsMaximum, outputGroupName, *computationalDomain_, *radiativeTransferPhotonPacket_, *radiativeTransferSource_, *radiativeTransferOutputter_, *randomNumberGenerator_"/>
+    !# <constructorAssign variables="wavelengthMinimum, wavelengthMaximum, wavelengthCountPerDecade, countPhotonsPerWavelength, countPhotonsPerWavelengthFinalIteration, countIterationsMinimum, countIterationsMaximum, outputGroupName, *computationalDomain_, *radiativeTransferPhotonPacket_, *radiativeTransferSource_, *radiativeTransferOutputter_, *radiativeTransferConvergence_, *randomNumberGenerator_"/>
 
     wavelengthCount =int(log10(wavelengthMaximum/wavelengthMinimum)*dble(wavelengthCountPerDecade)+1)
     wavelengthFactor=exp(log(wavelengthMaximum/wavelengthMinimum)/dble(wavelengthCount))
@@ -189,6 +195,7 @@ contains
     type(taskRadiativeTransfer), intent(inout) :: self
 
     !# <objectDestructor name="self%computationalDomain_"          />
+    !# <objectDestructor name="self%radiativeTransferConvergence_" />
     !# <objectDestructor name="self%radiativeTransferPhotonPacket_"/>
     !# <objectDestructor name="self%radiativeTransferSource_"      />
     !# <objectDestructor name="self%radiativeTransferOutputter_"   />
@@ -329,13 +336,14 @@ contains
              if (photonPacketAlive) then
                 ! Photon packet is still alive - it should have left the domain.
                 if (photonPacketInDomain) call Galacticus_Error_Report('photon packet propagation stopped while still in computational domain'//{introspection:location})
-                call self%radiativeTransferOutputter_%photonPacketEscapes(self%radiativeTransferPhotonPacket_)
+                call self%radiativeTransferOutputter_  %photonPacketEscapes(self%radiativeTransferPhotonPacket_)
+                call self%radiativeTransferConvergence_%photonPacketEscapes(self%radiativeTransferPhotonPacket_)
              end if
           end do photonPackets
        end do wavelengths
        call mpiBarrier()
        call timer_%stop()
-       if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('done ['//timer_%reportText()//']',verbosityStandard)       
+       if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('done ['//timer_%reportText()//']',verbosityStandard)
        ! Skip state solving and convergence on any final iteration.
        if (.not.finalIteration) then
           ! Solve for state of matter in the computational domain.

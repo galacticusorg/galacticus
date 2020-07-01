@@ -198,8 +198,8 @@ contains
 
   subroutine continuuaRatesPhotonPacketEscapes(self,photonPacket)
     !% Process an escaping photon packet.
-    use :: Atomic_Data                     , only : Atomic_Number, Atomic_Short_Label
-    use :: Numerical_Constants_Physical    , only : plancksConstant                   , speedLight
+    use :: Atomic_Data                     , only : Atomic_Number    , Atomic_Short_Label
+    use :: Numerical_Constants_Physical    , only : plancksConstant  , speedLight
     use :: Numerical_Constants_Units       , only : angstromsPerMeter
     use :: Numerical_Constants_Astronomical, only : luminositySolar
     implicit none

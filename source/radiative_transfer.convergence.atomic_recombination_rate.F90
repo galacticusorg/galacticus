@@ -26,7 +26,8 @@
      double precision :: toleranceRelative
      double precision :: recombinationRateTotal, recombinationRateTotalPrevious
    contains
-     procedure :: testConvergence => hydrogenRecombinationRateTestConvergence
+     procedure :: testConvergence     => hydrogenRecombinationRateTestConvergence
+     procedure :: photonPacketEscapes => hydrogenRecombinationRatePhotonPacketEscapes
   end type radiativeTransferConvergenceHydrogenRecombinationRate
   
   interface radiativeTransferConvergenceHydrogenRecombinationRate
@@ -115,3 +116,13 @@ contains
     end if
     return
   end subroutine hydrogenRecombinationRateTestConvergence
+
+  subroutine hydrogenRecombinationRatePhotonPacketEscapes(self,photonPacket)
+    !% Process an escaping photon packet.
+    implicit none
+    class(radiativeTransferConvergenceHydrogenRecombinationRate), intent(inout) :: self
+    class(radiativeTransferPhotonPacketClass                   ), intent(inout) :: photonPacket
+    !$GLC attributes unused :: self, photonPacket
+
+    return
+  end subroutine hydrogenRecombinationRatePhotonPacketEscapes
