@@ -44,9 +44,10 @@
      class           (gauntFactorClass                            ), pointer                   :: gauntFactor_                             => null()
      integer                                                                                   :: indexAbundancePattern                             , iterationAverageCount       , &
           &                                                                                       countElements                                     , indexHydrogen
-     integer         (c_size_t                                    )                            :: countOutputs_
+     integer         (c_size_t                                    )                            :: countOutputs_                                     , countStatesConvergence
      logical                                                                                   :: outputRates                                       , outputAbsorptionCoefficients
-     double precision                                                                          :: metallicity                                       , temperatureMinimum
+     double precision                                                                          :: metallicity                                       , temperatureMinimum          , &
+          &                                                                                       convergencePercentile
      double precision                                              , allocatable, dimension(:) :: numberDensityMassDensityRatio                     , elementAtomicMasses
      type            (varying_string                              )                            :: abundancePattern
      character       (len=2                                       ), allocatable, dimension(:) :: elements
@@ -141,7 +142,8 @@ contains
     class           (gauntFactorClass                            ), pointer                    :: gauntFactor_
     character       (len=2                                       ), dimension(:) , allocatable :: elements
     integer                                                                                    :: iterationAverageCount    
-    double precision                                                                           :: temperatureMinimum                      , metallicity
+    double precision                                                                           :: temperatureMinimum                      , metallicity                 , &
+         &                                                                                        convergencePercentile
     type            (varying_string                              )                             :: abundancePattern
     logical                                                                                    :: outputRates                             , outputAbsorptionCoefficients
     
@@ -206,6 +208,14 @@ contains
     !#   <source>parameters</source>
     !#   <type>boolean</type>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>convergencePercentile</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.90d0</defaultValue>
+    !#   <description>The percentile used in the convergence criterion.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
     !# <objectBuilder class="massDistribution"                        name="massDistribution_"                        source="parameters"/>
     !# <objectBuilder class="atomicCrossSectionIonizationPhoto"       name="atomicCrossSectionIonizationPhoto_"       source="parameters"/>
     !# <objectBuilder class="atomicRecombinationRateRadiative"        name="atomicRecombinationRateRadiative_"        source="parameters"/>
@@ -215,7 +225,7 @@ contains
     !# <objectBuilder class="atomicIonizationPotential"               name="atomicIonizationPotential_"               source="parameters"/>
     !# <objectBuilder class="atomicExcitationRateCollisional"         name="atomicExcitationRateCollisional_"         source="parameters"/>
     !# <objectBuilder class="gauntFactor"                             name="gauntFactor_"                             source="parameters"/>
-    self=radiativeTransferMatterAtomic(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,outputRates,outputAbsorptionCoefficients,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_)
+    self=radiativeTransferMatterAtomic(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,outputRates,outputAbsorptionCoefficients,convergencePercentile,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_)
     !# <objectDestructor name="massDistribution_"                       />
     !# <objectDestructor name="atomicCrossSectionIonizationPhoto_"      />
     !# <objectDestructor name="atomicRecombinationRateRadiative_"       />
@@ -228,7 +238,7 @@ contains
     return
   end function atomicConstructorParameters
 
-  function atomicConstructorInternal(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,outputRates,outputAbsorptionCoefficients,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_) result(self)
+  function atomicConstructorInternal(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,outputRates,outputAbsorptionCoefficients,convergencePercentile,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily atomic} radiative transfer matter class.
     use :: Abundances_Structure            , only : abundances              , metallicityTypeLinearByMassSolar, adjustElementsReset, Abundances_Index_From_Name
     use :: Atomic_Data                     , only : Abundance_Pattern_Lookup, Atomic_Abundance                , Atomic_Mass        , Atomic_Number
@@ -240,7 +250,8 @@ contains
     implicit none
     type            (radiativeTransferMatterAtomic               )                              :: self
     integer                                                       , intent(in   )               :: iterationAverageCount
-    double precision                                              , intent(in   )               :: temperatureMinimum                      , metallicity
+    double precision                                              , intent(in   )               :: temperatureMinimum                      , metallicity                 , &
+         &                                                                                         convergencePercentile
     type            (varying_string                              ), intent(in   )               :: abundancePattern
     logical                                                       , intent(in   )               :: outputRates                             , outputAbsorptionCoefficients
     character       (len=2                                       ), intent(in   ), dimension(:) :: elements
@@ -256,8 +267,8 @@ contains
     double precision                                              , allocatable  , dimension(:) :: abundancesRelative
     double precision                                                                            :: numberDensityMassDensityRatioHydrogen    , numberDensityMassDensityRatioHelium
     type            (abundances                                  )                              :: abundances_
-    integer                                                                                     :: i
-    !# <constructorAssign variables="abundancePattern, metallicity, elements, iterationAverageCount, temperatureMinimum, outputRates, outputAbsorptionCoefficients, *massDistribution_, *atomicCrossSectionIonizationPhoto_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiativeCooling_, *atomicIonizationRateCollisional_, *atomicRecombinationRateDielectronic_, *atomicIonizationPotential_, *atomicExcitationRateCollisional_, *gauntFactor_"/>
+    integer                                                                                     :: i                                        , countIonizationStates
+    !# <constructorAssign variables="abundancePattern, metallicity, elements, iterationAverageCount, temperatureMinimum, outputRates, outputAbsorptionCoefficients, convergencePercentile, *massDistribution_, *atomicCrossSectionIonizationPhoto_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiativeCooling_, *atomicIonizationRateCollisional_, *atomicRecombinationRateDielectronic_, *atomicIonizationPotential_, *atomicExcitationRateCollisional_, *gauntFactor_"/>
 
     ! Initialize count of outputs. (Just 1, for temperature.)
     self%countOutputs_=1_c_size_t
@@ -285,6 +296,7 @@ contains
          &                                *centi                                               **3
     allocate(abundancesRelative(abundances_%serializeCount()))
     call abundances_%serialize(abundancesRelative)
+    countIonizationStates=0
     do i=1,self%countElements
        self%elementAtomicNumbers(i)=Atomic_Number(shortLabel=trim(self%elements(i)))
        self%elementAtomicMasses (i)=Atomic_Mass  (shortLabel=trim(self%elements(i)))
@@ -303,7 +315,9 @@ contains
                &                                *Atomic_Mass                          (shortLabel='H'                                               ) &
                &                                /self%elementAtomicMasses             (                                                         i   )
        end select
+       countIonizationStates=countIonizationStates+self%elementAtomicNumbers(i)
     end do
+    self%countStatesConvergence=min(int(dble(countIonizationStates)*(1.0d0-convergencePercentile),c_size_t)+1_c_size_t,countIonizationStates)
     return
   end function atomicConstructorInternal
 
@@ -1175,34 +1189,53 @@ contains
   
   double precision function atomicConvergenceMeasure(self,properties)
     !% Return a convergence measure for the atomic matter.
+    use :: Arrays_Search   , only : searchArray
     use :: Disparity_Ratios, only : Disparity_Ratio
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class  (radiativeTransferMatterAtomic    ), intent(inout) :: self
-    class  (radiativeTransferPropertiesMatter), intent(inout) :: properties
-    integer                                                   :: i         , j
-    !$GLC attributes unused :: self
-
+    class           (radiativeTransferMatterAtomic    ), intent(inout)                          :: self
+    class           (radiativeTransferPropertiesMatter), intent(inout)                          :: properties
+    double precision                                   , dimension(self%countStatesConvergence) :: convergenceMeasures
+    integer                                                                                     :: i                  , j
+    integer         (c_size_t                         )                                         :: l                  , m
+    double precision                                                                            :: convergenceMeasure
+    
     select type (properties)
     type is (radiativeTransferPropertiesMatterAtomic)
-       atomicConvergenceMeasure=0.0d0
+       do l=1,self%countStatesConvergence
+          convergenceMeasures(l)=-dble(self%countStatesConvergence+1_c_size_t-l)
+       end do
        do i=1,self%countElements
           do j=0,self%elementAtomicNumbers(i)-1
              ! Only consider states with some significant population when computing convergence measure.
-             if     (                                                                                                                                                      &
-                  &   properties%elements(i)%ionizationStateFraction (j) > atomicIonizationStateFractionToleranceAbsolute                                                  &
-                  &  .and.                                                                                                                                                 &
-                  &   properties%elements(i)%photoHeatingRatePrevious(j) > 0.0d0                                                                                           &
-                  & )                                                                                                                                                      &
-                  & atomicConvergenceMeasure=max(                                                                                                                          &
-                  &                                 atomicConvergenceMeasure                                                                                             , &
-                  &                              max(                                                                                                                      &
-                  &                                  Disparity_Ratio(properties%elements(i)%photoIonizationRate(j),properties%elements(i)%photoIonizationRatePrevious(j)), & 
-                  &                                  Disparity_Ratio(properties%elements(i)%photoHeatingRate   (j),properties%elements(i)%photoHeatingRatePrevious   (j))  &
-                  &                                 )                                                                                                                      &
-                  &                             )
+             if     (                                                                                                     &
+                  &   properties%elements(i)%ionizationStateFraction (j) > atomicIonizationStateFractionToleranceAbsolute &
+                  &  .and.                                                                                                &
+                  &   properties%elements(i)%photoHeatingRatePrevious(j) > 0.0d0                                          &
+                  & ) then
+                convergenceMeasure=max(                                                                                                                      &
+                     &                 Disparity_Ratio(properties%elements(i)%photoIonizationRate(j),properties%elements(i)%photoIonizationRatePrevious(j)), & 
+                     &                 Disparity_Ratio(properties%elements(i)%photoHeatingRate   (j),properties%elements(i)%photoHeatingRatePrevious   (j))  &
+                     &                )
+                if (convergenceMeasure > convergenceMeasures(1)) then
+                   ! A new highest-k convergence measure has been found. Insert it into our list.
+                   if (convergenceMeasure > convergenceMeasures(self%countStatesConvergence)) then
+                      l=self%countStatesConvergence
+                   else
+                      l=searchArray(convergenceMeasures,convergenceMeasure)
+                   end if
+                   if (l > 1) then
+                      do m=1,l-1
+                         convergenceMeasures(m)=convergenceMeasures(m+1)
+                      end do
+                   end if
+                   convergenceMeasures(l)=convergenceMeasure
+                end if
+
+             end if
           end do
        end do
+       atomicConvergenceMeasure=max(convergenceMeasures(1),1.0d0)
        class default
        atomicConvergenceMeasure=0.0d0
        call Galacticus_Error_Report('incorrect class'//{introspection:location})
