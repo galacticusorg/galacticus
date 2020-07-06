@@ -252,8 +252,11 @@ contains
        tree%index=treeIndex
        ! Restart the random number sequence.
        allocate(tree%randomNumberGenerator_,mold=self%randomNumberGenerator_)
-       call self%randomNumberGenerator_%deepCopy(     tree%randomNumberGenerator_              )
-       call tree%randomNumberGenerator_%seedSet (seed=tree%index                 ,offset=.true.)
+       !$omp critical(mergerTreeConstructBuildDeepCopyReset)
+       !# <deepCopyReset variables="self%randomNumberGenerator_"/>
+       !# <deepCopy source="self%randomNumberGenerator_" destination="tree%randomNumberGenerator_"/>
+       !$omp end critical(mergerTreeConstructBuildDeepCopyReset)
+       call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
        ! Store the internal state.
        if (treeStateStoreSequence == -1_c_size_t) treeStateStoreSequence=treeNumber
        message=var_str('Storing state for tree #')//treeNumber
@@ -270,7 +273,7 @@ contains
        ! Assign a mass to it.
        call basicBase%massSet(self%treeMass(self%rankMass(treeIndex)))
        ! Assign a time.
-       call basicBase%timeSet(self%timeBase           )
+       call basicBase%timeSet(self%timeBase                          )
        ! Assign a weight to the tree, computing it if necessary.
        if (self%computeTreeWeights) then
           ! The weight is computed by finding the total mass in halos per unit volume within the mass range represented by this

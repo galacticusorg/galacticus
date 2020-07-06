@@ -180,8 +180,11 @@ contains
        call tree%properties%initialize()
        ! Restart the random number sequence.
        allocate(tree%randomNumberGenerator_,mold=self%randomNumberGenerator_)
-       call self%randomNumberGenerator_%deepCopy(     tree%randomNumberGenerator_              )
-       call tree%randomNumberGenerator_%seedSet (seed=tree%index                 ,offset=.true.)
+       !$omp critical(mergerTreeConstructFullySpecifiedDeepCopyReset)
+       !# <deepCopyReset variables="self%randomNumberGenerator_"/>
+       !# <deepCopy source="self%randomNumberGenerator_" destination="tree%randomNumberGenerator_"/>
+       !$omp end critical(mergerTreeConstructFullySpecifiedDeepCopyReset)
+        call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
        ! Begin writing report.
        call Galacticus_Display_Indent('Initial conditions of fully-specified tree',verbosityInfo)
        ! Iterate over nodes.

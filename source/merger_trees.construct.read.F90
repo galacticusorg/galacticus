@@ -1034,8 +1034,11 @@ contains
        ! Restart the random number sequence for this tree. We use the tree index modulo the largest number representable by
        ! the integer type.
        allocate(tree%randomNumberGenerator_,mold=self%randomNumberGenerator_)
-       call self%randomNumberGenerator_%deepCopy(     tree%randomNumberGenerator_              )
-       call tree%randomNumberGenerator_%seedSet (seed=tree%index                 ,offset=.true.)
+       !$omp critical(mergerTreeConstructReadDeepCopyReset)
+       !# <deepCopyReset variables="self%randomNumberGenerator_"/>
+       !# <deepCopy source="self%randomNumberGenerator_" destination="tree%randomNumberGenerator_"/>
+       !$omp end critical(mergerTreeConstructReadDeepCopyReset)
+       call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
        ! Store internal state.
        message='Storing state for tree #'
        message=message//treeStateStoreSequence
@@ -1808,8 +1811,11 @@ contains
                    if (.not.associated(treeCurrent%nextTree)) then
                       allocate(treeCurrent%nextTree)
                       allocate(treeCurrent%nextTree%randomNumberGenerator_,mold=self%randomNumberGenerator_)
-                      call self                %randomNumberGenerator_%deepCopy(     treeCurrent%nextTree%randomNumberGenerator_              )
-                      call treeCurrent%nextTree%randomNumberGenerator_%seedSet (seed=treeCurrent%nextTree%index                 ,offset=.true.)
+                      !$omp critical(mergerTreeConstructReadDeepCopyReset)
+                      !# <deepCopyReset variables="self%randomNumberGenerator_"/>
+                      !# <deepCopy source="self%randomNumberGenerator_" destination="treeCurrent%nextTree%randomNumberGenerator_"/>
+                      !$omp end critical(mergerTreeConstructReadDeepCopyReset)
+                      call treeCurrent%nextTree%randomNumberGenerator_%seedSet(seed=treeCurrent%nextTree%index,offset=.true.)
                    end if
                    treeCurrent => treeCurrent%nextTree
                 end do

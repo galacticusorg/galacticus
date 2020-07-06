@@ -160,8 +160,11 @@ contains
        call tree%properties%initialize()
        ! Restart the random number sequence.
        allocate(tree%randomNumberGenerator_,mold=self%randomNumberGenerator_)
-       call self%randomNumberGenerator_%deepCopy(     tree%randomNumberGenerator_              )
-       call tree%randomNumberGenerator_%seedSet (seed=tree%index                 ,offset=.true.)
+       !$omp critical(mergerTreeConstructSmoothAccretionDeepCopyReset)
+       !# <deepCopyReset variables="self%randomNumberGenerator_"/>
+       !# <deepCopy source="self%randomNumberGenerator_" destination="tree%randomNumberGenerator_"/>
+       !$omp end critical(mergerTreeConstructSmoothAccretionDeepCopyReset)
+       call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
        ! Assign a mass to the base node.
        call basicBase%massSet(self%massHalo)
        ! Find the cosmic time at which the tree is based.
