@@ -319,6 +319,7 @@ contains
     type            (lockDescriptor                                )                                  :: lockFileDescriptor
     class           (stellarPopulationSpectraClass                 ), pointer                         :: stellarPopulationSpectra_
     class           (stellarPopulationSpectraPostprocessorClass    ), pointer                         :: stellarPopulationSpectraPostprocessorPrevious_
+    type            (integrator                                    ), allocatable                     :: integrator_                                   , integratorAB_
     integer         (c_size_t                                      )                                  :: iAge                                          , iLuminosity                          , &
          &                                                                                               iMetallicity                                  , jLuminosity                          , &
          &                                                                                               populationID
@@ -327,7 +328,6 @@ contains
     logical                                                                                           :: computeTable                                  , calculateLuminosity                  , &
          &                                                                                               stellarPopulationHashedDescriptorComputed
     double precision                                                                                  :: toleranceRelative                             , normalization
-    type            (integrator                                    )                                  :: integrator_                                   , integratorAB_
     type            (varying_string                                )                                  :: message                                       , luminositiesFileName                 , &
          &                                                                                               descriptorString                              , stellarPopulationHashedDescriptor    , &
          &                                                                                               postprocessorHashedDescriptor
@@ -463,8 +463,6 @@ contains
                         &  size(luminosityIndex)
                    call Galacticus_Display_Indent (message,verbosityWorking)
                    call Galacticus_Display_Counter(0,.true.,verbosityWorking)
-                   ! Build an integrator for AB luminosity.
-                   integratorAB_=integrator(integrandFilteredLuminosityAB,toleranceRelative=self%integrationToleranceRelative)
                    ! Get wavelength extent of the filter.
                    wavelengthRange=Filter_Extent(filterIndex(iLuminosity))
                    ! Integrate over the wavelength range.
@@ -475,6 +473,7 @@ contains
                         &               *self%luminosityTables(populationID)%agesCount
                    loopCount           = 0
                    !$omp parallel private(iAge,iMetallicity,integrator_,toleranceRelative,errorStatus) copyin(standardFilterIndex,standardRedshift,standardPopulationID)
+                   allocate(integrator_)
                    integrator_=integrator(integrandFilteredLuminosity,toleranceRelative=self%integrationToleranceRelative,integrationRule=GSL_Integ_Gauss15,intervalsMaximum=10000_c_size_t)
                    allocate(standardStellarPopulationSpectra             ,mold=stellarPopulationSpectra_                                                                 )
                    allocate(standardStellarPopulationSpectraPostprocessor,mold=stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_)
@@ -530,6 +529,7 @@ contains
                       end do
                    end do
                    !$omp end do
+                   deallocate(integrator_)
                    !# <objectDestructor name="standardStellarPopulationSpectra"             />
                    !# <objectDestructor name="standardStellarPopulationSpectraPostprocessor"/>
                    !$omp end parallel
@@ -537,7 +537,10 @@ contains
                    call Galacticus_Display_Counter_Clear(           verbosityWorking)
                    call Galacticus_Display_Unindent     ('finished',verbosityWorking)
                    ! Get the normalization by integrating a zeroth magnitude (AB) source through the filter.
+                   allocate(integratorAB_)
+                   integratorAB_=integrator(integrandFilteredLuminosityAB,toleranceRelative=self%integrationToleranceRelative)
                    normalization=integratorAB_%integrate(wavelengthRange(1),wavelengthRange(2))
+                   deallocate(integratorAB_)
                    ! Normalize the luminosity.
                    self         %luminosityTables(populationID)%luminosity(luminosityIndex(iLuminosity),:,:) &
                         & =+self%luminosityTables(populationID)%luminosity(luminosityIndex(iLuminosity),:,:) &
@@ -551,6 +554,7 @@ contains
                       descriptor=inputParameters()
                       call stellarPopulation_%descriptor(descriptor,includeMethod=.true.)
                       descriptorString=descriptor%serializeToString()
+                      call descriptor%destroy()
                       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
                       call File_Lock(char(luminositiesFileName),lockFileDescriptor,lockIsShared=.false.)
                       !$ call hdf5Access%set()
