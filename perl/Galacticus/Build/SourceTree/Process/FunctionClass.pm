@@ -921,7 +921,7 @@ CODE
 					$assignments .= "!\$ call hdf5Access%unset()\n";
 				}
 				# Handle linked lists.
-				(my $linkedListCode, my $linkedListResetCode) = &deepCopyLinkedList($nonAbstractClass,$linkedListVariables,$linkedListResetVariables);
+				(my $linkedListCode, my $linkedListResetCode) = &deepCopyLinkedList($nonAbstractClass,$linkedListVariables,$linkedListResetVariables,$debugging);
 				$assignments       .= $linkedListCode;
 				$deepCopyResetCode .= $linkedListResetCode;
 				# Deep copy of non-(class,pointer) functionClass objects.
@@ -3441,6 +3441,7 @@ sub deepCopyLinkedList {
     my $nonAbstractClass         = shift();
     my $linkedListVariables      = shift();
     my $linkedListResetVariables = shift();
+    my $debugging                = shift();
     return ("","")
 	unless ( exists($nonAbstractClass->{'deepCopy'}->{'linkedList'}) );
     my $linkedList = $nonAbstractClass->{'deepCopy'}->{'linkedList'};
@@ -3472,6 +3473,7 @@ sub deepCopyLinkedList {
     $code::objectIntrinsic = exists($linkedList->{'objectIntrinsic'}) ? $linkedList->{'objectIntrinsic'} : "class";
     $code::next            =                                            $linkedList->{'next'           }          ;
     $code::location        = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'});
+    $code::debugCode       = $debugging ? "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".$code::objectType."] : ".$code::object." : ')//loc(itemNew_)//' : '//loc(itemNew_%".$code::object.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'},compact => 1).",verbositySilent)\n" : "";
     my $deepCopyCode = fill_in_string(<<'CODE', PACKAGE => 'code');
 destination%{$variable} => null            ()
 destination_            => null            ()
@@ -3496,11 +3498,12 @@ do while (associated(item_))
         end select
         call item_%{$object}%copiedSelf%referenceCountIncrement()
        else
-       allocate(itemNew_%{$object},mold=item_%{$object})
-       call item_%{$object}%deepCopy(itemNew_%{$object})
+        allocate(itemNew_%{$object},mold=item_%{$object})
+        call item_%{$object}%deepCopy(itemNew_%{$object})
         item_%{$object}%copiedSelf => itemNew_%{$object}
         call itemNew_%{$object}%autoHook()
        end if
+       {$debugCode}
       end if
    item_ => item_%{$next}
 end do
