@@ -157,7 +157,7 @@ module Numerical_Interpolation
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>locate</method>
-     !@     <description>Locate the position in the array corresponding to the given {\normalfonty \ttfamily x}.</description>
+     !@     <description>Locate the position in the array corresponding to the given {\normalfont \ttfamily x}.</description>
      !@     <type>\intzero</type>
      !@     <arguments>\doublezero\ x\argin</arguments>
      !@   </objectMethod>

@@ -57,7 +57,7 @@
   end type haloEnvironmentFixed
 
   interface haloEnvironmentFixed
-     !% Constructors for the {\fixedfont \ttfamily fixed} halo environment class.
+     !% Constructors for the {\normalfont \ttfamily fixed} halo environment class.
      module procedure fixedHEConstructorParameters
      module procedure fixedHEConstructorInternal
   end interface haloEnvironmentFixed
@@ -65,7 +65,7 @@
 contains
 
   function fixedHEConstructorParameters(parameters) result(self)
-    !% Constructor for the {\fixedfont \ttfamily fixed} halo environment class which takes a parameter set as input.
+    !% Constructor for the {\normalfont \ttfamily fixed} halo environment class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (haloEnvironmentFixed        )                :: self
@@ -111,7 +111,7 @@ contains
   end function fixedHEConstructorParameters
 
   function fixedHEConstructorInternal(cosmologyFunctions_,linearGrowth_,overdensity,radiusEnvironment,massEnvironment) result(self)
-    !% Internal constructor for the {\fixedfont \ttfamily fixed} halo mass function class.
+    !% Internal constructor for the {\normalfont \ttfamily fixed} halo mass function class.
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (haloEnvironmentFixed        )                         :: self
@@ -142,7 +142,7 @@ contains
   end function fixedHEConstructorInternal
 
   subroutine fixedHEDestructor(self)
-    !% Destructor for the {\fixedfont \ttfamily fixed} halo mass function class.
+    !% Destructor for the {\normalfont \ttfamily fixed} halo mass function class.
     implicit none
     type(haloEnvironmentFixed), intent(inout) :: self
 
@@ -153,7 +153,7 @@ contains
   end subroutine fixedHEDestructor
 
   double precision function fixedHEOverdensityLinear(self,node,presentDay)
-    !% Return the environment of the given {\fixedfont \ttfamily node}.
+    !% Return the environment of the given {\normalfont \ttfamily node}.
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (haloEnvironmentFixed              ), intent(inout)           :: self
@@ -172,7 +172,7 @@ contains
   end function fixedHEOverdensityLinear
 
   double precision function fixedHEOverdensityLinearGradientTime(self,node)
-    !% Return the time gradient of the environment of the given {\fixedfont \ttfamily node}.
+    !% Return the time gradient of the environment of the given {\normalfont \ttfamily node}.
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(haloEnvironmentFixed), intent(inout) :: self
@@ -189,7 +189,7 @@ contains
   end function fixedHEOverdensityLinearGradientTime
 
   double precision function fixedHEOverdensityNonLinear(self,node)
-    !% Return the environment of the given {\fixedfont \ttfamily node}.
+    !% Return the environment of the given {\normalfont \ttfamily node}.
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(haloEnvironmentFixed), intent(inout) :: self
