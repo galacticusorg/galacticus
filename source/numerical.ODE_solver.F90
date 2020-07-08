@@ -32,7 +32,7 @@
 !; gsl
 
 module Numerical_ODE_Solvers
-  !% Implements quasi-random sequences.
+  !% Implements an ODE solver class.
   use, intrinsic :: ISO_C_Binding         , only : c_ptr                      , c_funptr, c_size_t, c_int, &
        &                                           c_double
   use            :: Numerical_Integration2, only : integratorMultiVectorized1D
@@ -366,14 +366,14 @@ contains
     double precision                           , dimension(self%dim)           :: y0
     double precision            , intent(inout)                     , optional :: xStep
     integer                     , intent(  out)                     , optional :: status
-    integer                     , parameter                                    :: solversIncrement=3
+    integer                     , parameter                                    :: solversIncrement =3
     type            (solverList), allocatable  , dimension(:       )           :: solversTmp
     double precision            , allocatable  , dimension(:       )           :: z0
     integer                                                                    :: zCount
-    type            (c_funptr  )                                               :: latentIntegrator_, errorAnalyzer_, &
+    type            (c_funptr  )                                               :: latentIntegrator_  , errorAnalyzer_, &
          &                                                                        postStep_
-    double precision                                                           :: xStep_           , x             , &
-         &                                                                        x1_              , x0Step
+    double precision                                                           :: xStep_             , x             , &
+         &                                                                        x1_                , x0Step
     logical                                                                    :: evolveForward
     integer         (c_int     )                                               :: status_
 
