@@ -169,7 +169,7 @@ contains
     double precision                                    , intent(in   )         :: wavelengthMinimum             , wavelengthMaximum
     type            (varying_string                    ), intent(in   )         :: outputGroupName
     class           (computationalDomainClass          ), intent(in   ), target :: computationalDomain_
-    class           (radiativeTransferConvergenceClass ), intent(in   ), target  :: radiativeTransferConvergence_
+    class           (radiativeTransferConvergenceClass ), intent(in   ), target :: radiativeTransferConvergence_
     class           (radiativeTransferPhotonPacketClass), intent(in   ), target :: radiativeTransferPhotonPacket_
     class           (radiativeTransferSourceClass      ), intent(in   ), target :: radiativeTransferSource_
     class           (radiativeTransferOutputterClass   ), intent(in   ), target :: radiativeTransferOutputter_
