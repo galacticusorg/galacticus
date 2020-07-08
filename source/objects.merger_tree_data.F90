@@ -110,9 +110,9 @@ module Merger_Tree_Data_Structure
 
   type unitsMetaData
      !% A structure that holds metadata on units used.
-     double precision                 :: unitsInSI
-     integer                          :: hubbleExponent, scaleFactorExponent
-     type            (varying_string) :: name
+     double precision                              :: unitsInSI
+     integer                                       :: hubbleExponent, scaleFactorExponent
+     type            (varying_string), allocatable :: name
   end type unitsMetaData
 
   ! Metadata labels.
@@ -380,6 +380,7 @@ contains
     mergerTrees%hasNodeIndex                       =.false.
     mergerTrees%hasDescendentIndex                 =.false.
     mergerTrees%hasHostIndex                       =.false.
+    mergerTrees%hasDummyHostID                     =.false.    
     mergerTrees%hasRedshift                        =.false.
     mergerTrees%hasScaleFactor                     =.false.
     mergerTrees%hasNodeMass                        =.false.
@@ -540,6 +541,8 @@ contains
        if (mergerTrees%metaData(mergerTrees%metaDataCount)%dataType /= dataTypeNull) call Galacticus_Error_Report('only one data type can be specified'//{introspection:location})
        mergerTrees%metaData(mergerTrees%metaDataCount)%textAttribute   =textValue
        mergerTrees%metaData(mergerTrees%metaDataCount)%dataType        =dataTypeText
+    else
+       mergerTrees%metaData(mergerTrees%metaDataCount)%textAttribute   =""
     end if
     if (mergerTrees%metaData(mergerTrees%metaDataCount)%dataType == dataTypeNull) call Galacticus_Error_Report('no data was given'//{introspection:location})
     return
@@ -706,6 +709,7 @@ contains
     end if
 
     ! Store the name if given.
+    allocate(mergerTrees%units(unitType)%name)
     if (present(name)) then
        mergerTrees%units(unitType)%name=name
     else
@@ -1252,9 +1256,9 @@ contains
        mergerTrees%hasAngularMomentumY        =.true.
        mergerTrees%hasAngularMomentumZ        =.true.
     end if
-
+    
     ! If needed convert host IDs of self-hosting halos.
-    if (mergerTrees%hasDummyHostId) then
+    if (mergerTrees%hasHostIndex .and. mergerTrees%hasDummyHostId) then
        where (mergerTrees%hostIndex == mergerTrees%dummyHostId)
           mergerTrees%hostIndex=mergerTrees%nodeIndex
        end where
