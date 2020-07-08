@@ -205,14 +205,15 @@ contains
     class           (nodePropertyExtractorDensityContrasts), intent(inout)              :: self
     double precision                                       , intent(in   )              :: time
     integer                                                                             :: i
-    character       (len=32                               )                             :: name
+    character       (len=32                               )                             :: name                 , label
     !$GLC attributes unused :: time
 
     allocate(densityContrastsNames(self%elementCount_))
     do i=1,self%countDensityContrasts
-       write (name,'(a,f9.4  )') 'nodeRadius',self%densityContrasts(i)
+       write (label,'(f9.4)') self%densityContrasts(i)
+       write (name ,'(a,a)' ) 'nodeRadius',trim(adjustl(label))
        densityContrastsNames((i-1)*2+1)=trim(adjustl(name))
-       write (name,'(a,f9.4  )') 'nodeMass'  ,self%densityContrasts(i)
+       write (name ,'(a,a)' ) 'nodeMass'  ,trim(adjustl(label))
        densityContrastsNames((i-1)*2+2)=trim(adjustl(name))
     end do
     return
