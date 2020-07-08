@@ -508,6 +508,8 @@ contains
     character       (len=1024                 )                          :: metaDataText
 
     call Galacticus_Display_Indent('Begin task: merger tree file builder')
+    ! Initialize the data structure.
+    call mergerTrees%reset()
     ! Set columns to read.
     do i=1,size(self%properties)
        call mergerTrees%setPropertyColumn(self%properties(i)%property,self%properties(i)%column)
