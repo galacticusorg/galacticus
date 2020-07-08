@@ -192,14 +192,6 @@
       <name   value="mostBoundParticleIndex"  /> <!-- if tracing particles? -->
       <column value="19"                      />
     </property>
-    <property>
-      <name   value="velocityMaximum"         />
-      <column value="20"                      />
-    </property>
-    <property>
-      <name   value="velocityDispersion"      />
-      <column value="21"                      />
-    </property>
 
     <particleProperty>
       <name   value="particleIndex"          />
