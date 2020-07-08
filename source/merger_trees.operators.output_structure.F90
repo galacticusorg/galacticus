@@ -235,6 +235,16 @@ contains
        end do
        !$ call hdf5Access%unset()
        call treeGroup%close()
+       ! Free workspace.
+       deallocate(propertiesDouble   )
+       deallocate(propertiesInteger  )
+       deallocate(namesDouble        )
+       deallocate(namesInteger       )
+       deallocate(descriptionsDouble )
+       deallocate(descriptionsInteger)
+       deallocate(unitsInSIDouble    )
+       deallocate(unitsInSIInteger   )
+       ! Move to the next tree.
        treeCurrent => treeCurrent%nextTree
     end do
     return
