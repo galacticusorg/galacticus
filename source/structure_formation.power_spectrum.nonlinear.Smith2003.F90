@@ -166,9 +166,8 @@ contains
     ! Evaluate the quasi-linear power spectrum.
     if (self%includeQuasiLinearPower) then
        deltaLinearSquared      =+self%powerSpectrum_%powerDimensionless(wavenumber,time)
-       f                       =0.0d0
-       !+y   /4.0d0                                              &
-       !     &                   +y**2/8.0d0
+       f                       =+y   /4.0d0                                       &
+            &                   +y**2/8.0d0
        powerSpectrumQuasiLinear=+self%powerSpectrum_%power(wavenumber,time)       & ! Smith et al. (2003; eqn. 48).
             &                   *(1.0d0+           deltaLinearSquared)**self%beta &
             &                   /(1.0d0+self%alpha*deltaLinearSquared)            &
