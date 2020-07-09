@@ -44,6 +44,7 @@
      double precision                                                                :: wavelengthMinimum                       , wavelengthMaximum
      double precision                                    , allocatable, dimension(:) :: wavelengthsMinimum                      , wavelengthsMaximum                     , &
           &                                                                             wavelengths
+     logical                                                                         :: outputIterations
    contains
      final     ::            radiativeTransferDestructor
      procedure :: perform => radiativeTransferPerform
@@ -75,6 +76,7 @@ contains
          &                                                                 countIterationsMaximum        , countPhotonsPerWavelengthFinalIteration
     double precision                                                    :: wavelengthMinimum             , wavelengthMaximum
     type            (varying_string                    )                :: outputGroupName
+    logical                                                             :: outputIterations
 
     !# <inputParameter>
     !#   <name>wavelengthMinimum</name>
@@ -140,13 +142,21 @@ contains
     !#   <source>parameters</source>
     !#   <type>string</type>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>outputIterations</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true, output data for all iterations, not just the final iteration.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
     !# <objectBuilder class="computationalDomain"           name="computationalDomain_"           source="parameters"/>
     !# <objectBuilder class="radiativeTransferConvergence"  name="radiativeTransferConvergence_"  source="parameters"/>
     !# <objectBuilder class="radiativeTransferPhotonPacket" name="radiativeTransferPhotonPacket_" source="parameters"/>
     !# <objectBuilder class="radiativeTransferSource"       name="radiativeTransferSource_"       source="parameters"/>
     !# <objectBuilder class="radiativeTransferOutputter"    name="radiativeTransferOutputter_"    source="parameters"/>
     !# <objectBuilder class="randomNumberGenerator"         name="randomNumberGenerator_"         source="parameters"/>
-    self=taskRadiativeTransfer(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,countPhotonsPerWavelength,countPhotonsPerWavelengthFinalIteration,countIterationsMinimum,countIterationsMaximum,outputGroupName,computationalDomain_,radiativeTransferPhotonPacket_,radiativeTransferSource_,radiativeTransferOutputter_,radiativeTransferConvergence_,randomNumberGenerator_)
+    self=taskRadiativeTransfer(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,countPhotonsPerWavelength,countPhotonsPerWavelengthFinalIteration,countIterationsMinimum,countIterationsMaximum,outputGroupName,outputIterations,computationalDomain_,radiativeTransferPhotonPacket_,radiativeTransferSource_,radiativeTransferOutputter_,radiativeTransferConvergence_,randomNumberGenerator_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="computationalDomain_"          />
     !# <objectDestructor name="radiativeTransferConvergence_" />
@@ -157,7 +167,7 @@ contains
    return
   end function radiativeTransferConstructorParameters
 
-  function radiativeTransferConstructorInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,countPhotonsPerWavelength,countPhotonsPerWavelengthFinalIteration,countIterationsMinimum,countIterationsMaximum,outputGroupName,computationalDomain_,radiativeTransferPhotonPacket_,radiativeTransferSource_,radiativeTransferOutputter_,radiativeTransferConvergence_,randomNumberGenerator_) result(self)
+  function radiativeTransferConstructorInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,countPhotonsPerWavelength,countPhotonsPerWavelengthFinalIteration,countIterationsMinimum,countIterationsMaximum,outputGroupName,outputIterations,computationalDomain_,radiativeTransferPhotonPacket_,radiativeTransferSource_,radiativeTransferOutputter_,radiativeTransferConvergence_,randomNumberGenerator_) result(self)
     !% Constructor for the {\normalfont \ttfamily radiativeTransfer} task class which takes a parameter set as input.
     use :: ISO_Varying_String, only : char
     use :: Numerical_Ranges  , only : Make_Range          , rangeTypeLogarithmic
@@ -168,6 +178,7 @@ contains
          &                                                                         countIterationsMaximum        , countPhotonsPerWavelengthFinalIteration
     double precision                                    , intent(in   )         :: wavelengthMinimum             , wavelengthMaximum
     type            (varying_string                    ), intent(in   )         :: outputGroupName
+    logical                                             , intent(in   )         :: outputIterations
     class           (computationalDomainClass          ), intent(in   ), target :: computationalDomain_
     class           (radiativeTransferConvergenceClass ), intent(in   ), target :: radiativeTransferConvergence_
     class           (radiativeTransferPhotonPacketClass), intent(in   ), target :: radiativeTransferPhotonPacket_
@@ -176,7 +187,7 @@ contains
     class           (randomNumberGeneratorClass        ), intent(in   ), target :: randomNumberGenerator_
     integer                                                                     :: wavelengthCount
     double precision                                                            :: wavelengthFactor
-    !# <constructorAssign variables="wavelengthMinimum, wavelengthMaximum, wavelengthCountPerDecade, countPhotonsPerWavelength, countPhotonsPerWavelengthFinalIteration, countIterationsMinimum, countIterationsMaximum, outputGroupName, *computationalDomain_, *radiativeTransferPhotonPacket_, *radiativeTransferSource_, *radiativeTransferOutputter_, *radiativeTransferConvergence_, *randomNumberGenerator_"/>
+    !# <constructorAssign variables="wavelengthMinimum, wavelengthMaximum, wavelengthCountPerDecade, countPhotonsPerWavelength, countPhotonsPerWavelengthFinalIteration, countIterationsMinimum, countIterationsMaximum, outputGroupName, outputIterations, *computationalDomain_, *radiativeTransferPhotonPacket_, *radiativeTransferSource_, *radiativeTransferOutputter_, *radiativeTransferConvergence_, *randomNumberGenerator_"/>
 
     wavelengthCount =int(log10(wavelengthMaximum/wavelengthMinimum)*dble(wavelengthCountPerDecade)+1)
     wavelengthFactor=exp(log(wavelengthMaximum/wavelengthMinimum)/dble(wavelengthCount))
@@ -227,8 +238,8 @@ contains
     double precision                                                                         :: opticalDepthToInteraction, opticalDepthToCellBoundary, &
          &                                                                                      absorptionCoefficient    , lengthToCellBoundary      , &
          &                                                                                      lengthTraversed
-    type            (hdf5Object                               )                              :: outputGroup
-    character       (len=128                                  )                              :: message
+    type            (hdf5Object                               )                              :: outputGroup              , iterationOutputGroup
+    character       (len=128                                  )                              :: message                  , label
     type            (timer                                    )                              :: timer_                   , timerTotal_               , &
          &                                                                                      timerIteration_
 
@@ -371,8 +382,16 @@ contains
           call timerIteration_%stop()
           if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('done ['//timerIteration_%reportText()//']',verbosityStandard)
        end if
+       ! Output the computational domain.
+       if (mpiSelf%isMaster().and.self%outputIterations) then
+          write (label,'(i6)') countIterations
+          iterationOutputGroup=outputGroup%openGroup('iteration'//trim(adjustl(label)),'Data for iteration '//trim(adjustl(label)))
+          call self                %computationalDomain_%output        (iterationOutputGroup            )
+          call iterationOutputGroup                     %writeAttribute(converged           ,'converged')
+          call iterationOutputGroup                     %close         (                                )
+       end if
        ! If converged and we need to use a different number of photons in the final iteration, do that now.       
-       finalIteration=.not.finalIteration .and. converged .and. self%countPhotonsPerWavelengthFinalIteration /= self%countPhotonsPerWavelength
+       finalIteration=.not.finalIteration .and. countIterations >= self%countIterationsMinimum .and. converged .and. self%countPhotonsPerWavelengthFinalIteration /= self%countPhotonsPerWavelength
     end do iterations
     ! Output convergence status.
     if (mpiSelf%isMaster()) call outputGroup%writeAttribute(converged,'converged')
