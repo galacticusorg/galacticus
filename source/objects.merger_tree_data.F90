@@ -154,63 +154,63 @@ module Merger_Tree_Data_Structure
   type mergerTreeData
      !% A structure that holds raw merger tree data.
      private
-     integer                                                                 :: dummyHostId                        , nodeCount                        , &
-          &                                                                     particlesCount                     , forestCount
-     double precision                                                        :: particleMass               =0.0d0
-     integer                         , allocatable, dimension(:)             :: columnProperties                   , particleColumnProperties         , &
-          &                                                                     treeBeginsAt                       , treeNodeCount
-     integer         (kind=kind_int8), allocatable, dimension(:)             :: descendentIndex                    , hostIndex                        , &
-          &                                                                     mostBoundParticleIndex             , nodeIndex                        , &
-          &                                                                     particleIndex                      , forestID                         , &
-          &                                                                     forestIndex
-     integer         (c_size_t      ), allocatable, dimension(:)             :: particleCount                      , snapshot                         , &
-          &                                                                     particleReferenceCount             , particleReferenceStart           , &
-          &                                                                     particleSnapshot
-     double precision                , allocatable, dimension(:)             :: angularMomentumMagnitude           , halfMassRadius                   , &
-          &                                                                     nodeMass                           , particleRedshift                 , &
-          &                                                                     redshift                           , scaleFactor                      , &
-          &                                                                     scaleRadius                        , spinMagnitude                    , &
-          &                                                                     treeWeight                         , forestWeightNode                 , &
-          &                                                                     specificAngularMomentumMagnitude   , velocityMaximum                  , &
-          &                                                                     velocityDispersion                 , nodeMass200Mean                  , &
-          &                                                                     nodeMass200Crit
-     double precision                , allocatable, dimension(:,:)           :: angularMomentum                    , particlePosition                 , &
-          &                                                                     particleVelocity                   , position                         , &
-          &                                                                     spin                               , velocity                         , &
-          &                                                                     specificAngularMomentum
-     double precision                , dimension(propertyTypeMin:propertyTypeMax)          :: convertProperty            =1.0d0
-     logical                                                                 :: hasAngularMomentumMagnitude        , hasAngularMomentumX              , &
-          &                                                                     hasAngularMomentumY                , hasAngularMomentumZ              , &
-          &                                                                     hasSpecificAngularMomentumMagnitude, hasSpecificAngularMomentumX      , &
-          &                                                                     hasSpecificAngularMomentumY        , hasSpecificAngularMomentumZ      , &
-          &                                                                     hasDescendentIndex                 , hasDummyHostId                   , &
-          &                                                                     hasHalfMassRadius                                                     , &
-          &                                                                     hasHostIndex                       , hasMostBoundParticleIndex        , &
-          &                                                                     hasNodeIndex                       , hasNodeMass                      , &
-          &                                                                     hasNodeMass200Mean                 , hasNodeMass200Crit               , &
-          &                                                                     hasParticleCount                   , hasParticleIndex                 , &
-          &                                                                     hasParticlePositionX               , hasParticlePositionY             , &
-          &                                                                     hasParticlePositionZ               , hasParticleRedshift              , &
-          &                                                                     hasParticleSnapshot                , hasParticleVelocityX             , &
-          &                                                                     hasParticleVelocityY               , hasParticleVelocityZ             , &
-          &                                                                     hasParticles               =.false., hasPositionX                     , &
-          &                                                                     hasPositionY                       , hasPositionZ                     , &
-          &                                                                     hasRedshift                        , hasScaleFactor                   , &
-          &                                                                     hasScaleRadius                     , hasSnapshot                      , &
-          &                                                                     hasSpinMagnitude                   , hasSpinX                         , &
-          &                                                                     hasSpinY                           , hasSpinZ                         , &
-          &                                                                     hasForestIndex                     , hasVelocityX                     , &
-          &                                                                     hasVelocityY                       , hasVelocityZ                     , &
-          &                                                                     hasVelocityMaximum                 , hasVelocityDispersion            , &
-          &                                                                     hasForestWeight                                                       , &
-          &                                                                     hasBoxSize
-     logical                                                                 :: areSelfContained           =.true. , doMakeReferences         =.true. , &
-          &                                                                     includesHubbleFlow         =.false., includesSubhaloMasses    =.false., &
-          &                                                                     isPeriodic                 =.false.
-     type            (unitsMetaData )             , dimension(unitsMin:unitsMax) :: units
-     logical                                      , dimension(unitsMin:unitsMax) :: unitsSet                   =.false.
-     integer                                                                 :: metaDataCount              =0
-     type            (treeMetaData  ), allocatable, dimension(:)             :: metaData
+     integer                                                                                   :: dummyHostId                        , nodeCount                        , &
+          &                                                                                       particlesCount                     , forestCount
+     double precision                                                                          :: particleMass               =0.0d0
+     integer                         , allocatable, dimension(:                              ) :: columnProperties                   , particleColumnProperties         , &
+          &                                                                                       treeBeginsAt                       , treeNodeCount
+     integer         (kind=kind_int8), allocatable, dimension(:                              ) :: descendentIndex                    , hostIndex                        , &
+          &                                                                                       mostBoundParticleIndex             , nodeIndex                        , &
+          &                                                                                       particleIndex                      , forestID                         , &
+          &                                                                                       forestIndex
+     integer         (c_size_t      ), allocatable, dimension(:                              ) :: particleCount                      , snapshot                         , &
+          &                                                                                       particleReferenceCount             , particleReferenceStart           , &
+          &                                                                                       particleSnapshot
+     double precision                , allocatable, dimension(:                              ) :: angularMomentumMagnitude           , halfMassRadius                   , &
+          &                                                                                       nodeMass                           , particleRedshift                 , &
+          &                                                                                       redshift                           , scaleFactor                      , &
+          &                                                                                       scaleRadius                        , spinMagnitude                    , &
+          &                                                                                       treeWeight                         , forestWeightNode                 , &
+          &                                                                                       specificAngularMomentumMagnitude   , velocityMaximum                  , &
+          &                                                                                       velocityDispersion                 , nodeMass200Mean                  , &
+          &                                                                                       nodeMass200Crit
+     double precision                , allocatable, dimension(:,:                            ) :: angularMomentum                    , particlePosition                 , &
+          &                                                                                       particleVelocity                   , position                         , &
+          &                                                                                       spin                               , velocity                         , &
+          &                                                                                       specificAngularMomentum
+     double precision                             , dimension(propertyTypeMin:propertyTypeMax) :: convertProperty            =1.0d0
+     logical                                                                                   :: hasAngularMomentumMagnitude        , hasAngularMomentumX              , &
+          &                                                                                       hasAngularMomentumY                , hasAngularMomentumZ              , &
+          &                                                                                       hasSpecificAngularMomentumMagnitude, hasSpecificAngularMomentumX      , &
+          &                                                                                       hasSpecificAngularMomentumY        , hasSpecificAngularMomentumZ      , &
+          &                                                                                       hasDescendentIndex                 , hasDummyHostId                   , &
+          &                                                                                       hasHalfMassRadius                                                     , &
+          &                                                                                       hasHostIndex                       , hasMostBoundParticleIndex        , &
+          &                                                                                       hasNodeIndex                       , hasNodeMass                      , &
+          &                                                                                       hasNodeMass200Mean                 , hasNodeMass200Crit               , &
+          &                                                                                       hasParticleCount                   , hasParticleIndex                 , &
+          &                                                                                       hasParticlePositionX               , hasParticlePositionY             , &
+          &                                                                                       hasParticlePositionZ               , hasParticleRedshift              , &
+          &                                                                                       hasParticleSnapshot                , hasParticleVelocityX             , &
+          &                                                                                       hasParticleVelocityY               , hasParticleVelocityZ             , &
+          &                                                                                       hasParticles               =.false., hasPositionX                     , &
+          &                                                                                       hasPositionY                       , hasPositionZ                     , &
+          &                                                                                       hasRedshift                        , hasScaleFactor                   , &
+          &                                                                                       hasScaleRadius                     , hasSnapshot                      , &
+          &                                                                                       hasSpinMagnitude                   , hasSpinX                         , &
+          &                                                                                       hasSpinY                           , hasSpinZ                         , &
+          &                                                                                       hasForestIndex                     , hasVelocityX                     , &
+          &                                                                                       hasVelocityY                       , hasVelocityZ                     , &
+          &                                                                                       hasVelocityMaximum                 , hasVelocityDispersion            , &
+          &                                                                                       hasForestWeight                                                       , &
+          &                                                                                       hasBoxSize
+     logical                                                                                   :: areSelfContained           =.true. , doMakeReferences         =.true. , &
+          &                                                                                       includesHubbleFlow         =.false., includesSubhaloMasses    =.false., &
+          &                                                                                       isPeriodic                 =.false.
+     type            (unitsMetaData )             , dimension(unitsMin       :unitsMax       ) :: units
+     logical                                      , dimension(unitsMin       :unitsMax       ) :: unitsSet                   =.false.
+     integer                                                                                   :: metaDataCount              =0
+     type            (treeMetaData  ), allocatable, dimension(               :               ) :: metaData
    contains
      !@ <objectMethods>
      !@   <object>mergerTreeData</object>
@@ -371,7 +371,8 @@ contains
     !% Reset a merger tree data object.
     use :: Memory_Management, only : deallocateArray
     implicit none
-    class(mergerTreeData), intent(inout) :: mergerTrees
+    class  (mergerTreeData), intent(inout) :: mergerTrees
+    integer                                :: i
 
     ! No properties.
     mergerTrees%hasForestIndex                     =.false.
@@ -435,6 +436,9 @@ contains
     if (allocated(mergerTrees%scaleRadius           )) call deallocateArray(mergerTrees%scaleRadius           )
     if (allocated(mergerTrees%velocityMaximum       )) call deallocateArray(mergerTrees%velocityMaximum       )
     if (allocated(mergerTrees%velocityDispersion    )) call deallocateArray(mergerTrees%velocityDispersion    )
+    do i=unitsMin,unitsMax
+       if (allocated(mergerTrees%units(i)%name)) deallocate(mergerTrees%units(i)%name)
+    end do
     return
   end subroutine Merger_Tree_Data_Structure_Reset
 
