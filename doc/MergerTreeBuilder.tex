@@ -1,6 +1,6 @@
 \section{Merger Tree Builder}\label{sec:MergerTreeBuilder}\index{merger trees!building}
 
-\glc\ contains software which builds merger tree files in the format described in \S\ref{sec:MergerTreeFormatDescription} from merger tree descriptions in other formats, such as ASCII output from an SQL database. The merger tree building engine can be found in \hyperlink{objects.merger_tree_data.F90}{{\normalfont \ttfamily source/objects.merger\_tree\_data.F90}} and is utilized by the {\normalfont \ttfamily taskMergerTreeFileBuilder} task (see \S\ref{sec:methodsTask}). Examples of how this engine is used can be found in the {\normalfont \ttfamily scripts/aux/Millennium\_Trees\_Grab.pl} script to convert data extracted from the \href{http://www.g-vo.org/MyMillennium3/}{Millennium Simulation database} into a format that \glc\ can read.
+\glc\ contains software which builds merger tree files in the format described \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here} from merger tree descriptions in other formats, such as ASCII output from an SQL database. The merger tree building engine can be found in \hyperlink{objects.merger_tree_data.F90}{{\normalfont \ttfamily source/objects.merger\_tree\_data.F90}} and is utilized by the {\normalfont \ttfamily taskMergerTreeFileBuilder} task (see \S\ref{sec:methodsTask}). Examples of how this engine is used can be found in the {\normalfont \ttfamily scripts/aux/Millennium\_Trees\_Grab.pl} script to convert data extracted from the \href{http://www.g-vo.org/MyMillennium3/}{Millennium Simulation database} into a format that \glc\ can read.
 
 The basic process for building a merger tree file is to inform the engine of the data file to read and where specific information is located within that file. The data can then be processed and, finally, output in the required format. Specific interfaces that can be used are described below. Many of these interfaces work on an object {\normalfont \ttfamily mergerTrees} of {\normalfont \ttfamily mergerTreeData} type. This object stores all information on the merger trees while they are being internally processed.
 
@@ -129,7 +129,7 @@ where {\normalfont \ttfamily outputFile} is the name of the file to which the tr
 
 The merger tree file builder engine can currently export in one of two formats:
 \begin{description}
- \item [{\normalfont \ttfamily galacticus}] merger trees are exported in \glc's native format described in detail in \S\ref{sec:MergerTreeFormatDescription};
+ \item [{\normalfont \ttfamily galacticus}] merger trees are exported in \glc's native format described in detail \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here};
  \item [{\normalfont \ttfamily irate}] merger trees are exported in the \href{https://bitbucket.org/eteq/irate-format}{\normalfont \ttfamily IRATE} format.
 \end{description}
 
