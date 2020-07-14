@@ -33,25 +33,26 @@
   type, extends(radiativeTransferMatterClass) :: radiativeTransferMatterAtomic
      !% Implementation of a radiative transfer matter class for atomic matter.
      private
-     class           (massDistributionClass                       ), pointer                   :: massDistribution_                        => null()
-     class           (atomicCrossSectionIonizationPhotoClass      ), pointer                   :: atomicCrossSectionIonizationPhoto_       => null()
-     class           (atomicRecombinationRateRadiativeClass       ), pointer                   :: atomicRecombinationRateRadiative_        => null()
-     class           (atomicRecombinationRateRadiativeCoolingClass), pointer                   :: atomicRecombinationRateRadiativeCooling_ => null()
-     class           (atomicIonizationRateCollisionalClass        ), pointer                   :: atomicIonizationRateCollisional_         => null()
-     class           (atomicRecombinationRateDielectronicClass    ), pointer                   :: atomicRecombinationRateDielectronic_     => null()
-     class           (atomicIonizationPotentialClass              ), pointer                   :: atomicIonizationPotential_               => null()
-     class           (atomicExcitationRateCollisionalClass        ), pointer                   :: atomicExcitationRateCollisional_         => null()
-     class           (gauntFactorClass                            ), pointer                   :: gauntFactor_                             => null()
-     integer                                                                                   :: indexAbundancePattern                             , iterationAverageCount       , &
-          &                                                                                       countElements                                     , indexHydrogen
-     integer         (c_size_t                                    )                            :: countOutputs_                                     , countStatesConvergence
-     logical                                                                                   :: outputRates                                       , outputAbsorptionCoefficients
-     double precision                                                                          :: metallicity                                       , temperatureMinimum          , &
-          &                                                                                       convergencePercentile
-     double precision                                              , allocatable, dimension(:) :: numberDensityMassDensityRatio                     , elementAtomicMasses
-     type            (varying_string                              )                            :: abundancePattern
-     character       (len=2                                       ), allocatable, dimension(:) :: elements
-     integer                                                       , allocatable, dimension(:) :: elementAtomicNumbers
+     class           (massDistributionClass                       ), pointer                     :: massDistribution_                        => null()
+     class           (atomicCrossSectionIonizationPhotoClass      ), pointer                     :: atomicCrossSectionIonizationPhoto_       => null()
+     class           (atomicRecombinationRateRadiativeClass       ), pointer                     :: atomicRecombinationRateRadiative_        => null()
+     class           (atomicRecombinationRateRadiativeCoolingClass), pointer                     :: atomicRecombinationRateRadiativeCooling_ => null()
+     class           (atomicIonizationRateCollisionalClass        ), pointer                     :: atomicIonizationRateCollisional_         => null()
+     class           (atomicRecombinationRateDielectronicClass    ), pointer                     :: atomicRecombinationRateDielectronic_     => null()
+     class           (atomicIonizationPotentialClass              ), pointer                     :: atomicIonizationPotential_               => null()
+     class           (atomicExcitationRateCollisionalClass        ), pointer                     :: atomicExcitationRateCollisional_         => null()
+     class           (gauntFactorClass                            ), pointer                     :: gauntFactor_                             => null()
+     integer                                                                                     :: indexAbundancePattern                             , iterationAverageCount       , &
+          &                                                                                         countElements                                     , indexHydrogen
+     integer         (c_size_t                                    )                              :: countOutputs_                                     , countStatesConvergence
+     logical                                                                                     :: outputRates                                       , outputAbsorptionCoefficients
+     double precision                                                                            :: metallicity                                       , temperatureMinimum          , &
+          &                                                                                         convergencePercentile                             , wavelengthPrevious
+     double precision                                              , allocatable, dimension(:  ) :: numberDensityMassDensityRatio                     , elementAtomicMasses
+     type            (varying_string                              )                              :: abundancePattern
+     character       (len=2                                       ), allocatable, dimension(:  ) :: elements
+     integer                                                       , allocatable, dimension(:  ) :: elementAtomicNumbers
+     double precision                                              , allocatable, dimension(:,:) :: crossSectionPhotoIonizationPrevious
    contains
      !@ <objectMethods>
      !@   <object>radiativeTransferMatterAtomic</object>
@@ -66,6 +67,18 @@
      !@     <type>\doublezero</type>
      !@     <arguments>\intzero\ atomicNumber\argin, \intzero\ ionizationState\argin, \doublezero\ wavelength\argin, \textcolor{red}{\textless type(radiativeTransferPropertiesMatterAtomic)\textgreater} properties</arguments>
      !@     <description>Return the total rate of recombinations (in units of s$^{-1}$).</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>historyUpdate</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\textcolor{red}{\textless type(radiativeTransferPropertiesMatterAtomic)\textgreater} properties\arginout</arguments>
+     !@     <description>Update the ionization state hsitory in a properties object.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>crossSectionPhotoIonization</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\intzero\ elementIndex\argin, \intzero\ ionizationState\argin, \doublezero\ wavelength\argin</arguments>
+     !@     <description>Compute the total photoionization cross section for the given element and ionization state.</description>
      !@   </objectMethod>
      !@ </objectMethods>
      final     ::                                 atomicDestructor
@@ -82,6 +95,8 @@
      procedure :: countOutputs                 => atomicCountOutputs
      procedure :: outputName                   => atomicOutputName
      procedure :: recombinationRateHydrogen    => atomicRecombinationRateHydrogen
+     procedure :: historyUpdate                => atomicHistoryUpdate
+     procedure :: crossSectionPhotoIonization  => atomicCrossSectionPhotoionization
 #ifdef USEMPI
      procedure :: accumulationReduction        => atomicAccumulationReduction
      procedure :: broadcastDomain              => atomicBroadcastDomain
@@ -98,7 +113,8 @@
   type, public :: element
      !% Type used to store elemental states.
      double precision                              :: densityNumber
-     double precision, dimension(:,:), allocatable :: photoIonizationRateHistory , photoHeatingRateHistory
+     double precision, dimension(:,:), allocatable :: photoIonizationRateHistory , photoHeatingRateHistory , &
+          &                                           ionizationStateFractionHistory
      double precision, dimension(:  ), allocatable :: photoIonizationRate        , photoHeatingRate        , &
           &                                           photoIonizationRatePrevious, photoHeatingRatePrevious, &
           &                                           ionizationStateFraction
@@ -318,6 +334,10 @@ contains
        countIonizationStates=countIonizationStates+self%elementAtomicNumbers(i)
     end do
     self%countStatesConvergence=min(int(dble(countIonizationStates)*(1.0d0-convergencePercentile),c_size_t)+1_c_size_t,countIonizationStates)
+    ! Initialize photoionization cross section memoization.
+    allocate(self%crossSectionPhotoIonizationPrevious(self%countElements,0:maxval(self%elementAtomicNumbers)-1))
+    self%wavelengthPrevious                  =-1.0d0
+    self%crossSectionPhotoIonizationPrevious=-1.0d0
     return
   end function atomicConstructorInternal
 
@@ -374,6 +394,7 @@ contains
        do i=1,self%countElements
           allocate(properties%elements(i)%photoIonizationRateHistory(self%iterationAverageCount,0:self%elementAtomicNumbers(i)-1))
           allocate(properties%elements(i)%photoHeatingRateHistory   (self%iterationAverageCount,0:self%elementAtomicNumbers(i)-1))
+          allocate(properties%elements(i)%ionizationStateFractionHistory   (self%iterationAverageCount,0:self%elementAtomicNumbers(i)))
           allocate(properties%elements(i)%ionizationStateFraction   (                           0:self%elementAtomicNumbers(i)  ))
           allocate(properties%elements(i)%photoIonizationRate       (                           0:self%elementAtomicNumbers(i)-1))
           allocate(properties%elements(i)%photoHeatingRate          (                           0:self%elementAtomicNumbers(i)-1))
@@ -383,6 +404,7 @@ contains
           properties%elements(i)%photoHeatingRate             =-huge(0.0d0)
           properties%elements(i)%photoIonizationRateHistory   =-huge(0.0d0)
           properties%elements(i)%photoHeatingRateHistory      =-huge(0.0d0)
+          properties%elements(i)%ionizationStateFractionHistory      =-huge(0.0d0)
        end do
        ! Compute the number density of this atomic species.
        if (onProcess) then
@@ -473,24 +495,24 @@ contains
     return
   end function atomicAbsorptionCoefficient
 
-  double precision function atomicAbsorptionCoefficientSpecies(self,elementIndex,ionizationState,wavelength,properties)
-    !% Compute the absorption coefficient for the given species and wavelength.
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: Numerical_Constants_Astronomical, only : megaParsec
-    use :: Numerical_Constants_Prefixes    , only : centi
-    use :: Numerical_Constants_Units       , only : angstromsPerMeter
+  double precision function atomicCrossSectionPhotoionization(self,elementIndex,ionizationState,wavelength)
+    !% Compute the photoionization cross section for the given element and ionization state.
     implicit none
-    class           (radiativeTransferMatterAtomic    ), intent(inout) :: self
-    integer                                            , intent(in   ) :: elementIndex               , ionizationState
-    double precision                                   , intent(in   ) :: wavelength
-    class           (radiativeTransferPropertiesMatter), intent(inout) :: properties
-    integer                                                            :: k                          , n              , &
-         &                                                                l                          , m              , &
-         &                                                                countElectrons
-    double precision                                                   :: crossSectionPhotoIonization
+    implicit none
+    class           (radiativeTransferMatterAtomic), intent(inout) :: self
+    integer                                        , intent(in   ) :: elementIndex  , ionizationState
+    double precision                               , intent(in   ) :: wavelength
+    integer                                                        :: k             , n              , &
+         &                                                            l             , m              , &
+         &                                                            countElectrons
 
-    select type (properties)
-    type is (radiativeTransferPropertiesMatterAtomic)
+    ! Reset memoized values if the wavelength has changed.
+    if (wavelength /= self%wavelengthPrevious) then
+       self%wavelengthPrevious                 =wavelength
+       self%crossSectionPhotoIonizationPrevious=-1.0d0
+    end if
+    ! Use the memoized value if possible.
+    if (self%crossSectionPhotoIonizationPrevious(elementIndex,ionizationState) < 0.0d0) then
        ! Determine the maximum sub-shell occupied by electrons. Sub-shell number is 1s=1, 2s=2, 2p=3, 3s=4, etc.
        countElectrons=0
        n             =0
@@ -505,16 +527,42 @@ contains
              if (countElectrons >= self%elementAtomicNumbers(elementIndex)-ionizationState) exit
           end do
        end do
-       crossSectionPhotoIonization=0.0d0
+       self%crossSectionPhotoIonizationPrevious(elementIndex,ionizationState)=0.0d0
        do k=1,m
-          crossSectionPhotoIonization=+crossSectionPhotoIonization                                                                                        &
-               &                      +self%atomicCrossSectionIonizationPhoto_%crossSection(                                                              &
-               &                                                                            atomicNumber   =self%elementAtomicNumbers(elementIndex     ), &
-               &                                                                            ionizationState=                          ionizationState+1 , &
-               &                                                                            shellNumber    =                          k                 , &
-               &                                                                            wavelength     =     wavelength                               &
-               &                                                                           )
+          self%crossSectionPhotoIonizationPrevious(elementIndex,ionizationState)=+self%crossSectionPhotoIonizationPrevious             (                                                              &
+               &                                                                                                                                                                  elementIndex      , &
+               &                                                                                                                                                                  ionizationState     &
+               &                                                                                                                       )                                                              &
+               &                                                                 +self%atomicCrossSectionIonizationPhoto_ %crossSection(                                                              &
+               &                                                                                                                        atomicNumber   =self%elementAtomicNumbers(elementIndex     ), &
+               &                                                                                                                        ionizationState=                          ionizationState+1 , &
+               &                                                                                                                        shellNumber    =                          k                 , &
+               &                                                                                                                        wavelength     =     wavelength                               &
+               &                                                                                                                       )
        end do
+    end if
+    atomicCrossSectionPhotoionization=self%crossSectionPhotoIonizationPrevious(elementIndex,ionizationState)
+    return
+  end function atomicCrossSectionPhotoionization
+  
+  double precision function atomicAbsorptionCoefficientSpecies(self,elementIndex,ionizationState,wavelength,properties)
+    !% Compute the absorption coefficient for the given species and wavelength.
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Constants_Prefixes    , only : centi
+    use :: Numerical_Constants_Units       , only : angstromsPerMeter
+    implicit none
+    class           (radiativeTransferMatterAtomic    ), intent(inout) :: self
+    integer                                            , intent(in   ) :: elementIndex               , ionizationState
+    double precision                                   , intent(in   ) :: wavelength
+    class           (radiativeTransferPropertiesMatter), intent(inout) :: properties
+    double precision                                                   :: crossSectionPhotoIonization
+
+    select type (properties)
+    type is (radiativeTransferPropertiesMatterAtomic)
+       ! Get the photoionization cross section.
+       crossSectionPhotoIonization=self%crossSectionPhotoionization(elementIndex,ionizationState,wavelength)
+       ! Compute the absorption coefficient.
        atomicAbsorptionCoefficientSpecies=+crossSectionPhotoIonization                                                &
             &                             *properties%elements(elementIndex)%densityNumber                            &
             &                             *properties%elements(elementIndex)%ionizationStateFraction(ionizationState) &
@@ -541,10 +589,7 @@ contains
     double precision                                    , intent(in   ) :: absorptionCoefficient      , lengthTraversed
     double precision                                                    :: energyPhoton               , rateIonization             , &
          &                                                                 crossSectionPhotoIonization, atomicAbsorptionCoefficient
-    integer                                                             :: i                          , j                          , &
-         &                                                                 k                          , n                          , &
-         &                                                                 l                          , m                          , &
-         &                                                                 countElectrons
+    integer                                                             :: i                          , j
     !$GLC attributes unused :: absorptionCoefficient
 
     select type (properties)
@@ -557,30 +602,7 @@ contains
             &       /photonPacket     %wavelength()
        do i=1,self%countElements
           do j=0,self%elementAtomicNumbers(i)-1 ! j=0 is neutral atom; j=1 is first ionized state, etc.
-             ! Determine the maximum sub-shell occupied by electrons. Sub-shell number is 1s=1, 2s=2, 2p=3, 3s=4, etc.
-             countElectrons=0
-             n             =0
-             m             =0
-             do while (countElectrons < self%elementAtomicNumbers(i)-j)
-                n=n+1
-                l=-1
-                do while (l < n-1)
-                   l             =l             +1
-                   m             =m             +1
-                   countElectrons=countElectrons+4*l+2
-                   if (countElectrons >= self%elementAtomicNumbers(i)-j) exit
-                end do
-             end do
-             crossSectionPhotoIonization=0.0d0
-             do k=1,m
-                crossSectionPhotoIonization=+crossSectionPhotoIonization                                                                                  &
-                     &                      +self%atomicCrossSectionIonizationPhoto_%crossSection(                                                        &
-                     &                                                                            atomicNumber   =self        %elementAtomicNumbers(i  ), &
-                     &                                                                            ionizationState=                                  j+1 , &
-                     &                                                                            shellNumber    =                                  k   , &
-                     &                                                                            wavelength     =photonPacket%wavelength          (   )  &
-                     &                                                                           )
-             end do
+             crossSectionPhotoIonization                  =+self%crossSectionPhotoionization(i,j,photonPacket%wavelength())
              atomicAbsorptionCoefficient                  =+crossSectionPhotoIonization                                                                                                                       &
                   &                                        *properties                 %elements                  (i)%densityNumber                                                                           &
                   &                                        *properties                 %elements                  (i)%ionizationStateFraction(                                                          j)    &
@@ -1017,6 +1039,7 @@ contains
           if (countIteration > countIterationMaximum .and. .not.converged) then
              if (present(status)) then
                 status=errorStatusFail
+                call self%historyUpdate(properties)
 #ifdef RADTRANSDEBUG
                 call Signal(8,handlerPrevious)
 #endif
@@ -1077,6 +1100,7 @@ contains
           densityElectronsPrevious      (2)=               densityElectronsPrevious(1)
           densityElectronsPrevious      (1)=               atomicDensityNumberElectrons
        end do
+       call self%historyUpdate(properties)       
     class default
        call Galacticus_Error_Report('incorrect class'//{introspection:location})
     end select
@@ -1158,7 +1182,35 @@ contains
 #endif
 
   end subroutine atomicStateSolve
+  
+  subroutine atomicHistoryUpdate(self,properties)
+    !% Update the ionization state history in a properties object.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class  (radiativeTransferMatterAtomic    ), intent(inout) :: self
+    class  (radiativeTransferPropertiesMatter), intent(inout) :: properties
+    integer                                                   :: i         , j
 
+    select type (properties)
+    type is (radiativeTransferPropertiesMatterAtomic)
+       ! Append the ionization fractions to the history arrays, compute the average over those
+       ! histories, and replace the ionization fractions with those averages.
+       if (self%iterationAverageCount > 1) then
+          do i=1,self%countElements
+             properties%elements(i)%ionizationStateFractionHistory(2:self%iterationAverageCount,:)=properties%elements(i)%ionizationStateFractionHistory(1:self%iterationAverageCount-1,:)
+             properties%elements(i)%ionizationStateFractionHistory(1                           ,:)=properties%elements(i)%ionizationStateFraction       (                               :)
+             do j=0,self%elementAtomicNumbers(i)
+                properties%elements(i)%ionizationStateFraction(j)=+sum (properties%elements(i)%ionizationStateFractionHistory(1:min(properties%iterationCount,self%iterationAverageCount),j)) &
+                     &                                            /dble(                                                        min(properties%iterationCount,self%iterationAverageCount)   )
+             end do
+          end do
+       end if
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
+    return
+  end subroutine atomicHistoryUpdate
+  
 #ifdef USEMPI
   subroutine atomicBroadcastState(self,sendFromProcess,properties)
     !% Broadcast computational domain state to other MPI processes.
@@ -1180,7 +1232,7 @@ contains
           call mpiSelf%broadcastData(sendFromProcess,properties%elements(i)%ionizationStateFraction    )
        end do
        call    mpiSelf%broadcastData(sendFromProcess,properties            %temperature                )
-       class default
+    class default
        call Galacticus_Error_Report('incorrect class'//{introspection:location})
     end select
     return
