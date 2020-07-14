@@ -50,7 +50,7 @@ our %unitClosers = (
 
 # Specify regexs for intrinsic variable declarations.
 our %intrinsicDeclarations = (
-    integer       => { intrinsic => "integer"         , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)integer(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,%:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    integer       => { intrinsic => "integer"         , openmp => 0, type => 1, attributes => 3, variables => 4, regEx => qr/^\s*(!\$)??\s*(?i)integer(?-i)\s*(\(\s*([a-zA-Z0-9_=]+|kind\s*\(\s*[a-zA-Z0-9_]+\s*\))\s*\))*([\sa-zA-Z0-9_,%:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
     real          => { intrinsic => "real"            , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)real(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,%:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
     double        => { intrinsic => "double precision", openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)double\s+precision(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,%:=\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
     complex       => { intrinsic => "complex"         , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)complex(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,%:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
@@ -684,7 +684,7 @@ sub Unformat_Variables {
 	    $type                  =~ s/\s//g
 		if ( defined($type            ) );
 	    $attributesString      =~ s/^\s*,\s*//
-		if ( defined($attributesString) );
+		if ( defined($attributesString) );	    
 	    my @variables          =  &Extract_Variables($variablesString ,keepQualifiers => 1,removeSpaces => 1);
 	    my @attributes         =  &Extract_Variables($attributesString,keepQualifiers => 1,removeSpaces => 1);
 	    my $variableDefinition =
