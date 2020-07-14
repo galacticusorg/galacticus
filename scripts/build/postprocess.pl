@@ -36,6 +36,9 @@ my %ignoreOutlives;
 # Initialize a structure for unused variables.
 my $unusedVariables;
 
+# Initialize a structure for interoperable variables.
+my $interoperableVariables;
+
 # Open and read the file.
 my $lineNumber = 0;
 my $unitName;
@@ -88,6 +91,12 @@ while ( my $line = <$file> ) {
     if ( $line =~ m/^\s*!\$GLC\s+attributes\s+unused\s*::\s*([a-zA-Z0-9_,\s]+)\s*$/ ) {
 	(my $variables = $1) =~ s/\s*$//;
 	$unusedVariables->{$unitName}->{lc($_)} = 1
+	    foreach ( split(/\s*,\s*/,$variables) );
+    }
+    # Capture C-interoperable attributes.
+    if ( $line =~ m/^\s*!\$GLC\s+attributes\s+interoperable\s*::\s*([a-zA-Z0-9_,\s]+)\s*$/ ) {
+	(my $variables = $1) =~ s/\s*$//;
+	$interoperableVariables->{lc($unitName)}->{lc($_)} = 1
 	    foreach ( split(/\s*,\s*/,$variables) );
     }
 }
@@ -174,6 +183,13 @@ while ( my $line = <STDIN> ) {
 	my $variableName = $1;
 	$dropBuffer = 1
 	    if ( $procedureName eq "stdin" || exists($unusedVariables->{$procedureName}->{$variableName}) );
+    }
+    # Handle explicit C-interoperable dummy arguments.
+    if ( $line =~ m/^Warning: Variable '([a-zA-Z0-9_]+)' at \(\d+\) is a dummy argument of the BIND\(C\) procedure '([a-z_]+)' but may not be C interoperable \[\-Wc\-binding\-type\]/ && defined($procedureName) ) {
+	my $variableName = $1;
+	my $inProcedure  = $2;
+	$dropBuffer = 1
+	    if (  exists($interoperableVariables->{lc($inProcedure)}->{lc($variableName)}) );
     }
     # Handle uninitialized variable attributes.
     if ( $line =~ /Warning: '([a-zA-Z0-9_]+)[a-zA-Z0-9_\.\[\]]*' may be used uninitialized in this function \[\-Wmaybe\-uninitialized\]/ ) {
