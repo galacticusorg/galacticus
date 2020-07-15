@@ -32,25 +32,25 @@ program Test_Mass_Distributions
   use :: Tensors                 , only : assignment(=)
   use :: Unit_Tests              , only : Assert                        , Unit_Tests_Begin_Group         , Unit_Tests_End_Group             , Unit_Tests_Finish
   implicit none
-  class           (massDistributionClass         ), allocatable                 :: massDistribution_                                                                                            , massDistributionRotated
-  integer                                         , parameter                   :: sersicTableCount          =8
-  double precision                                , dimension(sersicTableCount) :: sersicTableRadius         =[1.0000d-06,1.0000d-5,1.0000d-4,1.0000d-3,1.0000d-2,1.0000d-1,1.0000d+0,1.0000d+1]
+  class           (massDistributionClass)                             , allocatable :: massDistribution_                                                                                            , massDistributionRotated
+  integer                                , parameter                                :: sersicTableCount          =8
+  double precision                       , dimension(sersicTableCount)              :: sersicTableRadius         =[1.0000d-06,1.0000d-5,1.0000d-4,1.0000d-3,1.0000d-2,1.0000d-1,1.0000d+0,1.0000d+1]
   ! Mass targets for Sersic profile from Mazure & Capelato (2001).
-  double precision                                , dimension(sersicTableCount) :: sersicTableMassTarget     =[1.4730d-11,2.1130d-9,2.5959d-7,2.4545d-5,1.4961d-3,4.4102d-2,4.1536d-1,9.4308d-1]
+  double precision                       , dimension(sersicTableCount)              :: sersicTableMassTarget     =[1.4730d-11,2.1130d-9,2.5959d-7,2.4545d-5,1.4961d-3,4.4102d-2,4.1536d-1,9.4308d-1]
   ! Density targets for Sersic profile from Mazure & Capelato (2001).
-  double precision                                , dimension(sersicTableCount) :: sersicTableDensityTarget  =[2.5553d+06,3.5797d+5,4.2189d+4,3.7044d+3,1.9679d+2,4.4047d+0,2.1943d-2,7.8166d-6]
+  double precision                       , dimension(sersicTableCount)              :: sersicTableDensityTarget  =[2.5553d+06,3.5797d+5,4.2189d+4,3.7044d+3,1.9679d+2,4.4047d+0,2.1943d-2,7.8166d-6]
   ! Potential targets for Sersic profile from Young (1976).
-  double precision                                , dimension(sersicTableCount) :: sersicTablePotentialTarget=[1.0000d+00,9.9993d-1,9.9908d-1,9.9027d-1,9.2671d-1,6.7129d-1,2.4945d-1,3.7383d-2]
-  double precision                                , dimension(sersicTableCount) :: sersicTableDensity                                                                                           , sersicTableMass               , &
-       &                                                                           sersicTablePotential
-  type            (coordinateSpherical           )                              :: position                                                                                                     , positionZero
-  integer                                                                       :: i
-  double precision                                                              :: radiusInProjection                                                                                           , radius                        , &
-       &                                                                           massFraction
-  character       (len=4                         )                              :: label
-  double precision                                , dimension(3,3)              :: tidalTensorComponents                                                                                        , tidalTensorSphericalComponents
-  double precision                                , dimension(3  )              :: acceleration
-  type            (vector                        ), dimension(3  )              :: axes
+  double precision                       , dimension(sersicTableCount)              :: sersicTablePotentialTarget=[1.0000d+00,9.9993d-1,9.9908d-1,9.9027d-1,9.2671d-1,6.7129d-1,2.4945d-1,3.7383d-2]
+  double precision                       , dimension(sersicTableCount)              :: sersicTableDensity                                                                                           , sersicTableMass               , &
+       &                                                                               sersicTablePotential
+  type            (coordinateSpherical  )                                           :: position                                                                                                     , positionZero
+  integer                                                                           :: i
+  double precision                                                                  :: radiusInProjection                                                                                           , radius                        , &
+       &                                                                               massFraction
+  character       (len=4                )                                           :: label
+  double precision                       , dimension(3,3)                           :: tidalTensorComponents                                                                                        , tidalTensorSphericalComponents
+  double precision                       , dimension(3  )                           :: acceleration
+  type            (vector               ), dimension(:  )             , allocatable :: axes
   
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
@@ -234,15 +234,19 @@ program Test_Mass_Distributions
      select type (massDistributionRotated)
      type is (massDistributionGaussianEllipsoid)
         ! Mass distribution aligned with the principle Cartesian axes.
-        axes(1)=[+1.0d0,+0.0d0,+0.0d0]
-        axes(2)=[+0.0d0,+1.0d0,+0.0d0]
-        axes(3)=[+0.0d0,+0.0d0,+1.0d0]
+        allocate(axes(3))
+        axes(1)=vector([+1.0d0,+0.0d0,+0.0d0])
+        axes(2)=vector([+0.0d0,+1.0d0,+0.0d0])
+        axes(3)=vector([+0.0d0,+0.0d0,+1.0d0])
         massDistribution_      =massDistributionGaussianEllipsoid(scaleLength=[1.0d0,0.5d0,1.0d0],axes=axes,dimensionless=.true.)
+        deallocate(axes)
         ! An identical mass distribution rotated by +π/2 around the z-axis.
-        axes(1)=[+0.0d0,-1.0d0,+0.0d0]
-        axes(2)=[+1.0d0,+0.0d0,+0.0d0]
-        axes(3)=[+0.0d0,+0.0d0,+1.0d0]
+        allocate(axes(3))
+        axes(1)=vector([+0.0d0,-1.0d0,+0.0d0])
+        axes(2)=vector([+1.0d0,+0.0d0,+0.0d0])
+        axes(3)=vector([+0.0d0,+0.0d0,+1.0d0])
         massDistributionRotated=massDistributionGaussianEllipsoid(scaleLength=[1.0d0,0.5d0,1.0d0],axes=axes,dimensionless=.true.)
+        deallocate(axes)
         ! Test that gravitational acceleration matches expectations for a point mass distribution at large radii.
         call Unit_Tests_Begin_Group("Acceleration approaches point mass solution at large radii")
         do i=1,2
@@ -286,10 +290,12 @@ program Test_Mass_Distributions
   allocate(massDistributionGaussianEllipsoid :: massDistribution_)
   select type (massDistribution_)
   type is (massDistributionGaussianEllipsoid)
-     axes(1)=[1.0d0,0.0d0,0.0d0]
-     axes(2)=[0.0d0,1.0d0,0.0d0]
-     axes(3)=[0.0d0,0.0d0,1.0d0]
+     allocate(axes(3))
+     axes(1)=vector([1.0d0,0.0d0,0.0d0])
+     axes(2)=vector([0.0d0,1.0d0,0.0d0])
+     axes(3)=vector([0.0d0,0.0d0,1.0d0])
      massDistribution_=massDistributionGaussianEllipsoid(scaleLength=[1.0d0,1.0d0,1.0d0],axes=axes,dimensionless=.true.)
+     deallocate(axes)
      ! Test that gravitational acceleration matches expectations for a Gaussian spheroid.
      call Unit_Tests_Begin_Group("Acceleration matches expectation for Gaussian spheroid")
      do i=1,2

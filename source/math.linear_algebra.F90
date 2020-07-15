@@ -21,23 +21,32 @@
 
 module Linear_Algebra
   !% Implements linear algebra calculations.
-  use :: FGSL, only : FGSL_Eigen_SymmV          , FGSL_Eigen_SymmV_Alloc, FGSL_Eigen_Symmv_Free, FGSL_LinAlg_Cholesky_Decomp, &
-          &           FGSL_LinAlg_LU_Decomp     , FGSL_LinAlg_LU_Det    , FGSL_LinAlg_LU_Invert, FGSL_LinAlg_LU_Solve       , &
-          &           FGSL_LinAlg_LU_lnDet      , FGSL_Matrix_Align     , FGSL_Matrix_Free     , FGSL_Permutation_Alloc     , &
-          &           FGSL_Permutation_Free     , FGSL_Vector_Align     , FGSL_Vector_Free     , FGSL_Vector_Init           , &
-          &           fgsl_eigen_symmv_workspace, fgsl_matrix           , fgsl_matrix_init     , fgsl_permutation           , &
-          &           fgsl_vector
+  use, intrinsic :: ISO_C_Binding, only : c_ptr, c_double, c_size_t, c_int
   implicit none
   private
-  public :: assignment(=), operator(*), matrixRotation, matrixRotationPlusTranslation
+  public :: vector       , matrix     , matrixRotation, matrixRotationPlusTranslation, &
+       &    assignment(=), operator(*)
 
   type, public :: vector
      !% Vector class.
      private
-     double precision, dimension(:), allocatable :: elements
+     type   (c_ptr   ), allocatable :: vector_
+     integer(c_size_t)              :: size_
    contains
      !@ <objectMethods>
      !@   <object>vector</object>
+     !@   <objectMethod>
+     !@     <method>magnitude</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@     <description>Compute the magnitude of a vector.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>dotProduct</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\textcolor{red}{\textless class(vector)\textgreater} vector1\argin, \textcolor{red}{\textless class(vector)\textgreater} vector2\argin</arguments>
+     !@     <description>Compute {\normalfont \ttfamily vector1} $\cdot$ {\normalfont \ttfamily vector2}.</description>
+     !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>subtract</method>
      !@     <type>\textcolor{red}{\textless type(vector)\textgreater}</type>
@@ -56,43 +65,40 @@ module Linear_Algebra
      !@     <arguments>\textcolor{red}{\textless class(vector)\textgreater} vector1\argin, \textcolor{red}{\textless class(vector)\textgreater} vector2\argin</arguments>
      !@     <description>Compute {\normalfont \ttfamily vector1} $\times$ {\normalfont \ttfamily vector2}.</description>
      !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>dotProduct</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless class(vector)\textgreater} vector1\argin, \textcolor{red}{\textless class(vector)\textgreater} vector2\argin</arguments>
-     !@     <description>Compute {\normalfont \ttfamily vector1} $\cdot$ {\normalfont \ttfamily vector2}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>magnitude</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@     <description>Compute the magnitude of a vector.</description>
-     !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                      vectorDestroy
-     procedure :: subtract          => vectorSubtract
-     procedure :: add               => vectorAdd
-     procedure :: crossProduct      => vectorCrossProduct
-     procedure :: dotProduct        => vectorDotProduct
-     procedure :: magnitude         => vectorMagnitude
-     generic   :: operator(-)       => subtract
-     generic   :: operator(+)       => add
-     generic   :: operator(.cross.) => crossProduct
-     generic   :: operator(.dot.  ) => dotProduct
+     final     ::                        vectorDestructorRank0, vectorDestructorRank1
+     procedure :: magnitude           => vectorMagnitude
+     procedure ::                        vectorDotProduct
+     generic   :: operator  (.dot.  ) => vectorDotProduct
+     procedure ::                        vectorSubtract
+     generic   :: operator  (-      ) => vectorSubtract
+     procedure ::                        vectorAdd
+     generic   :: operator  (+      ) => vectorAdd
+     procedure ::                        vectorCrossProduct
+     generic   :: operator  (.cross.) => vectorCrossProduct
   end type vector
 
+  interface vector
+     !% Interface to vector constructors.
+     module procedure vectorConstructor
+     module procedure vectorZeroConstructor
+     module procedure vectorCopyConstructor
+  end interface vector
+  
   type, public :: matrix
      !% Matrix class.
      private
-     double precision, dimension(:,:), allocatable :: elements
+     type   (c_ptr   ), allocatable  :: matrix_
+     integer(c_size_t), dimension(2) :: size_
+     logical                         :: isSquare
    contains
      !@ <objectMethods>
      !@   <object>matrix</object>
      !@   <objectMethod>
-     !@     <method>invert</method>
-     !@     <type>\textcolor{red}{\textless type(matrix) \textgreater}</type>
+     !@     <method>determinant</method>
+     !@     <type>\doublezero</type>
      !@     <arguments></arguments>
-     !@     <description>Compute and return the matrix inverse.</description>
+     !@     <description>Compute and return the determinant of the matrix.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>logarithmicDeterminant</method>
@@ -101,16 +107,10 @@ module Linear_Algebra
      !@     <description>Compute and return the logarithm of the determinant of the matrix.</description>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>determinant</method>
-     !@     <type>\doublezero</type>
+     !@     <method>invert</method>
+     !@     <type>\textcolor{red}{\textless type(matrix) \textgreater}</type>
      !@     <arguments></arguments>
-     !@     <description>Compute and return the determinant of the matrix.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>linearSystemSolve</method>
-     !@     <type>\textcolor{red}{\textless type(vector)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless type(vector) y\argin \textgreater}</arguments>
-     !@     <description>Solve the linear system $y = A \cdot x$ where $A$ is ourself and $y$ is the specified vector.</description>
+     !@     <description>Compute and return the matrix inverse.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>transpose</method>
@@ -119,10 +119,16 @@ module Linear_Algebra
      !@     <description>Return the transpose of a matrix.</description>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>makeSemiPositiveDefinite</method>
-     !@     <type>\textcolor{red}{\textless type(matrix)\textgreater}</type>
-     !@     <arguments></arguments>
-     !@     <description>Make a matrix semi-positive definite by setting any negative eigenvalues to zero.</description>
+     !@     <method>covarianceProduct</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(vector)\textgreater} y\argin</arguments>
+     !@     <description>Compute $y C^{-1} y^\mathrm{T}$ as appears in likelihood functions utilizing covariance matrices.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>linearSystemSolve</method>
+     !@     <type>\textcolor{red}{\textless type(vector)\textgreater}</type>
+     !@     <arguments>\textcolor{red}{\textless type(vector) y\argin \textgreater}</arguments>
+     !@     <description>Solve the linear system $y = A \cdot x$ where $A$ is ourself and $y$ is the specified vector.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>eigenSystem</method>
@@ -131,136 +137,420 @@ module Linear_Algebra
      !@     <description>Compute eigenvectors and eigenvalues of the matrix.</description>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>symmetrize</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Make the matrix symmetric using $A_{ij} \rightarrow (A_{ij}+A_{ji})/2$.</description>
-     !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>choleskyDecompose</method>
+     !@     <method>choleskyDecomposition</method>
      !@     <type>\void</type>
      !@     <arguments></arguments>
      !@     <description>Compute the Cholesky decomposition of the matrix in place.</description>
      !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>covarianceProduct</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(vector)\textgreater} y\argin</arguments>
-     !@     <description>Compute $y C^{-1} y^\mathrm{T}$ as appears in likelihood functions utilizing covariance matrices.</description>
-     !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                             matrixDestroy
-     procedure :: invert                   => matrixInvert
-     procedure :: logarithmicDeterminant   => matrixLogarithmicDeterminant
-     procedure :: determinant              => matrixDeterminant
-     procedure :: linearSystemSolve        => matrixLinearSystemSolve
-     procedure :: transpose                => matrixTranspose
-     procedure :: eigenSystem              => matrixEigensystem
-     procedure :: symmetrize               => matrixSymmetrize
-     procedure :: makeSemiPositiveDefinite => matrixMakeSemiPositiveDefinite
-     procedure :: choleskyDecompose        => matrixCholeskyDecompose
-     procedure :: covarianceProduct        => matrixCovarianceProduct
+     final     ::                           matrixDestructorRank0       , matrixDestructorRank1
+     procedure ::                           matrixMatrixProduct
+     generic   :: operator(*)            => matrixMatrixProduct
+     procedure :: determinant            => matrixDeterminant
+     procedure :: logarithmicDeterminant => matrixLogarithmicDeterminant
+     procedure :: transpose              => matrixTranspose
+     procedure :: inverse                => matrixInverse
+     procedure :: linearSystemSolve      => matrixLinearSystemSolve
+     procedure :: covarianceProduct      => matrixCovarianceProduct
+     procedure :: eigenSystem            => matrixEigenSystem
+     procedure :: choleskyDecomposition  => matrixCholeskyDecomposition
   end type matrix
 
+  interface matrix
+     !% Interface to matrix constructors.
+     module procedure matrixConstructor
+     module procedure matrixZeroConstructor
+     module procedure matrixCopyConstructor
+  end interface matrix
+  
   ! Assignment interfaces.
   interface assignment(=)
-     module procedure arrayToVectorAssign
-     module procedure vectorToArrayAssign
-     module procedure vectorToVectorAssign
-     module procedure arrayToMatrixAssign
-     module procedure matrixToArrayAssign
+     module procedure vectorAssignmentConstructor
+     module procedure vectorUnassignment
+     module procedure matrixAssignmentConstructor
+     module procedure matrixUnassignment
   end interface assignment(=)
 
   ! Operator interfaces.
   interface operator(*)
-     module procedure vectorVectorMultiply
      module procedure matrixVectorMultiply
-     module procedure matrixMatrixMultiply
   end interface operator(*)
+  
+  interface
+     function gsl_vector_alloc(n) bind(c,name='gsl_vector_alloc')
+       !% Template for the GSL vector alloc function.
+       import c_ptr, c_size_t
+       type   (c_ptr   )        :: gsl_vector_alloc
+       integer(c_size_t), value :: n
+     end function gsl_vector_alloc
 
+     subroutine gsl_vector_free(v) bind(c,name='gsl_vector_free')
+       !% Template for the GSL vector free function.
+       import c_ptr, c_size_t
+       type(c_ptr), value :: v
+     end subroutine gsl_vector_free
+
+     subroutine gsl_vector_set(v,i,x) bind(c,name='gsl_vector_set')
+       !% Template for the GSL vector set function.
+       import c_ptr, c_size_t, c_double
+       type   (c_ptr   ), value :: v
+       integer(c_size_t), value :: i
+       real   (c_double), value :: x
+     end subroutine gsl_vector_set
+
+     subroutine gsl_vector_set_zero(v) bind(c,name='gsl_vector_set_zero')
+       !% Template for the GSL vector set zero function.
+       import c_ptr
+       type(c_ptr), value :: v
+     end subroutine gsl_vector_set_zero
+
+     function gsl_vector_get(v,i) bind(c,name='gsl_vector_get')
+       !% Template for the GSL vector set function.
+       import c_ptr, c_size_t, c_double
+       real   (c_double)        :: gsl_vector_get
+       type   (c_ptr   ), value :: v
+       integer(c_size_t), value :: i
+     end function gsl_vector_get
+     
+     function gsl_vector_memcpy(dest,src) bind(c,name='gsl_vector_memcpy')
+       !% Template for the GSL vector copy function.
+       import c_ptr, c_int
+       integer(c_int)        :: gsl_vector_memcpy
+       type   (c_ptr), value :: dest, src
+     end function gsl_vector_memcpy
+
+     function gsl_vector_add(a,b) bind(c,name='gsl_vector_add')
+       !% Template for the GSL vector addition function.
+       import c_ptr, c_int
+       integer(c_int)        :: gsl_vector_add
+       type   (c_ptr), value :: a             , b
+     end function gsl_vector_add
+
+     function gsl_vector_sub(a,b) bind(c,name='gsl_vector_sub')
+       !% Template for the GSL vector subtract function.
+       import c_ptr, c_int
+       integer(c_int)        :: gsl_vector_sub
+       type   (c_ptr), value :: a             , b
+     end function gsl_vector_sub
+
+     function gsl_matrix_alloc(n1,n2) bind(c,name='gsl_matrix_alloc')
+       !% Template for the GSL matrix alloc function.
+       import c_ptr, c_size_t
+       type   (c_ptr   )        :: gsl_matrix_alloc
+       integer(c_size_t), value :: n1              , n2
+     end function gsl_matrix_alloc
+
+     subroutine gsl_matrix_free(m) bind(c,name='gsl_matrix_free')
+       !% Template for the GSL matrix free function.
+       import c_ptr, c_size_t
+       type(c_ptr), value :: m
+     end subroutine gsl_matrix_free
+
+     subroutine gsl_matrix_set(m,i,j,x) bind(c,name='gsl_matrix_set')
+       !% Template for the GSL matrix set function.
+       import c_ptr, c_size_t, c_double
+       type   (c_ptr   ), value :: m
+       integer(c_size_t), value :: i, j
+       real   (c_double), value :: x
+     end subroutine gsl_matrix_set
+     
+     subroutine gsl_matrix_set_zero(m) bind(c,name='gsl_matrix_set_zero')
+       !% Template for the GSL matrix set zero function.
+       import c_ptr
+       type(c_ptr), value :: m
+     end subroutine gsl_matrix_set_zero
+
+     function gsl_matrix_get(m,i,j) bind(c,name='gsl_matrix_get')
+       !% Template for the GSL matrix set function.
+       import c_ptr, c_size_t, c_double
+       real   (c_double)        :: gsl_matrix_get
+       type   (c_ptr   ), value :: m
+       integer(c_size_t), value :: i             , j
+     end function gsl_matrix_get
+     
+     function gsl_matrix_memcpy(dest,src) bind(c,name='gsl_matrix_memcpy')
+       !% Template for the GSL matrix copy function.
+       import c_ptr, c_int
+       integer(c_int)        :: gsl_matrix_memcpy
+       type   (c_ptr), value :: dest, src
+     end function gsl_matrix_memcpy
+
+     function gsl_matrix_transpose_memcpy(dest,src) bind(c,name='gsl_matrix_transpose_memcpy')
+       !% Template for the GSL matrix transpose function.
+       import c_ptr, c_int
+       integer(c_int)        :: gsl_matrix_transpose_memcpy
+       type   (c_ptr), value :: dest, src
+     end function gsl_matrix_transpose_memcpy
+
+     function gsl_permutation_alloc(n) bind(c,name='gsl_permutation_alloc')
+       !% Template for the GSL permutation alloc function.
+       import c_ptr, c_size_t
+       type   (c_ptr   )        :: gsl_permutation_alloc
+       integer(c_size_t), value :: n
+     end function gsl_permutation_alloc
+
+     subroutine gsl_permutation_free(p) bind(c,name='gsl_permutation_free')
+       !% Template for the GSL permutation free function.
+       import c_ptr, c_size_t
+       type(c_ptr), value :: p
+     end subroutine gsl_permutation_free
+
+     function gsl_linalg_LU_decomp(A,p,signum) bind(c,name='gsl_linalg_LU_decomp')
+       !% Template for the GSL LU decomposition function.
+       import c_ptr, c_int
+       integer(c_int)        :: gsl_linalg_LU_decomp
+       type   (c_ptr), value :: A                   , p
+       integer(c_int)        :: signum
+     end function gsl_linalg_LU_decomp
+
+     function gsl_linalg_LU_solve(LU,p,b,x) bind(c,name='gsl_linalg_LU_solve')
+       !% Template for the GSL LU decomposition function.
+       import c_ptr, c_int
+       integer(c_int)        :: gsl_linalg_LU_solve
+       type   (c_ptr), value :: LU                 , p, &
+            &                   b                  , x
+     end function gsl_linalg_LU_solve
+
+     function gsl_linalg_LU_det(LU,signum) bind(c,name='gsl_linalg_LU_det')
+       !% Template for the GSL LU determinant function.
+       import c_ptr, c_double, c_int
+       real   (c_double)        :: gsl_linalg_LU_det
+       type   (c_ptr   ), value :: LU
+       integer(c_int   ), value :: signum
+     end function gsl_linalg_LU_det
+
+     function gsl_linalg_LU_invert(LU,p,inverse) bind(c,name='gsl_linalg_LU_invert')
+       !% Template for the GSL LU invert function.
+       import c_ptr, c_int
+       integer(c_int)        :: gsl_linalg_LU_invert
+       type   (c_ptr), value :: LU                  , p, &
+            &                   inverse
+     end function gsl_linalg_LU_invert
+
+     function gsl_linalg_LU_lndet(LU) bind(c,name='gsl_linalg_LU_lndet')
+       !% Template for the GSL LU logarithmic determinant function.
+       import c_ptr, c_double
+       real(c_double)        :: gsl_linalg_LU_lndet
+       type(c_ptr   ), value :: LU
+     end function gsl_linalg_LU_lndet
+
+     function gsl_linalg_cholesky_decomp(A) bind(c,name='gsl_linalg_cholesky_decomp')
+       !% Template for the GSL Cholesky decomposition function.
+       import c_ptr, c_int
+       integer(c_int)        :: gsl_linalg_cholesky_decomp
+       type   (c_ptr), value :: A
+     end function gsl_linalg_cholesky_decomp
+
+     function gsl_eigen_symmv_alloc(n) bind(c,name='gsl_eigen_symmv_alloc')
+       !% Template for the GSL symmetric eigenvalues workspace alloc function.
+       import c_ptr, c_size_t
+       type   (c_ptr   )        :: gsl_eigen_symmv_alloc
+       integer(c_size_t), value :: n
+     end function gsl_eigen_symmv_alloc
+
+     subroutine gsl_eigen_symmv_free(w) bind(c,name='gsl_eigen_symmv_free')
+       !% Template for the GSL symmetric eigenvalues workspace free function.
+       import c_ptr
+       type(c_ptr), value :: w
+     end subroutine gsl_eigen_symmv_free
+
+     function gsl_eigen_symmv(A,eval,evec,w) bind(c,name='gsl_eigen_symmv')
+       !% Template for the GSL symmetric eigenvalue system function.
+       import c_ptr, c_int
+       integer(c_int)        :: gsl_eigen_symmv
+       type   (c_ptr), value :: A              , eval, &
+            &                   evec           , w
+     end function gsl_eigen_symmv
+
+     function gsl_blas_ddot(x,y,res) bind(c,name='gsl_blas_ddot')
+       !% Template for the GSL BLAS vector dot product function.
+       import c_ptr, c_double ,c_int
+       integer(c_int   )        :: gsl_blas_ddot
+       type   (c_ptr   ), value :: x            , y
+       real   (c_double)        :: res
+     end function gsl_blas_ddot
+     
+     function gsl_blas_dgemv(TransA,alpha,A,x,beta,y) bind(c,name='gsl_blas_dgemv')
+       !% Template for the GSL BLAS matrix-vector multiply-add function.
+       import c_ptr, c_double, c_int
+       integer(c_int             )        :: gsl_blas_dgemv
+       integer(kind(CblasNoTrans)), value :: TransA
+       real   (c_double          ), value :: alpha         , beta
+       type   (c_ptr             ), value :: A             , x   , &
+            &                                y
+       !$GLC attributes interoperable :: TransA
+     end function gsl_blas_dgemv
+
+     function gsl_blas_dgemm(TransA,TransB,alpha,A,B,beta,C) bind(c,name='gsl_blas_dgemm')
+       !% Template for the GSL BLAS matrix-vector multiply-add function.
+       import c_ptr, c_double, c_int
+       integer(c_int             )        :: gsl_blas_dgemm
+       integer(kind(CblasNoTrans)), value :: TransA        , TransB
+       real   (c_double          ), value :: alpha         , beta
+       type   (c_ptr             ), value :: A             , B   , &
+            &                                C
+       !$GLC attributes interoperable :: TransA, TransB
+     end function gsl_blas_dgemm
+  end interface
+  
+  ! Extract enums needed for BLAS functions.
+  !# <gslConstant variable="CBLAS_Transpose" gslSymbol="CBLAS_TRANSPOSE" gslHeader="gsl_cblas" type="enum" members="CblasNoTrans, CblasTrans, CblasConjTrans"/>
+  !# <gslConstant variable="CBLAS_UpLo"      gslSymbol="CBLAS_UPLO"      gslHeader="gsl_cblas" type="enum" members="CblasUpper  , CblasLower"                />
+  !# <gslConstant variable="CBLAS_Diag"      gslSymbol="CBLAS_DIAG"      gslHeader="gsl_cblas" type="enum" members="CblasNonUnit, CblasUnit"                 />
+  
 contains
 
-  subroutine arrayToVectorAssign(self,array)
-    !% Assign an array to a vector.
+  !! Vector functions.
+
+  function vectorConstructor(array) result(self)
+    !% Constructor for {\normalfont \ttfamily vector} class which builds the vector from an array.
+    implicit none
+    type            (vector  )                              :: self
+    double precision          , intent(in   ), dimension(:) :: array
+    integer         (c_size_t)                              :: i
+
+    allocate(self%vector_)
+    self%size_  =size(array,kind=c_size_t)
+    self%vector_=gsl_vector_alloc(self%size_)
+    do i=1,size(array,dim=1,kind=c_size_t)
+       call gsl_vector_set(self%vector_,i-1_c_size_t,array(i))
+    end do
+    return
+  end function vectorConstructor
+
+  function vectorZeroConstructor(n) result(self)
+    !% Constructor for {\normalfont \ttfamily vector} class which builds the vector and initializes all elements to zero.
+    implicit none
+    type   (vector  )                :: self
+    integer(c_size_t), intent(in   ) :: n
+    
+    allocate(self%vector_)
+    self%size_  =n
+    self%vector_=gsl_vector_alloc(self%size_)
+    call gsl_vector_set_zero(self%vector_)
+    return
+  end function vectorZeroConstructor
+
+  function vectorCopyConstructor(source) result(self)
+    !% Constructor for the {\normalfont \ttfamily vector} class which builds the vector by copying a {\normalfont \ttfamily source} vector.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Interface_GSL   , only : GSL_Success
+    implicit none
+    type   (vector)             :: self
+    type   (vector), intent(in) :: source
+    integer(c_int )             :: status
+
+    allocate(self%vector_)
+    self%size_  =source%size_
+    self%vector_=gsl_vector_alloc(self%size_)
+    status      =gsl_vector_memcpy(self%vector_,source%vector_)
+    if (status /= GSL_Success) call Galacticus_Error_Report('vector copy failed'//{introspection:location})
+    return
+  end function vectorCopyConstructor
+  
+  subroutine vectorAssignmentConstructor(self,array)
+    !% Constructor for {\normalfont \ttfamily vector} class which overloads the assignment operator.
     implicit none
     type            (vector), intent(  out)               :: self
     double precision        , intent(in   ), dimension(:) :: array
-
-    if (allocated(self%elements)) deallocate(self%elements)
-    self%elements=array
+    
+    self=vector(array)
     return
-  end subroutine arrayToVectorAssign
-
-  subroutine vectorToArrayAssign(array,vector1)
-    !% Assign a vector to an array.
+  end subroutine vectorAssignmentConstructor
+  
+  subroutine vectorUnassignment(array,self)
+    !% Assign elements of a {\normalfont \ttfamily vector} class to an array
     implicit none
-    type            (vector), intent(in   )               :: vector1
-    double precision        , intent(  out), dimension(:) :: array
+    double precision          , intent(  out), dimension(:) :: array
+    type            (vector  ), intent(in   )               :: self
+    integer         (c_size_t)                              :: i
 
-    array=vector1%elements
+    do i=1_c_size_t,self%size_
+       array(i)=gsl_vector_get(self%vector_,i-1_c_size_t)
+    end do
     return
-  end subroutine vectorToArrayAssign
-
-  subroutine vectorToVectorAssign(vector1,vector2)
-    !% Assign a vector to an array.
-    implicit none
-    type            (vector), intent(  out)                 :: vector1
-    type            (vector), intent(in   )                 :: vector2
-
-    if (allocated(vector1%elements)) deallocate(vector1%elements)
-    vector1%elements=vector2%elements
-    return
-  end subroutine vectorToVectorAssign
-
-  subroutine vectorDestroy(self)
-    !% Destroy a vector object.
+  end subroutine vectorUnassignment
+  
+  subroutine vectorDestructorRank0(self)
+    !% Rank-0 destructor for the {\normalfont \ttfamily vector} class.
     implicit none
     type(vector), intent(inout) :: self
-
-    if (allocated(self%elements)) deallocate(self%elements)
+    
+    if (allocated(self%vector_)) then
+       call gsl_vector_free(self%vector_)
+       deallocate(self%vector_)
+    end if
     return
-  end subroutine vectorDestroy
+  end subroutine vectorDestructorRank0
 
-  double precision function vectorMagnitude(self)
-    !% Return the magnitude of a vector.
+  subroutine vectorDestructorRank1(self)
+    !% Rank-1 destructor for the {\normalfont \ttfamily vector} class.
     implicit none
-    class(vector), intent(in   ) :: self
-
-    vectorMagnitude=sqrt(sum(self%elements**2))
+    type   (vector), intent(inout), dimension(:) :: self
+    integer                                      :: i
+    
+    do i=1,size(self)
+       if (allocated(self(i)%vector_)) then
+          call gsl_vector_free(self(i)%vector_)
+          deallocate(self(i)%vector_)
+       end if
+    end do
     return
-  end function vectorMagnitude
-
-  function vectorSubtract(vector1,vector2)
-    !% Subtract one vector from another.
-    implicit none
-    type (vector)                :: vectorSubtract
-    class(vector), intent(in   ) :: vector1       , vector2
-
-    allocate(vectorSubtract%elements(size(vector1%elements,dim=1)))
-    vectorSubtract%elements=vector1%elements-vector2%elements
-    return
-  end function vectorSubtract
+  end subroutine vectorDestructorRank1
 
   function vectorAdd(vector1,vector2)
     !% Add one vector to another.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Interface_GSL   , only : GSL_Success
     implicit none
-    type (vector)                :: vectorAdd
-    class(vector), intent(in   ) :: vector1  , vector2
+    type   (vector)                :: vectorAdd
+    class  (vector), intent(in   ) :: vector1  , vector2
+    integer(c_int )                :: status
 
-    allocate(vectorAdd%elements(size(vector1%elements,dim=1)))
-    vectorAdd%elements=vector1%elements+vector2%elements
+    vectorAdd=vector(vector1)
+    status   =gsl_vector_add(vectorAdd%vector_,vector2%vector_)
+    if (status /= GSL_Success) call Galacticus_Error_Report('vector addition failed'//{introspection:location})
     return
   end function vectorAdd
 
+  function vectorSubtract(vector1,vector2)
+    !% Subtract one vector from another.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Interface_GSL   , only : GSL_Success
+    implicit none
+    type   (vector)                :: vectorSubtract
+    class  (vector), intent(in   ) :: vector1       , vector2
+    integer(c_int )                :: status
+
+    vectorSubtract=vector(vector1)
+    status        =gsl_vector_sub(vectorSubtract%vector_,vector2%vector_)
+    if (status /= GSL_Success) call Galacticus_Error_Report('vector subtract failed'//{introspection:location})
+    return
+  end function vectorSubtract
+
+  double precision function vectorMagnitude(vector_)
+    !% Compute the magnitude of a vector.
+    implicit none
+    class(vector), intent(in   ) :: vector_
+
+   vectorMagnitude=vector_.dot.vector_
+    return
+  end function vectorMagnitude
+  
   double precision function vectorDotProduct(vector1,vector2)
     !% Compute the dot product of two vectors.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Interface_GSL   , only : GSL_Success
     implicit none
-    class(vector), intent(in   ) :: vector1, vector2
+    class  (vector), intent(in   ) :: vector1, vector2
+    integer(c_int )                :: status
 
-    vectorDotProduct=sum(vector1%elements*vector2%elements)
+    status=gsl_blas_ddot(vector1%vector_,vector2%vector_,vectorDotProduct)
+    if (status /= GSL_Success) call Galacticus_Error_Report('vector dot product failed'//{introspection:location})
     return
   end function vectorDotProduct
-
+  
   function vectorCrossProduct(vector1,vector2)
     !% Compute the cross product of two vectors.
     use :: Galacticus_Error, only : Galacticus_Error_Report
@@ -268,231 +558,260 @@ contains
     type (vector)                :: vectorCrossProduct
     class(vector), intent(in   ) :: vector1           , vector2
 
-    if (size(vector1%elements) /= 3 .or. size(vector2%elements) /= 3) &
+    if (vector1%size_ /= 3_c_size_t .or. vector2%size_ /= 3_c_size_t) &
          & call Galacticus_Error_Report('vector cross product only defined for 3D vectors'//{introspection:location})
-    allocate(vectorCrossProduct%elements(3))
-    vectorCrossProduct%elements=[                                                                                 &
-         &                       vector1%elements(2)*vector2%elements(3)-vector1%elements(3)*vector2%elements(2), &
-         &                       vector1%elements(3)*vector2%elements(1)-vector1%elements(1)*vector2%elements(3), &
-         &                       vector1%elements(1)*vector2%elements(2)-vector1%elements(2)*vector2%elements(1)  &
-         &                      ]
+    vectorCrossProduct=vector(                                                                                         &
+         &                    [                                                                                        &
+         &                     +gsl_vector_get(vector1%vector_,1_c_size_t)*gsl_vector_get(vector2%vector_,2_c_size_t)  &
+         &                     -gsl_vector_get(vector1%vector_,2_c_size_t)*gsl_vector_get(vector2%vector_,1_c_size_t), &
+         &                     +gsl_vector_get(vector1%vector_,2_c_size_t)*gsl_vector_get(vector2%vector_,0_c_size_t)  &
+         &                     -gsl_vector_get(vector1%vector_,0_c_size_t)*gsl_vector_get(vector2%vector_,2_c_size_t), &
+         &                     +gsl_vector_get(vector1%vector_,0_c_size_t)*gsl_vector_get(vector2%vector_,1_c_size_t)  &
+         &                     -gsl_vector_get(vector1%vector_,1_c_size_t)*gsl_vector_get(vector2%vector_,0_c_size_t)  &
+         &                    ]                                                                                        &
+         &                   )
     return
   end function vectorCrossProduct
 
-  subroutine arrayToMatrixAssign(self,array)
-    !% Assign an array to a matrix.
+  !! Matrix functions.
+
+  function matrixConstructor(array) result(self)
+    !% Constructor for {\normalfont \ttfamily matrix} class which builds the matrix from an array.
+    implicit none
+    type            (matrix  )                                :: self
+    double precision          , intent(in   ), dimension(:,:) :: array
+    integer         (c_size_t)                                :: i    , j
+
+    allocate(self%matrix_)
+    self%size_   =shape(array,kind=c_size_t)
+    self%isSquare=self%size_(1) == self%size_(2)
+    self%matrix_ =gsl_matrix_alloc(self%size_(1),self%size_(2))
+    do i=1,size(array,dim=1,kind=c_size_t)
+       do j=1,size(array,dim=2,kind=c_size_t)
+          call gsl_matrix_set(self%matrix_,i-1_c_size_t,j-1_c_size_t,array(i,j))
+       end do
+    end do
+    return
+  end function matrixConstructor
+
+  function matrixZeroConstructor(n1,n2) result(self)
+    !% Constructor for {\normalfont \ttfamily matrix} class which builds the matrix and initializes all elements to zero.
+    implicit none
+    type   (matrix  )                :: self
+    integer(c_size_t), intent(in   ) :: n1  , n2
+
+    allocate(self%matrix_)
+    self%isSquare=n1 == n2
+    self%size_   =[n1,n2]
+    self%matrix_ =gsl_matrix_alloc(self%size_(1),self%size_(2))
+    call gsl_matrix_set_zero(self%matrix_)
+    return
+  end function matrixZeroConstructor
+
+  function matrixCopyConstructor(source) result(self)
+    !% Constructor for the {\normalfont \ttfamily matrix} class which builds the matrix by copying a {\normalfont \ttfamily source} matrix.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Interface_GSL   , only : GSL_Success
+    implicit none
+    type   (matrix)             :: self
+    type   (matrix), intent(in) :: source
+    integer(c_int )             :: status
+
+    allocate(self%matrix_)
+    self%size_   =source%size_
+    self%isSquare=source%isSquare
+    self%matrix_ =gsl_matrix_alloc(self%size_(1),self%size_(2))
+    status       =gsl_matrix_memcpy(self%matrix_,source%matrix_)
+    if (status /= GSL_Success) call Galacticus_Error_Report('matrix copy failed'//{introspection:location})
+    return
+  end function matrixCopyConstructor
+
+  subroutine matrixAssignmentConstructor(self,array)
+    !% Constructor for {\normalfont \ttfamily matrix} class which overloads the assignment operator.
     implicit none
     type            (matrix), intent(  out)                 :: self
     double precision        , intent(in   ), dimension(:,:) :: array
-
-    if (allocated(self%elements)) deallocate(self%elements)
-    self%elements=array
+    
+    self=matrix(array)
     return
-  end subroutine arrayToMatrixAssign
-
-  subroutine matrixToArrayAssign(array,matrix1)
-    !% Assign a matrix to an array.
+  end subroutine matrixAssignmentConstructor
+  
+  subroutine matrixUnassignment(array,self)
+    !% Assign elements of a {\normalfont \ttfamily matrix} class to an array
     implicit none
-    type            (matrix), intent(in   )                 :: matrix1
-    double precision        , intent(  out), dimension(:,:) :: array
+    double precision          , intent(  out), dimension(:,:) :: array
+    type            (matrix  ), intent(in   )                 :: self
+    integer         (c_size_t)                                :: i    , j
 
-    array=matrix1%elements
+    do i=1_c_size_t,self%size_(1)
+       do j=1_c_size_t,self%size_(2)
+          array(i,j)=gsl_matrix_get(self%matrix_,i-1_c_size_t,j-1_c_size_t)
+       end do
+    end do
     return
-  end subroutine matrixToArrayAssign
-
-  subroutine matrixDestroy(self)
-    !% Destroy a matrix object.
+  end subroutine matrixUnassignment
+  
+  subroutine matrixDestructorRank0(self)
+    !% Destructor for the {\normalfont \ttfamily matrix} class
     implicit none
     type(matrix), intent(inout) :: self
 
-    if (allocated(self%elements)) deallocate(self%elements)
+    if (allocated(self%matrix_)) then
+       call gsl_matrix_free(self%matrix_)
+       deallocate(self%matrix_)
+    end if
     return
-  end subroutine matrixDestroy
+  end subroutine matrixDestructorRank0
 
-  subroutine matrixMakeSemiPositiveDefinite(self)
-    !% Make a matrix semi-positive definite by setting any negative
-    !% eigenvalues to zero and reconstructing the matrix from its
-    !% eigenvectors.
-    use, intrinsic :: ISO_C_Binding, only : c_size_t
+  subroutine matrixDestructorRank1(self)
+    !% Destructor for the {\normalfont \ttfamily matrix} class
     implicit none
-    class           (matrix  ), intent(inout)                 :: self
-    double precision          , allocatable  , dimension(:,:) :: eigenValuesMatrixArray
-    double precision          , allocatable  , dimension(:  ) :: eigenValueArray
-    integer         (c_size_t)                                :: selfMatrixSize        , i
-    type            (matrix  )                                :: eigenValuesMatrix     , eigenVectors, eigenVectorsInverse
-    type            (vector  )                                :: eigenValues
+    type   (matrix), intent(inout), dimension(:) :: self
+    integer                                      :: i
 
-    selfMatrixSize=size(self%elements,dim=1)
-    call self%eigenSystem(eigenVectors,eigenValues)
-    allocate(eigenValuesMatrixArray(selfMatrixSize,selfMatrixSize))
-    allocate(eigenValueArray(selfMatrixSize))
-    eigenValueArray=eigenValues
-    eigenValuesMatrixArray=0.0d0
-    do i=1,selfMatrixSize
-       if (eigenValueArray(i) > 0.0d0) eigenValuesMatrixArray(i,i)=eigenValueArray(i)
+    do i=1,size(self)
+       if (allocated(self(i)%matrix_)) then
+          call gsl_matrix_free(self(i)%matrix_)
+          deallocate(self(i)%matrix_)
+       end if
     end do
-    eigenValuesMatrix  =eigenValuesMatrixArray
-    eigenVectors       =eigenVectors%transpose()
-    eigenVectorsInverse=eigenVectors%invert()
-    select type (self)
-    type is (matrix)
-       self            =eigenVectors*eigenValuesMatrix*eigenVectorsInverse
-    end select
     return
-  end subroutine matrixMakeSemiPositiveDefinite
+  end subroutine matrixDestructorRank1
 
-  function matrixInvert(self)
-    !% Invert a matrix.
-    use, intrinsic :: ISO_C_Binding, only : c_size_t, c_int, c_double
+  function matrixMatrixProduct(matrix1,matrix2)
+    !% Multiply a matrix by a matrix, returning a matrix.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Interface_GSL   , only : GSL_Success
     implicit none
-    type            (matrix          )                                                                         :: matrixInvert
-    class           (matrix          ), intent(inout)                                                          :: self
-    type            (fgsl_matrix     )                                                                         :: selfMatrix       , selfInverse
-    type            (fgsl_permutation)                                                                         :: permutations
-    integer         (c_int           )                                                                         :: decompositionSign, status
-    integer         (c_size_t        )                                                                         :: selfMatrixSize
-    double precision                  , dimension(size(self%elements,dim=1),size(self%elements,dim=2)), target :: inverse
-    double precision                  , dimension(size(self%elements,dim=1),size(self%elements,dim=2))         :: selfArray
+    type   (matrix)                :: matrixMatrixProduct
+    class  (matrix), intent(in   ) :: matrix1             , matrix2
+    integer(c_int )                :: status
 
-    selfMatrixSize=size(self%elements,dim=1)
-    selfMatrix    =FGSL_Matrix_Init(type=1.0_c_double)
-    selfArray     =self%elements
-    status        =FGSL_Matrix_Align(self%elements,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfMatrix )
-    selfInverse   =FGSL_Matrix_Init      (type=1.0_c_double)
-    status        =FGSL_Matrix_Align     (inverse      ,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfInverse)
-    permutations  =FGSL_Permutation_Alloc(selfMatrixSize                               )
-    status        =FGSL_LinAlg_LU_Decomp (selfMatrix    ,permutations,decompositionSign)
-    status        =FGSL_LinAlg_LU_Invert (selfMatrix    ,permutations,selfInverse      )
-    allocate(matrixInvert%elements(size(inverse,dim=1),size(inverse,dim=2)))
-    matrixInvert%elements=inverse
-    call FGSL_Matrix_Free     (selfMatrix  )
-    call FGSL_Matrix_Free     (selfInverse )
-    call FGSL_Permutation_Free(permutations)
-    ! Restore the original matrix.
-    self%elements=selfArray
+    if (matrix1%size_(2) /= matrix2%size_(1)) call Galacticus_Error_Report('matrices can not be multiplied'//{introspection:location})
+    matrixMatrixProduct=matrix(matrix1%size_(1),matrix2%size_(2))
+    status             =gsl_blas_dgemm(CblasNoTrans,CblasNoTrans,1.0d0,matrix1%matrix_,matrix2%matrix_,0.0d0,matrixMatrixProduct%matrix_)
+    if (status /= GSL_Success) call Galacticus_Error_Report('matrix-matrix multiply failed'//{introspection:location})
     return
-  end function matrixInvert
-
-  double precision function matrixLogarithmicDeterminant(self)
-    !% Return the logarithm of the determinant of a matrix.
-    use, intrinsic :: ISO_C_Binding, only : c_size_t, c_int, c_double
-    implicit none
-    class           (matrix          ), intent(inout)                                                  :: self
-    type            (fgsl_matrix     )                                                                 :: selfMatrix
-    type            (fgsl_permutation)                                                                 :: permutations
-    integer         (c_int           )                                                                 :: decompositionSign, status
-    integer         (c_size_t        )                                                                 :: selfMatrixSize
-    double precision                  , dimension(size(self%elements,dim=1),size(self%elements,dim=2)) :: selfArray
-
-    selfMatrixSize              =size(self%elements,dim=1)
-    selfMatrix                  =FGSL_Matrix_Init(type=1.0_c_double)
-    permutations                =FGSL_Permutation_Alloc(selfMatrixSize)
-    selfArray                   =self%elements
-    status                      =FGSL_Matrix_Align(self%elements,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfMatrix )
-    status                      =FGSL_LinAlg_LU_Decomp(selfMatrix,permutations,decompositionSign)
-    matrixLogarithmicDeterminant=FGSL_LinAlg_LU_lnDet(selfMatrix)
-    call FGSL_Permutation_Free(permutations)
-    call FGSL_Matrix_Free     (selfMatrix  )
-    ! Restore the original matrix.
-    self%elements               =selfArray
-    return
-  end function matrixLogarithmicDeterminant
-
+  end function matrixMatrixProduct
+  
   double precision function matrixDeterminant(self)
-    !% Return the of a matrix.
-    use, intrinsic :: ISO_C_Binding, only : c_size_t, c_int, c_double
+    !% Compute the determinant of a matrix.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Interface_GSL   , only : GSL_Success
     implicit none
-    class           (matrix          ), intent(inout)                                                  :: self
-    type            (fgsl_matrix     )                                                                 :: selfMatrix
-    type            (fgsl_permutation)                                                                 :: permutations
-    integer         (c_int           )                                                                 :: decompositionSign, status
-    integer         (c_size_t        )                                                                 :: selfMatrixSize
-    double precision                  , dimension(size(self%elements,dim=1),size(self%elements,dim=2)) :: selfArray
+    class  (matrix), intent(in   ) :: self
+    type   (c_ptr )                :: permutation
+    integer(c_int )                :: status     , decompositionSign
+    type   (matrix)                :: LU
 
-    selfMatrixSize   =size(self%elements,dim=1)
-    selfMatrix       =FGSL_Matrix_Init(type=1.0_c_double)
-    permutations     =FGSL_Permutation_Alloc(selfMatrixSize)
-    selfArray        =self%elements
-    status           =FGSL_Matrix_Align(self%elements,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfMatrix )
-    status           =FGSL_LinAlg_LU_Decomp(selfMatrix,permutations,decompositionSign)
-    matrixDeterminant=FGSL_LinAlg_LU_Det(selfMatrix,decompositionSign)
-    call FGSL_Permutation_Free(permutations)
-    call FGSL_Matrix_Free     (selfMatrix  )
-    ! Restore the original matrix.
-    self%elements    =selfArray
+    if (.not.self%isSquare) call Galacticus_Error_Report('LU decomposition can only be performed on square matrices'//{introspection:location})
+    LU         =matrix(self)
+    permutation=GSL_Permutation_Alloc(self%size_  (1)                              )
+    status     =GSL_LinAlg_LU_Decomp (LU  %matrix_   ,permutation,decompositionSign)
+    if (status /= GSL_Success) call Galacticus_Error_Report('LU decomposition failed'//{introspection:location})
+    matrixDeterminant=GSL_LinAlg_LU_Det(LU%matrix_,decompositionSign)
+    call gsl_permutation_free(permutation)
     return
   end function matrixDeterminant
 
-  function vectorVectorMultiply(vector1,vector2)
-    !% Multiply a vector by a vector, returning a scalar.
+  double precision function matrixLogarithmicDeterminant(self)
+    !% Compute the logarithmic determinant of a matrix.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Interface_GSL   , only : GSL_Success
     implicit none
-    double precision                        :: vectorVectorMultiply
-    class           (vector), intent(in   ) :: vector1             , vector2
+    class  (matrix), intent(in   ) :: self
+    type   (c_ptr )                :: permutation
+    integer(c_int )                :: status     , decompositionSign
+    type   (matrix)                :: LU
 
-    vectorVectorMultiply=sum(vector1%elements*vector2%elements)
+    if (.not.self%isSquare) call Galacticus_Error_Report('LU decomposition can only be performed on square matrices'//{introspection:location})
+    LU         =matrix(self)
+    permutation=GSL_Permutation_Alloc(self%size_  (1)                              )
+    status     =GSL_LinAlg_LU_Decomp (LU  %matrix_   ,permutation,decompositionSign)
+    if (status /= GSL_Success) call Galacticus_Error_Report('LU decomposition failed'//{introspection:location})
+    matrixLogarithmicDeterminant=GSL_LinAlg_LU_lnDet(LU%matrix_)
+    call gsl_permutation_free(permutation)
     return
-  end function vectorVectorMultiply
+  end function matrixLogarithmicDeterminant
 
-  function matrixVectorMultiply(matrix1,vector2)
-    !% Multiply a matrix by a vector, returning a vector.
+  function matrixTranspose(self)
+    !% Transpose a matrix.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Interface_GSL   , only : GSL_Success
     implicit none
-    type   (vector     )                :: matrixVectorMultiply
-    class  (matrix     ), intent(in   ) :: matrix1
-    class  (vector     ), intent(in   ) :: vector2
-    integer                             :: i
+    type   (matrix)                :: matrixTranspose
+    class  (matrix), intent(in   ) :: self
+    integer(c_int )                :: status
 
-    allocate(matrixVectorMultiply%elements(size(vector2%elements)))
-    forall(i=1:size(vector2%elements))
-       matrixVectorMultiply%elements(i)=sum(matrix1%elements(i,:)*vector2%elements)
-    end forall
+    matrixTranspose=matrix(self%size_(2),self%size_(1))
+    status=gsl_matrix_transpose_memcpy(matrixTranspose%matrix_,self%matrix_)
+    if (status /= GSL_Success) call Galacticus_Error_Report('matrix transpose failed'//{introspection:location})
+    return
+  end function matrixTranspose
+
+  function matrixInverse(self)
+    !% Compute the inverse of a matrix.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Interface_GSL   , only : GSL_Success
+    implicit none
+    type   (matrix)                :: matrixInverse
+    class  (matrix), intent(in   ) :: self
+    type   (c_ptr )                :: permutation
+    integer(c_int )                :: status       , decompositionSign
+    type   (matrix)                :: LU
+
+    if (.not.self%isSquare) call Galacticus_Error_Report('LU decomposition can only be performed on square matrices'//{introspection:location})
+    LU           =matrix(self                       )
+    matrixInverse=matrix(self%size_(1),self%size_(2))
+    permutation  =GSL_Permutation_Alloc(self%size_  (1)                                      )
+    status       =GSL_LinAlg_LU_Decomp (LU  %matrix_   ,permutation,decompositionSign        )
+    if (status /= GSL_Success) call Galacticus_Error_Report('LU decomposition failed'//{introspection:location})
+    status       =GSL_LinAlg_LU_Invert (LU  %matrix_   ,permutation,matrixInverse    %matrix_)
+    if (status /= GSL_Success) call Galacticus_Error_Report('LU invert failed'       //{introspection:location})
+    call gsl_permutation_free(permutation)
+    return
+  end function matrixInverse
+
+  !! Vector-matrix functions.
+  
+  function matrixVectorMultiply(matrix_,vector_)
+    !% Multiply a matrix by a vector, returning a vector.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Interface_GSL   , only : GSL_Success
+    implicit none
+    type   (vector)                :: matrixVectorMultiply
+    class  (matrix), intent(in   ) :: matrix_
+    class  (vector), intent(in   ) :: vector_
+    type   (vector)                :: vectorX
+    integer(c_int )                :: status
+
+    vectorX             =vector(vector_      )
+    matrixVectorMultiply=vector(vector_%size_)
+    status              =gsl_blas_dgemv(CblasNoTrans,1.0d0,matrix_%matrix_,vectorX%vector_,0.0d0,matrixVectorMultiply%vector_)
+    if (status /= GSL_Success) call Galacticus_Error_Report('matrix-vector multiply failed'//{introspection:location})
     return
   end function matrixVectorMultiply
 
-  function matrixMatrixMultiply(matrix1,matrix2)
-    !% Multiply a matrix by a matrix, returning a matrix.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    type   (matrix)                :: matrixMatrixMultiply
-    class  (matrix), intent(in   ) :: matrix1, matrix2
-
-    if (size(matrix1%elements,dim=2) /= size(matrix2%elements,dim=1)) call Galacticus_Error_Report('dimension mismatch'//{introspection:location})
-    allocate(matrixMatrixMultiply%elements(size(matrix1%elements,dim=1),size(matrix2%elements,dim=2)))
-    matrixMatrixMultiply%elements=matmul(matrix1%elements,matrix2%elements)
-    return
-  end function matrixMatrixMultiply
-
   function matrixLinearSystemSolve(self,y)
     !% Solve the linear system $y = A \cdot x$.
-    use, intrinsic :: ISO_C_Binding, only : c_size_t, c_int, c_double
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Interface_GSL   , only : GSL_Success
     implicit none
-    type            (vector          )                                                                 :: matrixLinearSystemSolve
-    class           (matrix          ), intent(inout)                                                  :: self
-    type            (vector          ), intent(in   )                                                  :: y
-    type            (fgsl_matrix     )                                                                 :: selfMatrix
-    type            (fgsl_vector     )                                                                 :: xVector          , yVector
-    type            (fgsl_permutation)                                                                 :: permutations
-    integer         (c_int           )                                                                 :: decompositionSign, status
-    integer         (c_size_t        )                                                                 :: selfMatrixSize
-    double precision                  , dimension(size(self%elements,dim=1),size(self%elements,dim=2)) :: selfArray
+    type   (vector)                :: matrixLinearSystemSolve
+    class  (matrix), intent(inout) :: self
+    type   (vector), intent(in   ) :: y
+    type   (c_ptr )                :: permutation
+    integer(c_int )                :: status                 , decompositionSign
+    type   (matrix)                :: LU
 
-    selfMatrixSize              =size(self%elements,dim=1)
-    selfMatrix                  =FGSL_Matrix_Init(type=1.0_c_double)
-    xVector                     =FGSL_Vector_Init(type=1.0_c_double)
-    yVector                     =FGSL_Vector_Init(type=1.0_c_double)
-    permutations                =FGSL_Permutation_Alloc(selfMatrixSize)
-    selfArray                   =self%elements
-    matrixLinearSystemSolve     =y
-    status                      =FGSL_Vector_Align(matrixLinearSystemSolve%elements,selfMatrixSize,xVector,selfMatrixSize,0_c_size_t,1_c_size_t)
-    status                      =FGSL_Vector_Align(                      y%elements,selfMatrixSize,yVector,selfMatrixSize,0_c_size_t,1_c_size_t)
-    status                      =FGSL_Matrix_Align(self%elements,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfMatrix)
-    status                      =FGSL_LinAlg_LU_Decomp(selfMatrix,permutations,decompositionSign)
-    status                      =FGSL_LinAlg_LU_Solve(selfMatrix,permutations,yVector,xVector)
-    call FGSL_Permutation_Free(permutations)
-    call FGSL_Matrix_Free     (selfMatrix  )
-    call FGSL_Vector_Free     (yVector     )
-    call FGSL_Vector_Free     (xVector     )
-    ! Restore the original matrix.
-    self%elements               =selfArray
+    matrixLinearSystemSolve=vector(y   %size_)
+    LU                     =matrix(self      )
+    permutation            =GSL_Permutation_Alloc(self%size_  (1)                                                              )
+    status                 =GSL_LinAlg_LU_Decomp (LU  %matrix_   ,permutation,decompositionSign                                )
+    if (status /= GSL_Success) call Galacticus_Error_Report('LU decomposition failed'//{introspection:location})
+    status                 =GSL_LinAlg_LU_Solve  (LU%matrix_     ,permutation,y%vector_        ,matrixLinearSystemSolve%vector_)
+    if (status /= GSL_Success) call Galacticus_Error_Report('LU solve failed'        //{introspection:location})
+    call gsl_permutation_free(permutation)
     return
   end function matrixLinearSystemSolve
 
@@ -500,109 +819,88 @@ contains
     !% Compute the quantity $y C^{-1} y^\mathrm{T}$ as appears in likelihood functions utilizing covariance matrices. Instead of
     !% directly inverting the covariance matrix (which is computationally slow and can be inaccurate), we solve the linear system
     !% $y = C x$ for $x$, and then evaluate $y x$.
-    use :: Interface_GSL, only : GSL_Success, GSL_ESing
+    use :: Interface_GSL   , only : GSL_Success            , GSL_ESing
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class  (matrix), intent(inout)           :: self
-    type   (vector), intent(in   )           :: y
-    integer        , intent(  out), optional :: status
-    integer                                  :: i
+    class  (matrix  ), intent(inout)           :: self
+    type   (vector  ), intent(in   )           :: y
+    integer          , intent(  out), optional :: status
+    integer(c_size_t)                          :: i      , j
+    logical                                    :: allZero
 
     if (present(status)) then
        status=GSL_Success
        ! Check that the matrix has no zero rows/columns.
-       do i=1,size(self%elements,dim=1)
-          if (all(self%elements(i,:) == 0.0d0)) then
+       do i=1_c_size_t,self%size_(1)
+          allZero=.true.
+          do j=1_c_size_t,self%size_(2)
+             if (gsl_matrix_get(self%matrix_,i-1_c_size_t,j-1_c_size_t) /= 0.0d0) then
+                allZero=.false.
+                exit
+             endif
+          end do
+          if (allZero) then
              matrixCovarianceProduct=0.0d0
              status                 =GSL_ESing
              return
           end if
        end do
-       do i=1,size(self%elements,dim=2)
-          if (all(self%elements(:,i) == 0.0d0)) then
+       do j=1_c_size_t,self%size_(2)
+          allZero=.true.
+          do i=1_c_size_t,self%size_(1)
+             if (gsl_matrix_get(self%matrix_,i-1_c_size_t,j-1_c_size_t) /= 0.0d0) then
+                allZero=.false.
+                exit
+             endif
+          end do
+          if (allZero) then
              matrixCovarianceProduct=0.0d0
              status                 =GSL_ESing
              return
           end if
        end do
     end if
-    matrixCovarianceProduct=y*self%linearSystemSolve(y)
+   matrixCovarianceProduct=y.dot.self%linearSystemSolve(y)
     return
   end function matrixCovarianceProduct
-
-  function matrixTranspose(self)
-    !% Transpose a matrix.
-    implicit none
-    type (matrix)                :: matrixTranspose
-    class(matrix), intent(inout) :: self
-
-    allocate(matrixTranspose%elements(size(self%elements,dim=2),size(self%elements,dim=1)))
-    matrixTranspose%elements=transpose(self%elements)
-    return
-  end function matrixTranspose
-
+  
   subroutine matrixEigensystem(self,eigenVectors,eigenValues)
     !% Find eigenvectors and eigenvalues of a real symmetric matrix.
-    use, intrinsic :: ISO_C_Binding, only : c_size_t, c_int, c_double
+    use :: Interface_GSL   , only : GSL_Success
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class           (matrix                    ), intent(inout)                                                          :: self
-    type            (matrix                    ), intent(  out)                                                          :: eigenVectors
-    type            (vector                    ), intent(  out)                                                          :: eigenValues
-    type            (fgsl_matrix               )                                                                         :: selfMatrix      , eigenVectorMatrix
-    type            (fgsl_vector               )                                                                         :: eigenValueVector
-    type            (fgsl_eigen_symmv_workspace)                                                                         :: workspace
-    integer         (c_int                     )                                                                         :: status
-    integer         (c_size_t                  )                                                                         :: selfMatrixSize
-    double precision                            , dimension(size(self%elements,dim=1),size(self%elements,dim=2)), target :: eigenVectorArray
-    double precision                            , dimension(size(self%elements,dim=1)                          ), target :: eigenValueArray
-    double precision                            , dimension(size(self%elements,dim=1),size(self%elements,dim=2))         :: selfArray
+    class  (matrix), intent(inout) :: self
+    type   (matrix), intent(  out) :: eigenVectors
+    type   (vector), intent(  out) :: eigenValues
+    type   (c_ptr )                :: workspace
+    integer(c_int )                :: status
+    type   (matrix)                :: matrix_
 
-    selfMatrixSize   =size(self%elements,dim=1)
-    selfArray        =self%elements
-    selfMatrix       =FGSL_Matrix_Init      (type=1.0_c_double)
-    eigenVectorMatrix=FGSL_Matrix_Init      (type=1.0_c_double)
-    eigenValueVector =FGSL_Vector_Init      (type=1.0_c_double)
-    status           =FGSL_Matrix_Align     (self%elements   ,selfMatrixSize,selfMatrixSize  ,selfMatrixSize,selfMatrix                  )
-    status           =FGSL_Matrix_Align     (eigenVectorArray,selfMatrixSize,selfMatrixSize  ,selfMatrixSize,eigenVectorMatrix           )
-    status           =FGSL_Vector_Align     (eigenValueArray ,selfMatrixSize,eigenValueVector,selfMatrixSize,0_c_size_t       ,1_c_size_t)
-    workspace        =FGSL_Eigen_SymmV_Alloc(                 selfMatrixSize                                                             )
-    status           =FGSL_Eigen_SymmV      (selfMatrix                     ,eigenValueVector,eigenVectorMatrix,workspace                )
-    eigenVectors     =eigenVectorArray
-    eigenValues      =eigenValueArray
-    call FGSL_Eigen_Symmv_Free(workspace        )
-    call FGSL_Matrix_Free     (selfMatrix       )
-    call FGSL_Matrix_Free     (eigenVectorMatrix)
-    call FGSL_Vector_Free     (eigenValueVector )
-    ! Restore the original matrix.
-    self%elements               =selfArray
+    matrix_     =matrix               (self                                                                    )
+    eigenValues =vector               (self   %size_  (1)                                                      )
+    eigenVectors=matrix               (self   %size_  (1),self       %size_  (1)                               )
+    workspace   =GSL_Eigen_SymmV_Alloc(self   %size_  (1)                                                      )
+    status      =GSL_Eigen_SymmV      (matrix_%matrix_   ,eigenValues%vector_   ,eigenVectors%matrix_,workspace)
+    if (status /= GSL_Success) call Galacticus_Error_Report('eigensystem evaluation failed'//{introspection:location})
+    call GSL_Eigen_Symmv_Free(workspace)
     return
   end subroutine matrixEigensystem
 
-  subroutine matrixSymmetrize(self)
-    !% Symmetrize a matrix.
-    implicit none
-    class(matrix), intent(inout) :: self
-
-    self%elements=0.5d0*(self%elements+transpose(self%elements))
-    return
-  end subroutine matrixSymmetrize
-
-  subroutine matrixCholeskyDecompose(self)
+  subroutine matrixCholeskyDecomposition(self)
     !% Find the Cholesky decomposition of a matrix.
-    use, intrinsic :: ISO_C_Binding, only : c_size_t, c_int, c_double
+    use :: Interface_GSL   , only : GSL_Success
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (matrix     ), intent(inout) :: self
-    type   (fgsl_matrix)                :: selfMatrix
     integer(c_int      )                :: status
-    integer(c_size_t   )                :: selfMatrixSize
 
-    selfMatrixSize=size(self%elements,dim=1)
-    selfMatrix    =FGSL_Matrix_Init           (type=1.0_c_double)
-    status        =FGSL_Matrix_Align          (self%elements,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfMatrix)
-    status        =FGSL_LinAlg_Cholesky_Decomp(selfMatrix)
-    call FGSL_Matrix_Free(selfMatrix)
+    status=GSL_LinAlg_Cholesky_Decomp(self%matrix_)
+    if (status /= GSL_Success) call Galacticus_Error_Report('Cholesky decomposition failed'//{introspection:location})
     return
-  end subroutine matrixCholeskyDecompose
+  end subroutine matrixCholeskyDecomposition
 
+  !! Geometrical transformations.
+  
   function matrixRotation(points,pointsRotated)
     !% Given a set of 3 points, and a corresponding set of points to which some rotation has been applied, construct the
     !% corresponding rotation matrix. The distances between the points must be the same---currently this is not checked. The
@@ -616,12 +914,12 @@ contains
     matrixComponents(:,1)=points          (1)
     matrixComponents(:,2)=points          (2)
     matrixComponents(:,3)=points          (3)
-    P                    =matrixComponents
+    P                    =matrix(matrixComponents)
     matrixComponents(:,1)=pointsRotated   (1)
     matrixComponents(:,2)=pointsRotated   (2)
     matrixComponents(:,3)=pointsRotated   (3)
-    Q                    =matrixComponents
-    matrixRotation       =Q*P%invert()
+    Q                    =matrix(matrixComponents)
+    matrixRotation       =Q*P%inverse()
     return
   end function matrixRotation
 
@@ -649,12 +947,12 @@ contains
     matrixComponents(:,1)=point21
     matrixComponents(:,2)=point31
     matrixComponents(:,3)=point4       -points       (1)
-    P                    =matrixComponents
+    P                    =matrix(matrixComponents)
     matrixComponents(:,1)=pointRotated21
     matrixComponents(:,2)=pointRotated31
     matrixComponents(:,3)=pointRotated4-pointsRotated(1)
-    Q                    =matrixComponents
-    matrixRotation       =Q*P%invert()
+    Q                    =matrix(matrixComponents)
+    matrixRotation       =Q*P%inverse()
     if (present(translation)) &
          & translation   = pointsRotated (1) &
          &                -matrixRotation    &

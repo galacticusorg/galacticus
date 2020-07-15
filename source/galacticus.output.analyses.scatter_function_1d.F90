@@ -663,8 +663,8 @@ contains
             &                    -self%scatterValueTarget
        scatterCovarianceCombined=+self%scatterCovariance       &
             &                    +self%scatterCovarianceTarget
-       residual                 = scatterValueDifference
-       covariance               = scatterCovarianceCombined
+       residual                 = vector(scatterValueDifference   )
+       covariance               = matrix(scatterCovarianceCombined)
        ! Compute the log-likelihood.
        scatterFunction1DLogLikelihood          =-0.5d0*covariance%covarianceProduct(residual,status)
        if (status == GSL_Success) then

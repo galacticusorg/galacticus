@@ -821,8 +821,8 @@ contains
                &                     -self%functionValueTarget
           functionCovarianceCombined=+self%functionCovariance       &
                &                     +self%functionCovarianceTarget
-          residual                  = functionValueDifference
-          covariance                = functionCovarianceCombined
+          residual                  = vector(functionValueDifference   )
+          covariance                = matrix(functionCovarianceCombined)
           ! Compute the log-likelihood.
           volumeFunction1DLogLikelihood          =-0.5d0*covariance%covarianceProduct(residual,status)
           if (status == GSL_Success) then

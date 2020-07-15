@@ -836,8 +836,8 @@ contains
             &                 -self%meanValueTarget
        meanCovarianceCombined=+self%meanCovariance       &
             &                 +self%meanCovarianceTarget
-       residual              = meanValueDifference
-       covariance            = meanCovarianceCombined
+       residual              = vector(meanValueDifference   )
+       covariance            = matrix(meanCovarianceCombined)
        ! Compute the log-likelihood.
        meanFunction1DLogLikelihood           =-0.5d0*covariance%covarianceProduct(residual,status)
        if (status == GSL_Success) then

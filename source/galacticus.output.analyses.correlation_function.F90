@@ -1316,8 +1316,8 @@ contains
             &                            )
        functionCovarianceCombined=         +self%binnedProjectedCorrelationCovariance        &
             &                              +self%binnedProjectedCorrelationCovarianceTarget
-       residual                  =functionValueDifference
-       covariance                =functionCovarianceCombined
+       residual                  =vector(functionValueDifference   )
+       covariance                =matrix(functionCovarianceCombined)
        ! Compute the log-likelihood.
        correlationFunctionLogLikelihood=-0.5d0*covariance%covarianceProduct(residual,status) &
             &                           -0.5d0*covariance%determinant()                      &

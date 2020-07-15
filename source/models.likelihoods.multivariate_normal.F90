@@ -28,7 +28,7 @@
      !% Implementation of a posterior sampling likelihood class which implements a multivariate likelihood.
      private
      type(vector) :: means
-     type(matrix) :: covariance, inverseCovariance
+     type(matrix) :: covariance
    contains
      procedure :: evaluate        => multivariateNormalEvaluate
      procedure :: functionChanged => multivariateNormalFunctionChanged
@@ -82,8 +82,6 @@ contains
     double precision                                             , intent(in   ), dimension(:,:) :: covariance
     !# <constructorAssign variables="means, covariance" allocate="no"/>
 
-    ! Find the inverse of the covariance matrix.
-    self%inverseCovariance=self%covariance%invert()
     return
   end function multivariateNormalConstructorInternal
 
@@ -117,7 +115,7 @@ contains
     end do
     stateVector               =stateArray
     difference                =stateVector-self%means
-    multivariateNormalEvaluate=-0.5d0*(difference*(self%inverseCovariance*difference))
+    multivariateNormalEvaluate=-0.5d0*self%covariance%covarianceProduct(difference)
     return
   end function multivariateNormalEvaluate
 

@@ -721,8 +721,8 @@ contains
                 end do
              end if
           end do
-          residual  =functionValueDifference
-          covariance=functionCovarianceCombined
+          residual  =vector(functionValueDifference   )
+          covariance=matrix(functionCovarianceCombined)
           ! Compute the log-likelihood.
           progenitorMassFunctionLogLikelihood=-0.5d0*covariance%covarianceProduct(residual,status)
           if (status /= GSL_Success) progenitorMassFunctionLogLikelihood=logImprobable

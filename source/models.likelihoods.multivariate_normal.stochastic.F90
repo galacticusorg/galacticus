@@ -132,7 +132,7 @@ contains
     logical                                                           , intent(inout), optional       :: forceAcceptance
     type            (vector                                          )                                :: stateVector           , difference              , &
          &                                                                                               stateStochasticVector
-    type            (matrix                                          )                                :: covarianceMatrix      , covarianceMatrixInverse
+    type            (matrix                                          )                                :: covarianceMatrix
     double precision                                                  , allocatable  , dimension(:  ) :: stateStochastic       , stateTrue
     double precision                                                  , allocatable  , dimension(:,:) :: covarianceStochastic  , covarianceFixed         , &
          &                                                                                               covarianceFull
@@ -171,18 +171,17 @@ contains
     do j=1,simulationState%dimension()
        covarianceStochastic(j,j)=stateTrue(j)**2/3.0d0/dble(realizationCount)
     end do
-    covarianceFixed        =self%covariance
-    covarianceFull         =covarianceFixed*temperatureEffective+covarianceStochastic
-    covarianceMatrix       =covarianceFull
-    covarianceMatrixInverse=covarianceMatrix%invert                ()
-    logDeterminant         =covarianceMatrix%logarithmicDeterminant()
+    covarianceFixed =self%covariance
+    covarianceFull  =covarianceFixed*temperatureEffective+covarianceStochastic
+    covarianceMatrix=covarianceFull
+    logDeterminant  =covarianceMatrix%logarithmicDeterminant()
     deallocate(     stateTrue      )
     deallocate(     stateStochastic)
     deallocate(covarianceStochastic)
     deallocate(covarianceFixed     )
     ! Construct the likelihood.
     difference         =stateStochasticVector-self%means
-    likelihoodEffective=-0.5d0*(difference*(covarianceMatrixInverse*difference))
+    likelihoodEffective=-0.5d0*covarianceMatrix%covarianceProduct(difference)
     ! Correct to unit temperature.
     multivariateNormalStochasticEvaluate= &
          &  temperatureEffective          &

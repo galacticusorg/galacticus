@@ -238,16 +238,16 @@ contains
     end do
     ! Compute rotation matrices required to rotate the ellipsoid to be aligned with the principle Cartesian axes, and back again.
     if (present(axes)) then
-       axesPrinciple(1)=[1.0d0,0.0d0,0.0d0]
-       axesPrinciple(2)=[0.0d0,1.0d0,0.0d0]
-       axesPrinciple(3)=[0.0d0,0.0d0,1.0d0]
+       axesPrinciple(1)=vector([1.0d0,0.0d0,0.0d0])
+       axesPrinciple(2)=vector([0.0d0,1.0d0,0.0d0])
+       axesPrinciple(3)=vector([0.0d0,0.0d0,1.0d0])
        self%rotationIn =matrixRotation(axes,axesPrinciple)
     else if (present(rotation)) then
        self%rotationIn=rotation
     else
        call Galacticus_Error_Report('either principle axes or a rotation matrix must be supplied'//{introspection:location})
     end if
-    self%rotationOut=self%rotationIn%invert()
+    self%rotationOut=self%rotationIn%inverse()
     return
   end subroutine gaussianEllipsoidInitialize
   

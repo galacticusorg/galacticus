@@ -44,7 +44,7 @@
      double precision                                                             :: time                               , massParticle                                    , &
           &                                                                          massRangeMinimum                   , redshift
      type            (vector                       )                              :: means
-     type            (matrix                       )                              :: covariance                         , inverseCovariance
+     type            (matrix                       )                              :: covariance
      integer                                                                      :: errorModel
      type            (varying_string               )                              :: fileName                           , massFunctionType
      logical                                                                      :: environmentAveraged
@@ -283,14 +283,11 @@ contains
        self%massMinimum(i)=self%mass(i)*exp(-0.5d0*massIntervalLogarithmic)
        self%massMaximum(i)=self%mass(i)*exp(+0.5d0*massIntervalLogarithmic)
     end do
-    ! Find the inverse covariance matrix.
-    self%covariance       =self%covarianceMatrix
-    self%inverseCovariance=self%covariance      %invert()
-    ! Symmetrize the inverse covariance matrix.
-    call self%inverseCovariance%symmetrize()
-    ! Get eigenvalues and vectors of the inverse covariance matrix.
+    ! Find the covariance matrix.
+    self%covariance=self%covarianceMatrix
+    ! Get eigenvalues and vectors of the covariance matrix.
     allocate(eigenValueArray(size(self%mass)))
-    call self%inverseCovariance%eigenSystem(eigenVectors,eigenValues)
+    call self%covariance%eigenSystem(eigenVectors,eigenValues)
     eigenValueArray=eigenValues
     if (any(eigenValueArray < 0.0d0)) call Galacticus_Display_Message('WARNING: inverse covariance matrix is not semi-positive definite')
     deallocate(eigenValueArray               )
@@ -502,7 +499,7 @@ contains
     end do
     ! Evaluate the log-likelihood.
     difference              =massFunction-self%massFunction
-    haloMassFunctionEvaluate=-0.5d0*(difference*(self%inverseCovariance*difference))
+    haloMassFunctionEvaluate=-0.5d0*self%covariance%covarianceProduct(difference)
     ! Clean up.
     deallocate(stateVector )
     deallocate(massFunction)

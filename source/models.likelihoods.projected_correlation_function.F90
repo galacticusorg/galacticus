@@ -52,7 +52,7 @@
      double precision                                   , dimension(:,:), allocatable :: covarianceMatrix                              , projectedCorrelationFunction, &
           &                                                                              projectedCorrelationFunctionObserved          , integralConstraint
      type            (vector                           )                              :: means
-     type            (matrix                           )                              :: covariance                                    , inverseCovariance
+     type            (matrix                           )                              :: covariance
      type            (varying_string                   )                              :: fileName
    contains
      final     ::                    projectedCorrelationFunctionDestructor
@@ -185,10 +185,8 @@ contains
     !$ call hdf5Access%unset()
     ! Allocate storage for the model projected correlation function.
     call allocateArray(self%projectedCorrelationFunction,[size(self%separation),size(self%massMinimum)])
-    ! Find the inverse covariance matrix.
-    self%covariance       =self%covarianceMatrix
-    self%inverseCovariance=self%covariance      %invert()
-    call self%inverseCovariance%makeSemiPositiveDefinite()
+    ! Build the covariance matrix.
+    self%covariance=self%covarianceMatrix
     return
   end function projectedCorrelationFunctionConstructorInternal
 
@@ -294,7 +292,7 @@ contains
          &                                        *size(self%projectedCorrelationFunction        ,dim=2)  &
          &                                       ]                                                        &
          &                                      )
-    projectedCorrelationFunctionEvaluate=-0.5d0*(difference*(self%inverseCovariance*difference))
+    projectedCorrelationFunctionEvaluate=-0.5d0*self%covariance%covarianceProduct(difference)
     return
   end function projectedCorrelationFunctionEvaluate
 

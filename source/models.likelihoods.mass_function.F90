@@ -42,7 +42,7 @@
           &                                                                    massFunction
      double precision                         , dimension(:,:), allocatable :: covarianceMatrix
      type            (vector                 )                              :: means
-     type            (matrix                 )                              :: covariance                     , inverseCovariance
+     type            (matrix                 )                              :: covariance
      type            (varying_string         )                              :: massFunctionFileName
    contains
      final     ::                    massFunctionDestructor
@@ -218,13 +218,10 @@ contains
     call massFunctionFile%close()
     !$ call hdf5Access%unset()
     ! Find the inverse covariance matrix.
-    self%covariance       =self%covarianceMatrix
-    self%inverseCovariance=self%covariance      %invert()
-    ! Symmetrize the inverse covariance matrix.
-    call self%inverseCovariance%symmetrize()
-    ! Get eigenvalues and vectors of the inverse covariance matrix.
+    self%covariance=self%covarianceMatrix
+    ! Get eigenvalues and vectors of the covariance matrix.
     allocate(eigenValueArray(size(self%mass)))
-    call self%inverseCovariance%eigenSystem(eigenVectors,eigenValues)
+    call self%covariance%eigenSystem(eigenVectors,eigenValues)
     eigenValueArray=eigenValues
     if (any(eigenValueArray < 0.0d0)) call Galacticus_Display_Message('WARNING: inverse covariance matrix is not semi-positive definite')
     deallocate(eigenValueArray)
@@ -358,7 +355,7 @@ contains
     deallocate(stateVector)
     ! Evaluate the log-likelihood.
     difference          =self%massFunction-self%massFunctionObserved
-    massFunctionEvaluate=-0.5d0*(difference*(self%inverseCovariance*difference))
+    massFunctionEvaluate=-0.5d0*self%covariance%covarianceProduct(difference)
     return
 
   contains
