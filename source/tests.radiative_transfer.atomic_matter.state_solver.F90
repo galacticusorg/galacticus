@@ -188,14 +188,15 @@ program Test_Radiative_Transfer_State_Solver
   !#     &amp;                      )
   !#  </constructor>
   !# </referenceConstruct>
-  allocate(properties%elements(1)                                   )
-  allocate(properties%elements(1)%photoIonizationRateHistory (1,0:0))
-  allocate(properties%elements(1)%photoHeatingRateHistory    (1,0:0))
-  allocate(properties%elements(1)%photoIonizationRate        (  0:0))
-  allocate(properties%elements(1)%photoHeatingRate           (  0:0))
-  allocate(properties%elements(1)%photoIonizationRatePrevious(  0:0))
-  allocate(properties%elements(1)%photoHeatingRatePrevious   (  0:0))
-  allocate(properties%elements(1)%ionizationStateFraction    (  0:1))
+  allocate(properties%elements(1)                                      )
+  allocate(properties%elements(1)%photoIonizationRateHistory    (1,0:0))
+  allocate(properties%elements(1)%photoHeatingRateHistory       (1,0:0))
+  allocate(properties%elements(1)%ionizationStateFractionHistory(1,0:1))
+  allocate(properties%elements(1)%photoIonizationRate           (  0:0))
+  allocate(properties%elements(1)%photoHeatingRate              (  0:0))
+  allocate(properties%elements(1)%photoIonizationRatePrevious   (  0:0))
+  allocate(properties%elements(1)%photoHeatingRatePrevious      (  0:0))
+  allocate(properties%elements(1)%ionizationStateFraction       (  0:1))
   ! Perform tests. These are cases which have previously failed while running radiative transfer models due to inadequacies of the
   ! solver.  
   !! Test 1.
@@ -278,28 +279,31 @@ program Test_Radiative_Transfer_State_Solver
   !#     &amp;                      )
   !#  </constructor>
   !# </referenceConstruct>
-  allocate(properties%elements(3)                                   )
-  allocate(properties%elements(1)%photoIonizationRateHistory (1,0:0))
-  allocate(properties%elements(1)%photoHeatingRateHistory    (1,0:0))
-  allocate(properties%elements(1)%photoIonizationRate        (  0:0))
-  allocate(properties%elements(1)%photoHeatingRate           (  0:0))
-  allocate(properties%elements(1)%photoIonizationRatePrevious(  0:0))
-  allocate(properties%elements(1)%photoHeatingRatePrevious   (  0:0))
-  allocate(properties%elements(1)%ionizationStateFraction    (  0:1))
-  allocate(properties%elements(2)%photoIonizationRateHistory (1,0:1))
-  allocate(properties%elements(2)%photoHeatingRateHistory    (1,0:1))
-  allocate(properties%elements(2)%photoIonizationRate        (  0:1))
-  allocate(properties%elements(2)%photoHeatingRate           (  0:1))
-  allocate(properties%elements(2)%photoIonizationRatePrevious(  0:1))
-  allocate(properties%elements(2)%photoHeatingRatePrevious   (  0:1))
-  allocate(properties%elements(2)%ionizationStateFraction    (  0:2))
-  allocate(properties%elements(3)%photoIonizationRateHistory (1,0:7))
-  allocate(properties%elements(3)%photoHeatingRateHistory    (1,0:7))
-  allocate(properties%elements(3)%photoIonizationRate        (  0:7))
-  allocate(properties%elements(3)%photoHeatingRate           (  0:7))
-  allocate(properties%elements(3)%photoIonizationRatePrevious(  0:7))
-  allocate(properties%elements(3)%photoHeatingRatePrevious   (  0:7))
-  allocate(properties%elements(3)%ionizationStateFraction    (  0:8))
+  allocate(properties%elements(3)                                      )
+  allocate(properties%elements(1)%photoIonizationRateHistory    (2,0:0))
+  allocate(properties%elements(1)%photoHeatingRateHistory       (2,0:0))
+  allocate(properties%elements(1)%ionizationStateFractionHistory(2,0:1))
+  allocate(properties%elements(1)%photoIonizationRate           (  0:0))
+  allocate(properties%elements(1)%photoHeatingRate              (  0:0))
+  allocate(properties%elements(1)%photoIonizationRatePrevious   (  0:0))
+  allocate(properties%elements(1)%photoHeatingRatePrevious      (  0:0))
+  allocate(properties%elements(1)%ionizationStateFraction       (  0:1))
+  allocate(properties%elements(2)%photoIonizationRateHistory    (2,0:1))
+  allocate(properties%elements(2)%photoHeatingRateHistory       (2,0:1))
+  allocate(properties%elements(2)%ionizationStateFractionHistory(2,0:2))
+  allocate(properties%elements(2)%photoIonizationRate           (  0:1))
+  allocate(properties%elements(2)%photoHeatingRate              (  0:1))
+  allocate(properties%elements(2)%photoIonizationRatePrevious   (  0:1))
+  allocate(properties%elements(2)%photoHeatingRatePrevious      (  0:1))
+  allocate(properties%elements(2)%ionizationStateFraction       (  0:2))
+  allocate(properties%elements(3)%photoIonizationRateHistory    (2,0:7))
+  allocate(properties%elements(3)%photoHeatingRateHistory       (2,0:7))
+  allocate(properties%elements(3)%ionizationStateFractionHistory(2,0:8))
+  allocate(properties%elements(3)%photoIonizationRate           (  0:7))
+  allocate(properties%elements(3)%photoHeatingRate              (  0:7))
+  allocate(properties%elements(3)%photoIonizationRatePrevious   (  0:7))
+  allocate(properties%elements(3)%photoHeatingRatePrevious      (  0:7))
+  allocate(properties%elements(3)%ionizationStateFraction       (  0:8))
   ! Perform tests. These are cases which have previously failed while running radiative transfer models due to inadequacies of the
   ! solver.  
   !! Test 1.
@@ -416,28 +420,31 @@ program Test_Radiative_Transfer_State_Solver
   !#     &amp;                      )
   !#  </constructor>
   !# </referenceConstruct>
-  allocate(properties%elements(3)                                   )
-  allocate(properties%elements(1)%photoIonizationRateHistory (1,0:0))
-  allocate(properties%elements(1)%photoHeatingRateHistory    (1,0:0))
-  allocate(properties%elements(1)%photoIonizationRate        (  0:0))
-  allocate(properties%elements(1)%photoHeatingRate           (  0:0))
-  allocate(properties%elements(1)%photoIonizationRatePrevious(  0:0))
-  allocate(properties%elements(1)%photoHeatingRatePrevious   (  0:0))
-  allocate(properties%elements(1)%ionizationStateFraction    (  0:1))
-  allocate(properties%elements(2)%photoIonizationRateHistory (1,0:1))
-  allocate(properties%elements(2)%photoHeatingRateHistory    (1,0:1))
-  allocate(properties%elements(2)%photoIonizationRate        (  0:1))
-  allocate(properties%elements(2)%photoHeatingRate           (  0:1))
-  allocate(properties%elements(2)%photoIonizationRatePrevious(  0:1))
-  allocate(properties%elements(2)%photoHeatingRatePrevious   (  0:1))
-  allocate(properties%elements(2)%ionizationStateFraction    (  0:2))
-  allocate(properties%elements(3)%photoIonizationRateHistory (1,0:7))
-  allocate(properties%elements(3)%photoHeatingRateHistory    (1,0:7))
-  allocate(properties%elements(3)%photoIonizationRate        (  0:7))
-  allocate(properties%elements(3)%photoHeatingRate           (  0:7))
-  allocate(properties%elements(3)%photoIonizationRatePrevious(  0:7))
-  allocate(properties%elements(3)%photoHeatingRatePrevious   (  0:7))
-  allocate(properties%elements(3)%ionizationStateFraction    (  0:8))
+  allocate(properties%elements(3)                                      )
+  allocate(properties%elements(1)%photoIonizationRateHistory    (2,0:0))
+  allocate(properties%elements(1)%photoHeatingRateHistory       (2,0:0))
+  allocate(properties%elements(1)%ionizationStateFractionHistory(2,0:1))
+  allocate(properties%elements(1)%photoIonizationRate           (  0:0))
+  allocate(properties%elements(1)%photoHeatingRate              (  0:0))
+  allocate(properties%elements(1)%photoIonizationRatePrevious   (  0:0))
+  allocate(properties%elements(1)%photoHeatingRatePrevious      (  0:0))
+  allocate(properties%elements(1)%ionizationStateFraction       (  0:1))
+  allocate(properties%elements(2)%photoIonizationRateHistory    (2,0:1))
+  allocate(properties%elements(2)%photoHeatingRateHistory       (2,0:1))
+  allocate(properties%elements(2)%ionizationStateFractionHistory(2,0:2))
+  allocate(properties%elements(2)%photoIonizationRate           (  0:1))
+  allocate(properties%elements(2)%photoHeatingRate              (  0:1))
+  allocate(properties%elements(2)%photoIonizationRatePrevious   (  0:1))
+  allocate(properties%elements(2)%photoHeatingRatePrevious      (  0:1))
+  allocate(properties%elements(2)%ionizationStateFraction       (  0:2))
+  allocate(properties%elements(3)%photoIonizationRateHistory    (2,0:7))
+  allocate(properties%elements(3)%photoHeatingRateHistory       (2,0:7))
+  allocate(properties%elements(3)%ionizationStateFractionHistory(2,0:8))
+  allocate(properties%elements(3)%photoIonizationRate           (  0:7))
+  allocate(properties%elements(3)%photoHeatingRate              (  0:7))
+  allocate(properties%elements(3)%photoIonizationRatePrevious   (  0:7))
+  allocate(properties%elements(3)%photoHeatingRatePrevious      (  0:7))
+  allocate(properties%elements(3)%ionizationStateFraction       (  0:8))
   ! Perform tests. These are cases which have previously failed while running radiative transfer models due to inadequacies of the
   ! solver.  
   !! Test 1.
@@ -467,12 +474,12 @@ program Test_Radiative_Transfer_State_Solver
   ! Done with atomic matter - H, He, O.
   call Unit_Tests_End_Group()
   deallocate(properties)
-  !# <objectDestructor name="radiativeTransferMatter_"/>
+  !# <objectDestructor name="radiativeTransferMatter_"                     />
+  !# <objectDestructor name="atomicRecombinationRateRadiativeCoolingFixed_"/>
   ! Tests on atomic matter - H, He, C, O.
   call Unit_Tests_Begin_Group("Atomic matter - H, He, C, O")
   ! Initialize the properties of the solver and the atomic matter.
   allocate(radiativeTransferMatter_                     )
-  allocate(atomicRecombinationRateRadiativeCoolingFixed_)
   allocate(properties                                   )
   !# <referenceConstruct object="radiativeTransferMatter_">
   !#  <constructor>
@@ -482,9 +489,9 @@ program Test_Radiative_Transfer_State_Solver
   !#     &amp;                       elements                                =['H ','He','C ','O ']                         , &amp;
   !#     &amp;                       iterationAverageCount                   =2                                             , &amp;
   !#     &amp;                       temperatureMinimum                      =3.0d0                                         , &amp;
-  !#     &amp;                       outputRates                             =.false.                                      , &amp;
-  !#     &amp;                       outputAbsorptionCoefficients            =.false.                                      , &amp;
-  !#     &amp;                       convergencePercentile                   =0.9d0                                        , &amp;
+  !#     &amp;                       outputRates                             =.false.                                       , &amp;
+  !#     &amp;                       outputAbsorptionCoefficients            =.false.                                       , &amp;
+  !#     &amp;                       convergencePercentile                   =0.9d0                                         , &amp;
   !#     &amp;                       massDistribution_                       =massDistribution_                             , &amp;
   !#     &amp;                       atomicCrossSectionIonizationPhoto_      =atomicCrossSectionIonizationPhoto_            , &amp;
   !#     &amp;                       atomicRecombinationRateRadiative_       =atomicRecombinationRateRadiativeVerner1996_   , &amp;
@@ -498,34 +505,38 @@ program Test_Radiative_Transfer_State_Solver
   !#  </constructor>
   !# </referenceConstruct>
   allocate(properties%elements(4)                                    )
-  allocate(properties%elements(1)%photoIonizationRateHistory (1,0: 0))
-  allocate(properties%elements(1)%photoHeatingRateHistory    (1,0: 0))
-  allocate(properties%elements(1)%photoIonizationRate        (  0: 0))
-  allocate(properties%elements(1)%photoHeatingRate           (  0: 0))
-  allocate(properties%elements(1)%photoIonizationRatePrevious(  0: 0))
-  allocate(properties%elements(1)%photoHeatingRatePrevious   (  0: 0))
-  allocate(properties%elements(1)%ionizationStateFraction    (  0: 1))
-  allocate(properties%elements(2)%photoIonizationRateHistory (1,0: 1))
-  allocate(properties%elements(2)%photoHeatingRateHistory    (1,0: 1))
-  allocate(properties%elements(2)%photoIonizationRate        (  0: 1))
-  allocate(properties%elements(2)%photoHeatingRate           (  0: 1))
-  allocate(properties%elements(2)%photoIonizationRatePrevious(  0: 1))
-  allocate(properties%elements(2)%photoHeatingRatePrevious   (  0: 1))
-  allocate(properties%elements(2)%ionizationStateFraction    (  0: 2))
-  allocate(properties%elements(3)%photoIonizationRateHistory (1,0: 5))
-  allocate(properties%elements(3)%photoHeatingRateHistory    (1,0: 5))
-  allocate(properties%elements(3)%photoIonizationRate        (  0: 5))
-  allocate(properties%elements(3)%photoHeatingRate           (  0: 5))
-  allocate(properties%elements(3)%photoIonizationRatePrevious(  0: 5))
-  allocate(properties%elements(3)%photoHeatingRatePrevious   (  0: 5))
-  allocate(properties%elements(3)%ionizationStateFraction    (  0: 6))
-  allocate(properties%elements(4)%photoIonizationRateHistory (1,0: 7))
-  allocate(properties%elements(4)%photoHeatingRateHistory    (1,0: 7))
-  allocate(properties%elements(4)%photoIonizationRate        (  0: 7))
-  allocate(properties%elements(4)%photoHeatingRate           (  0: 7))
-  allocate(properties%elements(4)%photoIonizationRatePrevious(  0: 7))
-  allocate(properties%elements(4)%photoHeatingRatePrevious   (  0: 7))
-  allocate(properties%elements(4)%ionizationStateFraction    (  0: 8))
+  allocate(properties%elements(1)%photoIonizationRateHistory    (2,0: 0))
+  allocate(properties%elements(1)%photoHeatingRateHistory       (2,0: 0))
+  allocate(properties%elements(1)%ionizationStateFractionHistory(2,0: 1))
+  allocate(properties%elements(1)%photoIonizationRate           (  0: 0))
+  allocate(properties%elements(1)%photoHeatingRate              (  0: 0))
+  allocate(properties%elements(1)%photoIonizationRatePrevious   (  0: 0))
+  allocate(properties%elements(1)%photoHeatingRatePrevious      (  0: 0))
+  allocate(properties%elements(1)%ionizationStateFraction       (  0: 1))
+  allocate(properties%elements(2)%photoIonizationRateHistory    (2,0: 1))
+  allocate(properties%elements(2)%photoHeatingRateHistory       (2,0: 1))
+  allocate(properties%elements(2)%ionizationStateFractionHistory(2,0: 2))
+  allocate(properties%elements(2)%photoIonizationRate           (  0: 1))
+  allocate(properties%elements(2)%photoHeatingRate              (  0: 1))
+  allocate(properties%elements(2)%photoIonizationRatePrevious   (  0: 1))
+  allocate(properties%elements(2)%photoHeatingRatePrevious      (  0: 1))
+  allocate(properties%elements(2)%ionizationStateFraction       (  0: 2))
+  allocate(properties%elements(3)%photoIonizationRateHistory    (2,0: 5))
+  allocate(properties%elements(3)%photoHeatingRateHistory       (2,0: 5))
+  allocate(properties%elements(3)%ionizationStateFractionHistory(2,0: 6))
+  allocate(properties%elements(3)%photoIonizationRate           (  0: 5))
+  allocate(properties%elements(3)%photoHeatingRate              (  0: 5))
+  allocate(properties%elements(3)%photoIonizationRatePrevious   (  0: 5))
+  allocate(properties%elements(3)%photoHeatingRatePrevious      (  0: 5))
+  allocate(properties%elements(3)%ionizationStateFraction       (  0: 6))
+  allocate(properties%elements(4)%photoIonizationRateHistory    (2,0: 7))
+  allocate(properties%elements(4)%photoHeatingRateHistory       (2,0: 7))
+  allocate(properties%elements(4)%ionizationStateFractionHistory(2,0: 8))
+  allocate(properties%elements(4)%photoIonizationRate           (  0: 7))
+  allocate(properties%elements(4)%photoHeatingRate              (  0: 7))
+  allocate(properties%elements(4)%photoIonizationRatePrevious   (  0: 7))
+  allocate(properties%elements(4)%photoHeatingRatePrevious      (  0: 7))
+  allocate(properties%elements(4)%ionizationStateFraction       (  0: 8))
   ! Perform tests. These are cases which have previously failed while running radiative transfer models due to inadequacies of the
   ! solver.  
   !! Test 1.
@@ -596,7 +607,6 @@ program Test_Radiative_Transfer_State_Solver
   call Unit_Tests_Begin_Group("Atomic matter - H, He, C, O, Si, Fe")
   ! Initialize the properties of the solver and the atomic matter.
   allocate(radiativeTransferMatter_                     )
-  allocate(atomicRecombinationRateRadiativeCoolingFixed_)
   allocate(properties                                   )
   !# <referenceConstruct object="radiativeTransferMatter_">
   !#  <constructor>
@@ -621,49 +631,55 @@ program Test_Radiative_Transfer_State_Solver
   !#     &amp;                      )
   !#  </constructor>
   !# </referenceConstruct>
-  allocate(properties%elements(6)                                    )
-  allocate(properties%elements(1)%photoIonizationRateHistory (1,0: 0))
-  allocate(properties%elements(1)%photoHeatingRateHistory    (1,0: 0))
-  allocate(properties%elements(1)%photoIonizationRate        (  0: 0))
-  allocate(properties%elements(1)%photoHeatingRate           (  0: 0))
-  allocate(properties%elements(1)%photoIonizationRatePrevious(  0: 0))
-  allocate(properties%elements(1)%photoHeatingRatePrevious   (  0: 0))
-  allocate(properties%elements(1)%ionizationStateFraction    (  0: 1))
-  allocate(properties%elements(2)%photoIonizationRateHistory (1,0: 1))
-  allocate(properties%elements(2)%photoHeatingRateHistory    (1,0: 1))
-  allocate(properties%elements(2)%photoIonizationRate        (  0: 1))
-  allocate(properties%elements(2)%photoHeatingRate           (  0: 1))
-  allocate(properties%elements(2)%photoIonizationRatePrevious(  0: 1))
-  allocate(properties%elements(2)%photoHeatingRatePrevious   (  0: 1))
-  allocate(properties%elements(2)%ionizationStateFraction    (  0: 2))
-  allocate(properties%elements(3)%photoIonizationRateHistory (1,0: 5))
-  allocate(properties%elements(3)%photoHeatingRateHistory    (1,0: 5))
-  allocate(properties%elements(3)%photoIonizationRate        (  0: 5))
-  allocate(properties%elements(3)%photoHeatingRate           (  0: 5))
-  allocate(properties%elements(3)%photoIonizationRatePrevious(  0: 5))
-  allocate(properties%elements(3)%photoHeatingRatePrevious   (  0: 5))
-  allocate(properties%elements(3)%ionizationStateFraction    (  0: 6))
-  allocate(properties%elements(4)%photoIonizationRateHistory (1,0: 7))
-  allocate(properties%elements(4)%photoHeatingRateHistory    (1,0: 7))
-  allocate(properties%elements(4)%photoIonizationRate        (  0: 7))
-  allocate(properties%elements(4)%photoHeatingRate           (  0: 7))
-  allocate(properties%elements(4)%photoIonizationRatePrevious(  0: 7))
-  allocate(properties%elements(4)%photoHeatingRatePrevious   (  0: 7))
-  allocate(properties%elements(4)%ionizationStateFraction    (  0: 8))
-  allocate(properties%elements(5)%photoIonizationRateHistory (1,0:13))
-  allocate(properties%elements(5)%photoHeatingRateHistory    (1,0:13))
-  allocate(properties%elements(5)%photoIonizationRate        (  0:13))
-  allocate(properties%elements(5)%photoHeatingRate           (  0:13))
-  allocate(properties%elements(5)%photoIonizationRatePrevious(  0:13))
-  allocate(properties%elements(5)%photoHeatingRatePrevious   (  0:13))
-  allocate(properties%elements(5)%ionizationStateFraction    (  0:14))
-  allocate(properties%elements(6)%photoIonizationRateHistory (1,0:25))
-  allocate(properties%elements(6)%photoHeatingRateHistory    (1,0:25))
-  allocate(properties%elements(6)%photoIonizationRate        (  0:25))
-  allocate(properties%elements(6)%photoHeatingRate           (  0:25))
-  allocate(properties%elements(6)%photoIonizationRatePrevious(  0:25))
-  allocate(properties%elements(6)%photoHeatingRatePrevious   (  0:25))
-  allocate(properties%elements(6)%ionizationStateFraction    (  0:26))
+  allocate(properties%elements(6)                                       )
+  allocate(properties%elements(1)%photoIonizationRateHistory    (2,0: 0))
+  allocate(properties%elements(1)%photoHeatingRateHistory       (2,0: 0))
+  allocate(properties%elements(1)%ionizationStateFractionHistory(2,0: 1))
+  allocate(properties%elements(1)%photoIonizationRate           (  0: 0))
+  allocate(properties%elements(1)%photoHeatingRate              (  0: 0))
+  allocate(properties%elements(1)%photoIonizationRatePrevious   (  0: 0))
+  allocate(properties%elements(1)%photoHeatingRatePrevious      (  0: 0))
+  allocate(properties%elements(1)%ionizationStateFraction       (  0: 1))
+  allocate(properties%elements(2)%photoIonizationRateHistory    (2,0: 1))
+  allocate(properties%elements(2)%photoHeatingRateHistory       (2,0: 1))
+  allocate(properties%elements(2)%ionizationStateFractionHistory(2,0: 2))
+  allocate(properties%elements(2)%photoIonizationRate           (  0: 1))
+  allocate(properties%elements(2)%photoHeatingRate              (  0: 1))
+  allocate(properties%elements(2)%photoIonizationRatePrevious   (  0: 1))
+  allocate(properties%elements(2)%photoHeatingRatePrevious      (  0: 1))
+  allocate(properties%elements(2)%ionizationStateFraction       (  0: 2))
+  allocate(properties%elements(3)%photoIonizationRateHistory    (2,0: 5))
+  allocate(properties%elements(3)%photoHeatingRateHistory       (2,0: 5))
+  allocate(properties%elements(3)%ionizationStateFractionHistory(2,0: 6))
+  allocate(properties%elements(3)%photoIonizationRate           (  0: 5))
+  allocate(properties%elements(3)%photoHeatingRate              (  0: 5))
+  allocate(properties%elements(3)%photoIonizationRatePrevious   (  0: 5))
+  allocate(properties%elements(3)%photoHeatingRatePrevious      (  0: 5))
+  allocate(properties%elements(3)%ionizationStateFraction       (  0: 6))
+  allocate(properties%elements(4)%photoIonizationRateHistory    (2,0: 7))
+  allocate(properties%elements(4)%photoHeatingRateHistory       (2,0: 7))
+  allocate(properties%elements(4)%ionizationStateFractionHistory(2,0: 8))
+  allocate(properties%elements(4)%photoIonizationRate           (  0: 7))
+  allocate(properties%elements(4)%photoHeatingRate              (  0: 7))
+  allocate(properties%elements(4)%photoIonizationRatePrevious   (  0: 7))
+  allocate(properties%elements(4)%photoHeatingRatePrevious      (  0: 7))
+  allocate(properties%elements(4)%ionizationStateFraction       (  0: 8))
+  allocate(properties%elements(5)%photoIonizationRateHistory    (2,0:13))
+  allocate(properties%elements(5)%photoHeatingRateHistory       (2,0:13))
+  allocate(properties%elements(5)%ionizationStateFractionHistory(2,0:14))
+  allocate(properties%elements(5)%photoIonizationRate           (  0:13))
+  allocate(properties%elements(5)%photoHeatingRate              (  0:13))
+  allocate(properties%elements(5)%photoIonizationRatePrevious   (  0:13))
+  allocate(properties%elements(5)%photoHeatingRatePrevious      (  0:13))
+  allocate(properties%elements(5)%ionizationStateFraction       (  0:14))
+  allocate(properties%elements(6)%photoIonizationRateHistory    (2,0:25))
+  allocate(properties%elements(6)%photoHeatingRateHistory       (2,0:25))
+  allocate(properties%elements(6)%ionizationStateFractionHistory(2,0:26))
+  allocate(properties%elements(6)%photoIonizationRate           (  0:25))
+  allocate(properties%elements(6)%photoHeatingRate              (  0:25))
+  allocate(properties%elements(6)%photoIonizationRatePrevious   (  0:25))
+  allocate(properties%elements(6)%photoHeatingRatePrevious      (  0:25))
+  allocate(properties%elements(6)%ionizationStateFraction       (  0:26))
   ! Perform tests. These are cases which have previously failed while running radiative transfer models due to inadequacies of the
   ! solver.  
   !! Test 1.
@@ -795,7 +811,18 @@ program Test_Radiative_Transfer_State_Solver
   ! Done with atomic matter - H, He, C, O, Si, Fe.
   call Unit_Tests_End_Group()
   deallocate(properties)
-  !# <objectDestructor name="radiativeTransferMatter_"/>
+  !# <objectDestructor name="radiativeTransferMatter_"                      />
+  !# <objectDestructor name="atomicCrossSectionIonizationPhoto_"            />
+  !# <objectDestructor name="atomicIonizationPotential_"                    />
+  !# <objectDestructor name="atomicExcitationRateCollisional_"              />
+  !# <objectDestructor name="gauntFactor_"                                  />
+  !# <objectDestructor name="atomicRecombinationRateDielectronicZero_"      />
+  !# <objectDestructor name="atomicRecombinationRateDielectronicArnaud1985_"/>
+  !# <objectDestructor name="atomicRecombinationRateRadiativeFixed_"        />
+  !# <objectDestructor name="atomicRecombinationRateRadiativeVerner1996_"   />
+  !# <objectDestructor name="atomicRecombinationRateRadiativeCoolingHummer_"/>
+  !# <objectDestructor name="atomicIonizationRateCollisional_"              />
+  !# <objectDestructor name="massDistribution_"                             />
   ! Done with unit tests.
   call Unit_Tests_Finish()
   call parameters%destroy()

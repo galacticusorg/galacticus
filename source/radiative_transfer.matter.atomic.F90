@@ -392,19 +392,19 @@ contains
        properties%volume        =+integrator%volume()
        allocate(properties%elements(self%countElements))
        do i=1,self%countElements
-          allocate(properties%elements(i)%photoIonizationRateHistory(self%iterationAverageCount,0:self%elementAtomicNumbers(i)-1))
-          allocate(properties%elements(i)%photoHeatingRateHistory   (self%iterationAverageCount,0:self%elementAtomicNumbers(i)-1))
-          allocate(properties%elements(i)%ionizationStateFractionHistory   (self%iterationAverageCount,0:self%elementAtomicNumbers(i)))
-          allocate(properties%elements(i)%ionizationStateFraction   (                           0:self%elementAtomicNumbers(i)  ))
-          allocate(properties%elements(i)%photoIonizationRate       (                           0:self%elementAtomicNumbers(i)-1))
-          allocate(properties%elements(i)%photoHeatingRate          (                           0:self%elementAtomicNumbers(i)-1))
-          properties%elements(i)%ionizationStateFraction      =      0.0d0
-          properties%elements(i)%ionizationStateFraction   (0)=      1.0d0
-          properties%elements(i)%photoIonizationRate          =-huge(0.0d0)
-          properties%elements(i)%photoHeatingRate             =-huge(0.0d0)
-          properties%elements(i)%photoIonizationRateHistory   =-huge(0.0d0)
-          properties%elements(i)%photoHeatingRateHistory      =-huge(0.0d0)
-          properties%elements(i)%ionizationStateFractionHistory      =-huge(0.0d0)
+          allocate(properties%elements(i)%photoIonizationRateHistory    (self%iterationAverageCount,0:self%elementAtomicNumbers(i)-1))
+          allocate(properties%elements(i)%photoHeatingRateHistory       (self%iterationAverageCount,0:self%elementAtomicNumbers(i)-1))
+          allocate(properties%elements(i)%ionizationStateFractionHistory(self%iterationAverageCount,0:self%elementAtomicNumbers(i)  ))
+          allocate(properties%elements(i)%ionizationStateFraction       (                           0:self%elementAtomicNumbers(i)  ))
+          allocate(properties%elements(i)%photoIonizationRate           (                           0:self%elementAtomicNumbers(i)-1))
+          allocate(properties%elements(i)%photoHeatingRate              (                           0:self%elementAtomicNumbers(i)-1))
+          properties%elements(i)%ionizationStateFraction       =      0.0d0
+          properties%elements(i)%ionizationStateFraction    (0)=      1.0d0
+          properties%elements(i)%photoIonizationRate           =-huge(0.0d0)
+          properties%elements(i)%photoHeatingRate              =-huge(0.0d0)
+          properties%elements(i)%photoIonizationRateHistory    =-huge(0.0d0)
+          properties%elements(i)%photoHeatingRateHistory       =-huge(0.0d0)
+          properties%elements(i)%ionizationStateFractionHistory=-huge(0.0d0)
        end do
        ! Compute the number density of this atomic species.
        if (onProcess) then
@@ -821,15 +821,30 @@ contains
        allocate(elementsReference      (self%countElements))
        allocate(atomicElementsPhotoRate(self%countElements))
        do i=1,self%countElements
-          allocate(elementsPrevious       (i)%ionizationStateFraction(size(properties%elements(i)%ionizationStateFraction)))
-          allocate(elementsReference      (i)%ionizationStateFraction(size(properties%elements(i)%ionizationStateFraction)))
-          allocate(atomicElementsPhotoRate(i)%ionizationStateFraction(size(properties%elements(i)%ionizationStateFraction)))
-          allocate(elementsPrevious       (i)%photoIonizationRate    (size(properties%elements(i)%photoIonizationRate    )))
-          allocate(elementsReference      (i)%photoIonizationRate    (size(properties%elements(i)%photoIonizationRate    )))
-          allocate(atomicElementsPhotoRate(i)%photoIonizationRate    (size(properties%elements(i)%photoIonizationRate    )))
-          allocate(elementsPrevious       (i)%photoHeatingRate       (size(properties%elements(i)%photoHeatingRate       )))
-          allocate(elementsReference      (i)%photoHeatingRate       (size(properties%elements(i)%photoHeatingRate       )))
-          allocate(atomicElementsPhotoRate(i)%photoHeatingRate       (size(properties%elements(i)%photoHeatingRate       )))
+          allocate(elementsPrevious       (i)%ionizationStateFraction       (                           lbound(properties%elements(i)%ionizationStateFraction       ,dim=1):ubound(properties%elements(i)%ionizationStateFraction       ,dim=1)))
+          allocate(elementsReference      (i)%ionizationStateFraction       (                           lbound(properties%elements(i)%ionizationStateFraction       ,dim=1):ubound(properties%elements(i)%ionizationStateFraction       ,dim=1)))
+          allocate(atomicElementsPhotoRate(i)%ionizationStateFraction       (                           lbound(properties%elements(i)%ionizationStateFraction       ,dim=1):ubound(properties%elements(i)%ionizationStateFraction       ,dim=1)))
+          allocate(elementsPrevious       (i)%photoIonizationRate           (                           lbound(properties%elements(i)%photoIonizationRate           ,dim=1):ubound(properties%elements(i)%photoIonizationRate           ,dim=1)))
+          allocate(elementsReference      (i)%photoIonizationRate           (                           lbound(properties%elements(i)%photoIonizationRate           ,dim=1):ubound(properties%elements(i)%photoIonizationRate           ,dim=1)))
+          allocate(atomicElementsPhotoRate(i)%photoIonizationRate           (                           lbound(properties%elements(i)%photoIonizationRate           ,dim=1):ubound(properties%elements(i)%photoIonizationRate           ,dim=1)))
+          allocate(elementsPrevious       (i)%photoHeatingRate              (                           lbound(properties%elements(i)%photoHeatingRate              ,dim=1):ubound(properties%elements(i)%photoHeatingRate              ,dim=1)))
+          allocate(elementsReference      (i)%photoHeatingRate              (                           lbound(properties%elements(i)%photoHeatingRate              ,dim=1):ubound(properties%elements(i)%photoHeatingRate              ,dim=1)))
+          allocate(atomicElementsPhotoRate(i)%photoHeatingRate              (                           lbound(properties%elements(i)%photoHeatingRate              ,dim=1):ubound(properties%elements(i)%photoHeatingRate              ,dim=1)))
+          allocate(elementsPrevious       (i)%photoIonizationRatePrevious   (                           lbound(properties%elements(i)%photoIonizationRatePrevious   ,dim=1):ubound(properties%elements(i)%photoIonizationRatePrevious   ,dim=1)))
+          allocate(elementsReference      (i)%photoIonizationRatePrevious   (                           lbound(properties%elements(i)%photoIonizationRatePrevious   ,dim=1):ubound(properties%elements(i)%photoIonizationRatePrevious   ,dim=1)))
+          allocate(atomicElementsPhotoRate(i)%photoIonizationRatePrevious   (                           lbound(properties%elements(i)%photoIonizationRatePrevious   ,dim=1):ubound(properties%elements(i)%photoIonizationRatePrevious   ,dim=1)))
+          allocate(elementsPrevious       (i)%photoHeatingRatePrevious      (                           lbound(properties%elements(i)%photoHeatingRatePrevious      ,dim=1):ubound(properties%elements(i)%photoHeatingRatePrevious      ,dim=1)))
+          allocate(elementsReference      (i)%photoHeatingRatePrevious      (                           lbound(properties%elements(i)%photoHeatingRatePrevious      ,dim=1):ubound(properties%elements(i)%photoHeatingRatePrevious      ,dim=1)))
+          allocate(atomicElementsPhotoRate(i)%photoHeatingRatePrevious      (                           lbound(properties%elements(i)%photoHeatingRatePrevious      ,dim=1):ubound(properties%elements(i)%photoHeatingRatePrevious      ,dim=1)))
+          allocate(elementsPrevious       (i)%photoIonizationRateHistory    (self%iterationAverageCount,lbound(properties%elements(i)%photoIonizationRateHistory    ,dim=2):ubound(properties%elements(i)%photoIonizationRateHistory    ,dim=2)))
+          allocate(elementsReference      (i)%photoIonizationRateHistory    (self%iterationAverageCount,lbound(properties%elements(i)%photoIonizationRateHistory    ,dim=2):ubound(properties%elements(i)%photoIonizationRateHistory    ,dim=2)))
+          allocate(atomicElementsPhotoRate(i)%photoIonizationRateHistory    (self%iterationAverageCount,lbound(properties%elements(i)%photoIonizationRateHistory    ,dim=2):ubound(properties%elements(i)%photoIonizationRateHistory    ,dim=2)))
+          allocate(elementsPrevious       (i)%photoHeatingRateHistory       (self%iterationAverageCount,lbound(properties%elements(i)%photoHeatingRateHistory       ,dim=2):ubound(properties%elements(i)%photoHeatingRateHistory       ,dim=2)))
+          allocate(elementsReference      (i)%photoHeatingRateHistory       (self%iterationAverageCount,lbound(properties%elements(i)%photoHeatingRateHistory       ,dim=2):ubound(properties%elements(i)%photoHeatingRateHistory       ,dim=2)))
+          allocate(atomicElementsPhotoRate(i)%photoHeatingRateHistory       (self%iterationAverageCount,lbound(properties%elements(i)%photoHeatingRateHistory       ,dim=2):ubound(properties%elements(i)%photoHeatingRateHistory       ,dim=2)))
+          allocate(elementsPrevious       (i)%ionizationStateFractionHistory(self%iterationAverageCount,lbound(properties%elements(i)%ionizationStateFractionHistory,dim=2):ubound(properties%elements(i)%ionizationStateFractionHistory,dim=2)))
+          allocate(elementsReference      (i)%ionizationStateFractionHistory(self%iterationAverageCount,lbound(properties%elements(i)%ionizationStateFractionHistory,dim=2):ubound(properties%elements(i)%ionizationStateFractionHistory,dim=2)))
+          allocate(atomicElementsPhotoRate(i)%ionizationStateFractionHistory(self%iterationAverageCount,lbound(properties%elements(i)%ionizationStateFractionHistory,dim=2):ubound(properties%elements(i)%ionizationStateFractionHistory,dim=2)))
        end do
        elementsPrevious       =properties%elements
        elementsReference      =properties%elements
@@ -887,9 +902,6 @@ contains
                 atomicElementsPhotoRate    (i)%photoHeatingRate   (j)=+properties%elements(i)%photoHeatingRate   (j)
                 if (atomicElementsPhotoRate(i)%photoHeatingRate   (j) > 0.0d0) heatingNonZero=.true.
              end do
-             ! For the fully-ionized state, use a photoionization rate from the lower state - this is just used for scaling timescales.
-             atomicElementsPhotoRate(i)%photoIonizationRate(self%elementAtomicNumbers(i))=atomicElementsPhotoRate(i)%photoIonizationRate(self%elementAtomicNumbers(i)-1)
-             atomicElementsPhotoRate(i)%photoHeatingRate   (self%elementAtomicNumbers(i))=atomicElementsPhotoRate(i)%photoHeatingRate   (self%elementAtomicNumbers(i)-1)
           end do
           ! If there is photoheating occuring, solve for the state of matter.
           if (heatingNonZero) then
