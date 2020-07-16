@@ -20,10 +20,8 @@
   !% Implementation of a posterior sampling likelihood class which implements a likelihood using Gaussian regression to emulate
   !% another likelihood.
 
-  use            :: FGSL         , only : FGSL_LinAlg_LU_Decomp, FGSL_Linalg_LU_SgnDet, fgsl_permutation, fgsl_matrix           , &
-          &                               FGSL_Matrix_Align    , FGSL_Matrix_Free     , FGSL_Matrix_Init, FGSL_Permutation_Alloc, &
-          &                               FGSL_Permutation_Free, FGSL_Well_Defined
-  use, intrinsic :: ISO_C_Binding, only : c_size_t
+  use            :: Linear_Algebra, only : matrixLU
+  use, intrinsic :: ISO_C_Binding , only : c_size_t
 
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodGaussianRegression">
   !#  <description>A posterior sampling likelihood class which implements a likelihood using Gaussian regression to emulate another likelihood.</description>
@@ -48,8 +46,7 @@
           &                                                                           regressionMatrix          , statesCombined
      logical                                                                       :: initialized               , regressionMatrixIsSingular , &
           &                                                                           isGood
-     type            (fgsl_matrix                    )                             :: regressionMatrixLU
-     type            (fgsl_permutation               )                             :: permutations
+     type            (matrixLU                      ), allocatable                 :: regressionMatrixLU
      double precision                                                              :: C0                        , C1                         , &
           &                                                                           CR                        , sigmaBuffer                , &
           &                                                                           logLikelihoodBuffer       , logLikelihoodErrorTolerance
@@ -260,26 +257,23 @@ contains
     type(posteriorSampleLikelihoodGaussianRegression), intent(inout) :: self
 
     !# <objectDestructor name="self%posteriorSampleLikelihood_"/>
-    call FGSL_Matrix_Free     (self%regressionMatrixLU)
-    call FGSL_Permutation_Free(self%permutations      )
     return
   end subroutine gaussianRegressionDestructor
 
   double precision function gaussianRegressionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for a Gaussian regression likelihood function.
-    use, intrinsic :: ISO_C_Binding                 , only : c_int                          , c_double
-    use            :: Dates_and_Times               , only : Formatted_Date_and_Time
-    use            :: Error_Functions               , only : Error_Function
-    use            :: Galacticus_Display            , only : Galacticus_Display_Indent      , Galacticus_Display_Message     , Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-          &                                                  verbosityInfo
-    use            :: Galacticus_Error              , only : Galacticus_Error_Report
-    use            :: Linear_Algebra                , only : assignment(=)
-    use            :: MPI_Utilities                 , only : mpiSelf
-    use            :: Memory_Management             , only : allocateArray
-    use            :: Models_Likelihoods_Constants  , only : logImpossible
-    use            :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
-    use            :: Posterior_Sampling_State      , only : posteriorSampleStateClass      , posteriorSampleStateCorrelation
-    use            :: String_Handling               , only : operator(//)
+    use :: Dates_and_Times               , only : Formatted_Date_and_Time
+    use :: Error_Functions               , only : Error_Function
+    use :: Galacticus_Display            , only : Galacticus_Display_Indent      , Galacticus_Display_Message     , Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
+          &                                       verbosityInfo
+    use :: Galacticus_Error              , only : Galacticus_Error_Report
+    use :: Linear_Algebra                , only : vector                         , matrix                         , assignment(=)
+    use :: MPI_Utilities                 , only : mpiSelf
+    use :: Memory_Management             , only : allocateArray
+    use :: Models_Likelihoods_Constants  , only : logImpossible
+    use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
+    use :: Posterior_Sampling_State      , only : posteriorSampleStateClass      , posteriorSampleStateCorrelation
+    use :: String_Handling               , only : operator(//)
     implicit none
     class           (posteriorSampleLikelihoodGaussianRegression), intent(inout)                   :: self
     class           (posteriorSampleStateClass                  ), intent(inout)                   :: simulationState
@@ -302,8 +296,7 @@ contains
     integer                                                      , parameter                       :: checksTotalMinimum                 =100
     type            (polynomialIterator                         )                                  :: iterator1                                   , iterator2
     type            (vector                                     )                                  :: likelihoodSums                              , coefficients
-    type            (matrix                                     )                                  :: stateSums
-    integer         (c_int                                      )                                  :: decompositionSign                           , status
+    type            (matrix                                     )                                  :: stateSums                                   , regressionMatrix
     integer                                                                                        :: accumulatedStateCount                       , i                    , &
          &                                                                                            j                                           , k                    , &
          &                                                                                            evaluationsTotal                            , simulationsTotal     , &
@@ -518,13 +511,10 @@ contains
        self%regressionMatrix(1:self%emulatorRebuildCount  ,  self%emulatorRebuildCount+1)=1.0d0
        self%regressionMatrix(  self%emulatorRebuildCount+1,1:self%emulatorRebuildCount  )=1.0d0
        self%regressionMatrix(  self%emulatorRebuildCount+1,  self%emulatorRebuildCount+1)=0.0d0
-       if (FGSL_Well_Defined(self%regressionMatrixLU)) call FGSL_Matrix_Free     (self%regressionMatrixLU)
-       if (FGSL_Well_Defined(self%permutations      )) call FGSL_Permutation_Free(self%permutations      )
-       self%regressionMatrixLU=FGSL_Matrix_Init      (type=1.0_c_double)
-       self%permutations      =FGSL_Permutation_Alloc(self%regressionMatrixSize)
-       status                 =FGSL_Matrix_Align     (self%regressionMatrix,self%regressionMatrixSize,self%regressionMatrixSize,self%regressionMatrixSize,self%regressionMatrixLU)
-       status                 =FGSL_LinAlg_LU_Decomp (self%regressionMatrixLU,self%permutations,decompositionSign)
-       determinantSign        =FGSL_Linalg_LU_SgnDet (self%regressionMatrixLU                  ,decompositionSign)
+       if (allocated(self%regressionMatrixLU)) deallocate(self%regressionMatrixLU)
+       regressionMatrix=matrix(self%regressionMatrix)
+       self%regressionMatrixLU        =matrixLU(regressionMatrix)
+       determinantSign                =regressionMatrix%signDeterminant()
        self%regressionMatrixIsSingular=(determinantSign == 0)
        if (mpiSelf%isMaster().and.self%regressionMatrixIsSingular) call Galacticus_Display_Message('   ==> regression matrix is singular')
        ! Retain (the most recent) 50% of the required number of points.
@@ -1021,9 +1011,7 @@ contains
 
   subroutine gaussianRegressionEmulate(self,simulationState,likelihoodEmulated,likelihoodEmulatedError)
     !% Evaluate the model emulator.
-    use            :: FGSL         , only : fgsl_vector     , FGSL_LinAlg_LU_Solve, FGSL_Vector_Align, FGSL_Vector_Free, &
-         &                                  FGSL_Vector_Init
-    use, intrinsic :: ISO_C_Binding, only : c_int           , c_double
+    use :: Linear_Algebra, only : vector, assignment(=)
     implicit none
     class           (posteriorSampleLikelihoodGaussianRegression), intent(inout)               :: self
     class           (posteriorSampleStateClass                  ), intent(inout)               :: simulationState
@@ -1032,8 +1020,7 @@ contains
     double precision                                             , parameter                   :: likelihoodErrorLarge=1.0d6
     integer                                                                                    :: i                         , j
     double precision                                                                           :: separation                , likelihoodFit
-    type            (fgsl_vector                                )                              :: stateOffsetVector         , weightVector
-    integer         (c_int                                      )                              :: status
+    type            (vector                                     )                              :: stateOffsetVector         , weightVector
     type            (polynomialIterator                         )                              :: iterator1
 
     ! Compute vector D.
@@ -1045,13 +1032,9 @@ contains
     end do
     self%stateOffset(self%emulatorRebuildCount+1)=1.0d0
     ! Solve the linear system.
-    stateOffsetVector=FGSL_Vector_Init(type=1.0_c_double)
-    weightVector     =FGSL_Vector_Init(type=1.0_c_double)
-    status           =FGSL_Vector_Align(self%stateOffset,self%regressionMatrixSize,stateOffsetVector,self%regressionMatrixSize,0_c_size_t,1_c_size_t)
-    status           =FGSL_Vector_Align(self%weight     ,self%regressionMatrixSize,weightVector     ,self%regressionMatrixSize,0_c_size_t,1_c_size_t)
-    status           =FGSL_LinAlg_LU_Solve(self%regressionMatrixLU,self%permutations,stateOffsetVector,weightVector)
-    call FGSL_Vector_Free(weightVector     )
-    call FGSL_Vector_Free(stateOffsetVector)
+    stateOffsetVector=vector(self%stateOffset)
+    weightVector     =self%regressionMatrixLU%squareSystemSolve(stateOffsetVector)
+    self%weight      =weightVector
     ! Compute the likelihood and variance.
     likelihoodEmulated     =sum(self%likelihoodResiduals*self%weight(1:self%emulatorRebuildCount))
     likelihoodEmulatedError=gaussianRegressionCorrelation(self,0.0d0)-sum(self%weight*self%stateOffset)
