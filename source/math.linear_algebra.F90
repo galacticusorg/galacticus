@@ -24,8 +24,8 @@ module Linear_Algebra
   use, intrinsic :: ISO_C_Binding, only : c_ptr, c_double, c_size_t, c_int
   implicit none
   private
-  public :: vector       , matrix     , matrixRotation, matrixRotationPlusTranslation, &
-       &    assignment(=), operator(*)
+  public :: vector  , matrix       , matrixRotation, matrixRotationPlusTranslation, &
+       &    matrixLU, assignment(=), operator(*)
 
   type, public :: vector
      !% Vector class.
@@ -107,6 +107,12 @@ module Linear_Algebra
      !@     <description>Compute and return the logarithm of the determinant of the matrix.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>signDeterminant</method>
+     !@     <type>\intzero</type>
+     !@     <arguments></arguments>
+     !@     <description>Compute and return the sign of the determinant of the matrix.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>invert</method>
      !@     <type>\textcolor{red}{\textless type(matrix) \textgreater}</type>
      !@     <arguments></arguments>
@@ -149,6 +155,7 @@ module Linear_Algebra
      generic   :: operator(*)            => matrixMatrixProduct
      procedure :: determinant            => matrixDeterminant
      procedure :: logarithmicDeterminant => matrixLogarithmicDeterminant
+     procedure :: signDeterminant        => matrixSignDeterminant
      procedure :: transpose              => matrixTranspose
      procedure :: inverse                => matrixInverse
      procedure :: linearSystemSolve      => matrixLinearSystemSolve
@@ -163,6 +170,30 @@ module Linear_Algebra
      module procedure matrixZeroConstructor
      module procedure matrixCopyConstructor
   end interface matrix
+  
+  type, public, extends(matrix) :: matrixLU
+     !% Matrix class for LU matrices.
+     private
+     type   (c_ptr), allocatable :: permutation
+     integer(c_int)              :: decompositionSign
+   contains
+     !@ <objectMethods>
+     !@   <object>matrixLU</object>
+     !@   <objectMethod>
+     !@     <method>squareSystemSolve</method>
+     !@     <type>\textcolor{red}{\textless type(vector)\textgreater}</type>
+     !@     <arguments>\textcolor{red}{\textless type(vector) y\argin \textgreater}</arguments>
+     !@     <description>Solve the linear system $y = A \cdot x$ where $A$ is ourself and $y$ is the specified vector.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::                      matrixLUDestructorRank0  , matrixLUDestructorRank1
+     procedure :: squareSystemSolve => matrixLUSquareSystemSolve
+  end type matrixLU
+
+  interface matrixLU
+     !% Interface to LU matrix constructors.
+     module procedure matrixLUConstructor
+  end interface matrixLU
   
   ! Assignment interfaces.
   interface assignment(=)
@@ -273,14 +304,14 @@ module Linear_Algebra
        !% Template for the GSL matrix copy function.
        import c_ptr, c_int
        integer(c_int)        :: gsl_matrix_memcpy
-       type   (c_ptr), value :: dest, src
+       type   (c_ptr), value :: dest             , src
      end function gsl_matrix_memcpy
 
      function gsl_matrix_transpose_memcpy(dest,src) bind(c,name='gsl_matrix_transpose_memcpy')
        !% Template for the GSL matrix transpose function.
        import c_ptr, c_int
        integer(c_int)        :: gsl_matrix_transpose_memcpy
-       type   (c_ptr), value :: dest, src
+       type   (c_ptr), value :: dest                       , src
      end function gsl_matrix_transpose_memcpy
 
      function gsl_permutation_alloc(n) bind(c,name='gsl_permutation_alloc')
@@ -334,6 +365,14 @@ module Linear_Algebra
        real(c_double)        :: gsl_linalg_LU_lndet
        type(c_ptr   ), value :: LU
      end function gsl_linalg_LU_lndet
+
+     function gsl_linalg_LU_sgndet(LU,signum) bind(c,name='gsl_linalg_LU_sgndet')
+       !% Template for the GSL LU determinant sign function.
+       import c_ptr, c_int
+       integer(c_int)           :: gsl_linalg_LU_sgndet
+       type   (c_ptr   ), value :: LU
+       integer(c_int   ), value :: signum
+     end function gsl_linalg_LU_sgndet
 
      function gsl_linalg_cholesky_decomp(A) bind(c,name='gsl_linalg_cholesky_decomp')
        !% Template for the GSL Cholesky decomposition function.
@@ -734,6 +773,26 @@ contains
     return
   end function matrixLogarithmicDeterminant
 
+  integer function matrixSignDeterminant(self)
+    !% Compute the sign of the determinant of a matrix.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Interface_GSL   , only : GSL_Success
+    implicit none
+    class  (matrix), intent(in   ) :: self
+    type   (c_ptr )                :: permutation
+    integer(c_int )                :: status     , decompositionSign
+    type   (matrix)                :: LU
+
+    if (.not.self%isSquare) call Galacticus_Error_Report('LU decomposition can only be performed on square matrices'//{introspection:location})
+    LU         =matrix(self)
+    permutation=GSL_Permutation_Alloc(self%size_  (1)                              )
+    status     =GSL_LinAlg_LU_Decomp (LU  %matrix_   ,permutation,decompositionSign)
+    if (status /= GSL_Success) call Galacticus_Error_Report('LU decomposition failed'//{introspection:location})
+    matrixSignDeterminant=GSL_LinAlg_LU_sgnDet(LU%matrix_,decompositionSign)
+    call gsl_permutation_free(permutation)
+    return
+  end function matrixSignDeterminant
+
   function matrixTranspose(self)
     !% Transpose a matrix.
     use :: Galacticus_Error, only : Galacticus_Error_Report
@@ -898,6 +957,78 @@ contains
     if (status /= GSL_Success) call Galacticus_Error_Report('Cholesky decomposition failed'//{introspection:location})
     return
   end subroutine matrixCholeskyDecomposition
+
+  !! LU matrix functions.
+
+  !! Matrix functions.
+  
+  function matrixLUConstructor(matrix_) result(self)
+    !% Constructor for {\normalfont \ttfamily matrixLU} class which builds the matrixLU from an array.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Interface_GSL   , only : GSL_Success
+    implicit none
+    type   (matrixLU)                :: self
+    type   (matrix  ), intent(in   ) :: matrix_
+    integer(c_int   )                :: status
+
+    if (.not.matrix_%isSquare) call Galacticus_Error_Report('can not find LU decomposition of a non-square matrix'//{introspection:location})
+    self%matrix     =matrix(matrix_)
+    self%permutation=GSL_Permutation_Alloc(self%size_  (1)                                        )
+    status          =GSL_LinAlg_LU_Decomp (self%matrix_   ,self%permutation,self%decompositionSign)
+    if (status /= GSL_Success) call Galacticus_Error_Report('LU decomposition failed'//{introspection:location})
+    return
+  end function matrixLUConstructor
+
+  subroutine matrixLUDestructorRank0(self)
+    !% Destructor for the {\normalfont \ttfamily matrixLU} class
+    implicit none
+    type(matrixLU), intent(inout) :: self
+    
+    if (allocated(self%matrix_)) then
+       call gsl_matrix_free(self%matrix_)
+       deallocate(self%matrix_)
+    end if
+    if (allocated(self%permutation)) then
+       call gsl_permutation_free(self%permutation)
+       deallocate(self%permutation)
+    end if
+    return
+  end subroutine matrixLUDestructorRank0
+
+  subroutine matrixLUDestructorRank1(self)
+    !% Destructor for the {\normalfont \ttfamily matrixLU} class
+    implicit none
+    type   (matrixLU), intent(inout), dimension(:) :: self
+    integer                                      :: i
+
+    do i=1,size(self)
+       if (allocated(self(i)%matrix_)) then
+          call gsl_matrix_free(self(i)%matrix_)
+          deallocate(self(i)%matrix_)
+       end if
+       if (allocated(self(i)%permutation)) then
+          call gsl_permutation_free(self(i)%permutation)
+          deallocate(self(i)%permutation)
+       end if
+    end do
+    return
+  end subroutine matrixLUDestructorRank1
+
+  function matrixLUSquareSystemSolve(self,y)
+    !% Solve the square linear system $y = A \cdot x$.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Interface_GSL   , only : GSL_Success
+    implicit none
+    type   (vector  )                :: matrixLUSquareSystemSolve
+    class  (matrixLU), intent(inout) :: self
+    type   (vector  ), intent(in   ) :: y
+    integer(c_int   )                :: status
+
+    matrixLUSquareSystemSolve=vector(y%size_)
+    status=GSL_LinAlg_LU_Solve(self%matrix_,self%permutation,y%vector_,matrixLUSquareSystemSolve%vector_)
+    if (status /= GSL_Success) call Galacticus_Error_Report('LU solve failed'//{introspection:location})
+    return
+  end function matrixLUSquareSystemSolve
 
   !! Geometrical transformations.
   

@@ -23,7 +23,7 @@ program Test_Math_Linear_Algebra
   !% Tests of linear algebra functions.
   use :: Galacticus_Display      , only : Galacticus_Verbosity_Level_Set, verbosityStandard
   use :: Linear_Algebra          , only : vector                        , matrix                 , assignment(=)       , operator(*)      , &
-       &                                  matrixRotation
+       &                                  matrixLU                      , matrixRotation
   use :: Numerical_Constants_Math, only : Pi
   use :: Sorting                 , only : sortIndex
   use :: Unit_Tests              , only : Assert                         , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
@@ -36,6 +36,7 @@ program Test_Math_Linear_Algebra
        &                                        matrixC          , matrixCD         , &
        &                                        matrixE          , matrixR          , &
        &                                        matrix1
+  type            (matrixLU), allocatable    :: matrixLU_
   double precision          , dimension(3  ) :: vectorComponents
   integer         (c_size_t), dimension(3  ) :: vectorOrder
   type            (vector  ), dimension(3  ) :: vectors          , vectorsRotated
@@ -105,8 +106,9 @@ program Test_Math_Linear_Algebra
   matrixComponents1=matrixP
   call Assert("matrix-matrix product",matrixComponents1,reshape([18.0d0,33.0d0,25.0d0,24.0d0,19.0d0,15.0d0,68.0d0,109.0d0,84.0d0,32.0d0,58.0d0,45.0d0],[3,4]))  
   !! Test determinant functions. Determinant computed using Mathematica.
-  call Assert("log determinant",matrix_%logarithmicDeterminant(),log(94.0d0),absTol=1.0d-6)
-  call Assert("determinant"    ,matrix_%           determinant(),    94.0d0 ,absTol=1.0d-6)
+  call Assert("log determinant" ,matrix_%logarithmicDeterminant(),log(94.0d0),absTol=1.0d-6)
+  call Assert("determinant"     ,matrix_%           determinant(),    94.0d0 ,absTol=1.0d-6)
+  call Assert("determinant sign",matrix_%       signDeterminant(),     1                   )
   !! Test transpose function.
   matrixT          =matrix_%transpose()
   matrixComponents =matrixT
@@ -155,7 +157,16 @@ program Test_Math_Linear_Algebra
   vector3         =matrixC%linearSystemSolve(vector1)
   vectorComponents=vector3
   deallocate(vector3)
-  call Assert("linear system solve",vectorComponents,[8.88728d0, -2.25434d0, -1.71965d0],relTol=1.0d-3)
+  call Assert("linear system solve",vectorComponents,[8.88728d0,-2.25434d0,-1.71965d0],relTol=1.0d-3)
+  !! Test linear system solve using an LU matrix. Values computed using Mathematica.
+  allocate(vector3  )
+  allocate(matrixLU_)
+  matrixLU_       =matrixLU                   (matrixC)
+  vector3         =matrixLU_%squareSystemSolve(vector1)
+  vectorComponents=vector3
+  deallocate(vector3  )
+  deallocate(matrixLU_)
+  call Assert("LU square system solve",vectorComponents,[8.88728d0,-2.25434d0,-1.71965d0],relTol=1.0d-3)
   !! Done.
   deallocate(vector1 )
   deallocate(vectorE )
