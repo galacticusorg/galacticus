@@ -52,7 +52,7 @@ contains
           if (.not.File_Exists(recfastPath//"recfast.for")) then
              call Galacticus_Display_Message("downloading RecFast code....",verbosityWorking)
              call Directory_Make(recfastPath)
-             call System_Command_Do("wget --no-check-certificate http://www.astro.ubc.ca/people/scott/recfast.for -O "//recfastPath//"recfast.for")
+             call System_Command_Do("wget --no-check-certificate https://www.astro.ubc.ca/people/scott/recfast.for -O "//recfastPath//"recfast.for")
              if (.not.File_Exists(recfastPath//"recfast.for")) &
                   & call Galacticus_Error_Report("failed to download RecFast code"//{introspection:location})
           end if
