@@ -133,6 +133,7 @@ contains
             &                       treeCurrent                                 , &
             &                       scaleNodesByLogMass=self%scaleNodesByLogMass, &
             &                       edgeLengthsToTimes =self%edgeLengthsToTimes , &
+            &                       nodeStyle          ='solid'                 , &
             &                       path               =self%path                 &
             &                      )
        ! Move to the next tree.
