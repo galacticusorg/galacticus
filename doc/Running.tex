@@ -122,7 +122,7 @@ To cause \glc\ to periodically store its internal state include the following in
 \begin{verbatim}
   <stateFileRoot value="galacticusState" />
 \end{verbatim}
-This will cause the internal state to be stored to files {\normalfont \ttfamily galacticusState.state} and {\normalfont \ttfamily galacticusState.fgsl.state} prior to commencing building each merger tree. Should a tree crash then replace this input parameter with:
+This will cause the internal state to be stored to files {\normalfont \ttfamily galacticusState.state} prior to commencing building each merger tree. Should a tree crash then replace this input parameter with:
 \begin{verbatim}
   <stateRetrieveFileRoot           value="galacticusState" />
   <mergerTreeBuildTreesBeginAtTree value="N"               />

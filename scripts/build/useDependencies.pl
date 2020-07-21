@@ -25,14 +25,12 @@ my $xml                     = new XML::Simple();
 # Load the file of directive locations.
 my $locations               = -e $workDirectoryName."directiveLocations.xml" ? $xml->XMLin($workDirectoryName."directiveLocations.xml") : undef();
 # List of external modules (which will be ignored for dependency analysis of the source code).
-my @externalModules = ( "omp_lib", "hdf5", "h5tb", "h5lt", "h5global", "h5fortran_types", "fox_common", "fox_dom", "fox_wxml", "fox_utils",
-			"fgsl", "mpi", "mpi_f08" );
+my @externalModules = ( "omp_lib", "hdf5", "h5tb", "h5lt", "h5global", "h5fortran_types", "fox_common", "fox_dom", "fox_wxml", "fox_utils", "mpi", "mpi_f08" );
 # Modules that require a library to be linked. These are key-value pairs with the key being the module name, and the value the
 # name of the required library.
 my %moduleLibararies = (
     nearest_neighbors   => "ANN"           ,
     fftw3               => "fftw3"         ,
-    fgsl                => "fgsl_gfortran" ,
     fox_common          => "FoX_common"    ,
     fox_dom             => "FoX_dom"       ,
     fox_wxml            => "FoX_wxml"      ,

@@ -187,7 +187,6 @@ sub Launch {
 	    print $launchFile "mv ".$launchScript->{'monolithicPBS'}->{'scratchPath'}."galacticus.hdf5 ".$job->{'directory'}."/galacticus.hdf5\n";
 	    if ( $launchScript->{'useStateFile'} eq "yes" ) {
 		print $launchFile "mv ".$launchScript->{'monolithicPBS'}->{'scratchPath'}."galacticus_".$launchScript->{'modelCounter'}."_".$$.".state* ".$job->{'directory'}."/\n";
-		print $launchFile "mv ".$launchScript->{'monolithicPBS'}->{'scratchPath'}."galacticus_".$launchScript->{'modelCounter'}."_".$$.".fgsl.state* ".$job->{'directory'}."/\n";
 	    }
 	}
 	print $launchFile "mv core* ".$job->{'directory'}."/\n";

@@ -41,7 +41,6 @@ contains
 
   function Galacticus_Build_String()
     !% Returns a string describing the build environment of \glc.
-    use            :: FGSL              , only : FGSL_Version
     use            :: FoX_Common        , only : Fox_Version
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use            :: HDF5              , only : h5get_libversion_f
@@ -68,8 +67,6 @@ contains
     include 'galacticus.output.build.environment.inc' ! NO_USES
     ! Initialize an empty string.
     Galacticus_Build_String=""
-    ! Write FGSL library version string.
-    Galacticus_Build_String=Galacticus_Build_String//":FGSL_version["//FGSL_Version//"]"
     ! Write GSL library version string.
     charVersionPointer=GSL_Get_Version()
     call c_f_pointer(charVersionPointer,charVersionString,[versionStringlengthMaximum])
@@ -111,7 +108,6 @@ contains
   !# </outputFileOpenTask>
   subroutine Galacticus_Build_Output
     !% Output build information to the main output file.
-    use            :: FGSL              , only : FGSL_Version
     use            :: File_Utilities    , only : File_Exists
     use            :: FoX_Common        , only : Fox_Version
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
@@ -146,9 +142,6 @@ contains
     ! Create a group for build information.
     call hdf5Access%set()
     buildGroup=galacticusOutputFile%openGroup('Build','Build information for this model.')
-
-    ! Write FGSL library version string.
-    call buildGroup%writeAttribute(FGSL_Version,'FGSL_library_version')
 
     ! Write GSL library version string.
     charVersionPointer=GSL_Get_Version()
