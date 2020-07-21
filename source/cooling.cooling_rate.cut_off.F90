@@ -105,19 +105,20 @@ contains
     !# <objectBuilder class="coolingRate"         name="coolingRate_"         source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    self=coolingRateCutOff(                                                                        &
-         &                                                                   velocityCutOff      , &
-         &                 cosmologyFunctions_ %cosmicTime                 (                       &
-         &                  cosmologyFunctions_%expansionFactorFromRedshift (                      &
-         &                                                                   redshiftCutOff        &
-         &                                                                  )                      &
-         &                                                                 )                     , &
-         &                 enumerationCutOffWhenEncode                     (                       &
-         &                                                                   char(whenCutOff)      &
-         &                                                                 )                     , &
-         &                                                                   useFormationNode    , &
-         &                                                                   darkMatterHaloScale_, &
-         &                                                                   coolingRate_          &
+    self=coolingRateCutOff(                                                                          &
+         &                                                                   velocityCutOff        , &
+         &                 cosmologyFunctions_ %cosmicTime                 (                         &
+         &                  cosmologyFunctions_%expansionFactorFromRedshift (                        &
+         &                                                                   redshiftCutOff          &
+         &                                                                  )                        &
+         &                                                                 )                       , &
+         &                 enumerationCutOffWhenEncode                     (                         &
+         &                                                                   char(whenCutOff)      , &
+         &                                                                   includesPrefix=.false.  &
+         &                                                                 )                       , &
+         &                                                                   useFormationNode      , &
+         &                                                                   darkMatterHaloScale_  , &
+         &                                                                   coolingRate_            &
          &                )
     !# <objectDestructor name="cosmologyFunctions_"/>
     !# <inputParametersValidate source="parameters"/>
