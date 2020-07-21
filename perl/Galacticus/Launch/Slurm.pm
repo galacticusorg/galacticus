@@ -142,7 +142,6 @@ sub Launch {
 	    print $slurmFile "mv ".$launchScript->{'slurm'}->{'scratchPath'}."/model_".$job->{'modelCounter'}."_".$$."/galacticus.hdf5 ".$job->{'directory'}."/galacticus.hdf5\n";
 	    if ( $launchScript->{'useStateFile'} eq "yes" ) {
 		print $slurmFile "mv ".$launchScript->{'slurm'}->{'scratchPath'}."/model_".$job->{'modelCounter'}."_".$$."/galacticus_".$job->{'modelCounter'}."_".$$.".state* ".$job->{'directory'}."/\n";
-		print $slurmFile "mv ".$launchScript->{'slurm'}->{'scratchPath'}."/model_".$job->{'modelCounter'}."_".$$."/galacticus_".$job->{'modelCounter'}."_".$$.".fgsl.state* ".$job->{'directory'}."/\n";
 	    }
 	}
 	print $slurmFile "mv core* ".$job->{'directory'}."/\n";

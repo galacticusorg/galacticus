@@ -81,11 +81,6 @@ sub Process_StateStorable {
 	}
     }
     
-    # Specify types that are storable via direct transfer.
-    my @transferrables =
-	(
-	 "fgsl_interp_type"
-	);
     # Record whether we need class functions.
     my $classFunctionsRequired = defined($moduleNode);
     # Process any stateStorable directives.
@@ -261,36 +256,6 @@ CODE
 					    if ( $allocatable ) {
 						$inputCode  .= " end if\n";
 					    }
-					}
-				    } elsif (
-					$declaration->{'intrinsic'} eq "type"
-					&&
-					(! grep {$_ eq "dimension"} @{$declaration->{'attributes'}})	
-					&&
-					(  grep {$_ eq $type      } @transferrables                )
-					) {
-					# Type storable via direct transfer.
-					$transferUsed = 1;
-					foreach ( @{$declaration->{'variables'}} ) {
-					    (my $variableName = $_) =~ s/\s*=.*$//;
-					    next
-						if ( grep {lc($_) eq lc($variableName)} @excludes );
-					    $outputCode .= "transferredSize=sizeof(self%".$variableName.")\n";
-					    $outputCode .= "if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
-					    $outputCode .= &performIO(" write (label,'(i16)') transferredSize\n");
-					    $outputCode .= " call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
-					    $outputCode .= "end if\n";
-					    $outputCode .= "allocate(transferred(transferredSize))\n";
-					    $outputCode .= "transferred=transfer(self%".$variableName.",transferred)\n";
-					    $outputCode .= &performIO("write (stateFile) transferredSize\n"
-					                .  "write (stateFile) transferred\n");
-					    $outputCode .= "deallocate(transferred)\n";
-					    $inputCode  .= "call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
-					    $inputCode  .= &performIO("read (stateFile) transferredSize\n");
-					    $inputCode  .= "allocate(transferred(transferredSize))\n";
-					    $inputCode  .= &performIO("read (stateFile) transferred\n");
-					    $inputCode  .= "self%".$variableName."=transfer(transferred,self%".$variableName.")\n";
-					    $inputCode  .= "deallocate(transferred)\n";
 					}
 				    }
 				} else {

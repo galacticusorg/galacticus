@@ -647,31 +647,23 @@ contains
 
   subroutine gaussianRegressionFitVariogram(self,separations,semiVariances)
     !% Compute best fit coefficients for the variogram model.
-    use            :: FGSL            , only : fgsl_multimin_fdfminimizer     , FGSL_MultiMin_FDFMinimizer_Alloc   , FGSL_MultiMin_FDFMinimizer_Conjugate_PR, fgsl_multimin_function_fdf        , &
-          &                                    FGSL_MultiMin_FDFMinimizer_Free, FGSL_MultiMin_FDFMinimizer_Gradient, FGSL_MultiMin_FDFMinimizer_Iterate     , FGSL_MultiMin_FDFMinimizer_Minimum, &
-          &                                    FGSL_MultiMin_FDFMinimizer_Set , FGSL_MultiMin_Function_FDF_Free    , FGSL_MultiMin_Function_FDF_Init        , FGSL_MultiMin_Test_Gradient       , &
-          &                                    FGSL_Multimin_FDFMinimizer_x   , fgsl_vector                        , FGSL_Vector_Align                      , FGSL_Vector_Free                  , &
-          &                                    FGSL_Vector_Init
-    use            :: Galacticus_Error, only : Galacticus_Error_Report
-    use            :: Interface_GSL   , only : GSL_Success                    , GSL_ENoProg                        , GSL_Continue
-    use, intrinsic :: ISO_C_Binding   , only : c_ptr                          , c_size_t                           , c_double
-    use            :: Sorting         , only : sortIndex
+    use            :: Multidimensional_Minimizer, only : multiDMinimizer
+    use            :: Galacticus_Error          , only : Galacticus_Error_Report
+    use            :: Interface_GSL             , only : GSL_Success            , GSL_ENoProg, GSL_Continue
+    use, intrinsic :: ISO_C_Binding             , only : c_size_t
+    use            :: Sorting                   , only : sortIndex
     implicit none
     class           (posteriorSampleLikelihoodGaussianRegression), intent(inout), target       :: self
-    double precision                                             , intent(in   ), dimension(:) :: separations                , semiVariances
-    double precision                                             , target       , dimension(3) :: C
-    real            (c_double                                   ), pointer      , dimension(:) :: cPtr
+    double precision                                             , intent(in   ), dimension(:) :: separations             , semiVariances
+    double precision                                                            , dimension(3) :: C
     integer         (c_size_t                                   ), allocatable  , dimension(:) :: rank
-    integer                                                      , parameter                   :: iterationsMaximum   =10000
-    double precision                                             , parameter                   :: gradientTolerance   =1.0d-2
-    double precision                                             , parameter                   :: binWidthMaximum     =2.0d0
-    integer                                                      , parameter                   :: binCountMaximum     =100000
-    type            (fgsl_multimin_function_fdf                 )                              :: minimizationFunction
-    type            (fgsl_multimin_fdfminimizer                 )                              :: minimizer
-    type            (fgsl_vector                                )                              :: cVector
-    type            (c_ptr                                      )                              :: parameters
-    integer                                                                                    :: status                     , iteration
-    integer         (c_size_t                                   )                              :: k                          , j            , &
+    integer                                                      , parameter                   :: iterationsMaximum=10000
+    double precision                                             , parameter                   :: gradientTolerance=1.0d-2
+    double precision                                             , parameter                   :: binWidthMaximum  =2.0d0
+    integer                                                      , parameter                   :: binCountMaximum  =100000
+    type            (multiDMinimizer                            )                              :: minimizer_
+    integer                                                                                    :: status                  , iteration
+    integer         (c_size_t                                   )                              :: k                       , j            , &
          &                                                                                        i
     double precision                                                                           :: currentMinimum
 
@@ -710,46 +702,30 @@ contains
           if (j == size(separations)) exit
        end if
     end do
-    ! Initialize the minimizer.
-    minimizationFunction=FGSL_MultiMin_Function_FDF_Init(                                    &
-         &                                               gaussianRegressionVariogramModelF , &
-         &                                               gaussianRegressionVariogramModelD , &
-         &                                               gaussianRegressionVariogramModelFD, &
-         &                                               3_c_size_t                        , &
-         &                                               parameters                          &
-         &                                              )
-    minimizer=FGSL_MultiMin_FDFMinimizer_Alloc(FGSL_MultiMin_FDFMinimizer_Conjugate_PR,3_c_size_t)
-    cVector  =FGSL_Vector_Init(type=1.0_c_double)
-    C        =[self%semiVariancesBinned(1),self%semiVariancesBinned(self%binCount),self%separationsBinned(self%binCount/2)] ! Initial guess for the parameters.
-    status   =FGSL_Vector_Align(C,3_c_size_t,cVector,3_c_size_t,0_c_size_t,1_c_size_t)
-    if (status /= GSL_Success) call Galacticus_Error_Report('failed to initialize parameter vector'//{introspection:location})
-    status   =FGSL_MultiMin_FDFMinimizer_Set(minimizer,minimizationFunction,cVector,0.01d0,0.1d0)
-    if (status /= GSL_Success) call Galacticus_Error_Report('failed to set minimizer'//{introspection:location})
+    ! Build the minimizer.
+    minimizer_=multiDMinimizer(3_c_size_t,gaussianRegressionVariogramModelF,gaussianRegressionVariogramModelD,gaussianRegressionVariogramModelFD)
+    C         =[self%semiVariancesBinned(1),self%semiVariancesBinned(self%binCount),self%separationsBinned(self%binCount/2)] ! Initial guess for the parameters.
+    call minimizer_%set(x=C,stepSize=0.01d0,tolerance=0.1d0)
     ! Iterate the minimizer until a sufficiently good solution is found.
     currentMinimum=0.0d0
     iteration     =0
-    do while (                                                                                                                                   &
-         &     FGSL_MultiMin_Test_Gradient(FGSL_MultiMin_FDFMinimizer_Gradient(minimizer),gradientTolerance*currentMinimum) == GSL_Continue      &
-         &    .and.                                                                                                                              &
-         &     iteration                                                                                                    <  iterationsMaximum &
+    do while (                                                                             &
+         &     minimizer_%testGradient(toleranceAbsolute=gradientTolerance*currentMinimum) &
+         &    .and.                                                                        &
+         &     iteration <  iterationsMaximum                                              &
          &   )
        iteration     =iteration+1
-       status        =FGSL_MultiMin_FDFMinimizer_Iterate(minimizer)
-       currentMinimum=FGSL_MultiMin_FDFMinimizer_Minimum(minimizer)
+       call minimizer_%iterate(status)
+       currentMinimum=minimizer_%minimum()
        if (status == GSL_ENoProg) exit
        if (status /= GSL_Success) call Galacticus_Error_Report('failed to iterate minimizer'//{introspection:location})
     end do
     ! Extract the best fit parameters.
-    call FGSL_Vector_Free(cVector)
-    cVector=FGSL_Vector_Init            (type=1.0_c_double        )
-    cVector=FGSL_Multimin_FDFMinimizer_x(     minimizer           )
-    status =FGSL_Vector_Align           (     cPtr        ,cVector)
-    self%C0=cPtr(1)*self%semiVarianceNormalization
-    self%C1=cPtr(2)*self%semiVarianceNormalization
-    self%CR=cPtr(3)*self%separationNormalization
+    C=minimizer_%x()
+    self%C0=C(1)*self%semiVarianceNormalization
+    self%C1=C(2)*self%semiVarianceNormalization
+    self%CR=C(3)*self%separationNormalization
     ! Clean up.
-    call FGSL_MultiMin_FDFMinimizer_Free(minimizer           )
-    call FGSL_MultiMin_Function_FDF_Free(minimizationFunction)
     deallocate(self%separationsNormalized  )
     deallocate(self%separationsLimited     )
     deallocate(self%semiVariancesNormalized)
@@ -759,69 +735,49 @@ contains
     return
   end subroutine gaussianRegressionFitVariogram
 
-  function gaussianRegressionVariogramModelF(x,parameters) bind(c)
+  double precision function gaussianRegressionVariogramModelF(x)
     !% Function to be minimized when fitting the variogram.
-    use            :: FGSL         , only : FGSL_Vector, FGSL_obj_c_ptr, FGSL_vector_align
-    use, intrinsic :: ISO_C_Binding, only : c_double   , c_ptr
     implicit none
-    real   (c_double   )                        :: gaussianRegressionVariogramModelF
-    type   (c_ptr      ), value                 :: x                                , parameters
-    real   (c_double   ), pointer, dimension(:) :: xx
-    type   (FGSL_vector)                        :: vec
-    integer(c_int      )                        :: status
-    !$GLC attributes unused :: parameters
+    double precision, intent(in   ), dimension(:) :: x
 
-    call FGSL_obj_c_ptr(vec,x)
-    status=FGSL_vector_align(xx,vec)
-    where (gaussianRegressionSelf%separationsBinned(1:gaussianRegressionSelf%binCount) > xx(3))
-       gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)=xx(3)
+    where (gaussianRegressionSelf%separationsBinned(1:gaussianRegressionSelf%binCount) > x(3))
+       gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)=x(3)
     elsewhere
        gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)=gaussianRegressionSelf%separationsBinned(1:gaussianRegressionSelf%binCount)
     end where
-    gaussianRegressionVariogramModelF=sum(((xx(1)+xx(2)*(1.5d0*gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/xx(3)-0.5d0*(gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/xx(3))**3))/gaussianRegressionSelf%semiVariancesBinned(1:gaussianRegressionSelf%binCount)-1.0d0)**2)
+    gaussianRegressionVariogramModelF=sum(((x(1)+x(2)*(1.5d0*gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/x(3)-0.5d0*(gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/x(3))**3))/gaussianRegressionSelf%semiVariancesBinned(1:gaussianRegressionSelf%binCount)-1.0d0)**2)
     return
   end function gaussianRegressionVariogramModelF
 
-  subroutine gaussianRegressionVariogramModelD(x,parameters,df) bind(c)
+  function gaussianRegressionVariogramModelD(x) result(df)
     !% Derivatives of the function to be minimized when fitting the variogram.
-    use            :: FGSL         , only : FGSL_obj_c_ptr, FGSL_vector, FGSL_vector_align
-    use, intrinsic :: ISO_C_Binding, only : c_double      , c_ptr
     implicit none
-    type   (c_ptr      ), value                 :: x     , parameters, &
-         &                                         df
-    real   (c_double   ), pointer, dimension(:) :: xx    , ddf
-    type   (FGSL_vector)                        :: vec   , grad
-    integer(c_int      )                        :: status
-    !$GLC attributes unused :: parameters
+    double precision, intent(in   ), dimension(     : ) :: x
+    double precision               , dimension(size(x)) :: df
 
-    call FGSL_obj_c_ptr(vec ,x )
-    call FGSL_obj_c_ptr(grad,df)
-    status=FGSL_vector_align(xx ,vec )
-    status=FGSL_vector_align(ddf,grad)
-    where (gaussianRegressionSelf%separationsBinned > xx(3))
-       gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)=xx(3)
+    where (gaussianRegressionSelf%separationsBinned > x(3))
+       gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)=x(3)
     elsewhere
        gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)=gaussianRegressionSelf%separationsBinned(1:gaussianRegressionSelf%binCount)
     end where
-    ddf(1)=2.0d0*sum(((xx(1)+xx(2)*(1.5d0*gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/xx(3)-0.5d0*(gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/xx(3))**3))/gaussianRegressionSelf%semiVariancesBinned(1:gaussianRegressionSelf%binCount)-1.0d0)/gaussianRegressionSelf%semiVariancesBinned(1:gaussianRegressionSelf%binCount))
-    ddf(2)=2.0d0*sum(((xx(1)+xx(2)*(1.5d0*gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/xx(3)-0.5d0*(gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/xx(3))**3))/gaussianRegressionSelf%semiVariancesBinned(1:gaussianRegressionSelf%binCount)-1.0d0)*(1.5d0*gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/xx(3)-0.5d0*(gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/xx(3))**3)/gaussianRegressionSelf%semiVariancesBinned(1:gaussianRegressionSelf%binCount))
-    ddf(3)=2.0d0*sum(((xx(1)+xx(2)*(1.5d0*gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/xx(3)-0.5d0*(gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/xx(3))**3))/gaussianRegressionSelf%semiVariancesBinned(1:gaussianRegressionSelf%binCount)-1.0d0)*xx(2)*(-1.5d0*gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/xx(3)+1.5d0*(gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/xx(3))**3)/xx(3)/gaussianRegressionSelf%semiVariancesBinned(1:gaussianRegressionSelf%binCount))
-    where(abs(ddf) < 1.0d-30)
-       ddf=1.0d-30
+    df(1)=2.0d0*sum(((x(1)+x(2)*(1.5d0*gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/x(3)-0.5d0*(gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/x(3))**3))/gaussianRegressionSelf%semiVariancesBinned(1:gaussianRegressionSelf%binCount)-1.0d0)/gaussianRegressionSelf%semiVariancesBinned(1:gaussianRegressionSelf%binCount))
+    df(2)=2.0d0*sum(((x(1)+x(2)*(1.5d0*gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/x(3)-0.5d0*(gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/x(3))**3))/gaussianRegressionSelf%semiVariancesBinned(1:gaussianRegressionSelf%binCount)-1.0d0)*(1.5d0*gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/x(3)-0.5d0*(gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/x(3))**3)/gaussianRegressionSelf%semiVariancesBinned(1:gaussianRegressionSelf%binCount))
+    df(3)=2.0d0*sum(((x(1)+x(2)*(1.5d0*gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/x(3)-0.5d0*(gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/x(3))**3))/gaussianRegressionSelf%semiVariancesBinned(1:gaussianRegressionSelf%binCount)-1.0d0)*x(2)*(-1.5d0*gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/x(3)+1.5d0*(gaussianRegressionSelf%separationsLimited(1:gaussianRegressionSelf%binCount)/x(3))**3)/x(3)/gaussianRegressionSelf%semiVariancesBinned(1:gaussianRegressionSelf%binCount))
+    where(abs(df) < 1.0d-30)
+       df=1.0d-30
     end where
     return
-  end subroutine gaussianRegressionVariogramModelD
+  end function gaussianRegressionVariogramModelD
 
-  subroutine gaussianRegressionVariogramModelFD(x,parameters,f,df) bind(c)
+  subroutine gaussianRegressionVariogramModelFD(x,f,df)
     !% Computes both function and derivatives to be minimized when fitting the variogram.
-    use, intrinsic :: ISO_C_Binding, only : c_double, c_ptr
     implicit none
-    type(c_ptr   ), value :: x , parameters, &
-         &                   df
-    real(c_double)        :: f
+    double precision, intent(in   ), dimension(     : ) :: x
+    double precision, intent(  out)                     :: f
+    double precision, intent(  out), dimension(size(x)) :: df
 
-    f=   gaussianRegressionVariogramModelF(x,parameters   )
-    call gaussianRegressionVariogramModelD(x,parameters,df)
+    f =gaussianRegressionVariogramModelF(x)
+    df=gaussianRegressionVariogramModelD(x)
     return
   end subroutine gaussianRegressionVariogramModelFD
 
@@ -829,7 +785,7 @@ contains
     !% Return the number of coefficients at {\normalfont \ttfamily n}$^\mathrm{th}$ order in polynomial of dimension {\normalfont \ttfamily d}.
     use :: Factorials, only : Factorial
     implicit none
-    integer, intent(in   ) :: n,d
+    integer, intent(in   ) :: n, d
 
     if (n == 2) then
        polynomialCoefficientCount=(d*(1+d))/2

@@ -24,8 +24,9 @@ module Linear_Algebra
   use, intrinsic :: ISO_C_Binding, only : c_ptr, c_double, c_size_t, c_int
   implicit none
   private
-  public :: vector  , matrix       , matrixRotation, matrixRotationPlusTranslation, &
-       &    matrixLU, assignment(=), operator(*)
+  public :: vector        , matrix       , matrixRotation, matrixRotationPlusTranslation, &
+       &    matrixLU      , assignment(=), operator(*)   , gsl_vector_get               , &
+       &    gsl_vector_set, gsl_vector_free
 
   type, public :: vector
      !% Vector class.
@@ -65,6 +66,12 @@ module Linear_Algebra
      !@     <arguments>\textcolor{red}{\textless class(vector)\textgreater} vector1\argin, \textcolor{red}{\textless class(vector)\textgreater} vector2\argin</arguments>
      !@     <description>Compute {\normalfont \ttfamily vector1} $\times$ {\normalfont \ttfamily vector2}.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>gslObject</method>
+     !@     <type>\textcolor{red}{\textless type(c\_ptr)\textgreater}</type>
+     !@     <arguments></arguments>
+     !@     <description>Return a C pointer to the GSL vector object.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      final     ::                        vectorDestructorRank0, vectorDestructorRank1
      procedure :: magnitude           => vectorMagnitude
@@ -76,6 +83,7 @@ module Linear_Algebra
      generic   :: operator  (+      ) => vectorAdd
      procedure ::                        vectorCrossProduct
      generic   :: operator  (.cross.) => vectorCrossProduct
+     procedure :: gslObject           => vectorGSLObject
   end type vector
 
   interface vector
@@ -612,6 +620,16 @@ contains
     return
   end function vectorCrossProduct
 
+  function vectorGSLObject(self)
+    !% Return a C pointer to the GSL vector object.
+    implicit none
+    type (c_ptr )                :: vectorGSLObject
+    class(vector), intent(in   ) :: self
+
+    vectorGSLObject=self%vector_
+    return
+  end function vectorGSLObject
+  
   !! Matrix functions.
 
   function matrixConstructor(array) result(self)
