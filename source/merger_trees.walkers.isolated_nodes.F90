@@ -70,8 +70,8 @@ contains
     class(mergerTreeWalkerIsolatedNodes), intent(inout)          :: self
     type (treeNode                     ), intent(inout), pointer :: node
 
-    ! If the node is currently pointing to the base node of the tree, then the tree walk is complete.
-    if (associated(self%node,self%tree%baseNode)) then
+    ! If we have already processed all nodes, simply return false and a null pointer.
+    if (.not.self%nodesRemain_) then
        node              => null()
        isolatedNodesNext =  .false.
        return
