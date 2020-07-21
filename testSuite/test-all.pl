@@ -246,6 +246,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.multi_dimensional_minimizer.exe",                              # Tests of multidimensional minimization functions.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.search.exe",                                                   # Tests of searching functions.
 	valgrind => 0,
 	mpi      => 0
