@@ -487,11 +487,12 @@ contains
     end where
     !$omp end parallel workshare
     ! Write indices of most bound particles to file.
-    call simulation%analysis%writeDataset(indexMostBound        ,'indexMostBound'        )
-    call simulation%analysis%writeDataset(indexVelocityMostBound,'indexVelocityMostBound')
+    call simulation%analysis%writeDataset(indexMostBound            ,'indexMostBound'        )
+    call simulation%analysis%writeDataset(indexVelocityMostBound    ,'indexVelocityMostBound')
     ! Write bound status to file.
-    call simulation%analysis%writeDataset(boundStatus           ,'selfBoundStatus'       )
-    call simulation%analysis%writeDataset(nint(sampleWeight)    ,'weight'                )
+    call simulation%analysis%writeDataset(boundStatus               ,'selfBoundStatus'       )
+    call simulation%analysis%writeDataset(nint(sampleWeight)        ,'weight'                )
+    call simulation%analysis%writeDataset([self%bootstrapSampleRate],'bootstrapSampleRate'   )
     ! Free workspaces.
     call deallocateArray(compute                )
     call deallocateArray(isBound                )
