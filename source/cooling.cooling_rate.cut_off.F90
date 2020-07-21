@@ -28,7 +28,7 @@
   type, extends(coolingRateClass) :: coolingRateCutOff
      !% Implementation of cooling rate class which modifies another cooling rate by cutting off cooling above some virial velocity.
      private
-     class           (coolingRateClass        ), pointer :: coolingRate_ => null()
+     class           (coolingRateClass        ), pointer :: coolingRate_         => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      ! Parameters controlling the cut off.
      double precision                            :: velocityCutOff  , timeCutOff
@@ -119,8 +119,8 @@ contains
          &                                                                   darkMatterHaloScale_, &
          &                                                                   coolingRate_          &
          &                )
-    !# <objectDestructor name="cosmologyFunctions_"/>
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     !# <objectDestructor name="coolingRate_"        />
     !# <objectDestructor name="darkMatterHaloScale_"/>
     return
