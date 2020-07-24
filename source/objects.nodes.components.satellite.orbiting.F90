@@ -85,7 +85,7 @@ module Node_Component_Satellite_Orbiting
   !#     <name>virialOrbit</name>
   !#     <type>keplerOrbit</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="set" />
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="set:get" />
   !#   </property>
   !#   <property>
   !#     <name>tidalTensorPathIntegrated</name>
@@ -144,7 +144,7 @@ contains
     use :: Input_Parameters  , only : inputParameter           , inputParameters
     implicit none
     type(inputParameters               ), intent(inout) :: parameters_
-    type(nodeComponentSatelliteOrbiting)                :: satelliteComponent
+    type(nodeComponentSatelliteOrbiting)                :: satellite
     type(varying_string                )                :: satelliteBoundMassInitializeTypeText
 
     ! Initialize the module if necessary.
@@ -206,7 +206,8 @@ contains
           ! Do nothing.
        end select
        ! Specify the function to use for setting virial orbits.
-       call satelliteComponent%virialOrbitSetFunction(Node_Component_Satellite_Orbiting_Virial_Orbit_Set)
+       call satellite%virialOrbitSetFunction(Node_Component_Satellite_Orbiting_Virial_Orbit_Set)
+       call satellite%virialOrbitFunction   (Node_Component_Satellite_Orbiting_Virial_Orbit    )
     end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Initialize
@@ -252,6 +253,7 @@ contains
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Satellite_Orbiting_Tree_Initialize</unitName>
   !#  <after>darkMatterProfile</after>
+  !#  <after>spin</after>
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Satellite_Orbiting_Tree_Initialize(thisNode)
     !% Initialize the orbiting satellite component.
@@ -496,48 +498,49 @@ contains
   !# <nodeMergerTask>
   !#  <unitName>Node_Component_Satellite_Orbiting_Create</unitName>
   !# </nodeMergerTask>
-  subroutine Node_Component_Satellite_Orbiting_Create(thisNode)
+  subroutine Node_Component_Satellite_Orbiting_Create(node)
     !% Create a satellite orbit component and assign initial position, velocity, orbit, and tidal heating quantities. (The initial
     !% bound mass is automatically set to the original halo mass by virtue of that being the class default).
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatellite, nodeComponentSatelliteOrbiting, treeNode
     implicit none
-    type            (treeNode              ), pointer, intent(inout) :: thisNode
-    type            (treeNode              ), pointer                :: hostNode
-    class           (nodeComponentSatellite), pointer                :: satelliteComponent
+    type            (treeNode              ), pointer, intent(inout) :: node
+    type            (treeNode              ), pointer                :: nodeHost
+    class           (nodeComponentSatellite), pointer                :: satellite
     logical                                                          :: isNewSatellite
-    type            (keplerOrbit           )                         :: thisOrbit
+    type            (keplerOrbit           )                         :: orbit
 
     ! Return immediately if this method is not active.
     if (.not.defaultSatelliteComponent%orbitingIsActive()) return
     ! Get the satellite component.
-    satelliteComponent => thisNode%satellite()
+    satellite => node%satellite()
     ! Determine if the satellite component exists already.
     isNewSatellite=.false.
-    select type (satelliteComponent)
+    select type (satellite)
     type is (nodeComponentSatellite)
        isNewSatellite=.true.
     end select
-    ! Return if this is not a new satellite.
-    if (.not.isNewSatellite) return
-    ! Create the satellite component.
-    satelliteComponent => thisNode%satellite(autoCreate=.true.)
-    select type (satelliteComponent)
+    ! If this is a new satellite, create the component and set the bound mass.
+    if (isNewSatellite) then
+       satellite => node%satellite(autoCreate=.true.)
+       ! Set the initial bound mass of this satellite.
+       call Node_Component_Satellite_Orbiting_Bound_Mass_Initialize(satellite,node)
+    end if
+    ! Create an orbit for the satellite.   
+    select type (satellite)
     class is (nodeComponentSatelliteOrbiting)
        ! Get an orbit for this satellite.
-       if (thisNode%isSatellite()) then
-          hostNode => thisNode%parent
+       if (node%isSatellite()) then
+          nodeHost => node%parent
        else
-          hostNode => thisNode%parent%firstChild
+          nodeHost => node%parent%firstChild
        end if
-       thisOrbit=virialOrbit_%orbit(thisNode,hostNode,acceptUnboundOrbits)
+       orbit=virialOrbit_%orbit(node,nodeHost,acceptUnboundOrbits)
        ! Store the orbit.
-       call satelliteComponent%virialOrbitSet(thisOrbit)
-       ! Set the initial bound mass of this satellite.
-       call Node_Component_Satellite_Orbiting_Bound_Mass_Initialize(satelliteComponent,thisNode)
+       call satellite%virialOrbitSet(orbit)
     end select
     return
   end subroutine Node_Component_Satellite_Orbiting_Create
-
+  
   !# <satellitePreHostChangeTask>
   !#  <unitName>Node_Component_Satellite_Orbiting_Pre_Host_Change</unitName>
   !# </satellitePreHostChangeTask>
@@ -590,6 +593,28 @@ contains
     return
   end subroutine Node_Component_Satellite_Orbiting_Trigger_Merger
 
+  function Node_Component_Satellite_Orbiting_Virial_Orbit(self) result(orbit)
+    !% Return the orbit of the satellite at the virial radius.
+    use :: Galacticus_Nodes, only : nodeComponentSatelliteOrbiting, treeNode
+    implicit none
+    type (keplerOrbit                   )                :: orbit
+    class(nodeComponentSatelliteOrbiting), intent(inout) :: self
+    type (treeNode                      ), pointer       :: selfNode
+
+    selfNode => self%host()
+    if (selfNode%isSatellite().or.(.not.selfNode%isPrimaryProgenitor().and.associated(selfNode%parent))) then
+       orbit=self%virialOrbitValue()
+       if (.not.orbit%isDefined()) then
+          ! Orbit has not been defined - define it now.
+          call Node_Component_Satellite_Orbiting_Create(selfNode)
+          orbit=self%virialOrbitValue()
+       end if
+    else
+       call orbit%reset()
+    end if
+    return
+  end function Node_Component_Satellite_Orbiting_Virial_Orbit
+  
   subroutine Node_Component_Satellite_Orbiting_Virial_Orbit_Set(self,thisOrbit)
     !% Set the orbit of the satellite at the virial radius.
     use :: Coordinates     , only : assignment(=)
