@@ -50,7 +50,7 @@ contains
     type   (nbodyImporterMultiple)                :: self
     type   (inputParameters      ), intent(inout) :: parameters
     type   (nbodyImporterList    ), pointer       :: importer_
-    integer                                    :: i
+    integer                                       :: i
 
     self     %importers => null()
     importer_           => null()
@@ -71,8 +71,8 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily multiple} N-body importer class.
     implicit none
     type(nbodyImporterMultiple)                        :: self
-    type(nbodyImporterList   ), target, intent(in   ) :: importers
-    type(nbodyImporterList   ), pointer               :: importer_
+    type(nbodyImporterList    ), target, intent(in   ) :: importers
+    type(nbodyImporterList    ), pointer               :: importer_
 
     self     %importers => importers
     importer_           => importers
