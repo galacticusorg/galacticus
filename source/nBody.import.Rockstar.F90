@@ -59,6 +59,7 @@
   !#  <entry label="pid"       />
   !#  <entry label="upid"      />
   !#  <entry label="desc_pid"  />
+  !#  <entry label="mmp"       />
   !#  <entry label="phantom"   />
   !#  <entry label="Mvir"      />
   !# </enumeration>
@@ -159,6 +160,7 @@ contains
                &  rockstarColumnPid       , &
                &  rockstarColumnUpid      , &
                &  rockstarColumnDesc_pid  , &
+               &  rockstarColumnMmp       , &
                &  rockstarColumnPhantom     &
                & )
              self%readColumnsIntegerCount   =self%readColumnsIntegerCount+1
@@ -298,6 +300,8 @@ contains
                 columnName='hostRootID'
              case (rockstarColumnDesc_pid  )
                 columnName='descendentHostID'
+             case (rockstarColumnMmp       )
+                columnName='isMostMassiveProgenitor'
              case (rockstarColumnPhantom   )
                 columnName='isPhantom'
              end select
