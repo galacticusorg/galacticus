@@ -68,11 +68,12 @@ contains
     !% Constructor for the {\normalfont \ttfamily fixed} halo environment class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (haloEnvironmentFixed        )                :: self
-    type            (inputParameters              ), intent(inout) :: parameters
-    class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
-    class           (linearGrowthClass            ), pointer       :: linearGrowth_
-    double precision                                               :: radiusEnvironment, massEnvironment, overdensity
+    type            (haloEnvironmentFixed   )                :: self
+    type            (inputParameters        ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass), pointer       :: cosmologyFunctions_
+    class           (linearGrowthClass      ), pointer       :: linearGrowth_
+    double precision                                         :: radiusEnvironment  , massEnvironment, &
+         &                                                      overdensity
 
     !# <inputParameter>
     !#   <name>overdensity</name>
@@ -134,7 +135,13 @@ contains
             &               *self%cosmologyFunctions_%matterDensityEpochal(expansionFactor=1.0d0)    &
             &               /3.0d0
     else if (present(massEnvironment)) then
-       self%radiusEnvironment=+(+3.0d0*self%massEnvironment/self%cosmologyFunctions_%matterDensityEpochal(expansionFactor=1.0d0)/4.0d0/Pi)**(1.0d0/3.0d0)
+       self%radiusEnvironment=+(                                                                      &
+            &                   +3.0d0                                                                &
+            &                   *self%massEnvironment                                                 &
+            &                   /self%cosmologyFunctions_%matterDensityEpochal(expansionFactor=1.0d0) &
+            &                   /4.0d0                                                                &
+            &                   /Pi                                                                   &
+            &                  )**(1.0d0/3.0d0)
     else
        call Galacticus_Error_Report('one of radiusEnvironment and massEnvironment must be specified'//{introspection:location})
     end if
