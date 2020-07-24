@@ -26,7 +26,7 @@
      !% A peak-background split critical overdensity class.
      private
      class(criticalOverdensityClass), pointer :: criticalOverdensity_ => null()
-     class(haloEnvironmentClass    ), pointer :: haloEnvironment_ => null()
+     class(haloEnvironmentClass    ), pointer :: haloEnvironment_     => null()
     contains
      final     ::                    peakBackgroundSplitDestructor
      procedure :: value           => peakBackgroundSplitValue
