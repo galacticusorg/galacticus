@@ -59,6 +59,7 @@
      !@   </objectMethod>
      !@ </objectMethods>
      final     ::                          parkinsonColeHellyDestructor
+     procedure :: rate                  => parkinsonColeHellyRate
      procedure :: probability           => parkinsonColeHellyProbability
      procedure :: probabilityBound      => parkinsonColeHellyProbabilityBound
      procedure :: fractionSubresolution => parkinsonColeHellyFractionSubresolution
@@ -454,6 +455,30 @@ contains
     return
   end function parkinsonColeHellyStepMaximum
 
+  double precision function parkinsonColeHellyRate(self,mass,deltaCritical,time,massBranch,node)
+    !% Return the rate per unit mass and per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time
+    !% {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass {\normalfont \ttfamily massBranch}.
+    implicit none
+    class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout), target :: self
+    double precision                                                  , intent(in   )         :: deltaCritical , mass, &
+         &                                                                                       massBranch    , time
+    type            (treeNode                                        ), intent(inout), target :: node
+    double precision                                                                          :: massBranch_
+    
+    ! Always use the rate from the lower half of the mass range.
+    if (massBranch > 0.5d0*mass) then
+       massBranch_=+mass-massBranch
+    else
+       massBranch_=     +massBranch
+    end if
+    call self%computeCommonFactors(deltaCritical,time,mass,node)
+    parkinsonColeHellySelf =>  self
+    parkinsonColeHellyRate =  +self%branchingProbabilityPreFactor                                  &
+         &                    *parkinsonColeHellyProbabilityIntegrandLogarithmic(log(massBranch_)) &
+         &                    /massBranch_
+    return
+  end function parkinsonColeHellyRate
+
   double precision function parkinsonColeHellyProbability(self,haloMass,deltaCritical,time,massResolution,node)
     !% Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time
     !% {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
@@ -487,7 +512,7 @@ contains
           integrator_             = integrator                               (                                                                     &
                &                                                                                parkinsonColeHellyProbabilityIntegrandLogarithmic, &
                &                                                              toleranceRelative=parkinsonColeHellyIntegrandToleranceRelative     , &
-               &                                                              integrationRule   =GSL_Integ_Gauss15&
+               &                                                              integrationRule   =GSL_Integ_Gauss15                                 &
                &                                                             )
           self%probabilityPrevious=+self       %branchingProbabilityPreFactor                                                                      &
                &                   *integrator_%integrate                    (                                                                     &

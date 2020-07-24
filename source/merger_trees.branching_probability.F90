@@ -31,6 +31,14 @@ module Merger_Tree_Branching
   !#  <descriptiveName>Merger Tree Branching Probabilities</descriptiveName>
   !#  <description>Class providing merger tree branching probabilities.</description>
   !#  <default>parkinsonColeHelly</default>
+  !#  <method name="rate" >
+  !#   <description>Computes the probability per unit ``time'' of branching at the given mass.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <selfTarget>yes</selfTarget>
+  !#   <argument>double precision          , intent(in   )         :: mass, deltaCritical, time, massBranch</argument>
+  !#   <argument>type            (treeNode), intent(inout), target :: node</argument>
+  !#  </method>
   !#  <method name="probability" >
   !#   <description>Computes the probability per unit ``time'' that a branching event occurs.</description>
   !#   <type>double precision</type>
