@@ -241,7 +241,7 @@ source/FFTlog/cdgamma.f source/FFTlog/drfftb.f source/FFTlog/drffti.f source/FFT
 source/FFTlog/fftlog.f:
 	mkdir -p source/FFTlog
 	mkdir -p $(BUILDPATH)/FFTlog
-	wget http://jila.colorado.edu/~ajsh/FFTLog/fftlog.tgz -O - | tar xvz -C source/FFTlog -f -
+	wget --no-check-certificate http://jila.colorado.edu/~ajsh/FFTLog/fftlog.tgz -O - | tar xvz -C source/FFTlog -f -
 	if [ ! -e source/FFTlog/fftlog.f ]; then \
 	 echo "      subroutine fhti(n,mu,q,dlnr,kr,kropt,wsave,ok)" >  source/FFTlog/fftlog.f; \
 	 echo "      stop 'FFTlog was not downloaded - to try again" >> source/FFTlog/fftlog.f; \
