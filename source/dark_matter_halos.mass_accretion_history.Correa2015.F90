@@ -33,8 +33,9 @@
      class(linearGrowthClass            ), pointer :: linearGrowth_             => null()
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
    contains
-     final     ::         correa2015Destructor
-     procedure :: time => correa2015Time
+     final     ::                      correa2015Destructor
+     procedure :: time              => correa2015Time
+     procedure :: massAccretionRate => correa2015MassAccretionRate
   end type darkMatterHaloMassAccretionHistoryCorrea2015
 
   interface darkMatterHaloMassAccretionHistoryCorrea2015
@@ -92,7 +93,7 @@ contains
 
   double precision function correa2015Time(self,node,mass)
     !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily
-    !% thisNode} using the algorithm of \cite{correa_accretion_2015}.
+    !% node} using the algorithm of \cite{correa_accretion_2015}.
     use :: Dark_Matter_Halos_Correa2015, only : Dark_Matter_Halo_Correa2015_Fit_Parameters
     use :: Galacticus_Nodes            , only : nodeComponentBasic                        , treeNode
     use :: Root_Finder                 , only : rangeExpandMultiplicative                 , rangeExpandSignExpectNegative, rootFinder
@@ -100,7 +101,7 @@ contains
     class           (darkMatterHaloMassAccretionHistoryCorrea2015), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node
     double precision                                              , intent(in   ) :: mass
-    class           (nodeComponentBasic                          ), pointer       :: baseBasicComponent
+    class           (nodeComponentBasic                          ), pointer       :: baseBasic
     double precision                                              , parameter     :: toleranceRelative  =1.0d-6
     double precision                                              , parameter     :: toleranceAbsolute  =0.0d0
     type            (rootFinder                                  ), save          :: finder
@@ -112,9 +113,9 @@ contains
     !$GLC attributes unused :: self
 
     ! Get properties of the base node.
-    baseBasicComponent => node%basic()
-    baseMass=baseBasicComponent%mass()
-    baseTime=baseBasicComponent%time()
+    baseBasic => node     %basic()
+    baseMass  =  baseBasic%mass ()
+    baseTime  =  baseBasic%time ()
     ! Determine the base redshift.
     baseExpansionFactor=self%cosmologyFunctions_%expansionFactor            (baseTime           )
     baseRedshift       =self%cosmologyFunctions_%redshiftFromExpansionFactor(baseExpansionFactor)
@@ -155,3 +156,47 @@ contains
     end function redshiftMassSolver
 
   end function correa2015Time
+
+  double precision function correa2015MassAccretionRate(self,node,time)
+    !% Compute the mass accretion rate at the given time {\normalfont \ttfamily mass} in the mass accretion history of
+    !% {\normalfont \ttfamily node} using the algorithm of \cite{correa_accretion_2015}.
+    use :: Dark_Matter_Halos_Correa2015, only : Dark_Matter_Halo_Correa2015_Fit_Parameters
+    use :: Galacticus_Nodes            , only : nodeComponentBasic                        , treeNode
+    implicit none
+    class           (darkMatterHaloMassAccretionHistoryCorrea2015), intent(inout) :: self
+    type            (treeNode                                    ), intent(inout) :: node
+    double precision                                              , intent(in   ) :: time
+    class           (nodeComponentBasic                          ), pointer       :: baseBasic
+    double precision                                                              :: baseRedshift       , baseTime                 , &
+         &                                                                           baseExpansionFactor, baseMass                 , &
+         &                                                                           redshift           , aTilde                   , &
+         &                                                                           bTilde             , expansionFactor          , &
+         &                                                                           redshift           , massAccretionRateRedshift
+    !$GLC attributes unused :: self
+
+    ! Get properties of the base node.
+    baseBasic => node     %basic()
+    baseMass  =  baseBasic%mass ()
+    baseTime  =  baseBasic%time ()
+    ! Determine the base redshift.
+    baseExpansionFactor=self%cosmologyFunctions_%expansionFactor            (baseTime           )
+    baseRedshift       =self%cosmologyFunctions_%redshiftFromExpansionFactor(baseExpansionFactor)
+    ! Find the a~ and b~ parameters.
+    call Dark_Matter_Halo_Correa2015_Fit_Parameters(baseMass,baseExpansionFactor,self%cosmologyFunctions_,self%linearGrowth_,self%cosmologicalMassVariance_,aTilde,bTilde)
+    ! Compute the mass accretion rate per unit redshift.
+    expansionFactor          =+self%cosmologyFunctions_%expansionFactor            (time           )
+    redshift                 =+self%cosmologyFunctions_%redshiftFromExpansionFactor(expansionFactor)
+    massAccretionRateRedshift=+baseMass                                   &
+         &                    *            (1.0d0+redshift-baseRedshift)  &
+         &                    *exp(+bTilde*(     +redshift-baseRedshift)) &
+         &                    *   (                                       &
+         &                         +aTilde/(1.0d0+redshift-baseRedshift)  &
+         &                         +bTilde                                &
+         &                        )
+    ! Convert to mass accretion rate per unit time.
+    correa2015MassAccretionRate=-massAccretionRateRedshift                               &
+         &                      *self%cosmologyFunctions_%expansionRate(expansionFactor) &
+         &                      /                                       expansionFactor
+    return
+  end function correa2015MassAccretionRate
+  

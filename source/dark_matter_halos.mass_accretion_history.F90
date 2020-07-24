@@ -29,12 +29,19 @@ module Dark_Matter_Halo_Mass_Accretion_Histories
   !#  <descriptiveName>Dark Matter Halo Mass Accretion Histories</descriptiveName>
   !#  <description>Object providing dark matter halo mass accretion histories.</description>
   !#  <default>wechsler2002</default>
-  !#  <method name="time" >
+  !#  <method name="time">
   !#   <description>Returns the time at which the given halo mass was reached.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>type            (treeNode), intent(inout) :: node</argument>
   !#   <argument>double precision          , intent(in   ) :: mass</argument>
+  !#  </method>
+  !#  <method name="massAccretionRate">
+  !#   <description>Returns the mass accretion rate at the specified time.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
+  !#   <argument>double precision          , intent(in   ) :: time</argument>
   !#  </method>
   !# </functionClass>
 

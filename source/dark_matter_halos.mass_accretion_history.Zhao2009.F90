@@ -34,8 +34,9 @@
      class(linearGrowthClass            ), pointer :: linearGrowth_             => null()
      class(cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
    contains
-     final     ::         zhao2009Destructor
-     procedure :: time => zhao2009Time
+     final     ::                      zhao2009Destructor
+     procedure :: time              => zhao2009Time
+     procedure :: massAccretionRate => zhao2009MassAccretionRate
   end type darkMatterHaloMassAccretionHistoryZhao2009
 
   interface darkMatterHaloMassAccretionHistoryZhao2009
@@ -189,3 +190,18 @@ contains
     end function growthRateODEs
 
   end function zhao2009Time
+
+  double precision function zhao2009MassAccretionRate(self,node,time)
+    !% Compute the mass accretion rate at the given {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont
+    !% \ttfamily node} using the algorithm of \cite{zhao_accurate_2009}.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class           (darkMatterHaloMassAccretionHistoryZhao2009), intent(inout) :: self
+    type            (treeNode                                  ), intent(inout) :: node
+    double precision                                            , intent(in   ) :: time
+    !$GLC attributes unused :: self, node, time
+
+    zhao2009MassAccretionRate=0.0d0
+    call Galacticus_Error_Report('mass accretion rate is not implemented'//{introspection:location})
+    return
+  end function zhao2009MassAccretionRate
