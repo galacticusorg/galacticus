@@ -185,15 +185,15 @@ module Cosmological_Density_Field
   !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#  </method>
   !#  <method name="environmentRadius" >
-  !#   <description>Return the radius of the region used to defined the environmental.</description>
+  !#   <description>Return the radius of the region used to defined the environment.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#  </method>
   !#  <method name="environmentMass" >
-  !#   <description>Return the mean mass contained in the region used to defined the environmental.</description>
+  !#   <description>Return the mean mass contained in the region used to defined the environment.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#  </method>
+  !#  </method>  
   !#  <method name="overdensityLinearMinimum" >
   !#   <description>Return the minimum linear overdensity for which the environmental overdensity \gls{pdf} is non-zero.</description>
   !#   <type>double precision</type>
