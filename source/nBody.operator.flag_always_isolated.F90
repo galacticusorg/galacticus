@@ -83,26 +83,29 @@ contains
     implicit none
     class           (nbodyOperatorFlagAlwaysIsolated), intent(inout)               :: self
     type            (nBodyData                      ), intent(inout), dimension(:) :: simulations
-    integer         (c_size_t                       ), allocatable  , dimension(:) :: alwaysIsolated, hostID     , &
-         &                                                                            descendentID  , indexID
+    integer         (c_size_t                       ), allocatable  , dimension(:) :: alwaysIsolated         , hostID     , &
+         &                                                                            descendentID           , indexID    , &
+         &                                                                            isMostMassiveProgenitor
     double precision                                 , allocatable  , dimension(:) :: massVirial
     double precision                                                               :: massReference
-    integer         (c_size_t                       )                              :: i             , j          , &
-         &                                                                            k             , iSimulation, &
+    integer         (c_size_t                       )                              :: i                      , j          , &
+         &                                                                            k                      , iSimulation, &
          &                                                                            countParticles
 
     call Galacticus_Display_Indent('flag always isolated objects',verbosityStandard)
     do iSimulation=1,size(simulations)
        ! Allocate workspace.
-       allocate(indexID       (size(simulations(iSimulation)%particleIDs)))
-       allocate(hostID        (size(simulations(iSimulation)%particleIDs)))
-       allocate(descendentID  (size(simulations(iSimulation)%particleIDs)))
-       allocate(massVirial    (size(simulations(iSimulation)%particleIDs)))
-       allocate(alwaysIsolated(size(simulations(iSimulation)%particleIDs)))
+       allocate(indexID                (size(simulations(iSimulation)%particleIDs)))
+       allocate(hostID                 (size(simulations(iSimulation)%particleIDs)))
+       allocate(descendentID           (size(simulations(iSimulation)%particleIDs)))
+       allocate(isMostMassiveProgenitor(size(simulations(iSimulation)%particleIDs)))
+       allocate(massVirial             (size(simulations(iSimulation)%particleIDs)))
+       allocate(alwaysIsolated         (size(simulations(iSimulation)%particleIDs)))
        ! Retrieve required properties.
-       hostID      =simulations(iSimulation)%propertiesInteger%value('hostID'      )
-       descendentID=simulations(iSimulation)%propertiesInteger%value('descendentID')
-       massVirial  =simulations(iSimulation)%propertiesReal   %value('massVirial'  )
+       hostID                 =simulations(iSimulation)%propertiesInteger%value('hostID'                 )
+       descendentID           =simulations(iSimulation)%propertiesInteger%value('descendentID'           )
+       isMostMassiveProgenitor=simulations(iSimulation)%propertiesInteger%value('isMostMassiveProgenitor')
+       massVirial             =simulations(iSimulation)%propertiesReal   %value('massVirial'             )
        ! Build a sort index.
        indexID=sortIndex(simulations(iSimulation)%particleIDs)
        ! Initialize status - assuming all particles are always-isolated initially.
@@ -118,7 +121,7 @@ contains
           massReference=massVirial(i)
           do while (massVirial(j) < self%massFactor*massReference)
              alwaysIsolated(j)=0_c_size_t
-             if (descendentID(j) < 0_c_size_t) exit
+             if (descendentID(j) < 0_c_size_t .or. isMostMassiveProgenitor(j) == 0) exit
              k=searchIndexed(simulations(iSimulation)%particleIDs,indexID,descendentID(j))
              if     (                                              &
                   &   k                         < 1_c_size_t       &
