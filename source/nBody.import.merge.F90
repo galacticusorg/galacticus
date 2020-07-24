@@ -176,7 +176,7 @@ contains
              end do
              importer_ => importer_%next
           end do
-          call simulations(1)%propertiesInteger%set(importer_%simulations(j)%propertiesInteger%key(k),propertyInteger)
+          call simulations(1)%propertiesInteger%set(self%importers%simulations(1)%propertiesInteger%key(k),propertyInteger)
        end do
     end if
     !! Real properties.
