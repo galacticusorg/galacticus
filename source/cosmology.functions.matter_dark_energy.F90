@@ -130,9 +130,6 @@ contains
     !# <constructorAssign variables="*cosmologyParameters_, darkEnergyEquationOfStateW0, darkEnergyEquationOfStateW1"/>
 
     self%enableRangeChecks=.true.
-    ! Initialize locks.
-    !$ call OMP_Init_Lock(self%expansionFactorTableLock)
-    !$ call OMP_Init_Lock(self%distanceTableLock       )
     ! Force a build of the expansion factor table, which will determine if this Universe collapses.
     call self%expansionFactorTabulate()
    return
@@ -153,8 +150,6 @@ contains
          &                  collapsingIn     =collapsingPhase      , &
          &                  collapsingOut    =collapsingPhaseActual  &
          &                 )
-    ! Get lock on interpolation tables.
-    !$ call OMP_Set_Lock(self%expansionFactorTableLock)
     ! Ensure tabulation is initialized.
     if (.not.self%ageTableInitialized) call self%expansionFactorTabulate(self%ageTableTimeMinimum)
     ! Ensure that the tabulation spans a sufficient range of expansion factors.
@@ -174,8 +169,6 @@ contains
     end if
     ! Interpolate to get cosmic time.
     matterDarkEnergyCosmicTime=self%interpolatorTime%interpolate(expansionFactor)
-    ! Release lock on interpolation tables.
-    !$ call OMP_Unset_Lock(self%expansionFactorTableLock)
     return
   end function matterDarkEnergyCosmicTime
 
