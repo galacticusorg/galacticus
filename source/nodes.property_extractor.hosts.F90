@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an ISM mass output analysis property extractor class.
+!% Contains a module which implements a host index output analysis property extractor class.
 
   !# <nodePropertyExtractor name="nodePropertyExtractorIndicesHost">
-  !#  <description>An ISM mass output analysis property extractor class.</description>
+  !#  <description>A host index output analysis property extractor class.</description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorIndicesHost
-     !% A stelalr mass output analysis class.
+     !% A host index output analysis class.
      private
      logical :: topLevel
    contains
