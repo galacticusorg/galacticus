@@ -414,7 +414,7 @@ contains
     double precision                                              , intent(in   )          , dimension(:,:) :: outputWeight
     logical                                                       , intent(in   ), optional                 :: xAxisIsLog                                      , yAxisIsLog                                     , &
          &                                                                                                     likelihoodNormalize
-    class           (nodePropertyExtractorClass                  ), intent(inout), target                   :: nodePropertyExtractor_                , outputAnalysisWeightPropertyExtractor_
+    class           (nodePropertyExtractorClass                  ), intent(inout), target                   :: nodePropertyExtractor_                          , outputAnalysisWeightPropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass         ), intent(inout), target                   :: outputAnalysisPropertyOperator_                 , outputAnalysisPropertyUnoperator_              , &
          &                                                                                                     outputAnalysisWeightPropertyOperator_
     class           (outputAnalysisWeightOperatorClass           ), intent(inout), target                   :: outputAnalysisWeightOperatorIn_
