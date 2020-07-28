@@ -91,11 +91,10 @@ contains
     type (multiCounter                 ), intent(inout), optional :: instance
     type (treeNode                     ), pointer                 :: nodeHost
 
-    if (node%isSatellite()) then
-       nodeHost => node%parent
-    else
-       nodeHost => node
-    end if
+    nodeHost => node
+    do while (nodeHost%isSatellite())
+       nodeHost => nodeHost%parent
+    end do
     hostNodeExtract=self%nodePropertyExtractor_%extract(nodeHost,instance)
     return
   end function hostNodeExtract
