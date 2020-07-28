@@ -22,7 +22,7 @@
 
 
   !# <outputAnalysis name="outputAnalysisConcentrationVsHaloMassCDMLudlow2016">
-  !#  <description>A concentration vs. halo mass analysis class matched to the \cite{ludlow_mass-concentration-redshift_2016} CDM sample..</description>
+  !#  <description>A concentration vs. halo mass analysis class matched to the \cite{ludlow_mass-concentration-redshift_2016} CDM sample.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisConcentrationVsHaloMassCDMLudlow2016
      !% A concentration vs. halo mass analysis class matched to the \cite{ludlow_mass-concentration-redshift_2016} CDM sample.
