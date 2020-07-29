@@ -79,7 +79,7 @@ contains
   end subroutine virialPropertiesDestructor
 
   integer function virialPropertiesElementCount(self,time)
-    !% Return the number of elements in the {\normalfont \ttfamily virialProperies} property extractors.
+    !% Return the number of elements in the {\normalfont \ttfamily virialProperties} property extractors.
     implicit none
     class           (nodePropertyExtractorVirialProperties), intent(inout) :: self
     double precision                                       , intent(in   ) :: time
@@ -108,7 +108,7 @@ contains
   end function virialPropertiesExtract
 
   function virialPropertiesNames(self,time)
-    !% Return the names of the {\normalfont \ttfamily virialProperies} properties.
+    !% Return the names of the {\normalfont \ttfamily virialProperties} properties.
     implicit none
     type            (varying_string                       ), dimension(:) , allocatable :: virialPropertiesNames
     class           (nodePropertyExtractorVirialProperties), intent(inout)              :: self
@@ -124,7 +124,7 @@ contains
   end function virialPropertiesNames
 
   function virialPropertiesDescriptions(self,time)
-    !% Return the descriptions of the {\normalfont \ttfamily virialProperies} properties.
+    !% Return the descriptions of the {\normalfont \ttfamily virialProperties} properties.
     implicit none
     type            (varying_string                       ), dimension(:) , allocatable :: virialPropertiesDescriptions
     class           (nodePropertyExtractorVirialProperties), intent(inout)              :: self
@@ -140,7 +140,7 @@ contains
   end function virialPropertiesDescriptions
 
   function virialPropertiesUnitsInSI(self,time)
-    !% Return the units of the {\normalfont \ttfamily virialProperies} properties in the SI system.
+    !% Return the units of the {\normalfont \ttfamily virialProperties} properties in the SI system.
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
