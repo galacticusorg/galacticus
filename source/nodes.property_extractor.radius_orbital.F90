@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an orbital output analysis property extractor class.
+!% Contains a module which implements an orbital radius output analysis property extractor class.
 
   !# <nodePropertyExtractor name="nodePropertyExtractorRadiusOrbital">
   !#  <description>An orbital radius output analysis property extractor class.</description>
@@ -57,14 +57,28 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     use :: Vectors         , only : Vector_Magnitude
     implicit none
-    class(nodePropertyExtractorRadiusOrbital), intent(inout)           :: self
-    type (treeNode                          ), intent(inout), target   :: node
-    type (multiCounter                      ), intent(inout), optional :: instance
-    class(nodeComponentSatellite            ), pointer                 :: satellite
+    class           (nodePropertyExtractorRadiusOrbital), intent(inout)           :: self
+    type            (treeNode                          ), intent(inout), target   :: node
+    type            (multiCounter                      ), intent(inout), optional :: instance
+    type            (treeNode                          ), pointer                 :: nodeWork
+    class           (nodeComponentSatellite            ), pointer                 :: satellite
+    double precision                                    , dimension(3)            :: position
     !$GLC attributes unused :: self, instance
 
-    satellite            =>                  node     %satellite()
-    radiusOrbitalExtract =  Vector_Magnitude(satellite%position ())
+    position =  0.0d0
+    nodeWork => node
+    ! Walk up through all host halos of this node, accumulating position offsets from the host node center.
+    do while (associated(nodeWork))
+       satellite =>  nodeWork %satellite()
+       position  =  +          position    &
+            &       +satellite%position ()
+       if (nodeWork%isSatellite()) then
+          nodeWork => nodeWork%parent
+       else
+          nodeWork => null()
+       end if
+    end do
+    radiusOrbitalExtract=Vector_Magnitude(position)
     return
   end function radiusOrbitalExtract
 
