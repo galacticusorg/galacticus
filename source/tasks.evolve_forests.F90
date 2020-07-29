@@ -109,22 +109,22 @@ contains
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Node_Components , only : Node_Components_Initialize
     implicit none
-    type            (taskEvolveForests          )                :: self
-    type            (inputParameters            ), intent(inout) :: parameters
-    class           (mergerTreeOperatorClass    ), pointer       :: mergerTreeOperator_
-    class           (evolveForestsWorkShareClass), pointer       :: evolveForestsWorkShare_
-    class           (mergerTreeConstructorClass ), pointer       :: mergerTreeConstructor_
-    class           (outputTimesClass           ), pointer       :: outputTimes_
-    class           (universeOperatorClass      ), pointer       :: universeOperator_
-    class           (mergerTreeEvolverClass     ), pointer       :: mergerTreeEvolver_
-    class           (mergerTreeOutputterClass   ), pointer       :: mergerTreeOutputter_
-    class           (galacticFilterClass        ), pointer       :: galacticFilter_
-    type            (inputParameters            ), pointer       :: parametersRoot
-    logical                                                      :: evolveSingleForest           , suspendToRAM
-    integer                                                      :: evolveSingleForestSections
-    double precision                                             :: evolveSingleForestMassMinimum
-    integer         (kind_int8                  )                :: walltimeMaximum
-    type            (varying_string             )                :: suspendPath
+    type            (taskEvolveForests          )                        :: self
+    type            (inputParameters            ), intent(inout), target :: parameters
+    class           (mergerTreeOperatorClass    ), pointer               :: mergerTreeOperator_
+    class           (evolveForestsWorkShareClass), pointer               :: evolveForestsWorkShare_
+    class           (mergerTreeConstructorClass ), pointer               :: mergerTreeConstructor_
+    class           (outputTimesClass           ), pointer               :: outputTimes_
+    class           (universeOperatorClass      ), pointer               :: universeOperator_
+    class           (mergerTreeEvolverClass     ), pointer               :: mergerTreeEvolver_
+    class           (mergerTreeOutputterClass   ), pointer               :: mergerTreeOutputter_
+    class           (galacticFilterClass        ), pointer               :: galacticFilter_
+    type            (inputParameters            ), pointer               :: parametersRoot
+    logical                                                              :: evolveSingleForest           , suspendToRAM
+    integer                                                              :: evolveSingleForestSections
+    double precision                                                     :: evolveSingleForestMassMinimum
+    integer         (kind_int8                  )                        :: walltimeMaximum
+    type            (varying_string             )                        :: suspendPath
 
     ! Ensure the nodes objects are initialized.
     if (associated(parameters%parent)) then

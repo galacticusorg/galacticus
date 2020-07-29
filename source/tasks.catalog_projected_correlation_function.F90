@@ -28,20 +28,22 @@
   type, extends(taskClass) :: taskCatalogProjectedCorrelationFunction
      !% Implementation of a task which computes projected correlation functions based on a simple halo model approach.
      private
-     class           (cosmologyParametersClass         ), pointer      :: cosmologyParameters_    => null()
-     class           (cosmologyFunctionsClass          ), pointer      :: cosmologyFunctions_     => null()
-     class           (surveyGeometryClass              ), pointer      :: surveyGeometry_         => null()
-     class           (randomNumberGeneratorClass       ), pointer      :: randomNumberGenerator_  => null()
-     type            (varying_string                   )               :: galaxyCatalogFileName
-     integer                                                           :: separationCount                  , randomSampleCount, &
-          &                                                               randomSampleCountType
-     double precision                                                  :: massMinimum                      , massMaximum      , &
-          &                                                               separationMinimum                , separationMaximum, &
-          &                                                               separationRadialMaximum,           widthBuffer      , &
-          &                                                               angleRotation
-     double precision                                   , dimension(3) :: origin
-     double precision                                   , dimension(2) :: vectorRotation
-     logical                                                           :: halfIntegral
+     class           (cosmologyParametersClass  ), pointer      :: cosmologyParameters_    => null()
+     class           (cosmologyFunctionsClass   ), pointer      :: cosmologyFunctions_     => null()
+     class           (surveyGeometryClass       ), pointer      :: surveyGeometry_         => null()
+     class           (randomNumberGeneratorClass), pointer      :: randomNumberGenerator_  => null()
+     type            (varying_string            )               :: galaxyCatalogFileName
+     integer                                                    :: separationCount                  , randomSampleCount, &
+          &                                                        randomSampleCountType
+     double precision                                           :: massMinimum                      , massMaximum      , &
+          &                                                        separationMinimum                , separationMaximum, &
+          &                                                        separationRadialMaximum,           widthBuffer      , &
+          &                                                        angleRotation
+     double precision                            , dimension(3) :: origin
+     double precision                            , dimension(2) :: vectorRotation
+     logical                                                    :: halfIntegral
+     ! Pointer to the parameters for this task.
+     type            (inputParameters           )               :: parameters
    contains
      final     ::            catalogProjectedCorrelationFunctionDestructor
      procedure :: perform => catalogProjectedCorrelationFunctionPerform
@@ -67,27 +69,27 @@ contains
     !% Constructor for the {\normalfont \ttfamily catalogProjectedCorrelationFunction} task class which takes a parameter set as input.
     use :: Galacticus_Nodes        , only : nodeClassHierarchyInitialize
     use :: Input_Parameters        , only : inputParameter              , inputParameters
-    use :: Node_Components         , only : Node_Components_Initialize  , Node_Components_Thread_Initialize
+    use :: Node_Components         , only : Node_Components_Initialize
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    type            (taskCatalogProjectedCorrelationFunction)                :: self
-    type            (inputParameters                        ), intent(inout) :: parameters
-    class           (cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
-    class           (cosmologyParametersClass               ), pointer       :: cosmologyParameters_
-    class           (surveyGeometryClass                    ), pointer       :: surveyGeometry_
-    class           (randomNumberGeneratorClass             ), pointer       :: randomNumberGenerator_
-    type            (inputParameters                        ), pointer       :: parametersRoot
-    integer                                                                  :: separationCount        , randomSampleCount    , &
-         &                                                                      randomSampleCountType
-    double precision                                                         :: massMinimum            , massMaximum          , &
-         &                                                                      separationMinimum      , separationMaximum    , &
-         &                                                                      separationRadialMaximum, widthBuffer          , &
-         &                                                                      angleRotation
-    double precision                                         , dimension(3)  :: origin
-    double precision                                         , dimension(2)  :: vectorRotation
-    logical                                                                  :: halfIntegral
-    type            (varying_string                         )                :: galaxyCatalogFileName  , randomSampleCountText
-    character       (len=128                                )                :: label
+    type            (taskCatalogProjectedCorrelationFunction)                        :: self
+    type            (inputParameters                        ), intent(inout), target :: parameters
+    class           (cosmologyFunctionsClass                ), pointer               :: cosmologyFunctions_
+    class           (cosmologyParametersClass               ), pointer               :: cosmologyParameters_
+    class           (surveyGeometryClass                    ), pointer               :: surveyGeometry_
+    class           (randomNumberGeneratorClass             ), pointer               :: randomNumberGenerator_
+    type            (inputParameters                        ), pointer               :: parametersRoot
+    integer                                                                          :: separationCount        , randomSampleCount    , &
+         &                                                                              randomSampleCountType
+    double precision                                                                 :: massMinimum            , massMaximum          , &
+         &                                                                              separationMinimum      , separationMaximum    , &
+         &                                                                              separationRadialMaximum, widthBuffer          , &
+         &                                                                              angleRotation
+    double precision                                         , dimension(3)          :: origin
+    double precision                                         , dimension(2)          :: vectorRotation
+    logical                                                                          :: halfIntegral
+    type            (varying_string                         )                        :: galaxyCatalogFileName  , randomSampleCountText
+    character       (len=128                                )                        :: label
 
     ! Ensure the nodes objects are initialized.
     if (associated(parameters%parent)) then
@@ -95,14 +97,12 @@ contains
        do while (associated(parametersRoot%parent))
           parametersRoot => parametersRoot%parent
        end do
-       call nodeClassHierarchyInitialize     (parametersRoot)
-       call Node_Components_Initialize       (parametersRoot)
-       call Node_Components_Thread_Initialize(parametersRoot)
+       call nodeClassHierarchyInitialize(parametersRoot)
+       call Node_Components_Initialize  (parametersRoot)
     else
-       parametersRoot => null()
-       call nodeClassHierarchyInitialize     (parameters    )
-       call Node_Components_Initialize       (parameters    )
-       call Node_Components_Thread_Initialize(parameters    )
+       parametersRoot => parameters
+       call nodeClassHierarchyInitialize(parameters    )
+       call Node_Components_Initialize  (parameters    )
     end if
     !# <inputParameter>
     !#   <name>galaxyCatalogFileName</name>
@@ -224,7 +224,7 @@ contains
     !#   <type>float</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-    self=taskCatalogProjectedCorrelationFunction(galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCount,randomSampleCountType,halfIntegral,cosmologyParameters_,cosmologyFunctions_,surveyGeometry_,randomNumberGenerator_)
+    self=taskCatalogProjectedCorrelationFunction(galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCount,randomSampleCountType,halfIntegral,cosmologyParameters_,cosmologyFunctions_,surveyGeometry_,randomNumberGenerator_,parametersRoot)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"  />
     !# <objectDestructor name="cosmologyFunctions_"   />
@@ -233,7 +233,7 @@ contains
     return
   end function catalogProjectedCorrelationFunctionConstructorParameters
 
-  function catalogProjectedCorrelationFunctionConstructorInternal(galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCount,randomSampleCountType,halfIntegral,cosmologyParameters_,cosmologyFunctions_,surveyGeometry_,randomNumberGenerator_) result(self)
+  function catalogProjectedCorrelationFunctionConstructorInternal(galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCount,randomSampleCountType,halfIntegral,cosmologyParameters_,cosmologyFunctions_,surveyGeometry_,randomNumberGenerator_,parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily catalogProjectedCorrelationFunction} task class which takes a parameter set as input.
     implicit none
     type            (taskCatalogProjectedCorrelationFunction)                              :: self
@@ -251,14 +251,17 @@ contains
     class           (cosmologyFunctionsClass                ), intent(in   ), target       :: cosmologyFunctions_
     class           (surveyGeometryClass                    ), intent(in   ), target       :: surveyGeometry_
     class           (randomNumberGeneratorClass             ), intent(in   ), target       :: randomNumberGenerator_
+    type            (inputParameters                        ), intent(in   ), target :: parameters
     !# <constructorAssign variables="galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCount, randomSampleCountType, halfIntegral, *cosmologyParameters_, *cosmologyFunctions_, *surveyGeometry_, *randomNumberGenerator_"/>
 
+    self%parameters=inputParameters(parameters)
+    call self%parameters%parametersGroupCopy(parameters)
     return
   end function catalogProjectedCorrelationFunctionConstructorInternal
 
   subroutine catalogProjectedCorrelationFunctionDestructor(self)
     !% Destructor for the {\normalfont \ttfamily catalogProjectedCorrelationFunction} task class.
-    use :: Node_Components, only : Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+    use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
     type(taskCatalogProjectedCorrelationFunction), intent(inout) :: self
 
@@ -266,22 +269,22 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"   />
     !# <objectDestructor name="self%surveyGeometry_"       />
     !# <objectDestructor name="self%randomNumberGenerator_"/>
-    call Node_Components_Uninitialize       ()
-    call Node_Components_Thread_Uninitialize()
+    call Node_Components_Uninitialize()
     return
   end subroutine catalogProjectedCorrelationFunctionDestructor
 
   subroutine catalogProjectedCorrelationFunctionPerform(self,status)
     !% Compute the projected correlation function from a galaxy catalog.
-    use :: Galacticus_Display              , only : Galacticus_Display_Indent    , Galacticus_Display_Message, Galacticus_Display_Unindent
-    use :: Galacticus_Error                , only : Galacticus_Error_Report      , errorStatusSuccess
+    use :: Galacticus_Display              , only : Galacticus_Display_Indent        , Galacticus_Display_Message        , Galacticus_Display_Unindent
+    use :: Galacticus_Error                , only : Galacticus_Error_Report          , errorStatusSuccess
     use :: Galacticus_HDF5                 , only : galacticusOutputFile
     use :: IO_HDF5                         , only : hdf5Object
     use :: IO_IRATE                        , only : irate
     use :: ISO_Varying_String              , only : varying_string
-    use :: Memory_Management               , only : allocateArray                , deallocateArray
+    use :: Memory_Management               , only : allocateArray                    , deallocateArray
+    use :: Node_Components                 , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use :: Numerical_Constants_Astronomical, only : megaParsec
-    use :: Points                          , only : Points_Prune                 , Points_Replicate          , Points_Rotate              , Points_Survey_Geometry, &
+    use :: Points                          , only : Points_Prune                     , Points_Replicate                   , Points_Rotate              , Points_Survey_Geometry, &
           &                                         Points_Translate
     use :: Statistics_Points_Correlations  , only : Statistics_Points_Correlation
     use :: String_Handling                 , only : operator(//)
@@ -303,6 +306,8 @@ contains
          &                                                                                      replicatedGalaxyCount
 
     call Galacticus_Display_Indent('Begin task: catalog projected correlation function')
+    ! Call routines to perform initializations which must occur for all threads if run in parallel.
+    call Node_Components_Thread_Initialize(self%parameters)
     ! Read the galaxy catalog.
     call Galacticus_Display_Indent("Reading galaxy catalog")
     galaxyFile=irate(char(self%galaxyCatalogFileName),self%cosmologyParameters_,self%cosmologyFunctions_)
@@ -431,6 +436,7 @@ contains
     call thisDataset%writeAttribute(megaParsec,'unitsInSI')
     call thisDataset%close         (                      )
     call correlationFunctionGroup%close()
+    call Node_Components_Thread_Uninitialize()
     if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: catalog projected correlation function' )
 

@@ -29,6 +29,8 @@
      class  (nBodyImporterClass), pointer :: nBodyImporter_
      class  (nBodyOperatorClass), pointer :: nBodyOperator_
      logical                              :: storeBackToImported
+     ! Pointer to the parameters for this task.
+     type   (inputParameters   )          :: parameters
    contains
      final     ::                       nbodyAnalyzeDestructor
      procedure :: perform            => nbodyAnalyzePerform
@@ -47,14 +49,14 @@ contains
     !% Constructor for the {\normalfont \ttfamily nbodyAnalyze} task class which takes a parameter set as input.
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Input_Parameters, only : inputParameter              , inputParameters
-    use :: Node_Components , only : Node_Components_Initialize  , Node_Components_Thread_Initialize
+    use :: Node_Components , only : Node_Components_Initialize
     implicit none
-    type   (taskNBodyAnalyze  )                :: self
-    type   (inputParameters   ), intent(inout) :: parameters
-    class  (nBodyImporterClass), pointer       :: nBodyImporter_
-    class  (nBodyOperatorClass), pointer       :: nBodyOperator_
-    logical                                    :: storeBackToImported
-    type   (inputParameters   ), pointer       :: parametersRoot
+    type   (taskNBodyAnalyze  )                        :: self
+    type   (inputParameters   ), intent(inout), target :: parameters
+    class  (nBodyImporterClass), pointer               :: nBodyImporter_
+    class  (nBodyOperatorClass), pointer               :: nBodyOperator_
+    logical                                            :: storeBackToImported
+    type   (inputParameters   ), pointer               :: parametersRoot
 
     ! Ensure the nodes objects are initialized.
     if (associated(parameters%parent)) then
@@ -62,14 +64,12 @@ contains
        do while (associated(parametersRoot%parent))
           parametersRoot => parametersRoot%parent
        end do
-       call nodeClassHierarchyInitialize     (parametersRoot)
-       call Node_Components_Initialize       (parametersRoot)
-       call Node_Components_Thread_Initialize(parametersRoot)
+       call nodeClassHierarchyInitialize(parametersRoot)
+       call Node_Components_Initialize  (parametersRoot)
     else
-       parametersRoot => null()
-       call nodeClassHierarchyInitialize     (parameters    )
-       call Node_Components_Initialize       (parameters    )
-       call Node_Components_Thread_Initialize(parameters    )
+       parametersRoot => parameters
+       call nodeClassHierarchyInitialize(parameters    )
+       call Node_Components_Initialize  (parameters    )
     end if
     !# <inputParameter>
     !#   <name>storeBackToImported</name>
@@ -81,46 +81,49 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="nBodyImporter" name="nBodyImporter_" source="parameters"/>
     !# <objectBuilder class="nBodyOperator" name="nBodyOperator_" source="parameters"/>
-    self=taskNBodyAnalyze(storeBackToImported,nBodyImporter_,nBodyOperator_)
+    self=taskNBodyAnalyze(storeBackToImported,nBodyImporter_,nBodyOperator_,parametersRoot)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="nBodyImporter_"/>
     !# <objectDestructor name="nBodyOperator_"/>
     return
   end function nbodyAnalyzeConstructorParameters
 
-  function nbodyAnalyzeConstructorInternal(storeBackToImported,nBodyImporter_,nBodyOperator_) result(self)
+  function nbodyAnalyzeConstructorInternal(storeBackToImported,nBodyImporter_,nBodyOperator_,parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily nbodyAnalyze} task class which takes a parameter set as input.
     implicit none
-    type   (taskNBodyAnalyze  )                          :: self
-    logical                    , intent(in   )           :: storeBackToImported
-    class  (nBodyImporterClass), intent(in   ), target   :: nBodyImporter_
-    class  (nBodyOperatorClass), intent(in   ), target   :: nBodyOperator_
+    type   (taskNBodyAnalyze  )                        :: self
+    logical                    , intent(in   )         :: storeBackToImported
+    class  (nBodyImporterClass), intent(in   ), target :: nBodyImporter_
+    class  (nBodyOperatorClass), intent(in   ), target :: nBodyOperator_
+    type   (inputParameters   ), intent(in   ), target :: parameters
     !# <constructorAssign variables="storeBackToImported, *nBodyImporter_, *nBodyOperator_"/>
 
+    self%parameters=inputParameters(parameters)
+    call self%parameters%parametersGroupCopy(parameters)
     if (.not.self%nBodyImporter_%isHDF5()) self%storeBackToImported=.false.
     return
   end function nbodyAnalyzeConstructorInternal
 
   subroutine nbodyAnalyzeDestructor(self)
     !% Destructor for the {\normalfont \ttfamily nbodyAnalyze} task class.
-    use :: Node_Components, only : Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+    use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
     type(taskNBodyAnalyze), intent(inout) :: self
 
     !# <objectDestructor name="self%nBodyOperator_"/>
     !# <objectDestructor name="self%nBodyImporter_"/>
-    call Node_Components_Uninitialize       ()
-    call Node_Components_Thread_Uninitialize()
+    call Node_Components_Uninitialize()
     return
   end subroutine nbodyAnalyzeDestructor
 
   subroutine nbodyAnalyzePerform(self,status)
     !% Compute and output the halo mass function.
-    use :: Galacticus_Display   , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
+    use :: Galacticus_Display   , only : Galacticus_Display_Indent        , Galacticus_Display_Unindent
     use :: Galacticus_Error     , only : errorStatusSuccess
     use :: Galacticus_HDF5      , only : galacticusOutputFile
     use :: IO_HDF5              , only : hdf5Access
     use :: NBody_Simulation_Data, only : nBodyData
+    use :: Node_Components      , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     implicit none
     class    (taskNBodyAnalyze), intent(inout), target       :: self
     integer                    , intent(  out), optional     :: status
@@ -129,6 +132,8 @@ contains
     character(len=32          )                              :: label
     
     call Galacticus_Display_Indent('Begin task: N-body analyze')
+    ! Call routines to perform initializations which must occur for all threads if run in parallel.
+    call Node_Components_Thread_Initialize(self%parameters)
     ! Import N-body data.
     call self%nBodyImporter_%import (simulations)
     ! Open analysis groups if necessary.
@@ -151,6 +156,7 @@ contains
     end do
     !$ call hdf5Access%unset()
     ! Done.
+    call Node_Components_Thread_Uninitialize()
     if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: N-body analyze' )
     return

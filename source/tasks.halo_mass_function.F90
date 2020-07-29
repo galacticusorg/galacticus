@@ -56,7 +56,9 @@
      integer                                                      :: pointsPerDecade
      type            (varying_string                   )          :: outputGroup
      logical                                                      :: includeUnevolvedSubhaloMassFunction
-   contains
+     ! Pointer to the parameters for this task.
+     type            (inputParameters                  )          :: parameters
+  contains
      final     ::            haloMassFunctionDestructor
      procedure :: perform => haloMassFunctionPerform
   end type taskHaloMassFunction
@@ -73,45 +75,43 @@ contains
     !% Constructor for the {\normalfont \ttfamily haloMassFunction} task class which takes a parameter set as input.
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize, treeNode
     use :: Input_Parameters, only : inputParameter              , inputParameters
-    use :: Node_Components , only : Node_Components_Initialize  , Node_Components_Thread_Initialize
+    use :: Node_Components , only : Node_Components_Initialize
     implicit none
-    type            (taskHaloMassFunction             )                :: self
-    type            (inputParameters                  ), intent(inout) :: parameters
-    class           (cosmologyParametersClass         ), pointer       :: cosmologyParameters_
-    class           (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
-    class           (virialDensityContrastClass       ), pointer       :: virialDensityContrast_
-    class           (darkMatterProfileDMOClass        ), pointer       :: darkMatterProfileDMO_
-    class           (criticalOverdensityClass         ), pointer       :: criticalOverdensity_
-    class           (linearGrowthClass                ), pointer       :: linearGrowth_
-    class           (haloMassFunctionClass            ), pointer       :: haloMassFunction_
-    class           (haloEnvironmentClass             ), pointer       :: haloEnvironment_
-    class           (unevolvedSubhaloMassFunctionClass), pointer       :: unevolvedSubhaloMassFunction_
-    class           (darkMatterHaloScaleClass         ), pointer       :: darkMatterHaloScale_
-    class           (cosmologicalMassVarianceClass    ), pointer       :: cosmologicalMassVariance_
-    class           (darkMatterHaloBiasClass          ), pointer       :: darkMatterHaloBias_
-    class           (transferFunctionClass            ), pointer       :: transferFunction_
-    class           (outputTimesClass                 ), pointer       :: outputTimes_
-    class           (darkMatterProfileScaleRadiusClass), pointer       :: darkMatterProfileScaleRadius_
-    type            (inputParameters                  ), pointer       :: parametersRoot
-    type            (varying_string                   )                :: outputGroup
-    double precision                                                   :: haloMassMinimum                    , haloMassMaximum
-    integer                                                            :: pointsPerDecade
-    logical                                                            :: includeUnevolvedSubhaloMassFunction
-
+    type            (taskHaloMassFunction             )                        :: self
+    type            (inputParameters                  ), intent(inout), target :: parameters
+    class           (cosmologyParametersClass         ), pointer               :: cosmologyParameters_
+    class           (cosmologyFunctionsClass          ), pointer               :: cosmologyFunctions_
+    class           (virialDensityContrastClass       ), pointer               :: virialDensityContrast_
+    class           (darkMatterProfileDMOClass        ), pointer               :: darkMatterProfileDMO_
+    class           (criticalOverdensityClass         ), pointer               :: criticalOverdensity_
+    class           (linearGrowthClass                ), pointer               :: linearGrowth_
+    class           (haloMassFunctionClass            ), pointer               :: haloMassFunction_
+    class           (haloEnvironmentClass             ), pointer               :: haloEnvironment_
+    class           (unevolvedSubhaloMassFunctionClass), pointer               :: unevolvedSubhaloMassFunction_
+    class           (darkMatterHaloScaleClass         ), pointer               :: darkMatterHaloScale_
+    class           (cosmologicalMassVarianceClass    ), pointer               :: cosmologicalMassVariance_
+    class           (darkMatterHaloBiasClass          ), pointer               :: darkMatterHaloBias_
+    class           (transferFunctionClass            ), pointer               :: transferFunction_
+    class           (outputTimesClass                 ), pointer               :: outputTimes_
+    class           (darkMatterProfileScaleRadiusClass), pointer               :: darkMatterProfileScaleRadius_
+    type            (inputParameters                  ), pointer               :: parametersRoot
+    type            (varying_string                   )                        :: outputGroup
+    double precision                                                           :: haloMassMinimum                    , haloMassMaximum
+    integer                                                                    :: pointsPerDecade
+    logical                                                                    :: includeUnevolvedSubhaloMassFunction
+    
     ! Ensure the nodes objects are initialized.
     if (associated(parameters%parent)) then
        parametersRoot => parameters%parent
        do while (associated(parametersRoot%parent))
           parametersRoot => parametersRoot%parent
        end do
-       call nodeClassHierarchyInitialize     (parametersRoot)
-       call Node_Components_Initialize       (parametersRoot)
-       call Node_Components_Thread_Initialize(parametersRoot)
+       call nodeClassHierarchyInitialize(parametersRoot)
+       call Node_Components_Initialize  (parametersRoot)
     else
-       parametersRoot => null()
-       call nodeClassHierarchyInitialize     (parameters    )
-       call Node_Components_Initialize       (parameters    )
-       call Node_Components_Thread_Initialize(parameters    )
+       parametersRoot => parameters
+       call nodeClassHierarchyInitialize(parameters    )
+       call Node_Components_Initialize  (parameters    )
     end if
     !# <inputParameter>
     !#   <name>haloMassMinimum</name>
@@ -188,7 +188,8 @@ contains
          &                    cosmologicalMassVariance_          , &
          &                    darkMatterHaloBias_                , &
          &                    transferFunction_                  , &
-         &                    outputTimes_                         &
+         &                    outputTimes_                       , &
+         &                    parametersRoot                       &
          &                   )
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"         />
@@ -229,7 +230,8 @@ contains
        &                                       cosmologicalMassVariance_          , &
        &                                       darkMatterHaloBias_                , &
        &                                       transferFunction_                  , &
-       &                                       outputTimes_                         &
+       &                                       outputTimes_                       , &
+       &                                       parameters                           &
        &                                      ) result(self)
     !% Constructor for the {\normalfont \ttfamily haloMassFunction} task class which takes a parameter set as input.
     implicit none
@@ -253,14 +255,17 @@ contains
     double precision                                   , intent(in   )         :: haloMassMinimum                    , haloMassMaximum
     integer                                            , intent(in   )         :: pointsPerDecade
     logical                                            , intent(in   )         :: includeUnevolvedSubhaloMassFunction
+    type            (inputParameters                  ), intent(in   ), target :: parameters
     !# <constructorAssign variables="haloMassMinimum,haloMassMaximum,pointsPerDecade,outputGroup,includeUnevolvedSubhaloMassFunction,*cosmologyParameters_,*cosmologyFunctions_,*virialDensityContrast_,*darkMatterProfileDMO_,*criticalOverdensity_,*linearGrowth_,*haloMassFunction_,*haloEnvironment_,*unevolvedSubhaloMassFunction_,*darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *cosmologicalMassVariance_,*darkMatterHaloBias_,*transferFunction_, *outputTimes_"/>
 
+    self%parameters=inputParameters(parameters)
+    call self%parameters%parametersGroupCopy(parameters)
     return
   end function haloMassFunctionConstructorInternal
 
   subroutine haloMassFunctionDestructor(self)
     !% Destructor for the {\normalfont \ttfamily haloMassFunction} task class.
-    use :: Node_Components, only : Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+    use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
     type(taskHaloMassFunction), intent(inout) :: self
 
@@ -279,26 +284,26 @@ contains
     !# <objectDestructor name="self%darkMatterHaloBias_"          />
     !# <objectDestructor name="self%transferFunction_"            />
     !# <objectDestructor name="self%outputTimes_"                 />
-    call Node_Components_Uninitialize       ()
-    call Node_Components_Thread_Uninitialize()
+    call Node_Components_Uninitialize()
     return
   end subroutine haloMassFunctionDestructor
 
   subroutine haloMassFunctionPerform(self,status)
     !% Compute and output the halo mass function.
     use            :: Galacticus_Calculations_Resets  , only : Galacticus_Calculations_Reset
-    use            :: Galacticus_Display              , only : Galacticus_Display_Indent    , Galacticus_Display_Unindent
+    use            :: Galacticus_Display              , only : Galacticus_Display_Indent        , Galacticus_Display_Unindent
     use            :: Galacticus_Error                , only : errorStatusSuccess
     use            :: Galacticus_HDF5                 , only : galacticusOutputFile
-    use            :: Galacticus_Nodes                , only : mergerTree                   , nodeComponentBasic         , nodeComponentDarkMatterProfile, treeNode
+    use            :: Galacticus_Nodes                , only : mergerTree                       , nodeComponentBasic                 , nodeComponentDarkMatterProfile, treeNode
     use            :: IO_HDF5                         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Memory_Management               , only : allocateArray
-    use            :: Numerical_Constants_Astronomical, only : massSolar                    , megaParsec
+    use            :: Node_Components                 , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
+    use            :: Numerical_Constants_Astronomical, only : massSolar                        , megaParsec
     use            :: Numerical_Constants_Math        , only : Pi
     use            :: Numerical_Constants_Prefixes    , only : kilo
-    use            :: Numerical_Integration           , only : integrator                   , GSL_Integ_Gauss15
-    use            :: Numerical_Ranges                , only : Make_Range                   , rangeTypeLogarithmic
+    use            :: Numerical_Integration           , only : integrator                       , GSL_Integ_Gauss15
+    use            :: Numerical_Ranges                , only : Make_Range                       , rangeTypeLogarithmic
     use            :: String_Handling                 , only : operator(//)
     implicit none
     class           (taskHaloMassFunction          ), intent(inout), target         :: self
@@ -336,6 +341,8 @@ contains
     type            (varying_string                )                                :: groupName                                            , commentText
 
     call Galacticus_Display_Indent('Begin task: halo mass function')
+    ! Call routines to perform initializations which must occur for all threads if run in parallel.
+    call Node_Components_Thread_Initialize(self%parameters)
     ! Get the requested output redshifts.
     outputCount=self%outputTimes_%count()
     call allocateArray(outputTimes                                   ,[          outputCount])
@@ -531,6 +538,7 @@ contains
     call outputsGroup%close()
     if (containerGroup%isOpen()) call containerGroup%close()
     if (present(status)) status=errorStatusSuccess
+    call Node_Components_Thread_Uninitialize()
     call Galacticus_Display_Unindent('Done task: halo mass function' )
     return
 
