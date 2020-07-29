@@ -232,8 +232,10 @@ contains
 
   function subhaloMassFunctionConstructorInternal(outputTimes_,virialDensityContrast_,time,massRatioMinimum,massRatioMaximum,countMassRatios,negativeBinomialScatterFractional,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,massFunctionTarget,massFunctionCovarianceTarget,labelTarget) result (self)
     !% Constructor for the ``subhaloMassFunction'' output analysis class for internal use.
-    use :: Galactic_Filters                        , only : galacticFilterHaloIsolated                  , galacticFilterHaloNotIsolated
-    use :: Node_Property_Extractors                , only : nodePropertyExtractorMassBound              , nodePropertyExtractorHostNode      , nodePropertyExtractorRatio, nodePropertyExtractorMassHalo
+    use :: Galactic_Filters                        , only : galacticFilterHaloIsolated                  , galacticFilterHaloNotIsolated      , galacticFilterLowPass     , galacticFilterAll            , &
+         &                                                  filterList
+    use :: Node_Property_Extractors                , only : nodePropertyExtractorMassBound              , nodePropertyExtractorHostNode      , nodePropertyExtractorRatio, nodePropertyExtractorMassHalo, &
+         &                                                  nodePropertyExtractorRadiusOrbital          , nodePropertyExtractorRadiusVirial
     use :: Numerical_Comparison                    , only : Values_Agree
     use :: Numerical_Ranges                        , only : Make_Range                                  , rangeTypeLinear
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
@@ -246,8 +248,8 @@ contains
     implicit none
     type            (outputAnalysisSubhaloMassFunction           )                                          :: self
     integer                                                       , intent(in   )                           :: covarianceBinomialBinsPerDecade
-    double precision                                              , intent(in   )                           :: covarianceBinomialMassHaloMinimum               , covarianceBinomialMassHaloMaximum, &
-         &                                                                                                     negativeBinomialScatterFractional               , massRatioMinimum                 , &
+    double precision                                              , intent(in   )                           :: covarianceBinomialMassHaloMinimum               , covarianceBinomialMassHaloMaximum     , &
+         &                                                                                                     negativeBinomialScatterFractional               , massRatioMinimum                      , &
          &                                                                                                     massRatioMaximum                                , time
     integer         (c_size_t                                    ), intent(in   )                           :: countMassRatios
     class           (outputTimesClass                            ), intent(inout)                           :: outputTimes_
@@ -256,16 +258,21 @@ contains
     double precision                                              , intent(in   ), dimension(:,:), optional :: massFunctionCovarianceTarget
     type            (varying_string                              ), intent(in   )                , optional :: labelTarget
     type            (nodePropertyExtractorMassBound              )               , pointer                  :: nodePropertyExtractorMassBound_
-    type            (nodePropertyExtractorHostNode               )               , pointer                  :: nodePropertyExtractorMassHost_
+    type            (nodePropertyExtractorHostNode               )               , pointer                  :: nodePropertyExtractorMassHost_                  , nodePropertyExtractorRadiusVirialHost_
     type            (nodePropertyExtractorMassHalo               )               , pointer                  :: nodePropertyExtractorMassHalo_
-    type            (nodePropertyExtractorRatio                  )               , pointer                  :: nodePropertyExtractor_
+    type            (nodePropertyExtractorRadiusOrbital          )               , pointer                  :: nodePropertyExtractorRadiusOrbital_
+    type            (nodePropertyExtractorRadiusVirial           )               , pointer                  :: nodePropertyExtractorRadiusVirial_
+    type            (nodePropertyExtractorRatio                  )               , pointer                  :: nodePropertyExtractor_                          , nodePropertyExtractorRadiusFractional_
     type            (outputAnalysisPropertyOperatorLog10         )               , pointer                  :: outputAnalysisPropertyOperator_
     type            (outputAnalysisPropertyOperatorAntiLog10     )               , pointer                  :: outputAnalysisPropertyUnoperator_
     type            (outputAnalysisWeightOperatorIdentity        )               , pointer                  :: outputAnalysisWeightOperator_
     type            (outputAnalysisDistributionNormalizerIdentity)               , pointer                  :: outputAnalysisDistributionNormalizer_
     type            (outputAnalysisDistributionOperatorIdentity  )               , pointer                  :: outputAnalysisDistributionOperator_
     type            (galacticFilterHaloIsolated                  )               , pointer                  :: galacticFilterHosts_
-    type            (galacticFilterHaloNotIsolated               )               , pointer                  :: galacticFilterSubhalos_
+    type            (galacticFilterHaloNotIsolated               )               , pointer                  :: galacticFilterIsSubhalo_
+    type            (galacticFilterLowPass                       ), pointer                                 :: galacticFilterVirialRadius_
+    type            (galacticFilterAll                           ), pointer                                 :: galacticFilterSubhalos_
+    type            (filterList                                  ), pointer                                 :: filters_
     double precision                                              , allocatable  , dimension(:  )           :: massRatios                                      , massesHosts
     double precision                                              , allocatable  , dimension(:,:)           :: outputWeightSubhalos                            , outputWeightHosts
     integer         (c_size_t                                    ), parameter                               :: binCountHosts                        =2_c_size_t
@@ -283,14 +290,22 @@ contains
     massRatios =Make_Range(log10(self%massRatioMinimum),log10(massRatioMaximum)   ,int(self%countMassRatios),rangeTypeLinear)
     massesHosts=Make_Range(                      0.0d0 ,massHostLogarithmicMaximum,int(     binCountHosts  ),rangeTypeLinear)
     ! Create a mass ratio property extractor.
-    allocate(nodePropertyExtractorMassBound_)
-    allocate(nodePropertyExtractorMassHalo_ )
-    allocate(nodePropertyExtractorMassHost_ )
-    allocate(nodePropertyExtractor_         )
-    !# <referenceConstruct object="nodePropertyExtractorMassBound_" constructor="nodePropertyExtractorMassBound(                                                                                                          )"/>
-    !# <referenceConstruct object="nodePropertyExtractorMassHalo_"  constructor="nodePropertyExtractorMassHalo (virialDensityContrast_                                                                                    )"/>
-    !# <referenceConstruct object="nodePropertyExtractorMassHost_"  constructor="nodePropertyExtractorHostNode (nodePropertyExtractorMassHalo_                                                                            )"/>
-    !# <referenceConstruct object="nodePropertyExtractor_"          constructor="nodePropertyExtractorRatio    ('massRatio','Ratio of subhalo to host mass',nodePropertyExtractorMassBound_,nodePropertyExtractorMassHost_)"/>
+    allocate(nodePropertyExtractorMassBound_       )
+    allocate(nodePropertyExtractorRadiusOrbital_   )
+    allocate(nodePropertyExtractorRadiusVirial_    )
+    allocate(nodePropertyExtractorMassHalo_        )
+    allocate(nodePropertyExtractorMassHost_        )
+    allocate(nodePropertyExtractor_                )
+    allocate(nodePropertyExtractorRadiusVirialHost_)
+    allocate(nodePropertyExtractorRadiusFractional_)
+    !# <referenceConstruct object="nodePropertyExtractorMassBound_"        constructor="nodePropertyExtractorMassBound    (                                                                                                                                                   )"/>
+    !# <referenceConstruct object="nodePropertyExtractorRadiusOrbital_"    constructor="nodePropertyExtractorRadiusOrbital(                                                                                                                                                   )"/>
+    !# <referenceConstruct object="nodePropertyExtractorMassHalo_"         constructor="nodePropertyExtractorMassHalo     (virialDensityContrast_                                                                                                                             )"/>
+    !# <referenceConstruct object="nodePropertyExtractorRadiusVirial_"     constructor="nodePropertyExtractorRadiusVirial (virialDensityContrast_                                                                                                                             )"/>
+    !# <referenceConstruct object="nodePropertyExtractorMassHost_"         constructor="nodePropertyExtractorHostNode     (nodePropertyExtractorMassHalo_                                                                                                                     )"/>
+    !# <referenceConstruct object="nodePropertyExtractorRadiusVirialHost_" constructor="nodePropertyExtractorHostNode     (nodePropertyExtractorRadiusVirial_                                                                                                                 )"/>
+    !# <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorRatio        ('massRatio'     ,'Ratio of subhalo to host mass'                        ,nodePropertyExtractorMassBound_    ,nodePropertyExtractorMassHost_        )"/>
+    !# <referenceConstruct object="nodePropertyExtractorRadiusFractional_" constructor="nodePropertyExtractorRatio        ('radiusFraction','Ratio of subhalo orbital radius to host virial radius',nodePropertyExtractorRadiusOrbital_,nodePropertyExtractorRadiusVirialHost_)"/>
     ! Create property operators and unoperators to perform conversion to/from logarithmic mass ratio.
     allocate(outputAnalysisPropertyOperator_  )
     !# <referenceConstruct object="outputAnalysisPropertyOperator_"   constructor="outputAnalysisPropertyOperatorLog10    ()"/>
@@ -300,10 +315,18 @@ contains
     allocate(outputAnalysisWeightOperator_)
     !# <referenceConstruct object="outputAnalysisWeightOperator_" constructor="outputAnalysisWeightOperatorIdentity()"/>
     ! Build filters which select subhalos/hosts.
-    allocate(galacticFilterHosts_   )
-    !# <referenceConstruct object="galacticFilterHosts_"    constructor="galacticFilterHaloIsolated   ()"/>
-    allocate(galacticFilterSubhalos_)
-    !# <referenceConstruct object="galacticFilterSubhalos_" constructor="galacticFilterHaloNotIsolated()"/>
+    allocate(galacticFilterHosts_        )
+    !# <referenceConstruct object="galacticFilterHosts_"        constructor="galacticFilterHaloIsolated   (                                            )"/>
+    allocate(galacticFilterIsSubhalo_    )
+    !# <referenceConstruct object="galacticFilterIsSubhalo_"    constructor="galacticFilterHaloNotIsolated(                                            )"/>
+    allocate(galacticFilterVirialRadius_ )
+    !# <referenceConstruct object="galacticFilterVirialRadius_" constructor="galacticFilterLowPass        (1.0d0,nodePropertyExtractorRadiusFractional_)"/>
+    allocate(galacticFilterSubhalos_     )
+    allocate(filters_                    )
+    allocate(filters_               %next)
+    filters_     %filter_ => galacticFilterIsSubhalo_
+    filters_%next%filter_ => galacticFilterVirialRadius_
+    !# <referenceConstruct object="galacticFilterSubhalos_"     constructor="galacticFilterAll            (filters_                                    )"/>
     ! Build an identity distribution operator.
     allocate(outputAnalysisDistributionOperator_)
     !# <referenceConstruct object="outputAnalysisDistributionOperator_" constructor="outputAnalysisDistributionOperatorIdentity()"/>
@@ -387,17 +410,25 @@ contains
     !#    &amp;                        )
     !#  </constructor>
     !# </referenceConstruct>
-    !# <objectDestructor name="nodePropertyExtractorMassBound_"      />
-    !# <objectDestructor name="nodePropertyExtractorMassHost_"       />
-    !# <objectDestructor name="nodePropertyExtractor_"               />
-    !# <objectDestructor name="outputAnalysisPropertyOperator_"      />
-    !# <objectDestructor name="outputAnalysisPropertyUnoperator_"    />
-    !# <objectDestructor name="outputAnalysisWeightOperator_"        />
-    !# <objectDestructor name="outputAnalysisDistributionOperator_"  />
-    !# <objectDestructor name="galacticFilterHosts_"                 />
-    !# <objectDestructor name="galacticFilterSubhalos_"              />
-    !# <objectDestructor name="outputAnalysisDistributionNormalizer_"/>
-     return
+    !# <objectDestructor name="nodePropertyExtractorMassBound_"       />
+    !# <objectDestructor name="nodePropertyExtractorMassHost_"        />
+    !# <objectDestructor name="nodePropertyExtractorMassHalo_"        />
+    !# <objectDestructor name="nodePropertyExtractorRadiusOrbital_"   />
+    !# <objectDestructor name="nodePropertyExtractorRadiusVirial_"    />
+    !# <objectDestructor name="nodePropertyExtractorRadiusVirialHost_"/>
+    !# <objectDestructor name="nodePropertyExtractorRadiusFractional_"/>
+    !# <objectDestructor name="nodePropertyExtractor_"                />
+    !# <objectDestructor name="outputAnalysisPropertyOperator_"       />
+    !# <objectDestructor name="outputAnalysisPropertyUnoperator_"     />
+    !# <objectDestructor name="outputAnalysisWeightOperator_"         />
+    !# <objectDestructor name="outputAnalysisDistributionOperator_"   />
+    !# <objectDestructor name="galacticFilterHosts_"                  />
+    !# <objectDestructor name="galacticFilterSubhalos_"               />
+    !# <objectDestructor name="galacticFilterIsSubhalo_"              />
+    !# <objectDestructor name="galacticFilterVirialRadius_"           />
+    !# <objectDestructor name="outputAnalysisDistributionNormalizer_" />
+    nullify(filters_)
+    return
   end function subhaloMassFunctionConstructorInternal
 
   subroutine subhaloMassFunctionDestructor(self)
