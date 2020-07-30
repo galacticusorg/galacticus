@@ -75,7 +75,6 @@ contains
     type            (multiCounter                        ), intent(inout), optional    :: instance
     type            (treeNode                            ), pointer                    :: nodeWork
     class           (nodeComponentSatellite              ), pointer                    :: satellite
-    double precision                                      , dimension(3)               :: position
     !$GLC attributes unused :: self, instance, time
 
     allocate(positionOrbitalExtract(3))
@@ -83,9 +82,9 @@ contains
     nodeWork               => node
     ! Walk up through all host halos of this node, accumulating position offsets from the host node center.
     do while (associated(nodeWork))
-       satellite =>  nodeWork %satellite()
-       position  =  +          position    &
-            &       +satellite%position ()
+       satellite               =>  nodeWork %satellite             ()
+       positionOrbitalExtract  =  +          positionOrbitalExtract   &
+            &                     +satellite%position              ()
        if (nodeWork%isSatellite()) then
           nodeWork => nodeWork%parent
        else
