@@ -52,21 +52,26 @@ sub Implementation_Creation {
     my %modules;
     # Add variables for any other components required for initialization.
     my $componentInitialization;
+    my %requiredComponents;
     foreach my $property ( &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
 	next
 	    if ( $property->{'attributes'}->{'isVirtual'} || ! exists($property->{'classDefault'}->{'code'}) );
 	my $classDefault = $property->{'classDefault'}->{'code'};
 	while ( $classDefault =~ s/self([a-zA-Z]+)Component\s*%// ) {
-	    $componentInitialization .= "self".$1."Component => self%hostNode%".lc($1)."()\n";
-	    push(
-		@{$function->{'variables'}},
-		{
-		    intrinsic  => "class",
-		    type       => "nodeComponent".ucfirst($1),
-		    attributes => [ "pointer" ],
-		    variables  => [ "self".ucfirst($1)."Component" ]
-		}
-		);
+	    my $componentName = $1;
+	    unless ( exists($requiredComponents{lc($componentName)}) ) {
+		$componentInitialization .= "self".$componentName."Component => self%hostNode%".lc($componentName)."()\n";
+		push(
+		    @{$function->{'variables'}},
+		    {
+			intrinsic  => "class",
+			type       => "nodeComponent".ucfirst($componentName),
+			attributes => [ "pointer" ],
+			variables  => [ "self".ucfirst($componentName)."Component" ]
+		    }
+		    );
+	    }
+	    $requiredComponents{lc($componentName)} = 1;
 	}
     }
     # Insert any required modules.
