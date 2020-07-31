@@ -54,8 +54,8 @@ module Geometry_Lightcones
   !#   <description>Returns the position vector of a {\normalfont \ttfamily node} (in units of Mpc) in the lightcone coordinate system.</description>
   !#   <type>double precision, dimension(3)</type>
   !#   <pass>yes</pass>
-  !#   <argument>type   (treeNode), intent(inout) :: node</argument>
-  !#   <argument>integer(c_size_t), intent(in   ) :: instance</argument>
+  !#   <argument>type   (treeNode), intent(inout), target :: node</argument>
+  !#   <argument>integer(c_size_t), intent(in   )         :: instance</argument>
   !#  </method>
   !#  <method name="velocity" >
   !#   <description>Returns the velocity vector of a {\normalfont \ttfamily node} (in units of km/s) in the lightcone coordinate system.</description>
