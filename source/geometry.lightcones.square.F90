@@ -614,16 +614,16 @@ contains
     use            :: Numerical_Comparison, only : Values_Agree
     use            :: String_Handling     , only : operator(//)
     implicit none
-    double precision                         , dimension(3)  :: squarePosition
-    class           (geometryLightconeSquare), intent(inout) :: self
-    type            (treeNode               ), intent(inout) :: node
-    integer         (c_size_t               ), intent(in   ) :: instance
-    class           (nodeComponentBasic     ), pointer       :: basic
-    class           (nodeComponentPosition  ), pointer       :: position
-    double precision                         , parameter     :: timeTolerance =1.0d-3
-    integer         (c_size_t               )                :: output
-    character       (len=10                 )                :: label
-    type            (varying_string         )                :: message
+    double precision                         , dimension(3)          :: squarePosition
+    class           (geometryLightconeSquare), intent(inout)         :: self
+    type            (treeNode               ), intent(inout), target :: node
+    integer         (c_size_t               ), intent(in   )         :: instance
+    class           (nodeComponentBasic     ), pointer               :: basic
+    class           (nodeComponentPosition  ), pointer               :: position
+    double precision                         , parameter             :: timeTolerance =1.0d-3
+    integer         (c_size_t               )                        :: output
+    character       (len=10                 )                        :: label
+    type            (varying_string         )                        :: message
 
     ! Get the basic component.
     basic    => node%basic   ()
