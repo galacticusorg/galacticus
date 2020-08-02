@@ -121,7 +121,7 @@ module Linear_Algebra
      !@     <description>Compute and return the sign of the determinant of the matrix.</description>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>invert</method>
+     !@     <method>inverse</method>
      !@     <type>\textcolor{red}{\textless type(matrix) \textgreater}</type>
      !@     <arguments></arguments>
      !@     <description>Compute and return the matrix inverse.</description>
@@ -150,7 +150,6 @@ module Linear_Algebra
      !@     <arguments>\textcolor{red}{\textless type(matrix)\textgreater} eigenVectors\argout, \textcolor{red}{\textless type(vector)\textgreater} eigenValues\argout</arguments>
      !@     <description>Compute eigenvectors and eigenvalues of the matrix.</description>
      !@   </objectMethod>
-     !@   <objectMethod>
      !@   <objectMethod>
      !@     <method>choleskyDecomposition</method>
      !@     <type>\void</type>
