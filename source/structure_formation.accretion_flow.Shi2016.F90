@@ -69,6 +69,15 @@
           &                                                                                  ratioRadiusSplashbackHRTA                                  , radiusSplashbackOriginal            , &
           &                                                                                  radiusSplashbackScaled                                     , radiusMinimumPhysical
    contains
+     !@ <objectMethods>
+     !@   <object>accretionFlowsShi2016</object>
+     !@   <objectMethod>
+     !@     <method>solve</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(treeNode) \textgreater} node\arginout</arguments>
+     !@     <description>Solve for the structurr of the accretion flow.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      final     ::              shi2016Destructor
      procedure :: density   => shi2016Density
      procedure :: velocity  => shi2016Velocity
