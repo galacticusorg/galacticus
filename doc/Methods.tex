@@ -769,11 +769,10 @@ The function {\normalfont \ttfamily Galactic\_Structure\_Density()} computes the
 \end{verbatim}
 where {\normalfont \ttfamily Density\_Procedure} is the name of a function with the following template
 \begin{verbatim}
- double precision function Density_Procedure(thisNode,position,coordinateSystem,componentType,massType,weightBy,weightIndex,haloLoaded)
+ double precision function Density_Procedure(thisNode,position,coordinateSystem,componentType,massType,weightBy,weightIndex)
     type(treeNode),   intent(inout), pointer  :: thisNode
     integer,          intent(in)              :: massType,coordinateSystem,componentType,weightBy,weightIndex
     double precision, intent(in)              :: radius
-    logical         , intent(in),    optional :: haloLoaded
     .
     .
     .
@@ -785,7 +784,6 @@ If {\normalfont \ttfamily componentType} is a match to the component then the fu
 \item [{\normalfont \ttfamily weightByMass}] The actual mass should be returned (the value of {\normalfont \ttfamily weightIndex} is irrelevant);
 \item [{\normalfont \ttfamily weightByLuminosity}] The {\normalfont \ttfamily weightIndex}$^\mathrm{th}$ luminosity should be returned.
 \end{description}
-If {\normalfont \ttfamily haloLoaded}$=${\normalfont \ttfamily true} (which should be the default if this option is not present), then the effects of baryonic loading on the halo profile should be taken into account where necessary. Otherwise, the effects of baryonic loading should be ignored.
 
 \subsubsection{Galactic Component Enclosed Mass}
 
@@ -797,11 +795,10 @@ The function {\normalfont \ttfamily Galactic\_Structure\_Enclosed\_Mass()} compu
 \end{verbatim}
 where {\normalfont \ttfamily Enclosed\_Mass\_Procedure} is the name of a function with the following template
 \begin{verbatim}
- double precision function Enclosed_Mass_Procedure(thisNode,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
+ double precision function Enclosed_Mass_Procedure(thisNode,radius,componentType,massType,weightBy,weightIndex)
     type(treeNode),   intent(inout), pointer  :: thisNode
     integer,          intent(in)              :: massType,componentType,weightBy,weightIndex
     double precision, intent(in)              :: radius
-    logical         , intent(in),    optional :: haloLoaded
     .
     .
     .
@@ -814,7 +811,6 @@ If {\normalfont \ttfamily radius} is equal to or greater than {\normalfont \ttfa
 \item [{\normalfont \ttfamily weightByMass}] The actual mass should be returned (the value of {\normalfont \ttfamily weightIndex} is irrelevant);
 \item [{\normalfont \ttfamily weightByLuminosity}] The {\normalfont \ttfamily weightIndex}$^\mathrm{th}$ luminosity should be returned.
 \end{description}
-If {\normalfont \ttfamily haloLoaded}$=${\normalfont \ttfamily true} (which should be the default if this option is not present), then the effects of baryonic loading on the halo profile should be taken into account where necessary. Otherwise, the effects of baryonic loading should be ignored.
 
 \subsubsection{Galactic Component Rotation Curve}
 
@@ -826,18 +822,17 @@ The function {\normalfont \ttfamily Galactic\_Structure\_Rotation\_Curve()} comp
 \end{verbatim}
 where {\normalfont \ttfamily Rotation\_Curve\_Procedure} is the name of a function with the following template
 \begin{verbatim}
- double precision function Rotation_Curve_Procedure(thisNode,radius,componentType,massType,haloLoaded)
+ double precision function Rotation_Curve_Procedure(thisNode,radius,componentType,massType)
     type(treeNode),   intent(inout), pointer  :: thisNode
     integer,          intent(in)              :: massType,componentType
     double precision, intent(in)              :: radius
-    logical         , intent(in),    optional :: haloLoaded
     .
     .
     .
     return
  end function Rotation_Curve_Procedure
 \end{verbatim}
-If {\normalfont \ttfamily componentType} is a match to the component then the procedure should return the contribution to the rotation curve due to the component matching type {\normalfont \ttfamily massType} within {\normalfont \ttfamily radius} for {\normalfont \ttfamily thisNode}. {\normalfont \ttfamily componentType} and {\normalfont \ttfamily massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}. If {\normalfont \ttfamily haloLoaded}$=${\normalfont \ttfamily true} (which should be the default if this option is not present), then the effects of baryonic loading on the halo profile should be taken into account where necessary. Otherwise, the effects of baryonic loading should be ignored.
+If {\normalfont \ttfamily componentType} is a match to the component then the procedure should return the contribution to the rotation curve due to the component matching type {\normalfont \ttfamily massType} within {\normalfont \ttfamily radius} for {\normalfont \ttfamily thisNode}. {\normalfont \ttfamily componentType} and {\normalfont \ttfamily massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
 
 \subsubsection{Galactic Component Rotation Curve Gradient}
 
@@ -849,18 +844,17 @@ The function {\normalfont \ttfamily Galactic\_Structure\_Rotation\_Curve\_Gradie
 \end{verbatim}
 where {\normalfont \ttfamily Rotation\_Curve\_Gradient\_Procedure} is the name of a function with the following template
 \begin{verbatim}
- double precision function Rotation_Curve_Gradient_Procedure(thisNode,radius,componentType,massType,haloLoaded)
+ double precision function Rotation_Curve_Gradient_Procedure(thisNode,radius,componentType,massType)
     type(treeNode),   intent(inout), pointer  :: thisNode
     integer,          intent(in)              :: massType,componentType
     double precision, intent(in)              :: radius
-    logical         , intent(in),    optional :: haloLoaded
     .
     .
     .
     return
  end function Rotation_Curve_Gradient_Procedure
 \end{verbatim}
-If {\normalfont \ttfamily componentType} is a match to the component then the function should return the contribution to the gradient of $V_\mathrm{c}^2(r)$ due to the component matching type {\normalfont \ttfamily massType} within {\normalfont \ttfamily radius} for {\normalfont \ttfamily thisNode}. \emph{Note that this is the gradient of the square of the rotation curve to permit gradients to be directly summed.} {\normalfont \ttfamily componentType} and {\normalfont \ttfamily massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}. If {\normalfont \ttfamily haloLoaded}$=${\normalfont \ttfamily true} (which should be the default if this option is not present), then the effects of baryonic loading on the halo profile should be taken into account where necessary. Otherwise, the effects of baryonic loading should be ignored.
+If {\normalfont \ttfamily componentType} is a match to the component then the function should return the contribution to the gradient of $V_\mathrm{c}^2(r)$ due to the component matching type {\normalfont \ttfamily massType} within {\normalfont \ttfamily radius} for {\normalfont \ttfamily thisNode}. \emph{Note that this is the gradient of the square of the rotation curve to permit gradients to be directly summed.} {\normalfont \ttfamily componentType} and {\normalfont \ttfamily massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
 
 \subsubsection{Galactic Component Potential}
 
@@ -872,17 +866,16 @@ The function {\normalfont \ttfamily Galactic\_Structure\_Potential()} computes t
 \end{verbatim}
 where {\normalfont \ttfamily Potential\_Task} is the name of a function with the following template
 \begin{verbatim}
- double precision function Potential_Procedure(thisNode,radius,componentType,massType,haloLoaded)
+ double precision function Potential_Procedure(thisNode,radius,componentType,massType)
     type(treeNode),   intent(inout), pointer   :: thisNode
     integer,          intent(in),    optional  :: componentType  
     double precision, intent(in)               :: radius
-    logical         , intent(in),    optional :: haloLoaded
     .
     .
     return
  end function Potential_Procedure
 \end{verbatim}
-If {\normalfont \ttfamily componentType} is a match to the component then the procedure should return the contribution to the rotation curve due to the component matching type {\normalfont \ttfamily massType} within {\normalfont \ttfamily radius} for {\normalfont \ttfamily thisNode}. {\normalfont \ttfamily componentType} and {\normalfont \ttfamily massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}. If {\normalfont \ttfamily haloLoaded}$=${\normalfont \ttfamily true} (which should be the default if this option is not present), then the effects of baryonic loading on the halo profile should be taken into account where necessary. Otherwise, the effects of baryonic loading should be ignored.
+If {\normalfont \ttfamily componentType} is a match to the component then the procedure should return the contribution to the rotation curve due to the component matching type {\normalfont \ttfamily massType} within {\normalfont \ttfamily radius} for {\normalfont \ttfamily thisNode}. {\normalfont \ttfamily componentType} and {\normalfont \ttfamily massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
 
 \subsubsection{Galactic Component Surface Density}
 
@@ -894,11 +887,10 @@ The function {\normalfont \ttfamily Galactic\_Structure\_Surface\_Density()} com
 \end{verbatim}
 where {\normalfont \ttfamily Surface\_Density\_Procedure} is the name of a function with the following template
 \begin{verbatim}
- double precision function Surface_Density_Procedure(thisNode,position,coordinateSystem,componentType,massType,haloLoaded)
+ double precision function Surface_Density_Procedure(thisNode,position,coordinateSystem,componentType,massType)
     type(treeNode),   intent(inout), pointer     :: thisNode
     integer,          intent(in)                 :: massType,coordinateSystem,componentType
     double precision, intent(in),    dimension(3):: position
-    logical         , intent(in),    optional    :: haloLoaded
     .
     .
     .
@@ -912,7 +904,6 @@ The coordinate system in which {\normalfont \ttfamily position} is specified is 
  \item [{\normalfont \ttfamily coordinateSystemSpherical}] Spherical $(r,\theta,\phi)$;
  \item [{\normalfont \ttfamily coordinateSystemCylindrical}] Cylindrical $(R,\phi,z)$.
 \end{description}
-If {\normalfont \ttfamily haloLoaded}$=${\normalfont \ttfamily true} (which should be the default if this option is not present), then the effects of baryonic loading on the halo profile should be taken into account where necessary. Otherwise, the effects of baryonic loading should be ignored.
 
 \subsubsection{Halo Formation Events}\label{sec:HaloFormationEvents}
 
