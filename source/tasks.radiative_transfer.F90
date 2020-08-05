@@ -254,7 +254,7 @@ contains
     ! Initialize the computational domain.
     call self%computationalDomain_       %initialize      (                                         )
     ! Compute and output properties of the sources.
-    if (mpiSelf%isMaster()) call self%radiativeTransferOutputter_%sourceProperties(self%radiativeTransferSource_,outputGroup)
+    call self%radiativeTransferOutputter_%sourceProperties(self%radiativeTransferSource_,outputGroup)
     ! Construct a negative exponential distribution from which to sample optical depths.
     opticalDepthDistribution=distributionFunction1DNegativeExponential(1.0d0)
     ! Iterate until convergence.

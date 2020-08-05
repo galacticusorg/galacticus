@@ -23,7 +23,9 @@
   type, extends(radiativeTransferOutputterClass) :: radiativeTransferOutputterLymanContinuumRate
      !% Implementation of a radiative transfer outputter class which outputs the Lyman continuum photon emission rate.
      private
-     double precision :: lymanContinuumRateEscaping
+     double precision                                            :: lymanContinuumRateEscaping
+     double precision                , allocatable, dimension(:) :: lymanContinuumRateEscapingTagged
+     type            (varying_string), allocatable, dimension(:) :: sourceTypeName
    contains
      procedure :: reset               => lymanContinuumRateReset
      procedure :: sourceProperties    => lymanContinuumRateSourceProperties
@@ -57,7 +59,7 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily lymanContinuumRate} radiative transfer outputter class.
     implicit none
     type(radiativeTransferOutputterLymanContinuumRate) :: self
-    
+
     self%lymanContinuumRateEscaping=0.0d0
     return
   end function lymanContinuumRateConstructorInternal
@@ -68,33 +70,52 @@ contains
     class(radiativeTransferOutputterLymanContinuumRate), intent(inout) :: self
 
     self%lymanContinuumRateEscaping=0.0d0
+    if (allocated(self%lymanContinuumRateEscapingTagged)) self%lymanContinuumRateEscapingTagged=0.0d0
     return
   end subroutine lymanContinuumRateReset
 
   subroutine lymanContinuumRateSourceProperties(self,radiativeTransferSource_,outputGroup)
     !% Compute and output the Lyman continuum photon emission rate.
     use :: IO_HDF5                   , only : hdf5Access
+    use :: ISO_Varying_String        , only : var_str                           , operator(//)
     use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen
     use :: Numerical_Integration     , only : integrator
+    use :: MPI_Utilities             , only : mpiSelf
+    use :: String_Handling           , only : String_Upper_Case_First
     implicit none
     class           (radiativeTransferOutputterLymanContinuumRate), intent(inout) :: self
     class           (radiativeTransferSourceClass                ), intent(inout) :: radiativeTransferSource_
     type            (hdf5Object                                  ), intent(inout) :: outputGroup
     type            (integrator                                  )                :: integrator_
     double precision                                                              :: rateLymanContinuum
-    !$GLC attributes unused :: self
+    integer                                                                       :: sourceIndex
+    type            (varying_string                              )                :: label
 
-    integrator_       = integrator           (                                                             &
-         &                                                      integrand                                , &
-         &                                    toleranceRelative=1.0d-2                                     &
-         &                                   )
-    rateLymanContinuum=+integrator_%integrate(                                                             &
-         &                                                      1.0d-6*lymanSeriesLimitWavelengthHydrogen, &
-         &                                                             lymanSeriesLimitWavelengthHydrogen  &
-         &                                   )
-    !$ call hdf5Access%set  ()
-    call outputGroup%writeAttribute(rateLymanContinuum,'rateLymanContinuumEmitted')
-    !$ call hdf5Access%unset()
+    if (.not.allocated(self%lymanContinuumRateEscapingTagged)) then
+       allocate(self%lymanContinuumRateEscapingTagged(radiativeTransferSource_%sourceTypeCount()))
+       allocate(self%sourceTypeName                  (radiativeTransferSource_%sourceTypeCount()))
+       self%lymanContinuumRateEscapingTagged=0.0d0
+       do sourceIndex=1,size(self%lymanContinuumRateEscapingTagged)
+          self%sourceTypeName(sourceIndex)=radiativeTransferSource_%sourceTypeName(sourceIndex)
+       end do
+    end if
+    if (mpiSelf%isMaster()) then
+       integrator_       = integrator           (                                                             &
+            &                                                      integrand                                , &
+            &                                    toleranceRelative=1.0d-2                                     &
+            &                                   )
+       do sourceIndex=0,size(self%lymanContinuumRateEscapingTagged)
+          rateLymanContinuum=+integrator_%integrate(                                                             &
+               &                                                      1.0d-6*lymanSeriesLimitWavelengthHydrogen, &
+               &                                                             lymanSeriesLimitWavelengthHydrogen  &
+               &                                   )
+          label=var_str('rateLymanContinuumEmitted')
+          if (sourceIndex > 0) label=label//String_Upper_Case_First(char(radiativeTransferSource_%sourceTypeName(sourceIndex)))
+          !$ call hdf5Access%set  ()
+          call outputGroup%writeAttribute(rateLymanContinuum,char(label))
+          !$ call hdf5Access%unset()
+       end do
+    end if
     return
 
   contains
@@ -108,12 +129,12 @@ contains
       double precision, intent(in   ) :: wavelength
       double precision                :: energyPhoton
       
-      energyPhoton=+plancksConstant                               &
-           &       *speedLight                                    &
-           &       *angstromsPerMeter                             &
+      energyPhoton=+plancksConstant                                           &
+           &       *speedLight                                                &
+           &       *angstromsPerMeter                                         &
            &       /wavelength
-      integrand   =+radiativeTransferSource_%spectrum(wavelength) &
-           &       *luminositySolar                               &
+      integrand   =+radiativeTransferSource_%spectrum(wavelength,sourceIndex) &
+           &       *luminositySolar                                           &
            &       /energyPhoton
       return
     end function integrand
@@ -129,17 +150,22 @@ contains
     implicit none
     class           (radiativeTransferOutputterLymanContinuumRate), intent(inout) :: self
     class           (radiativeTransferPhotonPacketClass          ), intent(inout) :: photonPacket
-    double precision                                                              :: energyPhoton
-
+    double precision                                                              :: energyPhoton, rateEscape
+    integer                                                                       :: sourceIndex
+    
     if (photonPacket%wavelength() < lymanSeriesLimitWavelengthHydrogen) then
-       energyPhoton                   =+plancksConstant                           &
-            &                          *speedLight                                &
-            &                          *angstromsPerMeter                         &
-            &                          /photonPacket%wavelength                ()
-       self%lymanContinuumRateEscaping=+self        %lymanContinuumRateEscaping   &
-            &                          +photonPacket%luminosity                () &
-            &                          *luminositySolar                           &
-            &                          /energyPhoton
+       energyPhoton                                      =+plancksConstant                                            &
+            &                                             *speedLight                                                 &
+            &                                             *angstromsPerMeter                                          &
+            &                                             /photonPacket%wavelength                      (           )
+       rateEscape                                        =+photonPacket%luminosity                      (           ) &
+            &                                             *luminositySolar                                            &
+            &                                             /energyPhoton
+       self%lymanContinuumRateEscaping                   =+self        %lymanContinuumRateEscaping                    &
+            &                                             +rateEscape
+       sourceIndex                                       =+photonPacket%sourceType()
+       self%lymanContinuumRateEscapingTagged(sourceIndex)=+self        %lymanContinuumRateEscapingTagged(sourceIndex) &
+            &                                             +rateEscape
     end if
     return
   end subroutine lymanContinuumRatePhotonPacketEscapes
@@ -151,19 +177,27 @@ contains
     class(radiativeTransferOutputterLymanContinuumRate), intent(inout) :: self
 
     ! Sum the Lyc rate across all MPI processes.
-    self%lymanContinuumRateEscaping=mpiSelf%sum(self%lymanContinuumRateEscaping)
+    self%lymanContinuumRateEscaping      =mpiSelf%sum(self%lymanContinuumRateEscaping      )
+    self%lymanContinuumRateEscapingTagged=mpiSelf%sum(self%lymanContinuumRateEscapingTagged)
     return
   end subroutine lymanContinuumRateFinalize
 
   subroutine lymanContinuumRateOutput(self,outputGroup)
     !% Output the Lyman continuum photon escape rate.
-    use :: IO_HDF5, only : hdf5Access
+    use :: IO_HDF5        , only : hdf5Access
+    use :: String_Handling, only : String_Upper_Case_First
     implicit none
-    class(radiativeTransferOutputterLymanContinuumRate), intent(inout) :: self
-    type (hdf5Object                                  ), intent(inout) :: outputGroup
+    class  (radiativeTransferOutputterLymanContinuumRate), intent(inout) :: self
+    type   (hdf5Object                                  ), intent(inout) :: outputGroup
+    integer                                                              :: sourceIndex
 
     !$ call hdf5Access%set  ()
     call outputGroup%writeAttribute(self%lymanContinuumRateEscaping,'rateLymanContinuumEscaping')
     !$ call hdf5Access%unset()
+    do sourceIndex=1,size(self%lymanContinuumRateEscapingTagged)
+       !$ call hdf5Access%set  ()
+       call outputGroup%writeAttribute(self%lymanContinuumRateEscapingTagged(sourceIndex),'rateLymanContinuumEscaping'//String_Upper_Case_First(char(self%sourceTypeName(sourceIndex))))
+       !$ call hdf5Access%unset()
+    end do
     return
   end subroutine lymanContinuumRateOutput

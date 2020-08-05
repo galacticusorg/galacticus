@@ -94,6 +94,17 @@ module Radiative_Transfer_Photon_Packet
   !#   <type>double precision, dimension(3)</type>
   !#   <pass>yes</pass>
   !#  </method>
+  !#  <method name="sourceType" >
+  !#   <description>Get a integer type describing the source of the photon packet.</description>
+  !#   <type>integer</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="sourceTypeSet" >
+  !#   <description>Set an integer type describing the source of the photon packet.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer, intent(in   ) :: sourceType</argument>
+  !#  </method>
   !# </functionClass>
 
 end module Radiative_Transfer_Photon_Packet

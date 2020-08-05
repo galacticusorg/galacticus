@@ -26,6 +26,7 @@
      double precision               :: wavelengthMinimum_, wavelengthMaximum_, &
           &                            wavelength_       , luminosity_
      double precision, dimension(3) :: position_         , direction_
+     integer                        :: sourceType_
    contains
      procedure :: wavelength           => simpleWavelength
      procedure :: wavelengthSet        => simpleWavelengthSet
@@ -39,6 +40,8 @@
      procedure :: positionSet          => simplePositionSet
      procedure :: direction            => simpleDirection
      procedure :: directionSet         => simpleDirectionSet
+     procedure :: sourceType           => simpleSourceType
+     procedure :: sourceTypeSet        => simpleSourceTypeSet
   end type radiativeTransferPhotonPacketSimple
 
   interface radiativeTransferPhotonPacketSimple
@@ -106,6 +109,7 @@ contains
     self%wavelengthMinimum_=wavelengthMinimum
     self%wavelengthMaximum_=wavelengthMaximum
     self%luminosity_       =luminosity
+    self%sourceType_       =0
     return
   end function simpleConstructorInternal
 
@@ -224,3 +228,22 @@ contains
     simpleDirection=self%direction_
     return
   end function simpleDirection
+
+  integer function simpleSourceType(self)
+    !% Return the source type for this photon packet.
+    implicit none
+    class(radiativeTransferPhotonPacketSimple), intent(inout) :: self
+
+    simpleSourceType=self%sourceType_
+    return
+  end function simpleSourceType
+
+  subroutine simpleSourceTypeSet(self,sourceType)
+    !% Set the source type for this photon packet.
+    implicit none
+    class  (radiativeTransferPhotonPacketSimple), intent(inout) :: self
+    integer                                     , intent(in   ) :: sourceType
+
+    self%sourceType_=sourceType
+    return
+  end subroutine simpleSourceTypeSet

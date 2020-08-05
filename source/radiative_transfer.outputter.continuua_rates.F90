@@ -141,6 +141,7 @@ contains
     use :: IO_HDF5                 , only : hdf5Access
     use :: Numerical_Integration   , only : integrator
     use :: Numerical_Roman_Numerals, only : Roman_Numerals
+    use :: MPI_Utilities           , only : mpiSelf
     implicit none
     class           (radiativeTransferOutputterContinuuaRates), intent(inout)                 :: self
     class           (radiativeTransferSourceClass            ), intent(inout)                 :: radiativeTransferSource_
@@ -150,6 +151,7 @@ contains
     integer                                                                                   :: i                       , j
     character       (len=30                                  )                                :: label
 
+    if (.not.mpiSelf%isMaster()) return
     integrator_=integrator(                             &
          &                                   integrand, &
          &                 toleranceRelative=1.0d-2     &

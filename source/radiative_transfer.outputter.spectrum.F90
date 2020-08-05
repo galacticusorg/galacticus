@@ -175,6 +175,7 @@ contains
     use :: IO_HDF5                         , only : hdf5Access
     use :: Numerical_Constants_Astronomical, only : luminositySolar
     use :: Numerical_Integration           , only : integrator
+    use :: MPI_Utilities                   , only : mpiSelf
     implicit none
     class           (radiativeTransferOutputterSpectrum), intent(inout)                    :: self
     class           (radiativeTransferSourceClass      ), intent(inout)                    :: radiativeTransferSource_
@@ -183,6 +184,7 @@ contains
     double precision                                    , dimension(self%countWavelengths) :: spectrumEmitted
     integer         (c_size_t                          )                                   :: i
 
+    if (.not.mpiSelf%isMaster()) return
     integrator_=integrator(integrand,toleranceRelative=1.0d-2)
     do i=1_c_size_t,self%countWavelengths
        spectrumEmitted(i)=+integrator_%integrate(                            &

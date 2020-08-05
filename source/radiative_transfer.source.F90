@@ -39,13 +39,26 @@ module Radiative_Transfer_Sources
   !#   <description>Return the spectrum (in units of $L_\odot$ \AA$^{-1}$) of the source at the given {\normalfont \ttfamily wavelength}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: wavelength</argument>
+  !#   <argument>double precision, intent(in   )           :: wavelength</argument>
+  !#   <argument>integer         , intent(in   ), optional :: sourceType</argument>
   !#  </method>
   !#  <method name="luminosity" >
   !#   <description>Return the luminosity (in units of $L_\odot$) of the source at the given wavelength range.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: wavelengthMinimum, wavelengthMaximum</argument>
+  !#   <argument>double precision, intent(in   )           :: wavelengthMinimum, wavelengthMaximum</argument>
+  !#   <argument>integer         , intent(in   ), optional :: sourceType</argument>
+  !#  </method>
+  !#  <method name="sourceTypeCount" >
+  !#   <description>Return the number of source types.</description>
+  !#   <type>integer</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="sourceTypeName" >
+  !#   <description>Return the name of the requested of source type.</description>
+  !#   <type>type(varying_string)</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer, intent(in   ) :: sourceType</argument>
   !#  </method>
   !# </functionClass>
   
