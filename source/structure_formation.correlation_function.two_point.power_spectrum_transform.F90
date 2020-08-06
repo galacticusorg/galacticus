@@ -30,11 +30,12 @@
   type, extends(correlationFunctionTwoPointClass) :: correlationFunctionTwoPointPowerSpectrumTransform
      !% A two-point correlation function class in which the correlation function is found by Fourier transforming a power spectrum.
      private
-     class           (powerSpectrumClass         ), pointer     :: powerSpectrum_          => null()
-     class           (powerSpectrumNonlinearClass), pointer     :: powerSpectrumNonlinear_ => null()
-     type            (interpolator               ), allocatable :: interpolator_
-     double precision                                           :: separationMinimum                , separationMaximum, &
-          &                                                        time
+     class           (powerSpectrumClass         ), pointer     :: powerSpectrum_                  => null()
+     class           (powerSpectrumNonlinearClass), pointer     :: powerSpectrumNonlinear_         => null()
+     type            (interpolator               ), allocatable :: interpolator_                            , interpolatorVolumeAveraged_ 
+     double precision                                           :: separationMinimum                        , separationMaximum              , &
+          &                                                        separationMinimumVolumeAveraged          , separationMaximumVolumeAveraged, &
+          &                                                        time                                     , timeVolumeAveraged
   contains
      final     ::                              powerSpectrumTransformDestructor
      procedure :: correlation               => powerSpectrumTransformCorrelation
@@ -191,49 +192,59 @@ contains
          &                                                                                            correlation               , separations
     integer                                                            , parameter                 :: wavenumbersPerDecade=125
     double precision                                                   , parameter                 :: wavenumbersRange    =1.0d4
-    type            (interpolator                                     )                            :: interpolator_
     double precision                                                                               :: wavenumberMinimum         , wavenumberMaximum
     integer         (c_size_t                                         )                            :: countWavenumbers          , i
 
-    wavenumberMinimum=1.0d0/wavenumbersRange/separation
-    wavenumberMaximum=1.0d0*wavenumbersRange/separation
-    countWavenumbers =int(log10(wavenumberMaximum/wavenumberMinimum)*dble(wavenumbersPerDecade),c_size_t)
-    allocate(wavenumbers  (countWavenumbers))
-    allocate(powerSpectrum(countWavenumbers))
-    allocate(correlation  (countWavenumbers))
-    allocate(separations  (countWavenumbers))
-    wavenumbers=Make_Range(wavenumberMinimum,wavenumberMaximum,int(countWavenumbers),rangeTypeLogarithmic)
-    do i=1,countWavenumbers
-       if (associated(self%powerSpectrum_)) then
-          powerSpectrum(i)=self%powerSpectrum_         %power(wavenumbers(i),time)
-       else
-          powerSpectrum(i)=self%powerSpectrumNonLinear_%value(wavenumbers(i),time)
+    if (time /= self%timeVolumeAveraged .or. separation < self%separationMinimumVolumeAveraged .or. separation > self%separationMaximumVolumeAveraged) then
+       if (self%timeVolumeAveraged < 0.0d0) then
+          self%separationMinimumVolumeAveraged=separation
+          self%separationMaximumVolumeAveraged=separation
        end if
-    end do
-    ! In FFTLog(), we use μ=3/2 since:
-    !   J_{3/2}(x) = √(2/π) [ sin(x)/x - cos(x) ] / √x
-    ! So we must multiply by √(kr) √(π/2) so that we have:
-    !   √(kr) √(π/2) J_{3/2}(x) = sin(x)/x - cos(x).    
-    call FFTLog(                     &
-         &       wavenumbers       , &
-         &       separations       , &
-         &      +powerSpectrum       &
-         &      *sqrt(wavenumbers)   &
-         &      * 3.0d0              &
-         &      * 4.0d0*Pi           &
-         &      /(2.0d0*Pi)**3     , &
-         &       correlation       , &
-         &        1.5d0            , &
-         &       fftLogForward       &
-         &     )
-    correlation=+      correlation    &
-         &      /      separations**2 &
-         &      *sqrt(                &
-         &            +separations    &
-         &            *Pi             &
-         &            /2.0d0          &
-         &           )
-    interpolator_                                  =interpolator             (separations,correlation)
-    powerSpectrumTransformCorrelationVolumeAveraged=interpolator_%interpolate(separation             )
+       wavenumberMinimum=1.0d0/wavenumbersRange/max(separation,self%separationMaximumVolumeAveraged)
+       wavenumberMaximum=1.0d0*wavenumbersRange/min(separation,self%separationMinimumVolumeAveraged)
+       countWavenumbers =int(log10(wavenumberMaximum/wavenumberMinimum)*dble(wavenumbersPerDecade),c_size_t)
+       allocate(wavenumbers  (countWavenumbers))
+       allocate(powerSpectrum(countWavenumbers))
+       allocate(correlation  (countWavenumbers))
+       allocate(separations  (countWavenumbers))
+       wavenumbers=Make_Range(wavenumberMinimum,wavenumberMaximum,int(countWavenumbers),rangeTypeLogarithmic)
+       do i=1,countWavenumbers
+          if (associated(self%powerSpectrum_)) then
+             powerSpectrum(i)=self%powerSpectrum_         %power(wavenumbers(i),time)
+          else
+             powerSpectrum(i)=self%powerSpectrumNonLinear_%value(wavenumbers(i),time)
+          end if
+       end do
+       ! In FFTLog(), we use μ=3/2 since:
+       !   J_{3/2}(x) = √(2/π) [ sin(x)/x - cos(x) ] / √x
+       ! So we must multiply by √(kr) √(π/2) so that we have:
+       !   √(kr) √(π/2) J_{3/2}(x) = sin(x)/x - cos(x).    
+       call FFTLog(                     &
+            &       wavenumbers       , &
+            &       separations       , &
+            &      +powerSpectrum       &
+            &      *sqrt(wavenumbers)   &
+            &      * 3.0d0              &
+            &      * 4.0d0*Pi           &
+            &      /(2.0d0*Pi)**3     , &
+            &       correlation       , &
+            &        1.5d0            , &
+            &       fftLogForward       &
+            &     )
+       correlation=+      correlation    &
+            &      /      separations**2 &
+            &      *sqrt(                &
+            &            +separations    &
+            &            *Pi             &
+            &            /2.0d0          &
+            &           )
+       if (allocated(self%interpolatorVolumeAveraged_)) deallocate(self%interpolatorVolumeAveraged_)
+       allocate(self%interpolatorVolumeAveraged_)
+       self%interpolatorVolumeAveraged_    =interpolator(separations,correlation)
+       self%timeVolumeAveraged             =time
+       self%separationMinimumVolumeAveraged=separations(               1)
+       self%separationMaximumVolumeAveraged=separations(countWavenumbers)
+    end if
+    powerSpectrumTransformCorrelationVolumeAveraged=self%interpolatorVolumeAveraged_%interpolate(separation)
     return
   end function powerSpectrumTransformCorrelationVolumeAveraged
