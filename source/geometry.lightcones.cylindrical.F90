@@ -19,11 +19,16 @@
 
   !% An implementation of the lightcone geometry class which assumes a cylindrical ``cone''.
 
-  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
-  use :: Kind_Numbers            , only : kind_int8
-  use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
-  use :: Output_Times            , only : outputTimesClass
-
+  use :: Cosmology_Functions            , only : cosmologyFunctionsClass
+  use :: Correlation_Functions_Two_Point, only : correlationFunctionTwoPointClass
+  use :: Dark_Matter_Halo_Biases        , only : darkMatterHaloBiasClass
+  use :: Dark_Matter_Halo_Scales        , only : darkMatterHaloScaleClass
+  use :: Kind_Numbers                   , only : kind_int8
+  use :: Linear_Growth                  , only : linearGrowthClass
+  use :: Numerical_Random_Numbers       , only : randomNumberGeneratorClass
+  use :: Output_Times                   , only : outputTimesClass
+  use :: Power_Spectra                  , only : powerSpectrumClass
+  
   !# <geometryLightcone name="geometryLightconeCylindrical">
   !#  <description>
   !#   A lightcone geometry class which assumes a cylindrical ``cone'', i.e. defined such that a point $(x,y,z)$ is in the survey
@@ -33,18 +38,26 @@
   type, extends(geometryLightconeClass) :: geometryLightconeCylindrical
      !% A lightcone geometry class which assumes a cylindrical ``cone''.
      private
-     class           (cosmologyFunctionsClass   ), pointer                     :: cosmologyFunctions_    => null()
-     class           (outputTimesClass          ), pointer                     :: outputTimes_           => null()
-     class           (randomNumberGeneratorClass), pointer                     :: randomNumberGenerator_ => null()
-     double precision                            , dimension(:  ), allocatable :: distanceMinimum                 , distanceMaximum     , &
-          &                                                                       volume
-     double precision                                                          :: radiusCylinderComoving          , radiusBufferComoving
-     integer         (kind_int8                 )                              :: activeCenterUniqueID            , activeUniqueID
-     integer                                                                   :: activeCenterCount               , activeCount
-     logical                                     , dimension(:  ), allocatable :: activeInCylinder
-     integer                                     , dimension(:  ), allocatable :: activeInstances
-     double precision                            , dimension(:,:), allocatable :: activeCenterPosition            , activePosition
-     integer         (c_size_t                  )                              :: activeOutput
+     class           (cosmologyFunctionsClass         ), pointer                     :: cosmologyFunctions_          => null()
+     class           (outputTimesClass                ), pointer                     :: outputTimes_                 => null()
+     class           (randomNumberGeneratorClass      ), pointer                     :: randomNumberGenerator_       => null()
+     class           (powerSpectrumClass              ), pointer                     :: powerSpectrum_               => null()
+     class           (linearGrowthClass               ), pointer                     :: linearGrowth_                => null()
+     class           (darkMatterHaloBiasClass         ), pointer                     :: darkMatterHaloBias_          => null()
+     class           (darkMatterHaloScaleClass        ), pointer                     :: darkMatterHaloScale_         => null()
+     class           (correlationFunctionTwoPointClass), pointer                     :: correlationFunctionTwoPoint_ => null()
+     double precision                                  , dimension(:  ), allocatable :: distanceMinimum                       , distanceMaximum       , &
+          &                                                                             volume                                , densityContrast
+     double precision                                                                :: radiusCylinderComoving                , radiusBufferComoving  , &
+          &                                                                             massHaloLens                          , redshiftLens          , &
+          &                                                                             distanceComovingLens                  , timeLens              , &
+          &                                                                             radiusVirialComovingLens              , correlationLensMaximum
+     integer         (kind_int8                       )                              :: activeCenterUniqueID                  , activeUniqueID
+     integer                                                                         :: activeCenterCount                     , activeCount
+     logical                                           , dimension(:  ), allocatable :: activeInCylinder
+     integer                                           , dimension(:  ), allocatable :: activeInstances
+     double precision                                  , dimension(:,:), allocatable :: activeCenterPosition                  , activePosition
+     integer         (c_size_t                        )                              :: activeOutput
    contains
      !@ <objectMethods>
      !@   <object>geometryLightconeCylindrical</object>
@@ -80,13 +93,19 @@ contains
     !% input.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (geometryLightconeCylindrical)                :: self
-    type            (inputParameters             ), intent(inout) :: parameters
-    class           (outputTimesClass            ), pointer       :: outputTimes_
-    class           (cosmologyFunctionsClass     ), pointer       :: cosmologyFunctions_
-    class           (randomNumberGeneratorClass  ), pointer       :: randomNumberGenerator_
-    double precision                                              :: radiusCylinderComoving, radiusBufferComoving
-
+    type            (geometryLightconeCylindrical    )                :: self
+    type            (inputParameters                 ), intent(inout) :: parameters
+    class           (outputTimesClass                ), pointer       :: outputTimes_
+    class           (cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
+    class           (randomNumberGeneratorClass      ), pointer       :: randomNumberGenerator_
+    class           (powerSpectrumClass              ), pointer       :: powerSpectrum_
+    class           (linearGrowthClass               ), pointer       :: linearGrowth_
+    class           (darkMatterHaloBiasClass         ), pointer       :: darkMatterHaloBias_
+    class           (darkMatterHaloScaleClass        ), pointer       :: darkMatterHaloScale_
+    class           (correlationFunctionTwoPointClass), pointer       :: correlationFunctionTwoPoint_
+    double precision                                                  :: radiusCylinderComoving      , radiusBufferComoving, &
+         &                                                               massHaloLens                , redshiftLens
+    
     !# <inputParameter>
     !#   <name>radiusCylinderComoving</name>
     !#   <source>parameters</source>
@@ -102,34 +121,94 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
-    !# <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
-    self=geometryLightconeCylindrical(radiusCylinderComoving,radiusBufferComoving,cosmologyFunctions_,outputTimes_,randomNumberGenerator_)
+    !# <inputParameter>
+    !#   <name>massHaloLens</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>-1.0d0</defaultValue>
+    !#   <description>The mass of the primary lens halo (or a negative value for no lens).</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>redshiftLens</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>-1.0d0</defaultValue>
+    !#   <description>The redshift of the primary lens halo (or a negative value for no lens).</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"          source="parameters"/>
+    !# <objectBuilder class="outputTimes"                  name="outputTimes_"                 source="parameters"/>
+    !# <objectBuilder class="randomNumberGenerator"        name="randomNumberGenerator_"       source="parameters"/>
+    !# <objectBuilder class="powerSpectrum"                name="powerSpectrum_"               source="parameters"/>
+    !# <objectBuilder class="linearGrowth"                 name="linearGrowth_"                source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloBias"           name="darkMatterHaloBias_"          source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"         source="parameters"/>
+    !# <objectBuilder class="correlationFunctionTwoPoint"  name="correlationFunctionTwoPoint_" source="parameters"/>
+    self=geometryLightconeCylindrical(radiusCylinderComoving,radiusBufferComoving,massHaloLens,redshiftLens,cosmologyFunctions_,powerSpectrum_,linearGrowth_,outputTimes_,darkMatterHaloBias_,darkMatterHaloScale_,correlationFunctionTwoPoint_,randomNumberGenerator_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="outputTimes_"          />
-    !# <objectDestructor name="cosmologyFunctions_"   />
-    !# <objectDestructor name="randomNumberGenerator_"/>
+    !# <objectDestructor name="outputTimes_"                />
+    !# <objectDestructor name="cosmologyFunctions_"         />
+    !# <objectDestructor name="randomNumberGenerator_"      />
+    !# <objectDestructor name="powerSpectrum_"              />
+    !# <objectDestructor name="linearGrowth_"               />
+    !# <objectDestructor name="darkMatterHaloBias_"         />
+    !# <objectDestructor name="darkMatterHaloScale_"        />
+    !# <objectDestructor name="correlationFunctionTwoPoint_"/>
     return
   end function cylindricalConstructorParameters
 
-  function cylindricalConstructorInternal(radiusCylinderComoving,radiusBufferComoving,cosmologyFunctions_,outputTimes_,randomNumberGenerator_) result(self)
+  function cylindricalConstructorInternal(radiusCylinderComoving,radiusBufferComoving,massHaloLens,redshiftLens,cosmologyFunctions_,powerSpectrum_,linearGrowth_,outputTimes_,darkMatterHaloBias_,darkMatterHaloScale_,correlationFunctionTwoPoint_,randomNumberGenerator_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily cylindrical} lightcone geometry distribution class.
+    use :: File_Utilities          , only : File_Exists   , File_Lock          , File_Unlock  , lockDescriptor
+    use :: Galacticus_Nodes        , only : treeNode      , nodeComponentBasic
+    use :: Galacticus_Paths        , only : galacticusPath, pathTypeDataDynamic
+    use :: IO_HDF5                 , only : hdf5Access    , hdf5Object
+    use :: Linear_Algebra          , only : matrix        , vector             , assignment(=), operator(*)
     use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Integration   , only : integrator    , GSL_Integ_Gauss15
+    use :: Hashes_Cryptographic    , only : Hash_MD5
+    use :: MPI_Utilities           , only : mpiSelf
     implicit none
-    type            (geometryLightconeCylindrical)                        :: self
-    class           (cosmologyFunctionsClass     ), target, intent(in   ) :: cosmologyFunctions_
-    class           (outputTimesClass            ), target, intent(in   ) :: outputTimes_
-    class           (randomNumberGeneratorClass  ), target, intent(in   ) :: randomNumberGenerator_
-    double precision                                      , intent(in   ) :: radiusCylinderComoving, radiusBufferComoving
-    integer         (c_size_t                    )                        :: output
-    double precision                                                      :: timeMinimum           , timeMaximum
-    !# <constructorAssign variables="radiusCylinderComoving, radiusBufferComoving, *cosmologyFunctions_, *outputTimes_, *randomNumberGenerator_"/>
+    type            (geometryLightconeCylindrical    )                              :: self
+    class           (cosmologyFunctionsClass         ), target     , intent(in   )  :: cosmologyFunctions_
+    class           (outputTimesClass                ), target     , intent(in   )  :: outputTimes_
+    class           (randomNumberGeneratorClass      ), target     , intent(in   )  :: randomNumberGenerator_
+    class           (powerSpectrumClass              ), target     , intent(in   )  :: powerSpectrum_
+    class           (linearGrowthClass               ), target     , intent(in   )  :: linearGrowth_
+    class           (darkMatterHaloBiasClass         ), target     , intent(in   )  :: darkMatterHaloBias_
+    class           (darkMatterHaloScaleClass        ), target     , intent(in   )  :: darkMatterHaloScale_
+    class           (correlationFunctionTwoPointClass), target     , intent(in   )  :: correlationFunctionTwoPoint_
+    double precision                                               , intent(in   )  :: radiusCylinderComoving       , radiusBufferComoving       , &
+         &                                                                             massHaloLens                 , redshiftLens
+    double precision                                  , allocatable, dimension(:  ) :: deviates                     , densityContrastLogarithmic , &
+         &                                                                             logNormalSigma               , logNormalMu
+    double precision                                  , allocatable, dimension(:,:) :: covariance
+     type            (treeNode                       ), pointer                     :: node
+     class           (nodeComponentBasic             ), pointer                     :: basic
+    double precision                                  , parameter                   :: wavenumberMaximumFactor=1.0d2
+    integer         (c_size_t                        )                              :: output                       , output1                    , &
+         &                                                                             output2
+    double precision                                                                :: timeMinimum                  , timeMaximum                , &
+         &                                                                             heightRegion1Lower           , heightRegion1Upper         , &
+         &                                                                             heightRegion2Lower           , heightRegion2Upper         , &         
+         &                                                                             wavenumberVertical           , wavenumberMaximumRadial    , &
+         &                                                                             wavenumberMinimumVertical    , wavenumberMaximumVertical  , & 
+         &                                                                             time
+    type            (integrator                      )                              :: integratorVertical           , integratorRadial
+    type            (matrix                          )                              :: covarianceMatrix
+    type            (vector                          )                              :: deviateVector
+    type            (hdf5Object                      )                              :: file
+    type            (lockDescriptor                  )                              :: fileLock
+    type            (varying_string                  )                              :: fileName
+    character       (len=18                          )                              :: label
+    !# <constructorAssign variables="radiusCylinderComoving, radiusBufferComoving, massHaloLens, redshiftLens, *cosmologyFunctions_, *powerSpectrum_, *linearGrowth_, *outputTimes_, *darkMatterHaloBias_, *darkMatterHaloScale_, *correlationFunctionTwoPoint_, *randomNumberGenerator_"/>
     
     ! Find the minimum and maximum distance associated with each output time.
     allocate(self%distanceMinimum(self%outputTimes_%count()))
     allocate(self%distanceMaximum(self%outputTimes_%count()))
     allocate(self%volume         (self%outputTimes_%count()))
+    allocate(self%densityContrast(self%outputTimes_%count()))
     do output=1,self%outputTimes_%count()
        if (output == 1                        ) then
           timeMinimum=                                      self%outputTimes_%time(output)
@@ -154,11 +233,202 @@ contains
          &        +self%distanceMaximum        &
          &        -self%distanceMinimum        &
          &      )
+    ! Compute cosmic variance within each cylinder slice. Note that we construct a descriptor for the file name directly - we do
+    ! not use the automatically generated one as it will include the random number generator hash which does not affect the
+    ! covariance.
+    write (label,'(e17.10)') self%radiusCylinderComoving
+    fileName=         galacticusPath                           (pathTypeDataDynamic       )// &
+         &            'largeScaleStructure/'                                               // &
+         &            self%objectType                          (                          )// &
+         &            'CosmicVariance_'                                                    // &
+         &   Hash_MD5(                                                                        &
+         &            self%cosmologyFunctions_%hashedDescriptor(includeSourceDigest=.true.)// &
+         &            self%outputTimes_       %hashedDescriptor(includeSourceDigest=.true.)// &
+         &            self%powerSpectrum_     %hashedDescriptor(includeSourceDigest=.true.)// &
+         &            self%linearGrowth_      %hashedDescriptor(includeSourceDigest=.true.)// &
+         &            trim(adjustl(label))                                                    &
+         &           )                                                                     // &
+         &            '.hdf5'
+    allocate(covariance(self%outputTimes_%count(),self%outputTimes_%count()))
+    !! Read the covariance matrix from file if possible.
+    if (File_Exists(fileName)) then
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+       call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
+       !$ call hdf5Access%set()
+       call file%openFile   (char(fileName    )           )
+       call file%readDataset(     'covariance' ,covariance)
+       call file%close      (                             )
+       !$ call hdf5Access%unset()
+       call File_Unlock(fileLock)
+    else
+       !! Compute the covariance matrix.
+       integratorVertical     = integrator(cosmicVarianceIntegrandVertical,integrationRule=GSL_Integ_Gauss15,toleranceRelative=1.0d-3)
+       integratorRadial       = integrator(cosmicVarianceIntegrandRadial  ,integrationRule=GSL_Integ_Gauss15,toleranceRelative=1.0d-3)
+       wavenumberMaximumRadial=+wavenumberMaximumFactor &
+            &                  /radiusCylinderComoving
+       time                   = self%outputTimes_%time(1_c_size_t)
+       do output1=1,self%outputTimes_%count()
+          heightRegion1Lower                    =self%distanceMinimum(output1)
+          heightRegion1Upper                    =self%distanceMaximum(output1)
+          do output2=output1,self%outputTimes_%count()
+             heightRegion2Lower                        =self%distanceMinimum(output2)
+             heightRegion2Upper                        =self%distanceMaximum(output2)
+             wavenumberMinimumVertical                 =1.0d0/wavenumberMaximumFactor/max((heightRegion1Upper-heightRegion1Lower),(heightRegion2Upper-heightRegion2Lower))
+             wavenumberMaximumVertical                 =1.0d0*wavenumberMaximumFactor/min((heightRegion1Upper-heightRegion1Lower),(heightRegion2Upper-heightRegion2Lower))
+             covariance               (output1,output2)=+2.0d0                                                   &
+                  &                                     *integratorVertical%integrate(log(wavenumberMinimumVertical),log(wavenumberMaximumVertical)) &
+                  &                                     *self%linearGrowth_%value(self%outputTimes_%time(output1))                                   &
+                  &                                     *self%linearGrowth_%value(self%outputTimes_%time(output2))
+             covariance               (output2,output1)=+covariance(output1,output2          )
+          end do
+       end do
+       !! Store the covariance matrix to file.
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+       call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
+       !$ call hdf5Access%set()
+       call file%openFile    (char(fileName  )             )
+       call file%writeDataset(     covariance ,'covariance')
+       call file%close       (                             )
+       !$ call hdf5Access%unset()
+       call File_Unlock(fileLock)
+    end if
+    ! Generate a realization of the cosmic density field.
+    !! Realization is generated only on the master process so that we guarantee that it is the same across all processes.
+    if (mpiSelf%isMaster()) then
+       ! We assume that the density field follows a log-normal distribution. Note
+       ! that we don't explicitly transform the covariance (computed in terms of Δ=ρ/ρ̅) to that for logΔ because (since the
+       ! unperturbed Δ̅=1) the transformed covariance is just equal to the original covariance.
+       allocate(deviates      (self%outputTimes_%count()))    
+       allocate(logNormalSigma(self%outputTimes_%count()))    
+       allocate(logNormalMu   (self%outputTimes_%count()))    
+       do output=1_c_size_t,self%outputTimes_%count()
+          !! Generate a deviate.
+          deviates      (output)=self%randomNumberGenerator_%standardNormalSample()
+          !! Compute the parameters of the log-normal distribution.
+          logNormalSigma(output)=+sqrt(log(1.0d0+covariance(output,output)))
+          logNormalMu   (output)=-logNormalSigma(output)**2 &
+               &                 /2.0d0
+       end do
+       deviateVector=vector(deviates)
+       !! Cholesky decompose the covariance matrix.
+       covarianceMatrix=matrix(covariance)
+       call covarianceMatrix%choleskyDecomposition()
+       !! Generate the realization.
+       allocate(densityContrastLogarithmic(self%outputTimes_%count()))
+       densityContrastLogarithmic=covarianceMatrix*deviateVector
+       self%densityContrast      =exp(densityContrastLogarithmic)
+    else
+       self%densityContrast      =0.0d0
+    end if
+#ifdef USEMPI
+    self%densityContrast=mpiSelf%sum(self%densityContrast)
+#endif
     ! Initialize the unique ID of the active node to an impossible value.
     self%activeCenterUniqueID=-1_kind_int8
     self%activeUniqueID      =-1_kind_int8
     self%activeOutput        =-1_c_size_t
+    ! Determine properties of the lens halo.
+    if (self%massHaloLens > 0.0d0) then
+       allocate(node)
+       node                           =>  treeNode                                     (                                                                       )
+       basic                          =>  node    %basic                               (autoCreate=.true.                                                      )
+       self %timeLens                 =   self    %cosmologyFunctions_%cosmicTime      (self%cosmologyFunctions_%expansionFactorFromRedshift(     redshiftLens))
+       self %distanceComovingLens     =   self    %cosmologyFunctions_%distanceComoving(                                                     self%timeLens     )
+       call basic%massSet            (self%massHaloLens)
+       call basic%timeSet            (self%timeLens    )
+       call basic%timeLastIsolatedSet(self%timeLens    )
+       self %radiusVirialComovingLens =  +self    %darkMatterHaloScale_%virialRadius   (                                                     node              ) &
+            &                            /self    %cosmologyFunctions_ %expansionFactor(                                                     self%timeLens     )
+       self %correlationLensMaximum   =  +self%correlationFunctionTwoPoint_%correlation(self%radiusVirialComovingLens,self%timeLens) &
+            &                            *self%darkMatterHaloBias_         %bias       (node                                       )
+       call node%destroy()
+       deallocate(node)
+    end if
     return
+
+  contains
+
+    double precision function cosmicVarianceIntegrandVertical(wavenumberVerticalLogarithmic)
+      !% Vertical integrand used in evaluating the cosmic variance.
+      use :: Bessel_Functions, only : Bessel_Function_J1_Zero
+      implicit none
+      double precision, intent(in   ) :: wavenumberVerticalLogarithmic
+      double precision                :: wavenumberLower              , wavenumberUpper
+      integer                         :: besselZero
+
+      wavenumberVertical             =exp(wavenumberVerticalLogarithmic)
+      besselZero                     =0
+      wavenumberUpper                =0.0d0
+      cosmicVarianceIntegrandVertical=0.0d0
+      do while (wavenumberUpper < wavenumberMaximumRadial)
+         besselZero                     =+besselZero                                                                              &
+              &                          +1
+         wavenumberLower                =                                                                wavenumberUpper
+         wavenumberUpper                = min(Bessel_Function_J1_Zero(besselZero)/radiusCylinderComoving,wavenumberMaximumRadial)
+         cosmicVarianceIntegrandVertical=+cosmicVarianceIntegrandVertical                                                         &
+              &                          +integratorRadial%integrate(wavenumberLower,wavenumberUpper)
+      end do
+      cosmicVarianceIntegrandVertical=+cosmicVarianceIntegrandVertical                                                               &
+           &                          *wavenumberVertical                                                                            &
+           &                          *real(                                                                                         &
+           &                                +      windowFunctionVertical(wavenumberVertical,heightRegion1Lower,heightRegion1Upper)  &
+           &                                *conjg(windowFunctionVertical(wavenumberVertical,heightRegion2Lower,heightRegion2Upper)) &
+           &                               )
+      return
+    end function cosmicVarianceIntegrandVertical
+
+    double precision function cosmicVarianceIntegrandRadial(wavenumberRadial)
+      !% Radial integrand used in evaluating the cosmic variance.
+      use :: Numerical_Constants_Math, only : Pi
+      implicit none
+      double precision, intent(in   ) :: wavenumberRadial
+      double precision                :: wavenumber
+
+      wavenumber                   =+sqrt(                       &
+           &                              +wavenumberVertical**2 &
+           &                              +wavenumberRadial  **2 &
+           &                             )
+      cosmicVarianceIntegrandRadial=+self%powerSpectrum_%power(wavenumber,time)                       &
+           &                        *windowFunctionRadial(wavenumberRadial,radiusCylinderComoving)**2 &
+           &                        * 2.0d0*Pi                                                        &
+           &                        *wavenumberRadial                                                 &
+           &                        /(2.0d0*Pi)**3
+      return
+    end function cosmicVarianceIntegrandRadial
+
+    double complex function windowFunctionVertical(wavenumberVertical,heightLower,heightUpper)
+      !% Window function used in evaluating the cosmic variance.
+      use :: Numerical_Constants_Math, only : Pi
+      implicit none
+      double precision, intent(in   ) :: wavenumberVertical, heightLower, &
+           &                             heightUpper
+
+      windowFunctionVertical=+2.0d0                                                                  &
+           &                 *      dcmplx(0.0d0,1.0d0)                                              &
+           &                 *(                                                                      &
+           &                   +exp(dcmplx(0.0d0,1.0d0)*wavenumberVertical*             heightLower) &
+           &                   -exp(dcmplx(0.0d0,1.0d0)*wavenumberVertical* heightUpper            ) &
+           &                 )                                                                       &
+           &                 /                          wavenumberVertical/(heightUpper-heightLower) &
+           &                 /sqrt(2.0d0*Pi)
+      return
+    end function windowFunctionVertical
+    
+    double precision function windowFunctionRadial(wavenumberRadial,radius)
+      !% Window function used in evaluating the cosmic variance.
+      use :: Bessel_Functions, only : Bessel_Function_J1
+      implicit none
+      double precision, intent(in   ) :: wavenumberRadial, radius
+
+      if (wavenumberRadial == 0.0d0) then
+         windowFunctionRadial=+0.5d0
+      else
+         windowFunctionRadial=+Bessel_Function_J1(wavenumberRadial*radius) &
+              &               /                   wavenumberRadial/radius
+      end if
+      return
+    end function windowFunctionRadial
+    
   end function cylindricalConstructorInternal
 
   subroutine cylindricalDestructor(self)
@@ -166,9 +436,14 @@ contains
     implicit none
     type(geometryLightconeCylindrical), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"   />
-    !# <objectDestructor name="self%outputTimes_"          />
-    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_"         />
+    !# <objectDestructor name="self%outputTimes_"                />
+    !# <objectDestructor name="self%randomNumberGenerator_"      />
+    !# <objectDestructor name="self%powerSpectrum_"              />
+    !# <objectDestructor name="self%linearGrowth_"               />
+    !# <objectDestructor name="self%darkMatterHaloBias_"         />
+    !# <objectDestructor name="self%darkMatterHaloScale_"        />
+    !# <objectDestructor name="self%correlationFunctionTwoPoint_"/>
     return
   end subroutine cylindricalDestructor
 
@@ -305,9 +580,12 @@ contains
     class           (nodeComponentSatellite      )               , pointer :: satellite
     type            (treeNode                    )               , pointer :: nodeHost
     double precision                              , dimension(3)           :: positionOffset
-    double precision                                                       :: distanceComoving, radiusComoving, &
-         &                                                                    theta           , numberMean
-    integer                                                                :: i               , j
+    double precision                                                       :: distanceComoving  , radiusComoving   , &
+         &                                                                    theta             , numberMean       , &
+         &                                                                    separationLens    , probabilityAccept, &
+         &                                                                    linearGrowthFactor, bias
+    logical                                                                :: accept
+    integer                                                                :: i                 , j
     character       (len=10                      )                         :: label
     type            (varying_string              )                         :: message
     integer         (c_size_t                    )                         :: output
@@ -340,9 +618,10 @@ contains
        self%activeCenterUniqueID=nodeHost%uniqueID()
        self%activeUniqueID      =-1_c_size_t
        ! Compute the number of instances of this halo which appear in the cylinder.
-       numberMean            =+self                           %volume       (output    ) &
-            &                 *nodeHost%hostTree              %volumeWeight
-       self%activeCenterCount=+self    %randomNumberGenerator_%poissonSample(numberMean)
+       numberMean            =+self                           %volume         (output    ) &
+            &                 *nodeHost%hostTree              %volumeWeight                &
+            &                 *self                           %densityContrast(output    )
+       self%activeCenterCount=+self    %randomNumberGenerator_%poissonSample  (numberMean)
        ! Generate random positions for each instance.
        if (allocated(self%activeCenterPosition)) deallocate(self%activeCenterPosition)
        if (allocated(self%activePosition      )) deallocate(self%activePosition      )
@@ -352,23 +631,41 @@ contains
        allocate(self%activePosition      (3,self%activeCenterCount))
        allocate(self%activeInCylinder    (  self%activeCenterCount))
        allocate(self%activeInstances     (  self%activeCenterCount))
-       do i=1,self%activeCenterCount          
-          radiusComoving  =sqrt(                                                                                  &
-               &                self%randomNumberGenerator_%uniformSample()*(                                     &
-               &                                                             +self%radiusCylinderComoving         &
-               &                                                             +self%radiusBufferComoving           &
-               &                                                            )**2                                  &
-               &               )
-          theta           =     self%randomNumberGenerator_%uniformSample()*  2.0d0                               &
-               &                                                           *  Pi
-          distanceComoving=     self%randomNumberGenerator_%uniformSample()*(                                     &
-               &                                                             +self%distanceMaximum       (output) &
-               &                                                             -self%distanceMinimum       (output) &
-               &                                                            )                                     &
-               &                                                             +self%distanceMinimum       (output)
-          self%activeCenterPosition(1,i)=radiusComoving  *cos(theta)
-          self%activeCenterPosition(2,i)=radiusComoving  *sin(theta)
-          self%activeCenterPosition(3,i)=distanceComoving
+       do i=1,self%activeCenterCount
+          accept=.false.
+          do while (.not.accept)
+             radiusComoving  =sqrt(                                                                                  &
+                  &                self%randomNumberGenerator_%uniformSample()*(                                     &
+                  &                                                             +self%radiusCylinderComoving         &
+                  &                                                             +self%radiusBufferComoving           &
+                  &                                                            )**2                                  &
+                  &               )
+             theta           =     self%randomNumberGenerator_%uniformSample()*  2.0d0                               &
+                  &                                                           *  Pi
+             distanceComoving=     self%randomNumberGenerator_%uniformSample()*(                                     &
+                  &                                                             +self%distanceMaximum       (output) &
+                  &                                                             -self%distanceMinimum       (output) &
+                  &                                                            )                                     &
+                  &                                                             +self%distanceMinimum       (output)
+             self%activeCenterPosition(1,i)=radiusComoving  *cos(theta)
+             self%activeCenterPosition(2,i)=radiusComoving  *sin(theta)
+             self%activeCenterPosition(3,i)=distanceComoving
+             ! Decide whether to accept this based on the correlation with the lens.
+             if (self%massHaloLens > 0.0d0) then
+                separationLens    =+sqrt(radiusComoving**2+(distanceComoving-self%distanceComovingLens)**2)
+                if (separationLens < self%radiusVirialComovingLens) then
+                   accept=.false.
+                else
+                   linearGrowthFactor= self%linearGrowth_      %value(self%cosmologyFunctions_%timeAtDistanceComoving(sqrt(sum(self%activeCenterPosition(:,i)**2))))
+                   bias              = self%darkMatterHaloBias_%bias (nodeHost                                                                                     )
+                   probabilityAccept =+(1.0d0+self%correlationFunctionTwoPoint_%correlation(separationLens,self%timeLens)*linearGrowthFactor*bias) &
+                        &             /(1.0d0+self%correlationLensMaximum                                                *linearGrowthFactor*bias)
+                   accept            = self%randomNumberGenerator_%uniformSample() <= probabilityAccept
+                end if
+             else
+                accept               =.true.
+             end if
+          end do
        end do
     end if
     ! Check if we already have results for this specific node stored.
