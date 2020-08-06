@@ -191,6 +191,7 @@ sub Process_FunctionClass {
 	    my %descriptorModules = ( "Input_Parameters" => 1 );
 	    my %addSubParameters;
 	    my $addLabel         = 0;
+	    my $rankMaximum      = 0;
 	    my $descriptorUsed   = 0;
 	    $descriptorCode .= "select type (self)\n";
 	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
@@ -402,11 +403,6 @@ sub Process_FunctionClass {
 						$descriptor = $potentialDescriptor
 						    if ( grep {$_ eq lc($name)} @{$potentialDescriptor->{'variables'}} );
 					    }
-					    if ( grep {$_ =~ m/^dimension\s*\([a-z0-9_:,\s]+\)/} @{$descriptor->{'attributes'}} ) {
-						# A non-scalar parameter - currently not supported.
-						$supported = -8;
-						push(@failureMessage,"non-scalar parameters not supported");
-					    }
 					} else {
 					    $supported = -1;
 					    push(@failureMessage,"could not find a matching internal variable for parameter [".$name."]");
@@ -483,23 +479,72 @@ sub Process_FunctionClass {
 				foreach my $parameter ( @{$descriptorParameters->{'parameters'}} ) {
 				    foreach my $declaration ( @{$potentialNames->{'parameters'}} ) {
 					if ( grep {$_ eq lc($parameter->{'name'})} @{$declaration->{'variables'}} ) {
-					    if      ( $declaration->{'intrinsic'} eq "type" ) {
-						$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',char(self%".$parameter->{'name'}."))\n";
-					    } elsif ( $declaration->{'intrinsic'} eq "logical" ) {
-						$descriptorCode .= "if (self%".$parameter->{'name'}.") then\n";
-						$descriptorCode .= "  call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."','true' )\n";
-						$descriptorCode .= "else\n";
-						$descriptorCode .= "  call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."','false')\n";
-						$descriptorCode .= "end if\n";
+					    my $format;
+					    my $function;
+					    my $isLogical = 0;
+					    if      ( $declaration->{'intrinsic'} eq "type"             ) {
+						# Varying string type.
+						$function  = "char";
+					    } elsif ( $declaration->{'intrinsic'} eq "logical"          ) {
+						# Logical.
+						$addLabel  = 1;
+						$isLogical = 1;
+					    } elsif ( $declaration->{'intrinsic'} eq "double precision" ) {
+						$addLabel  = 1;
+						$format    = "e17.10";
+					    } elsif ( $declaration->{'intrinsic'} eq "integer"          ) {
+						$addLabel  = 1;
+						$format    = "i17";
+					    }
+					    if ( grep {$_ =~ m/^dimension\s*\([a-z0-9_:,\s]+\)/} @{$declaration->{'attributes'}} ) {
+						# Non-scalar parameter - values must be concatenated.
+						my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
+						my $rank                = ($dimensionDeclarator =~ tr/,//)+1;
+						$rankMaximum            = $rank
+						    if ( $rank > $rankMaximum );
+						$descriptorCode .= "parameterValues=''\n";
+						for(my $i=1;$i<=$rank;++$i) {
+						    $descriptorCode .= " parameterValues=parameterValues//'['\n";
+						    $descriptorCode .= "do i".$i."=1,size(self%".$parameter->{'name'}.",dim=".$i.")\n";
+						}
+						if ( $function ) {
+						    $descriptorCode .= " parameterValues=parameterValues//".$function."(self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank)."))\n";
+						} else {
+						    if ( $isLogical ) {
+							$descriptorCode .= "if (self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).") then\n";
+							$descriptorCode .= "  parameterLabel='true'\n";
+							$descriptorCode .= "else\n";
+							$descriptorCode .= "  parameterLabel='false'\n";
+							$descriptorCode .= "end if\n";
+						    } else {
+							$descriptorCode .= &performIO("write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).")\n");
+						    }
+						    $descriptorCode .= " parameterValues=parameterValues//trim(adjustl(parameterLabel))\n";
+						}
+						$descriptorCode .= " if (i".$rank." /= size(self%".$parameter->{'name'}.",dim=".$rank.")) parameterValues=parameterValues//','\n";
+						for(my $i=1;$i<=$rank;++$i) {
+						    $descriptorCode .= "end do\n";
+						    $descriptorCode .= " parameterValues=parameterValues//']'\n";
+						    $descriptorCode .= " if (i".($i-1)." /= size(self%".$parameter->{'name'}.",dim=".($i-1).")) parameterValues=parameterValues//','\n"
+							unless ( $i == 1 );
+						}
+						$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',char(parameterValues))\n";
 					    } else {
-						$addLabel = 1;
-						my $format;
-						$format = "e17.10"
-						    if ( $declaration->{'intrinsic'} eq "double precision" );
-						$format = "i17"
-						    if ( $declaration->{'intrinsic'} eq "integer"          );
-						$descriptorCode .= &performIO("write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."\n");
-						$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',trim(adjustl(parameterLabel)))\n";
+						# Scalar parameter.
+						if ( $function ) {
+						    $descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',".$function."(self%".$parameter->{'name'}."))\n";
+						} else {
+						    if ( $isLogical ) {
+							$descriptorCode .= "if (self%".$parameter->{'name'}.") then\n";
+							$descriptorCode .= "  parameterLabel='true'\n";
+							$descriptorCode .= "else\n";
+							$descriptorCode .= "  parameterLabel='false'\n";
+							$descriptorCode .= "end if\n";
+						    } else {
+							$descriptorCode .= &performIO("write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."\n");
+						    }
+						    $descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',trim(adjustl(parameterLabel)))\n";
+						}
 					    }
 					}
 				    }
@@ -535,6 +580,9 @@ sub Process_FunctionClass {
 		if ( %addSubParameters );
  	    $descriptorCode  = "character(len=18) :: parameterLabel\n".$descriptorCode
 		if ( $addLabel );
+	    if ( $rankMaximum > 0 ) {
+		$descriptorCode  = "integer :: ".join(",",map {"i".$_} 1..$rankMaximum)."\ntype(varying_string) :: parameterValues\n".$descriptorCode
+	    }
 	    $methods{'descriptor'} =
 	    {
 		description => "Return an input parameter list descriptor which could be used to recreate this object.",
@@ -808,7 +856,7 @@ CODE
 		$deepCopyModules{'String_Handling'   } = 1;
 		$deepCopyModules{'Galacticus_Display'} = 1;
             }
-            my $rankMaximum = 0;
+	    $rankMaximum = 0;
             my $deepCopyCode;
             my $deepCopyResetCode;
             my $linkedListVariables;
