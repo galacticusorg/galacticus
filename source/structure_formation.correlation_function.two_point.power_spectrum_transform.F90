@@ -20,8 +20,9 @@
 !% Contains a module which implements a two-point correlation function class in which the correlation function is found by Fourier
 !% transforming a power spectrum.
   
-  use :: Power_Spectra          , only : powerSpectrumClass
-  use :: Power_Spectra_Nonlinear, only : powerSpectrumNonlinearClass
+  use :: Numerical_Interpolation , only : interpolator
+  use :: Power_Spectra           , only : powerSpectrumClass
+  use :: Power_Spectra_Nonlinear , only : powerSpectrumNonlinearClass
 
   !# <correlationFunctionTwoPoint name="correlationFunctionTwoPointPowerSpectrumTransform">
   !#  <description>Provides a two-point correlation function class in which the correlation function is found by Fourier transforming a power spectrum.</description>
@@ -29,8 +30,11 @@
   type, extends(correlationFunctionTwoPointClass) :: correlationFunctionTwoPointPowerSpectrumTransform
      !% A two-point correlation function class in which the correlation function is found by Fourier transforming a power spectrum.
      private
-     class(powerSpectrumClass         ), pointer :: powerSpectrum_          => null()
-     class(powerSpectrumNonlinearClass), pointer :: powerSpectrumNonlinear_ => null()
+     class           (powerSpectrumClass         ), pointer     :: powerSpectrum_          => null()
+     class           (powerSpectrumNonlinearClass), pointer     :: powerSpectrumNonlinear_ => null()
+     type            (interpolator               ), allocatable :: interpolator_
+     double precision                                           :: separationMinimum                , separationMaximum, &
+          &                                                        time
   contains
      final     ::                              powerSpectrumTransformDestructor
      procedure :: correlation               => powerSpectrumTransformCorrelation
@@ -56,7 +60,7 @@ contains
     class(powerSpectrumClass                               ), pointer       :: powerSpectrum_
 
     powerSpectrumNonlinear_ => null()
-    powerSpectrum_ => null()
+    powerSpectrum_          => null()
     if (parameters%isPresent('powerSpectrumNonlinearMethod')) then
        !# <objectBuilder class="powerSpectrumNonlinear" name="powerSpectrumNonlinear_" source="parameters"/>
     end if
@@ -88,6 +92,10 @@ contains
     else if (.not.(present(powerSpectrumNonlinear_).or. present(powerSpectrum_))) then
        call Galacticus_Error_Report('provide either a linear or non-linear power spectrum'          //{introspection:location})
     end if
+    ! Initialize correlation range.
+    self%time             =-huge(0.0d0)
+    self%separationMinimum=+huge(0.0d0)
+    self%separationMaximum=-huge(0.0d0)
     return
   end function powerSpectrumTransformConstructorInternal
 
@@ -105,7 +113,6 @@ contains
     !% Return a two-point correlation function by Fourier transforming a power spectrum.
     use :: FFTLogs                 , only : FFTLogSineTransform, fftLogForward 
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Interpolation , only : interpolator
     use :: Numerical_Ranges        , only : Make_Range         , rangeTypeLogarithmic
     implicit none
     class           (correlationFunctionTwoPointPowerSpectrumTransform), intent(inout)             :: self
@@ -114,38 +121,48 @@ contains
          &                                                                                            correlation               , separations
     integer                                                            , parameter                 :: wavenumbersPerDecade=125
     double precision                                                   , parameter                 :: wavenumbersRange    =1.0d4
-    type            (interpolator                                     )                            :: interpolator_
     double precision                                                                               :: wavenumberMinimum         , wavenumberMaximum
     integer         (c_size_t                                         )                            :: countWavenumbers          , i
 
-    wavenumberMinimum=1.0d0/wavenumbersRange/separation
-    wavenumberMaximum=1.0d0*wavenumbersRange/separation
-    countWavenumbers =int(log10(wavenumberMaximum/wavenumberMinimum)*dble(wavenumbersPerDecade),c_size_t)
-    allocate(wavenumbers  (countWavenumbers))
-    allocate(powerSpectrum(countWavenumbers))
-    allocate(correlation  (countWavenumbers))
-    allocate(separations  (countWavenumbers))
-    wavenumbers=Make_Range(wavenumberMinimum,wavenumberMaximum,int(countWavenumbers),rangeTypeLogarithmic)
-    do i=1,countWavenumbers
-       if (associated(self%powerSpectrum_)) then
-          powerSpectrum(i)=self%powerSpectrum_         %power(wavenumbers(i),time)
-       else
-          powerSpectrum(i)=self%powerSpectrumNonLinear_%value(wavenumbers(i),time)
+    if (time /= self%time .or. separation < self%separationMinimum .or. separation > self%separationMaximum) then
+       if (self%time < 0.0d0) then
+          self%separationMinimum=separation
+          self%separationMaximum=separation
        end if
-    end do
-    call FFTLogSineTransform(                &
-         &                    wavenumbers  , &
-         &                    separations  , &
-         &                   +powerSpectrum  &
-         &                   *wavenumbers    &
-         &                   * 4.0d0*Pi      &
-         &                   /(2.0d0*Pi)**3, &
-         &                    correlation  , &
-         &                    fftLogForward  &
-         &                  )
-    correlation=correlation/separations
-    interpolator_                    =interpolator             (separations,correlation)
-    powerSpectrumTransformCorrelation=interpolator_%interpolate(separation             )
+       wavenumberMinimum=1.0d0/wavenumbersRange/max(separation,self%separationMaximum)
+       wavenumberMaximum=1.0d0*wavenumbersRange/min(separation,self%separationMinimum)
+       countWavenumbers =int(log10(wavenumberMaximum/wavenumberMinimum)*dble(wavenumbersPerDecade),c_size_t)
+       allocate(wavenumbers  (countWavenumbers))
+       allocate(powerSpectrum(countWavenumbers))
+       allocate(correlation  (countWavenumbers))
+       allocate(separations  (countWavenumbers))
+       wavenumbers=Make_Range(wavenumberMinimum,wavenumberMaximum,int(countWavenumbers),rangeTypeLogarithmic)
+       do i=1,countWavenumbers
+          if (associated(self%powerSpectrum_)) then
+             powerSpectrum(i)=self%powerSpectrum_         %power(wavenumbers(i),time)
+          else
+             powerSpectrum(i)=self%powerSpectrumNonLinear_%value(wavenumbers(i),time)
+          end if
+       end do
+       call FFTLogSineTransform(                &
+            &                    wavenumbers  , &
+            &                    separations  , &
+            &                   +powerSpectrum  &
+            &                   *wavenumbers    &
+            &                   * 4.0d0*Pi      &
+            &                   /(2.0d0*Pi)**3, &
+            &                    correlation  , &
+            &                    fftLogForward  &
+            &                  )
+       correlation=correlation/separations
+       if (allocated(self%interpolator_)) deallocate(self%interpolator_)
+       allocate(self%interpolator_)
+       self%interpolator_    =interpolator(separations,correlation)
+       self%time             =time
+       self%separationMinimum=separations(               1)
+       self%separationMaximum=separations(countWavenumbers)
+    end if
+    powerSpectrumTransformCorrelation=self%interpolator_%interpolate(separation)
     return
   end function powerSpectrumTransformCorrelation
   
