@@ -25,10 +25,12 @@
   type, extends(radiativeTransferOutputterClass) :: radiativeTransferOutputterContinuuaRates
      !% Implementation of a radiative transfer outputter class which outputs the Lyman continuum photon emission rate.
      private
-     class           (atomicIonizationPotentialClass), pointer                     :: atomicIonizationPotential_ => null()
-     integer                                         , allocatable, dimension(:  ) :: elementIndices
-     double precision                                , allocatable, dimension(:,:) :: continuuaRatesEscaping              , continuumLimitWavelength
-     integer                                                                       :: countElements                       , atomicNumberMaximum
+     class           (atomicIonizationPotentialClass), pointer                       :: atomicIonizationPotential_   => null()
+     integer                                         , allocatable, dimension(:    ) :: elementIndices
+     double precision                                , allocatable, dimension(:,:  ) :: continuuaRatesEscaping                , continuumLimitWavelength
+     double precision                                , allocatable, dimension(:,:,:) :: continuuaRatesEscapingTagged
+     type            (varying_string                ), allocatable, dimension(:    ) :: sourceTypeName
+     integer                                                                         :: countElements                         , atomicNumberMaximum
    contains
      procedure :: reset               => continuuaRatesReset
      procedure :: sourceProperties    => continuuaRatesSourceProperties
@@ -132,6 +134,7 @@ contains
     class(radiativeTransferOutputterContinuuaRates), intent(inout) :: self
 
     self%continuuaRatesEscaping=0.0d0
+    if (allocated(self%continuuaRatesEscapingTagged)) self%continuuaRatesEscapingTagged=0.0d0
     return
   end subroutine continuuaRatesReset
 
@@ -142,37 +145,53 @@ contains
     use :: Numerical_Integration   , only : integrator
     use :: Numerical_Roman_Numerals, only : Roman_Numerals
     use :: MPI_Utilities           , only : mpiSelf
+    use :: String_Handling         , only : String_Upper_Case_First
     implicit none
-    class           (radiativeTransferOutputterContinuuaRates), intent(inout)                 :: self
-    class           (radiativeTransferSourceClass            ), intent(inout)                 :: radiativeTransferSource_
-    type            (hdf5Object                              ), intent(inout)                 :: outputGroup
-    double precision                                          , allocatable  , dimension(:,:) :: rateEmitted
-    type            (integrator                              )                                :: integrator_
-    integer                                                                                   :: i                       , j
-    character       (len=30                                  )                                :: label
+    class           (radiativeTransferOutputterContinuuaRates), intent(inout)                   :: self
+    class           (radiativeTransferSourceClass            ), intent(inout)                   :: radiativeTransferSource_
+    type            (hdf5Object                              ), intent(inout)                   :: outputGroup
+    double precision                                          , allocatable  , dimension(:,:,:) :: rateEmitted
+    type            (integrator                              )                                  :: integrator_
+    integer                                                                                     :: i                       , j, &
+         &                                                                                         sourceIndex
+    character       (len=30                                  )                                  :: label
 
-    if (.not.mpiSelf%isMaster()) return
-    integrator_=integrator(                             &
-         &                                   integrand, &
-         &                 toleranceRelative=1.0d-2     &
-         &                )
-    allocate(rateEmitted(self%countElements,self%atomicNumberMaximum))
-    do i=1,size(self%elementIndices)
-       do j=1,Atomic_Number(self%elementIndices(i))
-          rateEmitted(i,j)=+integrator_%integrate(                                           &
-               &                                  1.0d-6*self%continuumLimitWavelength(i,j), &
-               &                                         self%continuumLimitWavelength(i,j)  &
-               &                                 )
+   if (.not.allocated(self%continuuaRatesEscapingTagged)) then
+       allocate(self%continuuaRatesEscapingTagged(self%countElements,self%atomicNumberMaximum,radiativeTransferSource_%sourceTypeCount()))
+       allocate(self%sourceTypeName              (                                            radiativeTransferSource_%sourceTypeCount()))
+       self%continuuaRatesEscapingTagged=0.0d0
+       do sourceIndex=1,radiativeTransferSource_%sourceTypeCount()
+          self%sourceTypeName(sourceIndex)=radiativeTransferSource_%sourceTypeName(sourceIndex)
        end do
-    end do
-    !$ call hdf5Access%set  ()
-    do i=1,size(self%elementIndices)
-       do j=1,Atomic_Number(self%elementIndices(i))
-          label='rateContinuumEmitted'//trim(Atomic_Short_Label(self%elementIndices(i)))//char(Roman_Numerals(j))
-          call outputGroup%writeAttribute(rateEmitted(i,j),trim(label))
+    end if
+    if (mpiSelf%isMaster()) then
+       integrator_=integrator(                             &
+            &                                   integrand, &
+            &                 toleranceRelative=1.0d-2     &
+            &                )
+       allocate(rateEmitted(self%countElements,self%atomicNumberMaximum,0:radiativeTransferSource_%sourceTypeCount()))
+       do sourceIndex=0,radiativeTransferSource_%sourceTypeCount()
+          do i=1,size(self%elementIndices)
+             do j=1,Atomic_Number(self%elementIndices(i))
+                rateEmitted(i,j,sourceIndex)=+integrator_%integrate(                                           &
+                     &                                              1.0d-6*self%continuumLimitWavelength(i,j), &
+                     &                                                     self%continuumLimitWavelength(i,j)  &
+                     &                                             )
+             end do
+          end do
        end do
-    end do
-    !$ call hdf5Access%unset()
+       !$ call hdf5Access%set  ()
+       do sourceIndex=0,radiativeTransferSource_%sourceTypeCount()
+          do i=1,size(self%elementIndices)
+             do j=1,Atomic_Number(self%elementIndices(i))
+                label='rateContinuumEmitted'//trim(Atomic_Short_Label(self%elementIndices(i)))//char(Roman_Numerals(j))
+                if (sourceIndex > 0) label=label//String_Upper_Case_First(char(radiativeTransferSource_%sourceTypeName(sourceIndex)))
+                call outputGroup%writeAttribute(rateEmitted(i,j,sourceIndex),trim(label))
+             end do
+          end do
+       end do
+       !$ call hdf5Access%unset()
+    end if
     return
 
   contains
@@ -186,12 +205,12 @@ contains
       double precision, intent(in   ) :: wavelength
       double precision                :: energyPhoton
       
-      energyPhoton=+plancksConstant                               &
-           &       *speedLight                                    &
-           &       *angstromsPerMeter                             &
+      energyPhoton=+plancksConstant                                           &
+           &       *speedLight                                                &
+           &       *angstromsPerMeter                                         &
            &       /wavelength
-      integrand   =+radiativeTransferSource_%spectrum(wavelength) &
-           &       *luminositySolar                               &
+      integrand   =+radiativeTransferSource_%spectrum(wavelength,sourceIndex) &
+           &       *luminositySolar                                           &
            &       /energyPhoton
       return
     end function integrand
@@ -207,20 +226,25 @@ contains
     implicit none
     class           (radiativeTransferOutputterContinuuaRates), intent(inout) :: self
     class           (radiativeTransferPhotonPacketClass      ), intent(inout) :: photonPacket
-    double precision                                                          :: energyPhoton
-    integer                                                                   :: i           , j
+    double precision                                                          :: energyPhoton, rateEscape
+    integer                                                                   :: i           , j         , &
+         &                                                                       sourceIndex
     
     do i=1,size(self%elementIndices)
        do j=1,Atomic_Number(self%elementIndices(i))
           if (photonPacket%wavelength() < self%continuumLimitWavelength(i,j)) then
-             energyPhoton                    =+plancksConstant                               &
-                  &                           *speedLight                                    &
-                  &                           *angstromsPerMeter                             &
-                  &                           /photonPacket     %wavelength            (   )
-             self%continuuaRatesEscaping(i,j)=+self             %continuuaRatesEscaping(i,j) &
-                  &                           +photonPacket     %luminosity            (   ) &
-                  &                           *luminositySolar                               &
-                  &                           /energyPhoton
+             energyPhoton                                      =+plancksConstant                                                 &
+                  &                                             *speedLight                                                      &
+                  &                                             *angstromsPerMeter                                               &
+                  &                                             /photonPacket     %wavelength                  (               )
+             rateEscape                                        =+photonPacket     %luminosity                  (               ) &
+                  &                                             *luminositySolar                                                 &
+                  &                                             /energyPhoton
+             self%continuuaRatesEscaping      (i,j            )=+self             %continuuaRatesEscaping      (i,j            ) &
+                  &                                            +rateEscape
+             sourceIndex                                       =+photonPacket     %sourceType                  (               )
+             self%continuuaRatesEscapingTagged(i,j,sourceIndex)=+self             %continuuaRatesEscapingTagged(i,j,sourceIndex) &
+                  &                                             +rateEscape
           end if
        end do
     end do
@@ -233,27 +257,33 @@ contains
     implicit none
     class(radiativeTransferOutputterContinuuaRates), intent(inout) :: self
 
-    ! Sum the Lyc rate across all MPI processes.
-    self%continuuaRatesEscaping=mpiSelf%sum(self%continuuaRatesEscaping)
+    ! Sum the rates across all MPI processes.
+    self%continuuaRatesEscaping      =mpiSelf%sum(self%continuuaRatesEscaping      )
+    self%continuuaRatesEscapingTagged=mpiSelf%sum(self%continuuaRatesEscapingTagged)
     return
   end subroutine continuuaRatesFinalize
 
   subroutine continuuaRatesOutput(self,outputGroup)
     !% Output the Lyman continuum photon escape rate.
-    use :: Atomic_Data             , only : Atomic_Number , Atomic_Short_Label
+    use :: Atomic_Data             , only : Atomic_Number          , Atomic_Short_Label
     use :: IO_HDF5                 , only : hdf5Access
     use :: Numerical_Roman_Numerals, only : Roman_Numerals
+    use :: String_Handling         , only : String_Upper_Case_First
     implicit none
     class    (radiativeTransferOutputterContinuuaRates), intent(inout) :: self
     type     (hdf5Object                              ), intent(inout) :: outputGroup
-    integer                                                            :: i          , j
+    integer                                                            :: i          , j, &
+         &                                                                sourceIndex
     character(len=30                                  )                :: label
 
     !$ call hdf5Access%set  ()
     do i=1,size(self%elementIndices)
        do j=1,Atomic_Number(self%elementIndices(i))
           label='rateContinuumEscaping'//trim(Atomic_Short_Label(self%elementIndices(i)))//char(Roman_Numerals(j))
-          call outputGroup%writeAttribute(self%continuuaRatesEscaping(i,j),trim(label))
+          call    outputGroup%writeAttribute(self%continuuaRatesEscaping      (i,j            ),trim(label))
+          do sourceIndex=1,size(self%continuuaRatesEscapingTagged,dim=3)
+             call outputGroup%writeAttribute(self%continuuaRatesEscapingTagged(i,j,sourceIndex),trim(label)//String_Upper_Case_First(char(self%sourceTypeName(sourceIndex))))
+          end do
        end do
     end do
     !$ call hdf5Access%unset()
