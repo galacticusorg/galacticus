@@ -262,11 +262,12 @@ contains
        call File_Unlock(fileLock)
     else
        !! Compute the covariance matrix.
-       integratorVertical     = integrator(cosmicVarianceIntegrandVertical,integrationRule=GSL_Integ_Gauss15,toleranceRelative=1.0d-3)
-       integratorRadial       = integrator(cosmicVarianceIntegrandRadial  ,integrationRule=GSL_Integ_Gauss15,toleranceRelative=1.0d-3)
+       integratorVertical     = integrator(cosmicVarianceIntegrandVertical,integrationRule=GSL_Integ_Gauss15,toleranceRelative=1.0d-3,toleranceAbsolute=1.0d-6)
+       integratorRadial       = integrator(cosmicVarianceIntegrandRadial  ,integrationRule=GSL_Integ_Gauss15,toleranceRelative=1.0d-3                         )
        wavenumberMaximumRadial=+wavenumberMaximumFactor &
             &                  /radiusCylinderComoving
-       time                   = self%outputTimes_%time(1_c_size_t)
+       ! Set the time to the present epoch - we will apply our own linear growth to the power spectrum below.
+       time                   = self%cosmologyFunctions_%cosmicTime(1.0d0)
        do output1=1,self%outputTimes_%count()
           heightRegion1Lower                    =self%distanceMinimum(output1)
           heightRegion1Upper                    =self%distanceMaximum(output1)
@@ -275,7 +276,7 @@ contains
              heightRegion2Upper                        =self%distanceMaximum(output2)
              wavenumberMinimumVertical                 =1.0d0/wavenumberMaximumFactor/max((heightRegion1Upper-heightRegion1Lower),(heightRegion2Upper-heightRegion2Lower))
              wavenumberMaximumVertical                 =1.0d0*wavenumberMaximumFactor/min((heightRegion1Upper-heightRegion1Lower),(heightRegion2Upper-heightRegion2Lower))
-             covariance               (output1,output2)=+2.0d0                                                   &
+             covariance               (output1,output2)=+2.0d0                                                                                       &
                   &                                     *integratorVertical%integrate(log(wavenumberMinimumVertical),log(wavenumberMaximumVertical)) &
                   &                                     *self%linearGrowth_%value(self%outputTimes_%time(output1))                                   &
                   &                                     *self%linearGrowth_%value(self%outputTimes_%time(output2))
