@@ -91,15 +91,15 @@ contains
        !#   <type>float</type>
        !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>redshift</name>
-       !#   <source>parameters</source>
-       !#   <defaultValue>0.0d0</defaultValue>
-       !#   <description>The redshift at which to compute the subhalo $V_\mathrm{max}$--$M$ relation.</description>
-       !#   <type>float</type>
-       !#   <cardinality>0..1</cardinality>
-       !# </inputParameter>
     end if
+    !# <inputParameter>
+    !#   <name>redshift</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The redshift at which to compute the subhalo $V_\mathrm{max}$--$M$ relation.</description>
+    !#   <type>float</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialBinsPerDecade</name>
     !#   <source>parameters</source>
@@ -132,7 +132,10 @@ contains
     !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     !# <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
     if (parameters%isPresent('fileName')) then
-       self=outputAnalysisSubhaloVMaxVsMass(outputTimes_,virialDensityContrast_,darkMatterProfileDMO_,cosmologyFunctions_                                                                      ,fileName                           ,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
+       !# <conditionalCall>
+       !#  <call>self=outputAnalysisSubhaloVMaxVsMass(outputTimes_,virialDensityContrast_,darkMatterProfileDMO_,cosmologyFunctions_                                                                      ,fileName                           ,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum{conditions})</call>
+       !#   <argument name="redshift" value="redshift" parameterPresent="parameters"/>
+       !# </conditionalCall>
     else
        self=outputAnalysisSubhaloVMaxVsMass(outputTimes_,virialDensityContrast_,darkMatterProfileDMO_,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),massMinimum,massMaximum,countMasses,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
     end if
@@ -144,7 +147,7 @@ contains
     return
   end function subhaloVMaxVsMassConstructorParameters
   
-  function subhaloVMaxVsMassConstructorFile(outputTimes_,virialDensityContrast_,darkMatterProfileDMO_,cosmologyFunctions_,fileName,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
+  function subhaloVMaxVsMassConstructorFile(outputTimes_,virialDensityContrast_,darkMatterProfileDMO_,cosmologyFunctions_,fileName,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,redshift) result (self)
     !% Constructor for the ``subhaloVMaxVsMass'' output analysis class for internal use.
     use :: IO_HDF5                 , only : hdf5Object                , hdf5Access
     use :: Output_Times            , only : outputTimesClass
@@ -153,28 +156,29 @@ contains
     use :: Virial_Density_Contrast , only : virialDensityContrastClass
     use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
     implicit none
-    type            (outputAnalysisSubhaloVMaxVsMass)                              :: self
-    type            (varying_string                 ), intent(in   )               :: fileName
-    integer                                          , intent(in   )               :: covarianceBinomialBinsPerDecade
-    double precision                                 , intent(in   )               :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum
-    class           (outputTimesClass               ), intent(inout)               :: outputTimes_
-    class           (virialDensityContrastClass     ), intent(in   )               :: virialDensityContrast_
-    class           (cosmologyFunctionsClass        ), intent(inout)               :: cosmologyFunctions_
-    class           (darkMatterProfileDMOClass      ), intent(in   )               :: darkMatterProfileDMO_
-    double precision                                 , allocatable, dimension(:  ) :: massesTarget                     , functionTarget                   , &
+    type            (outputAnalysisSubhaloVMaxVsMass)                                :: self
+    type            (varying_string                 ), intent(in   )                 :: fileName
+    integer                                          , intent(in   )                 :: covarianceBinomialBinsPerDecade
+    double precision                                 , intent(in   )                 :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum
+    class           (outputTimesClass               ), intent(inout)                 :: outputTimes_
+    class           (virialDensityContrastClass     ), intent(in   )                 :: virialDensityContrast_
+    class           (cosmologyFunctionsClass        ), intent(inout)                 :: cosmologyFunctions_
+    class           (darkMatterProfileDMOClass      ), intent(in   )                 :: darkMatterProfileDMO_
+    double precision                                 , intent(in   ), optional       :: redshift
+    double precision                                 , allocatable  , dimension(:  ) :: massesTarget                     , functionTarget                   , &
          &                                                                            functionErrorTarget
-    double precision                                 , allocatable, dimension(:,:) :: functionCovarianceTarget
-    double precision                                                               :: massMinimum                      , massMaximum                      , &
-         &                                                                            time                             , redshift
-    integer         (c_size_t                       )                              :: countMasses                      , i
-    type            (varying_string                 )                              :: labelTarget
-    type            (hdf5Object                     )                              :: file                             , velocityMaximumVsMassGroup
+    double precision                                 , allocatable  , dimension(:,:) :: functionCovarianceTarget
+    double precision                                                                 :: massMinimum                      , massMaximum                      , &
+         &                                                                              time                             , redshift_
+    integer         (c_size_t                         )                              :: countMasses                      , i
+    type            (varying_string                   )                              :: labelTarget
+    type            (hdf5Object                       )                              :: file                             , velocityMaximumVsMassGroup
 
     ! Read properties from the file.
     !$ call hdf5Access%set()
     call file                      %openFile     (char(File_Name_Expand(char(fileName))),readOnly=.true.             )
     call file                      %readAttribute('label'                               ,         labelTarget        )
-    call file                      %readAttribute('redshift'                            ,         redshift           )
+    call file                      %readAttribute('redshift'                            ,         redshift_          )
     velocityMaximumVsMassGroup=file%openGroup('velocityMaximum')
     call velocityMaximumVsMassGroup%readDataset  ('mass'                                ,         massesTarget       )
     call velocityMaximumVsMassGroup%readDataset  ('velocityMaximumMean'                 ,         functionTarget     )
@@ -182,7 +186,10 @@ contains
     call velocityMaximumVsMassGroup%close        (                                                                   )
     call file                      %close        (                                                                   )
     !$ call hdf5Access%unset()
-    time       =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift))
+    ! Override the redshift if one is provided.
+    if (present(redshift)) redshift_=redshift
+    ! Construct the velocity maximum function.
+    time       =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift_))
     countMasses=size(massesTarget)
     massMinimum=massesTarget(          1)
     massMaximum=massesTarget(countMasses)

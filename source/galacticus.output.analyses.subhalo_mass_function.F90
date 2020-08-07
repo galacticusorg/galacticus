@@ -120,15 +120,15 @@ contains
        !#   <type>float</type>
        !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>redshift</name>
-       !#   <source>parameters</source>
-       !#   <defaultValue>0.0d0</defaultValue>
-       !#   <description>The redshift at which to compute the subhalo mass function.</description>
-       !#   <type>float</type>
-       !#   <cardinality>0..1</cardinality>
-       !# </inputParameter>
     end if
+    !# <inputParameter>
+    !#   <name>redshift</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The redshift at which to compute the subhalo mass function.</description>
+    !#   <type>float</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>negativeBinomialScatterFractional</name>
     !#   <source>parameters</source>
@@ -169,7 +169,10 @@ contains
     !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     if (parameters%isPresent('fileName')) then
-       self=outputAnalysisSubhaloMassFunction(outputTimes_,virialDensityContrast_,cosmologyFunctions_                                                                      ,fileName                                         ,negativeBinomialScatterFractional,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
+       !# <conditionalCall>
+       !#  <call>self=outputAnalysisSubhaloMassFunction(outputTimes_,virialDensityContrast_,cosmologyFunctions_                                                                      ,fileName                                         ,negativeBinomialScatterFractional,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum{conditions})</call>
+       !#   <argument name="redshift" value="redshift" parameterPresent="parameters"/>
+       !# </conditionalCall>
     else
        self=outputAnalysisSubhaloMassFunction(outputTimes_,virialDensityContrast_,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),massRatioMinimum,massRatioMaximum,countMassRatios,negativeBinomialScatterFractional,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
     end if
@@ -180,7 +183,7 @@ contains
     return
   end function subhaloMassFunctionConstructorParameters
   
-  function subhaloMassFunctionConstructorFile(outputTimes_,virialDensityContrast_,cosmologyFunctions_,fileName,negativeBinomialScatterFractional,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
+  function subhaloMassFunctionConstructorFile(outputTimes_,virialDensityContrast_,cosmologyFunctions_,fileName,negativeBinomialScatterFractional,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,redshift) result (self)
     !% Constructor for the ``subhaloMassFunction'' output analysis class for internal use.
     use :: IO_HDF5                , only : hdf5Object                , hdf5Access
     use :: Output_Times           , only : outputTimesClass
@@ -188,28 +191,29 @@ contains
     use :: File_Utilities         , only : File_Name_Expand
     use :: Virial_Density_Contrast, only : virialDensityContrastClass
     implicit none
-    type            (outputAnalysisSubhaloMassFunction)                              :: self
-    type            (varying_string                   ), intent(in   )               :: fileName
-    integer                                            , intent(in   )               :: covarianceBinomialBinsPerDecade
-    double precision                                   , intent(in   )               :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, &
-         &                                                                              negativeBinomialScatterFractional
-    class           (outputTimesClass                 ), intent(inout)               :: outputTimes_
-    class           (virialDensityContrastClass       ), intent(in   )               :: virialDensityContrast_
-    class           (cosmologyFunctionsClass          ), intent(inout)               :: cosmologyFunctions_
-    double precision                                   , allocatable, dimension(:  ) :: massRatiosTarget                 , massFunctionTarget               , &
-         &                                                                              massFunctionErrorTarget
-    double precision                                   , allocatable, dimension(:,:) :: massFunctionCovarianceTarget
-    double precision                                                                 :: massRatioMinimum                 , massRatioMaximum                 , &
-         &                                                                              time                             , redshift
-    integer         (c_size_t                         )                              :: countMassRatios                  , i
-    type            (varying_string                   )                              :: labelTarget
-    type            (hdf5Object                       )                              :: file                             , massFunctionGroup
+    type            (outputAnalysisSubhaloMassFunction)                                :: self
+    type            (varying_string                   ), intent(in   )                 :: fileName
+    integer                                            , intent(in   )                 :: covarianceBinomialBinsPerDecade
+    double precision                                   , intent(in   )                 :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, &
+         &                                                                                negativeBinomialScatterFractional
+    class           (outputTimesClass                 ), intent(inout)                 :: outputTimes_
+    class           (virialDensityContrastClass       ), intent(in   )                 :: virialDensityContrast_
+    class           (cosmologyFunctionsClass          ), intent(inout)                 :: cosmologyFunctions_
+    double precision                                   , intent(in   ), optional       :: redshift
+    double precision                                   , allocatable  , dimension(:  ) :: massRatiosTarget                 , massFunctionTarget               , &
+         &                                                                                massFunctionErrorTarget
+    double precision                                   , allocatable  , dimension(:,:) :: massFunctionCovarianceTarget
+    double precision                                                                   :: massRatioMinimum                 , massRatioMaximum                 , &
+         &                                                                                time                             , redshift_
+    integer         (c_size_t                         )                                :: countMassRatios                  , i
+    type            (varying_string                   )                                :: labelTarget
+    type            (hdf5Object                       )                                :: file                             , massFunctionGroup
 
     ! Read properties from the file.
     !$ call hdf5Access%set()
     call file             %openFile     (char(File_Name_Expand(char(fileName))),readOnly=.true.                 )
     call file             %readAttribute('label'                               ,         labelTarget            )
-    call file             %readAttribute('redshift'                            ,         redshift               )
+    call file             %readAttribute('redshift'                            ,         redshift_              )
     massFunctionGroup=file%openGroup('massFunction')
     call massFunctionGroup%readDataset  ('massRatio'                           ,         massRatiosTarget       )
     call massFunctionGroup%readDataset  ('massFunction'                        ,         massFunctionTarget     )
@@ -217,7 +221,10 @@ contains
     call massFunctionGroup%close        (                                                                       )
     call file             %close        (                                                                       )
     !$ call hdf5Access%unset()
-    time            =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift))
+    ! Override the redshift if one is provided.
+    if (present(redshift)) redshift_=redshift
+    ! Construct the mass function.
+    time            =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift_))
     countMassRatios =size(massRatiosTarget)
     massRatioMinimum=massRatiosTarget(              1)
     massRatioMaximum=massRatiosTarget(countMassRatios)

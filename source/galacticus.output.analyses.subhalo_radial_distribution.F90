@@ -121,15 +121,7 @@ contains
        !#   <type>float</type>
        !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>redshift</name>
-       !#   <source>parameters</source>
-       !#   <defaultValue>0.0d0</defaultValue>
-       !#   <description>The redshift at which to compute the subhalo radial distribution.</description>
-       !#   <type>float</type>
-       !#   <cardinality>0..1</cardinality>
-       !# </inputParameter>
-       !# <inputParameter>
+      !# <inputParameter>
        !#   <name>massRatioThreshold</name>
        !#   <source>parameters</source>
        !#   <defaultValue>0.0d0</defaultValue>
@@ -138,6 +130,14 @@ contains
        !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
     end if
+    !# <inputParameter>
+    !#   <name>redshift</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The redshift at which to compute the subhalo radial distribution.</description>
+    !#   <type>float</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>negativeBinomialScatterFractional</name>
     !#   <source>parameters</source>
@@ -178,7 +178,10 @@ contains
     !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     if (parameters%isPresent('fileName')) then
-       self=outputAnalysisSubhaloRadialDistribution(outputTimes_,virialDensityContrast_,cosmologyFunctions_                                                                      ,fileName                                                                           ,negativeBinomialScatterFractional,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
+       !# <conditionalCall>
+       !#  <call>self=outputAnalysisSubhaloRadialDistribution(outputTimes_,virialDensityContrast_,cosmologyFunctions_                                                                      ,fileName                                                                           ,negativeBinomialScatterFractional,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum{conditions})</call>
+       !#   <argument name="redshift" value="redshift" parameterPresent="parameters"/>
+       !# </conditionalCall>
     else
        self=outputAnalysisSubhaloRadialDistribution(outputTimes_,virialDensityContrast_,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massRatioThreshold,negativeBinomialScatterFractional,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
     end if
@@ -189,7 +192,7 @@ contains
     return
   end function subhaloRadialDistributionConstructorParameters
   
-  function subhaloRadialDistributionConstructorFile(outputTimes_,virialDensityContrast_,cosmologyFunctions_,fileName,negativeBinomialScatterFractional,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
+  function subhaloRadialDistributionConstructorFile(outputTimes_,virialDensityContrast_,cosmologyFunctions_,fileName,negativeBinomialScatterFractional,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,redshift) result (self)
     !% Constructor for the ``subhaloRadialDistribution'' output analysis class for internal use.
     use :: IO_HDF5                , only : hdf5Object                , hdf5Access
     use :: Output_Times           , only : outputTimesClass
@@ -197,29 +200,30 @@ contains
     use :: File_Utilities         , only : File_Name_Expand
     use :: Virial_Density_Contrast, only : virialDensityContrastClass
     implicit none
-    type            (outputAnalysisSubhaloRadialDistribution)                              :: self
-    type            (varying_string                         ), intent(in   )               :: fileName
-    integer                                                  , intent(in   )               :: covarianceBinomialBinsPerDecade
-    double precision                                         , intent(in   )               :: covarianceBinomialMassHaloMinimum , covarianceBinomialMassHaloMaximum, &
-         &                                                                                    negativeBinomialScatterFractional
-    class           (outputTimesClass                       ), intent(inout)               :: outputTimes_
-    class           (virialDensityContrastClass             ), intent(in   )               :: virialDensityContrast_
-    class           (cosmologyFunctionsClass                ), intent(inout)               :: cosmologyFunctions_
-    double precision                                         , allocatable, dimension(:  ) :: radiiFractionalTarget             , radialDistributionTarget         , &
+    type            (outputAnalysisSubhaloRadialDistribution)                                :: self
+    type            (varying_string                         ), intent(in   )                 :: fileName
+    integer                                                  , intent(in   )                 :: covarianceBinomialBinsPerDecade
+    double precision                                         , intent(in   )                 :: covarianceBinomialMassHaloMinimum , covarianceBinomialMassHaloMaximum, &
+         &                                                                                      negativeBinomialScatterFractional
+    class           (outputTimesClass                       ), intent(inout)                 :: outputTimes_
+    class           (virialDensityContrastClass             ), intent(in   )                 :: virialDensityContrast_
+    class           (cosmologyFunctionsClass                ), intent(inout)                 :: cosmologyFunctions_
+    double precision                                         , intent(in   ), optional       :: redshift
+    double precision                                         , allocatable  , dimension(:  ) :: radiiFractionalTarget             , radialDistributionTarget         , &
          &                                                                                    radialDistributionErrorTarget
-    double precision                                         , allocatable, dimension(:,:) :: radialDistributionCovarianceTarget
-    double precision                                                                       :: radiusFractionMinimum             , radiusFractionMaximum            , &
-         &                                                                                    time                              , redshift                         , &
-         &                                                                                    massRatioThreshold
-    integer         (c_size_t                               )                              :: countRadiiFractional              , i
-    type            (varying_string                         )                              :: labelTarget
-    type            (hdf5Object                             )                              :: file                              , radialDistributionGroup
+    double precision                                         , allocatable  , dimension(:,:) :: radialDistributionCovarianceTarget
+    double precision                                                                         :: radiusFractionMinimum             , radiusFractionMaximum            , &
+         &                                                                                      time                              , redshift_                        , &
+         &                                                                                      massRatioThreshold
+    integer         (c_size_t                                 )                              :: countRadiiFractional              , i
+    type            (varying_string                           )                              :: labelTarget
+    type            (hdf5Object                               )                              :: file                              , radialDistributionGroup
 
     ! Read properties from the file.
     !$ call hdf5Access%set()
     call file                   %openFile     (char(File_Name_Expand(char(fileName))),readOnly=.true.                       )
     call file                   %readAttribute('label'                               ,         labelTarget                  )
-    call file                   %readAttribute('redshift'                            ,         redshift                     )
+    call file                   %readAttribute('redshift'                            ,         redshift_                    )
     radialDistributionGroup=file%openGroup('radialDistribution')
     call radialDistributionGroup%readDataset  ('radiusFractional'                    ,         radiiFractionalTarget        )
     call radialDistributionGroup%readDataset  ('radialDistribution'                  ,         radialDistributionTarget     )
@@ -228,7 +232,10 @@ contains
     call radialDistributionGroup%close        (                                                                             )
     call file                   %close        (                                                                             )
     !$ call hdf5Access%unset()
-    time                 =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift))
+    ! Override the redshift if one is provided.
+    if (present(redshift)) redshift_=redshift
+    ! Construct the radial distribution.
+     time                 =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift_))
     countRadiiFractional =size(radiiFractionalTarget)
     radiusFractionMinimum=radiiFractionalTarget(                   1)
     radiusFractionMaximum=radiiFractionalTarget(countRadiiFractional)
