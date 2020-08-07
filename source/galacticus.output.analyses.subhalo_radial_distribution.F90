@@ -501,17 +501,22 @@ contains
     ! Normalize the mass function.
     weight           = sum(radialDistributionHosts)
     weightVariance   = sum(covarianceHosts  )
-    self%radialDistribution=+self%radialDistribution/weight
-    self%covariance  =+self%covariance  /weight**2
-    do    i=1_c_size_t,size(self%radialDistribution)
-       do j=1_c_size_t,size(self%radialDistribution)
-          self%covariance(i,j)=+self%covariance        (i,j)    &
-               &               +self%radialDistribution(i  )    &
-               &               *self%radialDistribution(  j)    &
-               &               *weightVariance                  &
-               &               /weight                      **2
+    if (weight > 0.0d0) then
+       self%radialDistribution=+self%radialDistribution/weight
+       self%covariance  =+self%covariance  /weight**2
+       do    i=1_c_size_t,size(self%radialDistribution)
+          do j=1_c_size_t,size(self%radialDistribution)
+             self%covariance(i,j)=+self%covariance        (i,j)    &
+                  &               +self%radialDistribution(i  )    &
+                  &               *self%radialDistribution(  j)    &
+                  &               *weightVariance                  &
+                  &               /weight                      **2
+          end do
        end do
-    end do
+    else
+       self%radialDistribution=0.0d0
+       self%covariance        =0.0d0
+    end if
     return
   end subroutine subhaloRadialDistributionFinalizeAnalysis
 

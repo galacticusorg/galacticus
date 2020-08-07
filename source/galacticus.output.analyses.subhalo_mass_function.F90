@@ -489,17 +489,22 @@ contains
     ! Normalize the mass function.
     weight           = sum(massFunctionHosts)
     weightVariance   = sum(covarianceHosts  )
-    self%massFunction=+self%massFunction/weight
-    self%covariance  =+self%covariance  /weight**2
-    do    i=1_c_size_t,size(self%massFunction)
-       do j=1_c_size_t,size(self%massFunction)
-          self%covariance(i,j)=+self%covariance  (i,j)    &
-               &               +self%massFunction(i  )    &
-               &               *self%massFunction(  j)    &
-               &               *weightVariance            &
-               &               /weight                **2
+    if (weight > 0.0d0) then
+       self%massFunction=+self%massFunction/weight
+       self%covariance  =+self%covariance  /weight**2
+       do    i=1_c_size_t,size(self%massFunction)
+          do j=1_c_size_t,size(self%massFunction)
+             self%covariance(i,j)=+self%covariance  (i,j)    &
+                  &               +self%massFunction(i  )    &
+                  &               *self%massFunction(  j)    &
+                  &               *weightVariance            &
+                  &               /weight                **2
+          end do
        end do
-    end do
+    else
+       self%massFunction=0.0d0
+       self%covariance  =0.0d0
+    end if
     return
   end subroutine subhaloMassFunctionFinalizeAnalysis
 
