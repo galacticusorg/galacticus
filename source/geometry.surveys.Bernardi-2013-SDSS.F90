@@ -119,13 +119,13 @@ contains
 
   function bernardi2013SDSSMangleDirectory(self)
     !% Return the path to the directory containing \gls{mangle} files.
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeExec
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
     implicit none
     class(surveyGeometryBernardi2013SDSS), intent(inout) :: self
     type (varying_string                )                :: bernardi2013SDSSMangleDirectory
     !$GLC attributes unused :: self
 
-    bernardi2013SDSSMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/"
+    bernardi2013SDSSMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/SDSS/"
     return
   end function bernardi2013SDSSMangleDirectory
 

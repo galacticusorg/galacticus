@@ -223,13 +223,13 @@ contains
 
   function tomczak2014ZFOURGEMangleDirectory(self)
     !% Return the path to the directory containing \gls{mangle} files.
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeExec
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
     implicit none
     class(surveyGeometryTomczak2014ZFOURGE), intent(inout) :: self
     type (varying_string                  )                :: tomczak2014ZFOURGEMangleDirectory
     !$GLC attributes unused :: self
 
-    tomczak2014ZFOURGEMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_ZFOURGE_z0.2_2.5/"
+    tomczak2014ZFOURGEMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/ZFOURGE/"
     return
   end function tomczak2014ZFOURGEMangleDirectory
 

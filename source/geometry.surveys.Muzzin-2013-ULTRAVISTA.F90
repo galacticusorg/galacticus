@@ -219,13 +219,13 @@ contains
 
   function muzzin2013ULTRAVISTAMangleDirectory(self)
     !% Return the path to the directory containing \gls{mangle} files.
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeExec
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
     implicit none
     class(surveyGeometryMuzzin2013ULTRAVISTA), intent(inout) :: self
     type (varying_string                    )                :: muzzin2013ULTRAVISTAMangleDirectory
     !$GLC attributes unused :: self
 
-    muzzin2013ULTRAVISTAMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/"
+    muzzin2013ULTRAVISTAMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/ULTRAVISTA/"
     return
   end function muzzin2013ULTRAVISTAMangleDirectory
 

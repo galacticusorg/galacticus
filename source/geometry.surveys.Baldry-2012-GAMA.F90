@@ -139,13 +139,13 @@ contains
 
   function baldry2012GAMAMangleDirectory(self)
     !% Return the path to the directory containing \gls{mangle} files.
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeExec
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
     implicit none
     class(surveyGeometryBaldry2012GAMA), intent(inout) :: self
     type (varying_string              )                :: baldry2012GAMAMangleDirectory
     !$GLC attributes unused :: self
 
-    baldry2012GAMAMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunction_GAMA_z0.03/"
+    baldry2012GAMAMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/GAMA/"
     return
   end function baldry2012GAMAMangleDirectory
 

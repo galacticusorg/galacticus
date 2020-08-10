@@ -244,13 +244,13 @@ contains
 
   function moustakas2013PRIMUSMangleDirectory(self)
     !% Return the path to the directory containing \gls{mangle} files.
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeExec
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
     implicit none
     class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
     type (varying_string                   )                :: moustakas2013PRIMUSMangleDirectory
     !$GLC attributes unused :: self
 
-    moustakas2013PRIMUSMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/"
+    moustakas2013PRIMUSMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/PRIMUS/"
     return
   end function moustakas2013PRIMUSMangleDirectory
 

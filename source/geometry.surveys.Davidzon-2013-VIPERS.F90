@@ -202,13 +202,13 @@ contains
 
   function davidzon2013VIPERSMangleDirectory(self)
     !% Return the path to the directory containing \gls{mangle} files.
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeExec
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
     implicit none
     class(surveyGeometryDavidzon2013VIPERS), intent(inout) :: self
     type (varying_string                  )                :: davidzon2013VIPERSMangleDirectory
     !$GLC attributes unused :: self
 
-    davidzon2013VIPERSMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/"
+    davidzon2013VIPERSMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/VIPERS/"
     return
   end function davidzon2013VIPERSMangleDirectory
 
