@@ -2017,8 +2017,11 @@ contains
     self%xv           =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)
     self%       deltaX=self%xv(2)-self%xv(1)
     self%inverseDeltaX=1.0d0/self%deltaX
-    self%tablePrevious=-1
-    self%iPrevious    =-1
+    self%tablePrevious =-1
+    self%dTablePrevious=-1
+    self%iPrevious     =-1
+    self%xPrevious     =-1.0d0
+    self%dxPrevious    =-1.0d0
     ! Set extrapolation type.
     if (present(extrapolationType)) then
        if (any(extrapolationType == extrapolationTypeZero)) call Galacticus_Error_Report('zero extrapolation is not supported'//{introspection:location})
