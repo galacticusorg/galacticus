@@ -261,32 +261,38 @@ contains
          &  .or.                               &
          &   basic%time() /= self%timePrevious &
          & ) then
-        radiusHaloLagrangian         =+cubeRoot(                                                                        &
-            &                                  +3.0d0                                                                   &
-            &                                  *basic%mass()                                                            &
-            &                                  /4.0d0                                                                   &
-            &                                  /Pi                                                                      &
-            &                                  /self%cosmologyParameters_%densityCritical()                             &
-            &                                  /self%cosmologyParameters_%OmegaMatter    ()                             &
+        radiusHaloLagrangian         =+cubeRoot(                                                                         &
+            &                                  +3.0d0                                                                    &
+            &                                  *basic%mass()                                                             &
+            &                                  /4.0d0                                                                    &
+            &                                  /Pi                                                                       &
+            &                                  /self%cosmologyParameters_%densityCritical()                              &
+            &                                  /self%cosmologyParameters_%OmegaMatter    ()                              &
             &                                 )
-       peakHeight                    =+self%criticalOverdensity_     %value       (time=basic%time(),mass=basic%mass()) &
+       peakHeight                    =+self%criticalOverdensity_     %value       (time=basic%time(),mass=basic%mass())  &
             &                         /self%cosmologicalMassVariance_%rootVariance(time=basic%time(),mass=basic%mass())
-       wavenumber                    =+self%kappa                                                                       &
-            &                         *2.0d0                                                                            &
-            &                         *Pi                                                                               &
+       wavenumber                    =+self%kappa                                                                        &
+            &                         *2.0d0                                                                             &
+            &                         *Pi                                                                                &
             &                         /radiusHaloLagrangian
        powerSpectrumSlope            =+self%powerSpectrum_%powerLogarithmicDerivative(wavenumber,basic%time())
-       concentrationMinimum          =+self%phi0                                                                        &
-            &                         +self%phi1                                                                        &
-            &                         *powerSpectrumSlope
-       peakHeightMinimum             =+self%eta0                                                                        &
-            &                         +self%eta1                                                                        &
-            &                         *powerSpectrumSlope
-       self%concentrationMeanPrevious=+0.5d0                                                                            &
-            &                         *concentrationMinimum                                                             &
-            &                         *(                                                                                &
-            &                           +(peakHeight/peakHeightMinimum)**(-self%alpha)                                  &
-            &                           +(peakHeight/peakHeightMinimum)**(+self%beta )                                  &
+       concentrationMinimum          =+max(                                                                              &
+            &                              +self%phi0                                                                    &
+            &                              +self%phi1                                                                    &
+            &                              *powerSpectrumSlope                                                         , &
+            &                              +2.0d0                                                                        &
+            &                             )
+       peakHeightMinimum             =+max(                                                                              &
+            &                              +self%eta0                                                                    &
+            &                              +self%eta1                                                                    &
+            &                              *powerSpectrumSlope                                                         , &
+            &                              +1.0d0                                                                        &
+            &                             )
+       self%concentrationMeanPrevious=+0.5d0                                                                             &
+            &                         *concentrationMinimum                                                              &
+            &                         *(                                                                                 &
+            &                           +(peakHeight/peakHeightMinimum)**(-self%alpha)                                   &
+            &                           +(peakHeight/peakHeightMinimum)**(+self%beta )                                   &
             &                          )
        self%massPrevious             = basic%mass()
        self%timePrevious             = basic%time()
