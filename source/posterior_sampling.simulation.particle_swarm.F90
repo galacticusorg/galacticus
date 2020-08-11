@@ -45,7 +45,8 @@
      double precision                                                               :: accelerationCoefficientPersonal            , accelerationCoefficientGlobal         , &
           &                                                                            inertiaWeight                              , velocityCoefficient                   , &
           &                                                                            velocityCoefficientInitial
-     logical                                                                        :: isInteractive                              , resume                    
+     logical                                                                        :: isInteractive                              , resume                                , &
+          &                                                                            appendLogs
      type            (varying_string                       )                        :: logFileRoot                                , interactionRoot                       , &
           &                                                                            logFilePreviousRoot
    contains
@@ -100,7 +101,7 @@ contains
     double precision                                                                              :: inertiaWeight                    , accelerationCoefficientPersonal, &
          &                                                                                           accelerationCoefficientGlobal    , velocityCoefficient            , &
          &                                                                                           velocityCoefficientInitial
-    logical                                                                                       :: resume
+    logical                                                                                       :: resume                           , appendLogs
 
     !# <inputParameter>
     !#   <name>stepsMaximum</name>
@@ -155,6 +156,14 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, resume from a previous set of log files.</description>
     !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>appendLogs</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>If true, do not overwrite existing log files, but instead append to them.</description>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.false.</defaultValue>
     !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
@@ -241,7 +250,7 @@ contains
        end select
        !# <objectDestructor name="modelParameter_"/>
     end do
-    self=posteriorSampleSimulationParticleSwarm(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,randomNumberGenerator_,stepsMaximum,char(logFileRoot),logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,velocityCoefficientInitial,char(interactionRoot),resume,char(logFilePreviousRoot))
+    self=posteriorSampleSimulationParticleSwarm(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,randomNumberGenerator_,stepsMaximum,char(logFileRoot),logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,velocityCoefficientInitial,char(interactionRoot),resume,appendLogs,char(logFilePreviousRoot))
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="posteriorSampleLikelihood_"       />
     !# <objectDestructor name="posteriorSampleConvergence_"      />
@@ -260,7 +269,7 @@ contains
     return
   end function particleSwarmConstructorParameters
 
-  function particleSwarmConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,randomNumberGenerator_,stepsMaximum,logFileRoot,logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,velocityCoefficientInitial,interactionRoot,resume,logFilePreviousRoot) result(self)
+  function particleSwarmConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,randomNumberGenerator_,stepsMaximum,logFileRoot,logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,velocityCoefficientInitial,interactionRoot,resume,appendLogs,logFilePreviousRoot) result(self)
     !% Internal constructor for the ``particleSwarm'' simulation class.
     implicit none
     type            (posteriorSampleSimulationParticleSwarm)                                      :: self
@@ -278,9 +287,9 @@ contains
     double precision                                        , intent(in   )                       :: inertiaWeight                    , accelerationCoefficientPersonal, &
          &                                                                                           accelerationCoefficientGlobal    , velocityCoefficient            , &
          &                                                                                           velocityCoefficientInitial
-    logical                                                 , intent(in   )                       :: resume
+    logical                                                 , intent(in   )                       :: resume                           , appendLogs
     integer                                                                                       :: i
-    !# <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *randomNumberGenerator_, stepsMaximum, logFileRoot, logFlushCount, reportCount, inertiaWeight, accelerationCoefficientPersonal, accelerationCoefficientGlobal, velocityCoefficient, velocityCoefficientInitial, interactionRoot, resume, logFilePreviousRoot"/>
+    !# <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *randomNumberGenerator_, stepsMaximum, logFileRoot, logFlushCount, reportCount, inertiaWeight, accelerationCoefficientPersonal, accelerationCoefficientGlobal, velocityCoefficient, velocityCoefficientInitial, interactionRoot, resume, appendLogs, logFilePreviousRoot"/>
 
     allocate(self%modelParametersActive_  (size(modelParametersActive_  )))
     allocate(self%modelParametersInactive_(size(modelParametersInactive_)))
@@ -441,7 +450,11 @@ contains
     end if
     ! Begin the simulation.
     logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.log'
-    open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
+    if (self%appendLogs) then
+       open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted',position='append')
+    else
+       open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
+    end if
     isConverged=.false.
     do while (                                                                                                   &
          &          self%posteriorSampleState_            %count(                          ) < self%stepsMaximum &
