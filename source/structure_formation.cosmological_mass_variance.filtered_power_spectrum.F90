@@ -207,7 +207,7 @@ contains
     !#   <name>monotonicInterpolation</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true use a monotonic cubic spline interpolator to interpolate in the $\sigma(M)$ table. Otherwise use a standard cubic spline interpoltor. Use of the monotionic interpolator can be helpful is $\sigma(M)$ must be strictly monotonic but because a very weak function of $M$ at low masses.</description>
+    !#   <description>If true use a monotonic cubic spline interpolator to interpolate in the $\sigma(M)$ table. Otherwise use a standard cubic spline interpoltor. Use of the monotionic interpolator can be helpful is $\sigma(M)$ must be strictly monotonic but becomes a very weak function of $M$ at low masses.</description>
     !#   <type>boolean</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
