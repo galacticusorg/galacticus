@@ -369,8 +369,12 @@ sub parameterVectorApply {
 	    my $definition = &parameterValueGet($parameterDerived,$valueIndexDerived);
 	    # Look for names of dependencies.
 	    if ( $definition =~ m/\%\[([^\%]+)\]/ ) {
-		# Extract the value of the dependent parameter.
+		# Get the dependent parameter name.
 		my $parameterDependentName = $1;
+		# First replace any constants (which are known to the libmatheval library, see: https://www.gnu.org/software/libmatheval/manual/libmatheval.html#evaluator_005fcreate).
+		my $ln10    = log(10.0);
+		$definition =~ s/(^|\W)ln10(\W|$)/$1$ln10$2/g;
+                # Extract the value of the dependent parameter.  
 		(my $parameterDependent, my $valueIndexDependent) = &parameterFind($parameters,$parameterDependentName);
 		my $valueDependent = &parameterValueGet($parameterDependent,$valueIndexDependent);
 		# Check if the dependent parameter is resolved.
