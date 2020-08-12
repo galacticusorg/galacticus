@@ -1,4 +1,4 @@
-\section{Merger Tree Builder}\label{sec:MergerTreeBuilder}\index{merger trees!building}
+\section{Merger Tree Builder}\label{sec:MergerTreeBuilder}\hyperdef{sec}{MergerTreeBuilder}{}\index{merger trees!building}
 
 \glc\ contains software which builds merger tree files in the format described \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here} from merger tree descriptions in other formats, such as ASCII output from an SQL database. The merger tree building engine can be found in \hyperlink{objects.merger_tree_data.F90}{{\normalfont \ttfamily source/objects.merger\_tree\_data.F90}} and is utilized by the {\normalfont \ttfamily taskMergerTreeFileBuilder} task (see \S\ref{sec:methodsTask}). Examples of how this engine is used can be found in the {\normalfont \ttfamily scripts/aux/Millennium\_Trees\_Grab.pl} script to convert data extracted from the \href{http://www.g-vo.org/MyMillennium3/}{Millennium Simulation database} into a format that \glc\ can read.
 

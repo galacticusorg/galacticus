@@ -54,7 +54,7 @@ where $r_\mathrm{s}$ is the accretion shock radius, $\Lambda$ is the post-shock 
 \end{equation}
 where $M$ is the total halo mass, $\gamma(=5/3)$ is the adiabatic index of the gas, and $\alpha$ is the exponent of the initial power-law density perturbation ($\alpha=0$ is assumed). The post-shock density and temperature are found assuming the strong-shock limit.
 
-\subsection{Naoz \& Barkana (2007)}\label{phys:accretionHalo:accretionHaloNaozBarkana2007}
+\subsection{Naoz \& Barkana (2007)}\label{phys:accretionHalo:accretionHaloNaozBarkana2007}\hyperdef{phys}{accretionHalo:accretionHaloNaozBarkana2007}{}
 
 Selected using {\normalfont \ttfamily accretionHaloMethod}$=${\normalfont \ttfamily naozBarkana2007} this method uses the filtering mass prescription of \cite{naoz_formation_2007} to compute the accreted rate of baryonic material. Specifically, \cite{naoz_formation_2007} assume that the gas mass content of halos is given by $M_\mathrm{g}(M_\mathrm{200b},M_\mathrm{F}) = (\Omega_\mathrm{b} / \Omega_\mathrm{M}) f(M_\mathrm{200b}/M_\mathrm{F}) M_\mathrm{200b}$ where $M_\mathrm{F}$ is the filtering mass, as first introduced by \cite{gnedin_effect_2000} but defined following \cite{naoz_formation_2007}, $M_\mathrm{200b}$ is the halo mass defined by a density threshold of 200 times the mean background, and
 \begin{equation}
@@ -786,7 +786,7 @@ where $M(r)$ is the mass enclosed within a radius $r$, and $Q$ represents a norm
 
 Not all methods are implemented for this profile. If {\normalfont \ttfamily [darkMatterProfileTidallyHeatedUnimplementedIsFatal]}$=${\normalfont \ttfamily true} then attempts to call these methods in heated profiles aborts, otherwise, a warning is issued and the result for the unheated profile is used instead.
 
-\subsection{Dark Matter Halo Profile Concentration}\label{sec:DarkMatterProfileConcentration}\index{dark matter profile!concentration}
+\subsection{Dark Matter Halo Profile Concentration}\label{sec:DarkMatterProfileConcentration}\hyperdef{sec}{DarkMatterProfileConcentration}{}\index{dark matter profile!concentration}
 
 The method uses to compute the concentrations of dark matter profiles is selected via the {\normalfont \ttfamily darkMatterProfileConcentrationMethod} parameter.
 
@@ -977,7 +977,7 @@ Selected with {\normalfont \ttfamily haloMassFunctionSamplingMethod}$=${\normalf
 \end{equation}
 is used to model the error, $\sigma(M)$, on the observed stellar mass function as a function of stellar mass, $M$, where $\phi_0=${\normalfont \ttfamily [haloMassFunctionSamplingStellarMassFunctionErrorPhi0]},$M_*=${\normalfont \ttfamily [haloMassFunctionSamplingStellarMassFunctionErrorMstar]},$\alpha=${\normalfont \ttfamily [haloMassFunctionSamplingStellarMassFunctionErrorAlpha]},$\beta=${\normalfont \ttfamily [haloMassFunctionSamplingStellarMassFunctionErrorBeta]}, and $\sigma_0=${\normalfont \ttfamily [haloMassFunctionSamplingStellarMassFunctionErrorConstant]}.
 
-\subsection{Spin Parameter Distribution}\label{sec:SpinParameterDistribution}\index{dark matter halo!spin!distribution}\index{spin!dark matter halo}
+\subsection{Spin Parameter Distribution}\label{sec:SpinParameterDistribution}\hyperdef{sec}{SpinParameterDistribution}{}\index{dark matter halo!spin!distribution}\index{spin!dark matter halo}
 
 The method used to compute the distribution of dark matter halo spin parameters is selected via the {\normalfont \ttfamily haloSpinDistributionMethod} parameter.
 
@@ -2436,13 +2436,13 @@ Selected with {\normalfont \ttfamily stellarPopulationSpectraMethod}$=${\normalf
 
 Selected with {\normalfont \ttfamily stellarPopulationSpectraMethod}$=${\normalfont \ttfamily file} this method reads stellar population spectra from an HDF5 file, with format described in \S\ref{sec:methodsStellarPopulationSpectra}.
 
-\section{Stellar Population Spectra Postprocessing}\label{sec:StellarSpectraPostprocessing}
+\section{Stellar Population Spectra Postprocessing}\label{sec:StellarSpectraPostprocessing}\hyperdef{sec}{stellarSpectraPostprocessing}{}
 
 Stellar population spectra are postprocessed (to handle, for example, absorption by the \gls{igm}).
 
 Different chains of postprocessing methods can be applied to different filters. The {\normalfont \ttfamily [luminosityPostprocessSet]} parameter specifies, for each filter, which chain of postprocessing filters to use. (If this parameter is not present then ``{\normalfont \ttfamily default}'' is assumed for all filters.) The filters used in each chain are specified by the input parameter {\normalfont \ttfamily [stellarPopulationSpectraPostprocess\textless setName\textgreater Method]} where {\normalfont \ttfamily \textless setName\textgreater} is the name specified in {\normalfont \ttfamily [luminosityPostprocessSet]}.
 
-\subsection{Inoue, Shimizu \& Iwata (2014) IGM Attenuation}\label{phys:spectraPostprocessor:spectraPostprocessorInoue2014}
+\subsection{Inoue, Shimizu \& Iwata (2014) IGM Attenuation}\label{phys:spectraPostprocessor:spectraPostprocessorInoue2014}\hyperdef{phys}{spectraPostprocessor:spectraPostprocessorInoue2014}{}
 
 Selected with {\normalfont \ttfamily stellarPopulationSpectraPostprocess\textless setName\textgreater Method}$=${\normalfont \ttfamily inoue2014} this method postprocesses spectra through absorption by the \gls{igm} using the results of \cite{inoue_updated_2014}.
 
@@ -2567,7 +2567,7 @@ Selected with {\normalfont \ttfamily stellarFeedbackMethod}$=${\normalfont \ttfa
 
 Substructures and merging of nodes/substructures is controlled by several algorithms which are described below:
 
-\subsection{Merging Timescales}\label{sec:SatelliteMergingTimescales}\index{merging!timescale}
+\subsection{Merging Timescales}\label{sec:SatelliteMergingTimescales}\hyperdef{sec}{SatelliteMergingTimescales}{}\index{merging!timescale}
 
 The method used to compute merging timescales of substructures is specified by the {\normalfont \ttfamily satelliteMergingTimescalesMethod} parameter.
 
@@ -2588,7 +2588,7 @@ where $f_\tau=${\normalfont \ttfamily mergingTimescaleMultiplier}, $\tau_\mathrm
 Selected with {\normalfont \ttfamily satelliteMergingTimescalesMethod}$=${\normalfont \ttfamily jiang2008}, this method computes merging timescales using the dynamical friction calibration of \cite{jiang_fitting_2008}. \cite{jiang_fitting_2008} find that their fitting formula does not perfectly capture the results of N-body simulations, instead showing a scatter in the ratio $T_\mathrm{fit}/T_\mathrm{sim}$ where $T_\mathrm{fit}$ is the merging time from their fitting formula and $T_\mathrm{sim}$ is that measured from their N-body simulation. Furthermore, they show that the distribution of $T_\mathrm{fit}/T_\mathrm{sim}$ is well described by a log-normal with dispersion (in $\log[T_\mathrm{fit}/T_\mathrm{sim}]$) of $\sigma=0.4$. Random perturbations can be applied to the merger times returned by this implementation by setting $\sigma=${\normalfont \ttfamily [satelliteMergingJiang2008Scatter]}$>0$ which will cause the merger time to be drawn from a log-normal distribution of width $\sigma$ with median equal to $T_\mathrm{fit}$.
 
 
-\subsubsection{Boylan-Kolchin (2008)}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesBoylanKolchin2008}
+\subsubsection{Boylan-Kolchin (2008)}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesBoylanKolchin2008}\hyperdef{phys}{satelliteMergingTimescales:satelliteMergingTimescalesBoylanKolchin2008}{}
 
 Selected with {\normalfont \ttfamily satelliteMergingTimescalesMethod}$=${\normalfont \ttfamily boylanKolchin2008}, this method computes merging timescales using the dynamical friction calibration of \cite{boylan-kolchin_dynamical_2008}.
 
@@ -2616,7 +2616,7 @@ Selected with {\normalfont \ttfamily satelliteMergingTimescalesMethod}$=${\norma
 
 Selected with {\normalfont \ttfamily satelliteMergingTimescalesMethod}$=${\normalfont \ttfamily infinite}, this method returns an infinite merging timescale (technically, it returns $10^{30}$~Gyr which should be sufficiently close to infinity for practical purposes).
 
-\subsection{Virial Orbits}\label{sec:SatelliteVirialOrbits}
+\subsection{Virial Orbits}\label{sec:SatelliteVirialOrbits}\hyperdef{sec}{SatelliteVirialOrbits}{}
 
 The algorithm to be used to determine orbital parameters of substructures when they first enter the virial radius of their host is specified via the {\normalfont \ttfamily virialOrbitMethod} parameter.
 
