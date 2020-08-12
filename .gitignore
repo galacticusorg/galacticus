@@ -38,7 +38,10 @@ doc/*.ist
 doc/*.log
 doc/*.out
 doc/*.toc
-doc/Galacticus.pdf
+doc/Galacticus_Usage.pdf
+doc/Galacticus_Physics.pdf
+doc/Galacticus_Development.pdf
+doc/Galacticus_Source.pdf
 doc/GalacticusAccented.bib
 source/FFTlog
 					

@@ -1,0 +1,91 @@
+\documentclass[letterpaper,10pt,headsepline]{scrbook}
+\usepackage[T1]{fontenc} 
+\usepackage{natbib}
+\usepackage{supertabular}
+\usepackage{epsfig}
+\usepackage{ifthen}
+\usepackage{index}
+\usepackage[backref,colorlinks]{hyperref}
+\usepackage{listings}
+\usepackage{verbatim}
+\usepackage{hyphenat}
+\usepackage{ragged2e}
+\usepackage[acronym]{glossaries}
+\usepackage{color}
+\usepackage{tensor}
+\usepackage{textcomp}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{bm}
+
+% Adaptive labelling.
+\makeatletter
+\newcommand{\iflabelexists}[3]{\@ifundefined{r@#1}{#3}{#2}}
+\makeatother
+
+% Table of contents
+\setcounter{tocdepth}{5}
+
+% Margins.
+\setlength{\topmargin}{0mm}
+\setlength{\textwidth}{160mm}
+\setlength{\textheight}{210mm}
+\setlength{\oddsidemargin}{0mm}
+\setlength{\evensidemargin}{0mm}
+
+% Useful commands.
+\include{commands}
+
+\include{autoEnumerationSpecifiers}
+\include{dataEnumerationSpecifiers}
+
+\makeglossary
+\glstoctrue
+\makeindex
+
+\include{Glossary}
+
+\begin{document}
+
+\lstset{language=[95]Fortran}
+
+\frontmatter
+
+\pagestyle{empty}
+\begin{center}
+\includegraphics[width=125mm]{GalacticusLogo.png}\\
+
+\Huge Development \normalsize
+
+\includegraphics{New_Logo_Galaxy_192_Transparent.png}\\
+A semi-analytic galaxy formation code.\\
+
+\copyright\ 2009, 2010 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020 Andrew Benson
+\end{center}
+
+\tableofcontents
+
+\mainmatter
+\pagestyle{headings}
+
+In this document we focus on how to modify \glc\ to meet your own needs. \glc\ is designed in a modular way to make it as simple as possible to introduce new implementations of physical processes or new galactic components without breaking the rest of the code. Nevertheless, some understanding of the structure of the code is necessary. In particular, \glc\ will happily compile and run calculations that make no physical sense whatsoever---it's up to you to ensure that the changes you make are physically reasonable and consistent with the behavior of the rest of the code.
+
+\include{Development}
+
+\include{Coding}
+
+\include{Methods}
+
+\include{Auxilliary}
+
+\backmatter
+
+\bibliographystyle{plainnat}
+\bibliography{GalacticusAccented}
+
+\printglossaries
+
+\citeindextrue
+\printindex
+
+\end{document}

@@ -71,65 +71,59 @@ ls enumerations/definitions/*.tex | sort | awk '{print "\\input{"substr($1,1,len
 # Order enumeration specifiers.
 ls enumerations/specifiers/*.tex | sort | awk '{print "\\input{"substr($1,1,length($1)-4)"}"}' > autoEnumerationSpecifiers.tex
 
-# Compile the manual.
-iPass=1
-while [ $iPass -le 6 ]; do
- # Run pdflatex.
-    if [ $iPass -le 5 ]; then
-	pdflatex Galacticus | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d >& /dev/null
-    else
-	pdflatex Galacticus | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d
-    fi
-    if [ $? -ne 0 ]; then
-	echo pdflatex failed
-	exit 1
-    fi
+# Iterate over manuals.
+for type in "Usage" "Physics" "Development" "Source"; do
 
- # Run bibtex.
-    if [ $iPass -le 5 ]; then
-	bibtex Galacticus >& /dev/null
-    else
-	bibtex Galacticus
-    fi
-    if [ $? -ne 0 ]; then
-	echo bibtex failed
-	exit 1
-    fi
+    # Compile the manuals.
+    iPass=1
+    while [ $iPass -le 6 ]; do
+	# Run pdflatex.
+	if [ $iPass -le 5 ]; then
+	    pdflatex Galacticus_$type | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d >& /dev/null
+	else
+	    pdflatex Galacticus_$type | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d
+	fi
+	if [ $? -ne 0 ]; then
+	    echo pdflatex failed
+	    exit 1
+	fi
 
- # Run makeindex.
-    if [ $iPass -le 5 ]; then
-	makeindex Galacticus >& /dev/null
-    else
-	makeindex Galacticus
-    fi
-    if [ $? -ne 0 ]; then
-	echo makeindex failed for main index
-	exit 1
-    fi
+	# Run bibtex.
+	if [ $iPass -le 5 ]; then
+	    bibtex Galacticus_$type >& /dev/null
+	else
+	    bibtex Galacticus_$type
+	fi
+	if [ $? -ne 0 ]; then
+	    echo bibtex failed
+	    exit 1
+	fi
 
- # Run makeindex for code index.
-    if [ $iPass -le 5 ]; then
-	makeindex -s Galacticus.isty Galacticus.cdx -o Galacticus.cnd >& /dev/null
-    else
-	makeindex -s Galacticus.isty Galacticus.cdx -o Galacticus.cnd
-    fi
-    if [ $? -ne 0 ]; then
-	echo makeindex failed for code index
-	exit 1
-    fi
+	# Run makeindex.
+	if [ $iPass -le 5 ]; then
+	    makeindex Galacticus_$type >& /dev/null
+	else
+	    makeindex Galacticus_$type
+	fi
+	if [ $? -ne 0 ]; then
+	    echo makeindex failed for main index
+	    exit 1
+	fi
 
- # Run makeglossaries.
-    if [ $iPass -le 5 ]; then
-	makeglossaries Galacticus >& /dev/null
-    else
-	makeglossaries Galacticus
-    fi
-    if [ $? -ne 0 ]; then
-	echo make glossaries failed
-	exit 1
-    fi
+	# Run makeglossaries.
+	if [ $iPass -le 5 ]; then
+	    makeglossaries Galacticus_$type >& /dev/null
+	else
+	    makeglossaries Galacticus_$type
+	fi
+	if [ $? -ne 0 ]; then
+	    echo make glossaries failed
+	    exit 1
+	fi
+	
+	iPass=$((iPass+1))
+    done
 
- iPass=$((iPass+1))
 done
 
 exit 0

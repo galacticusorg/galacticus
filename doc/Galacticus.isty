@@ -1,4 +1,0 @@
-preamble
-"\\begin{theindex}\n\\onecolumn\n"
-postamble
-"\n\n\\end{theindex}\n"
