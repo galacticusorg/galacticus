@@ -20,13 +20,24 @@
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
 
   !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepSimple">
-  !#  <description>A merger tree evolution timestepping class which limits the step to a fraction of the current time or an absolute step, whichever is smaller.</description>
+  !#  <description>
+  !#   A merger tree evolution timestepping class enforces that
+  !#   \begin{eqnarray}
+  !#   \Delta t &amp;\le&amp; t_\mathrm{simple}, \\
+  !#   \Delta t &amp;\le&amp; \epsilon_\mathrm{simple} (a/\dot{a}),
+  !#   \end{eqnarray}
+  !#   where $t_\mathrm{simple}=${\normalfont \ttfamily [timestepSimpleAbsolute]}, $\epsilon_\mathrm{simple}=${\normalfont \ttfamily
+  !#   [timestepSimpleRelative]}, and $a$ is expansion factor. These criteria are intended to prevent any one node evolving over an
+  !#   excessively large time in one step. In general, these criteria are not necessary, as nodes should be free to evolve as far as
+  !#   possible unless prevented by some physical requirement. These criteria are therefore present to provide a simple example of how
+  !#   timestep criteria work.
+  !#  </description>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepSimple
      !% Implementation of an output times class which reads a simple of output times from a parameter.
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
-     double precision                                   :: timeStepAbsolute   , timeStepRelative
+     double precision                                   :: timeStepAbsolute             , timeStepRelative
    contains
      final     ::                 simpleDestructor
      procedure :: timeEvolveTo => simpleTimeEvolveTo

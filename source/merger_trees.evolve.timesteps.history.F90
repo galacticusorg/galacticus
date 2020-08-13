@@ -25,7 +25,17 @@
   use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
 
   !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepHistory">
-  !#  <description>A merger tree evolution timestepping class which limits the step the next epoch at which to store global history.</description>
+  !#  <description>
+  !#   A merger tree evolution timestepping class enforces that
+  !#   \begin{equation}
+  !#    \Delta t \le t_{\mathrm{history},i} - t
+  !#   \end{equation}
+  !#   where $t$ is the current time, $t_{\mathrm{history},i}$ is the $i^\mathrm{th}$ time at which the global history (see
+  !#   \S\ref{sec:globalHistory}) of galaxies is to be output and $i$ is chosen to be the smallest $i$ such that
+  !#   $t_{\mathrm{history},i} > t$. If there is no $i$ for which $t_{\mathrm{history},i} > t$ this criterion is not applied. If this
+  !#   criterion is the limiting criterion for $\Delta t$ then the properties of the galaxy will be accumulated to the global history
+  !#   arrays at the end of the timestep.
+  !#  </description>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepHistory
      !% Implementation of a merger tree evolution timestepping class which limits the step the next epoch at which to store global history.

@@ -20,7 +20,25 @@
   use :: Nodes_Operators, only : nodeOperatorClass
 
   !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepSatellite">
-  !#  <description>A merger tree evolution timestepping class which limits the step to the next satellite merger.</description>
+  !#  <description>  
+  !#   A merger tree evolution timestepping class which enforces the following for satellite \glspl{node}. If the satellite's merge
+  !#   target has been advanced to at least a time of $t_\mathrm{required} = t_\mathrm{satellite} + \Delta t_\mathrm{merge} - \delta
+  !#   t_\mathrm{merge,maximum}$ then
+  !#   \begin{equation}
+  !#    \Delta t \le \Delta t_\mathrm{merge},
+  !#   \end{equation}
+  !#   where $t_\mathrm{satellite}$ is the current time for the satellite \gls{node}, $\Delta t_\mathrm{merge}$ is the time until the
+  !#   satellite is due to merge and $\delta t_\mathrm{merge,maximum}$ is the maximum allowed time difference between merging
+  !#   galaxies. This ensures that the satellite is not evolved past the time at which it is due to merge. If this criterion is the
+  !#   limiting criteria for $\Delta t$ then the merging of the satellite will be triggered at the end of the timestep.
+  !#
+  !#   If the merge target has not been advanced to at least $t_\mathrm{required}$ then instead
+  !#   \begin{equation}
+  !#    \Delta t \le \hbox{max}(\Delta t_\mathrm{merge}-\delta t_\mathrm{merge,maximum}/2,0),
+  !#   \end{equation}
+  !#   is asserted to ensure that the satellite does not reach the time of merging until its merge target is sufficiently close (within
+  !#   $\delta t_\mathrm{merge,maximum}$) of the time of merging.
+  !#  </description>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepSatellite
      !% Implementation of an output times class which reads a satellite of output times from a parameter.

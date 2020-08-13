@@ -25,7 +25,16 @@
   use :: Output_Times           , only : outputTimes       , outputTimesClass
 
   !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepRecordEvolution">
-  !#  <description>A merger tree evolution timestepping class which limits the step to the next epoch at which to record evolution of the main branch galaxy.</description>
+  !#  <description>
+  !#   A merger tree evolution timestepping class which enforces that
+  !#   \begin{equation}
+  !#    \Delta t \le t_{\mathrm{record},i} - t
+  !#   \end{equation}
+  !#   where $t$ is the current time, $t_{\mathrm{record},i}$ is the $i^\mathrm{th}$ time at which the evolution of main branch galaxies
+  !#   is to be output and $i$ is chosen to be the smallest $i$ such that $t_{\mathrm{record},i} > t$. If there is no $i$ for which
+  !#   $t_{\mathrm{record},i} > t$ this criterion is not applied. If this criterion is the limiting criterion for $\Delta t$ then the
+  !#   properties of the galaxy will be recorded at the end of the timestep.
+  !#  </description>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepRecordEvolution
      !% Implementation of a merger tree evolution timestepping class which limits the step to the next epoch at which to record

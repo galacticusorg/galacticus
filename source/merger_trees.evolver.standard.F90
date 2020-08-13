@@ -35,7 +35,75 @@
   end type deadlockList
 
   !# <mergerTreeEvolver name="mergerTreeEvolverStandard">
-  !#  <description>The standard merger tree evolver.</description>
+  !#  <description>
+  !#   The standard merger tree evolver. Each merger tree forest is evolved by repeatedly walking the
+  !#   trees and evolving each node forward in time by some timestep $\Delta t$. Nodes are evolved
+  !#   individually such that nodes in different branches of a tree may have reached different cosmic
+  !#   times at any given point in the execution of \glc. Each node is evolved over the interval
+  !#   $\Delta t$ using an adaptive \gls{ode} solver, which adjusts the smaller timesteps, $\delta
+  !#   t$, taken in evolving the system of \glspl{ode} to maintain a specified precision.
+  !#   
+  !#   The choice of $\Delta t$ then depends on other considerations. For example, a node should not
+  !#   be evolved beyond the time at which it is due to merge with another galaxy. Also, we typically
+  !#   don't want satellite nodes to evolve too far ahead of their host node, such that any
+  !#   interactions between satellite and host occur (near) synchronously.
+  !#   
+  !#   The following timestep criteria ensure that tree evolution occurs in a way which correctly
+  !#   preserves tree structure and ordering of interactions between \glspl{node}. All criteria are
+  !#   considered and the largest $\Delta t$ consistent with all criteria is selected.
+  !#   
+  !#   \begin{description}
+  !#    \item[Branch segment criterion] For \glspl{node} which are the \gls{primary progenitor} of
+  !#    their \gls{parent}, the ``branch segment'' criterion asserts that
+  !#     \begin{equation}
+  !#      \Delta t \le t_\mathrm{parent} - t
+  !#     \end{equation}
+  !#    where $t$ is current time in the \gls{node} and $t_\mathrm{parent}$ is the time of the
+  !#    \gls{parent} \gls{node}. This ensures that \gls{primary progenitor} \glspl{node} to not evolve
+  !#    beyond the time at which their \gls{parent} (which they will replace) exists.  If this
+  !#    criterion is the limiting criteria for $\Delta t$ then the \gls{node} will be promoted to
+  !#    replace its \gls{parent} at the end of the timestep.
+  !#   
+  !#    \item[Parent criterion] For \glspl{node} which are satellites in a hosting \gls{node} the
+  !#    ``\gls{parent}'' timestep criterion asserts that
+  !#     \begin{eqnarray}
+  !#      \Delta t &amp;\le&amp; t_\mathrm{host}, \\
+  !#      \Delta t &amp;\le&amp; \epsilon_\mathrm{host} (a/\dot{a}),
+  !#     \end{eqnarray}
+  !#    where $t_\mathrm{host}=${\normalfont \ttfamily [timestepHostAbsolute]},
+  !#    $\epsilon_\mathrm{host}=${\normalfont \ttfamily [timestepHostRelative]}, and $a$ is expansion
+  !#    factor. These criteria are intended to prevent a satellite for evolving too far ahead of the
+  !#    host node before the host is allowed to ``catch up''.
+  !#   
+  !#    \item[Satellite criterion] For \glspl{node} which host satellite \glspl{node}, the
+  !#    ``satellite'' criterion asserts that
+  !#     \begin{equation}
+  !#      \Delta t \le \hbox{min}(t_\mathrm{satellite}) - t,
+  !#     \end{equation}
+  !#    where $t$ is the time of the host \gls{node} and $t_\mathrm{satellite}$ are the times of all
+  !#    satellite \glspl{node} in the host. This criterion prevents a host from evolving ahead of any
+  !#    satellites.
+  !#   
+  !#    \item[Sibling criterion] For \glspl{node} which are \glspl{primary progenitor}, the
+  !#    ``sibling'' criterion asserts that
+  !#     \begin{equation}
+  !#      \Delta t \le \hbox{min}(t_\mathrm{sibling}) - t,
+  !#     \end{equation}
+  !#    where $t$ is the time of the host \gls{node} and $t_\mathrm{sibling}$ are the times of all
+  !#    siblings of the \gls{node}. This criterion prevents a \gls{node} from reaching its
+  !#    \gls{parent} (and being promoted to replace it) before all of its siblings have reach the
+  !#    \gls{parent} and have become satellites within it.
+  !#   
+  !#    \item[Mergee criterion] For \glspl{node} with \gls{mergee} \glspl{node}, the ``\gls{mergee}''
+  !#    criterion asserts that
+  !#     \begin{equation}
+  !#      \Delta t \le \hbox{min}(t_\mathrm{merge}) - t,
+  !#     \end{equation}
+  !#    where $t$ is the time of the host \gls{node} and $t_\mathrm{merge}$ are the times at which
+  !#    the \glspl{mergee} will merge. This criterion prevents a \gls{node} from evolving past the
+  !#    time at which a merger event takes place.
+  !#   \end{description}
+  !#   </description>
   !# </mergerTreeEvolver>
   type, extends(mergerTreeEvolverClass) :: mergerTreeEvolverStandard
      !% Implementation of the standars merger tree evolver.
