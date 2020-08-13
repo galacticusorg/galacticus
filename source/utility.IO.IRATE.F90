@@ -234,25 +234,33 @@ contains
     halosGroup   =snapshotGroup%openGroup('HaloCatalog')
     call snapshotGroup%writeAttribute(redshift,"Redshift")
     if (present(IDs     )) then
-       call halosGroup%writeDataset   (IDs                                   ,'HaloID'  ,'Halo IDs'                                          )
+       if (size(IDs     ) > 0) then
+          call halosGroup%writeDataset   (IDs                                   ,'HaloID'  ,'Halo IDs'                                          )
+       end if
     end if
     if (present(mass    )) then
-       call halosGroup%writeDataset   (mass                                  ,'Mass'    ,'Halo masses'           ,datasetReturned=thisDataset)
-       call thisDataset%writeAttribute('Msolar'                              ,'unitname'                                                     )
-       call thisDataset%writeAttribute([kilo*massSolar        , 0.0d0, 0.0d0],'unitscgs'                                                     )
-       call thisDataset%close()
+       if (size(mass    ) > 0) then
+          call halosGroup%writeDataset   (mass                                  ,'Mass'    ,'Halo masses'           ,datasetReturned=thisDataset)
+          call thisDataset%writeAttribute('Msolar'                              ,'unitname'                                                     )
+          call thisDataset%writeAttribute([kilo*massSolar        , 0.0d0, 0.0d0],'unitscgs'                                                     )
+          call thisDataset%close()
+       end if
     end if
     if (present(center  )) then
-       call halosGroup%writeDataset   (center                                ,'Center'  ,'Halo center positions' ,datasetReturned=thisDataset)
-       call thisDataset%writeAttribute('Mpc'                                 ,'unitname'                                                     )
-       call thisDataset%writeAttribute([hecto*megaparsec      , 0.0d0,-1.0d0],'unitscgs'                                                     )
-       call thisDataset%close()
+       if (size(center  ) > 0) then
+          call halosGroup%writeDataset   (center                                ,'Center'  ,'Halo center positions' ,datasetReturned=thisDataset)
+          call thisDataset%writeAttribute('Mpc'                                 ,'unitname'                                                     )
+          call thisDataset%writeAttribute([hecto*megaparsec      , 0.0d0,-1.0d0],'unitscgs'                                                     )
+          call thisDataset%close()
+       end if
     end if
     if (present(velocity)) then
-       call halosGroup%writeDataset   (velocity                              ,'Velocity','Halo center velocities',datasetReturned=thisDataset)
-       call thisDataset%writeAttribute('Mpc'                                ,'unitname'                                                     )
-       call thisDataset%writeAttribute([kilo*hecto           , 0.0d0, 0.0d0],'unitscgs'                                                     )
-       call thisDataset%close()
+       if (size(velocity) > 0) then
+          call halosGroup%writeDataset   (velocity                              ,'Velocity','Halo center velocities',datasetReturned=thisDataset)
+          call thisDataset%writeAttribute('Mpc'                                ,'unitname'                                                     )
+          call thisDataset%writeAttribute([kilo*hecto           , 0.0d0, 0.0d0],'unitscgs'                                                     )
+          call thisDataset%close()
+       end if
     end if
     call halosGroup   %close()
     call snapshotGroup%close()
