@@ -246,9 +246,9 @@ contains
     class           (nodeComponentBasic   ), pointer                     :: basic
     type            (interpolator         ), allocatable                 :: interpolatorMassMultiStreamNewScaleHRTA
     class           (table1D              ), allocatable                 :: ratioRadiusTurnaroundVirialTable
-    integer                                , parameter                   :: countRadii                             =300
-    integer                                , parameter                   :: countCompare                           = 10
-    integer                                , parameter                   :: iterationMaximum                       = 30
+    integer                                , parameter                   :: countRadii                             =1000
+    integer                                , parameter                   :: countCompare                           =  10
+    integer                                , parameter                   :: iterationMaximum                       =  30
     double precision                       , parameter                   :: expansionFactorRelativeInitial         =1.0d-6
     double precision                       , parameter                   :: radiusMultiStreamFractionalSmall       =1.0d-6
     double precision                       , parameter                   :: multistreamToleranceRelative           =5.0d-2

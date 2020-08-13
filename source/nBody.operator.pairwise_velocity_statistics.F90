@@ -386,7 +386,7 @@ contains
                   &                                             +(+velocities(2,1:neighborCount)-velocitiesRadial(1:neighborCount)*positions(2,1:neighborCount)/separations(1:neighborCount))**2 &
                   &                                             +(+velocities(3,1:neighborCount)-velocitiesRadial(1:neighborCount)*positions(3,1:neighborCount)/separations(1:neighborCount))**2 &
                   &                                            )
-             ! Compute the square of the velocity at the virial radius (in virial units).
+             ! Compute the square of the velocity at the virial radius (in virial units) assuming Keplerian orbits.
              velocityRadialVirialSquared(1:neighborCount)=+2.0d0                                      &
                   &                                       *(                                          &
                   &                                         +1.0d0                                    &
