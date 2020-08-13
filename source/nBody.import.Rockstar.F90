@@ -59,9 +59,13 @@
   !#  <entry label="pid"       />
   !#  <entry label="upid"      />
   !#  <entry label="desc_pid"  />
-  !#  <entry label="mmp"       />
   !#  <entry label="phantom"   />
+  !#  <entry label="sam_Mvir"  />
   !#  <entry label="Mvir"      />
+  !#  <entry label="Rvir"      />
+  !#  <entry label="rs"        />
+  !#  <entry label="vrms"      />
+  !#  <entry label="mmp"       />
   !# </enumeration>
 
   !# <enumeration>
@@ -149,7 +153,11 @@ contains
           case   (                          &
                &  rockstarColumnScale     , &
                &  rockstarColumnDesc_scale, &
-               &  rockstarColumnMvir        &
+               &  rockstarColumnSam_Mvir  , &
+               &  rockstarColumnMvir      , &
+               &  rockstarColumnRvir      , &
+               &  rockstarColumnRs        , &
+               &  rockstarColumnVrms        &
                & )
              self%readColumnsRealCount      =self%readColumnsRealCount   +1
              self%readColumnsType        (i)=columnTypeReal
@@ -160,8 +168,8 @@ contains
                &  rockstarColumnPid       , &
                &  rockstarColumnUpid      , &
                &  rockstarColumnDesc_pid  , &
-               &  rockstarColumnMmp       , &
-               &  rockstarColumnPhantom     &
+               &  rockstarColumnPhantom   , &
+               &  rockstarColumnMmp         &
                & )
              self%readColumnsIntegerCount   =self%readColumnsIntegerCount+1
              self%readColumnsType        (i)=columnTypeInteger
@@ -235,11 +243,13 @@ contains
           if (countTrees > 0_c_size_t) then
              ! We have already determined the number of trees.
              i=i+1_c_size_t
-             read (line,*) columnsReal   (0   ), &
-                  &        columnsInteger(1   ), &
-                  &        columnsReal   (2   ), &
-                  &        columnsInteger(3: 8), &
-                  &        columnsReal   (9:22)
+             read (line,*) columnsReal   ( 0   ), &
+                  &        columnsInteger( 1   ), &
+                  &        columnsReal   ( 2   ), &
+                  &        columnsInteger( 3: 8), &
+                  &        columnsReal   ( 9:13), &
+                  &        columnsInteger(14:14), &
+                  &        columnsReal   (15:22)
              expansionFactor            (  i)=columnsReal   ( 0   )
              simulations(1) %particleIDs(  i)=columnsInteger( 1   )
              simulations(1) %position   (:,i)=columnsReal   (17:19)
