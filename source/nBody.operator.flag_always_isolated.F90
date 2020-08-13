@@ -89,8 +89,7 @@ contains
     double precision                                 , allocatable  , dimension(:) :: massVirial
     double precision                                                               :: massReference
     integer         (c_size_t                       )                              :: i                      , j          , &
-         &                                                                            k                      , iSimulation, &
-         &                                                                            countParticles
+         &                                                                            k                      , iSimulation
 
     call Galacticus_Display_Indent('flag always isolated objects',verbosityStandard)
     do iSimulation=1,size(simulations)
@@ -111,7 +110,6 @@ contains
        ! Initialize status - assuming all particles are always-isolated initially.
        alwaysIsolated=1_c_size_t
        ! Visit each particle.
-       countParticles=0_c_size_t
        !$omp parallel do private(j,k,massReference) schedule(dynamic)
        do i=1_c_size_t,size(alwaysIsolated)
           ! Skip isolated halos.
@@ -119,15 +117,15 @@ contains
           ! Trace descendents, marking as not-always-isolated until mass increases sufficiently.
           j            =           i
           massReference=massVirial(i)
-          do while (massVirial(j) < self%massFactor*massReference)
+          do while (massVirial(j) < self%massFactor*massReference)             
              alwaysIsolated(j)=0_c_size_t
              if (descendentID(j) < 0_c_size_t .or. isMostMassiveProgenitor(j) == 0) exit
              k=searchIndexed(simulations(iSimulation)%particleIDs,indexID,descendentID(j))
-             if     (                                              &
-                  &   k                         < 1_c_size_t       &
-                  &  .or.                                          &
-                  &   k                         >  size(indexID)   &
-                  & )                                              &
+             if     (                                           &
+                  &   k                         < 1_c_size_t    &
+                  &  .or.                                       &
+                  &   k                         > size(indexID) &
+                  & )                                           &
                   & call Galacticus_Error_Report('failed to find descendent'//{introspection:location})
              k=indexID(k)
              if     (                                                            &
