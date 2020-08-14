@@ -6,7 +6,7 @@
 
   <!-- Verbosity -->
   <verbosityLevel value="2"/>
-  
+
   <!-- Component selection -->
   <treeNodeMethodBasic value="standard"/>
   <treeNodeMethodHotHalo value="null"/>
@@ -32,7 +32,7 @@
     <mass value="2.0"/>
     <degreesOfFreedomEffective value="1.5"/>
   </darkMatterParticleMethod>
-  
+
   <!--  Power spectrum options  -->
   <powerSpectrumPrimordialMethod value="powerLaw">
     <index value="0.961"/>
@@ -47,7 +47,8 @@
     </powerSpectrumWindowFunctionMethod>
   </cosmologicalMassVarianceMethod>
   <transferFunctionMethod value="bode2001">
-    <scaleCutOff value="0.08725"/> <!-- WARNING: This is expected to trigger a warning -->
+    <scaleCutOff value="0.08725"/>
+    <!-- WARNING: This is expected to trigger a warning -->
     <epsilon value="0.359"/>
     <nu value="1.1"/>
     <eta value="3.81"/>
@@ -72,31 +73,31 @@
   <darkMatterProfileConcentrationMethod value="schneider2015">
     <reference>
       <cosmologicalMassVarianceMethod value="filteredPower">
-	<sigma_8 value="0.817"/>
-	<powerSpectrumWindowFunctionMethod value="sharpKSpace">
-	  <normalization value="2.5"/>
-	</powerSpectrumWindowFunctionMethod>
-	<powerSpectrumPrimordialTransferredMethod value="simple"/>
-	<transferFunctionMethod value="eisensteinHu1999">
-	  <neutrinoNumberEffective value="3.04"/>
-	  <neutrinoMassSummed value="0.000"/>
-	  <darkMatterParticleMethod value="CDM"/>
-	</transferFunctionMethod>
-	<powerSpectrumPrimordialMethod value="powerLaw">
-	  <index value="0.961"/>
-	  <wavenumberReference value="1.000"/>
-	  <running value="0.000"/>
-	</powerSpectrumPrimordialMethod>
+        <sigma_8 value="0.817"/>
+        <powerSpectrumWindowFunctionMethod value="sharpKSpace">
+          <normalization value="2.5"/>
+        </powerSpectrumWindowFunctionMethod>
+        <powerSpectrumPrimordialTransferredMethod value="simple"/>
+        <transferFunctionMethod value="eisensteinHu1999">
+          <neutrinoNumberEffective value="3.04"/>
+          <neutrinoMassSummed value="0.000"/>
+          <darkMatterParticleMethod value="CDM"/>
+        </transferFunctionMethod>
+        <powerSpectrumPrimordialMethod value="powerLaw">
+          <index value="0.961"/>
+          <wavenumberReference value="1.000"/>
+          <running value="0.000"/>
+        </powerSpectrumPrimordialMethod>
       </cosmologicalMassVarianceMethod>
       <criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt">
-	<darkMatterParticleMethod value="CDM"/>
+        <darkMatterParticleMethod value="CDM"/>
       </criticalOverdensityMethod>
       <cosmologyFunctionsMethod value="matterLambda"/>
       <cosmologyParametersMethod value="simple">
-	<OmegaMatter value="0.2812"/>
-	<OmegaDarkEnergy value="0.7188"/>
-	<OmegaBaryon value="0.04611"/>
-	<HubbleConstant value="69.7"/>
+        <OmegaMatter value="0.2812"/>
+        <OmegaDarkEnergy value="0.7188"/>
+        <OmegaBaryon value="0.04611"/>
+        <HubbleConstant value="69.7"/>
       </cosmologyParametersMethod>
       <darkMatterProfileConcentrationMethod value="diemerKravtsov2014"/>
     </reference>
@@ -125,13 +126,13 @@
   <mergerTreeMassResolutionMethod value="fixed">
     <massResolution value="1.0e10"/>
   </mergerTreeMassResolutionMethod>
-  
+
   <!-- Structure formation options -->
   <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
- 
+
   <!-- Dark matter halo profile -->
   <darkMatterProfileDMOMethod value="NFW"/>
-  
+
   <!-- Halo accretion options -->
   <accretionHaloMethod value="zero"/>
 
@@ -143,13 +144,13 @@
   <satelliteOrbitingDestructionMassIsFractional value="true"/>
   <satelliteDynamicalFrictionMethod value="chandrasekhar1943"/>
   <satelliteTidalStrippingMethod value="zentner2005">
-      <efficiency value="1.0"/>
+    <efficiency value="1.0"/>
   </satelliteTidalStrippingMethod>
   <satelliteTidalHeatingRateMethod value="gnedin1999"/>
 
   <!-- Satellite merger options -->
   <mergerRemnantSizeMethod value="null"/>
-  
+
   <!-- Numerical tolerances -->
   <mergerTreeNodeEvolverMethod value="standard">
     <odeToleranceAbsolute value="0.01"/>
@@ -173,7 +174,7 @@
   <luminosityFilter value="SDSS_r"/>
   <luminosityRedshift value="0.0"/>
   <luminosityType value="rest"/>
-  
+
   <!-- Output options -->
   <outputTimestepHistory value="false"/>
   <nodePropertyExtractorMethod value="virialProperties"/>
@@ -194,5 +195,24 @@
     </cosmologyParametersMethod>
     <galacticFilterMethod value="haloIsolated"/>
   </mergerTreeOutputterMethod>
-    
+
+  <!--Stellar feedback outflows-->
+  <nodeOperatorMethod value="stellarFeedbackDisks">
+    <stellarFeedbackOutflowsMethod value="rateLimit">
+      <timescaleOutflowFractionalMinimum value="0.001"/>
+      <stellarFeedbackOutflowsMethod value="powerLaw">
+        <velocityCharacteristic value="250.0"/>
+        <exponent value="3.5"/>
+      </stellarFeedbackOutflowsMethod>
+    </stellarFeedbackOutflowsMethod>
+  </nodeOperatorMethod>
+  <nodeOperatorMethod value="stellarFeedbackSpheroids">
+    <stellarFeedbackOutflowsMethod value="rateLimit">
+      <timescaleOutflowFractionalMinimum value="0.001"/>
+      <stellarFeedbackOutflowsMethod value="powerLaw">
+        <velocityCharacteristic value="250.0"/>
+        <exponent value="3.5"/>
+      </stellarFeedbackOutflowsMethod>
+    </stellarFeedbackOutflowsMethod>
+  </nodeOperatorMethod>
 </parameters>

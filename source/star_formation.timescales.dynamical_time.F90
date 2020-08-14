@@ -152,7 +152,7 @@ contains
        end if
        velocity=component%velocity()
        radius  =component%radius  ()
-       class default
+    class default
        velocity=0.0d0
        radius  =0.0d0
        call Galacticus_Error_Report('unsupported component'//{introspection:location})

@@ -57,7 +57,7 @@
   </mergerTreeConstructorMethod>
   <!-- Dark matter halo profile -->
   <darkMatterProfileDMOMethod value="isothermal"/>
-  
+
   <!-- Halo accretion options -->
   <accretionHaloMethod value="zero"/>
 
@@ -73,7 +73,7 @@
   <chemicalStateMethod value="CIEFile">
     <fileName value="%DATASTATICPATH%/chemicalState/chemical_state_Atomic_CIE_Cloudy_13.05.hdf5"/>
   </chemicalStateMethod>
-  
+
   <coolingRadiusMethod value="simple"/>
   <coolingRateMethod value="whiteFrenk1991">
     <velocityCutOff value="1.0e6"/>
@@ -81,7 +81,7 @@
   <coolingTimeMethod value="simple">
     <degreesOfFreedom value="3.0"/>
   </coolingTimeMethod>
-   <coolingTimeAvailableMethod value="whiteFrenk1991">
+  <coolingTimeAvailableMethod value="whiteFrenk1991">
     <ageFactor value="0"/>
   </coolingTimeAvailableMethod>
 
@@ -103,5 +103,24 @@
 
   <!-- Output file -->
   <galacticusOutputFileName value="testSuite/outputs/reproducibility/cooling.hdf5"/>
-  
+
+  <!--Stellar feedback outflows-->
+  <nodeOperatorMethod value="stellarFeedbackDisks">
+    <stellarFeedbackOutflowsMethod value="rateLimit">
+      <timescaleOutflowFractionalMinimum value="0.001"/>
+      <stellarFeedbackOutflowsMethod value="powerLaw">
+        <velocityCharacteristic value="250.0"/>
+        <exponent value="3.5"/>
+      </stellarFeedbackOutflowsMethod>
+    </stellarFeedbackOutflowsMethod>
+  </nodeOperatorMethod>
+  <nodeOperatorMethod value="stellarFeedbackSpheroids">
+    <stellarFeedbackOutflowsMethod value="rateLimit">
+      <timescaleOutflowFractionalMinimum value="0.001"/>
+      <stellarFeedbackOutflowsMethod value="powerLaw">
+        <velocityCharacteristic value="250.0"/>
+        <exponent value="3.5"/>
+      </stellarFeedbackOutflowsMethod>
+    </stellarFeedbackOutflowsMethod>
+  </nodeOperatorMethod>
 </parameters>

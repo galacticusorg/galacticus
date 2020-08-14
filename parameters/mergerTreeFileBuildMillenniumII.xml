@@ -1,241 +1,291 @@
+<?xml version="1.0"?>
 <!-- Parameter file for building merger tree files for the Millennium II Simulation. -->
 <parameters>
   <taskMethod value="mergerTreeFileBuilder">
 
-    <inputFileName             value="forests.csv" />
-    <outputFileName            value="forests.hdf5"/>
-    <outputFormat              value="galacticus"  />
-    <massParticle              value="6.89e-4"     />
+    <inputFileName value="forests.csv"/>
+    <outputFileName value="forests.hdf5"/>
+    <outputFormat value="galacticus"/>
+    <massParticle value="6.89e-4"/>
     <!-- Specify that halo masses do include subhalo contributions. (Note that the
 	 expectation is that masses of isolated halos have been derived from
 	 something like the "m_tophat" column of the Millennium Database. -->
-    <haloMassesIncludeSubhalos value="true"        />
-    <includesHubbleFlow        value="false"       />
-    <positionsArePeriodic      value="true"        />
-    <columnHeaders             value="true"        />
+    <haloMassesIncludeSubhalos value="true"/>
+    <includesHubbleFlow value="false"/>
+    <positionsArePeriodic value="true"/>
+    <columnHeaders value="true"/>
 
     <metaData>
-      <type  value="simulation"/>
-      <name  value="boxSize"   />
-      <content value="500.0"     />
+      <type value="simulation"/>
+      <name value="boxSize"/>
+      <content value="500.0"/>
     </metaData>
     <metaData>
-      <type  value="simulation"/> 
-      <name  value="code"/>                      
-      <content value="GADGET-2"/>                     
+      <type value="simulation"/>
+
+      <name value="code"/>
+
+      <content value="GADGET-2"/>
+
       <metaData>
       </metaData>
-      <type  value="simulation"/> 
-      <name  value="startRedshift"/>             
-      <content value="1.270e2"/>                       
+      <type value="simulation"/>
+
+      <name value="startRedshift"/>
+
+      <content value="1.270e2"/>
+
     </metaData>
     <metaData>
-      <type  value="simulation"/> 
-      <name  value="initialConditions"/>         
-      <content value="glass"/>                     
+      <type value="simulation"/>
+
+      <name value="initialConditions"/>
+
+      <content value="glass"/>
+
     </metaData>
     <metaData>
-      <type  value="simulation"/> 
-      <name  value="softeningKernel"/>           
-      <content value="spline"/>                      
+      <type value="simulation"/>
+
+      <name value="softeningKernel"/>
+
+      <content value="spline"/>
+
     </metaData>
     <metaData>
-      <type  value="simulation"/> 
-      <name  value="softeningPlummerEquivalent"/>
-      <content value="5.0e-3"/>                         
+      <type value="simulation"/>
+
+      <name value="softeningPlummerEquivalent"/>
+      <content value="5.0e-3"/>
+
     </metaData>
     <metaData>
-      <type  value="simulation"/> 
-      <name  value="TypeOfTimestepCriterion"/>   
-      <content value="0"/>                           
+      <type value="simulation"/>
+
+      <name value="TypeOfTimestepCriterion"/>
+
+      <content value="0"/>
+
     </metaData>
     <metaData>
-      <type  value="simulation"/> 
-      <name  value="ErrTolIntAccuracy"/>         
-      <content value="0.02"/>                           
+      <type value="simulation"/>
+
+      <name value="ErrTolIntAccuracy"/>
+
+      <content value="0.02"/>
+
     </metaData>
     <metaData>
-      <type  value="groupFinder"/>
-      <name  value="code"/>                      
-      <content value="SUBFIND"/>                         
+      <type value="groupFinder"/>
+      <name value="code"/>
+
+      <content value="SUBFIND"/>
+
     </metaData>
     <metaData>
-      <type  value="groupFinder"/>
-      <name  value="minimumParticleNumber"/>     
-      <content value="20"/>                        
+      <type value="groupFinder"/>
+      <name value="minimumParticleNumber"/>
+
+      <content value="20"/>
+
     </metaData>
     <metaData>
-      <type  value="groupFinder"/>
-      <name  value="linkingLength"/>             
-      <content value="0.2"/>                           
+      <type value="groupFinder"/>
+      <name value="linkingLength"/>
+
+      <content value="0.2"/>
+
     </metaData>
     <metaData>
-      <type  value="provenance"/>
-      <name  value="source"/>                    
+      <type value="provenance"/>
+      <name value="source"/>
+
       <content value="http://www.g-vo.org/MyMillennium3"/>
     </metaData>
 
     <cosmologyParametersMethod value="simple">
-      <HubbleConstant  value="73.000"/>
-      <OmegaMatter     value=" 0.250"/>
+      <HubbleConstant value="73.000"/>
+      <OmegaMatter value=" 0.250"/>
       <OmegaDarkEnergy value=" 0.750"/>
-      <OmegaBaryon     value=" 0.045"/>
+      <OmegaBaryon value=" 0.045"/>
     </cosmologyParametersMethod>
 
     <cosmologicalMassVarianceMethod value="filteredPower">
-      <sigma_8 value="0.9"/> 
+      <sigma_8 value="0.9"/>
+
     </cosmologicalMassVarianceMethod>
 
     <transferFunctionMethod value="CAMB"/>
 
     <powerSpectrumPrimordialMethod value="powerLaw">
-      <index               value="1.0"/>
+      <index value="1.0"/>
       <wavenumberReference value="1.0"/>
-      <running             value="0.0"/>
+      <running value="0.0"/>
     </powerSpectrumPrimordialMethod>
 
     <unitsMass>
-      <unitsInSI           value="1.989e40"      />
-      <hubbleExponent      value="-1"            />
-      <scaleFactorExponent value=" 0"            />
-      <name                value="1e10 Msolar/h" />
+      <unitsInSI value="1.989e40"/>
+      <hubbleExponent value="-1"/>
+      <scaleFactorExponent value=" 0"/>
+      <name value="1e10 Msolar/h"/>
     </unitsMass>
-    
+
     <unitsLength>
-      <unitsInSI           value="3.0856769e22"  />
-      <hubbleExponent      value="-1"            />
-      <scaleFactorExponent value=" 1"            />
-      <name                value="comoving Mpc/h"/>
+      <unitsInSI value="3.0856769e22"/>
+      <hubbleExponent value="-1"/>
+      <scaleFactorExponent value=" 1"/>
+      <name value="comoving Mpc/h"/>
     </unitsLength>
-    
+
     <unitsVelocity>
-      <unitsInSI           value="1.0e3"        />
-      <hubbleExponent      value=" 0"           />
-      <scaleFactorExponent value=" 0"           />
-      <name                value="km/s"         />
+      <unitsInSI value="1.0e3"/>
+      <hubbleExponent value=" 0"/>
+      <scaleFactorExponent value=" 0"/>
+      <name value="km/s"/>
     </unitsVelocity>
-    
+
     <property>
-      <name   value="treeIndex"               />
-      <column value="1"                       />
+      <name value="treeIndex"/>
+      <column value="1"/>
     </property>
     <property>
-      <name   value="nodeIndex"               />
-      <column value="2"                       />
+      <name value="nodeIndex"/>
+      <column value="2"/>
     </property>
     <property>
-      <name   value="descendentIndex"         />
-      <column value="3"                       />
+      <name value="descendentIndex"/>
+      <column value="3"/>
     </property>
     <property>
-      <name   value="hostIndex"               />
-      <column value="4"                       />
+      <name value="hostIndex"/>
+      <column value="4"/>
     </property>
     <property>
-      <name   value="snapshot"                />
-      <column value="5"                       />
+      <name value="snapshot"/>
+      <column value="5"/>
     </property>
     <property>
-      <name   value="redshift"                />
-      <column value="6"                       />
+      <name value="redshift"/>
+      <column value="6"/>
     </property>
     <property>
-      <name   value="nodeMass"                />
-      <column value="7"                       />
+      <name value="nodeMass"/>
+      <column value="7"/>
     </property>
     <property>
-      <name   value="particleCount"           />
-      <column value="8"                       />
+      <name value="particleCount"/>
+      <column value="8"/>
     </property>
     <property>
-      <name   value="positionX"               />
-      <column value="9"                       />
+      <name value="positionX"/>
+      <column value="9"/>
     </property>
     <property>
-      <name   value="positionY"               />
-      <column value="10"                      />
+      <name value="positionY"/>
+      <column value="10"/>
     </property>
     <property>
-      <name   value="positionZ"               />
-      <column value="11"                      />
+      <name value="positionZ"/>
+      <column value="11"/>
     </property>
     <property>
-      <name   value="velocityX"               />
-      <column value="12"                      />
+      <name value="velocityX"/>
+      <column value="12"/>
     </property>
     <property>
-      <name   value="velocityY"               />
-      <column value="13"                      />
+      <name value="velocityY"/>
+      <column value="13"/>
     </property>
     <property>
-      <name   value="velocityZ"               />
-      <column value="14"                      />
+      <name value="velocityZ"/>
+      <column value="14"/>
     </property>
     <property>
-      <name   value="specificAngularMomentumX"/>
-      <column value="15"                      />
+      <name value="specificAngularMomentumX"/>
+      <column value="15"/>
     </property>
     <property>
-      <name   value="specificAngularMomentumY"/>
-      <column value="16"                      />
+      <name value="specificAngularMomentumY"/>
+      <column value="16"/>
     </property>
     <property>
-      <name   value="specificAngularMomentumZ"/>
-      <column value="17"                      />
+      <name value="specificAngularMomentumZ"/>
+      <column value="17"/>
     </property>
     <property>
-      <name   value="halfMassRadius"          />
-      <column value="18"                      />
+      <name value="halfMassRadius"/>
+      <column value="18"/>
     </property>
     <property>
-      <name   value="mostBoundParticleIndex"  /> <!-- if tracing particles? -->
-      <column value="19"                      />
+      <name value="mostBoundParticleIndex"/>
+      <!-- if tracing particles? -->
+      <column value="19"/>
     </property>
     <property>
-      <name   value="velocityMaximum"         />
-      <column value="20"                      />
+      <name value="velocityMaximum"/>
+      <column value="20"/>
     </property>
     <property>
-      <name   value="velocityDispersion"      />
-      <column value="21"                      />
+      <name value="velocityDispersion"/>
+      <column value="21"/>
     </property>
 
     <particleProperty>
-      <name   value="particleIndex"          />
-      <column value="1"                      />
+      <name value="particleIndex"/>
+      <column value="1"/>
     </particleProperty>
     <particleProperty>
-      <name   value="redshift"               />
-      <column value="2"                      />
+      <name value="redshift"/>
+      <column value="2"/>
     </particleProperty>
     <particleProperty>
-      <name   value="snapshot"               />
-      <column value="3"                      />
+      <name value="snapshot"/>
+      <column value="3"/>
     </particleProperty>
     <particleProperty>
-      <name   value="positionX"              />
-      <column value="4"                      />
+      <name value="positionX"/>
+      <column value="4"/>
     </particleProperty>
     <particleProperty>
-      <name   value="positionY"              />
-      <column value="5"                      />
+      <name value="positionY"/>
+      <column value="5"/>
     </particleProperty>
     <particleProperty>
-      <name   value="positionZ"              />
-      <column value="6"                      />
+      <name value="positionZ"/>
+      <column value="6"/>
     </particleProperty>
     <particleProperty>
-      <name   value="velocityX"              />
-      <column value="7"                      />
+      <name value="velocityX"/>
+      <column value="7"/>
     </particleProperty>
     <particleProperty>
-      <name   value="velocityY"              />
-      <column value="8"                      />
+      <name value="velocityY"/>
+      <column value="8"/>
     </particleProperty>
     <particleProperty>
-      <name   value="velocityZ"              />
-      <column value="9"                      />
+      <name value="velocityZ"/>
+      <column value="9"/>
     </particleProperty>
-    
+
   </taskMethod>
+  <nodeOperatorMethod value="multi"><!--Stellar feedback outflows-->
+    <nodeOperatorMethod value="stellarFeedbackDisks">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+    <nodeOperatorMethod value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+  </nodeOperatorMethod>
 </parameters>

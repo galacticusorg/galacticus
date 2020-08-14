@@ -60,7 +60,7 @@
 
   <!-- Dark matter halo profile -->
   <darkMatterProfileDMOMethod value="isothermal"/>
-  
+
   <!-- Hot halo model options -->
   <hotHaloMassDistributionMethod value="null"/>
   <coolingRateMethod value="zero"/>
@@ -75,11 +75,6 @@
     </starFormationTimescaleMethod>
   </starFormationRateDisksMethod>
 
-  <!-- Feedback -->
-  <starFormationFeedbackDisksMethod value="fixed">
-    <fraction value="1.0"/>
-  </starFormationFeedbackDisksMethod>
-  
   <!-- Metal production -->
   <diskVerySimpleTrackAbundances value="true"/>
   <stellarPopulationMethod value="standard">
@@ -99,7 +94,17 @@
   </mergerTreeEvolverMethod>
 
   <!-- Node evolution and physics -->
-  <nodeOperatorMethod value="starFormationDisks"/>
+  <nodeOperatorMethod value="multi">
+    <nodeOperatorMethod value="starFormationDisks"/>
+    <nodeOperatorMethod value="stellarFeedbackDisks">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="fixed">
+	  <fraction value="1.0"/>
+	</stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+  </nodeOperatorMethod>
   
   <!-- Output options -->
   <mergerTreeOutputterMethod value="standard">
@@ -108,5 +113,5 @@
 
   <!-- Output file -->
   <galacticusOutputFileName value="testSuite/outputs/reproducibility/leakyBox.hdf5"/>
-  
+
 </parameters>

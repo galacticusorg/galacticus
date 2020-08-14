@@ -59,7 +59,7 @@
     </darkMatterProfileScaleRadiusMethod>
 
     <diskMassToleranceAbsolute value="1.0e-6"/>
-    <diskOutflowTimescaleMinimum value="2.1949631313087498E-002"/>
+
     <diskVerySimpleAnalyticSolverPruneMassGas value="1.0e6"/>
     <diskVerySimpleAnalyticSolverPruneMassStars value="1.0e6"/>
     <diskVerySimpleMassScaleAbsolute value="1.0e6"/>
@@ -109,7 +109,8 @@
     </mergerTreeBuildMassesMethod>
     <mergerTreeBuildMassDistributionMethod value="haloMassFunction">
       <abundanceMaximum value="1.0e-1"/>
-      <abundanceMinimum value="1.0e-8"/>    
+      <abundanceMinimum value="1.0e-8"/>
+
       <modifier1 value="0.5"/>
       <modifier2 value="0.0"/>
     </mergerTreeBuildMassDistributionMethod>
@@ -155,23 +156,19 @@
     <satelliteMergingTimescalesMethod value="jiang2008">
       <timescaleMultiplier value="1.2035038666749114"/>
     </satelliteMergingTimescalesMethod>
-    <starFormationFeedbackDisksMethod value="vlctyMxSclng">
-      <fraction value="5.4973312818696149E-002"/>
-      <exponentRedshift value="1.9464430036515628"/>
-      <exponentVelocity value="-5.2559103933618596"/>
-    </starFormationFeedbackDisksMethod>
+
     <starFormationRateDisksMethod value="timescale">
       <starFormationActiveMassMethod value="surfaceDensityThreshold">
-	<surfaceDensityThreshold value="130295433397.88165"/>
-	<exponentVelocity value="-0.98483665317102953"/>
+        <surfaceDensityThreshold value="130295433397.88165"/>
+        <exponentVelocity value="-0.98483665317102953"/>
       </starFormationActiveMassMethod>
       <starFormationTimescaleMethod value="lowerLimited">
-	<timescaleMinimum value="2.6271201525734244E-005"/>
-	<starFormationTimescaleMethod value="velocityMaxScaling">
-	  <exponentRedshift value="-2.2302610673721670"/>
-	  <timescale value="5.6305510122690903"/>
-	  <exponentVelocity value="0.99961968363471687"/>
-	</starFormationTimescaleMethod>
+        <timescaleMinimum value="2.6271201525734244E-005"/>
+        <starFormationTimescaleMethod value="velocityMaxScaling">
+          <exponentRedshift value="-2.2302610673721670"/>
+          <timescale value="5.6305510122690903"/>
+          <exponentVelocity value="0.99961968363471687"/>
+        </starFormationTimescaleMethod>
       </starFormationTimescaleMethod>
     </starFormationRateDisksMethod>
     <stellarPopulationPropertiesMethod value="instantaneous"/>
@@ -181,8 +178,8 @@
     </mergerTreeEvolverMethod>
     <mergerTreeEvolveTimestepMethod value="multi">
       <mergerTreeEvolveTimestepMethod value="simple" iterable="no">
-	<timeStepAbsolute value="1.00"/>
-	<timeStepRelative value="0.01"/>
+        <timeStepAbsolute value="1.00"/>
+        <timeStepRelative value="0.01"/>
       </mergerTreeEvolveTimestepMethod>
       <mergerTreeEvolveTimestepMethod value="satellite" iterable="no"/>
     </mergerTreeEvolveTimestepMethod>
@@ -206,14 +203,26 @@
       <velocityRadial value="-0.856"/>
       <velocityTangential value="+0.842"/>
       <virialDensityContrastMethod value="fixed">
-	<densityContrastValue value="200.0"/>
-	<densityType value="critical"/>
+        <densityContrastValue value="200.0"/>
+        <densityType value="critical"/>
       </virialDensityContrastMethod>
     </virialOrbitMethod>
-    
-    <!-- Node evolution and physics -->
-    <nodeOperatorMethod value="starFormationDisks"/> 
-    
-  </parameters>
 
+    <!-- Node evolution and physics -->
+    <nodeOperatorMethod value="multi">
+      <nodeOperatorMethod value="starFormationDisks"/>
+      <nodeOperatorMethod value="stellarFeedbackDisks">
+	<stellarFeedbackOutflowsMethod value="rateLimit">
+          <timescaleOutflowFractionalMinimum value="0.001"/>
+          <stellarFeedbackOutflowsMethod value="vlctyMxSclng">
+	    <fraction value="5.4973312818696149E-002"/>
+	    <exponentRedshift value="1.9464430036515628"/>
+	    <exponentVelocity value="-5.2559103933618596"/>
+	  </stellarFeedbackOutflowsMethod>
+	</stellarFeedbackOutflowsMethod>
+      </nodeOperatorMethod>
+    </nodeOperatorMethod>
+
+  </parameters>
+  
 </parameterGrid>

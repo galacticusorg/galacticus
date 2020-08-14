@@ -21,7 +21,7 @@
     <outputReferences value="false"/>
   </mergerTreeOutputterMethod>
   <mergerTreeConstructorMethod value="read">
-  <presetMergerNodes value="true"/>
+    <presetMergerNodes value="true"/>
     <presetMergerTimes value="true"/>
     <presetOrbits value="true"/>
     <presetOrbitsAssertAllSet value="true"/>
@@ -48,7 +48,7 @@
   </outputTimesMethod>
 
   <powerSpectrumPrimordialMethod value="powerLaw">
-  <index value="0.96"/>
+    <index value="0.96"/>
     <wavenumberReference value="1.0"/>
     <running value="0.0"/>
   </powerSpectrumPrimordialMethod>
@@ -70,8 +70,27 @@
 
   <!-- Node evolution and physics -->
   <nodeOperatorMethod value="multi">
-    <nodeOperatorMethod value="starFormationDisks"    />
+    <nodeOperatorMethod value="starFormationDisks"/>
     <nodeOperatorMethod value="starFormationSpheroids"/>
+    <!--Stellar feedback outflows-->
+    <nodeOperatorMethod value="stellarFeedbackDisks">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+    <nodeOperatorMethod value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
   </nodeOperatorMethod>
 
 </parameters>

@@ -17,17 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of an outflow rate due to star formation feedback in galactic disks which scales with peak halo velocity.
+  !% Implementation of an stellar feedback model which scales with peak halo velocity.
 
   use :: Cosmology_Functions     , only : cosmologyFunctionsClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   use :: Math_Exponentiation     , only : fastExponentiator
 
-  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksVlctyMxSclng">
-  !#  <description>An outflow rate due to star formation feedback in galactic disks which scales with peak halo velocity.</description>
-  !# </starFormationFeedbackDisks>
-  type, extends(starFormationFeedbackDisksClass) :: starFormationFeedbackDisksVlctyMxSclng
-     !% Implementation of an outflow rate due to star formation feedback in galactic disks which scales with peak halo velocity.
+  !# <stellarFeedbackOutflows name="stellarFeedbackOutflowsVlctyMxSclng">
+  !#  <description>An stellar feedback model which scales with peak halo velocity.</description>
+  !# </stellarFeedbackOutflows>
+  type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsVlctyMxSclng
+     !% Implementation of an stellar feedback model which scales with peak halo velocity.
      private
      double precision                                     :: fraction                         , exponentRedshift            , &
           &                                                  exponentVelocity                 , normalization               , &
@@ -39,27 +39,27 @@
    contains
      final     ::                vlctyMxSclngDestructor
      procedure :: outflowRate => vlctyMxSclngOutflowRate
-  end type starFormationFeedbackDisksVlctyMxSclng
+  end type stellarFeedbackOutflowsVlctyMxSclng
 
-  interface starFormationFeedbackDisksVlctyMxSclng
-     !% Constructors for the velocity maximum scaling fraction star formation feedback in disks class.
+  interface stellarFeedbackOutflowsVlctyMxSclng
+     !% Constructors for the velocity maximum scaling fraction stellar feedback class.
      module procedure vlctyMxSclngConstructorParameters
      module procedure vlctyMxSclngConstructorInternal
-  end interface starFormationFeedbackDisksVlctyMxSclng
+  end interface stellarFeedbackOutflowsVlctyMxSclng
 
 contains
 
   function vlctyMxSclngConstructorParameters(parameters) result(self)
-    !% Constructor for the velocity maximum scaling fraction star formation feedback in disks class which takes a parameter set as
+    !% Constructor for the velocity maximum scaling fraction stellar feedback class which takes a parameter set as
     !% input.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    type            (starFormationFeedbackDisksVlctyMxSclng)                :: self
-    type            (inputParameters                       ), intent(inout) :: parameters
-    double precision                                                        :: fraction             , exponentRedshift, &
-         &                                                                     exponentVelocity
-    class           (cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
-    class           (darkMatterProfileDMOClass             ), pointer       :: darkMatterProfileDMO_
+    type            (stellarFeedbackOutflowsVlctyMxSclng)                :: self
+    type            (inputParameters                    ), intent(inout) :: parameters
+    double precision                                                     :: fraction             , exponentRedshift, &
+         &                                                                  exponentVelocity
+    class           (cosmologyFunctionsClass            ), pointer       :: cosmologyFunctions_
+    class           (darkMatterProfileDMOClass          ), pointer       :: darkMatterProfileDMO_
 
     !# <inputParameter>
     !#   <name>fraction</name>
@@ -87,7 +87,7 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
-    self=starFormationFeedbackDisksVlctyMxSclng(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterProfileDMO_)
+    self=stellarFeedbackOutflowsVlctyMxSclng(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterProfileDMO_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"  />
     !# <objectDestructor name="darkMatterProfileDMO_"/>
@@ -95,15 +95,15 @@ contains
   end function vlctyMxSclngConstructorParameters
 
   function vlctyMxSclngConstructorInternal(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterProfileDMO_) result(self)
-    !% Internal constructor for the halo scaling star formation feedback from disks class.
+    !% Internal constructor for the halo scaling stellar feedback class.
     use :: Stellar_Feedback, only : feedbackEnergyInputAtInfinityCanonical
     implicit none
-    type            (starFormationFeedbackDisksVlctyMxSclng)                        :: self
-    double precision                                        , intent(in   )         :: fraction                     , exponentRedshift, &
-         &                                                                             exponentVelocity
-    class           (cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
-    class           (darkMatterProfileDMOClass             ), intent(in   ), target :: darkMatterProfileDMO_
-    double precision                                        , parameter             :: velocityNormalization=200.0d0
+    type            (stellarFeedbackOutflowsVlctyMxSclng)                        :: self
+    double precision                                     , intent(in   )         :: fraction                     , exponentRedshift, &
+         &                                                                          exponentVelocity
+    class           (cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
+    class           (darkMatterProfileDMOClass          ), intent(in   ), target :: darkMatterProfileDMO_
+    double precision                                     , parameter             :: velocityNormalization=200.0d0
 
     !# <constructorAssign variables="fraction, exponentRedshift, exponentVelocity, *cosmologyFunctions_, *darkMatterProfileDMO_"/>
     ! Initialize stored values.
@@ -122,31 +122,32 @@ contains
   end function vlctyMxSclngConstructorInternal
 
   subroutine vlctyMxSclngDestructor(self)
-    !% Destructor for the velocity maximum scaling feedback from star formation in disks class.
+    !% Destructor for the velocity maximum scaling stellar feedback class.
     implicit none
-    type(starFormationFeedbackDisksVlctyMxSclng), intent(inout) :: self
+    type(stellarFeedbackOutflowsVlctyMxSclng), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyFunctions_"  />
     !# <objectDestructor name="self%darkMatterProfileDMO_"/>
     return
   end subroutine vlctyMxSclngDestructor
 
-  double precision function vlctyMxSclngOutflowRate(self,node,rateEnergyInput,rateStarFormation)
-    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily node}.
-    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+  subroutine vlctyMxSclngOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
+    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the given {\normalfont \ttfamily component}.
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class           (starFormationFeedbackDisksVlctyMxSclng), intent(inout) :: self
-    type            (treeNode                              ), intent(inout) :: node
-    double precision                                        , intent(in   ) :: rateEnergyInput, rateStarFormation
-    class           (nodeComponentBasic                    ), pointer       :: basic
-    double precision                                                        :: expansionFactor, velocityMaximum
+    class           (stellarFeedbackOutflowsVlctyMxSclng), intent(inout) :: self
+    class           (nodeComponent                      ), intent(inout) :: component
+    double precision                                     , intent(in   ) :: rateEnergyInput    , rateStarFormation
+    double precision                                     , intent(  out) :: rateOutflowEjective, rateOutflowExpulsive
+    class           (nodeComponentBasic                 ), pointer       :: basic
+    double precision                                                     :: expansionFactor    , velocityMaximum
     !$GLC attributes unused :: rateStarFormation
 
     ! Get the basic component.
-    basic              => node             %basic()
+    basic => component%hostNode%basic()
     ! Get virial velocity and expansion factor.
-    velocityMaximum=self%darkMatterProfileDMO_%circularVelocityMaximum(node        )
-    expansionFactor=self%cosmologyFunctions_  %expansionFactor        (basic%time())
+    velocityMaximum=self%darkMatterProfileDMO_%circularVelocityMaximum(component%hostNode  )
+    expansionFactor=self%cosmologyFunctions_  %expansionFactor        (basic    %time    ())
     ! Compute the velocity factor.
     if (velocityMaximum /= self%velocityPrevious) then
        self%velocityPrevious       =                                                     velocityMaximum
@@ -158,9 +159,10 @@ contains
        self%expansionFactorFactor  =1.0d0/self%expansionFactorExponentiator%exponentiate(expansionFactor)
     end if
     ! Compute the outflow rate.
-    vlctyMxSclngOutflowRate=+self%normalization         &
-         &                  *rateEnergyInput            &
-         &                  *self%velocityFactor        &
-         &                  *self%expansionFactorFactor
+    rateOutflowEjective =+self%normalization         &
+         &               *rateEnergyInput            &
+         &               *self%velocityFactor        &
+         &               *self%expansionFactorFactor
+    rateOutflowExpulsive=+0.0d0
     return
-  end function vlctyMxSclngOutflowRate
+  end subroutine vlctyMxSclngOutflowRate

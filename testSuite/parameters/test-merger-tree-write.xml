@@ -19,25 +19,25 @@
     <version>0.9.4</version>
     <mergerTreeConstructorMethod value="build">
       <mergerTreeOperatorMethod value="export" parameterLevel="top">
-	<outputFileName value="testSuite/outputs/test-merger-tree-write/exportedTreesGLC.hdf5"/>
-	<exportFormat value="galacticus"/>
+        <outputFileName value="testSuite/outputs/test-merger-tree-write/exportedTreesGLC.hdf5"/>
+        <exportFormat value="galacticus"/>
       </mergerTreeOperatorMethod>
     </mergerTreeConstructorMethod>
     <mergerTreeConstructorMethod value="read">
       <fileNames value="testSuite/data/mergerTrees/millenniumTestTreesGLC.hdf5"/>
       <cosmologyParametersMethod value="simple" parameterLevel="top">
-	<OmegaMatter value="0.25"/>
-	<OmegaDarkEnergy value="0.75"/>
-	<OmegaBaryon value="0.045"/>
-	<HubbleConstant value="73.0"/>
+        <OmegaMatter value="0.25"/>
+        <OmegaDarkEnergy value="0.75"/>
+        <OmegaBaryon value="0.045"/>
+        <HubbleConstant value="73.0"/>
       </cosmologyParametersMethod>
       <cosmologicalMassVarianceMethod value="filteredPower" parameterLevel="top">
-	<sigma_8 value="0.9"/>
+        <sigma_8 value="0.9"/>
       </cosmologicalMassVarianceMethod>
       <treeNodeMethodPosition value="preset" parameterLevel="top"/>
       <mergerTreeOperatorMethod value="export" parameterLevel="top">
-	<outputFileName value="testSuite/outputs/test-merger-tree-write/exportedTreesIRATE.hdf5"/>
-	<exportFormat value="irate"/>
+        <outputFileName value="testSuite/outputs/test-merger-tree-write/exportedTreesIRATE.hdf5"/>
+        <exportFormat value="irate"/>
       </mergerTreeOperatorMethod>
       <presetOrbits value="false"/>
       <presetMergerTimes value="false"/>
@@ -48,5 +48,25 @@
       <presetScaleRadii value="false"/>
       <presetSpins value="false"/>
     </mergerTreeConstructorMethod>
+    <nodeOperatorMethod value="multi"><!--Stellar feedback outflows-->
+      <nodeOperatorMethod value="stellarFeedbackDisks">
+        <stellarFeedbackOutflowsMethod value="rateLimit">
+          <timescaleOutflowFractionalMinimum value="0.001"/>
+          <stellarFeedbackOutflowsMethod value="powerLaw">
+            <velocityCharacteristic value="250.0"/>
+            <exponent value="3.5"/>
+          </stellarFeedbackOutflowsMethod>
+        </stellarFeedbackOutflowsMethod>
+      </nodeOperatorMethod>
+      <nodeOperatorMethod value="stellarFeedbackSpheroids">
+        <stellarFeedbackOutflowsMethod value="rateLimit">
+          <timescaleOutflowFractionalMinimum value="0.001"/>
+          <stellarFeedbackOutflowsMethod value="powerLaw">
+            <velocityCharacteristic value="250.0"/>
+            <exponent value="3.5"/>
+          </stellarFeedbackOutflowsMethod>
+        </stellarFeedbackOutflowsMethod>
+      </nodeOperatorMethod>
+    </nodeOperatorMethod>
   </parameters>
 </parameterGrid>

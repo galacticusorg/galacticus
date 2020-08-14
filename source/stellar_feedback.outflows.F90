@@ -17,25 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides an object that implements cosmological parameters.
+!% Contains a module which provides a class that implements outflows due to stellar feedback.
 
-module Star_Formation_Feedback_Spheroids
-  !% Provides an object that implements calculations of feedback from star formation in spheroids.
-  use :: Galacticus_Nodes, only : treeNode
+module Stellar_Feedback_Outflows
+  !% Provides a class that implements ejective stellar feedback.
+  use :: Galacticus_Nodes, only : nodeComponent
   private
 
   !# <functionClass>
-  !#  <name>starFormationFeedbackSpheroids</name>
-  !#  <descriptiveName>Feedback from star formation in spheroids</descriptiveName>
-  !#  <description>Class providing models of feedback from star formation in spheroids.</description>
+  !#  <name>stellarFeedbackOutflows</name>
+  !#  <descriptiveName>Stellar feedback.</descriptiveName>
+  !#  <description>Class providing models of outflows due to stellar feedback.</description>
   !#  <default>powerLaw</default>
   !#  <method name="outflowRate" >
-  !#   <description>Returns the outflow rate due to star formation in the spheroid component of {\normalfont \ttfamily node} in units of $M_\odot/$Gyr.</description>
-  !#   <type>double precision</type>
+  !#   <description>Returns the outflow rates (both ejective and expulsive) due to stellar feedback in the given {\normalfont \ttfamily component} in units of $M_\odot/$Gyr.</description>
+  !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
-  !#   <argument>double precision          , intent(in   ) :: rateEnergyInput, rateStarFormation</argument>
+  !#   <argument>class           (nodeComponent), intent(inout) :: component</argument>
+  !#   <argument>double precision               , intent(in   ) :: rateStarFormation  , rateEnergyInput</argument>
+  !#   <argument>double precision               , intent(  out) :: rateOutflowEjective, rateOutflowExpulsive</argument>
   !#  </method>
   !# </functionClass>
 
-end module Star_Formation_Feedback_Spheroids
+end module Stellar_Feedback_Outflows

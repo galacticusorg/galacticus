@@ -27,10 +27,7 @@ module Node_Component_Spheroid_Standard
   use :: Satellite_Merging_Mass_Movements               , only : mergerMassMovementsClass
   use :: Satellite_Merging_Remnant_Sizes                , only : mergerRemnantSizeClass
   use :: Satellites_Tidal_Fields                        , only : satelliteTidalFieldClass
-  use :: Star_Formation_Feedback_Expulsion_Spheroids    , only : starFormationExpulsiveFeedbackSpheroidsClass
-  use :: Star_Formation_Feedback_Spheroids              , only : starFormationFeedbackSpheroidsClass
   use :: Star_Formation_Histories                       , only : starFormationHistory                        , starFormationHistoryClass
-  use :: Star_Formation_Rates_Spheroids                 , only : starFormationRateSpheroidsClass
   use :: Stellar_Population_Properties                  , only : stellarPopulationPropertiesClass
   use :: Tidal_Stripping_Mass_Loss_Rate_Spheroids       , only : tidalStrippingSpheroidsClass
   implicit none
@@ -164,17 +161,14 @@ module Node_Component_Spheroid_Standard
 
   ! Objects used by this component.
   class(stellarPopulationPropertiesClass            ), pointer :: stellarPopulationProperties_
-  class(starFormationFeedbackSpheroidsClass         ), pointer :: starFormationFeedbackSpheroids_
-  class(starFormationExpulsiveFeedbackSpheroidsClass), pointer :: starFormationExpulsiveFeedbackSpheroids_
   class(ramPressureStrippingSpheroidsClass          ), pointer :: ramPressureStrippingSpheroids_
   class(tidalStrippingSpheroidsClass                ), pointer :: tidalStrippingSpheroids_
   class(darkMatterHaloScaleClass                    ), pointer :: darkMatterHaloScale_
   class(satelliteTidalFieldClass                    ), pointer :: satelliteTidalField_
-  class(starFormationRateSpheroidsClass             ), pointer :: starFormationRateSpheroids_
   class(starFormationHistoryClass                   ), pointer :: starFormationHistory_
   class(mergerMassMovementsClass                    ), pointer :: mergerMassMovements_
   class(mergerRemnantSizeClass                      ), pointer :: mergerRemnantSize_
-  !$omp threadprivate(stellarPopulationProperties_,starFormationFeedbackSpheroids_,starFormationExpulsiveFeedbackSpheroids_,ramPressureStrippingSpheroids_,tidalStrippingSpheroids_,darkMatterHaloScale_,satelliteTidalField_,starFormationRateSpheroids_,starFormationHistory_,mergerMassMovements_,mergerRemnantSize_)
+  !$omp threadprivate(stellarPopulationProperties_,ramPressureStrippingSpheroids_,tidalStrippingSpheroids_,darkMatterHaloScale_,satelliteTidalField_,starFormationHistory_,mergerMassMovements_,mergerRemnantSize_)
 
   ! Internal count of abundances.
   integer                                     :: abundancesCount
@@ -183,8 +177,7 @@ module Node_Component_Spheroid_Standard
   double precision, allocatable, dimension(:) :: starFormationHistoryTemplate, stellarPropertiesHistoryTemplate
   !$omp threadprivate(starFormationHistoryTemplate,stellarPropertiesHistoryTemplate)
   ! Parameters controlling the physical implementation.
-  double precision                            :: spheroidEnergeticOutflowMassRate    , spheroidOutflowTimescaleMinimum    , &
-       &                                         spheroidMassToleranceAbsolute
+  double precision                            :: spheroidEnergeticOutflowMassRate    , spheroidMassToleranceAbsolute
   logical                                     :: spheroidLuminositiesStellarInactive
 
   ! Spheroid structural parameters.
@@ -241,14 +234,6 @@ contains
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
-       !#   <name>spheroidOutflowTimescaleMinimum</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>1.0d-3</defaultValue>
-       !#   <description>The minimum timescale (in units of the spheroid dynamical time) on which outflows may deplete gas in the spheroid.</description>
-       !#   <source>parameters_</source>
-       !#   <type>double</type>
-       !# </inputParameter>
-       !# <inputParameter>
        !#   <name>spheroidLuminositiesStellarInactive</name>
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
@@ -285,18 +270,15 @@ contains
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        dependencies(2)=dependencyRegEx(dependencyDirectionAfter,'^nodeComponentDisk')
        call satelliteMergerEvent%attach(defaultSpheroidComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard',dependencies=dependencies)
-       !# <objectBuilder class="stellarPopulationProperties"             name="stellarPopulationProperties_"             source="parameters_"/>
-       !# <objectBuilder class="starFormationFeedbackSpheroids"          name="starFormationFeedbackSpheroids_"          source="parameters_"/>
-       !# <objectBuilder class="starFormationExpulsiveFeedbackSpheroids" name="starFormationExpulsiveFeedbackSpheroids_" source="parameters_"/>
-       !# <objectBuilder class="starFormationRateSpheroids"              name="starFormationRateSpheroids_"              source="parameters_"/>
-       !# <objectBuilder class="ramPressureStrippingSpheroids"           name="ramPressureStrippingSpheroids_"           source="parameters_"/>
-       !# <objectBuilder class="tidalStrippingSpheroids"                 name="tidalStrippingSpheroids_"                 source="parameters_"/>
-       !# <objectBuilder class="darkMatterHaloScale"                     name="darkMatterHaloScale_"                     source="parameters_"/>
-       !# <objectBuilder class="satelliteTidalField"                     name="satelliteTidalField_"                     source="parameters_"/>
-       !# <objectBuilder class="starFormationHistory"                    name="starFormationHistory_"                    source="parameters_"/>
-       !# <objectBuilder class="mergerMassMovements"                     name="mergerMassMovements_"                     source="parameters_"/>
-       !# <objectBuilder class="mergerRemnantSize"                       name="mergerRemnantSize_"                       source="parameters_"/>
-       !# <objectBuilder class="massDistribution" parameterName="spheroidMassDistribution" name="spheroidMassDistribution" source="parameters_" threadPrivate="yes">
+       !# <objectBuilder class="stellarPopulationProperties"                                            name="stellarPopulationProperties_"   source="parameters_"                    />
+       !# <objectBuilder class="ramPressureStrippingSpheroids"                                          name="ramPressureStrippingSpheroids_" source="parameters_"                    />
+       !# <objectBuilder class="tidalStrippingSpheroids"                                                name="tidalStrippingSpheroids_"       source="parameters_"                    />
+       !# <objectBuilder class="darkMatterHaloScale"                                                    name="darkMatterHaloScale_"           source="parameters_"                    />
+       !# <objectBuilder class="satelliteTidalField"                                                    name="satelliteTidalField_"           source="parameters_"                    />
+       !# <objectBuilder class="starFormationHistory"                                                   name="starFormationHistory_"          source="parameters_"                    />
+       !# <objectBuilder class="mergerMassMovements"                                                    name="mergerMassMovements_"           source="parameters_"                    />
+       !# <objectBuilder class="mergerRemnantSize"                                                      name="mergerRemnantSize_"             source="parameters_"                    />
+       !# <objectBuilder class="massDistribution"              parameterName="spheroidMassDistribution" name="spheroidMassDistribution"       source="parameters_" threadPrivate="yes" >
        !#  <default>
        !#   <spheroidMassDistribution value="hernquist">
        !#    <dimensionless value="true"/>
@@ -349,18 +331,15 @@ contains
     if (defaultSpheroidComponent%standardIsActive()) then
        call postEvolveEvent     %detach(defaultSpheroidComponent,postEvolve     )
        call satelliteMergerEvent%detach(defaultSpheroidComponent,satelliteMerger)
-       !# <objectDestructor name="stellarPopulationProperties_"            />
-       !# <objectDestructor name="starFormationFeedbackSpheroids_"         />
-       !# <objectDestructor name="starFormationExpulsiveFeedbackSpheroids_"/>
-       !# <objectDestructor name="starFormationRateSpheroids_"             />
-       !# <objectDestructor name="ramPressureStrippingSpheroids_"          />
-       !# <objectDestructor name="tidalStrippingSpheroids_"                />
-       !# <objectDestructor name="darkMatterHaloScale_"                    />
-       !# <objectDestructor name="satelliteTidalField_"                    />
-       !# <objectDestructor name="starFormationHistory_"                   />
-       !# <objectDestructor name="mergerMassMovements_"                    />
-       !# <objectDestructor name="mergerRemnantSize_"                      />
-       !# <objectDestructor name="spheroidMassDistribution"                />
+       !# <objectDestructor name="stellarPopulationProperties_"  />
+       !# <objectDestructor name="ramPressureStrippingSpheroids_"/>
+       !# <objectDestructor name="tidalStrippingSpheroids_"      />
+       !# <objectDestructor name="darkMatterHaloScale_"          />
+       !# <objectDestructor name="satelliteTidalField_"          />
+       !# <objectDestructor name="starFormationHistory_"         />
+       !# <objectDestructor name="mergerMassMovements_"          />
+       !# <objectDestructor name="mergerRemnantSize_"            />
+       !# <objectDestructor name="spheroidMassDistribution"      />
     end if
     return
   end subroutine Node_Component_Spheroid_Standard_Thread_Uninitialize
@@ -651,11 +630,11 @@ contains
     use :: Abundances_Structure            , only : abs                     , abundances          , max                  , operator(*)
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                , only : defaultSpheroidComponent, nodeComponentHotHalo, nodeComponentSpheroid, nodeComponentSpheroidStandard, &
-          &                                         propertyTypeActive      , propertyTypeAll     , propertyTypeInactive , treeNode
+         &                                          propertyTypeActive      , propertyTypeAll     , propertyTypeInactive , treeNode
     use :: Histories                       , only : history                 , operator(*)
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     use :: Stellar_Luminosities_Structure  , only : abs                     , max                 , operator(*)          , stellarLuminosities          , &
-          &                                         zeroStellarLuminosities
+         &                                          zeroStellarLuminosities
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
     logical                                , intent(in   )          :: odeConverged
@@ -664,19 +643,10 @@ contains
     integer                                , intent(in   )          :: propertyType
     class           (nodeComponentSpheroid)               , pointer :: spheroid
     class           (nodeComponentHotHalo )               , pointer :: hotHalo
-    type            (abundances           ), save                   :: fuelAbundances             , fuelAbundancesRates     , &
-         &                                                             stellarAbundancesRates
-    !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
-    double precision                                                :: angularMomentumOutflowRate , energyInputRate         , &
-         &                                                             fractionGas                , fractionStellar         , &
-         &                                                             fuelMass                   , fuelMassRate            , &
-         &                                                             gasMass                    , massLossRate            , &
-         &                                                             massOutflowRate            , massOutflowRateFromHalo , &
-         &                                                             massOutflowRateToHotHalo   , outflowToHotHaloFraction, &
-         &                                                             spheroidDynamicalTime      , spheroidMass            , &
-         &                                                             starFormationRate          , stellarMassRate         , &
-         &                                                             tidalField                 , tidalTorque
-    type            (history              )                         :: historyTransferRate        , stellarHistoryRate
+    double precision                                                :: fractionGas             , fractionStellar, &
+         &                                                             tidalField              , tidalTorque    , &
+         &                                                             massLossRate
+    type            (history              )                         :: historyTransferRate
     type            (stellarLuminosities  ), save                   :: luminositiesStellarRates
     !$omp threadprivate(luminositiesStellarRates)
     !$GLC attributes unused :: interrupt, interruptProcedure, odeConverged
@@ -692,54 +662,6 @@ contains
             & .or. spheroid%radius         () <          radiusMinimum &
             & .or. spheroid%massGas        () <            massMinimum &
             & ) return
-       ! Compute the star formation rate.
-       starFormationRate=starFormationRateSpheroids_%rate(node)
-       ! Get the available fuel mass.
-       fuelMass         =spheroid%massGas          ()
-       ! Find the metallicity of the fuel supply.
-       fuelAbundances   =spheroid%abundancesGas    ()
-       call fuelAbundances%massToMassFraction(fuelMass)
-       ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
-       stellarHistoryRate=spheroid%stellarPropertiesHistory()
-       call stellarPopulationProperties_%rates(starFormationRate,fuelAbundances,spheroid,node,stellarHistoryRate&
-            &,stellarMassRate,fuelMassRate,energyInputRate,fuelAbundancesRates,stellarAbundancesRates,luminositiesStellarRates,computeRateLuminosityStellar=.false.)
-       
-       ! Find rate of outflow of material from the spheroid and pipe it to the outflowed reservoir.
-       massOutflowRateToHotHalo=starFormationFeedbackSpheroids_         %outflowRate(node,energyInputRate,starFormationRate)
-       massOutflowRateFromHalo =starFormationExpulsiveFeedbackSpheroids_%outflowRate(node,starFormationRate,energyInputRate)
-       massOutflowRate         =massOutflowRateToHotHalo+massOutflowRateFromHalo
-       if (massOutflowRate > 0.0d0) then
-          ! Find the fraction of material which outflows to the hot halo.
-          outflowToHotHaloFraction=massOutflowRateToHotHalo/massOutflowRate
-
-          ! Get the masses of the spheroid.
-          gasMass     =        spheroid%massGas    ()
-          spheroidMass=gasMass+spheroid%massStellar()
-
-          ! Limit the outflow rate timescale to a multiple of the dynamical time.
-          spheroidDynamicalTime=Mpc_per_km_per_s_To_Gyr*spheroid%radius()/spheroid%velocity()
-
-          ! Limit the mass outflow rate.
-          massOutflowRate=min(massOutflowRate,gasMass/spheroidOutflowTimescaleMinimum/spheroidDynamicalTime)
-          hotHalo => node%hotHalo()
-          call hotHalo %outflowingMassRate(+massOutflowRate*outflowToHotHaloFraction)
-          call spheroid%       massGasRate(-massOutflowRate                         )
-
-          ! Compute the angular momentum outflow rate.
-          if (spheroidMass > 0.0d0) then
-             angularMomentumOutflowRate=(massOutflowRate/spheroidMass)*spheroid%angularMomentum()
-             call hotHalo %outflowingAngularMomentumRate(+angularMomentumOutflowRate*outflowToHotHaloFraction)
-             call spheroid%          angularMomentumRate(-angularMomentumOutflowRate                         )
-          end if
-
-          ! Compute the abundances outflow rate.
-          fuelAbundancesRates=spheroid%abundancesGas()
-          call fuelAbundancesRates%massToMassFraction(gasMass)
-          fuelAbundancesRates=fuelAbundancesRates*massOutflowRate
-          call hotHalo %outflowingAbundancesRate(+fuelAbundancesRates*outflowToHotHaloFraction)
-          call spheroid%       abundancesGasRate(-fuelAbundancesRates                         )
-       end if
-
        ! Apply mass loss rate due to ram pressure stripping.
        if (spheroid%massGas() > 0.0d0) then
           massLossRate=ramPressureStrippingSpheroids_%rateMassLoss(node)
@@ -753,7 +675,6 @@ contains
              call hotHalo %     outflowingAbundancesRate(+massLossRate*spheroid%abundancesGas  ()/ spheroid%massGas()                        )
           end if
        end if
-
        ! Apply mass loss rate due to tidal stripping.
        if (spheroid%massGas()+spheroid%massStellar() > 0.0d0) then
           massLossRate=tidalStrippingSpheroids_%rateMassLoss(node)

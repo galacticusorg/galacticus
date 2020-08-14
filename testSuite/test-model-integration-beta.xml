@@ -3,15 +3,15 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
   <!-- Beta model maximum likelihood model -->
-  
+
   <!-- Logging -->
   <verbosityLevel value="1"/>
 
   <!-- Random number generation -->
   <randomNumberGeneratorMethod value="GSL">
-    <seed value="1" />
+    <seed value="1"/>
   </randomNumberGeneratorMethod>
-  
+
   <!-- Cosmological model -->
   <cosmologyParametersMethod value="simple">
     <HubbleConstant value="66.5775039090067"/>
@@ -21,7 +21,7 @@
     <temperatureCMB value="2.72548"/>
   </cosmologyParametersMethod>
   <cosmologyFunctionsMethod value="matterLambda"/>
-  
+
   <!-- Power spectrum -->
   <powerSpectrumMethod value="standard"/>
   <powerSpectrumPrimordialMethod value="powerLaw">
@@ -39,7 +39,7 @@
     <tolerance value="1.0e-7"/>
   </cosmologicalMassVarianceMethod>
   <powerSpectrumNonlinearMethod value="peacockDodds1996"/>
-  
+
   <!-- Structure formation -->
   <linearGrowthMethod value="collisionlessMatter"/>
   <criticalOverdensityMethod value="kitayamaSuto1996"/>
@@ -52,7 +52,7 @@
     <haloMassFunctionMethod value="tinker2008"/>
   </haloMassFunctionMethod>
   <gravitationalLensingMethod value="takahashi2011"/>
-  
+
   <!-- Intergalactic medium and reionization -->
   <intergalacticMediumStateMethod value="instantReionization">
     <electronScatteringOpticalDepth value="0.0586876996811808"/>
@@ -62,7 +62,7 @@
     <presentDayTemperature value="6740.8086092437970"/>
     <reionizationTemperature value="9641.9553322180927"/>
   </intergalacticMediumStateMethod>
-  
+
   <!-- Tree node component selection -->
   <treeNodeMethodBasic value="standardExtended"/>
   <treeNodeMethodBlackHole value="null"/>
@@ -73,7 +73,7 @@
   <treeNodeMethodSpheroid value="null"/>
   <treeNodeMethodSpin value="random"/>
   <nodeComponentBasicExtendedSphericalCollapseType value="bryanNorman"/>
-  
+
   <!-- Merger tree construction -->
   <mergerTreeConstructorMethod value="build"/>
   <mergerTreeBuilderMethod value="cole2000">
@@ -102,15 +102,16 @@
   </mergerTreeBuildMassesMethod>
   <mergerTreeBuildMassDistributionMethod value="haloMassFunction">
     <abundanceMaximum value="1.0e-1"/>
-    <abundanceMinimum value="1.0e-8"/>    
+    <abundanceMinimum value="1.0e-8"/>
+
   </mergerTreeBuildMassDistributionMethod>
-  
+
   <!-- Merger tree operators -->
   <mergerTreeOperatorMethod value="pruneBaryons"/>
-  
+
   <!-- Merger tree halo hierarchy -->
   <mergerTreeNodeMergerMethod value="singleLevelHierarchy"/>
-  
+
   <!-- Dark matter halo structure -->
   <darkMatterProfileDMOMethod value="NFW"/>
   <darkMatterProfileConcentrationMethod value="diemerKravtsov2014">
@@ -132,7 +133,7 @@
     <lambda0 value="4.3249047072217509E-002"/>
   </haloSpinDistributionMethod>
   <randomSpinResetMassFactor value="2.0"/>
-  
+
   <!-- Satellite orbits -->
   <virialOrbitMethod value="fixed">
     <velocityTangential value="+0.842"/>
@@ -143,7 +144,7 @@
     </virialDensityContrastMethod>
   </virialOrbitMethod>
   <satelliteMergingTimescalesMethod value="jiang2008">
-  <timescaleMultiplier value="1.2044009774202384"/>
+    <timescaleMultiplier value="1.2044009774202384"/>
   </satelliteMergingTimescalesMethod>
   <!-- Hot atmosphere -->
   <hotHaloOutflowReincorporationMethod value="velocityMaximumScaling">
@@ -152,17 +153,17 @@
     <timescaleMinimum value="+1.09920844058817300e-2"/>
     <velocityExponent value="-1.40599595975037690e-2"/>
   </hotHaloOutflowReincorporationMethod>
-  
+
   <!-- Accretion onto halos -->
   <accretionHaloTotalMethod value="bertschinger"/>
-  
+
   <!-- Accretion from the IGM -->
   <accretionHaloMethod value="naozBarkana2007">
     <opticalDepthReionization value="0.0586876996811808"/>
     <massMinimum value="1.0e6"/>
     <rateAdjust value="0.5"/>
   </accretionHaloMethod>
-  
+
   <!-- Cooling and infall -->
   <coolingRateMethod value="velocityMaximumScaling">
     <exponentCutOff value="2.0459112996298177"/>
@@ -174,7 +175,7 @@
     <timescaleMinimum value="1.1938773305805278E-002"/>
     <exponentVelocity value="1.5945852735390698"/>
   </coolingRateMethod>
-  
+
   <!-- Galactic structure -->
   <galacticStructureSolverMethod value="fixed">
     <factor value="0.26657982137919706"/>
@@ -186,9 +187,9 @@
     <starFormationTimescaleMethod value="lowerLimited">
       <timescaleMinimum value="2.2925637877309368E-005"/>
       <starFormationTimescaleMethod value="velocityMaxScaling">
-	<exponentRedshift value="-2.6841093892429728"/>
-	<timescale value="8.5952943576927687"/>
-	<exponentVelocity value="1.5643560026940344"/>
+        <exponentRedshift value="-2.6841093892429728"/>
+        <timescale value="8.5952943576927687"/>
+        <exponentVelocity value="1.5643560026940344"/>
       </starFormationTimescaleMethod>
     </starFormationTimescaleMethod>
     <starFormationActiveMassMethod value="surfaceDensityThreshold">
@@ -198,16 +199,10 @@
   </starFormationRateDisksMethod>
 
   <!-- Stellar feedback in disks -->
-  <starFormationFeedbackDisksMethod value="vlctyMxSclng">
-    <fraction value="6.2513793382530228E-002"/>
-    <exponentRedshift value="2.6150327842305985"/>
-    <exponentVelocity value="-4.6058653822166820"/>
-  </starFormationFeedbackDisksMethod>
-  <diskOutflowTimescaleMinimum value="2.8035155505694409E-002"/>
-  
+
   <!-- Stellar initial mass function -->
   <stellarPopulationSelectorMethod value="fixed"/>
-  
+
   <initialMassFunctionMethod value="chabrier2001"/>
   <stellarPopulationMethod value="standard">
     <recycledFraction value="0.46"/>
@@ -216,11 +211,11 @@
 
   <!-- Stellar evolution -->
   <stellarPopulationPropertiesMethod value="instantaneous"/>
-  
+
   <!-- Galaxy merging -->
   <mergerMassMovementsMethod value="verySimple"/>
   <mergerRemnantSizeMethod value="null"/>
-  
+
   <!-- Solvers and time-stepping -->
   <mergerTreeNodeEvolverMethod value="standard">
     <odeAlgorithm value="rungeKuttaSecondOrder"/>
@@ -246,10 +241,22 @@
   <diskVerySimpleAnalyticSolverPruneMassGas value="1.0e6"/>
   <diskVerySimpleAnalyticSolverPruneMassStars value="1.0e6"/>
   <diskVerySimpleUseAnalyticSolver value="true"/>
-  
+
   <!-- Node evolution and physics -->
-  <nodeOperatorMethod value="starFormationDisks"    />
-  
+  <nodeOperatorMethod value="multi">
+    <nodeOperatorMethod value="starFormationDisks"/>
+    <nodeOperatorMethod value="stellarFeedbackDisks">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="2.8035155505694409E-002"/>
+        <stellarFeedbackOutflowsMethod value="vlctyMxSclng">
+	  <fraction value="6.2513793382530228E-002"/>
+	  <exponentRedshift value="2.6150327842305985"/>
+	  <exponentVelocity value="-4.6058653822166820"/>
+	</stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+  </nodeOperatorMethod>
+
   <!-- Output -->
   <galacticusOutputFileName value="testSuite/outputs/test-model-integration/beta/galacticus.hdf5"/>
   <hdf5CompressionLevel value="-1"/>
@@ -260,4 +267,4 @@
     <redshifts value="0.0"/>
   </outputTimesMethod>
 
-  </parameters>
+</parameters>

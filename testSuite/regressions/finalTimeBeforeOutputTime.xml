@@ -17,13 +17,27 @@
       <timescale value="1.0"/>
     </starFormationTimescaleMethod>
   </starFormationRateDisksMethod>
-  
+
   <!-- Node evolution and physics -->
   <nodeOperatorMethod value="multi">
-    <nodeOperatorMethod value="starFormationDisks"    />
+    <nodeOperatorMethod value="starFormationDisks"/>
     <nodeOperatorMethod value="starFormationSpheroids"/>
+    <!--Stellar feedback outflows-->
+    <nodeOperatorMethod value="stellarFeedbackDisks">
+      <stellarFeedbackOutflowsMethod value="haloScaling">
+        <fraction value="1.0"/>
+        <exponentVelocity value="-3.0"/>
+        <exponentRedshift value="0.0"/>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+    <nodeOperatorMethod value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflowsMethod value="powerLaw">
+        <velocityCharacteristic value="250.0"/>
+        <exponent value="3.5"/>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
   </nodeOperatorMethod>
-  
+
   <coolingTimeMethod value="simple">
     <degreesOfFreedom value="3.0"/>
   </coolingTimeMethod>
@@ -96,7 +110,7 @@
 
   <treeNodeMethodBasic value="standard"/>
   <coolingFunctionMethod value="atomicCIECloudy"/>
-  
+
   <initialMassFunctionMethod value="chabrier2001"/>
   <treeNodeMethodHotHalo value="verySimple"/>
   <hotHaloAngularMomentumLossFraction value="0.0"/>
@@ -126,11 +140,7 @@
     <normalization value="2.0e-4"/>
     <binWidthLogarithmic value="0.097"/>
   </mergerTreeBuildMassesMethod>
-  <starFormationFeedbackDisksMethod value="haloScaling">
-    <fraction value="1.0"/>
-    <exponentVelocity value="-3.0"/>
-    <exponentRedshift value="0.0"/>
-  </starFormationFeedbackDisksMethod>
+
   <coolingRateMethod value="simpleScaling">
     <exponentRedshift value="3.0"/>
     <massCutOff value="5.0e12"/>
@@ -161,7 +171,7 @@
   </virialOrbitMethod>
   <virialDensityContrastMethod value="kitayamaSuto1996"/>
   <mergerTreeConstructorMethod value="read">
-  <presetSubhaloIndices value="false"/>
+    <presetSubhaloIndices value="false"/>
     <presetMergerTimes value="false"/>
     <treeIndexToRootNodeIndex value="true"/>
     <presetSubhaloMasses value="false"/>

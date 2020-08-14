@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <parameters>
   <!-- Radiative transfer model for a Stromgren sphere -->
 
@@ -6,41 +7,42 @@
   <galacticusOutputFileName value="testSuite/outputs/radiativeTransfer-StromgrenSphere.hdf5"/>
 
   <randomNumberGeneratorMethod value="GSL">
-    <seed          value="830" />
+    <seed value="830"/>
     <mpiRankOffset value="true"/>
   </randomNumberGeneratorMethod>
-  
+
   <taskMethod value="radiativeTransfer">
-    <wavelengthMinimum         value="100.0"/>
-    <wavelengthMaximum         value="912.0"/>
-    <wavelengthCountPerDecade  value=" 3000"/>
+    <wavelengthMinimum value="100.0"/>
+    <wavelengthMaximum value="912.0"/>
+    <wavelengthCountPerDecade value=" 3000"/>
     <countPhotonsPerWavelength value="10000"/>
-    <countIterationsMinimum    value="   30"/>
-    <countIterationsMaximum    value="  200"/>
+    <countIterationsMinimum value="   30"/>
+    <countIterationsMaximum value="  200"/>
   </taskMethod>
 
   <computationalDomainMethod value="cartesian3D">
-    <xBoundaries               value="-6.0e-6 +6.0e-6"/>
-    <yBoundaries               value="-6.0e-6 +6.0e-6"/>
-    <zBoundaries               value="-6.0e-6 +6.0e-6"/>
-    <countCells                value="20 20 20"       />
-    <convergencePercentile     value="0.95"           />
-    <convergenceThreshold      value="2.00"           />
-    <convergenceRatioThreshold value="1.10"           />
+    <xBoundaries value="-6.0e-6 +6.0e-6"/>
+    <yBoundaries value="-6.0e-6 +6.0e-6"/>
+    <zBoundaries value="-6.0e-6 +6.0e-6"/>
+    <countCells value="20 20 20"/>
+    <convergencePercentile value="0.95"/>
+    <convergenceThreshold value="2.00"/>
+    <convergenceRatioThreshold value="1.10"/>
   </computationalDomainMethod>
 
   <radiativeTransferConvergenceMethod value="hydrogenRecombinationRate">
     <toleranceRelative value="0.01"/>
   </radiativeTransferConvergenceMethod>
-  
+
   <!-- Use a pure hydrogen nebula - average photoionization/heating rates over two iterations to improve convergence properties -->
   <radiativeTransferMatterMethod value="atomic">
     <iterationAverageCount value="5"/>
   </radiativeTransferMatterMethod>
-  
+
   <!-- Simple constant density cloud model intended to be slightly larger than a typical HII region -->
   <massDistributionMethod value="constantDensityCloud">
-    <mass   value="3.2e+3"/> 
+    <mass value="3.2e+3"/>
+
     <radius value="6.0e-6"/>
   </massDistributionMethod>
 
@@ -48,7 +50,7 @@
   <radiativeTransferSourceMethod value="point">
     <position value="0.0 0.0 0.0"/>
     <radiativeTransferSpectrumMethod value="blackBody">
-      <temperature          value="6.00e4"/>
+      <temperature value="6.00e4"/>
       <luminosityBolometric value="1.33e5"/>
     </radiativeTransferSpectrumMethod>
   </radiativeTransferSourceMethod>
@@ -57,10 +59,30 @@
   <radiativeTransferOutputterMethod value="lymanContinuumRate"/>
 
   <!-- Used simplified atomic physics for this test -->
-  <atomicRecombinationRateRadiativeMethod    value="fixed" >
+  <atomicRecombinationRateRadiativeMethod value="fixed">
     <rateCoefficient value="2.0e-13"/>
-  </atomicRecombinationRateRadiativeMethod                 >
-  <atomicIonizationRateCollisionalMethod     value="zero" />
-  <atomicRecombinationRateDielectronicMethod value="zero" />
-  
+  </atomicRecombinationRateRadiativeMethod>
+  <atomicIonizationRateCollisionalMethod value="zero"/>
+  <atomicRecombinationRateDielectronicMethod value="zero"/>
+
+  <nodeOperatorMethod value="multi"><!--Stellar feedback outflows-->
+    <nodeOperatorMethod value="stellarFeedbackDisks">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+    <nodeOperatorMethod value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+  </nodeOperatorMethod>
 </parameters>

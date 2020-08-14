@@ -83,10 +83,12 @@
     </mergerTreeBuildMassesMethod>
     <mergerTreeMassResolutionMethod value="fixed">
       <massResolution value="1.0e9"/>
-    </mergerTreeMassResolutionMethod> 
+    </mergerTreeMassResolutionMethod>
+
     <mergerTreeBuildMassDistributionMethod value="haloMassFunction">
       <abundanceMaximum value="1.0e-1"/>
-      <abundanceMinimum value="1.0e-8"/>    
+      <abundanceMinimum value="1.0e-8"/>
+
     </mergerTreeBuildMassDistributionMethod>
     <mergerTreeBuilderMethod value="cole2000">
       <branchIntervalStep value="true"/>
@@ -110,7 +112,7 @@
     <!-- Prevent negative accretion -->
     <hotHaloNodeMergerLimitBaryonFraction value="true"/>
     <hotHaloAngularMomentumAlwaysGrows value="true"/>
-    
+
     <!-- Outputs and analyses -->
     <outputTimesMethod value="list">
       <redshifts value="0.0000"/>
@@ -214,17 +216,17 @@
     </starFormationRateSurfaceDensityDisksMethod>
     <starFormationRateSpheroidsMethod value="timescale">
       <starFormationTimescaleMethod value="dynamicalTime">
-	<efficiency value="0.04"/>
-	<exponentVelocity value="2.0"/>
-	<timescaleMinimum value="0.001"/>
+        <efficiency value="0.04"/>
+        <exponentVelocity value="2.0"/>
+        <timescaleMinimum value="0.001"/>
       </starFormationTimescaleMethod>
     </starFormationRateSpheroidsMethod>
-    
+
     <!-- Stellar populations options -->
     <stellarPopulationPropertiesMethod value="instantaneous"/>
     <stellarPopulationSpectraMethod value="FSPS"/>
     <stellarPopulationSelectorMethod value="fixed"/>
-    
+
     <initialMassFunctionMethod value="chabrier2001"/>
     <stellarPopulationMethod value="standard">
       <recycledFraction value="0.46"/>
@@ -235,16 +237,6 @@
     <hotHaloExcessHeatDrivesOutflow value="true"/>
     <blackHoleHeatsHotHalo value="false"/>
 
-    <!-- Supernovae feedback options -->
-    <starFormationFeedbackDisksMethod value="powerLaw">
-      <velocityCharacteristic value="250.0"/>
-      <exponent value="3.5"/>
-    </starFormationFeedbackDisksMethod>
-    <starFormationFeedbackSpheroidsMethod value="powerLaw">
-      <exponent value="3.5"/>
-      <velocityCharacteristic value="100.0"/>
-    </starFormationFeedbackSpheroidsMethod>
-    
     <!-- Accretion disk properties -->
     <accretionDisksMethod value="switched">
       <accretionRateThinDiskMaximum value="0.30"/>
@@ -252,12 +244,12 @@
       <scaleADAFRadiativeEfficiency value="true"/>
       <accretionDisksShakuraSunyaevMethod value="shakuraSunyaev"/>
       <accretionDisksADAFMethod value="ADAF">
-	<efficiencyRadiationType value="thinDisk"/>
-	<adiabaticIndex value="1.444"/>
-	<energyOption value="pureADAF"/>
-	<efficiencyRadiation value="0.01"/>
-	<viscosityOption value="fit"/>
-	<efficiencyJetMaximum value="2.0"/>
+        <efficiencyRadiationType value="thinDisk"/>
+        <adiabaticIndex value="1.444"/>
+        <energyOption value="pureADAF"/>
+        <efficiencyRadiation value="0.01"/>
+        <viscosityOption value="fit"/>
+        <efficiencyJetMaximum value="2.0"/>
       </accretionDisksADAFMethod>
     </accretionDisksMethod>
 
@@ -288,13 +280,32 @@
     </mergerRemnantSizeMethod>
     <!-- Spheroid options -->
     <spheroidEnergeticOutflowMassRate value="1.0e-2"/>
-    
+
     <!-- Node evolution and physics -->
     <nodeOperatorMethod value="multi">
-      <nodeOperatorMethod value="starFormationDisks"     iterable="no"/>
+      <nodeOperatorMethod value="starFormationDisks" iterable="no"/>
       <nodeOperatorMethod value="starFormationSpheroids" iterable="no"/>
+      <!--Stellar feedback outflows-->
+      <nodeOperatorMethod value="stellarFeedbackDisks">
+        <stellarFeedbackOutflowsMethod value="rateLimit">
+          <timescaleOutflowFractionalMinimum value="0.001"/>
+          <stellarFeedbackOutflowsMethod value="powerLaw">
+            <velocityCharacteristic value="250.0"/>
+            <exponent value="3.5"/>
+          </stellarFeedbackOutflowsMethod>
+        </stellarFeedbackOutflowsMethod>
+      </nodeOperatorMethod>
+      <nodeOperatorMethod value="stellarFeedbackSpheroids">
+        <stellarFeedbackOutflowsMethod value="rateLimit">
+          <timescaleOutflowFractionalMinimum value="0.001"/>
+          <stellarFeedbackOutflowsMethod value="powerLaw">
+            <exponent value="3.5"/>
+            <velocityCharacteristic value="100.0"/>
+          </stellarFeedbackOutflowsMethod>
+        </stellarFeedbackOutflowsMethod>
+      </nodeOperatorMethod>
     </nodeOperatorMethod>
-    
+
     <!-- Numerical tolerances -->
     <mergerTreeNodeEvolverMethod value="standard">
       <odeToleranceAbsolute value="1.0e-5"/>
@@ -307,7 +318,7 @@
       <timestepHostAbsolute value="1.0"/>
       <timestepHostRelative value="0.1"/>
     </mergerTreeEvolverMethod>
-    
+
     <!-- Output options -->
     <mergerTreeOutputterMethod value="standard">
       <outputReferences value="false"/>

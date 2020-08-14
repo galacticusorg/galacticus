@@ -53,14 +53,14 @@
 
   <!-- Merger tree building options -->
   <mergerTreeConstructorMethod value="fullySpecified">
-  <fileName value="testSuite/parameters/reproducibility/closedBoxTree.xml"/>
+    <fileName value="testSuite/parameters/reproducibility/closedBoxTree.xml"/>
   </mergerTreeConstructorMethod>
   <!-- Halo accretion options -->
   <accretionHaloMethod value="zero"/>
 
   <!-- Dark matter halo profile -->
   <darkMatterProfileDMOMethod value="isothermal"/>
-  
+
   <!-- Hot halo model options -->
   <hotHaloMassDistributionMethod value="null"/>
 
@@ -74,11 +74,6 @@
     </starFormationTimescaleMethod>
   </starFormationRateDisksMethod>
 
-  <!-- Feedback -->
-  <starFormationFeedbackDisksMethod value="fixed">
-    <fraction value="0.0"/>
-  </starFormationFeedbackDisksMethod>
-
   <!-- Metal production -->
   <diskVerySimpleTrackAbundances value="true"/>
   <stellarPopulationMethod value="standard">
@@ -88,7 +83,7 @@
 
   <!-- Node evolution and physics -->
   <nodeOperatorMethod value="starFormationDisks"/>
-  
+
   <!-- Numerical tolerances -->
   <mergerTreeNodeEvolverMethod value="standard">
     <odeToleranceAbsolute value="1.0e-6"/>
@@ -107,5 +102,5 @@
 
   <!-- Output file -->
   <galacticusOutputFileName value="testSuite/outputs/reproducibility/closedBox.hdf5"/>
-  
+
 </parameters>

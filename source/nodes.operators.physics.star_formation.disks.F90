@@ -148,9 +148,6 @@ contains
          &                                        nodeComponentSpheroid
     use :: Histories                     , only : history
     use :: Stellar_Luminosities_Structure, only : stellarLuminosities
-
-use iso_varying_string
-
     implicit none
     class           (nodeOperatorStarFormationDisks), intent(inout)          :: self
     type            (treeNode                      ), intent(inout)          :: node

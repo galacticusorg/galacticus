@@ -3,7 +3,7 @@
 <!-- 30-October-2011                          -->
 <parameters>
   <formatVersion>2</formatVersion>
-    <version>0.9.4</version>
+  <version>0.9.4</version>
 
   <!-- Specify output file name -->
   <galacticusOutputFileName value="trees.hdf5"/>
@@ -51,7 +51,7 @@
 
   <!-- Merger tree building options -->
   <mergerTreeConstructorMethod value="read">
-  <fileNames value="/data/abenson/Galacticus/Merger_Trees/milliMillennium.hdf5"/>
+    <fileNames value="/data/abenson/Galacticus/Merger_Trees/milliMillennium.hdf5"/>
     <presetMergerTimes value="true"/>
     <presetMergerNodes value="true"/>
     <presetSubhaloMasses value="false"/>
@@ -93,7 +93,7 @@
   <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
   </mergerTreeOutputterMethod>
-  
+
   <mergerTreeOperatorMethod value="sequence">
 
     <mergerTreeOperatorMethod value="conditionalMF">
@@ -107,8 +107,8 @@
       <parentRedshifts value="0.0 0.0"/>
       <progenitorRedshifts value="0.5 1.0"/>
     </mergerTreeOperatorMethod>
-    
-   <mergerTreeOperatorMethod value="regridTimes">
+
+    <mergerTreeOperatorMethod value="regridTimes">
       <expansionFactorStart value="0.047"/>
       <expansionFactorEnd value="1.0"/>
       <regridCount value="60"/>
@@ -127,11 +127,11 @@
           0.115883  0.089288  0.064493  0.041403  0.019933  0.000000
         </value>
       </snapshotRedshifts>
-   </mergerTreeOperatorMethod>
-   
+    </mergerTreeOperatorMethod>
+
     <mergerTreeOperatorMethod value="augment">
       <snapshotRedshifts>
-	<value>
+        <value>
           19.915688 18.243723 16.724525 15.343073 14.085914 12.940780
           11.896569 10.943864 10.073462  9.277915  8.549912  7.883204
           7.272188  6.711586  6.196833  5.723864  5.288833  4.888449
@@ -142,18 +142,18 @@
           0.623590  0.564177  0.508591  0.456577  0.407899  0.362340
           0.319703  0.279802  0.242469  0.207549  0.174898  0.144383
           0.115883  0.089288  0.064493  0.041403  0.019933  0.000000
-	</value>
+        </value>
       </snapshotRedshifts>
       <massResolution value="2.36e10"/>
       <mergerTreeBuilderMethod value="cole2000">
-	<accretionLimit value="0.1"/>
-	<mergeProbability value="0.1"/>
-	<mergerTreeMassResolutionMethod value="fixed">
-	  <massResolution value="2.36e9"/>
-	</mergerTreeMassResolutionMethod>
+        <accretionLimit value="0.1"/>
+        <mergeProbability value="0.1"/>
+        <mergerTreeMassResolutionMethod value="fixed">
+          <massResolution value="2.36e9"/>
+        </mergerTreeMassResolutionMethod>
       </mergerTreeBuilderMethod>
-    </mergerTreeOperatorMethod>    
-    
+    </mergerTreeOperatorMethod>
+
     <mergerTreeOperatorMethod value="conditionalMF">
       <outputGroupName value="treeStatisticsAfterInsertion"/>
       <parentMassCount value="2"/>
@@ -168,4 +168,23 @@
 
   </mergerTreeOperatorMethod>
 
+  <!--Stellar feedback outflows-->
+  <nodeOperatorMethod value="stellarFeedbackDisks">
+    <stellarFeedbackOutflowsMethod value="rateLimit">
+      <timescaleOutflowFractionalMinimum value="0.001"/>
+      <stellarFeedbackOutflowsMethod value="powerLaw">
+        <velocityCharacteristic value="250.0"/>
+        <exponent value="3.5"/>
+      </stellarFeedbackOutflowsMethod>
+    </stellarFeedbackOutflowsMethod>
+  </nodeOperatorMethod>
+  <nodeOperatorMethod value="stellarFeedbackSpheroids">
+    <stellarFeedbackOutflowsMethod value="rateLimit">
+      <timescaleOutflowFractionalMinimum value="0.001"/>
+      <stellarFeedbackOutflowsMethod value="powerLaw">
+        <velocityCharacteristic value="250.0"/>
+        <exponent value="3.5"/>
+      </stellarFeedbackOutflowsMethod>
+    </stellarFeedbackOutflowsMethod>
+  </nodeOperatorMethod>
 </parameters>

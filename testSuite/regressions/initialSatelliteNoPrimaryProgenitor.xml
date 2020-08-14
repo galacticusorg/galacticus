@@ -9,10 +9,20 @@
   <version>0.9.4</version>
   <verbosityLevel value="1"/>
   <treeNodeMethodDarkMatterProfile value="scale"/>
-  
+
   <!-- Node evolution and physics -->
-  <nodeOperatorMethod value="starFormationDisks"/>
-  
+  <nodeOperatorMethod value="multi">
+    <nodeOperatorMethod value="starFormationDisks"/>
+    <nodeOperatorMethod value="stellarFeedbackDisks">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>    
+  </nodeOperatorMethod>
   <starFormationRateDisksMethod value="timescale">
     <starFormationTimescaleMethod value="haloScaling">
       <exponentRedshift value="0.0"/>
@@ -80,7 +90,7 @@
     <binWidthLogarithmic value="0.097"/>
   </mergerTreeBuildMassDistributionMethod>
   <satelliteMergingTimescalesMethod value="jiang2008">
-  <timescaleMultiplier value="1.0"/>
+    <timescaleMultiplier value="1.0"/>
   </satelliteMergingTimescalesMethod>
   <linearGrowthMethod value="collisionlessMatter"/>
   <treeNodeMethodDisk value="verySimple"/>
@@ -141,7 +151,7 @@
     <sourceAngularMomentumSpecificMean value="hotGas"/>
     <sourceNormalizationRotation value="hotGas"/>
   </coolingSpecificAngularMomentumMethod>
-  
+
   <initialMassFunctionMethod value="chabrier2001"/>
   <treeNodeMethodHotHalo value="verySimple"/>
   <randomNumberGeneratorMethod value="GSL">
@@ -168,7 +178,7 @@
   <coolingRadiusMethod value="isothermal"/>
   <galacticStructureSolverMethod value="fixed"/>
   <mergerTreeConstructorMethod value="read">
-  <presetMergerTimes value="true"/>
+    <presetMergerTimes value="true"/>
     <treeIndexToRootNodeIndex value="true"/>
     <presetOrbits value="true"/>
     <fileNames value="testSuite/data/mergerTrees/initialSatelliteNoPrimaryProgenitor.hdf5"/>

@@ -17,10 +17,27 @@
 
   <!-- Node evolution and physics -->
   <nodeOperatorMethod value="multi">
-    <nodeOperatorMethod value="starFormationDisks"    />
+    <nodeOperatorMethod value="starFormationDisks"/>
     <nodeOperatorMethod value="starFormationSpheroids"/>
+    <!--Stellar feedback outflows-->
+    <nodeOperatorMethod value="stellarFeedbackDisks">
+      <stellarFeedbackOutflowsMethod value="haloScaling">
+        <fraction value="1.0"/>
+        <exponentVelocity value="-3.0"/>
+        <exponentRedshift value="0.0"/>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+    <nodeOperatorMethod value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
   </nodeOperatorMethod>
-  
+
   <coolingTimeMethod value="simple">
     <degreesOfFreedom value="3.0"/>
   </coolingTimeMethod>
@@ -79,7 +96,7 @@
     <binWidthLogarithmic value="0.097"/>
   </mergerTreeBuildMassDistributionMethod>
   <satelliteMergingTimescalesMethod value="jiang2008">
-  <timescaleMultiplier value="1.0"/>
+    <timescaleMultiplier value="1.0"/>
   </satelliteMergingTimescalesMethod>
   <linearGrowthMethod value="collisionlessMatter"/>
   <treeNodeMethodDisk value="verySimple"/>
@@ -135,17 +152,13 @@
     <sourceAngularMomentumSpecificMean value="hotGas"/>
     <sourceNormalizationRotation value="hotGas"/>
   </coolingSpecificAngularMomentumMethod>
-  
+
   <initialMassFunctionMethod value="chabrier2001"/>
   <treeNodeMethodHotHalo value="verySimple"/>
   <randomNumberGeneratorMethod value="GSL">
     <seed value="828"/>
   </randomNumberGeneratorMethod>
-  <starFormationFeedbackDisksMethod value="haloScaling">
-    <fraction value="1.0"/>
-    <exponentVelocity value="-3.0"/>
-    <exponentRedshift value="0.0"/>
-  </starFormationFeedbackDisksMethod>
+
   <coolingRateMethod value="simpleScaling">
     <exponentRedshift value="3.0"/>
     <massCutOff value="5.0e12"/>
