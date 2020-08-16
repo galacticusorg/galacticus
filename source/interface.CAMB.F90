@@ -48,11 +48,12 @@ contains
 
   subroutine Interface_CAMB_Initialize(cambPath,cambVersion,static)
     !% Initialize the interface with CAMB, including downloading and compiling CAMB if necessary.
-    use :: File_Utilities    , only : File_Exists
+    use :: File_Utilities    , only : File_Exists               , File_Lock          , File_Unlock , lockDescriptor, &
+         &                            Directory_Make
     use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath            , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : assignment(=)             , char               , operator(//), replace, &
+    use :: ISO_Varying_String, only : assignment(=)             , char               , operator(//), replace       , &
           &                           varying_string
     use :: System_Command    , only : System_Command_Do
     implicit none
@@ -60,6 +61,7 @@ contains
     logical                , intent(in   ), optional :: static
     integer                                          :: status  , flagsLength
     type   (varying_string)                          :: command
+    type   (lockDescriptor)                          :: fileLock
     !# <optionalArgument name="static" defaultsTo=".false." />
 
     ! Set path and version
@@ -67,7 +69,9 @@ contains
     cambVersion="?"
     ! Build the CAMB code.
     if (.not.File_Exists(cambPath//"camb")) then
-       ! Unpack the code.
+       call Directory_Make(cambPath)
+       call File_Lock(char(cambPath//"camb"),fileLock,lockIsShared=.false.)
+        ! Unpack the code.
        if (.not.File_Exists(cambPath)) then
           ! Download CAMB if necessary.
           if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz")) then
@@ -90,6 +94,7 @@ contains
        command=command//'"/ Makefile; find . -name "*.f90" | xargs sed -r -i~ s/"error stop"/"error stop "/; make -j1 camb'
        call System_Command_Do(char(command),status);
        if (status /= 0 .or. .not.File_Exists(cambPath//"camb")) call Galacticus_Error_Report("failed to build CAMB code"//{introspection:location})
+       call File_Unlock(fileLock)
     end if
     return
 
