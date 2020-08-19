@@ -89,7 +89,7 @@ contains
           ! Include Galacticus compilation flags here - may be necessary for static linking.
           call Get_Environment_Variable("GALACTICUS_FCFLAGS",length=flagsLength,status=status)
           if (status  == 0) command=command//" "//flagsRetrieve(flagsLength)
-          command=command//" -static"
+          command=command//" -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive"
        end if
        command=command//'"/ Makefile; find . -name "*.f90" | xargs sed -r -i~ s/"error stop"/"error stop "/; make -j1 camb'
        call System_Command_Do(char(command),status);
