@@ -157,6 +157,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                      powerSpectrumWindowFunction_       =powerSpectrumWindowFunctionSharpKSpace_      &
           &                                                                                                                     )
      intergalacticMediumFilteringMassGnedin2000_                =intergalacticMediumFilteringMassGnedin2000                     (                                                                                 &
+          &                                                                                                                      timeTooEarlyIsFatal                =true.                     _                , &
           &                                                                                                                      cosmologyParameters_               =cosmologyParametersBaryons_                , &
           &                                                                                                                      cosmologyFunctions_                =cosmologyFunctionsMatterLambda_            , &
           &                                                                                                                      linearGrowth_                      =linearGrowthBaryonsDarkMatter_             , &
@@ -170,6 +171,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                      tableStore                         =.true.                                       &
           &                                                                                                                     )
      criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgy_        =criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy       (                                                                                 &
+          &                                                                                                                      cosmologyParameters_               =cosmologyParametersDMO_                    , &
           &                                                                                                                      cosmologyParameters_               =cosmologyParametersDMO_                    , &
           &                                                                                                                      cosmologyFunctions_                =cosmologyFunctionsMatterLambda_            , &
           &                                                                                                                      cosmologicalMassVariance_          =cosmologicalMassVarianceFilteredPower_     , &

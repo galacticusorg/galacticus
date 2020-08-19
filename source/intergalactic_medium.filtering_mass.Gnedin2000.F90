@@ -41,6 +41,7 @@
      logical                                                  :: initialized
      integer                                                  :: countTimes
      double precision                                         :: timeMaximum                        , timeMinimum
+     logical                                                  :: timeTooEarlyIsFatal
      type            (table1DLogarithmicLinear     )          :: table
      type            (varying_string               )          :: fileName
    contains
@@ -122,18 +123,27 @@ contains
     !% Default constructor for the file \gls{igm} state class.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (intergalacticMediumFilteringMassGnedin2000)                :: self
-    type (inputParameters                           ), intent(inout) :: parameters
-    class(cosmologyFunctionsClass                   ), pointer       :: cosmologyFunctions_
-    class(cosmologyParametersClass                  ), pointer       :: cosmologyParameters_
-    class(linearGrowthClass                         ), pointer       :: linearGrowth_
-    class(intergalacticMediumStateClass             ), pointer       :: intergalacticMediumState_
+    type   (intergalacticMediumFilteringMassGnedin2000)                :: self
+    type   (inputParameters                           ), intent(inout) :: parameters
+    class  (cosmologyFunctionsClass                   ), pointer       :: cosmologyFunctions_
+    class  (cosmologyParametersClass                  ), pointer       :: cosmologyParameters_
+    class  (linearGrowthClass                         ), pointer       :: linearGrowth_
+    class  (intergalacticMediumStateClass             ), pointer       :: intergalacticMediumState_
+    logical                                                            :: timeTooEarlyIsFatal
 
+    !# <inputParameter>
+    !#   <name>timeTooEarlyIsFatal</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>If true, requesting the filtering mass at a time earlier than the initial time provided by the \cite{naoz_growth_2005} fit will result in a fatal error. Otherwise, the filtering mass is fixed at this initial value for earlier times.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
     !# <objectBuilder class="intergalacticMediumState" name="intergalacticMediumState_" source="parameters"/>
-    self=intergalacticMediumFilteringMassGnedin2000(cosmologyParameters_,cosmologyFunctions_,linearGrowth_,intergalacticMediumState_)
+    self=intergalacticMediumFilteringMassGnedin2000(timeTooEarlyIsFatal,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,intergalacticMediumState_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"      />
     !# <objectDestructor name="cosmologyParameters_"     />
@@ -142,17 +152,18 @@ contains
     return
   end function gnedin2000ConstructorParameters
 
-  function gnedin2000ConstructorInternal(cosmologyParameters_,cosmologyFunctions_,linearGrowth_,intergalacticMediumState_) result(self)
+  function gnedin2000ConstructorInternal(timeTooEarlyIsFatal,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,intergalacticMediumState_) result(self)
     !% Constructor for the filtering mass class.
     use :: File_Utilities  , only : Directory_Make, File_Path
     use :: Galacticus_Paths, only : galacticusPath, pathTypeDataDynamic
     implicit none
-    type (intergalacticMediumFilteringMassGnedin2000)                        :: self
-    class(cosmologyParametersClass                  ), intent(in   ), target :: cosmologyParameters_
-    class(cosmologyFunctionsClass                   ), intent(in   ), target :: cosmologyFunctions_
-    class(linearGrowthClass                         ), intent(in   ), target :: linearGrowth_
-    class(intergalacticMediumStateClass             ), intent(in   ), target :: intergalacticMediumState_
-    !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *intergalacticMediumState_"/>
+    type   (intergalacticMediumFilteringMassGnedin2000)                        :: self
+    class  (cosmologyParametersClass                  ), intent(in   ), target :: cosmologyParameters_
+    class  (cosmologyFunctionsClass                   ), intent(in   ), target :: cosmologyFunctions_
+    class  (linearGrowthClass                         ), intent(in   ), target :: linearGrowth_
+    class  (intergalacticMediumStateClass             ), intent(in   ), target :: intergalacticMediumState_
+    logical                                            , intent(in   )         :: timeTooEarlyIsFatal
+    !# <constructorAssign variables="timeTooEarlyIsFatal, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *intergalacticMediumState_"/>
 
     self%initialized=.false.
     self%fileName              =galacticusPath(pathTypeDataDynamic)              // &
@@ -184,7 +195,7 @@ contains
     double precision                                            , intent(in   ) :: time
 
     call self%tabulate(time)
-    gnedin2000MassFiltering=self%table%interpolate(time)
+    gnedin2000MassFiltering=self%table%interpolate(max(time,self%timeMinimum))
     return
   end function gnedin2000MassFiltering
 
@@ -195,7 +206,7 @@ contains
     double precision                                            , intent(in   ) :: time
 
     call self%tabulate(time)
-    gnedin2000MassFilteringRateOfChange=self%table%interpolateGradient(time)
+    gnedin2000MassFilteringRateOfChange=self%table%interpolateGradient(max(time,self%timeMinimum))
     return
   end function gnedin2000MassFilteringRateOfChange
 
@@ -272,7 +283,7 @@ contains
             &                                                            )                           &
             &                                                           )
        ! Abort if time is too early.
-       if (time <= timeInitial) call Galacticus_Error_Report('time is too early'//{introspection:location})
+       if (time <= timeInitial .and. self%timeTooEarlyIsFatal) call Galacticus_Error_Report('time is too early'//{introspection:location})
        ! Find minimum and maximum times to tabulate.
        self%timeMaximum=    max(self%cosmologyFunctions_%cosmicTime(1.0d0),time      )
        self%timeMinimum=max(min(self%cosmologyFunctions_%cosmicTime(1.0d0),time/2.0d0),timeInitial)
