@@ -54,7 +54,7 @@
           &                                                                        propertyValuesActiveSaved          , propertyScalesInactive       , &
           &                                                                        propertyValuesInactiveSaved        , propertyValuesInactive       , &
           &                                                                        odeTolerancesInactiveRelative      , odeTolerancesInactiveAbsolute
-     logical                                                                    :: profileOdeEvolver
+     logical                                                                    :: profileOdeEvolver                  , reuseODEStepSize
      integer         (kind=kind_int8               )                            :: activeTreeIndex
      type            (treeNode                     ), pointer                   :: activeNode
      integer                                                                    :: trialCount                         , propertyTypeODE              , &
@@ -130,7 +130,7 @@ contains
     integer                                                        :: odeLatentIntegratorOrder   , odeLatentIntegratorIntervalsMaximum
     double precision                                               :: odeToleranceAbsolute       , odeToleranceRelative               , &
          &                                                            odeJacobianStepSizeRelative
-    logical                                                        :: profileOdeEvolver
+    logical                                                        :: profileOdeEvolver          , reuseODEStepSize
 
     !# <inputParameter>
     !#   <name>odeToleranceAbsolute</name>
@@ -204,6 +204,14 @@ contains
     !#   <source>parameters</source>
     !#   <type>boolean</type>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>reuseODEStepSize</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>If true, re-use the previous ODE step size when resuming the evolution of a node. Otherwise, the initial step size is not specified.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
     !# <objectBuilder class="mergerTreeNodeMerger"     name="mergerTreeNodeMerger_"     source="parameters"/>
     !# <objectBuilder class="nodeOperator"             name="nodeOperator_"             source="parameters"/>
     !# <objectBuilder class="mergerTreeEvolveProfiler" name="mergerTreeEvolveProfiler_" source="parameters"/>
@@ -217,6 +225,7 @@ contains
          &                                                                        odeLatentIntegratorOrder                                    , &
          &                                                                        odeLatentIntegratorIntervalsMaximum                         , &
          &                                                                        profileOdeEvolver                                           , &
+         &                                                                        reuseODEStepSize                                            , &
          &                                                                        mergerTreeNodeMerger_                                       , &
          &                                                                        nodeOperator_                                               , &
          &                                                                        mergerTreeEvolveProfiler_                                     &
@@ -228,7 +237,7 @@ contains
     return
   end function standardConstructorParameters
 
-   function standardConstructorInternal(odeToleranceAbsolute,odeToleranceRelative,odeAlgorithm,odeAlgorithmNonJacobian,odeJacobianStepSizeRelative,odeLatentIntegratorType,odeLatentIntegratorOrder,odeLatentIntegratorIntervalsMaximum,profileOdeEvolver,mergerTreeNodeMerger_,nodeOperator_,mergerTreeEvolveProfiler_) result(self)
+   function standardConstructorInternal(odeToleranceAbsolute,odeToleranceRelative,odeAlgorithm,odeAlgorithmNonJacobian,odeJacobianStepSizeRelative,odeLatentIntegratorType,odeLatentIntegratorOrder,odeLatentIntegratorIntervalsMaximum,profileOdeEvolver,reuseODEStepSize,mergerTreeNodeMerger_,nodeOperator_,mergerTreeEvolveProfiler_) result(self)
      !% Internal constructor for the {\normalfont \ttfamily standard} merger tree node evolver class.
      use :: Numerical_ODE_Solvers, only : GSL_ODEIV2_Step_RK2    , GSL_ODEIV2_Step_RK4    , GSL_ODEIV2_Step_RK8PD, GSL_ODEIV2_Step_RKCK       , &
           &                               GSL_ODEIV2_Step_RKF45  , GSL_ODEIV2_Step_msAdams, GSL_ODEIV2_step_BSimp, GSL_ODEIV2_step_MSBDFActive
@@ -240,11 +249,11 @@ contains
           &                                                                    odeAlgorithmNonJacobian
      double precision                               , intent(in   )         :: odeToleranceAbsolute               , odeToleranceRelative    , &
           &                                                                    odeJacobianStepSizeRelative
-     logical                                        , intent(in   )         :: profileOdeEvolver
+     logical                                        , intent(in   )         :: profileOdeEvolver                  , reuseODEStepSize
      class           (mergerTreeNodeMergerClass    ), intent(in   ), target :: mergerTreeNodeMerger_
      class           (nodeOperatorClass            ), intent(in   ), target :: nodeOperator_
      class           (mergerTreeEvolveProfilerClass), intent(in   ), target :: mergerTreeEvolveProfiler_
-    !# <constructorAssign variables="odeToleranceAbsolute, odeToleranceRelative, odeJacobianStepSizeRelative, odeLatentIntegratorType, odeLatentIntegratorOrder, odeLatentIntegratorIntervalsMaximum, profileOdeEvolver, *mergerTreeNodeMerger_, *nodeOperator_, *mergerTreeEvolveProfiler_"/>
+    !# <constructorAssign variables="odeToleranceAbsolute, odeToleranceRelative, odeJacobianStepSizeRelative, odeLatentIntegratorType, odeLatentIntegratorOrder, odeLatentIntegratorIntervalsMaximum, profileOdeEvolver, reuseODEStepSize, *mergerTreeNodeMerger_, *nodeOperator_, *mergerTreeEvolveProfiler_"/>
 
      ! Construct ODE solver object.
      self%useJacobian=.false.
@@ -591,8 +600,12 @@ contains
                    !# </conditionalCall>
                    solverInitialized=.true.
                 end if
+                if (self%reuseODEStepSize) then
+                   stepSize      =node%timeStep()/2.0d0**self%trialCount
+                else
+                   stepSize      =-1.0d0
+                end if
                 self%timePrevious=-1.0d0
-                stepSize         =node%timeStep()/2.0d0**self%trialCount
                 timeStart        =timeStartSaved
                 if (jacobianSolver) then
                    self%odeTolerancesInactiveRelative(1:self%propertyCountInactive)=self%odeToleranceRelative
