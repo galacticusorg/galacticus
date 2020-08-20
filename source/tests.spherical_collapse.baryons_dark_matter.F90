@@ -148,7 +148,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                      sigma8                             =1.0d+0                                     , &
           &                                                                                                                      tolerance                          =1.0d-4                                     , &
           &                                                                                                                      toleranceTopHat                    =1.0d-4                                     , &
-       &                                                                                                                         nonMonotonicIsFatal                =.true.                                     , &
+          &                                                                                                                      nonMonotonicIsFatal                =.true.                                     , &
           &                                                                                                                      monotonicInterpolation             =.false.                                    , &
           &                                                                                                                      cosmologyParameters_               =cosmologyParametersBaryons_                , &
           &                                                                                                                      cosmologyFunctions_                =cosmologyFunctionsMatterLambda_            , &
@@ -157,13 +157,13 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                      powerSpectrumWindowFunction_       =powerSpectrumWindowFunctionSharpKSpace_      &
           &                                                                                                                     )
      intergalacticMediumFilteringMassGnedin2000_                =intergalacticMediumFilteringMassGnedin2000                     (                                                                                 &
-          &                                                                                                                      timeTooEarlyIsFatal                =true.                     _                , &
+          &                                                                                                                      timeTooEarlyIsFatal                =.true.                                     , &
           &                                                                                                                      cosmologyParameters_               =cosmologyParametersBaryons_                , &
           &                                                                                                                      cosmologyFunctions_                =cosmologyFunctionsMatterLambda_            , &
           &                                                                                                                      linearGrowth_                      =linearGrowthBaryonsDarkMatter_             , &
           &                                                                                                                      intergalacticMediumState_          =intergalacticMediumState_                    &
           &                                                                                                                     )
-     criticalOverdensitySphrclCllpsCllsnlssMttrCsmlgclCnstnt_   =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt  (                                                                                 &
+     criticalOverdensitySphrclCllpsCllsnlssMttrCsmlgclCnstnt_   =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt   (                                                                                 &
           &                                                                                                                      linearGrowth_                      =linearGrowthCollisionlessMatter_           , &
           &                                                                                                                      cosmologyFunctions_                =cosmologyFunctionsMatterLambda_            , &
           &                                                                                                                      cosmologicalMassVariance_          =cosmologicalMassVarianceFilteredPower_     , &
@@ -172,7 +172,6 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                     )
      criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgy_        =criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy       (                                                                                 &
           &                                                                                                                      cosmologyParameters_               =cosmologyParametersDMO_                    , &
-          &                                                                                                                      cosmologyParameters_               =cosmologyParametersDMO_                    , &
           &                                                                                                                      cosmologyFunctions_                =cosmologyFunctionsMatterLambda_            , &
           &                                                                                                                      cosmologicalMassVariance_          =cosmologicalMassVarianceFilteredPower_     , &
           &                                                                                                                      darkMatterParticle_                =darkMatterParticleCDM_                     , &
@@ -180,7 +179,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                      tableStore                         =.false.                                    , &
           &                                                                                                                      normalization                      =1.0d0                                        &
           &                                                                                                                     )
-     virialDensityContrastSphrclCllpsCllsnlssMttrCsmlgclCnstnt_ =virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                                 &
+     virialDensityContrastSphrclCllpsCllsnlssMttrCsmlgclCnstnt_ =virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                                  &
           &                                                                                                                      tableStore                         =.false.                                    , &
           &                                                                                                                      cosmologyFunctions_                =cosmologyFunctionsMatterLambda_              &
           &                                                                                                                     )
