@@ -97,30 +97,28 @@ contains
 
   function chandrasekhar1943Acceleration(self,node)
     !% Return an acceleration for satellites due to dynamical friction using the formulation of \cite{chandrasekhar_dynamical_1943}.
-    use :: Error_Functions                 , only : Error_Function
-    use :: Galactic_Structure_Densities    , only : Galactic_Structure_Density
-    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian
-    use :: Galacticus_Nodes                , only : nodeComponentSatellite         , treeNode
-    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
-    use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
-    use :: Numerical_Constants_Prefixes    , only : kilo
-    use :: Vectors                         , only : Vector_Magnitude
-
+    use :: Error_Functions                           , only : Error_Function
+    use :: Galactic_Structure_Densities              , only : Galactic_Structure_Density
+    use :: Galactic_Structure_Options                , only : coordinateSystemCartesian
     use :: Galactic_Structure_Chandrasekhar_Integrals, only : Galactic_Structure_Chandrasekhar_Integral
-    
+    use :: Galacticus_Nodes                          , only : nodeComponentSatellite                   , treeNode
+    use :: Numerical_Constants_Astronomical          , only : gigaYear                                 , megaParsec
+    use :: Numerical_Constants_Math                  , only : Pi
+    use :: Numerical_Constants_Astronomical          , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Prefixes              , only : kilo
+    use :: Vectors                                   , only : Vector_Magnitude
     implicit none
     double precision                                             , dimension(3)  :: chandrasekhar1943Acceleration
     class           (satelliteDynamicalFrictionChandrasekhar1943), intent(inout) :: self
     type            (treeNode                                   ), intent(inout) :: node
     class           (nodeComponentSatellite                     ), pointer       :: satellite
     type            (treeNode                                   ), pointer       :: nodeHost
-    double precision                                             , dimension(3)  :: position                     , velocity
-    double precision                                                             :: massSatellite                , densityHost       , &
-         &                                                                          velocityMagnitude            , velocityDispersion, &
-         &                                                                          Xv                           , radius
-    double precision                                             , parameter     :: XvMaximum=10.0d0
-    
+    double precision                                             , dimension(3)  :: position                            , velocity
+    double precision                                                             :: massSatellite                       , densityHost       , &
+         &                                                                          velocityMagnitude                   , velocityDispersion, &
+         &                                                                          Xv                                  , radius
+    double precision                                             , parameter     :: XvMaximum                    =10.0d0
+
     nodeHost                     =>  node     %mergesWith                                    (               )
     satellite                    =>  node     %satellite                                     (               )
     massSatellite                =   satellite%boundMass                                     (               )
@@ -130,9 +128,13 @@ contains
     velocityDispersion           =   self     %darkMatterProfileDMO_%radialVelocityDispersion(nodeHost,radius)
     velocityMagnitude            =   Vector_Magnitude          (         velocity                            )
     densityHost                  =   Galactic_Structure_Density(nodeHost,position,coordinateSystemCartesian  )
-    Xv                           =  +velocityMagnitude                     &
-         &                          /velocityDispersion                    &
-         &                          /sqrt(2.0d0)
+    if (velocityDispersion > 0.0d0) then
+       Xv                        =  +velocityMagnitude                     &
+            &                       /velocityDispersion                    &
+            &                       /sqrt(2.0d0)
+    else
+       Xv                        =  +huge(0.0d0)
+    end if
     if (Xv <= XvMaximum) then
        chandrasekhar1943Acceleration=  -4.0d0                              &
             &                          *Pi                                 &
