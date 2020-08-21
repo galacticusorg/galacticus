@@ -819,6 +819,25 @@
     </mergerTreeMassResolutionMethod>
   </parameters>
 
+  <!-- Merger tree branching algorithms -->
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
+      <G0 value="+0.57"/>
+      <gamma1 value="+0.38"/>
+      <gamma2 value="-0.01"/>
+      <accuracyFirstOrder value="+0.10"/>
+    </mergerTreeBranchingProbabilityMethod>
+    <mergerTreeBranchingProbabilityMethod value="PCHPlus">
+      <G0 value="+0.57"/>
+      <gamma1 value="+0.38"/>
+      <gamma2 value="-0.01"/>
+      <gamma3 value="0.10"/>
+      <accuracyFirstOrder value="+0.10"/>
+    </mergerTreeBranchingProbabilityMethod>
+  </parameters>
+
   <!-- Detailed satellite orbits -->
   <parameters>
     <formatVersion>2</formatVersion>
