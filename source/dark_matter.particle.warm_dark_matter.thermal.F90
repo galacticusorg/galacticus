@@ -28,7 +28,7 @@
      !% A thermal warm dark matter particle class.
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
-     double precision                                    :: massValue           , degreesOfFreedomEffectiveValue
+     double precision                                    :: massValue                     , degreesOfFreedomEffectiveValue
    contains
      !@ <objectMethods>
      !@   <object>darkMatterParticleWDMThermal</object>
@@ -152,10 +152,10 @@ contains
          &                                        *  self                     %degreesOfFreedomEffective(                  )   &
          &                                        *  self                     %mass                     (                  )   &
          &                                        /(                                                                           &
-         &                                          +self%cosmologyParameters_%OmegaMatter             (                  )    &
-         &                                          -self%cosmologyParameters_%OmegaBaryon             (                  )    &
+         &                                          +self%cosmologyParameters_%OmegaMatter              (                  )   &
+         &                                          -self%cosmologyParameters_%OmegaBaryon              (                  )   &
          &                                        )                                                                            &
-         &                                        /  self%cosmologyParameters_%HubbleConstant          (hubbleUnitsLittleH)**2
+         &                                        /  self%cosmologyParameters_%HubbleConstant           (hubbleUnitsLittleH)**2
     return
   end function wdmThermalDegreesOfFreedomEffectiveDecoupling
 
