@@ -28,6 +28,11 @@ module Dark_Matter_Particles
   !#  <descriptiveName>Dark Matter Particle</descriptiveName>
   !#  <description>Class providing dark matter particle physics.</description>
   !#  <default>CDM</default>
+  !#  <method name="mass" >
+  !#   <description>Return the mass of the dark matter particle in units of keV.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#  </method>
   !# </functionClass>
 
 end module Dark_Matter_Particles
