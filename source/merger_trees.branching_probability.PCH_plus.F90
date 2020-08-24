@@ -145,7 +145,7 @@ contains
     !# <constructorAssign variables=" gamma3"/>
 
     ! Validate.
-    if (self%cdmAssumptions .and.self%gamma3 > 1.5d0) call Galacticus_Error_Report('γ₃>³/₂ violates CDM assumptions'//{introspection:location})
+    if (cdmAssumptions .and. gamma3 > 1.5d0) call Galacticus_Error_Report('γ₃>³/₂ violates CDM assumptions'//{introspection:location})
     ! Initialize.
 self%mergerTreeBranchingProbabilityParkinsonColeHelly=mergerTreeBranchingProbabilityParkinsonColeHelly(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,cosmologicalMassVariance_,criticalOverdensity_)
     return
