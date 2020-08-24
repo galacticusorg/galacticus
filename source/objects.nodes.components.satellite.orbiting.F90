@@ -33,9 +33,8 @@ module Node_Component_Satellite_Orbiting
   private
   public :: Node_Component_Satellite_Orbiting_Scale_Set        , Node_Component_Satellite_Orbiting_Create             , &
        &    Node_Component_Satellite_Orbiting_Rate_Compute     , Node_Component_Satellite_Orbiting_Tree_Initialize    , &
-       &    Node_Component_Satellite_Orbiting_Trigger_Merger   , Node_Component_Satellite_Orbiting_Initialize         , &
-       &    Node_Component_Satellite_Orbiting_Thread_Initialize, Node_Component_Satellite_Orbiting_Thread_Uninitialize, &
-       &    Node_Component_Satellite_Orbiting_Pre_Host_Change
+       &    Node_Component_Satellite_Orbiting_Pre_Host_Change  , Node_Component_Satellite_Orbiting_Initialize         , &
+       &    Node_Component_Satellite_Orbiting_Thread_Initialize, Node_Component_Satellite_Orbiting_Thread_Uninitialize
   
   !# <component>
   !#  <class>satellite</class>
@@ -72,6 +71,13 @@ module Node_Component_Satellite_Orbiting
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <classDefault>-1.0d0</classDefault>
   !#     <getFunction>Node_Component_Satellite_Orbiting_Time_Of_Merging</getFunction>
+  !#   </property>
+  !#   <property>
+  !#     <name>destructionTime</name>
+  !#     <type>double</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+  !#     <classDefault>-1.0d0</classDefault>
   !#   </property>
   !#   <property>
   !#     <name>boundMass</name>
@@ -124,7 +130,7 @@ module Node_Component_Satellite_Orbiting
   ! Option controlling whether or not unbound virial orbits are acceptable.
   logical         , parameter :: acceptUnboundOrbits=.false.
 
-  ! Option controlling minimum mass of satellite halos before a merger is triggered.
+  ! Option controlling minimum mass of satellite halos before a merger/destruction is triggered.
   double precision            :: satelliteOrbitingDestructionMass
   logical                     :: satelliteOrbitingDestructionMassIsFractional
   ! Option controlling how to initialize the bound mass of satellite halos.
@@ -406,29 +412,31 @@ contains
           basicMass         =  basicComponent    %mass     ()
           radiusVirial      =  darkMatterHaloScale_%virialRadius(hostNode)
           orbitalRadiusTest =  max(halfMassRadiusSatellite+halfMassRadiusCentral,radiusVirialFraction*radiusVirial)
-          ! Test merging criterion.
+          ! Test merging and destruction criteria.
           if (satelliteOrbitingDestructionMassIsFractional) then
              massDestruction=satelliteOrbitingDestructionMass*basicMass
           else
              massDestruction=satelliteOrbitingDestructionMass
           end if
-          if     (                                        &
-               &   odeConverged                           &
-               &  .and.                                   &
-               &   (                                      &
-               &     (                                    &
-               &       radius        > 0.0d0              &
-               &      .and.                               &
-               &       radius        <  orbitalRadiusTest &
-               &     )                                    &
-               &    .or.                                  &
-               &       satelliteMass <  massDestruction   &
-               &   )                                      &
-               & ) then
-             ! Merging criterion met - trigger an interrupt.
-             interrupt=.true.
-             interruptProcedure => Node_Component_Satellite_Orbiting_Trigger_Merger
-             return
+          if (odeConverged) then
+             ! Test for merging.
+             if     (                             &
+                  &   radius > 0.0d0              &
+                  &  .and.                        &
+                  &   radius <  orbitalRadiusTest &
+                  & ) then
+                ! Merging criterion met - trigger an interrupt.
+                interrupt          =  .true.
+                interruptProcedure => Node_Component_Satellite_Orbiting_Trigger_Merger
+                return
+             end if
+             ! Test for destruction.
+             if (satelliteMass <  massDestruction) then
+                ! Destruction criterion met - trigger an interrupt.
+                interrupt          =  .true.
+                interruptProcedure => Node_Component_Satellite_Orbiting_Trigger_Destruction
+                return
+             end if
           end if
        end if
     end select
@@ -581,17 +589,29 @@ contains
     return
   end subroutine Node_Component_Satellite_Orbiting_Pre_Host_Change
 
-  subroutine Node_Component_Satellite_Orbiting_Trigger_Merger(thisNode)
+  subroutine Node_Component_Satellite_Orbiting_Trigger_Merger(node)
     !% Trigger a merger of the satellite by setting the time until merging to zero.
     use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
     implicit none
-    type (treeNode              ), intent(inout), target  :: thisNode
+    type (treeNode              ), intent(inout), target  :: node
     class(nodeComponentSatellite)               , pointer :: satelliteComponent
 
-    satelliteComponent => thisNode%satellite()
+    satelliteComponent => node%satellite()
     call satelliteComponent%mergeTimeSet(0.0d0)
     return
   end subroutine Node_Component_Satellite_Orbiting_Trigger_Merger
+
+  subroutine Node_Component_Satellite_Orbiting_Trigger_Destruction(node)
+    !% Trigger destruction of the satellite by setting the time until destruction to zero.
+    use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
+    implicit none
+    type (treeNode              ), intent(inout), target  :: node
+    class(nodeComponentSatellite)               , pointer :: satelliteComponent
+
+    satelliteComponent => node%satellite()
+    call satelliteComponent%destructionTimeSet(0.0d0)
+    return
+  end subroutine Node_Component_Satellite_Orbiting_Trigger_Destruction
 
   function Node_Component_Satellite_Orbiting_Virial_Orbit(self) result(orbit)
     !% Return the orbit of the satellite at the virial radius.
@@ -638,8 +658,9 @@ contains
        velocity   =virialOrbit%velocity()
        call self%positionSet(position)
        call self%velocitySet(velocity)
-       ! Set the merging time to -1 to indicate that we don't know when merging will occur.
+       ! Set the merging/destruction time to -1 to indicate that we don't know when merging/destruction will occur.
        call self%mergeTimeSet                (           -1.0d0)
+       call self%destructionTimeSet          (           -1.0d0)
        call self%tidalTensorPathIntegratedSet(tensorNullR2D3Sym)
        call self%tidalHeatingNormalizedSet   (            0.0d0)
     end select

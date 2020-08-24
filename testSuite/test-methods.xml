@@ -843,9 +843,9 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
-    <treesPerDecade value="4"/>
-    <massTreeMinimum value="1.0e12"/>
-    <massTreeMaximum value="3.0e12"/>
+      <treesPerDecade value="4"/>
+      <massTreeMinimum value="1.0e12"/>
+      <massTreeMaximum value="3.0e12"/>
     </mergerTreeBuildMassesMethod>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
@@ -898,6 +898,17 @@
       <accuracyFirstOrder value="+0.10"/>
     </mergerTreeBranchingProbabilityMethod>
     <mergerTreeNodeMergerMethod value="singleLevelHierarchy"/>
+    <mergerTreeEvolveTimestepMethod value="multi">
+      <mergerTreeEvolveTimestepMethod value="simple"               iterable="no" >
+	<timeStepAbsolute          value="1.000"/>
+	<timeStepRelative          value="0.100"/>
+      </mergerTreeEvolveTimestepMethod>
+      <mergerTreeEvolveTimestepMethod value="satellite"            iterable="no" >
+	<timeOffsetMaximumAbsolute value="0.010"/>
+	<timeOffsetMaximumRelative value="0.001"/>
+      </mergerTreeEvolveTimestepMethod>
+      <mergerTreeEvolveTimestepMethod value="satelliteDestruction" iterable="no"/>
+    </mergerTreeEvolveTimestepMethod>
     <darkMatterProfileDMOMethod value="heated">
       <darkMatterProfileMethod value="NFW"/>
     </darkMatterProfileDMOMethod>
