@@ -210,8 +210,8 @@
 
     <!-- Node evolution and physics -->
     <nodeOperatorMethod value="multi">
-      <nodeOperatorMethod value="starFormationDisks"/>
-      <nodeOperatorMethod value="stellarFeedbackDisks">
+      <nodeOperatorMethod value="starFormationDisks" iterable="no"/>
+      <nodeOperatorMethod value="stellarFeedbackDisks" iterable="no">
 	<stellarFeedbackOutflowsMethod value="rateLimit">
           <timescaleOutflowFractionalMinimum value="0.001"/>
           <stellarFeedbackOutflowsMethod value="vlctyMxSclng">

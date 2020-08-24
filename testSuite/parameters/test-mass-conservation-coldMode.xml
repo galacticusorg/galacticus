@@ -285,7 +285,7 @@
       <nodeOperatorMethod value="starFormationDisks" iterable="no"/>
       <nodeOperatorMethod value="starFormationSpheroids" iterable="no"/>
       <!--Stellar feedback outflows-->
-      <nodeOperatorMethod value="stellarFeedbackDisks">
+      <nodeOperatorMethod value="stellarFeedbackDisks" iterable="no">
         <stellarFeedbackOutflowsMethod value="rateLimit">
           <timescaleOutflowFractionalMinimum value="0.001"/>
           <stellarFeedbackOutflowsMethod value="powerLaw">
@@ -294,7 +294,7 @@
           </stellarFeedbackOutflowsMethod>
         </stellarFeedbackOutflowsMethod>
       </nodeOperatorMethod>
-      <nodeOperatorMethod value="stellarFeedbackSpheroids">
+      <nodeOperatorMethod value="stellarFeedbackSpheroids" iterable="no">
         <stellarFeedbackOutflowsMethod value="rateLimit">
           <timescaleOutflowFractionalMinimum value="0.001"/>
           <stellarFeedbackOutflowsMethod value="powerLaw">
