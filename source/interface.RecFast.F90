@@ -73,7 +73,7 @@ contains
        call File_Unlock(fileLock)
     end if
     ! Determine the version.
-    call File_Lock(char(recfastPath//"currentVersion"),fileLock,lockIsShared=.false.)
+    call File_Lock(char(galacticusPath(pathTypeDataDynamic))//'RecFast.currentVersion',fileLock,lockIsShared=.false.)
     if (.not.File_Exists(recfastPath//"currentVersion")) then
        recFastVersion="unknown"
        open(newUnit=recFastUnit,file=char(recfastPath)//"recfast.for",status='old',form='formatted',ioStat=status)
