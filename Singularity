@@ -30,6 +30,6 @@ From:galacticusorg/galacticus:latest
 	export GALACTICUS_CPPFLAGS="-fuse-ld=bfd"
 	export GALACTICUS_EXEC_PATH=/opt/galacticus
 	export GALACTICUS_DATA_PATH=/opt/datasets
-	cd /opt
+	cd $GALACTICUS_EXEC_PATH
 	./Galacticus.exe parameters/quickTest.xml
 
