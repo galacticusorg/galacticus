@@ -57,7 +57,7 @@
      !@     <method>eta</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} nodeHost \arginout, \doublezero\ massSatellite\argin, \doublezero\ massHost\argin, \doublezero\ velocityTotalInternal\argin</arguments>
-     !@     <description>Evaluate the $\eta$ parameter of the \cite{li_orbit_2020} virial orbit distribution function.</description>
+     !@     <description>Evaluate the $\eta$ parameter of the \cite{li_orbital_2020} virial orbit distribution function.</description>
      !@   </objectMethod>
      !@ </objectMethods>
      final     ::                                    li2020Destructor
