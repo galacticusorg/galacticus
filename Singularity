@@ -1,6 +1,6 @@
 # Galacticus Singularity image
 # Uses SingularityHub to build Galacticus.
-# Version: 2020-08-06
+# Version: 2020-08-26
 
 Bootstrap:docker
 From:galacticusorg/buildenv:latest
@@ -20,7 +20,8 @@ From:galacticusorg/buildenv:latest
 	echo "Building Galacticus container..."
 
 %post
-	export INSTALL_PATH=/usr/local
+	echo Begin begin: `date`
+        export INSTALL_PATH=/usr/local
 	export PATH=$INSTALL_PATH/gcc-11/bin:$INSTALL_PATH/bin:$PATH
 	export LD_LIBRARY_PATH=$INSTALL_PATH/lib64:$INSTALL_PATH/lib:$INSTALL_PATH/gcc-11/lib64:$INSTALL_PATH/gcc-11/lib:/usr/lib/x86_64-linux-gnu
 	export LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
@@ -33,9 +34,12 @@ From:galacticusorg/buildenv:latest
 	env
 	echo $GALACTICUS_EXEC_PATH
 	cd /opt
+	echo Begin download: `date`
 	git clone --depth 1 https://github.com/galacticusorg/galacticus.git galacticus
 	git clone --depth 1 https://github.com/galacticusorg/datasets.git datasets
+	echo Begin compile: `date`
 	cd /opt/galacticus
-	make -j16 Galacticus.exe
+	make -j2 Galacticus.exe
+	echo Begin tools: `date`
 	./Galacticus.exe parameters/buildTools.xml
 	rm /opt/datasets/dynamic/c17.02.tar.gz /opt/datasets/dynamic/CAMB.tar.gz
