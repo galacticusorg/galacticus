@@ -3,7 +3,7 @@
 # Version: 2020-08-26
 
 Bootstrap:docker
-From:galacticusorg/buildenv:latest
+From:galacticusorg/galacticus:latest
 
 %environment
 	export INSTALL_PATH=/usr/local
@@ -30,16 +30,6 @@ From:galacticusorg/buildenv:latest
 	export GALACTICUS_CPPFLAGS="-fuse-ld=bfd"
 	export GALACTICUS_EXEC_PATH=/opt/galacticus
 	export GALACTICUS_DATA_PATH=/opt/datasets
-	echo ENVIRONMENT
-	env
-	echo $GALACTICUS_EXEC_PATH
 	cd /opt
-	echo Begin download: `date`
-	git clone --depth 1 https://github.com/galacticusorg/galacticus.git galacticus
-	git clone --depth 1 https://github.com/galacticusorg/datasets.git datasets
-	echo Begin compile: `date`
-	cd /opt/galacticus
-	make -j2 Galacticus.exe
-	echo Begin tools: `date`
-	./Galacticus.exe parameters/buildTools.xml
-	rm /opt/datasets/dynamic/c17.02.tar.gz /opt/datasets/dynamic/CAMB.tar.gz
+	./Galacticus.exe parameters/quickTest.xml
+
