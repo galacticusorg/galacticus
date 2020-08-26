@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Parameters for tutorial on computing the halo mass function - https://github.com/galacticusorg/galacticus/wiki/Tutorial%3A-Dark-matter-halo-mass-function -->
+<!-- Parameters for tutorial on computing the power spectrum - https://github.com/galacticusorg/galacticus/wiki/Tutorial%3A-Power-spectra -->
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
@@ -42,24 +42,4 @@
     <redshifts value="0.0 1.0"/>
   </outputTimesMethod>
 
-  <nodeOperatorMethod value="multi"><!--Stellar feedback outflows-->
-    <nodeOperatorMethod value="stellarFeedbackDisks">
-      <stellarFeedbackOutflowsMethod value="rateLimit">
-        <timescaleOutflowFractionalMinimum value="0.001"/>
-        <stellarFeedbackOutflowsMethod value="powerLaw">
-          <velocityCharacteristic value="250.0"/>
-          <exponent value="3.5"/>
-        </stellarFeedbackOutflowsMethod>
-      </stellarFeedbackOutflowsMethod>
-    </nodeOperatorMethod>
-    <nodeOperatorMethod value="stellarFeedbackSpheroids">
-      <stellarFeedbackOutflowsMethod value="rateLimit">
-        <timescaleOutflowFractionalMinimum value="0.001"/>
-        <stellarFeedbackOutflowsMethod value="powerLaw">
-          <velocityCharacteristic value="250.0"/>
-          <exponent value="3.5"/>
-        </stellarFeedbackOutflowsMethod>
-      </stellarFeedbackOutflowsMethod>
-    </nodeOperatorMethod>
-  </nodeOperatorMethod>
 </parameters>
