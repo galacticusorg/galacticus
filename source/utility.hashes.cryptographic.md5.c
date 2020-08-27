@@ -25,8 +25,9 @@ void md5(int textLength, char *text, char *hash)
      and then append to the subsequent chunk. Initialize this to an
      string of whitespace. */
   char tmpHash[hashLen+1];
-  for(int i=0;i<hashLen;++i) {
-    tmpHash[i] = ' ';
+  int j;
+  for(j=0;j<hashLen;++j) {
+    tmpHash[j] = ' ';
   }
   tmpHash[hashLen] = '\0';
   /* Begin processing each chunk of the text */
