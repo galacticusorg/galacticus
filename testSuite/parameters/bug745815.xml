@@ -10,11 +10,11 @@
     <temperatureCMB value="2.72548"/>
   </cosmologyParametersMethod>
   <accretionDisksMethod value="ADAF">
-      <efficiencyRadiationType value="thinDisk"/>
-      <adiabaticIndex value="1.444"/>
-      <energyOption value="pureADAF"/>
-      <efficiencyRadiation value="0.01"/>
-      <viscosityOption value="fit"/>
+    <efficiencyRadiationType value="thinDisk"/>
+    <adiabaticIndex value="1.444"/>
+    <energyOption value="pureADAF"/>
+    <efficiencyRadiation value="0.01"/>
+    <viscosityOption value="fit"/>
   </accretionDisksMethod>
   <accretionHaloMethod value="simple">
     <redshiftReionization value="9"/>
@@ -28,7 +28,7 @@
   </darkMatterProfileMethod>
 
   <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
-  <stabilityThresholdGaseous value="0.9"/>
+    <stabilityThresholdGaseous value="0.9"/>
     <stabilityThresholdStellar value="1.1"/>
   </galacticDynamicsBarInstabilityMethod>
   <blackHoleBinaryMergersMethod value="rezzolla2008"/>
@@ -54,10 +54,7 @@
   <darkMatterProfileDMOMethod value="NFW"/>
   <darkMatterProfileMinimumConcentration value="4"/>
   <diskMassToleranceAbsolute value="1e-06"/>
-  <starFormationFeedbackDisksMethod value="powerLaw">
-    <velocityCharacteristic value="200.0"/>
-    <exponent value="2.0"/>
-  </starFormationFeedbackDisksMethod>
+
   <galacticStructureSolverMethod value="equilibrium"/>
   <haloMassFunctionMethod value="tinker2008"/>
   <haloSpinDistributionMethod value="bett2007">
@@ -94,7 +91,7 @@
   </mergerTreeBuildMassesMethod>
 
   <mergerTreeBuilderMethod value="cole2000">
-  <accretionLimit value="0.1"/>
+    <accretionLimit value="0.1"/>
     <mergeProbability value="0.1"/>
   </mergerTreeBuilderMethod>
   <mergerTreeBuildTreesBaseRedshift value="0"/>
@@ -123,12 +120,12 @@
   </randomNumberGeneratorMethod>
   <randomSpinResetMassFactor value="2"/>
   <mergerMassMovementsMethod value="simple">
-  <massRatioMajorMerger value="0.1"/>
+    <massRatioMajorMerger value="0.1"/>
     <destinationGasMinorMerger value="spheroid"/>
   </mergerMassMovementsMethod>
   <satelliteMergingTimescalesMethod value="jiang2008"/>
   <mergerRemnantSizeMethod value="cole2000">
-  <energyOrbital value="1"/>
+    <energyOrbital value="1"/>
   </mergerRemnantSizeMethod>
   <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.807"/>
@@ -142,10 +139,7 @@
       <timescaleMinimum value="0.001"/>
     </starFormationTimescaleMethod>
   </starFormationRateDisksMethod>
-  <starFormationFeedbackSpheroidsMethod value="powerLaw">
-    <exponent value="2"/>
-    <velocityCharacteristic value="50"/>
-  </starFormationFeedbackSpheroidsMethod>
+
   <starFormationRateSpheroidsMethod value="timescale">
     <starFormationTimescaleMethod value="dynamicalTime">
       <efficiency value="0.1"/>
@@ -192,8 +186,27 @@
 
   <!-- Node evolution and physics -->
   <nodeOperatorMethod value="multi">
-    <nodeOperatorMethod value="starFormationDisks"    />
+    <nodeOperatorMethod value="starFormationDisks"/>
     <nodeOperatorMethod value="starFormationSpheroids"/>
+    <!--Stellar feedback outflows-->
+    <nodeOperatorMethod value="stellarFeedbackDisks">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <velocityCharacteristic value="200.0"/>
+          <exponent value="2.0"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+    <nodeOperatorMethod value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <exponent value="2"/>
+          <velocityCharacteristic value="50"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
   </nodeOperatorMethod>
 
 </parameters>

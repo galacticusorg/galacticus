@@ -5,10 +5,30 @@
   <version>0.9.4</version>
 
   <taskMethod value="multi">
-    <taskMethod value="buildToolFSPS"   />
-    <taskMethod value="buildToolCAMB"   />
+    <taskMethod value="buildToolFSPS"/>
+    <taskMethod value="buildToolCAMB"/>
     <taskMethod value="buildToolRecFast"/>
-    <taskMethod value="buildToolCloudy" />
+    <taskMethod value="buildToolCloudy"/>
   </taskMethod>
-    
+
+  <nodeOperatorMethod value="multi"><!--Stellar feedback outflows-->
+    <nodeOperatorMethod value="stellarFeedbackDisks">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+    <nodeOperatorMethod value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+  </nodeOperatorMethod>
 </parameters>

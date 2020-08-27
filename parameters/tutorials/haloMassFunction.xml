@@ -6,40 +6,40 @@
 
   <!-- Specify tasks to perform -->
   <taskMethod value="haloMassFunction"/>
-  
+
   <!-- Cosmological parameters -->
-  <cosmologyFunctionsMethod  value="matterLambda"/>
+  <cosmologyFunctionsMethod value="matterLambda"/>
   <cosmologyParametersMethod value="simple">
-    <HubbleConstant  value="70.20000"/>
-    <OmegaMatter     value=" 0.27250"/>
+    <HubbleConstant value="70.20000"/>
+    <OmegaMatter value=" 0.27250"/>
     <OmegaDarkEnergy value=" 0.72750"/>
-    <OmegaBaryon     value=" 0.04550"/>
-    <temperatureCMB  value=" 2.72548"/>
+    <OmegaBaryon value=" 0.04550"/>
+    <temperatureCMB value=" 2.72548"/>
   </cosmologyParametersMethod>
 
   <!-- Power spectrum options -->
   <transferFunctionMethod value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.046"/>
-    <neutrinoMassSummed      value="0.000"/>
+    <neutrinoMassSummed value="0.000"/>
   </transferFunctionMethod>
   <powerSpectrumPrimordialMethod value="powerLaw">
-    <index               value="0.961"/>
+    <index value="0.961"/>
     <wavenumberReference value="1.000"/>
-    <running             value="0.000"/>
+    <running value="0.000"/>
   </powerSpectrumPrimordialMethod>
   <powerSpectrumPrimordialTransferredMethod value="simple"/>
   <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.807"/>
   </cosmologicalMassVarianceMethod>
-  
+
   <!-- Structure formation options -->
-  <linearGrowthMethod          value="collisionlessMatter"                      />
-  <haloMassFunctionMethod      value="tinker2008"                               />
-  <criticalOverdensityMethod   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <linearGrowthMethod value="collisionlessMatter"/>
+  <haloMassFunctionMethod value="tinker2008"/>
+  <criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
 
   <!-- Dark matter halo structure options -->
-  <darkMatterProfileDMOMethod           value="NFW"    />
+  <darkMatterProfileDMOMethod value="NFW"/>
   <darkMatterProfileConcentrationMethod value="gao2008"/>
 
   <!-- Output options -->

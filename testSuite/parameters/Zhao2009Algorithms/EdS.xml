@@ -9,9 +9,11 @@
     <OmegaDarkEnergy value="0.0"/>
     <OmegaBaryon value="0.0"/>
     <HubbleConstant value="100.0"/>
-  </cosmologyParametersMethod><cosmologicalMassVarianceMethod value="filteredPower">
+  </cosmologyParametersMethod>
+  <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.8"/>
-  </cosmologicalMassVarianceMethod><transferFunctionMethod value="BBKS"/>
+  </cosmologicalMassVarianceMethod>
+  <transferFunctionMethod value="BBKS"/>
   <powerSpectrumPrimordialMethod value="powerLaw">
     <index value="1.000"/>
     <wavenumberReference value="1.000"/>
@@ -19,4 +21,24 @@
   </powerSpectrumPrimordialMethod>
   <darkMatterHaloMassAccretionHistoryMethod value="zhao2009"/>
   <darkMatterProfileConcentrationMethod value="zhao2009"/>
+  <nodeOperatorMethod value="multi"><!--Stellar feedback outflows-->
+    <nodeOperatorMethod value="stellarFeedbackDisks">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+    <nodeOperatorMethod value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+  </nodeOperatorMethod>
 </parameters>

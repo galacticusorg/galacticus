@@ -187,7 +187,7 @@ contains
      type            (treeNode                       ), pointer                     :: node
      class           (nodeComponentBasic             ), pointer                     :: basic
     double precision                                  , parameter                   :: wavenumberMaximumFactor=1.0d2
-    integer         (c_size_t                        )                              :: output                       , output1                    , &
+    integer          (c_size_t                       )                              :: output                       , output1                    , &
          &                                                                             output2
     double precision                                                                :: timeMinimum                  , timeMaximum                , &
          &                                                                             heightRegion1Lower           , heightRegion1Upper         , &

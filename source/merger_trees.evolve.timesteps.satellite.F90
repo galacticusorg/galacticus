@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !% Contains a merger tree evolution timestep class which limits the step to the next satellite merger.
+
   use :: Nodes_Operators, only : nodeOperatorClass
 
   !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepSatellite">
@@ -41,7 +43,7 @@
   !#  </description>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepSatellite
-     !% Implementation of an output times class which reads a satellite of output times from a parameter.
+     !% Implementation of a merger tree evolution timestep class which limits the step to the next satellite merger.
      private
      class           (nodeOperatorClass), pointer :: nodeOperator_
      double precision                             :: timeOffsetMaximumAbsolute, timeOffsetMaximumRelative
@@ -132,7 +134,7 @@ contains
     double precision                                                                      :: mergeTargetTimeMinimum, mergeTargetTimeOffsetMaximum, &
          &                                                                                   timeUntilMerging
 
-    ! By default set a huge timestep so that this class has no effect,
+    ! By default set a huge timestep so that this class has no effect.
     satelliteTimeEvolveTo           =  huge(0.0d0)
     task                            => null(     )
     taskSelf                        => null(     )

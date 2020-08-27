@@ -17,15 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of the \cite{creasey_how_2012} outflow rate due to star formation feedback in galactic disks.
+  !% Implementation of the \cite{creasey_how_2012} stellar feedback model.
 
   use :: Star_Formation_Rate_Surface_Density_Disks, only : starFormationRateSurfaceDensityDisksClass
 
-  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksCreasey2012">
-  !#  <description>The \cite{creasey_how_2012} outflow rate due to star formation feedback in galactic disks.</description>
-  !# </starFormationFeedbackDisks>
-  type, extends(starFormationFeedbackDisksClass) :: starFormationFeedbackDisksCreasey2012
-     !% Implementation of the \cite{creasey_how_2012} outflow rate due to star formation feedback in galactic disks.
+  !# <stellarFeedbackOutflows name="stellarFeedbackOutflowsCreasey2012">
+  !#  <description>The \cite{creasey_how_2012} stellar feedback model.</description>
+  !# </stellarFeedbackOutflows>
+  type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsCreasey2012
+     !% Implementation of the \cite{creasey_how_2012} stellar feedback model.
      private
     class           (starFormationRateSurfaceDensityDisksClass), pointer :: starFormationRateSurfaceDensityDisks_ => null()
      double precision                                                    :: nu                                             , mu, &
@@ -33,21 +33,21 @@
    contains
      final     ::                creasey2012Destructor
      procedure :: outflowRate => creasey2012OutflowRate
-  end type starFormationFeedbackDisksCreasey2012
+  end type stellarFeedbackOutflowsCreasey2012
 
-  interface starFormationFeedbackDisksCreasey2012
-     !% Constructors for the creasey2012 fraction star formation feedback in disks class.
+  interface stellarFeedbackOutflowsCreasey2012
+     !% Constructors for the creasey2012 fraction stellar feedback class.
      module procedure creasey2012ConstructorParameters
      module procedure creasey2012ConstructorInternal
-  end interface starFormationFeedbackDisksCreasey2012
+  end interface stellarFeedbackOutflowsCreasey2012
 
 contains
 
   function creasey2012ConstructorParameters(parameters) result(self)
-    !% Constructor for the \cite{creasey_how_2012} star formation feedback in disks class which takes a parameter set as input.
+    !% Constructor for the \cite{creasey_how_2012} stellar feedback class which takes a parameter set as input.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    type            (starFormationFeedbackDisksCreasey2012    )                :: self
+    type            (stellarFeedbackOutflowsCreasey2012       )                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
     class           (starFormationRateSurfaceDensityDisksClass), pointer       :: starFormationRateSurfaceDensityDisks_
     double precision                                                           :: mu                                   , nu, &
@@ -81,16 +81,16 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="starFormationRateSurfaceDensityDisks" name="starFormationRateSurfaceDensityDisks_" source="parameters"/>
-    self=starFormationFeedbackDisksCreasey2012(mu,nu,beta0,starFormationRateSurfaceDensityDisks_)
+    self=stellarFeedbackOutflowsCreasey2012(mu,nu,beta0,starFormationRateSurfaceDensityDisks_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="starFormationRateSurfaceDensityDisks_"/>
     return
   end function creasey2012ConstructorParameters
 
   function creasey2012ConstructorInternal(mu,nu,beta0,starFormationRateSurfaceDensityDisks_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily creasey2012} star formation feedback from disks class.
+    !% Internal constructor for the {\normalfont \ttfamily creasey2012} stellar feedback class.
     implicit none
-    type            (starFormationFeedbackDisksCreasey2012    )                        :: self
+    type            (stellarFeedbackOutflowsCreasey2012       )                        :: self
     class           (starFormationRateSurfaceDensityDisksClass), intent(in   ), target :: starFormationRateSurfaceDensityDisks_
     double precision                                           , intent(in   )         :: mu                                   , nu, &
          &                                                                                beta0
@@ -102,13 +102,13 @@ contains
   subroutine creasey2012Destructor(self)
     !% Destructor for the {\normalfont \ttfamily creasey2012} feedback in disks class.
     implicit none
-    type(starFormationFeedbackDisksCreasey2012), intent(inout) :: self
+    type(stellarFeedbackOutflowsCreasey2012), intent(inout) :: self
 
     !# <objectDestructor name="self%starFormationRateSurfaceDensityDisks_"/>
     return
   end subroutine creasey2012Destructor
 
-  double precision function creasey2012OutflowRate(self,node,rateEnergyInput,rateStarFormation)
+  subroutine creasey2012OutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
     !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily thisNode} using
     !% the model of \cite{creasey_how_2012}. The outflow rate is given by
     !% \begin{equation}
@@ -117,43 +117,52 @@ contains
     !% where $\Sigma_{g,1}(r)$ is the surface density of gas in units of $M_\odot$ pc$^{-2}$, $f_\mathrm{g}(r)$ is the gas
     !% fraction, $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate, $\beta_0=${\normalfont \ttfamily [beta0]},
     !% $\mu=${\normalfont \ttfamily [mu]}, and $\nu=${\normalfont \ttfamily [nu]}.
-    use :: Galacticus_Nodes        , only : nodeComponentDisk                     , treeNode
+    use :: Galacticus_Nodes        , only : nodeComponentDisk                     , nodeComponentSpheroid
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
     use :: Stellar_Feedback        , only : feedbackEnergyInputAtInfinityCanonical
     implicit none
-    class           (starFormationFeedbackDisksCreasey2012), intent(inout) :: self
-    type            (treeNode                             ), intent(inout) :: node
-    double precision                                       , intent(in   ) :: rateEnergyInput               , rateStarFormation
-    double precision                                       , parameter     :: radiusInnerDimensionless=0.0d0, radiusOuterDimensionless=10.0d0
-    class           (nodeComponentDisk                    ), pointer       :: disk
-    double precision                                                       :: radiusScale                   , massGas                        , &
-         &                                                                    radiusInner                   , radiusOuter                    , &
-         &                                                                    massStellar
-    type            (integrator                           )                :: integrator_
+    class           (stellarFeedbackOutflowsCreasey2012), intent(inout) :: self
+    class           (nodeComponent                     ), intent(inout) :: component
+    double precision                                    , intent(in   ) :: rateEnergyInput               , rateStarFormation
+    double precision                                    , intent(  out) :: rateOutflowEjective           , rateOutflowExpulsive
+    double precision                                    , parameter     :: radiusInnerDimensionless=0.0d0, radiusOuterDimensionless=10.0d0
+    double precision                                                    :: radiusScale                   , massGas                        , &
+         &                                                                 radiusInner                   , radiusOuter                    , &
+         &                                                                 massStellar
+    type            (integrator                        )                :: integrator_
 
     ! Get the disk properties.
-    disk        => node%disk       ()
-    massGas     =  disk%massGas    ()
-    massStellar =  disk%massStellar()
-    radiusScale =  disk%radius     ()
-    ! Return immediately for a null disk.
+    select type (component)
+    class is (nodeComponentDisk    )
+       massGas    =component%massGas    ()
+       massStellar=component%massStellar()
+       radiusScale=component%radius     ()
+    class default
+       massGas    =0.0d0
+       massStellar=0.0d0
+       radiusScale=0.0d0
+       call Galacticus_Error_Report('unsupported component'//{introspection:location})
+    end select
+    ! Return immediately for a null component.
     if (massGas <= 0.0d0 .or. massStellar <= 0.0d0 .or. radiusScale <= 0.0d0) then
-       creasey2012OutflowRate=0.0d0
+       rateOutflowEjective =+0.0d0
+       rateOutflowExpulsive=+0.0d0
        return
     end if
     ! Compute suitable limits for the integration.
     radiusInner=radiusScale*radiusInnerDimensionless
     radiusOuter=radiusScale*radiusOuterDimensionless
     ! Compute the outflow rate.
-    integrator_=integrator(outflowRateIntegrand,toleranceRelative=1.0d-3)
-    creasey2012OutflowRate=+2.0d0                                          &
-         &                 *Pi                                             &
-         &                 *self%beta0                                     &
-         &                 *integrator_%integrate(radiusInner,radiusOuter) &
-         &                 /rateStarFormation                              &
-         &                 *rateEnergyInput                                &
-         &                 /feedbackEnergyInputAtInfinityCanonical
+    integrator_         =integrator(outflowRateIntegrand,toleranceRelative=1.0d-3)
+    rateOutflowEjective =+2.0d0                                          &
+         &               *Pi                                             &
+         &               *self%beta0                                     &
+         &               *integrator_%integrate(radiusInner,radiusOuter) &
+         &               /rateStarFormation                              &
+         &               *rateEnergyInput                                &
+         &               /feedbackEnergyInputAtInfinityCanonical
+    rateOutflowExpulsive=+0.0d0
     return
 
   contains
@@ -170,7 +179,7 @@ contains
 
       ! Get gas surface density.
       densitySurfaceGas    =Galactic_Structure_Surface_Density(                                                            &
-           &                                                                     node                                    , &
+           &                                                                     component%hostNode                      , &
            &                                                                    [radius                     ,0.0d0,0.0d0], &
            &                                                   coordinateSystem= coordinateSystemCylindrical             , &
            &                                                   componentType   = componentTypeDisk                       , &
@@ -178,7 +187,7 @@ contains
            &                                                  )
       ! Get stellar surface density.
       densitySurfaceStellar=Galactic_Structure_Surface_Density(                                                            &
-           &                                                                     node                                    , &
+           &                                                                     component%hostNode                      , &
            &                                                                    [radius                     ,0.0d0,0.0d0], &
            &                                                   coordinateSystem= coordinateSystemCylindrical             , &
            &                                                   componentType   = componentTypeDisk                       , &
@@ -194,7 +203,7 @@ contains
       densitySurfaceGas=+densitySurfaceGas &
            &            /mega**2
       ! Get the surface density of star formation rate.
-      densitySurfaceRateStarFormation=self%starFormationRateSurfaceDensityDisks_%rate(node,radius)
+      densitySurfaceRateStarFormation=self%starFormationRateSurfaceDensityDisks_%rate(component%hostNode,radius)
       ! Compute the outflow rate.
       outflowRateIntegrand=+densitySurfaceGas              **(-self%mu) &
            &               *fractionGas                    **  self%nu  &
@@ -203,5 +212,5 @@ contains
       return
     end function outflowRateIntegrand
 
-  end function creasey2012OutflowRate
+  end subroutine creasey2012OutflowRate
 

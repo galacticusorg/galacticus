@@ -45,7 +45,7 @@
           &                                                              massRatioLikelihoodMaximum            , rootVarianceTargetFractional
      integer         (c_size_t                             )          :: countMassRatio                        , indexOutput
      logical                                                          :: alwaysIsolatedOnly                    , covarianceDiagonalize       , &
-          &                                                              covarianceTargetOnly
+          &                                                              covarianceTargetOnly                  , likelihoodInLog
    contains
      final     ::                     progenitorMassFunctionDestructor
      procedure :: newTree          => progenitorMassFunctionNewTree
@@ -89,7 +89,7 @@ contains
     type            (varying_string                      )                              :: label                       , comment                   , &
          &                                                                                 targetLabel                 , fileName
     logical                                                                             :: alwaysIsolatedOnly          , covarianceDiagonalize     , &
-          &                                                                                covarianceTargetOnly
+          &                                                                                covarianceTargetOnly        , likelihoodInLog
     
     !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     !# <objectBuilder class="nbodyHaloMassError"    name="nbodyHaloMassError_"    source="parameters"/> 
@@ -116,6 +116,14 @@ contains
     !#   <source>parameters</source>
     !#   <description>The diagonal of the covariance matrix is forced to be at least equal to this fraction multiplied by the target dataset squared.</description>
     !#   <defaultValue>0.0d0</defaultValue>
+    !#   <type>float</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>likelihoodInLog</name>
+    !#   <source>parameters</source>
+    !#   <description>If true, the likelihood is computed in $\log\phi$ instead of in $\phi$.</description>
+    !#   <defaultValue>.false.</defaultValue>
     !#   <type>float</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
@@ -150,7 +158,7 @@ contains
        !#   <type>integer</type>
        !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
-       self=outputAnalysisProgenitorMassFunction(char(fileName),instance,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_)
+       self=outputAnalysisProgenitorMassFunction(char(fileName),instance,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,likelihoodInLog,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_)
     else
        !# <inputParameter>
        !#   <name>label</name>
@@ -280,6 +288,7 @@ contains
        !#    &amp;                                    covarianceDiagonalize                                                                              , &amp;
        !#    &amp;                                    covarianceTargetOnly                                                                               , &amp;
        !#    &amp;                                    rootVarianceTargetFractional                                                                       , &amp;
+       !#    &amp;                                    likelihoodInLog                                                                                    , &amp;
        !#    &amp;                                    virialDensityContrast_                                                                             , &amp;
        !#    &amp;                                    nbodyHaloMassError_                                                                                , &amp;
        !#    &amp;                                    outputTimes_                                                                                         &amp;
@@ -299,7 +308,7 @@ contains
     return
   end function progenitorMassFunctionConstructorParameters
   
-  function progenitorMassFunctionConstructorFile(fileName,instance,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_) result(self)
+  function progenitorMassFunctionConstructorFile(fileName,instance,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,likelihoodInLog,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_) result(self)
     !% Constructor for the ``progenitorMassFunction'' output analysis class which reads all required properties from file.
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: IO_HDF5                          , only : hdf5Object                , hdf5Access
@@ -311,7 +320,8 @@ contains
     integer                                               , intent(in   )               :: instance
     double precision                                      , intent(in   )               :: massRatioLikelihoodMinimum  , massRatioLikelihoodMaximum, &
          &                                                                                 rootVarianceTargetFractional
-    logical                                               , intent(in   )               :: covarianceDiagonalize       , covarianceTargetOnly
+    logical                                               , intent(in   )               :: covarianceDiagonalize       , covarianceTargetOnly      , &
+         &                                                                                 likelihoodInLog
     class           (cosmologyFunctionsClass             ), intent(inout), target       :: cosmologyFunctions_
     class           (outputTimesClass                    ), intent(inout), target       :: outputTimes_
     class           (virialDensityContrastClass          ), intent(in   ), target       :: virialDensityContrast_
@@ -349,11 +359,11 @@ contains
     alwaysIsolatedOnly=alwaysIsolatedOnlyInteger /= 0
     timeProgenitor    =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftProgenitor))
     timeParent        =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftParent    ))
-    self              =outputAnalysisProgenitorMassFunction(label,comment,massRatio(1),massRatio(size(massRatio)),size(massRatio,kind=c_size_t),massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,virialDensityContrast_,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget)
+    self              =outputAnalysisProgenitorMassFunction(label,comment,massRatio(1),massRatio(size(massRatio)),size(massRatio,kind=c_size_t),massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,likelihoodInLog,virialDensityContrast_,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget)
     return
   end function progenitorMassFunctionConstructorFile
 
-  function progenitorMassFunctionConstructorInternal(label,comment,massRatioMinimum,massRatioMaximum,countMassRatio,massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,virialDensityContrast_,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
+  function progenitorMassFunctionConstructorInternal(label,comment,massRatioMinimum,massRatioMaximum,countMassRatio,massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,likelihoodInLog,virialDensityContrast_,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
     !% Internal constructor for the ``progenitorMassFunction'' output analysis class.
     use :: Galactic_Filters                        , only : galacticFilterHaloIsolated                      , galacticFilterHaloMass                      , galacticFilterDescendentNode                , galacticFilterNot                             , &
          &                                                  galacticFilterHaloAlwaysIsolated                , filterList
@@ -377,7 +387,7 @@ contains
          &                                                                                                         rootVarianceTargetFractional
     integer         (c_size_t                                        ), intent(in   )                           :: countMassRatio
     logical                                                           , intent(in   )                           :: alwaysIsolatedOnly                                     , covarianceDiagonalize                   , &
-         &                                                                                                         covarianceTargetOnly
+         &                                                                                                         covarianceTargetOnly                                   , likelihoodInLog
     double precision                                                  , intent(in   )                           :: massRatioLikelihoodMinimum                             , massRatioLikelihoodMaximum
     class           (outputTimesClass                                ), intent(inout), target                   :: outputTimes_
     class           (nbodyHaloMassErrorClass                         ), intent(in   ), target                   :: nbodyHaloMassError_
@@ -413,7 +423,7 @@ contains
     type            (outputAnalysisPropertyOperatorAntiLog10         ), pointer                                 :: outputAnalysisPropertyUnoperator_
     type            (outputAnalysisPropertyOperatorIdentity          ), pointer                                 :: outputAnalysisPropertyIdentity_
     integer         (c_size_t                                        )                                          :: iOutput                                                , bufferCount
-    !# <constructorAssign variables="massRatioMinimum, massRatioMaximum, countMassRatio, massParentMinimum, massParentMaximum, timeProgenitor, timeParent, alwaysIsolatedOnly, massRatioLikelihoodMinimum, massRatioLikelihoodMaximum, covarianceDiagonalize, covarianceTargetOnly, rootVarianceTargetFractional"/>
+    !# <constructorAssign variables="massRatioMinimum, massRatioMaximum, countMassRatio, massParentMinimum, massParentMaximum, timeProgenitor, timeParent, alwaysIsolatedOnly, massRatioLikelihoodMinimum, massRatioLikelihoodMaximum, covarianceDiagonalize, covarianceTargetOnly, rootVarianceTargetFractional, likelihoodInLog"/>
 
     ! Build grid of mass ratios.
     call allocateArray(massRatios,[countMassRatio])
@@ -604,7 +614,7 @@ contains
     treeWalker=mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
     do while (treeWalker%next(node))
        basic => node%basic()
-       if (Values_Agree(basic%time(),self%timeParent,absTol=timeTolerance) .and. self%galacticFilterParentMass_%passes(node)) then
+              if (Values_Agree(basic%time(),self%timeParent,absTol=timeTolerance) .and. self%galacticFilterParentMass_%passes(node)) then
           weight            =+node%hostTree%volumeWeight
           mass              =+self%nodePropertyExtractorMassParent_      %extract      (       node                                                )
           propertyType      =+self%nodePropertyExtractorMassParent_      %type         (                                                           )
@@ -674,12 +684,14 @@ contains
     double precision                                      , allocatable  , dimension(:,:) :: functionCovarianceCombined
     double precision                                      , allocatable  , dimension(:  ) :: functionValueDifference
     logical                                               , allocatable  , dimension(:  ) :: mask
+    double precision                                      , parameter                     :: logRatioZero              =7.0d0
     type            (vector                              )                                :: residual
     type            (matrix                              )                                :: covariance
-    integer         (c_size_t                            )                                :: i                         , j , &
-         &                                                                                   ii                        , jj
+    integer         (c_size_t                            )                                :: i                               , j             , &
+         &                                                                                   ii                              , jj
     integer                                                                               :: status
-
+    double precision                                                                      :: covarianceTermTarget            , covarianceTerm
+    
     ! Check for existance of a target distribution.
     if (allocated(self%functionValueTarget)) then
        ! Finalize analysis.
@@ -699,24 +711,65 @@ contains
           do i=1,self%binCount
              if (mask(i)) then
                 ii=ii+1
-                functionValueDifference(ii)=+self%functionValue      (i) &
-                     &                      -self%functionValueTarget(i)
+                if (self%likelihoodInLog) then
+                   !  Compute difference between model and target.
+                   if (self%functionValue(i) > 0.0d0) then
+                      ! Map values to compute difference in log(φ).
+                      functionValueDifference(ii)=log(+self%functionValue      (i) &
+                           &                          /self%functionValueTarget(i) &
+                           &                         )
+                   else
+                      functionValueDifference(ii)=logRatioZero
+                   end if
+                else
+                   ! Compute difference in φ.
+                   functionValueDifference   (ii)=    +self%functionValue      (i) &
+                        &                             -self%functionValueTarget(i)
+                end if
                 jj=0
                 do j=1,self%binCount
                    if (mask(j)) then
                       jj=jj+1
-                      if (ii == jj) then
-                         functionCovarianceCombined       (ii,jj)=     +                                  self%functionCovarianceTarget  ( i, j)
-                         if (.not.self%covarianceTargetOnly)                                                                                          &
-                              & functionCovarianceCombined(ii,jj)=     +                                       functionCovarianceCombined(ii,jj)      &
-                              &                                        +                                  self%functionCovariance        ( i, j)
-                         functionCovarianceCombined       (ii,jj)=max(                                                                                &
-                              &                                       (+self%rootVarianceTargetFractional*self%functionValueTarget       ( i   ))**2, &
-                              &                                        +                                  self%functionCovarianceTarget  ( i, j)      &
-                              &                                      )
+                      ! Compute covariance terms for model and target
+                      covarianceTermTarget=self%functionCovarianceTarget(i,j)
+                      if (self%covarianceTargetOnly) then
+                         covarianceTerm   =0.0d0
                       else
-                         if (self%covarianceDiagonalize) functionCovarianceCombined(ii,jj)=0.0d0
+                         covarianceTerm   =self%functionCovariance      (i,j)
                       end if
+                      ! Map to log(φ) if requested.
+                      if (self%likelihoodInLog) then
+                         covarianceTermTarget=+covarianceTermTarget        &
+                              &               /self%functionValueTarget(i) &
+                              &               /self%functionValueTarget(j)
+                         if (self%functionValue(i) > 0.0d0 .and. self%functionValue(j) > 0.0d0) then
+                            covarianceTerm   =+covarianceTerm              &
+                                 &            /self%functionValue      (i) &
+                                 &            /self%functionValue      (j)
+                         else
+                            covarianceTerm   =+0.0d0
+                         end if
+                      end if
+                      ! Compute total covariance.
+                      functionCovarianceCombined(ii,jj)=+covarianceTermTarget &
+                           &                            +covarianceTerm
+                      ! Set a floor in covariance.
+                      if (self%likelihoodInLog) then
+                         functionCovarianceCombined(ii,jj)=max(                                                                      &
+                              &                                +self%rootVarianceTargetFractional                                    &
+                              &                                *self%rootVarianceTargetFractional                                  , &
+                              &                                +                                  functionCovarianceCombined(ii,jj)  &
+                              &                               )
+                      else
+                         functionCovarianceCombined(ii,jj)=max(                                                                      &
+                              &                                +self%rootVarianceTargetFractional*self%functionValueTarget  (i    )  &
+                              &                                *self%rootVarianceTargetFractional*self%functionValueTarget  (    j), &
+                              &                                +                                  functionCovarianceCombined(ii,jj)  &
+                              &                               )
+                      end if
+                      ! Zero off-diagonal terms if requested.
+                      if (self%covarianceDiagonalize .and. ii /= jj) &
+                           & functionCovarianceCombined(ii,jj)=0.0d0
                    end if
                 end do
              end if

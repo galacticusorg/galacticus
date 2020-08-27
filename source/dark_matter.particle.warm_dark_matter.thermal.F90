@@ -28,16 +28,10 @@
      !% A thermal warm dark matter particle class.
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
-     double precision                                    :: massValue           , degreesOfFreedomEffectiveValue
+     double precision                                    :: massValue                     , degreesOfFreedomEffectiveValue
    contains
      !@ <objectMethods>
      !@   <object>darkMatterParticleWDMThermal</object>
-     !@   <objectMethod>
-     !@     <method>mass</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the mass of the thermal wark dark matter particle in units of keV.</description>
-     !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>degreesOfFreedomEffective</method>
      !@     <type>\doublezero</type>
@@ -124,7 +118,7 @@ contains
   double precision function wdmThermalMass(self)
     !% Return the mass, in units of keV, of a thermal warm dark matter particle.
     implicit none
-    class(darkMatterParticleWDMThermal), intent(in   ) :: self
+    class(darkMatterParticleWDMThermal), intent(inout) :: self
 
     wdmThermalMass=self%massValue
     return
@@ -133,7 +127,7 @@ contains
   double precision function wdmThermalDegreesOfFreedomEffective(self)
     !% Return the effective number of degrees of freedom of a thermal warm dark matter particle.
     implicit none
-    class(darkMatterParticleWDMThermal), intent(in   ) :: self
+    class(darkMatterParticleWDMThermal), intent(inout) :: self
 
     wdmThermalDegreesOfFreedomEffective=self%degreesOfFreedomEffectiveValue
     return
@@ -146,16 +140,16 @@ contains
     !% \citep[][eqn.~17]{hogan_warm_1999}.
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     implicit none
-    class(darkMatterParticleWDMThermal), intent(in   ) :: self
+    class(darkMatterParticleWDMThermal), intent(inout) :: self
 
     wdmThermalDegreesOfFreedomEffectiveDecoupling=+78.3d0                                                                      &
          &                                        *  self                     %degreesOfFreedomEffective(                  )   &
          &                                        *  self                     %mass                     (                  )   &
          &                                        /(                                                                           &
-         &                                          +self%cosmologyParameters_%OmegaMatter             (                  )    &
-         &                                          -self%cosmologyParameters_%OmegaBaryon             (                  )    &
+         &                                          +self%cosmologyParameters_%OmegaMatter              (                  )   &
+         &                                          -self%cosmologyParameters_%OmegaBaryon              (                  )   &
          &                                        )                                                                            &
-         &                                        /  self%cosmologyParameters_%HubbleConstant          (hubbleUnitsLittleH)**2
+         &                                        /  self%cosmologyParameters_%HubbleConstant           (hubbleUnitsLittleH)**2
     return
   end function wdmThermalDegreesOfFreedomEffectiveDecoupling
 

@@ -58,7 +58,7 @@
 
   <!-- Merger tree building options -->
   <mergerTreeConstructorMethod value="read">
-  <fileNames value="testSuite/data/mergerTrees/treeWithInitialSatelliteInProgenitorlessHost.hdf5"/>
+    <fileNames value="testSuite/data/mergerTrees/treeWithInitialSatelliteInProgenitorlessHost.hdf5"/>
     <treeIndexToRootNodeIndex value="true"/>
     <presetPositions value="false"/>
     <presetOrbits value="false"/>
@@ -78,7 +78,7 @@
   <mergerTreeBuilderMethod value="cole2000">
     <accretionLimit value="0.1"/>
     <mergeProbability value="0.1"/>
-    </mergerTreeBuilderMethod>
+  </mergerTreeBuilderMethod>
   <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
     <G0 value="+0.57"/>
     <gamma1 value="+0.38"/>
@@ -147,7 +147,7 @@
 
   <!-- Galactic disk dynamics options -->
   <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
-  <stabilityThresholdGaseous value="0.7"/>
+    <stabilityThresholdGaseous value="0.7"/>
     <stabilityThresholdStellar value="0.7"/>
   </galacticDynamicsBarInstabilityMethod>
   <!-- Star formation rate options -->
@@ -167,7 +167,7 @@
   <stellarPopulationPropertiesMethod value="instantaneous"/>
   <stellarPopulationSpectraMethod value="FSPS"/>
   <stellarPopulationSelectorMethod value="fixed"/>
-  
+
   <initialMassFunctionMethod value="chabrier2001"/>
   <stellarPopulationMethod value="standard">
     <recycledFraction value="0.46"/>
@@ -177,16 +177,6 @@
   <!-- AGN feedback options -->
   <hotHaloExcessHeatDrivesOutflow value="true"/>
   <blackHoleHeatsHotHalo value="true"/>
-
-  <!-- Supernovae feedback options -->
-  <starFormationFeedbackDisksMethod value="powerLaw">
-    <velocityCharacteristic value="250.0"/>
-    <exponent value="3.0"/>
-  </starFormationFeedbackDisksMethod>
-  <starFormationFeedbackSpheroidsMethod value="powerLaw">
-    <exponent value="2.0"/>
-    <velocityCharacteristic value="300.0"/>
-  </starFormationFeedbackSpheroidsMethod>
 
   <!-- Accretion disk properties -->
   <accretionDisksMethod value="switched">
@@ -218,10 +208,10 @@
   <!-- Galaxy merger options -->
   <virialOrbitMethod value="benson2005"/>
   <satelliteMergingTimescalesMethod value="jiang2008">
-  <timescaleMultiplier value="1.0"/>
+    <timescaleMultiplier value="1.0"/>
   </satelliteMergingTimescalesMethod>
   <mergerMassMovementsMethod value="simple">
-  <destinationGasMinorMerger value="spheroid"/>
+    <destinationGasMinorMerger value="spheroid"/>
     <massRatioMajorMerger value="0.3983"/>
   </mergerMassMovementsMethod>
   <mergerRemnantSizeMethod value="covington2008">
@@ -233,10 +223,29 @@
 
   <!-- Node evolution and physics -->
   <nodeOperatorMethod value="multi">
-    <nodeOperatorMethod value="starFormationDisks"    />
+    <nodeOperatorMethod value="starFormationDisks"/>
     <nodeOperatorMethod value="starFormationSpheroids"/>
+    <!--Stellar feedback outflows-->
+    <nodeOperatorMethod value="stellarFeedbackDisks">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.0"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+    <nodeOperatorMethod value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <exponent value="2.0"/>
+          <velocityCharacteristic value="300.0"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
   </nodeOperatorMethod>
-  
+
   <!-- Numerical tolerances -->
   <mergerTreeNodeEvolverMethod value="standard">
     <odeToleranceAbsolute value="0.01"/>
@@ -244,7 +253,7 @@
   </mergerTreeNodeEvolverMethod>
   <diskMassToleranceAbsolute value="1.0e-6"/>
   <spheroidMassToleranceAbsolute value="1.0e-6"/>
-  
+
   <!-- Output options -->
   <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>

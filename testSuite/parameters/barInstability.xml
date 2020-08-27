@@ -61,7 +61,7 @@
 
   <!-- Dark matter halo profile -->
   <darkMatterProfileDMOMethod value="isothermal"/>
-  
+
   <!-- Hot halo model options -->
   <hotHaloMassDistributionMethod value="null"/>
 
@@ -70,7 +70,7 @@
 
   <!-- Galactic dynamics options -->
   <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
-  <stabilityThresholdGaseous value="0.7"/>
+    <stabilityThresholdGaseous value="0.7"/>
     <stabilityThresholdStellar value="0.7"/>
   </galacticDynamicsBarInstabilityMethod>
   <!-- Star formation rate -->
@@ -79,15 +79,8 @@
       <timescale value="0.25"/>
     </starFormationTimescaleMethod>
   </starFormationRateDisksMethod>
-  
+
   <!-- Feedback -->
-  <starFormationFeedbackDisksMethod value="fixed">
-    <fraction value="0.0"/>
-  </starFormationFeedbackDisksMethod>
-  <starFormationFeedbackSpheroidsMethod value="powerLaw">
-    <velocityCharacteristic value="0.0"/>
-    <exponent value="1.0"/>
-  </starFormationFeedbackSpheroidsMethod>
 
   <!-- Metal production -->
   <stellarPopulationMethod value="standard">
@@ -97,10 +90,28 @@
 
   <!-- Node evolution and physics -->
   <nodeOperatorMethod value="multi">
-    <nodeOperatorMethod value="starFormationDisks"    />
+    <nodeOperatorMethod value="starFormationDisks"/>
     <nodeOperatorMethod value="starFormationSpheroids"/>
+    <!--Stellar feedback outflows-->
+    <nodeOperatorMethod value="stellarFeedbackDisks">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="fixed">
+          <fraction value="0.0"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+    <nodeOperatorMethod value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <velocityCharacteristic value="0.0"/>
+          <exponent value="1.0"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
   </nodeOperatorMethod>
-  
+
   <!-- Numerical tolerances -->
   <mergerTreeNodeEvolverMethod value="standard">
     <odeToleranceAbsolute value="1.0e-6"/>
@@ -119,5 +130,5 @@
 
   <!-- Output file -->
   <galacticusOutputFileName value="testSuite/outputs/barInstability.hdf5"/>
-  
+
 </parameters>

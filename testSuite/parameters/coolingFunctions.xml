@@ -4,14 +4,34 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
   <cosmologyParametersMethod value="simple">
-    <HubbleConstant  value="69.7"   />
-    <OmegaMatter     value="0.2812" />
-    <OmegaDarkEnergy value="0.7188" />
-    <OmegaBaryon     value="0.04611"/>
-    <temperatureCMB  value="2.72548"/>
+    <HubbleConstant value="69.7"/>
+    <OmegaMatter value="0.2812"/>
+    <OmegaDarkEnergy value="0.7188"/>
+    <OmegaBaryon value="0.04611"/>
+    <temperatureCMB value="2.72548"/>
   </cosmologyParametersMethod>
   <coolingFunctionMethod value="summation">
     <coolingFunctionMethod value="CMBCompton"/>
     <coolingFunctionMethod value="CMBCompton"/>
   </coolingFunctionMethod>
+  <nodeOperatorMethod value="multi"><!--Stellar feedback outflows-->
+    <nodeOperatorMethod value="stellarFeedbackDisks">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+    <nodeOperatorMethod value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+  </nodeOperatorMethod>
 </parameters>

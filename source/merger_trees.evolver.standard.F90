@@ -108,13 +108,15 @@
   type, extends(mergerTreeEvolverClass) :: mergerTreeEvolverStandard
      !% Implementation of the standars merger tree evolver.
      private
-     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
-     class           (mergerTreeEvolveTimestepClass), pointer :: mergerTreeEvolveTimestep_ => null()
-     class           (galacticStructureSolverClass ), pointer :: galacticStructureSolver_  => null()
-     class           (mergerTreeNodeEvolverClass   ), pointer :: mergerTreeNodeEvolver_    => null()
-     logical                                                  :: allTreesExistAtFinalTime           , dumpTreeStructure
-     double precision                                         :: timestepHostAbsolute               , timestepHostRelative
-     type            (deadlockList                 ), pointer :: deadlockHeadNode          => null()
+     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_              => null()
+     class           (mergerTreeEvolveTimestepClass), pointer :: mergerTreeEvolveTimestep_        => null()
+     class           (galacticStructureSolverClass ), pointer :: galacticStructureSolver_         => null()
+     class           (mergerTreeNodeEvolverClass   ), pointer :: mergerTreeNodeEvolver_           => null()
+     logical                                                  :: allTreesExistAtFinalTime                  , dumpTreeStructure    , &
+          &                                                      backtrackToSatellites
+     double precision                                         :: timestepHostAbsolute                      , timestepHostRelative , &
+          &                                                      fractionTimestepSatelliteMinimum
+     type            (deadlockList                 ), pointer :: deadlockHeadNode                 => null()
    contains
      !@ <objectMethods>
      !@   <object>mergerTreeEvolverStandard</object>
@@ -162,8 +164,10 @@ contains
     class           (mergerTreeEvolveTimestepClass), pointer       :: mergerTreeEvolveTimestep_
     class           (galacticStructureSolverClass ), pointer       :: galacticStructureSolver_
     class           (mergerTreeNodeEvolverClass   ), pointer       :: mergerTreeNodeEvolver_
-    logical                                                        :: allTreesExistAtFinalTime , dumpTreeStructure
-    double precision                                               :: timestepHostRelative     , timestepHostAbsolute
+    logical                                                        :: allTreesExistAtFinalTime        , dumpTreeStructure         , &
+         &                                                            backtrackToSatellites
+    double precision                                               :: timestepHostRelative            , timestepHostAbsolute      , &
+         &                                                            fractionTimestepSatelliteMinimum
 
     !# <inputParameter>
     !#   <name>allTreesExistAtFinalTime</name>
@@ -198,13 +202,29 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>fractionTimestepSatelliteMinimum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The minimum fraction of the timestep imposed by the ``satellite in host'' criterion to evolve over. If the timestep allowed is smaller than this fraction, the actual timestep will be reduced to zero. This avoids forcing satellites to take a large number of very small timesteps, and instead defers evolving a satellite until a large timestep can be taken.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>backtrackToSatellites</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true, after successfully evolving a node with satellites, revisit the satellites and attempt to evolve them again.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
     ! A galacticStructureSolver is built here. Even though this is not called explicitly by this mergerTreeEvolver, the
     ! galacticStructureSolver is expected to hook itself to any events which will trigger a change in galactic structure.
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="mergerTreeEvolveTimestep" name="mergerTreeEvolveTimestep_" source="parameters"/>
     !# <objectBuilder class="galacticStructureSolver"  name="galacticStructureSolver_"  source="parameters"/>
     !# <objectBuilder class="mergerTreeNodeEvolver"    name="mergerTreeNodeEvolver_"    source="parameters"/>
-    self=mergerTreeEvolverStandard(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,galacticStructureSolver_)
+    self=mergerTreeEvolverStandard(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,galacticStructureSolver_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"      />
     !# <objectDestructor name="mergerTreeEvolveTimestep_"/>
@@ -213,7 +233,7 @@ contains
     return
   end function standardConstructorParameters
 
-  function standardConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,galacticStructureSolver_) result(self)
+  function standardConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,galacticStructureSolver_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily standard} merger tree evolver class.
     implicit none
     type            (mergerTreeEvolverStandard    )                        :: self
@@ -221,9 +241,11 @@ contains
     class           (mergerTreeEvolveTimestepClass), intent(in   ), target :: mergerTreeEvolveTimestep_
     class           (galacticStructureSolverClass ), intent(in   ), target :: galacticStructureSolver_
     class           (mergerTreeNodeEvolverClass   ), intent(in   ), target :: mergerTreeNodeEvolver_
-    logical                                        , intent(in   )         :: allTreesExistAtFinalTime , dumpTreeStructure
-    double precision                               , intent(in   )         :: timestepHostRelative     , timestepHostAbsolute
-    !# <constructorAssign variables="allTreesExistAtFinalTime, dumpTreeStructure, timestepHostRelative, timestepHostAbsolute, *cosmologyFunctions_, *mergerTreeNodeEvolver_, *mergerTreeEvolveTimestep_, *galacticStructureSolver_"/>
+    logical                                        , intent(in   )         :: allTreesExistAtFinalTime        , dumpTreeStructure   , &
+         &                                                                    backtrackToSatellites
+    double precision                               , intent(in   )         :: timestepHostRelative            , timestepHostAbsolute, &
+         &                                                                    fractionTimestepSatelliteMinimum
+    !# <constructorAssign variables="allTreesExistAtFinalTime, dumpTreeStructure, timestepHostRelative, timestepHostAbsolute, fractionTimestepSatelliteMinimum, backtrackToSatellites, *cosmologyFunctions_, *mergerTreeNodeEvolver_, *mergerTreeEvolveTimestep_, *galacticStructureSolver_"/>
 
     self%deadlockHeadNode => null()
     return
@@ -289,7 +311,7 @@ contains
          &                                                                             nodeProgressed                    , nextNodeFound    , &
          &                                                                             didEvolve                         , interrupted      , &
          &                                                                             nodesRemain
-
+    
     ! Iterate through all trees.
     suspendTree               =  .false.
     anyTreeExistsAtOutputTime =  .false.
@@ -573,9 +595,15 @@ contains
                       end if
                       ! Determine the next node to process.
                       if (.not.nextNodeFound) then
-                         ! If the node still exists and advanced forward in time, attempt to evolve it again. Set the next node pointer back to the current node so that we will evolve it again.
+                         ! If the node still exists and advanced forward in time, attempt to evolve it, or its satellites,
+                         ! again. Set the next node pointer back to the current node so that we will evolve it again, or (if
+                         ! selected) to any satellites which may now be evolvable.
                          if (associated(node).and.nodeProgressed) then
-                            nodeNext => node
+                            if (associated(node%firstSatellite).and.self%backtrackToSatellites) then
+                               nodeNext => node%firstSatellite
+                            else
+                               nodeNext => node
+                            end if
                          end if
                       end if
                    else
@@ -713,7 +741,8 @@ contains
     class           (treeEvent                    )                         , pointer :: treeEvent_
     double precision                                                                  :: expansionFactor                  , expansionTimescale, &
          &                                                                               hostTimeLimit                    , time              , &
-         &                                                                               timeEarliest                     , evolveToTimeStep
+         &                                                                               timeEarliest                     , evolveToTimeStep  , &
+         &                                                                               hostTimeStep
     character       (len=9                        )                                   :: timeFormatted
     type            (varying_string               ), save                             :: message
     !$omp threadprivate(message)
@@ -726,66 +755,7 @@ contains
     if (present(lockType)) lockType = 'null'
     ! Get the basic component of the node.
     basic => node%basic()
-    ! Limit time based on satellite status.
-    select case (node%isSatellite())
-    case (.false.)
-       ! Limit to the time of its parent node if this node is not a satellite.
-       if (associated(node%parent)) then
-          basicParent => node%parent%basic()
-          if (basicParent%time() < evolveToTime) then
-             if (present(nodeLock)) nodeLock => node%parent
-             if (present(lockType)) lockType =  "promotion"
-             evolveToTime=basicParent%time()
-          end if
-       end if
-       if (report) call Evolve_To_Time_Report("promotion limit: ",evolveToTime)
-    case (.true.)
-       ! Do not let satellite evolve too far beyond parent.
-       if (associated(node%parent%parent)) then
-          ! The host halo has a parent, so use the host halo time to limit satellite evolution.
-          basicParent => node%parent%basic()
-          time=basicParent%time()
-       else
-          ! The host halo has no parent. The satellite must therefore be evolving to some event (e.g. a merger). We have to allow
-          ! it to evolve ahead of the host halo in this case to avoid deadlocks.
-          basicParent => node%parent%basic()
-          time=max(basicParent%time(),basic%time())
-       end if
-       ! Check if the host has a child.
-       select case (associated(node%parent%firstChild))
-       case (.true. )
-          ! Host still has a child - do not let the satellite evolve beyond the host.
-          hostTimeLimit=max(time,basic%time())
-          ! Check for any merge targets directed at this node.
-          nodeSatellite => node%firstMergee
-          timeEarliest=huge(1.0d0)
-          do while (associated(nodeSatellite))
-             satelliteSatellite => nodeSatellite%satellite()
-             if (nodeSatellite%isSatellite().and.nodeSatellite%parent%isProgenitorOf(node%parent)) &
-                  & timeEarliest=min(timeEarliest,satelliteSatellite%timeOfMerging())
-             nodeSatellite => nodeSatellite%siblingMergee
-          end do
-          if (timeEarliest < huge(1.0d0)) hostTimeLimit=max(hostTimeLimit,timeEarliest)
-       case (.false.)
-          ! Find current expansion timescale.
-          if (self%timestepHostRelative > 0.0d0) then
-             expansionFactor     =        self%cosmologyFunctions_%expansionFactor(time           )
-             expansionTimescale  =  1.0d0/self%cosmologyFunctions_%expansionRate  (expansionFactor)
-             hostTimeLimit       =  max(time+min(self%timestepHostRelative*expansionTimescale,self%timestepHostAbsolute),basic%time())
-          else
-             ! Avoid use of expansion timescale if host absolute timestep is non-positive. This allows static universe cases to be handled.
-             hostTimeLimit=max(time+self%timestepHostAbsolute,basic%time())
-          end if
-       end select
-       ! Limit to this time.
-       if (hostTimeLimit < evolveToTime) then
-          if (present(nodeLock)) nodeLock => node%parent
-          if (present(lockType)) lockType =  "satellite in host"
-          evolveToTime=hostTimeLimit
-       end if
-       if (report) call Evolve_To_Time_Report("satellite in host limit: ",evolveToTime,node%parent%index())
-    end select
-    ! Also ensure that this node is not evolved beyond the time of any of its current satellites.
+    ! Ensure that this node is not evolved beyond the time of any of its current satellites.
     nodeSatellite => node%firstSatellite
     time=basic%time()
     do while (associated(nodeSatellite))
@@ -886,6 +856,74 @@ contains
        end if
        treeEvent_ => treeEvent_%next
     end do
+    ! Limit time based on satellite status.
+    select case (node%isSatellite())
+    case (.false.)
+       ! Limit to the time of its parent node if this node is not a satellite.
+       if (associated(node%parent)) then
+          basicParent => node%parent%basic()
+          if (basicParent%time() < evolveToTime) then
+             if (present(nodeLock)) nodeLock => node%parent
+             if (present(lockType)) lockType =  "promotion"
+             evolveToTime=basicParent%time()
+          end if
+       end if
+       if (report) call Evolve_To_Time_Report("promotion limit: ",evolveToTime)
+    case (.true.)
+       ! Do not let satellite evolve too far beyond parent.
+       if (associated(node%parent%parent)) then
+          ! The host halo has a parent, so use the host halo time to limit satellite evolution.
+          basicParent => node%parent%basic()
+          time=basicParent%time()
+       else
+          ! The host halo has no parent. The satellite must therefore be evolving to some event (e.g. a merger). We have to allow
+          ! it to evolve ahead of the host halo in this case to avoid deadlocks.
+          basicParent => node%parent%basic()
+          time=max(basicParent%time(),basic%time())
+       end if
+       ! Check if the host has a child.
+       select case (associated(node%parent%firstChild))
+       case (.true. )
+          ! Host still has a child - do not let the satellite evolve beyond the host.
+          hostTimeLimit=max(time,basic%time())
+          ! Check for any merge targets directed at this node.
+          nodeSatellite => node%firstMergee
+          timeEarliest=huge(1.0d0)
+          do while (associated(nodeSatellite))
+             satelliteSatellite => nodeSatellite%satellite()
+             if (nodeSatellite%isSatellite().and.nodeSatellite%parent%isProgenitorOf(node%parent)) &
+                  & timeEarliest=min(timeEarliest,satelliteSatellite%timeOfMerging())
+             nodeSatellite => nodeSatellite%siblingMergee
+          end do
+          if (timeEarliest < huge(1.0d0)) hostTimeLimit=max(hostTimeLimit,timeEarliest)
+       case (.false.)
+          ! Find current expansion timescale.
+          if (self%timestepHostRelative > 0.0d0) then
+             expansionFactor   =      self%cosmologyFunctions_%expansionFactor(time           )
+             expansionTimescale=1.0d0/self%cosmologyFunctions_%expansionRate  (expansionFactor)
+             hostTimeStep      =min(self%timestepHostRelative*expansionTimescale,self%timestepHostAbsolute)
+          else
+             ! Avoid use of expansion timescale if host absolute timestep is non-positive. This allows static universe cases to be handled.
+             hostTimeStep      =                                                 self%timestepHostAbsolute
+          end if
+          hostTimeLimit=max(time+hostTimeStep,basic%time())
+          ! Check if this criterion will actually limit the evolution time.
+          if (hostTimeLimit < evolveToTime) then
+             ! Satellite evolution will be limited by being required to not advance too far ahead of the host halo. If the
+             ! timestep we can advance is less than a specified fraction of what is possible, then skip this for now.
+             if (hostTimeLimit-basic%time() < self%fractionTimestepSatelliteMinimum*hostTimeStep) then
+                hostTimeLimit=basic%time()
+             end if
+          end if
+       end select
+       ! Limit to this time.
+       if (hostTimeLimit < evolveToTime) then
+          if (present(nodeLock)) nodeLock => node%parent
+          if (present(lockType)) lockType =  "satellite in host"
+          evolveToTime=hostTimeLimit
+       end if
+       if (report) call Evolve_To_Time_Report("satellite in host limit: ",evolveToTime,node%parent%index())
+    end select
     ! Check that end time exceeds current time.
     if (evolveToTime < basic%time()) then
        message='end time ('

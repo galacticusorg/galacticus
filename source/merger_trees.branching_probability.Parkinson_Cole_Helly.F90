@@ -23,7 +23,7 @@
   use :: Tables                    , only : table1DLogarithmicLinear
 
   !# <mergerTreeBranchingProbability name="mergerTreeBranchingProbabilityParkinsonColeHelly">
-  !#  <description>Merger tree branching probabilities using the algorithm of \cite{parkinson_generating_2008}..</description>
+  !#  <description>Merger tree branching probabilities using the algorithm of \cite{parkinson_generating_2008}.</description>
   !# </mergerTreeBranchingProbability>
   type, extends(mergerTreeBranchingProbabilityClass) :: mergerTreeBranchingProbabilityParkinsonColeHelly
      !% A merger tree branching probability class using the algorithm of \cite{parkinson_generating_2008}.
@@ -57,8 +57,29 @@
      !@     <arguments>\doublezero\ deltaParent\argin, \doublezero\ massHaloParent\argin</arguments>
      !@     <description>Compute common factors needed for the calculations.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>V</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ massFraction\argin, \doublezero\ haloMass\argin</arguments>
+     !@     <description>Compute the function $V(q)$ from \cite{parkinson_generating_2008}.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>modifier</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ childSigma\argin</arguments>
+     !@     <description>Compute the part of the modifier term which depends on $\sigma_\mathrm{s}$.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>hypergeometricA</method>
+     !@     <type>\doubleone</type>
+     !@     <arguments>\doublezero\ gamma\argin</arguments>
+     !@     <description>Compute the $a$ parameter of the hypergeometric function.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      final     ::                          parkinsonColeHellyDestructor
+     procedure :: V                     => parkinsonColeHellyV
+     procedure :: modifier              => parkinsonColeHellyModifier
+     procedure :: hypergeometricA       => parkinsonColeHellyHypergeometricA
      procedure :: rate                  => parkinsonColeHellyRate
      procedure :: probability           => parkinsonColeHellyProbability
      procedure :: probabilityBound      => parkinsonColeHellyProbabilityBound
@@ -242,18 +263,18 @@ contains
       self%sigmaParentSquared=self%cosmologicalMassVariance_%rootVariance  (time               =self%timeParent   ,mass=haloMass          )**2
       call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(0.5d0*haloMass,self%timeParent,halfMassSigma,halfMassAlpha)
       ! Compute parameters beta, mu, and B.
-      massFractionResolution=+massResolution                 &
+      massFractionResolution=+massResolution                               &
            &                 /haloMass
-      halfMassV             =+V(0.5d0)
-      beta                  =+log(                           &
-           &                      +V(massFractionResolution) &
-           &                      /halfMassV                 &
-           &                     )                           &
-           &                 /log(                           &
-           &                      +massFractionResolution    &
-           &                      /0.5d0                     &
+      halfMassV             =+self%V(0.5d0,haloMass)
+      beta                  =+log(                                         &
+           &                      +self%V(massFractionResolution,haloMass) &
+           &                      /halfMassV                               &
+           &                     )                                         &
+           &                 /log(                                         &
+           &                      +massFractionResolution                  &
+           &                      /0.5d0                                   &
            &                     )
-      B                     =+halfMassV                      &
+      B                     =+halfMassV                                    &
            &                 *2.0d0    **beta
       if (self%gamma1 >= 0.0d0) then
          mu                 =-halfMassAlpha
@@ -298,38 +319,23 @@ contains
       double precision                :: massFractionSigma, massFractionAlpha
 
       call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massFraction*haloMass,self%timeParent,massFractionSigma,massFractionAlpha)
-      R      =+(                   &
-           &    +massFractionAlpha &
-           &    /halfMassAlpha     &
-           &   )                   &
-           &  *V(massFraction)     &
-           &  /B                   &
-           &  /massFraction**beta  &
-           &  *(                   &
-           &    +(                 &
-           &      +2.0d0           &
-           &      *massFraction    &
-           &     )**mu             &
-           &    *massFractionSigma &
-           &    /halfMassSigma     &
+      R      =+(                             &
+           &    +massFractionAlpha           &
+           &    /halfMassAlpha               &
+           &   )                             &
+           &  *self%V(massFraction,haloMass) &
+           &  /B                             &
+           &  /massFraction**beta            &
+           &  *(                             &
+           &    +(                           &
+           &      +2.0d0                     &
+           &      *massFraction              &
+           &     )**mu                       &
+           &    *massFractionSigma           &
+           &    /halfMassSigma               &
            &   )**self%gamma1
       return
     end function R
-
-    double precision function V(massFraction)
-      !% The function $V(q)$ from \cite[][eqn. A4]{parkinson_generating_2008}.
-      implicit none
-      double precision, intent(in   ) :: massFraction
-      double precision                :: childSigmaSquared
-
-      childSigmaSquared=self%cosmologicalMassVariance_%rootVariance(massFraction*haloMass,self%timeParent)**2
-      V                =+       childSigmaSquared  &
-           &            /(                         &
-           &              +     childSigmaSquared  &
-           &              -self%sigmaParentSquared &
-           &             )**1.5d0
-      return
-    end function V
 
     double precision function massBranchGeneric()
       !% Determine the mass of one of the halos to which the given halo branches, given the branching probability, {\normalfont
@@ -381,6 +387,22 @@ contains
     end function massBranchGeneric
 
   end function parkinsonColeHellyMassBranch
+
+  double precision function parkinsonColeHellyV(self,massFraction,haloMass)
+    !% The function $V(q)$ from \cite[][eqn. A4]{parkinson_generating_2008}.
+    implicit none
+    class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout) :: self
+    double precision                                                  , intent(in   ) :: massFraction     , haloMass
+    double precision                                                                  :: childSigmaSquared
+
+    childSigmaSquared  =+self%cosmologicalMassVariance_%rootVariance(massFraction*haloMass,self%timeParent)**2
+    parkinsonColeHellyV=+       childSigmaSquared  &
+         &              /(                         &
+         &                +     childSigmaSquared  &
+         &                -self%sigmaParentSquared &
+         &               )**1.5d0
+    return
+  end function parkinsonColeHellyV
 
   double precision function parkinsonColeHellyMassBranchRoot(logMassMaximum)
     !% Used to find the mass of a merger tree branching event.
@@ -547,9 +569,9 @@ contains
     implicit none
     double precision, intent(in   ) :: childAlpha, childHaloMass, childSigma
 
-    parkinsonColeHellyProgenitorMassFunction=+parkinsonColeHellyMergingRate(childSigma   ,childAlpha)    &
-         &                                   *parkinsonColeHellyModifier   (childSigma              )    &
-         &                                   /                              childHaloMass            **2
+    parkinsonColeHellyProgenitorMassFunction=+parkinsonColeHellyMergingRate  (childSigma   ,childAlpha)    &
+         &                                   *parkinsonColeHellySelf%modifier(childSigma              )    &
+         &                                   /                                childHaloMass            **2
     return
   end function parkinsonColeHellyProgenitorMassFunction
 
@@ -569,17 +591,29 @@ contains
     return
   end function parkinsonColeHellyMergingRate
 
-  double precision function parkinsonColeHellyModifier(childSigma)
+  double precision function parkinsonColeHellyModifier(self,childSigma)
     !% Empirical modification of the progenitor mass function from \cite{parkinson_generating_2008}. The constant factors of
     !% $G_0 (\delta_\mathrm{p}/\sigma_\mathrm{p})^{\gamma_2}$ and $1/\sigma_\mathrm{p}^{\gamma_1}$ are not included
     !% here---instead they are included in a multiplicative prefactor by which integrals over this function are multiplied.
     implicit none
-    double precision, intent(in   ) :: childSigma
+    class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout) :: self
+    double precision                                                  , intent(in   ) :: childSigma
 
-    parkinsonColeHellyModifier=childSigma**parkinsonColeHellySelf%gamma1
+    parkinsonColeHellyModifier=childSigma**self%gamma1
     return
   end function parkinsonColeHellyModifier
 
+  function parkinsonColeHellyHypergeometricA(self,gamma) result(a)
+    !% Compute the $a$ parameter of the hypergeometric function.
+    implicit none
+    double precision                                                  , dimension(2)  :: a
+    class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout) :: self
+    double precision                                                  , intent(in   ) :: gamma
+    
+    a=[1.5d0,0.5d0-0.5d0*gamma]
+    return
+  end function parkinsonColeHellyHypergeometricA
+  
   double precision function parkinsonColeHellyProbabilityBound(self,haloMass,deltaCritical,time,massResolution,bound,node)
     !% Return a bound on the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily
     !% haloMass} at time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than
@@ -678,7 +712,7 @@ contains
                 else
                    ! Use a direct calculation of the hypergeometric factors in this case.
                    hyperGeometricFactorLower=Hypergeometric_2F1(                                                           &
-                        &                                                         [1.5d0,0.5d0-0.5d0*gammaEffective]     , &
+                        &                                                         self%hypergeometricA(gammaEffective)   , &
                         &                                                         [      1.5d0-0.5d0*gammaEffective]     , &
                         &                                                         1.0d0/resolutionSigmaOverParentSigma**2, &
                         &                                       toleranceRelative=self%precisionHypergeometric           , &
@@ -708,7 +742,7 @@ contains
                         &                    *hyperGeometricFactorLower
                    ! Check if we can use a table to compute the upper factor.
                    hyperGeometricFactorUpper=Hypergeometric_2F1(                                                          &
-                        &                                                         [1.5d0,0.5d0-0.5d0*gammaEffective]    , &
+                        &                                                         self%hypergeometricA(gammaEffective)  , &
                         &                                                         [      1.5d0-0.5d0*gammaEffective]    , &
                         &                                                         self%sigmaParent**2/halfParentSigma**2, &
                         &                                       toleranceRelative=self%precisionHypergeometric          , &
@@ -828,7 +862,7 @@ contains
        else
           ! Compute hypergeometric factors directly.
           hyperGeometricFactor=Hypergeometric_2F1(                                                           &
-               &                                                    [1.5d0,0.5d0-0.5d0*self%gamma1]        , &
+               &                                                    self%hypergeometricA(self%gamma1)      , &
                &                                                    [      1.5d0-0.5d0*self%gamma1]        , &
                &                                                    1.0d0/resolutionSigmaOverParentSigma**2, &
                &                                  toleranceRelative=self%precisionHypergeometric             &
@@ -916,7 +950,7 @@ contains
                &                                    *(self%subresolutionHypergeometric%x(i)+1.0d0)**(+self%gamma1-1.0d0)                          &
                &                                    /                                               (-self%gamma1+1.0d0)                          &
                &                                    *Hypergeometric_2F1(                                                                          &
-               &                                                                          [1.5d0,0.5d0-0.5d0*self%gamma1]                       , &
+               &                                                                          self%hypergeometricA(self%gamma1)                     , &
                &                                                                          [      1.5d0-0.5d0*self%gamma1]                       , &
                &                                                                          1.0d0/(self%subresolutionHypergeometric%x(i)+1.0d0)**2, &
                &                                                        toleranceRelative=self%precisionHypergeometric                            &
@@ -984,29 +1018,29 @@ contains
           call           self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(0.5d0*self%upperBoundHypergeometric%x(i),self%timeParent,halfMassSigma,halfMassAlpha)
           massSigma     =self%cosmologicalMassVariance_%rootVariance                      (      self%upperBoundHypergeometric%x(i),self%timeParent                            )
           gammaEffective=self%gamma1-1.0d0/halfMassAlpha
-          call self%upperBoundHypergeometric%populate(                                                                           &
-               &                                      +sqrtTwoOverPi                                                             &
-               &                                      *resolutionMassSigma                                                       &
-               &                                      /massSigma                                                                 &
-               &                                      *(                                                                         &
-               &                                        +(halfMassSigma/massSigma)**(+gammaEffective-1.0d0)                      &
-               &                                        /                           (-gammaEffective+1.0d0)                      &
-               &                                        *Hypergeometric_2F1(                                                     &
-               &                                                                             [1.5d0,0.5d0-0.5d0*gammaEffective], &
-               &                                                                             [      1.5d0-0.5d0*gammaEffective], &
-               &                                                                             (massSigma/halfMassSigma)**2      , &
-               &                                                           toleranceRelative=self%precisionHypergeometric        &
-               &                                                          )                                                      &
-               &                                        -(resolutionMassSigma/massSigma)**(+gammaEffective-1.0d0)                &
-               &                                        /                                 (-gammaEffective+1.0d0)                &
-               &                                        *Hypergeometric_2F1(                                                     &
-               &                                                                             [1.5d0,0.5d0-0.5d0*gammaEffective], &
-               &                                                                             [      1.5d0-0.5d0*gammaEffective], &
-               &                                                                             (massSigma/resolutionMassSigma)**2, &
-               &                                                           toleranceRelative=self%precisionHypergeometric        &
-               &                                                          )                                                      &
-               &                                       )                                                                       , &
-               &                                      i                                                                          &
+          call self%upperBoundHypergeometric%populate(                                                                             &
+               &                                      +sqrtTwoOverPi                                                               &
+               &                                      *resolutionMassSigma                                                         &
+               &                                      /massSigma                                                                   &
+               &                                      *(                                                                           &
+               &                                        +(halfMassSigma/massSigma)**(+gammaEffective-1.0d0)                        &
+               &                                        /                           (-gammaEffective+1.0d0)                        &
+               &                                        *Hypergeometric_2F1(                                                       &
+               &                                                                             self%hypergeometricA(gammaEffective), &
+               &                                                                             [      1.5d0-0.5d0*gammaEffective]  , &
+               &                                                                             (massSigma/halfMassSigma)**2        , &
+               &                                                           toleranceRelative=self%precisionHypergeometric          &
+               &                                                          )                                                        &
+               &                                        -(resolutionMassSigma/massSigma)**(+gammaEffective-1.0d0)                  &
+               &                                        /                                 (-gammaEffective+1.0d0)                  &
+               &                                        *Hypergeometric_2F1(                                                       &
+               &                                                                             self%hypergeometricA(gammaEffective), &
+               &                                                                             [      1.5d0-0.5d0*gammaEffective]  , &
+               &                                                                             (massSigma/resolutionMassSigma)**2  , &
+               &                                                           toleranceRelative=self%precisionHypergeometric          &
+               &                                                          )                                                        &
+               &                                       )                                                                         , &
+               &                                      i                                                                            &
                &                                     )
        end do
        self%upperBoundHypergeometricInitialized=.true.

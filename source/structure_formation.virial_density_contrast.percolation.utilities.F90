@@ -255,10 +255,10 @@ contains
   !# <functionGlobal>
   !#  <unitName>Virial_Density_Contrast_Percolation_Solver</unitName>
   !#  <type>double precision</type>
-  !#  <arguments>double precision                            , intent(in   )         :: mass, time, linkingLength</arguments>
-  !#  <arguments>double precision                            , intent(in   ), target :: densityContrastCurrent</arguments>
-  !#  <arguments>class           (*                         ), intent(in   )         :: percolationObjects_</arguments>
-  !#  <arguments>class           (*                         ), intent(inout)         :: virialDensityContrast_</arguments>
+  !#  <arguments>double precision   , intent(in   )         :: mass, time, linkingLength</arguments>
+  !#  <arguments>double precision   , intent(in   ), target :: densityContrastCurrent</arguments>
+  !#  <arguments>class           (*), intent(in   )         :: percolationObjects_</arguments>
+  !#  <arguments>class           (*), intent(inout)         :: virialDensityContrast_</arguments>
   !# </functionGlobal>
   double precision function Virial_Density_Contrast_Percolation_Solver(mass,time,linkingLength,densityContrastCurrent,percolationObjects_,virialDensityContrast_)
     !% Return the virial density contrast at the given epoch, based on the percolation algorithm of \cite{more_overdensity_2011}.
@@ -394,7 +394,7 @@ contains
     use :: Numerical_Constants_Math      , only : Pi
     implicit none
     double precision, intent(in   ) :: haloRadiusTrial
-    double precision                :: scaleRadius            , densityHaloRadius
+    double precision                :: scaleRadius    , densityHaloRadius
 
     ! Construct the current density contrast.
     state(stateCount)%densityContrast=+3.0d0                                  &

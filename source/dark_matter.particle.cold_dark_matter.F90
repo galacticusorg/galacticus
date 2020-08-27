@@ -27,6 +27,7 @@
      !% A cold dark matter particle class.
      private
    contains
+     procedure :: mass => CDMMass
   end type darkMatterParticleCDM
 
   interface darkMatterParticleCDM
@@ -47,3 +48,12 @@ contains
     CDMConstructorParameters=darkMatterParticleCDM()
     return
   end function CDMConstructorParameters
+
+  double precision function CDMMass(self)
+    !% Return the mass, in units of keV, of a cold dark matter particle. An infinite mass is assumed.
+    implicit none
+    class(darkMatterParticleCDM), intent(inout) :: self
+
+    CDMMass=huge(0.0d0)
+    return
+  end function CDMMass

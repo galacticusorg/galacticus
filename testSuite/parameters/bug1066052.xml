@@ -3,9 +3,9 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-   <mergerRemnantSizeMethod value="cole2000"/>
-   <mergerTreeConstructorMethod value="read">
-  <missingHostsAreFatal value="false"/>
+  <mergerRemnantSizeMethod value="cole2000"/>
+  <mergerTreeConstructorMethod value="read">
+    <missingHostsAreFatal value="false"/>
     <treeIndexToRootNodeIndex value="true"/>
     <fileNames value="testSuite/data/bug1066052.hdf5"/>
     <outputTimeSnapTolerance value="1.0d-3"/>
@@ -36,12 +36,12 @@
   </cosmologicalMassVarianceMethod>
 
   <nodePropertyExtractorMethod value="multi">
-    <nodePropertyExtractorMethod value="virialProperties" />
-    <nodePropertyExtractorMethod value="descendents"      />
-    <nodePropertyExtractorMethod value="starFormationRate" >
-      <component value="disk"    />
+    <nodePropertyExtractorMethod value="virialProperties"/>
+    <nodePropertyExtractorMethod value="descendents"/>
+    <nodePropertyExtractorMethod value="starFormationRate">
+      <component value="disk"/>
     </nodePropertyExtractorMethod>
-    <nodePropertyExtractorMethod value="starFormationRate" >
+    <nodePropertyExtractorMethod value="starFormationRate">
       <component value="spheroid"/>
     </nodePropertyExtractorMethod>
   </nodePropertyExtractorMethod>
@@ -59,15 +59,34 @@
       <efficiency value="0.0"/>
     </starFormationTimescaleMethod>
   </starFormationRateSpheroidsMethod>
- 
+
   <satelliteMergingTimescalesMethod value="jiang2008">
     <timescaleMultiplier value="1.0e30"/>
   </satelliteMergingTimescalesMethod>
 
   <!-- Node evolution and physics -->
   <nodeOperatorMethod value="multi">
-    <nodeOperatorMethod value="starFormationDisks"    />
+    <nodeOperatorMethod value="starFormationDisks"/>
     <nodeOperatorMethod value="starFormationSpheroids"/>
+    <!--Stellar feedback outflows-->
+    <nodeOperatorMethod value="stellarFeedbackDisks">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+    <nodeOperatorMethod value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
   </nodeOperatorMethod>
-  
+
 </parameters>

@@ -322,7 +322,7 @@ contains
         end do
      end do
      ! Set the composite variables used to solve for filtering mass.
-     intergalacticMediumFilteringMass_=intergalacticMediumFilteringMassGnedin2000(self%cosmologyParameters_,self%cosmologyFunctions_,self%linearGrowth_,self%intergalacticMediumState_)
+     intergalacticMediumFilteringMass_=intergalacticMediumFilteringMassGnedin2000(.true.,self%cosmologyParameters_,self%cosmologyFunctions_,self%linearGrowth_,self%intergalacticMediumState_)
      call intergalacticMediumFilteringMass_%conditionsInitialODEs(self%timeMinimum,massFilteringODEs)
      self%massFilteringComposite(1,:)=massFilteringODEs(1:2)
      self%massFiltering         (1  )=massFilteringODEs(3  )

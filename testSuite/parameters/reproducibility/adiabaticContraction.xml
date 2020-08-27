@@ -56,10 +56,10 @@
   <mergerTreeConstructorMethod value="fullySpecified">
     <fileName value="testSuite/parameters/reproducibility/adiabaticContractionTree.xml"/>
   </mergerTreeConstructorMethod>
-  
+
   <!-- Dark matter halo profile -->
   <darkMatterProfileDMOMethod value="isothermal"/>
-  
+
   <!-- Halo accretion options -->
   <accretionHaloMethod value="zero"/>
 
@@ -75,7 +75,7 @@
   <galacticusStructureSolver value="equilibrium">
     <solutionTolerance value="1.0e-4"/>
   </galacticusStructureSolver>
-  
+
   <!-- Numerical tolerances -->
   <mergerTreeNodeEvolverMethod value="standard">
     <odeToleranceAbsolute value="0.01"/>
@@ -99,8 +99,28 @@
       <radiusSpecifiers value="spheroidRadius:all:all:1.0 spheroidRadius:darkHalo:dark:1.0 spheroidRadius:spheroid:baryonic:1.0"/>
     </nodePropertyExtractorMethod>
   </nodePropertyExtractorMethod>
-  
+
   <!-- Output file -->
   <galacticusOutputFileName value="testSuite/outputs/reproducibility/adiabaticContraction.hdf5"/>
-  
+
+  <nodeOperatorMethod value="multi"><!--Stellar feedback outflows-->
+    <nodeOperatorMethod value="stellarFeedbackDisks">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+    <nodeOperatorMethod value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+  </nodeOperatorMethod>
 </parameters>

@@ -145,14 +145,10 @@ contains
          &                 objectsOverwritable=.true.                      &
          &                )
     ! Write any additional properties to the file.
-    if     (                                                     &
-         &     size(simulations(1)%particleIDs             ) > 0 &
-         &  .and.                                                &
-         &   (                                                   &
-         &          simulations(1)%propertiesInteger%size()  > 0 &
-         &    .or.                                               &
-         &          simulations(1)%propertiesReal   %size()  > 0 &
-         &   )                                                   &
+    if     (                                                 &
+         &      simulations(1)%propertiesInteger%size()  > 0 &
+         &  .or.                                             &
+         &      simulations(1)%propertiesReal   %size()  > 0 &
          & ) then       
        write (snapshotLabel,'(a,i5.5)') 'Snapshot',self%snapshot
        !$ call hdf5Access%set()

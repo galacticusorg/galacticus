@@ -134,7 +134,7 @@ contains
          &                            /0.15d0                                                          &
          &                          )                                                                  &
          &                          -1.0d0
-    select type (darkMatterParticle_)
+    select type (darkMatterParticleWDMThermal_ => self%darkMatterParticle_)
     class is (darkMatterParticleWDMThermal)
        self%jeansMass=+3.06d8                                                                    &
             &         *((1.0d0+matterRadiationEqualityRedshift)/3000.0d0)                **1.5d0 &
@@ -143,8 +143,8 @@ contains
             &               *self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2     &
             &               /0.15d0                                                              &
             &              )                                                                     &
-            &         /(darkMatterParticle_%degreesOfFreedomEffective()/1.5d0)                   &
-            &         /(darkMatterParticle_%mass                     ()/1.0d0)           **4
+            &         /(darkMatterParticleWDMThermal_%degreesOfFreedomEffective()/1.5d0)         &
+            &         /(darkMatterParticleWDMThermal_%mass                     ()/1.0d0) **4
     class default
        call Galacticus_Error_Report('critical overdensity expects a thermal warm dark matter particle'//{introspection:location})
     end select

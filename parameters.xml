@@ -24,16 +24,21 @@
   <!-- Cosmological parameters and options -->
   <cosmologyFunctionsMethod value="matterLambda"/>
   <cosmologyParametersMethod value="simple">
-    <HubbleConstant value="67.36000"/>	<!-- Planck 2018; arXiv:1807.06211 -->
-    <OmegaMatter value=" 0.31530"/>	<!-- Planck 2018; arXiv:1807.06211 -->
-    <OmegaDarkEnergy value=" 0.68470"/>	<!-- Planck 2018; arXiv:1807.06211 -->
-    <OmegaBaryon value=" 0.04930"/>	<!-- Planck 2018; arXiv:1807.06211 -->
+    <HubbleConstant value="67.36000"/>
+    <!-- Planck 2018; arXiv:1807.06211 -->
+    <OmegaMatter value=" 0.31530"/>
+    <!-- Planck 2018; arXiv:1807.06211 -->
+    <OmegaDarkEnergy value=" 0.68470"/>
+    <!-- Planck 2018; arXiv:1807.06211 -->
+    <OmegaBaryon value=" 0.04930"/>
+    <!-- Planck 2018; arXiv:1807.06211 -->
     <temperatureCMB value=" 2.72548"/>
   </cosmologyParametersMethod>
 
   <!-- Power spectrum options -->
   <cosmologicalMassVarianceMethod value="filteredPower">
-    <sigma_8 value="0.8111"/> 	<!-- Planck 2018; arXiv:1807.06211 -->
+    <sigma_8 value="0.8111"/>
+    <!-- Planck 2018; arXiv:1807.06211 -->
   </cosmologicalMassVarianceMethod>
 
   <transferFunctionMethod value="eisensteinHu1999">
@@ -41,9 +46,11 @@
     <neutrinoMassSummed value="0.000"/>
   </transferFunctionMethod>
   <powerSpectrumPrimordialMethod value="powerLaw">
-    <index value="0.9649"/> <!-- Planck 2018; arXiv:1807.06211 -->
+    <index value="0.9649"/>
+    <!-- Planck 2018; arXiv:1807.06211 -->
     <wavenumberReference value="1.0000"/>
-    <running value="0.0000"/> <!-- Planck 2018; arXiv:1807.06211 -->
+    <running value="0.0000"/>
+    <!-- Planck 2018; arXiv:1807.06211 -->
   </powerSpectrumPrimordialMethod>
   <powerSpectrumPrimordialTransferredMethod value="simple"/>
 
@@ -66,7 +73,7 @@
     <accuracyFirstOrder value="+0.10"/>
   </mergerTreeBranchingProbabilityMethod>
   <mergerTreeBuildMassDistributionMethod value="powerLaw"/>
-  
+
   <!-- Substructure hierarchy options -->
   <mergerTreeNodeMergerMethod value="singleLevelHierarchy"/>
 
@@ -141,7 +148,7 @@
 
   <!-- Galactic disk dynamics options -->
   <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
-  <stabilityThresholdGaseous value="0.7"/>
+    <stabilityThresholdGaseous value="0.7"/>
     <stabilityThresholdStellar value="1.1"/>
   </galacticDynamicsBarInstabilityMethod>
   <!-- Star formation rate options -->
@@ -163,7 +170,7 @@
   <stellarPopulationPropertiesMethod value="instantaneous"/>
   <stellarPopulationSpectraMethod value="FSPS"/>
   <stellarPopulationSelectorMethod value="fixed"/>
-  
+
   <initialMassFunctionMethod value="chabrier2001"/>
   <stellarPopulationMethod value="standard">
     <recycledFraction value="0.46"/>
@@ -173,16 +180,6 @@
   <!-- AGN feedback options -->
   <hotHaloExcessHeatDrivesOutflow value="true"/>
   <blackHoleHeatsHotHalo value="true"/>
-
-  <!-- Supernovae feedback options -->
-  <starFormationFeedbackDisksMethod value="powerLaw">
-    <velocityCharacteristic value="250.0"/>
-    <exponent value="3.5"/>
-  </starFormationFeedbackDisksMethod>
-  <starFormationFeedbackSpheroidsMethod value="powerLaw">
-    <velocityCharacteristic value="100.0"/>
-    <exponent value="3.5"/>
-  </starFormationFeedbackSpheroidsMethod>
 
   <!-- Accretion disk properties -->
   <accretionDisksMethod value="switched">
@@ -218,21 +215,40 @@
     <timescaleMultiplier value="0.75"/>
   </satelliteMergingTimescalesMethod>
   <mergerMassMovementsMethod value="simple">
-  <destinationGasMinorMerger value="spheroid"/>
+    <destinationGasMinorMerger value="spheroid"/>
     <massRatioMajorMerger value="0.25"/>
   </mergerMassMovementsMethod>
   <mergerRemnantSizeMethod value="cole2000">
-  <energyOrbital value="1"/>
+    <energyOrbital value="1"/>
   </mergerRemnantSizeMethod>
   <!-- Spheroid options -->
   <spheroidEnergeticOutflowMassRate value="1.0e-2"/>
 
   <!-- Node evolution and physics -->
   <nodeOperatorMethod value="multi">
-    <nodeOperatorMethod value="starFormationDisks"    />
+    <nodeOperatorMethod value="starFormationDisks"/>
     <nodeOperatorMethod value="starFormationSpheroids"/>
+    <!--Stellar feedback outflows-->
+    <nodeOperatorMethod value="stellarFeedbackDisks">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+    <nodeOperatorMethod value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflowsMethod value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflowsMethod value="powerLaw">
+          <velocityCharacteristic value="100.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflowsMethod>
+      </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
   </nodeOperatorMethod>
-  
+
   <!-- Numerical tolerances -->
   <mergerTreeNodeEvolverMethod value="standard">
     <odeToleranceAbsolute value="0.01"/>
@@ -250,5 +266,5 @@
   <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
   </mergerTreeOutputterMethod>
-  
+
 </parameters>

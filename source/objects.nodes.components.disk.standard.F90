@@ -25,10 +25,7 @@ module Node_Component_Disk_Standard
   use :: Galactic_Dynamics_Bar_Instabilities        , only : galacticDynamicsBarInstabilityClass
   use :: Ram_Pressure_Stripping_Mass_Loss_Rate_Disks, only : ramPressureStrippingDisksClass
   use :: Satellite_Merging_Mass_Movements           , only : mergerMassMovementsClass
-  use :: Star_Formation_Feedback_Disks              , only : starFormationFeedbackDisksClass
-  use :: Star_Formation_Feedback_Expulsion_Disks    , only : starFormationExpulsiveFeedbackDisksClass
   use :: Star_Formation_Histories                   , only : starFormationHistory                    , starFormationHistoryClass
-  use :: Star_Formation_Rates_Disks                 , only : starFormationRateDisksClass
   use :: Stellar_Population_Properties              , only : stellarPopulationPropertiesClass
   use :: Tidal_Stripping_Mass_Loss_Rate_Disks       , only : tidalStrippingDisksClass
   implicit none
@@ -156,24 +153,20 @@ module Node_Component_Disk_Standard
   !# </component>
 
   ! Objects used by this component.
-  class(darkMatterHaloScaleClass                ), pointer :: darkMatterHaloScale_
-  class(stellarPopulationPropertiesClass        ), pointer :: stellarPopulationProperties_
-  class(starFormationFeedbackDisksClass         ), pointer :: starFormationFeedbackDisks_
-  class(starFormationExpulsiveFeedbackDisksClass), pointer :: starFormationExpulsiveFeedbackDisks_
-  class(starFormationRateDisksClass             ), pointer :: starFormationRateDisks_
-  class(galacticDynamicsBarInstabilityClass     ), pointer :: galacticDynamicsBarInstability_
-  class(ramPressureStrippingDisksClass          ), pointer :: ramPressureStrippingDisks_
-  class(tidalStrippingDisksClass                ), pointer :: tidalStrippingDisks_
-  class(starFormationHistoryClass               ), pointer :: starFormationHistory_
-  class(mergerMassMovementsClass                ), pointer :: mergerMassMovements_
-  !$omp threadprivate(darkMatterHaloScale_,stellarPopulationProperties_,starFormationFeedbackDisks_,starFormationExpulsiveFeedbackDisks_,starFormationRateDisks_,galacticDynamicsBarInstability_,ramPressureStrippingDisks_,tidalStrippingDisks_,starFormationHistory_,mergerMassMovements_)
+  class(darkMatterHaloScaleClass           ), pointer :: darkMatterHaloScale_
+  class(stellarPopulationPropertiesClass   ), pointer :: stellarPopulationProperties_
+  class(galacticDynamicsBarInstabilityClass), pointer :: galacticDynamicsBarInstability_
+  class(ramPressureStrippingDisksClass     ), pointer :: ramPressureStrippingDisks_
+  class(tidalStrippingDisksClass           ), pointer :: tidalStrippingDisks_
+  class(starFormationHistoryClass          ), pointer :: starFormationHistory_
+  class(mergerMassMovementsClass           ), pointer :: mergerMassMovements_
+  !$omp threadprivate(darkMatterHaloScale_,stellarPopulationProperties_,galacticDynamicsBarInstability_,ramPressureStrippingDisks_,tidalStrippingDisks_,starFormationHistory_,mergerMassMovements_)
 
   ! Internal count of abundances.
   integer                                     :: abundancesCount
 
   ! Parameters controlling the physical implementation.
-  double precision                            :: diskMassToleranceAbsolute                         , diskOutflowTimescaleMinimum          , &
-       &                                         diskStructureSolverRadius
+  double precision                            :: diskMassToleranceAbsolute                         , diskStructureSolverRadius
   logical                                     :: diskNegativeAngularMomentumAllowed                , diskRadiusSolverCole2000Method       , &
        &                                         diskLuminositiesStellarInactive
 
@@ -221,14 +214,6 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-6</defaultValue>
        !#   <description>The mass tolerance used to judge whether the disk is physically plausible.</description>
-       !#   <source>parameters_</source>
-       !#   <type>double</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>diskOutflowTimescaleMinimum</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>1.0d-3</defaultValue>
-       !#   <description>The minimum timescale (in units of the disk dynamical time) on which outflows may deplete gas in the disk.</description>
        !#   <source>parameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
@@ -291,17 +276,14 @@ contains
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call satelliteMergerEvent%attach(defaultDiskComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard',dependencies=dependencies)
        call postEvolveEvent     %attach(defaultDiskComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                          )
-       !# <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="parameters_"/>
-       !# <objectBuilder class="stellarPopulationProperties"         name="stellarPopulationProperties_"         source="parameters_"/>
-       !# <objectBuilder class="starFormationFeedbackDisks"          name="starFormationFeedbackDisks_"          source="parameters_"/>
-       !# <objectBuilder class="starFormationExpulsiveFeedbackDisks" name="starFormationExpulsiveFeedbackDisks_" source="parameters_"/>
-       !# <objectBuilder class="starFormationRateDisks"              name="starFormationRateDisks_"              source="parameters_"/>
-       !# <objectBuilder class="galacticDynamicsBarInstability"      name="galacticDynamicsBarInstability_"      source="parameters_"/>
-       !# <objectBuilder class="ramPressureStrippingDisks"           name="ramPressureStrippingDisks_"           source="parameters_"/>
-       !# <objectBuilder class="tidalStrippingDisks"                 name="tidalStrippingDisks_"                 source="parameters_"/>
-       !# <objectBuilder class="starFormationHistory"                name="starFormationHistory_"                source="parameters_"/>
-       !# <objectBuilder class="mergerMassMovements"                 name="mergerMassMovements_"                 source="parameters_"/>
-       !# <objectBuilder class="massDistribution" parameterName="diskMassDistribution" name="diskMassDistribution" source="parameters_" threadPrivate="yes">
+       !# <objectBuilder class="darkMatterHaloScale"                                                 name="darkMatterHaloScale_"            source="parameters_"                    />
+       !# <objectBuilder class="stellarPopulationProperties"                                         name="stellarPopulationProperties_"    source="parameters_"                    />
+       !# <objectBuilder class="galacticDynamicsBarInstability"                                      name="galacticDynamicsBarInstability_" source="parameters_"                    />
+       !# <objectBuilder class="ramPressureStrippingDisks"                                           name="ramPressureStrippingDisks_"      source="parameters_"                    />
+       !# <objectBuilder class="tidalStrippingDisks"                                                 name="tidalStrippingDisks_"            source="parameters_"                    />
+       !# <objectBuilder class="starFormationHistory"                                                name="starFormationHistory_"           source="parameters_"                    />
+       !# <objectBuilder class="mergerMassMovements"                                                 name="mergerMassMovements_"            source="parameters_"                    />
+       !# <objectBuilder class="massDistribution"               parameterName="diskMassDistribution" name="diskMassDistribution"            source="parameters_" threadPrivate="yes" >
        !#  <default>
        !#   <diskMassDistribution value="exponentialDisk">
        !#    <dimensionless value="true"/>
@@ -360,17 +342,14 @@ contains
     if (defaultDiskComponent%standardIsActive()) then
        call satelliteMergerEvent%detach(defaultDiskComponent,satelliteMerger)
        call postEvolveEvent     %detach(defaultDiskComponent,postEvolve     )
-       !# <objectDestructor name="darkMatterHaloScale_"                />
-       !# <objectDestructor name="stellarPopulationProperties_"        />
-       !# <objectDestructor name="starFormationFeedbackDisks_"         />
-       !# <objectDestructor name="starFormationExpulsiveFeedbackDisks_"/>
-       !# <objectDestructor name="starFormationRateDisks_"             />
-       !# <objectDestructor name="galacticDynamicsBarInstability_"     />
-       !# <objectDestructor name="ramPressureStrippingDisks_"          />
-       !# <objectDestructor name="tidalStrippingDisks_"                />
-       !# <objectDestructor name="starFormationHistory_"               />
-       !# <objectDestructor name="mergerMassMovements_"                />
-       !# <objectDestructor name="diskMassDistribution"                />
+       !# <objectDestructor name="darkMatterHaloScale_"           />
+       !# <objectDestructor name="stellarPopulationProperties_"   />
+       !# <objectDestructor name="galacticDynamicsBarInstability_"/>
+       !# <objectDestructor name="ramPressureStrippingDisks_"     />
+       !# <objectDestructor name="tidalStrippingDisks_"           />
+       !# <objectDestructor name="starFormationHistory_"          />
+       !# <objectDestructor name="mergerMassMovements_"           />
+       !# <objectDestructor name="diskMassDistribution"           />
     end if
     return
   end subroutine Node_Component_Disk_Standard_Thread_Uninitialize
@@ -701,22 +680,14 @@ contains
     procedure       (interruptTask        ), intent(inout), pointer :: interruptProcedureReturn
     integer                                , intent(in   )          :: propertyType
     procedure       (interruptTask        )               , pointer :: interruptProcedure
-    type            (abundances           ), save                   :: fuelAbundances              , fuelAbundancesRates       , &
-         &                                                             stellarAbundancesRates
-    !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
-    double precision                                                :: angularMomentum             , angularMomentumOutflowRate, &
-         &                                                             barInstabilitySpecificTorque, barInstabilityTimescale   , &
-         &                                                             diskDynamicalTime           , diskMass                  , &
-         &                                                             energyInputRate             , fractionGas               , &
-         &                                                             fractionStellar             , fuelMass                  , &
-         &                                                             fuelMassRate                , gasMass                   , &
-         &                                                             massLossRate                , massOutflowRate           , &
-         &                                                             massOutflowRateFromHalo     , massOutflowRateToHotHalo  , &
-         &                                                             outflowToHotHaloFraction    , starFormationRate         , &
-         &                                                             stellarMassRate             , transferRate
-    type            (history              )                         :: historyTransferRate         , stellarHistoryRate
-    type            (stellarLuminosities  ), save                   :: luminositiesStellarRates    , luminositiesTransferRate
-    !$omp threadprivate(luminositiesStellarRates,luminositiesTransferRate)
+    type            (abundances           ), save                   :: fuelAbundancesRates         , stellarAbundancesRates
+    !$omp threadprivate(stellarAbundancesRates,fuelAbundancesRates)
+    double precision                                                :: barInstabilitySpecificTorque, barInstabilityTimescale, &
+         &                                                             fractionGas                 , fractionStellar        , &
+         &                                                             massLossRate                , transferRate
+    type            (history              )                         :: historyTransferRate
+    type            (stellarLuminosities  ), save                   :: luminositiesTransferRate
+    !$omp threadprivate(luminositiesTransferRate)
     !$GLC attributes unused :: odeConverged
 
     ! Return immediately if this class is not in use or only inactive properties are being computed.
@@ -738,58 +709,6 @@ contains
           interruptProcedureReturn => Node_Component_Disk_Standard_Create
           return
        end if
-       ! Compute the star formation rate.
-       starFormationRate=starFormationRateDisks_%rate(node)
-       ! Get the available fuel mass.
-       fuelMass         =disk%massGas          ()
-       ! Find the metallicity of the fuel supply.
-       fuelAbundances   =disk%abundancesGas    ()
-       call fuelAbundances%massToMassFraction(fuelMass)
-       ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
-       stellarHistoryRate=disk%stellarPropertiesHistory()
-       call stellarPopulationProperties_%rates(starFormationRate,fuelAbundances,disk,node,stellarHistoryRate&
-            &,stellarMassRate,fuelMassRate,energyInputRate,fuelAbundancesRates,stellarAbundancesRates,luminositiesStellarRates,computeRateLuminosityStellar=.false.)
-       ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
-       massOutflowRateToHotHalo=starFormationFeedbackDisks_         %outflowRate(node,energyInputRate,starFormationRate)
-       massOutflowRateFromHalo =starFormationExpulsiveFeedbackDisks_%outflowRate(node,starFormationRate,energyInputRate)
-       massOutflowRate         =massOutflowRateToHotHalo+massOutflowRateFromHalo
-       if (massOutflowRate > 0.0d0) then
-          ! Find the fraction of material which outflows to the hot halo.
-          outflowToHotHaloFraction=massOutflowRateToHotHalo/massOutflowRate
-
-          ! Get the masses of the disk.
-          gasMass =        disk%massGas    ()
-          diskMass=gasMass+disk%massStellar()
-
-          ! Limit the outflow rate timescale to a multiple of the dynamical time.
-          diskDynamicalTime=Mpc_per_km_per_s_To_Gyr*disk%radius()/disk%velocity()
-          massOutflowRate=min(massOutflowRate,gasMass/diskOutflowTimescaleMinimum/diskDynamicalTime)
-
-          ! Compute the angular momentum outflow rate.
-          if (diskMass > 0.0d0) then
-             angularMomentum           =disk%angularMomentum()
-             angularMomentumOutflowRate=angularMomentum*(massOutflowRate/diskMass)
-             angularMomentumOutflowRate=sign(min(abs(angularMomentumOutflowRate),abs(angularMomentum/diskOutflowTimescaleMinimum &
-                  &/diskDynamicalTime)),angularMomentumOutflowRate)
-          else
-             angularMomentumOutflowRate=0.0d0
-          end if
-          if (gasMass > 0.0d0) then
-             fuelAbundancesRates=disk%abundancesGas()
-             call fuelAbundancesRates%massToMassFraction(gasMass)
-             fuelAbundancesRates=fuelAbundancesRates*massOutflowRate
-          else
-             fuelAbundancesRates=zeroAbundances
-          end if
-          hotHalo => node%hotHalo()
-          call hotHalo%           outflowingMassRate( massOutflowRate           *outflowToHotHaloFraction)
-          call disk   %                  massGasRate(-massOutflowRate                                    )
-          call hotHalo%outflowingAngularMomentumRate( angularMomentumOutflowRate*outflowToHotHaloFraction)
-          call disk   %          angularMomentumRate(-angularMomentumOutflowRate                         )
-          call hotHalo%     outflowingAbundancesRate( fuelAbundancesRates       *outflowToHotHaloFraction)
-          call disk   %            abundancesGasRate(-fuelAbundancesRates                                )
-       end if
-
        ! Determine if the disk is bar unstable and, if so, the rate at which material is moved to the pseudo-bulge.
        if (node%isPhysicallyPlausible) then
           ! Disk has positive angular momentum, so compute an instability timescale.

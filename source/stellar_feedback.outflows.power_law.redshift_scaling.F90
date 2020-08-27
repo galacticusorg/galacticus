@@ -17,36 +17,36 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a power-law outflow rate due to star formation feedback in galactic disks in which the characteristic velocity scales as a power of $(1+z)$.
+  !% Implementation of a power-law stellar feedback model in which the characteristic velocity scales as a power of $(1+z)$.
 
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
 
-  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksPowerLawRedshiftScaling">
-  !#  <description>A power-law outflow rate due to star formation feedback in galactic disks in which the characteristic velocity scales as a power of $(1+z)$.</description>
-  !# </starFormationFeedbackDisks>
-  type, extends(starFormationFeedbackDisksPowerLaw) :: starFormationFeedbackDisksPowerLawRedshiftScaling
-     !% Implementation of a power-law outflow rate due to star formation feedback in galactic disks in which the characteristic velocity scales as a power of $(1+z)$.
+  !# <stellarFeedbackOutflows name="stellarFeedbackOutflowsPowerLawRedshiftScaling">
+  !#  <description>A power-law stellar feedback model in which the characteristic velocity scales as a power of $(1+z)$.</description>
+  !# </stellarFeedbackOutflows>
+  type, extends(stellarFeedbackOutflowsPowerLaw) :: stellarFeedbackOutflowsPowerLawRedshiftScaling
+     !% Implementation of a power-law stellar feedback model in which the characteristic velocity scales as a power of $(1+z)$.
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      double precision                                   :: exponentRedshift
    contains
      final     ::                           powerLawRedshiftScalingDestructor
      procedure :: velocityCharacteristic => powerLawRedshiftScalingVelocityCharacteristic
-  end type starFormationFeedbackDisksPowerLawRedshiftScaling
+  end type stellarFeedbackOutflowsPowerLawRedshiftScaling
 
-  interface starFormationFeedbackDisksPowerLawRedshiftScaling
-     !% Constructors for the power-law redshift-scaling star formation feedback in disks class.
+  interface stellarFeedbackOutflowsPowerLawRedshiftScaling
+     !% Constructors for the power-law redshift-scaling stellar feedback class.
      module procedure powerLawRedshiftScalingConstructorParameters
      module procedure powerLawRedshiftScalingConstructorInternal
-  end interface starFormationFeedbackDisksPowerLawRedshiftScaling
+  end interface stellarFeedbackOutflowsPowerLawRedshiftScaling
 
 contains
 
   function powerLawRedshiftScalingConstructorParameters(parameters) result(self)
-    !% Constructor for the power-law redshift-scaling star formation feedback in disks class which takes a parameter set as input.
+    !% Constructor for the power-law redshift-scaling stellar feedback class which takes a parameter set as input.
     implicit none
-    type(starFormationFeedbackDisksPowerLawRedshiftScaling)                :: self
-    type(inputParameters                                  ), intent(inout) :: parameters
+    type(stellarFeedbackOutflowsPowerLawRedshiftScaling)                :: self
+    type(inputParameters                               ), intent(inout) :: parameters
 
     !# <inputParameter>
     !#   <name>exponentRedshift</name>
@@ -58,45 +58,45 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="self%cosmologyFunctions_" source="parameters"/>
-    self%starFormationFeedbackDisksPowerLaw=starFormationFeedbackDisksPowerLaw(parameters)
+    self%stellarFeedbackOutflowsPowerLaw=stellarFeedbackOutflowsPowerLaw(parameters)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end function powerLawRedshiftScalingConstructorParameters
 
   function powerLawRedshiftScalingConstructorInternal(velocityCharacteristic_,exponent,exponentRedshift,cosmologyFunctions_) result(self)
-    !% Internal constructor for the power-law redshift-scaling star formation feedback from disks class.
+    !% Internal constructor for the power-law redshift-scaling stellar feedback class.
     implicit none
-    type            (starFormationFeedbackDisksPowerLawRedshiftScaling)                        :: self
-    double precision                                                   , intent(in   )         :: velocityCharacteristic_, exponent, &
-         &                                                                                        exponentRedshift
-    class           (cosmologyFunctionsClass                          ), intent(in   ), target :: cosmologyFunctions_
+    type            (stellarFeedbackOutflowsPowerLawRedshiftScaling)                        :: self
+    double precision                                                , intent(in   )         :: velocityCharacteristic_, exponent, &
+         &                                                                                     exponentRedshift
+    class           (cosmologyFunctionsClass                       ), intent(in   ), target :: cosmologyFunctions_
     !# <constructorAssign variables="exponentRedshift, *cosmologyFunctions_"/>
 
-    self%starFormationFeedbackDisksPowerLaw=starFormationFeedbackDisksPowerLaw(velocityCharacteristic_,exponent)
+    self%stellarFeedbackOutflowsPowerLaw=stellarFeedbackOutflowsPowerLaw(velocityCharacteristic_,exponent)
     return
   end function powerLawRedshiftScalingConstructorInternal
 
   subroutine powerLawRedshiftScalingDestructor(self)
     !% Destructor for the power-law redshift-scaling feedback from star formation in disks class.
     implicit none
-    type(starFormationFeedbackDisksPowerLawRedshiftScaling), intent(inout) :: self
+    type(stellarFeedbackOutflowsPowerLawRedshiftScaling), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end subroutine powerLawRedshiftScalingDestructor
 
-  double precision function powerLawRedshiftScalingVelocityCharacteristic(self,node)
+  double precision function powerLawRedshiftScalingVelocityCharacteristic(self,component)
     !% Return the characteristic velocity for power-law feedback models in disks. In this case the characteristic velocity is a
     !% constant.
-    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class(starFormationFeedbackDisksPowerLawRedshiftScaling), intent(inout) :: self
-    type (treeNode                                         ), intent(inout) :: node
-    class(nodeComponentBasic                               ), pointer       :: basic
+    class(stellarFeedbackOutflowsPowerLawRedshiftScaling), intent(inout) :: self
+    class(nodeComponent                                 ), intent(inout) :: component
+    class(nodeComponentBasic                            ), pointer       :: basic
 
-    basic                                         =>  node%basic                                      (            )
-    powerLawRedshiftScalingVelocityCharacteristic =  +self                    %velocityCharacteristic_                                      &
-         &                                           /self%cosmologyFunctions_%expansionFactor        (basic%time())**self%exponentRedshift
+    basic                                         =>  component%hostNode           %basic                  (            )
+    powerLawRedshiftScalingVelocityCharacteristic =  +self                         %velocityCharacteristic_                                      &
+         &                                           /self     %cosmologyFunctions_%expansionFactor        (basic%time())**self%exponentRedshift
     return
   end function powerLawRedshiftScalingVelocityCharacteristic
