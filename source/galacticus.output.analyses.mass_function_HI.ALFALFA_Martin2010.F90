@@ -21,7 +21,12 @@
 
 
   !# <outputAnalysis name="outputAnalysisMassFunctionHIALFALFAMartin2010">
-  !#  <description>An ALFALFA HI mass function output analysis class.</description>
+  !#  <description>
+  !#   An ALFALFA HI mass function output analysis class. HI mass estimates can be affected by HI self-absorption for highly
+  !#   inclined galaxies. \cite[][see also \protect\citealt{zwaan_hipass_2005}]{zwaan_h_1997} estimate that this effect would lead
+  !#   to a mean underestimation of HI masses by a factor $1.1$ for a randomly oriented galaxy sample. Therefore, a value of
+  !#   $-0.0414$ for the systematic parameter {\normalfont \ttfamily [systematicErrorPolynomialCoefficient]} is recommended.
+  !#  </description>
   !# </outputAnalysis>
   type, extends(outputAnalysisMassFunctionHI) :: outputAnalysisMassFunctionHIALFALFAMartin2010
      !% An ALFALFA HI mass function output analysis class.

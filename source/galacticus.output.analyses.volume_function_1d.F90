@@ -32,7 +32,50 @@
   use               :: Output_Times                            , only : outputTimesClass
 
   !# <outputAnalysis name="outputAnalysisVolumeFunction1D">
-  !#  <description>A generic 1D volume function (i.e. number density of objects binned by some property, e.g. a mass function) output analysis class.</description>
+  !#  <description>
+  !#    A generic 1D volume function (i.e. number density of objects binned by some property, e.g. a mass function) output analysis class.
+  !#
+  !#    In addition to the volume function itself, the covariance matrix, $\mathbf{C}_\mathrm{model}$, of the mass function is also
+  !#    computed. The assumptions used when constructing the covariance matrix are controlled by the parameter {\normalfont
+  !#    \ttfamily [covarianceModel]}. If set to {\normalfont \ttfamily binomial}, them to construct $\mathbf{C}_\mathrm{model}$ we
+  !#    make use of the fact that \glc\ works by sampling a set of tree ``root masses'' from the $z=0$ dark matter halo mass
+  !#    function. From each root, a tree is grown, within which the physics of galaxy formation is then solved. Root masses are
+  !#    sampled uniformly from the halo mass function. That is, the cumulative halo mass function, $N(M)$, is constructed between
+  !#    the maximum and minimum halo masses to be simulated. The number of root masses, $N_\mathrm{r}$, to be used in a model
+  !#    evaluation is then determined. Root masses are then chosen such that
+  !#    \begin{equation}
+  !#     N(M_i) = N(M_\mathrm{min}) {i-1 \over N_\mathrm{r}-1}
+  !#    \end{equation}
+  !#    for $i=1\ldots N_\mathrm{r}$ (noting that $N(M_\mathrm{max})=0$ by construction). 
+  !#
+  !#    Consider first those galaxies which form in the main branch of each tree (i.e. those galaxies which are destined to become
+  !#    the central galaxy of the $z=0$ halo). Suppose that we simulate $N_k$ halos of root mass $M_k$ at $z=0$. In such halos the
+  !#    main branch galaxies will, at any time, have stellar masses drawn from some distribution $p_k(M_\star|t)$. The number of
+  !#    such galaxies contributing to bin $i$ of the mass function is therefore binomially distributed with success probability
+  !#    $p_{ik} = \int_{M_{i,\mathrm min}}^{M_{i,\mathrm max}} p_k(M_\star|t) \d M_\star$ and a sample size of $N_k$. The
+  !#    contribution to the covariance matrix from these main branch galaxies is therefore:
+  !#    \begin{equation}
+  !#     \mathcal{C}_{ij} = \left\{ \begin{array}{ll} p_{ik}(1-p_{ik}) N_k w_k^2 &amp; \hbox{ if } i = j \\ -p_{ik} p_{jk} N_k w_k^2 &amp; \hbox{ otherwise,} \end{array} \right.
+  !#    \end{equation}
+  !#    where $w_k$ is the weight to be assigned to each tree. To compute this covariance requires knowledge of the probabilities,
+  !#    $p_{ik}$. We estimate these directly from the model. To do this, we bin trees into narrow bins of root mass and assume that
+  !#    $p_{ik}$ does not vary significantly across the mass range of each bin. Using all realizations of trees that fall within a
+  !#    given bin, $k$, we can directly estimate $p_{ik}$. In computing $p_{ik}$, the range of halo masses considered and the
+  !#    fineness of binning in halo mass are determined by the parameters {\normalfont \ttfamily
+  !#    [covarianceBinomialMassHaloMinimum]}, {\normalfont \ttfamily [covarianceBinomialMassHaloMaximum]}, and {\normalfont
+  !#    \ttfamily [covarianceBinomialBinsPerDecade]}.
+  !#
+  !#    If instead, {\normalfont \ttfamily [covarianceModel]}$=${\normalfont \ttfamily Poisson}, the main branch galaxies are
+  !#    modeled as being sampled from a Poisson distribution (and so off-diagonal terms in the covariance matrix will be zero).
+  !#
+  !#    In addition to the main branch galaxies, each tree will contain a number of other galaxies (these will be ``satellite''
+  !#    galaxies at $z=0$, but at higher redshifts may still be central galaxies in their own halos). Tests have established that
+  !#    the number of satellites in halos is well described by a Poisson process. Note that, as described above, each galaxy
+  !#    contributes a Gaussian distribution to the mass function due to modelling of random errors in stellar mass
+  !#    determinations. For main branch galaxies this is simply accounted for when accumulating the probabilities, $p_{ik}$. For
+  !#    satellite galaxies, off-diagonal contributions to the covariance matrix arise as a result, $C_{ij} = w_k f_i f_j$, where
+  !#    $f_i$ is the fraction of the galaxy contributing to bin $i$ of the mass function.
+  !#  </description>
   !# </outputAnalysis>
   type, extends(outputAnalysisClass) :: outputAnalysisVolumeFunction1D
      !% A generic 1D volume function (i.e. number density of objects binned by some property, e.g. a mass function) output

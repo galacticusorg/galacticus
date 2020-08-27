@@ -23,7 +23,15 @@
   use :: Output_Times       , only : outputTimesClass
 
   !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorCsmlgyAnglrDstnc">
-  !#  <description>A cosmological angular distance corrector analysis property operator class.</description>
+  !#  <description>
+  !#  An output analysis property operator class which corrects properties for the difference in cosmological angular diameter
+  !#  distance between true and assumed (i.e. in the observational analysis) cosmologies. Typically the observational data will have
+  !#  been analyzed assuming some specific set of cosmological parameters which will differ from that in the current
+  !#  model. Therefore, the size of a galaxy must be adjusted to match what would be inferred if they were assessed using the same
+  !#  cosmological parameters as were used for the observational data. Typically, this will mean that sizes are scaled in proportion
+  !#  to $D^\prime_\mathrm{A}(z)/D_\mathrm{A}(z)$, where $D_\mathrm{A}(z)$ and $D^\prime_\mathrm{A}(z)$ are the luminosity distances
+  !#  to redshift $z$ in the true and assumed cosmologies respectively.
+  !# </description>
   !# </outputAnalysisPropertyOperator>
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorCsmlgyAnglrDstnc
      !% A cosmological angular distance corrector analysis property operator class.

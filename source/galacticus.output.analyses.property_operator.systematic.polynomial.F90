@@ -20,7 +20,13 @@
 !% Contains a module which implements a polynomial systematic shift output analysis property operator class.
 
   !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSystmtcPolynomial">
-  !#  <description>A polynomial systematic shift output analysis property operator class.</description>
+  !#  <description>
+  !#   A polynomial systematic shift output analysis property operator class. This operator allows for a systematic shift in
+  !#   properties (to account for systematic uncertainties in the observational analysis) using a simple model. Specifically,
+  !#   properties are mapped by this model as follows \begin{equation} \log_\mathrm{10} x \rightarrow \log_{10} x + \sum_{i=0}^N
+  !#   \alpha_i \log^i_{10}(x/x_0), \end{equation} where $x_0=${\normalfont \ttfamily [zeroPoint]} is a zero-point, and the
+  !#   coefficients $\alpha_{i=1\ldots N}=${\normalfont \ttfamily [coefficient]} are specified by input parameters.
+  !#  </description>
   !# </outputAnalysisPropertyOperator>
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorSystmtcPolynomial
      !% A polynomial systematic shift output property operator class.

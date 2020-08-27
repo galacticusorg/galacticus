@@ -23,7 +23,15 @@
   use :: Geometry_Surveys   , only : surveyGeometryClass
 
   !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorCsmlgyVolume">
-  !#  <description>A cosmological volume corrector analysis weight operator class.</description>
+  !#  <description>
+  !#   An output analysis weight operator class which corrects weights for the difference in cosmological volume between true and
+  !#   assumed (i.e. in the observational analysis) cosmologies. Typically the observational data will have been analyzed assuming
+  !#   some specific set of cosmological parameters which will differ from that in the current model. Therefore, the comoving volume
+  !#   occupued by a population of galaxies must be adjusted to match what would be inferred if they were assessed using the same
+  !#   cosmological parameters as were used for the observational data. Typically, this will mean that weights are scaled in
+  !#   proportion to $V_\mathrm{max} / V^\prime_\mathrm{max}$, where $V_\mathrm{max}$ and $V^\prime_\mathrm{max}$ are the maximum
+  !#   volumes within which the galaxy would have been detected in the true and assumed cosmologies respectively.
+  !#  </description>
   !# </outputAnalysisWeightOperator>
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorCsmlgyVolume
      !% A cosmological volume corrector analysis weight operator class.

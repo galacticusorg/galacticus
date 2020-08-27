@@ -1,35 +1,16 @@
 \chapter{Running Galacticus}
 
-\section{Configuration File}\label{sec:ConfigFile}\index{galacticusConfig.xml@{\normalfont \ttfamily galacticusConfig.xml}}\index{configuration}
+Before running \glc\ you will need to set two environment variables which specify where the \glc\ source code and datasets can be found. First, the environment variable {\normalfont \ttfamily GALACTICUS\_EXEC\_PATH} should be set to the full path to the build directory\index{path!galacticus root@{\glc\ root}}. Second, the environment variable {\normalfont \ttfamily GALACTICUS\_DATA\_PATH} should be set to the full path to the {\normalfont \ttfamily datasets} directory which was created when you installed \glc.
 
-The file {\normalfont \ttfamily galacticusConfig.xml}, is present, is used to configure \glc\ and provide useful information. It should have the following structure:
+\glc\ is running using
 \begin{verbatim}
-<config>
-  <contact>
-    <name>My Name</name>
-    <email>me@ivory.towers.edu</email>
-  </contact>
-  <email>
-    <host>
-      <name>myComputerHostName</name>
-      <method>smtp</method>
-      <host>smtp-server.ivory.towers.edu</host>
-      <user>myUserName</user>
-      <passwordFrom>kdewallet</passwordFrom>
-    </host>
-    <host>
-      <name>default</name>
-      <method>sendmail</method>
-    </host>
-  </email>
-</config>
+ Galacticus.exe [<parameterFile>]
 \end{verbatim}
-The name and e-mail address in the {\normalfont \ttfamily contact} section will be stored in any \glc\ models run---this helps track the provenance of the model. The {\normalfont \ttfamily email} section determines how e-mail will be sent. Within this section, you can place one or more {\normalfont \ttfamily host} elements, the {\normalfont \ttfamily name} element of which specifies the host name of the computer to which these rules apply (the {\normalfont \ttfamily default} host is used if no other match is found). For each host, the {\normalfont \ttfamily method} element specifies how e-mail should be sent, either by {\normalfont \ttfamily sendmail} or via {\normalfont \ttfamily smtp}. For SMTP transport (which currently supports SSL connections only), you must specify the {\normalfont \ttfamily host} SMTP server, {\normalfont \ttfamily user} name. The {\normalfont \ttfamily passwordFrom} element specifies how the password for the SMTP log in should be obtained. If set to {\normalfont \ttfamily input} then the user will be prompted for the password as needed. Alternatively, if you use the \href{http://www.kde.org/}{KDE} desktop and the \href{http://utils.kde.org/projects/kwalletmanager/}{KDEWallet} password manager, 
-setting {\normalfont \ttfamily passwordFrom} to {\normalfont \ttfamily kdewallet} will cause the password to be stored in the KDE wallet and retrieved from there subsequently.
+where {\normalfont \ttfamily parameterFile} is the name of the file containing parameter settings for \glc. \glc\ will display messages indicating its progress as it runs (the verbosity can be controlled with the {\normalfont \ttfamily verbosityLevel} parameter).
 
 \section{Parameter Files}\label{sec:ParameterFiles}
 
-\glc\ requires a file of parameters to be given as a command line argument. The parameter file is an XML file (which makes it easy to manipulate and construct these files from within many languages, e.g. Perl) with the following structure:
+As described above, \glc\ requires a file of parameters to be given as a command line argument. The parameter file is an \gls{xml} file (which makes it easy to manipulate and construct these files from within many languages, e.g. Python) with the following structure:
 \begin{verbatim}
  <parameters>
    <version>0.9.4</version>
@@ -64,11 +45,11 @@ setting {\normalfont \ttfamily passwordFrom} to {\normalfont \ttfamily kdewallet
    .
  </parameters>
 \end{verbatim}
-Each named element must have a {\normalfont \ttfamily value} attribute (preferred), or else contains a value element, which contains desired value respectively. The value can be a number, word(s) or an array of space-separated numbers or words. Parameters are used to control the values of numerical parameters and also to select methods and other options. If a parameter is not specified in the file a default value (hard coded into \glc) will be used instead. The default values have been chosen to produce a realistic model of galaxy formation, but may change as \glc\ evolves. Parameters may have sub-parameters embedded within them, as in the example above.
+Each named element must have a {\normalfont \ttfamily value} attribute (preferred), or else contains a value element, which contains the desired value. The value can be a number, word or an array of space-separated numbers or words. Parameters are used to control the values of numerical parameters and also to select methods and other options. In many cases, if a parameter is not specified in the file a default value (hard coded into \glc) will be used instead. The default values have been chosen to produce a realistic model of galaxy formation, but may change as \glc\ evolves. Parameters may have sub-parameters embedded within them, as in the example above.
 
-Sub-parameters are used in object composition within \glc. For example, the following would specify that linear growth of cosmological large scale structure should be modeled using the {\normalfont \ttfamily simple} method:
+Sub-parameters are used in object composition within \glc. For example, the following would specify that linear growth of cosmological large scale structure should be modeled using the {\normalfont \ttfamily collisionlessMatter} method:
 \begin{verbatim}
-  <linearGrowthMethod value="simple">
+  <linearGrowthMethod value="collisionlessMatter">
     <cosmologyParametersMethod value="simple">
       <HubbleConstant   value="70.0" />
       <OmegaMatter      value="0.31"  />
@@ -85,7 +66,7 @@ Parameters can also be defined with an ``{\normalfont \ttfamily id}'' attribute.
 
 The optional {\normalfont \ttfamily version} element specifies which version of \glc\ this parameter file is intended for. The optional {\normalfont \ttfamily formatVersion} element specifies the parameter file version number (the current standard for parameter files is version 2). While optional, these elements can be useful when migrating parameter files between versions of \glc\ (see \S\ref{sec:MigrateParameters}).
 
-All parameter values (both those specified in this file and those set to default) used during a \glc\ run are output to the {\normalfont \ttfamily Parameters} group within the \glc\ output file. The script {\normalfont \ttfamily scripts/aux/Extract\_Parameter\_File.pl} will, if given a \glc\ output file, extract the parameters from it and output them into an XML file suitable for re-input into \glc. If parameters are present in the parameter file which do not match any known parameter in \glc\ then a warning message, listing all unknown parameters, will be given when \glc\ is run. Note that this will \emph{not} prevent \glc\ from running---sometimes it is convenient to include parameters which are not used by \glc, but which might be used by some other code.
+All parameter values (both those specified in this file and those set to default) used during a \glc\ run are output to the {\normalfont \ttfamily Parameters} group within the \glc\ output file. If parameters are present in the parameter file which do not match any known parameter in \glc\ then a warning message, listing all unknown parameters, will be given when \glc\ is run. Note that this will \emph{not} prevent \glc\ from running---sometimes it is convenient to include parameters which are not used by \glc, but which might be used by some other code.
 
 \subsection{Validating Parameter Files}\index{parameters!validating}
 
@@ -99,16 +80,8 @@ No output (and an exit value of 0) indicates a valid parameter file. Invalid par
 
 Some scripts are provided which assist in the generation of parameter files. These are located in the {\normalfont \ttfamily scripts/parameters/} folder and are detailed below:
 \begin{description}
-\item [{\normalfont \ttfamily cosmologicalParametersMonteCarlo.pl}] This script will generate a set of cosmological parameters drawn at random from the WMAP-9 constraints \cite{hinshaw_nine-year_2012}. It uses the covariance matrix (currently defined in {\normalfont \ttfamily data/Cosmological\_Parameters\_WMAP-9.xml}) to produce correlated random variables\footnote{Note that this does not capture the full details of the correlations between parameters, since it uses just the covariance matrix. For a more accurate calculation the full Monte Carlo Markov Chains used in the WMAP-9 parameter fitting should be used instead.}. The generated parameters are printed to standard output as \glc-compatible XML.
+\item [{\normalfont \ttfamily cosmologicalParametersMonteCarlo.pl}] This script will generate a set of cosmological parameters drawn at random from the WMAP-9 constraints \citep{hinshaw_nine-year_2012}. It uses the covariance matrix (currently defined in {\normalfont \ttfamily data/Cosmological\_Parameters\_WMAP-9.xml}) to produce correlated random variables\footnote{Note that this does not capture the full details of the correlations between parameters, since it uses just the covariance matrix. For a more accurate calculation the full Monte Carlo Markov Chains used in the WMAP-9 parameter fitting should be used instead.}. The generated parameters are printed to standard output as \glc-compatible XML.
 \end{description}
-
-\section{Running Galacticus}
-
-\glc\ is running using
-\begin{verbatim}
- Galacticus.exe [<parameterFile>]
-\end{verbatim}
-where {\normalfont \ttfamily parameterFile} is the name of the file containing a list of parameter values for \glc. \glc\ will display messages indicating its progress as it runs (the verbosity can be controlled with the {\normalfont \ttfamily verbosityLevel} parameter). Usually, the \glc\ executable should be invoked from the directory in which it was built. However, you can choose to set the environment variable {\normalfont \ttfamily GALACTICUS\_ROOT\_V091} to the full path to the build directory\index{path!galacticus root@{\glc\ root}}, in which case the \glc\ executable can be invoked from anywhere and will access all required files and scripts relative to this path. This can allow multiple users to all make use of the same \glc\ install.
 
 \subsection{Writing Data To a Temporary File}\index{output!temporary}
 
@@ -124,8 +97,10 @@ To cause \glc\ to periodically store its internal state include the following in
 \end{verbatim}
 This will cause the internal state to be stored to files {\normalfont \ttfamily galacticusState.state} prior to commencing building each merger tree. Should a tree crash then replace this input parameter with:
 \begin{verbatim}
-  <stateRetrieveFileRoot           value="galacticusState" />
-  <mergerTreeBuildTreesBeginAtTree value="N"               />
+  <stateRetrieveFileRoot       value="galacticusState"/>
+  <mergerTreeConstructorMethod value="build"           >
+   <treeBeginAt value="N"/>
+  </mergerTreeConstructorMethod>
 \end{verbatim}
 where {\normalfont \ttfamily N} is the number of the tree that crashed. This will cause calculations to begin with tree {\normalfont \ttfamily N} and for the internal state to be recovered from the above mentioned files. The resulting tree and all galaxy formation calculations should therefore proceed just as in the original run (and so create the same crash condition).
 
@@ -139,7 +114,7 @@ You can easily write your own scripts to generate parameter files and run \glc\ 
 \begin{verbatim}
  ./scripts/aux/launch.pl <runFile>
 \end{verbatim}
-This will launch a single instance of the script. Multiple instances can be launched and will share the work load (i.e. they will not attempt to run a model which another instance is already running or has finished). If multiple instances are to be launched on multiple machines a command line option to {\normalfont \ttfamily launch.pl} can be used to ensure that they do not duplicate work. Adding {\normalfont \ttfamily --instance 2:4} for example will tell the script to run only the second model from each block of four models it finds. Launching for {\normalfont \ttfamily launch.pl} scripts on four different machines with {\normalfont \ttfamily --instance 1:4}, {\normalfont \ttfamily --instance 2:4}, {\normalfont \ttfamily --instance 3:4} and {\normalfont \ttfamily --instance 4:4} will then divide the models between those machines.
+This will launch a single instance of the script. Multiple instances can be launched and will share the work load (i.e. they will not attempt to run a model which another instance is already running or has finished). If multiple instances are to be launched on multiple machines a command line option to {\normalfont \ttfamily launch.pl} can be used to ensure that they do not duplicate work. Adding {\normalfont \ttfamily -{}-instance 2:4} for example will tell the script to run only the second model from each block of four models it finds. Launching for {\normalfont \ttfamily launch.pl} scripts on four different machines with {\normalfont \ttfamily -{}-instance 1:4}, {\normalfont \ttfamily -{}-instance 2:4}, {\normalfont \ttfamily -{}-instance 3:4} and {\normalfont \ttfamily -{}-instance 4:4} will then divide the models between those machines.
 
 The {\normalfont \ttfamily runFile} is an XML file with the following structure:
 \begin{verbatim}
@@ -241,7 +216,7 @@ Some variables, which are expanded at run time, are available. These include:
 By default, each model is output into a sequentially numbered directory within the {\normalfont \ttfamily ./models} directory. By default, these directories have the prefix {\normalfont \ttfamily galacticus}. This can be changed by including a {\normalfont \ttfamily label} element inside a {\normalfont \ttfamily parameters} block, in which case the content of the {\normalfont \ttfamily label} element will be used as the prefix. This root directory can be modfified by the optional {\normalfont \ttfamily modelRootDirectory} element. Additionally, a set of base parameters can be read from a file specified by the {\normalfont \ttfamily baseParameters} file---these will be read before each model is run and before any variations in parameters for the specific model are applied. As such, it defines the default model around which parameter variations occur. Additional options that may be present in the file (as elements within the {\normalfont \ttfamily parameterGrid} element) are:
 \begin{description}
 \item[{\normalfont \ttfamily doAnalysis}]If set to ``no'' then no analysis scripts will be run on completed models, otherwise, they will be. Optionally, the analysis script to run can be specified via the {\normalfont \ttfamily analysisScript} element (see \S\ref{sec:AnalysisScripts});
-\item[{\normalfont \ttfamily emailReport}] If set to ``yes'' a report will be e-mailed to the address specified in {\normalfont \ttfamily galacticusOptions.xml} when a model fails. Otherwise, the report will be written to standard output instead.
+\item[{\normalfont \ttfamily emailReport}] If set to ``yes'' a report will be e-mailed to the address specified in {\normalfont \ttfamily galacticusConfig.xml} when a model fails. Otherwise, the report will be written to standard output instead.
 \item[{\normalfont \ttfamily compressModels}] If ``no'' then models are not compressed after being run. Otherwise, the contents of the model output directory will be compressed using {\normalfont \ttfamily bzip2}.
 \item[{\normalfont \ttfamily splitModels}] If set to an integer larger than $1$, each \glc\ model will be split into that number of jobs, and those jobs will be launched (using the selected method) independently. Once finished, the outputs from these split models will be merged back into a single model. This allows, for example, effectively distributing a single \glc\ model over multiple nodes of a PBS cluster.
 \end{description}
@@ -300,50 +275,9 @@ The method by which to launch jobs must be specified in the {\normalfont \ttfami
 
 \end{description}
 
-In addition to the {\normalfont \ttfamily galacticus.hdf5} output file, each model directory will contain a file {\normalfont \ttfamily newParameters.xml} which contains the parameters used to run the model and {\normalfont \ttfamily galacticus.log} which contains any output from \glc\ during the run.
+In addition to the {\normalfont \ttfamily galacticus.hdf5} output file, each model directory will contain a file {\normalfont \ttfamily parameters.xml} which contains the parameters used to run the model and {\normalfont \ttfamily galacticus.log} which contains any output from \glc\ during the run.
 
 If present, the file {\normalfont \ttfamily galacticusConfig.xml}, described in \S\ref{sec:ConfigFile}, is parsed for configuration options. If the {\normalfont \ttfamily contact} element is present, the listed name and e-mail address will be used to determine who should receive error reports should a model crash. The error report will contain the host name of the computer running the model, the location of the model output and the log file (which may be incomplete if output is being buffered). Additionally, any core file produced will be stored in the model directory for later perusal, and the state files (see \S\ref{sec:Restarting}) for the run can also be found in the model directory.
-
-\subsection{Analysis of Models}\label{sec:AnalysisScripts}
-
-The {\normalfont \ttfamily Run\_Galacticus.pl} script will automatically run {\normalfont \ttfamily scripts/analysis/Galacticus\_Compute\_Fit.pl} on each model to generate plots and fitting data unless {\normalfont \ttfamily doAnalysis}$=${\normalfont \ttfamily no} is set in the {\normalfont \ttfamily runFile} (see \S\ref{sec:RunningGrids}). This script, which can also be running manually using
-\begin{verbatim}
- ./scripts/analysis/Galacticus_Compute_Fit.pl <galacticusFile> <outputDirectory> [<analysisFile>]
-\end{verbatim}
-where {\normalfont \ttfamily galacticusFile} is the name of the \glc\ output file to analyze and {\normalfont \ttfamily outputDirectory} is the directory into which plots and fitting data should be placed, reads the file {\normalfont \ttfamily \textless analysisFile\textgreater} (or {\normalfont \ttfamily data/Galacticus\_Compute\_Fit\_Analyses.xml} if {\normalfont \ttfamily \textless analysisFile\textgreater} is not specified) which has the following structure:
-\begin{verbatim}
- <analyses>
-  <analysis>
-    <script>scripts/plotting/Plot_HI_Mass_Function.pl</script>
-    <weight>1.0</weight>
-  </analysis>
-  <analysis>
-    <script>scripts/plotting/Plot_K_Luminosity_Function.pl</script>
-    <weight>1.0</weight>
-  </analysis>
-  .
-  .
-  .
- </analyses>
-\end{verbatim}
-Each {\normalfont \ttfamily analysis} element contains the name of a script to run to perform some analysis and a weight to be given to the results of this analysis when combining results to get a net goodness of fit. Each script listed will be run and is expected to have accept arguments of the form:
-\begin{verbatim}
- My_Analysis_Script.pl <galacticusFile> <outputDirectory> <showFit>
-\end{verbatim}
-where the {\normalfont \ttfamily showFit} argument can be 0 or 1 and, if set to 1, the script should output an XML chunk to standard output giving details of its fitting analysis. This chunk should have the form:
-\begin{verbatim}
- <galacticusFit>
-   <name>Description of this analysis</name>
-   <chiSquared>24.5</chiSquared>
-   <degreesOfFreedom>19</degreesOfFreedom>
-   <fileName>Output_File_Name.pdf</fileName>
- </galacticusFit>
-\end{verbatim}
-where {\normalfont \ttfamily chiSquared} and {\normalfont \ttfamily degreesOfFreedom} are the fitting results. All such data returned from fitting scripts will be collated by {\normalfont \ttfamily Galacticus\_Compute\_Fit.pl}, augmented with the weight value and the net goodness of fit determined. All of this information is then output to {\normalfont \ttfamily galacticusFits.xml} in the selected output directory.
-
-\subsubsection{Performing Other Analysis}
-
-If {\normalfont \ttfamily \textless doAnalysis \textgreater}$=${\normalfont \ttfamily yes} and {\normalfont \ttfamily \textless analysisFile\textgreater} is set to something other than an XML file it is assumed that this is an analysis script that should be run directly. The script will be executed with the output directory for the \glc\ model as the first and only argument.
 
 \subsection{Processing Individual Merger Trees In Parallel}
 
@@ -531,3 +465,30 @@ The {\normalfont \ttfamily Parameters} group contains attributes giving the valu
 \item [{\normalfont \ttfamily wavenumber}] The wavenumber in units of Mpc$^{-1}$.
 \end{description}
 Dimensionful datasets have an {\normalfont \ttfamily unitsInSI} attribute that gives their units in the SI system.
+
+\section{Configuration File}\label{sec:ConfigFile}\index{galacticusConfig.xml@{\normalfont \ttfamily galacticusConfig.xml}}\index{configuration}
+
+The file {\normalfont \ttfamily galacticusConfig.xml}, is present, is used to configure \glc\ and provide useful information. It should have the following structure:
+\begin{verbatim}
+<config>
+  <contact>
+    <name>My Name</name>
+    <email>me@ivory.towers.edu</email>
+  </contact>
+  <email>
+    <host>
+      <name>myComputerHostName</name>
+      <method>smtp</method>
+      <host>smtp-server.ivory.towers.edu</host>
+      <user>myUserName</user>
+      <passwordFrom>kdewallet</passwordFrom>
+    </host>
+    <host>
+      <name>default</name>
+      <method>sendmail</method>
+    </host>
+  </email>
+</config>
+\end{verbatim}
+The name and e-mail address in the {\normalfont \ttfamily contact} section will be stored in any \glc\ models run---this helps track the provenance of the model. The {\normalfont \ttfamily email} section determines how e-mail will be sent. Within this section, you can place one or more {\normalfont \ttfamily host} elements, the {\normalfont \ttfamily name} element of which specifies the host name of the computer to which these rules apply (the {\normalfont \ttfamily default} host is used if no other match is found). For each host, the {\normalfont \ttfamily method} element specifies how e-mail should be sent, either by {\normalfont \ttfamily sendmail} or via {\normalfont \ttfamily smtp}. For SMTP transport (which currently supports SSL connections only), you must specify the {\normalfont \ttfamily host} SMTP server, {\normalfont \ttfamily user} name. The {\normalfont \ttfamily passwordFrom} element specifies how the password for the SMTP log in should be obtained. If set to {\normalfont \ttfamily input} then the user will be prompted for the password as needed. Alternatively, if you use the \href{http://www.kde.org/}{KDE} desktop and the \href{http://utils.kde.org/projects/kwalletmanager/}{KDEWallet} password manager, 
+setting {\normalfont \ttfamily passwordFrom} to {\normalfont \ttfamily kdewallet} will cause the password to be stored in the KDE wallet and retrieved from there subsequently.
