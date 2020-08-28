@@ -25,7 +25,7 @@
   use :: Tables                    , only : table2DLinLinLin
 
   !# <haloEnvironment name="haloEnvironmentFixed">
-  !#  <description>Implements a fixedly-distributed halo environment.</description>
+  !#  <description>Implements a fixed halo environment.</description>
   !#  <deepCopy>
   !#   <functionClass variables="sphericalCollapseSolver_"/>
   !#  </deepCopy>
@@ -36,11 +36,11 @@
   type, extends(haloEnvironmentClass) :: haloEnvironmentFixed
      !% A fixed halo environment class.
      private
-     class           (cosmologyFunctionsClass                          ), pointer :: cosmologyFunctions_             => null()
-     class           (linearGrowthClass                                ), pointer :: linearGrowth_                   => null()
-     type            (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt ), pointer :: sphericalCollapseSolver_        => null()
+     class           (cosmologyFunctionsClass                          ), pointer :: cosmologyFunctions_          => null()
+     class           (linearGrowthClass                                ), pointer :: linearGrowth_                => null()
+     type            (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt ), pointer :: sphericalCollapseSolver_     => null()
      type            (table2DLinLinLin                                 )          :: linearToNonLinear
-     double precision                                                             :: radiusEnvironment                        , massEnvironment           , &
+     double precision                                                             :: radiusEnvironment                     , massEnvironment, &
           &                                                                          overdensity
      logical                                                                      :: linearToNonLinearInitialized
    contains
