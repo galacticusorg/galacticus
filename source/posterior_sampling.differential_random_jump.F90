@@ -28,7 +28,7 @@ module Posterior_Sample_Differential_Random_Jump
   !# <functionClass>
   !#  <name>posteriorSampleDffrntlEvltnRandomJump</name>
   !#  <descriptiveName>Posterior Sampling Differential Evolution Random Jumps</descriptiveName>
-  !#  <description>Class providing random jumps for differential evolution posterior samplers.</description>
+  !#  <description>Class providing random jumps to be added to proposals in differential evolution posterior samplers.</description>
   !#  <method name="sample" >
   !#   <description>Sample from the jump distribution.</description>
   !#   <type>double precision, dimension(size(modelParameters_))</type>

@@ -23,7 +23,26 @@
   use :: Nearest_Neighbors, only : nearestNeighbors
 
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodPosteriorAsPrior">
-  !#  <description>A posterior sampling likelihood class which implements a likelihood using a given posterior distribution over the parameters in the form of a set of MCMC chains.</description>
+  !#  <description>
+  !#   The likelihood is computed either using another likelihood function (the ``wrapped'' likelihood), while including in the
+  !#   likelihood an esimate of the posterior probability of a previous simulation. This effectively allows the posterior of the previous
+  !#   simulation to be used as a prior on the current simulation. The details of the likelihood are specified by the follow
+  !#   subparameters:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily chainBaseName}] The base name for the old set of MCMC chains to use as the new prior;
+  !#   \item[{\normalfont \ttfamily neighborCount}] The number of neighbor points to use in kernel density estimation of the posterior probability;
+  !#   \item[{\normalfont \ttfamily tolerance}] Tolerance used in finding nearest neighbors;
+  !#   \item[{\normalfont \ttfamily wrappedLikelihood}] Contains another likelihood function definition which will be used to provide the current likelihood.
+  !#   \end{description}
+  !#   
+  !#   This method uses the \gls{ann} library to locate {\normalfont \ttfamily neightborCount} nearest neighbor points in the set of
+  !#   converged states found in the given chains. The {\normalfont \ttfamily tolerance} element determines the accuracy of nearest
+  !#   neighbor finding (see the \gls{ann} documentation for details).When finding nearest neighbors in the MCMC chains, parameters are
+  !#   mapped using whatever mappings are currently active, and distances in each dimension (as used in the metric to determine nearest
+  !#   neighbors) are scaled by the root-variance in that parameter in the converged MCMC chains. The posterior likelihood of the MCMC
+  !#   chains is then estimated from the nearest neighbors using kernel density estimation with a Gaussian kernel with bandwidth equal to
+  !#   the distance to the furthest of the nearest neighbors.
+  !#  </description>
   !# </posteriorSampleLikelihood>
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodPosteriorAsPrior
      !% Implementation of a posterior sampling likelihood class which implements a likelihood using a given posterior distribution

@@ -24,7 +24,29 @@
   use :: Halo_Mass_Functions, only : haloMassFunctionClass
 
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodMassFunction">
-  !#  <description>A posterior sampling likelihood class which implements a likelihood for mass functions.</description>
+  !#  <description>
+  !#   The likelihood is computed as
+  !#   \begin{equation}
+  !#   \log \mathcal{L} = -{1\over2} \Delta \cdot \mathcal{C}^{-1} \cdot \Delta^\mathrm{T},
+  !#   \end{equation}
+  !#   where $\mathcal{C}$ is the covariance matrix, and $\Delta_i = w_i^\mathrm{model} - w_i^\mathrm{obs}$, $w_i^\mathrm{model}$ is the
+  !#   computed mass function at the $i^\mathrm{th}$ separation, and $w_i^\mathrm{obs}$ is the observed mass function at the
+  !#   $i^\mathrm{th}$ separation. The mass function is computed using the halo model and the parameterized conditional galaxy mass
+  !#   function of \cite[][see also \protect\cite{leauthaud_new_2011};
+  !#   \S\protect\ref{phys:conditionalMassFunction:conditionalMassFunctionBehroozi2010}]{behroozi_comprehensive_2010}. The details of the
+  !#   mass function calculation are specified by the following subparameters:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily haloMass(Min|Max)imum}] The minimum/maximum halo mass over which to integrate in the halo model;
+  !#   \item[{\normalfont \ttfamily redshift(Min|Max)imum}] The minimum/maximum redshift over which to integrate in the halo model;
+  !#   \item[{\normalfont \ttfamily massFunctionFileName}] The name of an HDF5 file containing the observed mass function and its
+  !#     covariance matrix.
+  !#   \end{description}
+  !#   
+  !#   The HDF5 file specified by the {\normalfont \ttfamily massFunctionFileName} element should contain a {\normalfont \ttfamily mass}
+  !#   dataset, giving the masses at which the mass function is measured (in units of $M_\odot$), a {\normalfont \ttfamily
+  !#   massFunctionObserved} dataset giving the observed values of the mass function at those masses (in units of Mpc$^{-3}$ per
+  !#   $\log M$), and a {\normalfont \ttfamily covariance} dataset, giving the covariance of the mass function (in units of Mpc$^{-6}$).
+  !#  </description>
   !# </posteriorSampleLikelihood>
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodMassFunction
      !% Implementation of a posterior sampling likelihood class which implements a likelihood for mass functions.

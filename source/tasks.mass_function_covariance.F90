@@ -25,7 +25,59 @@
   use :: Power_Spectra_Nonlinear   , only : powerSpectrumNonlinear , powerSpectrumNonlinearClass
 
   !# <task name="taskMassFunctionCovariance">
-  !#  <description>A task which computes and stores covariance matrices for mass functions.</description>
+  !#  <description>
+  !#   A task class which computes and stores covariance matrices for mass functions. In general, for constraints corresponding to
+  !#   mass functions (whether stellar mass or HI mass), the covariance matrix of the observational data is determined using the
+  !#   analytic model of \cite{smith_how_2012}. This requires knowledge of both the survey geometry (angular mask and radial extent
+  !#   as a function of mass) and of the \gls{hod} of the observed galaxies.
+  !#
+  !#   Details of the survey geometry and depth are given for each individual constraints. Computing the large-scale structure
+  !#   contribution to the covariance function requires integration of the non-linear matter power spectrum over the Fourier
+  !#   transform of the survey window function. We use the method of \cite{peacock_non-linear_1996} to determine the non-linear
+  !#   matter power spectrum, because of its simplicity and speed. We have checked that using a more accurate non-linear matter
+  !#   power spectrum (e.g. \citealt{lawrence_coyote_2010}) makes negligible difference to our results. If the angular power
+  !#   spectrum of the survey mask is available\footnote{Typically if the survey geometry is defined by \protect\gls{mangle}
+  !#   polygons, allowing the angular power spectrum to be found using the \protect\gls{mangle} {\normalfont \ttfamily harmonize}
+  !#   utility.}, this is used to compute the relation
+  !#   \begin{equation}
+  !#    \sigma^2(M_\mu,M_\nu) = {2 \over \pi V_\mu V_\nu}\int_0^\infty \mathrm{d} k\, k^{-4} P(k) \sum_i \sum_j \sum_{\ell=0}^\infty (2\ell+1) C^{ij}_\ell R^i_{\ell}(kr_{\mu 0},kr_{\mu 1}) R^j_{\ell}(kr_{\nu 0},kr_{\nu 1}),
+  !#   \end{equation}
+  !#   where $(2\ell+1) C^{ij}_\ell = \sum_{m=-\ell}^{+\ell} \Psi^i_{\ell m} \Psi^{j*}_{\ell m}$, $\Psi^i_{\ell m}$ are the
+  !#   spherical harmonic coefficients of the $i^\mathrm{th}$ field of the survey, $V$ is the maximum distance to which a galaxy of
+  !#   mass $M$ can be seen, $P(k)$ is the nonlinear power spectrum and
+  !#   \begin{equation}
+  !#    R_{\ell}(x_0,x_1) \equiv \int_{x_0}^{x_1} x^2 j_\ell(x) \mathrm{d}x = \sqrt{\pi} 2^{-2-\ell} \Gamma\left({1\over 2}[3+\ell]\right) \left[ x^{3+\ell} \tensor*[_1]{\stackrel{\sim}{F}}{_2} \left({1\over 2}[3+\ell]; \ell+{3\over 2},{1\over 2}(5+\ell);-{x^2\over 4}\right)\right]_{x_0}^{x_1},
+  !#  \end{equation}
+  !#  where $\tensor*[_1]{\stackrel{\sim}{F}}{_2}$ is the regularized generalized hypergeometric function. In other cases, where
+  !#  the angular power spectrum is not available, the survey geometry is realized on a grid which is when Fourier transformed to
+  !#  obtain the appropriate window function.
+  !#
+  !#  To find a suitable \gls{hod} to describe the observed galaxies we adopt the model of \cite{behroozi_comprehensive_2010}. This
+  !#  is an 11 parameter model which describes separately the numbers of satellite and central galaxies occupying a halo of given
+  !#  mass---the reader is referred to \cite{behroozi_comprehensive_2010} for a complete description of the functional form of this
+  !#  parametric \gls{hod}. An \gls{mcmc} approach is used to to constrain the \gls{hod} parameters to fit the observational
+  !#  data. We use a likelihood
+  !#  \begin{equation}
+  !#   \ln \mathcal{L} = -{1\over 2} \Delta\cdot \mathcal{C}^{-1}\cdot \Delta^\mathrm{T} - {N \over 2} \ln(2\pi) - {\ln |\mathcal{C}| \over 2},
+  !#  \end{equation}
+  !#  where $N$ is the number of bins in the mass function, $\mathcal{C}$ is the covariance matrix of the observed mass function,
+  !#  and $\Delta_i = \phi_i^\mathrm{(HOD)} - \phi_i^\mathrm{(observed)}$. Of course, it is precisely this covariance matrix,
+  !#  $\mathcal{C}$, that we are trying to compute. We therefore adopt an iterative approach as follows:
+  !#  \begin{enumerate}
+  !#   \item make an initial estimate of the covariance matrix, assuming that only Poisson errors contribute (the covariance
+  !#   matrix is therefore diagonal, and the terms are easily computed from the measured mass function and the survey volume as a
+  !#   function of stellar mass);
+  !#   \item find the maximum likelihood parameters of the \gls{hod} given the observed mass function and the current estimate of
+  !#   the covariance matrix;
+  !#   \item using this \gls{hod} and the framework of \cite{smith_how_2012}, compute a new estimate of the covariance matrix,
+  !#   including all three contributions;
+  !#   \item repeat steps 2 and 3 until convergence in the covariance matrix is achieved.       
+  !#  \end{enumerate}
+  !#
+  !#  In practice we find that this procedure often leads to an \gls{hod} and covariance matrix which oscillate between two states
+  !#  in successive iterations. The differences in the covariance matrix are relatively small however, so we choose to
+  !#  conservatively adopt the covariance matrix with the larger values.
+  !#  </description>
   !# </task>
   type, extends(taskClass) :: taskMassFunctionCovariance
      !% Implementation of a task which computes and stores covariance matrices for mass functions.

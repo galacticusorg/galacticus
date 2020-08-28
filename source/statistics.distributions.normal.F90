@@ -20,7 +20,19 @@
   !% Implementation of a normal 1D distibution function.
 
   !# <distributionFunction1D name="distributionFunction1DNormal">
-  !#  <description>A normal 1D distribution function class.</description>
+  !#  <description>
+  !#   A normal distribution, optionally with lower and upper limits:
+  !#   \begin{equation}
+  !#    P(x) \propto \left\{ \begin{array}{ll} \exp[-(x-\mu)^2/2S] &amp; \hbox{ if } x_\mathrm{l} \leq x \leq x_\mathrm{u} \\ 0 &amp; \hbox{ otherwise.}  \end{array} \right.
+  !#   \end{equation}
+  !#   Specified using:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily [mean]}] The mean, $\mu$;
+  !#   \item[{\normalfont \ttfamily [variance]}] The variance, $S$;
+  !#   \item[{\normalfont \ttfamily [minimum]}] The lower limit of the range, $x_\mathrm{l}$;
+  !#   \item[{\normalfont \ttfamily [maximum]}] The upper limit of the range, $x_\mathrm{u}$.
+  !#   \end{description}
+  !#  </description>
   !# </distributionFunction1D>
   type, extends(distributionFunction1DClass) :: distributionFunction1DNormal
      !% Implementation of a normal 1D distibution function.

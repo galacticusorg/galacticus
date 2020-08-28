@@ -22,7 +22,10 @@
   use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
 
   !# <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionStepCount">
-  !#  <description>A posterior sampling stopping class which stepCount converges.</description>
+  !#  <description>
+  !#   This type will cause the simulation to stop when at least a number of steps (as specified by {\normalfont \ttfamily
+  !#   [stopAfterCount]}) have accrued post-convergence.
+  !#  </description>
   !# </posteriorSampleStoppingCriterion>
   type, extends(posteriorSampleStoppingCriterionClass) :: posteriorSampleStoppingCriterionStepCount
      !% Implementation of a posterior sampling convergence class which stepCount converges.

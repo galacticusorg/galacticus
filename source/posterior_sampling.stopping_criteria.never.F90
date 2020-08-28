@@ -20,7 +20,7 @@
   !% Implementation of a posterior sampling stopping class which never stops.
 
   !# <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionNever">
-  !#  <description>A posterior sampling stopping class which never converges.</description>
+  !#  <description>A posterior sampling stopping class which never stops.</description>
   !# </posteriorSampleStoppingCriterion>
   type, extends(posteriorSampleStoppingCriterionClass) :: posteriorSampleStoppingCriterionNever
      !% Implementation of a posterior sampling convergence class which never converges.

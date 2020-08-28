@@ -25,7 +25,16 @@
   use, intrinsic :: ISO_C_Binding, only : c_double
   
   !# <distributionFunction1D name="distributionFunction1DStudentT">
-  !#  <description>A 1D Student-t distibution function.</description>
+  !#  <description>
+  !#   Student's t-distribution:
+  !#   \begin{equation}
+  !#    P(x) \propto \left(1 + {x^2\over \nu}\right)^{-(\nu+1)/2}
+  !#   \end{equation}
+  !#   Specified using:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily degreesOfFreedom}] The number of degrees of freedom, $\nu$.
+  !#   \end{description}
+  !#  </description>
   !# </distributionFunction1D>
   type, extends(distributionFunction1DClass) :: distributionFunction1DStudentT
      !% Implementation of a 1D Student-t distribution function.

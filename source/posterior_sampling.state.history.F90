@@ -20,7 +20,10 @@
   !% Implementation of a posterior sampling state class which stores history.
 
   !# <posteriorSampleState name="posteriorSampleStateHistory">
-  !#  <description>A posterior sampling state class which stores history.</description>
+  !#  <description>
+  !#   An extension of the {\normalfont \ttfamily simple} state, this class also records the mean and variance of each parameter over the
+  !#   history of the simulation.
+  !#  </description>
   !# </posteriorSampleState>
   type, extends(posteriorSampleStateSimple) :: posteriorSampleStateHistory
      !% Implementation of a posterior sampling state class which stores history.

@@ -20,7 +20,9 @@
   !% Implementation of a posterior sampling convergence class which priorRandom converges.
 
   !# <posteriorSampleStateInitialize name="posteriorSampleStateInitializePriorRandom">
-  !#  <description>A posterior sampling state initialization class which samples the inital state at random from the priors.</description>
+  !#  <description>
+  !#   A posterior sampling state initialization class which samples the inital state at random from the prior distribution(s).
+  !#  </description>
   !# </posteriorSampleStateInitialize>
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializePriorRandom
      !% Implementation of a posterior sampling state initialization class which samples the inital state at random from the priors.

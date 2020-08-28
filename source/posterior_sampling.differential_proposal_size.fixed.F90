@@ -20,7 +20,10 @@
   !% Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is fixed.
 
   !# <posteriorSampleDffrntlEvltnProposalSize name="posteriorSampleDffrntlEvltnProposalSizeFixed">
-  !#  <description>A posterior sampling differential evolution proposal size class in which the proposal size is fixed.</description>
+  !#  <description>
+  !#   A posterior sampling differential evolution proposal size class in which the proposal size is a fixed value
+  !#   $\gamma=${\normalfont \ttfamily [gamma]}.
+  !#  </description>
   !# </posteriorSampleDffrntlEvltnProposalSize>
   type, extends(posteriorSampleDffrntlEvltnProposalSizeClass) :: posteriorSampleDffrntlEvltnProposalSizeFixed
      !% Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is fixed.

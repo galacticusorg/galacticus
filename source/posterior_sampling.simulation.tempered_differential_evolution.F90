@@ -22,7 +22,28 @@
   use :: Posterior_Sampling_Prop_Size_Temp_Exp, only : posteriorSampleDffrntlEvltnPrpslSzTmpExpClass
 
   !# <posteriorSampleSimulation name="posteriorSampleSimulationTemperedDffrntlEvltn">
-  !#  <description>A posterior sampling simulation class which implements a tempered differential evolution algorithm.</description>
+  !#  <description>
+  !#   This class extends the {\normalfont \ttfamily differentialEvolution} option to include tempering during which the likelihood
+  !#   function is heated up and cooled down to allow chains to more easily walk through the likelihood landscape. In addition to the
+  !#   options for the {\normalfont \ttfamily differentialEvolution} algorithm, the details of the algorithm are controlled by the
+  !#   following sub-parameters:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily [untemperedStepCount]}] The number of untempered (i.e. $T=1$) steps to take between tempering cycles.
+  !#   \item[{\normalfont \ttfamily [temperatureMaximum]}] The maximum temperature to use when tempering.
+  !#   \item[{\normalfont \ttfamily [temperedLevels]}] The number of tempered levels to use.
+  !#   \item[{\normalfont \ttfamily [stepsPerLevel]}] The number of differential evolution steps to take at each tempering level.
+  !#   \item[{\normalfont \ttfamily [logFlushCount]}] The number of steps after which the log file will be flushed to disk.
+  !#   \end{description}
+  !#   
+  !#   In each tempering cycle, the temperature is raised through levels $1$\ldots$N$ (where $N=${\normalfont \ttfamily temperedLevels}),
+  !#   and then back down through levels $N-1$\ldots$1$. The temperature at level $i$ is given by:
+  !#   \begin{equation}
+  !#   \log T_i = {i \over N} \log T_\mathrm{max},
+  !#   \end{equation}
+  !#   where $T_\mathrm{max}=${\normalfont \ttfamily temperatureMaximum}. During tempered steps, the $\gamma$ parameter of the
+  !#   differential evolution algorithm is increased by a factor $T^\alpha$, where $\alpha$ is provided by the {\normalfont \ttfamily
+  !#   proposalSizeTemperatureExponent} class. A value of $\alpha=1/2$ is optimal for a Gaussian likelihood.
+  !#  </description>
   !# </posteriorSampleSimulation>
   type, extends(posteriorSampleSimulationDifferentialEvolution) :: posteriorSampleSimulationTemperedDffrntlEvltn
      !% Implementation of a posterior sampling simulation class which implements a tempered differential evolution algorithm.

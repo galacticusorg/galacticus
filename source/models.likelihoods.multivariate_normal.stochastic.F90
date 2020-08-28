@@ -22,7 +22,24 @@
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
   
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodMltiVrtNormalStochastic">
-  !#  <description>A posterior sampling likelihood class which implements a multivariate normal.</description>
+  !#  <description>
+  !#   The likelihood is identical to that of the {\normalfont \ttfamily multivariateNormal} class, except that the likelihood function
+  !#   is evaluated stochastically. In addition to the parameter of the {\normalfont \ttfamily multivariateNormal} class, two additional
+  !#   parameters are required and are specified within the {\normalfont \ttfamily likelihood} element using:
+  !#   \begin{verbatim}
+  !#     <realizationCount>4000</realizationCount>
+  !#     <realizationCountMinimum>10</realizationCountMinimum>
+  !#   \end{verbatim}
+  !#   When evaluating the likelihood, the state vector is set equal to 
+  !#   \begin{equation}
+  !#    S^\prime_i = \sum_{j=1}^N {2 U(S_i) \over N},
+  !#   \end{equation}
+  !#   where $N=${\normalfont \ttfamily realizationCount} and $U(x)$ is a uniform random deviate in the range $0$ to $x$. This results in
+  !#   a variance in $S^\prime_i$ of $S_i^2/3N$. This variance is added to the covariance used in evaluating the likelihood. When
+  !#   evaluating the likelihood at a higher temperature the number of realizations is reduced (which increases the covariance, which has
+  !#   the same effect as increasing the temperature) to speed computation, and the likelihood corrected for this fact. The number of
+  !#   realizations is reduced to $N/T$, but never allowed to fall below {\normalfont \ttfamily realizationCountMinimum}.
+  !#  </description>
   !# </posteriorSampleLikelihood>
   type, extends(posteriorSampleLikelihoodMultivariateNormal) :: posteriorSampleLikelihoodMltiVrtNormalStochastic
      !% Implementation of a posterior sampling likelihood class which implements a multivariate likelihood.

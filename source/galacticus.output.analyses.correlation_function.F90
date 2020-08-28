@@ -34,7 +34,30 @@
   use               :: Power_Spectra                         , only : powerSpectrum                     , powerSpectrumClass
 
   !# <outputAnalysis name="outputAnalysisCorrelationFunction">
-  !#  <description>A generic two-point correlation function output analysis class.</description>
+  !#  <description>
+  !#   A generic two-point correlation function output analysis class.
+  !# 
+  !#   For constraints corresponding to (possibly, projected) correlation functions, the model expectation is computed using the
+  !#   halo model \cite{cooray_halo_2002}. For each model halo, each galaxy (satellite and central) is assessed to see if it meets
+  !#   the criteria for inclusion in the sample. Where the sample includes mass limits (either just a lower limit, or lower and
+  !#   upper limits) each galaxy is assigned a probability of inclusion in the sample based on its mass and the random error in
+  !#   mass. Thus, each halo is characterized by the probability of having a central galaxy in the sample, $p^\mathrm{(c)}$, and
+  !#   $N$ probabilities, $p_i^\mathrm{(s)}$, of each satellite galaxy being in the sample. We assume binomial statistics for each
+  !#   galaxy's probability of inclusion, and further assume that these probabilities are uncorrelated. Therefore, the
+  !#   contribution of the halo to the one- and two-halo terms of the power spectrum in the halo model are:
+  !#   \begin{equation}
+  !#    \Delta P^\mathrm{1h}(k) = {w \over n_\mathrm{gal}^2} \left[ p^\mathrm{(c)} \sum_{i=1}^N p^\mathrm{(s)} u(k|M) + \sum_{k=0}^N k(k-1) P\left(p_i^\mathrm{(s)},\ldots,p_N^{(s)}\right) u(k|M)^2 \right]
+  !#   \end{equation}
+  !#   and
+  !#   \begin{equation}
+  !#    \Delta \sqrt{P^\mathrm{2h}}(k) = {w \over n_\mathrm{gal}} \sqrt{P^\mathrm{lin}}(k) b(M) u(k|M) \left[ p^\mathrm{(c)} + \sum_{i=1}^N p_i^\mathrm{(s)} \right],
+  !#   \end{equation}
+  !#   respectively, where $w$ is the weight of the halo (i.e. the number of such model halos expected per unit volume), $b(M)$ is
+  !#   the bias of halos of mass $M$, $u(k|M)$ is the Fourier-transform of the halo density profile, and $P_\mathrm{lin}(k)$ is
+  !#   the linear theory power spectrum, and $P(p_1,\ldots,p_N)$ is the Poisson binomial distribution for $N$ events with
+  !#   probabities $p_1,\ldots,p_N$. The contribution of the halo to the galaxy density, $n_\mathrm{gal}$, is simply $\Delta
+  !#   n_\mathrm{gal} = w \left[ p^\mathrm{(c)} + \sum_{i=1}^N p_i^\mathrm{(s)} \right]$.
+  !#  </description>
   !# </outputAnalysis>
   type, extends(outputAnalysisClass) :: outputAnalysisCorrelationFunction
      !% A generic two-point correlation function output analysis class.

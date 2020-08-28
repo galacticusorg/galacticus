@@ -21,7 +21,9 @@
   !% is fixed.
 
   !# <posteriorSampleDffrntlEvltnPrpslSzTmpExp name="posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed">
-  !#  <description>A posterior sampling differential evolution proposal size class in which the exponent is fixed.</description>
+  !#  <description>
+  !#   This class uses a fixed $\alpha=${\normalfont \ttfamily [alpha]}.
+  !#  </description>
   !# </posteriorSampleDffrntlEvltnPrpslSzTmpExp>
   type, extends(posteriorSampleDffrntlEvltnPrpslSzTmpExpClass) :: posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed
      !% Implementation of a posterior sampling differential evolution proposal size class in which the exponent is fixed.

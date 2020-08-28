@@ -21,7 +21,34 @@
 
 
   !# <outputAnalysis name="outputAnalysisMassFunctionStellarSDSS">
-  !#  <description>An SDSS stellar mass function output analysis class.</description>
+  !#  <description>
+  !#   An SDSS stellar mass function output analysis class, which utilizes the stellar mass function for $z\approx 0.07$ galaxies
+  !#   measured by \cite{li_distribution_2009} from the \gls{sdss}.
+  !#   
+  !#   Given a \glc\ model, total stellar masses of model galaxies are adjusted using:
+  !#   \begin{equation}
+  !#    M_\star \rightarrow \mathbf{C} \mathbf{L} \mathbf{G} \mathbf{S} M_\star,
+  !#   \end{equation}
+  !#   where the $\mathbf{S}$ operator is a multiplicative factor accounting for systematic errors in stellar mass determination and is
+  !#   equal to \citep{behroozi_comprehensive_2010}
+  !#   \begin{equation}
+  !#    \log_\mathrm{10} S = \sum_{i=0}^N s_i \log_\mathrm{10}^i \left({M_\star \over 10^{11.3}M_\odot}\right),
+  !#   \end{equation}
+  !#   where $s=${\normalfont \ttfamily [systematicErrorPolynomialCoefficient]}, the {\normalfont \bfseries G} operator is a
+  !#   multiplicative factor drawn from a log-normal distribution of width $\sigma(M)$~dex for each galaxy to mimic the effects of random
+  !#   errors on stellar masses (motivated by the discussion of \cite{behroozi_comprehensive_2010}), the {\normalfont \bfseries L}
+  !#   operator accounts for gravitational lensing, and the {\normalfont \bfseries C} operator accounts for the difference between model
+  !#   and observed cosmologies. The random error model is given by:
+  !#   \begin{equation}
+  !#    \sigma(M) = \hbox{min}\left[\sigma_\mathrm{max},\hbox{max}\left[\sigma_\mathrm{min},\sum_{i=0}^N r_i \log_\mathrm{10}^i \left({M_\star \over 10^{11.3}M_\odot}\right)\right]\right],
+  !#   \end{equation}
+  !#   where $r=${\normalfont \ttfamily [randomErrorPolynomialCoefficient]}, $\sigma_\mathrm{min}$={\normalfont \ttfamily
+  !#     [randomErrorMinimum]}, and $\sigma_\mathrm{max}$={\normalfont \ttfamily [randomErrorMaximum]}.
+  !#   
+  !#   The model masses are then used to construct a mass function by binning into a histogram using the masses reported by
+  !#   \cite{li_distribution_2009} (modified as described above) as the centers of the bins (with bin boundaries placed at the geometric
+  !#   means of consecutive bin centers).
+  !#  </description>
   !# </outputAnalysis>
   type, extends(outputAnalysisMassFunctionStellar) :: outputAnalysisMassFunctionStellarSDSS
      !% An SDSS stellar mass function output analysis class.

@@ -22,7 +22,16 @@
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <outputAnalysis name="outputAnalysisGalaxySizesSDSS">
-  !#  <description>A stellar mass function output analysis class.</description>
+  !#  <description>
+  !#   An output analysis class which computes the mass-dependentr $z\approx 0.07$ galaxy size distribution of \cite{shen_size_2003} from
+  !#   the \gls{sdss}. The size function reported by \cite{shen_size_2003} is converted to the appropriate cosmology for the given \glc\
+  !#   model (assuming that sizes scale as the angular diameter distance, and masses as the square of the luminosity distance). The model
+  !#   sizes and masses are then used to construct a mass-dependent radius function by binning into a 2-D histogram using the size and
+  !#   mass bins reported by \cite{shen_size_2003} (modified as described above) as the centers of the bins (with bin boundaries placed
+  !#   at the geometric means of consecutive bin centers). Distributions are computed for both late-type and early-type galaxies,
+  !#   classified on the basis of the stellar mass spheroid-to-total ratio, with the division at a ratio given by {\normalfont \ttfamily
+  !#   [massStellarRatio]}.
+  !#  </description>
   !# </outputAnalysis>
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisGalaxySizesSDSS
      !% A galaxySizesSDSS output analysis class.

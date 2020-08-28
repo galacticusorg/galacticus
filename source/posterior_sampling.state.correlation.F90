@@ -20,7 +20,10 @@
   !% Implementation of a posterior sampling state class which computes correlation lengths.
 
   !# <posteriorSampleState name="posteriorSampleStateCorrelation">
-  !#  <description>A correlation posterior sampling state class.</description>
+  !#  <description>
+  !#   An extension of the {\normalfont \ttfamily history} state, this class also computes and stores the correlation length in each
+  !#   parameter (which is taken to be the median correlation length over all non-outlier chains).
+  !#  </description>
   !# </posteriorSampleState>
   type, extends(posteriorSampleStateHistory) :: posteriorSampleStateCorrelation
      !% Implementation of a correlation posterior sampling state class.

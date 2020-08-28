@@ -22,7 +22,21 @@
   use :: ISO_Varying_String, only : varying_string
 
   !# <posteriorSampleConvergence name="posteriorSampleConvergenceGelmanRubin">
-  !#  <description>A posterior sampling convergence class which implements the Gelman-Rubin statistic.</description>
+  !#  <description>
+  !#   This class adopts the convergence criterion proposed by
+  !#   \citeauthor{gelman_a._inference_1992}~(\citeyear{gelman_a._inference_1992}; see also \citealt{brooks_general_1998}), which
+  !#   compares the variance in parameter values within chains to that between chains. Outlier detection is applied to the chains using a
+  !#   standard Grubb's outlier test. The behavior of this criterion is controlled by the following subparameters:
+  !#   \begin{description}
+  !#   \item [{\normalfont \ttfamily Rhat}] The correlation coefficient, $\hat{R}$, value at which to declare convergence.
+  !#   \item [{\normalfont \ttfamily burnCount}] Set number of steps to burn before applying the convergence test.
+  !#   \item [{\normalfont \ttfamily testCount}] Set the number of steps between successive applications of the convergence test.
+  !#   \item [{\normalfont \ttfamily outlierSignificance}] The significance level required in outlier detection.
+  !#   \item [{\normalfont \ttfamily outlierLogLikelihoodOffset}] The offset in log-likelihood from the current maximum likelihood chain
+  !#     required for a chain to be declared to be an outlier.
+  !#   \item [{\normalfont \ttfamily outlierCountMaximum}] The maximum number of outlier chains allowed.
+  !#   \end{description}
+  !#  </description>
   !# </posteriorSampleConvergence>
   type, extends(posteriorSampleConvergenceClass) :: posteriorSampleConvergenceGelmanRubin
      !% Implementation of a posterior sampling convergence class which implements the Gelman-Rubin statistic.

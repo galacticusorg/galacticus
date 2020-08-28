@@ -22,7 +22,42 @@
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <surveyGeometry name="surveyGeometryCaputi2011UKIDSSUDS">
-  !#  <description>Implements the survey geometry of the SDSS sample used by \cite{caputi_stellar_2011}.</description>
+  !#  <description>
+  !#   A survey geometry class which implements the UKIDSS UDS survey used by \cite{caputi_stellar_2011}. The survey window function is
+  !#   determined from the set of galaxy positions provided by Caputi (private communication), by finding a suitable bounding box and
+  !#   then cutting out empty regions (corresponding to regions that were removed around bright stars). A set of random points are then
+  !#   found within this mask and are used to find the Fourier transform of the survey volume.
+  !#   
+  !#   To estimate the depth of the \cite{caputi_stellar_2011} sample as a function of galaxy stellar mass we make use of semi-analytic
+  !#   models in the Millennium Database. Specifically, we use the \glspl{sam} of \cite{guo_dwarf_2011} and
+  !#   \cite{henriques_confronting_2012} specifically the {\normalfont \ttfamily Guo2010a..MR} and {\normalfont \ttfamily
+  !#     Henriques2012a.wmap1.BC03\_001} tables in the Millennium Database. For each snapshot in the database, we extract the stellar
+  !#   masses and observed-frame IRAC 4.5$\mu$m apparent magnitudes (including dust extinction), and determine the median apparent
+  !#   magnitude as a function of stellar mass. Using the limiting apparent magnitude of the \cite{caputi_stellar_2011} sample,
+  !#   $i_{4.5}=24$, we infer the corresponding absolute magnitude at each redshift and, using our derived apparent magnitude--stellar
+  !#   mass relation, infer the corresponding stellar mass.
+  !#   
+  !#   The end result of this procedure is the limiting stellar mass as a function of redshift, accounting for k-corrections, evolution,
+  !#   and the effects of dust. Figure~\ref{fig:UKIDSSUDSMassRedshift} shows the resulting relation between stellar mass and the maximum
+  !#   redshift at which such a galaxy would be included in the sample. Points indicate measurements from the \gls{sam}, while the line
+  !#   shows a polynomial fit:
+  !#   \begin{equation}
+  !#    z(M_\star) = -56.247 + 5.881 m,
+  !#    \label{eq:UKIDSSUDSDepthPolynomial}
+  !#   \end{equation}
+  !#   where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
+  !#   
+  !#   \begin{figure}
+  !#    \begin{center}
+  !#    \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/UKIDSSUDSMassLuminosityRelation.pdf}
+  !#    \caption{The maximum redshift at which a galaxy of given stellar mass can be detected in the sample of
+  !#      \protect\cite{caputi_stellar_2011}. Points show the results obtained using the \protect\cite{henriques_confronting_2012} model
+  !#      from the Millennium Database, while the lines shows a polynomial fit to these results (given in
+  !#      eqn.~\ref{eq:UKIDSSUDSDepthPolynomial}).}
+  !#    \end{center}
+  !#    \label{fig:UKIDSSUDSMassRedshift}
+  !#   \end{figure}
+  !#  </description>
   !# </surveyGeometry>
   type, extends(surveyGeometryRandomPoints) :: surveyGeometryCaputi2011UKIDSSUDS
      private

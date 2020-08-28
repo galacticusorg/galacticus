@@ -28,7 +28,11 @@ module Posterior_Sample_Differential_Proposal_Size
   !# <functionClass>
   !#  <name>posteriorSampleDffrntlEvltnProposalSize</name>
   !#  <descriptiveName>Posterior Sampling Differential Evolution Proposal Size</descriptiveName>
-  !#  <description>Class providing proposal sizes for differential evolution posterior samplers.</description>
+  !#  <description>
+  !#   Class providing proposal sizes for differential evolution posterior samplers. Specifically, this class provides the proposal
+  !#   size parameter, $\gamma$ (the fraction of the vector connecting to chain state to be used as the proposal for another chain),
+  !#   for use in differential evolution simulations.
+  !#  </description>
   !#  <method name="gamma" >
   !#   <description>Sample from the jump distribution.</description>
   !#   <type>double precision</type>

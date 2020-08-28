@@ -26,7 +26,7 @@ module Posterior_Sampling_Stopping_Criteria
 
   !# <functionClass>
   !#  <name>posteriorSampleStoppingCriterion</name>
-  !#  <descriptiveName>Posterior Sampling StoppingCriterion Criteria</descriptiveName>
+  !#  <descriptiveName>Posterior Sampling Stopping Criteria</descriptiveName>
   !#  <description>Class providing stopping criteria for posterior sampling simulations.</description>
   !#  <default>never</default>
   !#  <method name="stop" >

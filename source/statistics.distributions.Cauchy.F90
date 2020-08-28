@@ -20,7 +20,17 @@
   !% Implementation of a 1D Cauchy distibution function.
 
   !# <distributionFunction1D name="distributionFunction1DCauchy">
-  !#  <description>A 1D Cauchy distibution function.</description>
+  !#  <description>
+  !#   A Cauchy distribution:
+  !#   \begin{equation}
+  !#    P(x) \propto \left[1+{x-x_0\over\gamma}\right]^{-1}.
+  !#   \end{equation}
+  !#   Specified using:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily [median]}] The median, $x_0$;
+  !#   \item[{\normalfont \ttfamily [scale]}] The scale, $\gamma$;
+  !#   \end{description}
+  !#  </description>
   !# </distributionFunction1D>
   type, extends(distributionFunction1DClass) :: distributionFunction1DCauchy
      !% Implementation of a 1D Cauchy distibution function.

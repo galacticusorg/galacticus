@@ -20,7 +20,10 @@
   !% Implementation of a posterior sampling convergence class which never converges.
 
   !# <posteriorSampleConvergence name="posteriorSampleConvergenceNever">
-  !#  <description>A posterior sampling convergence class which never converges.</description>
+  !#  <description>
+  !#   This option assumes that the simulation never converges, and so the calculation will run indefinitely. It is intended primarily
+  !#   for testing purposes.
+  !#  </description>
   !# </posteriorSampleConvergence>
   type, extends(posteriorSampleConvergenceClass) :: posteriorSampleConvergenceNever
      !% Implementation of a posterior sampling convergence class which never converges.

@@ -30,7 +30,21 @@
   use :: Numerical_Random_Numbers                   , only : randomNumberGeneratorClass
 
   !# <posteriorSampleSimulation name="posteriorSampleSimulationDifferentialEvolution">
-  !#  <description>A posterior sampling simulation class which implements the differential evolution algorithm.</description>
+  !#  <description>
+  !#   This class uses the differential evolution algorithm of \cite{terr_braak_markov_2006}. Multiple, parallel chains are run and
+  !#   proposals are constructed by selecting two chains at random, taking a fraction, $\gamma$, of the vector connecting the two chain
+  !#   states and adding this to the state of the current chain. The details of the algorithm are controlled by the following parameters:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily [stepsMaximum]}] The maximum number of steps to take.
+  !#   \item[{\normalfont \ttfamily [acceptanceAverageCount]}] The number of steps over which to average the acceptance rate.
+  !#   \item[{\normalfont \ttfamily [stateSwapCount]}] The number of steps after which to set $\gamma=1$ to allow chains to swap states.
+  !#   \item[{\normalfont \ttfamily [logFileRoot]}] The full path and root name of a file to log results to. The actual file name will
+  !#     have the rank of the \gls{mpi} process appended to it.
+  !#   \item[{\normalfont \ttfamily [sampleOutliers]}] If set to {\normalfont \ttfamily false} then proposals for non-outlier chains
+  !#     post-convergence are constructed only from other non-outlier chains. Otherwise, proposals for non-outleir chains
+  !#     post-convergence are constructed from all other chains.
+  !#   \end{description}
+  !#  </description>
   !# </posteriorSampleSimulation>
   type, extends(posteriorSampleSimulationClass) :: posteriorSampleSimulationDifferentialEvolution
      !% Implementation of a posterior sampling simulation class which implements the differential evolution algorithm.

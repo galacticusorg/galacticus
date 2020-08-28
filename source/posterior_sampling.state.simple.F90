@@ -20,7 +20,12 @@
   !% Implementation of a simple posterior sampling state class.
 
   !# <posteriorSampleState name="posteriorSampleStateSimple">
-  !#  <description>A simple posterior sampling state class.</description>
+  !#  <description>
+  !#  This class stores the current state but makes no attempt to record a history of the state and so cannot provide measures of the
+  !#  mean or variance of state over the simulation history. It does, however, maintain a running average of the state acceptance
+  !#  rate. The number of steps over which the acceptance rate should be computed is specified by the {\normalfont \ttfamily
+  !#  acceptedStateCount}.
+  !#  </description>
   !# </posteriorSampleState>
   type, extends(posteriorSampleStateClass) :: posteriorSampleStateSimple
      !% Implementation of a simple posterior sampling state class.

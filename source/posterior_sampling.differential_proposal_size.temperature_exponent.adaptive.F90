@@ -21,7 +21,20 @@
   !% is adaptive.
 
   !# <posteriorSampleDffrntlEvltnPrpslSzTmpExp name="posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive">
-  !#  <description>A posterior sampling differential evolution proposal size class in which the exponent is adaptive.</description>
+  !#  <description>
+  !#   This class adaptively changes $\alpha$ in an attempt to maintain the gradient of the acceptance rate with the logarithm of
+  !#   temperature, $\mathrm{d} R/\mathrm{d}\ln T$, at an acceptable level. The algorithm is controlled by the following sub-parameters:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily [exponentInitial]}] The initial value for $\alpha$;
+  !#   \item[{\normalfont \ttfamily [exponentFactor]}] The additive factor by which $\alpha$ should be increased or decreased if the
+  !#     acceptance rate gradient is out of range;
+  !#   \item[{\normalfont \ttfamily [exponentMinimum]}] The smallest value allowed for $\alpha$;
+  !#   \item[{\normalfont \ttfamily [exponentMaximum]}] The largest value allowed for $\alpha$;
+  !#   \item[{\normalfont \ttfamily [acceptanceRateMinimum]}] The minimum acceptance rate gradient to accept before reducing $\alpha$;
+  !#   \item[{\normalfont \ttfamily [acceptanceRateMaximum]}] The maximum acceptance rate gradient to accept before reducing $\alpha$;
+  !#   \item[{\normalfont \ttfamily [updateCount]}] The number of steps between successive checks of the acceptance rate gradient.
+  !#   \end{description}
+  !#  </description>
   !# </posteriorSampleDffrntlEvltnPrpslSzTmpExp>
   type, extends(posteriorSampleDffrntlEvltnPrpslSzTmpExpClass) :: posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive
      !% Implementation of a posterior sampling differential evolution proposal size class in which the exponent is adaptive.

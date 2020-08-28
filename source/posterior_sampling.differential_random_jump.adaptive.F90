@@ -21,7 +21,11 @@
   !% distribution which scales with the range spanned by the sample states.
 
   !# <posteriorSampleDffrntlEvltnRandomJump name="posteriorSampleDffrntlEvltnRandomJumpAdaptive">
-  !#  <description>A posterior sampling differential evolution random jump class in which the jump is drawn from an adaptive distribution which scales with the range spanned by the sample states..</description>
+  !#  <description>
+  !#   The random jumps are drawn from the distributions specified in the {\normalfont \ttfamily random} element of each parameter (see
+  !#   \S\ref{sec:ParametersPriors}) and then multiplied by the currently occupied range of each parameter (i.e. the maximum value of the
+  !#   parameter over all current chain states minus the minimum value of each parameter over all current chain states).
+  !#  </description>
   !# </posteriorSampleDffrntlEvltnRandomJump>
   type, extends(posteriorSampleDffrntlEvltnRandomJumpClass) :: posteriorSampleDffrntlEvltnRandomJumpAdaptive
      !% Implementation of a posterior sampling differential evolution random jump class in which the jump is drawn from an

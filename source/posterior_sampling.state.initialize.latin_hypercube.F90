@@ -22,7 +22,12 @@
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !# <posteriorSampleStateInitialize name="posteriorSampleStateInitializeLatinHypercube">
-  !#  <description>A posterior sampling state initialization class which samples the inital state at random from the priors using Latin Hypercube sampling.</description>
+  !#  <description>
+  !#   This class uses a \gls{latinhypercube} design (in the cumulative prior probability distribution of each parameter) to assign
+  !#   initial state vectors. In particular, a \gls{maximin} design is used in which a number of trial \glspl{latinhypercube} are
+  !#   constructed and the hypercube with the greatest minimum distance between any pair of state vectors is selected. The {\normalfont
+  !#   \ttfamily [maximinTrialCount]} parameter is used to specify the number of trial hypercubes to construct.
+  !#  </description>
   !# </posteriorSampleStateInitialize>
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializeLatinHypercube
      !% Implementation of a posterior sampling state initialization class which samples the inital state at random from the priors using Latin Hypercube sampling.

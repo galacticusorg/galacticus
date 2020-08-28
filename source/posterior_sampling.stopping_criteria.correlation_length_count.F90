@@ -22,7 +22,10 @@
   use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
 
   !# <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionCorrelationLength">
-  !#  <description>A posterior sampling stopping class which stops after a given number of correlation lengths.</description>
+  !#  <description>
+  !#   This type will cause the simulation to stop when at least a number of correlation lengths (as specified in the {\normalfont
+  !#   \ttfamily [stopAfterCount]} parameter) have accrued post-convergence.
+  !#  </description>
   !# </posteriorSampleStoppingCriterion>
   type, extends(posteriorSampleStoppingCriterionClass) :: posteriorSampleStoppingCriterionCorrelationLength
      !% Implementation of a posterior sampling convergence class which stops after a given number of correlation lengths.

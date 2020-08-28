@@ -24,7 +24,53 @@
   use, intrinsic :: ISO_C_Binding , only : c_size_t
 
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodGaussianRegression">
-  !#  <description>A posterior sampling likelihood class which implements a likelihood using Gaussian regression to emulate another likelihood.</description>
+  !#  <description>
+  !#   The likelihood is computed either using another likelihood function (the ``simulator'') or via Gaussian regression emulation of
+  !#   that simulator. The details of the emulation algorithm are specified by the following sub-parameters:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily emulatorRebuildCount}] The number of simulator evaluations from which the emulator is built;
+  !#   \item[{\normalfont \ttfamily polynomialOrder}] The order of the polynomial fitted to the simulator likelihoods prior to Gaussian regression;
+  !#   \item[{\normalfont \ttfamily sigmaBuffer}] See below;
+  !#   \item[{\normalfont \ttfamily logLikelihoodBuffer}] See below;
+  !#   \item[{\normalfont \ttfamily logLikelihoodErrorTolerance}] See below;
+  !#   \item[{\normalfont \ttfamily reportCount}] The number of likelihood evaluations between successive reports on the status of the emulator;
+  !#   \item[{\normalfont \ttfamily emulateOutliers}] If true, then outlier chains are always emulated post-convergence (this is safe if such chains are not
+  !#    used in constructing proposals for non-outlier chains);
+  !#   \item[{\normalfont \ttfamily simulatorLikelihood}] Contains another likelihood function definition which will be used to construct the simulator.
+  !#   \end{description}
+  !#   
+  !#   In detail, this likelihood function first collects {\normalfont \ttfamily emulatorRebuildCount} likelihood evaluations from the
+  !#   simulator. It then fits a polynomial of order {\normalfont \ttfamily polynomialOrder} and of dimension equal to the dimension of
+  !#   the state vector to the simulated likelihoods. Gaussian regression is performed on the residuals of the simulated likelihoods
+  !#   after this polynomial fit is removed. Once the emulator has been built in this way every second simulated state is discarded, and
+  !#   accumulation of new simulated states continues. Once {\normalfont \ttfamily emulatorRebuildCount} simulated states have once again
+  !#   been accumulated a new simulator is built. This ensures that the emulator does not lose all information used in building the
+  !#   previous emulator\footnote{This would be unfortunate as the second emulator to be built would then contain information on only
+  !#     those regions of the state space that were poorly emulated before.}, instead information from older emulators decays
+  !#   exponentially.
+  !#   
+  !#   Once an emulator has been built, on each successive likelihood evaluation the emulated log-likelihood $\log\mathcal{L}_\mathrm{e}$
+  !#   and its error estimate $\sigma_{\log\mathcal{L}_\mathrm{e}}$ are computed. The emulated likelihood is then returned if:
+  !#   \begin{equation}
+  !#   \log\mathcal{P}^\prime + \log\mathcal{L}_\mathrm{e} + N \sigma_{\log\mathcal{L}_\mathrm{e}} &lt; \log\mathcal{P} + \log\mathcal{L} - T \Delta\log\mathcal{L},
+  !#   \end{equation}
+  !#   where $N=${\normalfont \ttfamily sigmaBuffer}, $\Delta\log\mathcal{L}=${\normalfont \ttfamily logLikelihoodBuffer}, $T$ is the
+  !#   temperature, $\log\mathcal{L}$ is the current log-likelhood, $\log\mathcal{P}$ is the current log-prior probability, and
+  !#   $\log\mathcal{P}^\prime$ is the proposed log-prior probability, or if
+  !#   \begin{equation}
+  !#   \sigma_{\log\mathcal{L}_\mathrm{e}} &lt; T \sigma_{\log\mathcal{L}},
+  !#   \end{equation}
+  !#   where $\sigma_{\log\mathcal{L}}=${\normalfont \ttfamily logLikelihoodErrorTolerance}, otherwise the simulator is used to compute
+  !#   the exact likelihood. In this way, the emulated likelihood is used if it is sufficiently below the current likelihood that, even
+  !#   accounting for the emulation error, transition to the new state is highly unlikely, or if the error on the likelihood emulation is
+  !#   sufficiently small that it will not have a significant effect on the transition probabilty to the proposed state.
+  !#   
+  !#   If verbosity is set to 2 or greater than a report will be issued every {\normalfont \ttfamily reportCount} evaluations. The report
+  !#   will give the proportions of simulated vs. emulated evaluations. Additionally, during the evaluation where the report is issued,
+  !#   both the emulated and simulated log-likelihoods are evaluated and are tested to see if they lie within
+  !#   $3 \sigma_{\log\mathcal{L}_\mathrm{e}}$ of each other. The rate of failures (i.e. where the two differ by more than this amount)
+  !#   is then reported.
+  !#  </description>
   !# </posteriorSampleLikelihood>
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodGaussianRegression
      !% Implementation of a posterior sampling likelihood class which implements a likelihood using Gaussian regression to emulate

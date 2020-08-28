@@ -31,7 +31,30 @@
   use :: Power_Spectra             , only : powerSpectrum               , powerSpectrumClass
 
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodPrjctdCorrelationFunction">
-  !#  <description>A posterior sampling likelihood class which implements a likelihood for projected correlation functions.</description>
+  !#  <description>
+  !#   The likelihood is computed as
+  !#   \begin{equation}
+  !#   \log \mathcal{L} = -{1\over2} \Delta \cdot \mathcal{C}^{-1} \cdot \Delta^\mathrm{T},
+  !#   \end{equation}
+  !#   where $\mathcal{C}$ is the covariance matrix, and $\Delta_i = w_i^\mathrm{model} - w_i^\mathrm{obs}$, $w_i^\mathrm{model}$ is the
+  !#   computed projected correlation function at the $i^\mathrm{th}$ separation, and $w_i^\mathrm{obs}$ is the observed projected
+  !#   correlation function at the $i^\mathrm{th}$ separation. The projected correlation function is computed using the halo model and
+  !#   the parameterized conditional galaxy mass function of \cite[][see also \protect\cite{leauthaud_new_2011};
+  !#   \S\protect\ref{phys:conditionalMassFunction:conditionalMassFunctionBehroozi2010}]{behroozi_comprehensive_2010}. The details of the
+  !#   projected correlation function calculation are specified by the following subparameters:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily haloMass(Min|Max)imum}] The minimum/maximum halo mass over which to integrate in the halo model;
+  !#   \item[{\normalfont \ttfamily redshift(Min|Max)imum}] The minimum/maximum redshift over which to integrate in the halo model;
+  !#   \item[{\normalfont \ttfamily projectedCorrelationFunctionFileName}] The name of an HDF5 file containing the observed projected
+  !#     correlation function and its covariance matrix.
+  !#   \end{description}
+  !#   
+  !#   The HDF5 file specified by the {\normalfont \ttfamily projectedCorrelationFunctionFileName} element should contain a {\normalfont
+  !#   \ttfamily separation} dataset, giving the spearations at which the projected correlation function is measured (in units of Mpc),
+  !#   a {\normalfont \ttfamily projectedCorrelationFunctionObserved} dataset giving the observed values of the projected correlation
+  !#   function at those separations (in units of Mpc), and a {\normalfont \ttfamily covariance} dataset, giving the covariance of the
+  !#   projected correlation function (in units of Mpc$^2$).
+  !#  </description>
   !# </posteriorSampleLikelihood>
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodPrjctdCorrelationFunction
      !% Implementation of a posterior sampling likelihood class which implements a likelihood for projected correlation functions.

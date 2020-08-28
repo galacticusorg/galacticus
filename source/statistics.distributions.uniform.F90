@@ -20,7 +20,17 @@
   !% Implementation of a uniform 1D distibution function.
 
   !# <distributionFunction1D name="distributionFunction1DUniform">
-  !#  <description>A uniform 1D distribution function class.</description>
+  !#  <description>
+  !#   A uniform distribution over a finite range
+  !#   \begin{equation}
+  !#   P(x) \propto \left\{ \begin{array}{ll} 1 &amp; \hbox{ if } x_\mathrm{l} \leq x \leq x_\mathrm{u} \\ 0 &amp; \hbox{ otherwise.}  \end{array} \right.
+  !#   \end{equation}
+  !#   Specified using:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily [minimum]}] The lower limit of the range, $x_\mathrm{l}$;
+  !#   \item[{\normalfont \ttfamily [maximum]}] The upper limit of the range, $x_\mathrm{u}$.
+  !#   \end{description}
+  !#  </description>
   !# </distributionFunction1D>
   type, extends(distributionFunction1DClass) :: distributionFunction1DUniform
      !% Implementation of a uniform 1D distibution function.
