@@ -34,7 +34,7 @@ module Node_Component_Merging_Statistics_Major
   !#  <properties>
   !#   <property>
   !#     <name>majorMergerTime</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>

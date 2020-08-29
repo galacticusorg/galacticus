@@ -72,7 +72,7 @@ contains
        !#   <source>parameters</source>
        !#   <defaultValue>1.0d6</defaultValue>
        !#   <description>The minimum mass to consider.</description>
-       !#   <type>float</type>
+       !#   <type>real</type>
        !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
@@ -80,7 +80,7 @@ contains
        !#   <source>parameters</source>
        !#   <defaultValue>1.0d12</defaultValue>
        !#   <description>The maximum mass to consider.</description>
-       !#   <type>float</type>
+       !#   <type>real</type>
        !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
@@ -88,7 +88,7 @@ contains
        !#   <source>parameters</source>
        !#   <defaultValue>12_c_size_t</defaultValue>
        !#   <description>The number of bins in mass to use.</description>
-       !#   <type>float</type>
+       !#   <type>real</type>
        !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
     end if
@@ -97,7 +97,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The redshift at which to compute the subhalo $V_\mathrm{max}$--$M$ relation.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>

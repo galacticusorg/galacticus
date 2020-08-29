@@ -37,7 +37,7 @@ module Node_Component_Age_Statistics_Standard
   !#  <properties>
   !#   <property>
   !#     <name>diskTimeWeightedIntegratedSFR</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
   !#     <classDefault>0.0d0</classDefault>
@@ -45,7 +45,7 @@ module Node_Component_Age_Statistics_Standard
   !#   </property>
   !#   <property>
   !#     <name>spheroidTimeWeightedIntegratedSFR</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
   !#     <classDefault>0.0d0</classDefault>
@@ -53,7 +53,7 @@ module Node_Component_Age_Statistics_Standard
   !#   </property>
   !#   <property>
   !#     <name>diskIntegratedSFR</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
   !#     <classDefault>0.0d0</classDefault>
@@ -61,7 +61,7 @@ module Node_Component_Age_Statistics_Standard
   !#   </property>
   !#   <property>
   !#     <name>spheroidIntegratedSFR</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
   !#     <classDefault>0.0d0</classDefault>

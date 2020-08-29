@@ -303,7 +303,7 @@ contains
     !#   <source>parameters</source>
     !#   <variable>binCenter</variable>
     !#   <description>The value of the property at the center of each bin.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -319,7 +319,7 @@ contains
     !#   <source>parameters</source>
     !#   <variable>outputWeight</variable>
     !#   <description>The weight to assign to each bin at each output.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -327,7 +327,7 @@ contains
     !#   <source>parameters</source>
     !#   <variable>covarianceModel</variable>
     !#   <description>The model to use for computing covariances.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>

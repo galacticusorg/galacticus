@@ -85,7 +85,7 @@ contains
        !#   <name>redshiftBand</name>
        !#   <source>parameters</source>
        !#   <description>The redshift of the band (if not the output redshift).</description>
-       !#   <type>float</type>
+       !#   <type>real</type>
        !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
     end if

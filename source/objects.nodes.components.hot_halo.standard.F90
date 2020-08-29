@@ -54,13 +54,13 @@ module Node_Component_Hot_Halo_Standard
   !#  <properties>
   !#   <property>
   !#     <name>isInitialized</name>
-  !#     <type>logical</type>
+  !#     <type>boolean</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
   !#   <property>
   !#     <name>mass</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the hot halo."/>
@@ -80,21 +80,21 @@ module Node_Component_Hot_Halo_Standard
   !#   </property>
   !#   <property>
   !#     <name>angularMomentum</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
   !#     <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of gas in the hot halo."/>
   !#   </property>
   !#   <property>
   !#     <name>outflowedMass</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of outflowed gas in the hot halo."/>
   !#   </property>
   !#   <property>
   !#     <name>outflowedAngularMomentum</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of outflowed gas in the hot halo."/>
@@ -109,13 +109,13 @@ module Node_Component_Hot_Halo_Standard
   !#   <property>
   !#     <name>outflowingMass</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#   </property>
   !#   <property>
   !#     <name>outflowingAngularMomentum</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#   </property>
   !#   <property>
@@ -126,21 +126,21 @@ module Node_Component_Hot_Halo_Standard
   !#   </property>
   !#   <property>
   !#     <name>unaccretedMass</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas that failed to accrete into the hot halo."/>
   !#   </property>
   !#   <property>
   !#     <name>outerRadius</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="get" />
   !#     <output unitsInSI="megaParsec" comment="Outer radius of the hot halo."/>
   !#   </property>
   !#   <property>
   !#     <name>strippedMass</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#   </property>
@@ -153,13 +153,13 @@ module Node_Component_Hot_Halo_Standard
   !#   <property>
   !#     <name>hotHaloCoolingMass</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" isVirtual="true" />
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#   </property>
   !#   <property>
   !#     <name>hotHaloCoolingAngularMomentum</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" isVirtual="true" />
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#   </property>
   !#   <property>
@@ -171,19 +171,19 @@ module Node_Component_Hot_Halo_Standard
   !#   <property>
   !#     <name>massSink</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#   </property>
   !#   <property>
   !#     <name>heatSource</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#   </property>
   !#   <property>
   !#     <name>massTotal</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <getFunction>Node_Component_Hot_Halo_Standard_Mass_Total</getFunction>
   !#   </property>
@@ -200,7 +200,7 @@ module Node_Component_Hot_Halo_Standard
   !#    </binding>
   !#    <binding method="outerRadiusGrowthRate" bindsTo="component" isDeferred="true" >
   !#     <interface>
-  !#      <type>double</type>
+  !#      <type>real</type>
   !#      <rank>0</rank>
   !#      <self pass="true" intent="inout" />
   !#     </interface>
@@ -369,7 +369,7 @@ contains
        !#   <defaultValue>0.1d0</defaultValue>
        !#   <description>Specifies the efficiency with which outflowing gas is stripped from the hot halo, following the prescription of \citeauthor{font_colours_2008}~(\citeyear{font_colours_2008}; i.e. this is the parameter $\epsilon_\mathrm{strip}$ in their eqn.~6).</description>
        !#   <source>parameters_</source>
-       !#   <type>double</type>
+       !#   <type>real</type>
        !# </inputParameter>
 
        ! Get the maximum rate (in units of halo inverse dynamical time) at which gas can be expelled from the halo.
@@ -379,7 +379,7 @@ contains
        !#   <defaultValue>1.0d0</defaultValue>
        !#   <description>Specifies the maximum rate at which mass can be expelled from the hot halo in units of the inverse halo dynamical time.</description>
        !#   <source>parameters_</source>
-       !#   <type>double</type>
+       !#   <type>real</type>
        !# </inputParameter>
 
        ! Get fraction of angular momentum that is lost during cooling/infall.
@@ -389,7 +389,7 @@ contains
        !#   <defaultValue>0.3d0</defaultValue>
        !#   <description>Specifies the fraction of angular momentum that is lost from cooling/infalling gas.</description>
        !#   <source>parameters_</source>
-       !#   <type>double</type>
+       !#   <type>real</type>
        !# </inputParameter>
 
        ! Get option controlling limiting of baryon fraction during node mergers.

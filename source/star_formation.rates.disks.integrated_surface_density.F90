@@ -65,7 +65,7 @@ contains
     !#   <defaultValue>1.0d-3</defaultValue>
     !#   <description>Relative tolerance to use when integrating star formation rate surface densities over the disk.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="starFormationRateSurfaceDensityDisks" name="starFormationRateSurfaceDensityDisks_" source="parameters"/>
     self=starFormationRateDisksIntgrtdSurfaceDensity(tolerance,starFormationRateSurfaceDensityDisks_)

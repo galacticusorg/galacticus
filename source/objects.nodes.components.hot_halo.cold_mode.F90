@@ -46,7 +46,7 @@ module Node_Component_Hot_Halo_Cold_Mode
   !#  <properties>
   !#   <property>
   !#     <name>massCold</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of cold-mode gas in the hot halo."/>
@@ -60,7 +60,7 @@ module Node_Component_Hot_Halo_Cold_Mode
   !#   </property>
   !#   <property>
   !#     <name>angularMomentumCold</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
   !#     <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of cold-mode gas in the hot halo."/>
@@ -68,7 +68,7 @@ module Node_Component_Hot_Halo_Cold_Mode
   !#   <property>
   !#     <name>massTotal</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <getFunction>Node_Component_Hot_Halo_Cold_Mode_Mass_Total</getFunction>
   !#   </property>

@@ -73,7 +73,7 @@ contains
     !#   <variable>randomErrorMinimum</variable>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The minimum random error for SDSS H$\alpha$ luminosities.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -82,7 +82,7 @@ contains
     !#   <variable>randomErrorMaximum</variable>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The minimum random error for SDSS H$\alpha$ luminosities.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -91,7 +91,7 @@ contains
     !#   <variable>randomErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.1d0]</defaultValue>
     !#   <description>The coefficients of the random error polynomial for SDSS H$\alpha$ luminosities.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -100,7 +100,7 @@ contains
     !#   <variable>systematicErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.0d0]</defaultValue>
     !#   <description>The coefficients of the systematic error polynomial for SDSS H$\alpha$ luminosities.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -109,7 +109,7 @@ contains
     !#   <variable>sizeSourceLensing</variable>
     !#   <defaultValue>2.0d-3</defaultValue>
     !#   <description>The characteristic source size for gravitational lensing calculations.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>

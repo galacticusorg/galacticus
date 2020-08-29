@@ -33,20 +33,20 @@ module Node_Component_Basic_Non_Evolving
   !#  <properties>
   !#   <property>
   !#     <name>mass</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output unitsInSI="massSolar" comment="Total mass of the node, assuming univeral baryon fraction."/>
   !#   </property>
   !#   <property>
   !#     <name>time</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#   </property>
   !#   <property>
   !#     <name>timeLastIsolated</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <getFunction bindsTo="component">BasicNonEvolvingTimeLastIsolated</getFunction>

@@ -101,7 +101,7 @@ contains
        !#   <source>parameters</source>
        !#   <defaultValue>1.0d-4</defaultValue>
        !#   <description>The minimum mass ratio to consider.</description>
-       !#   <type>float</type>
+       !#   <type>real</type>
        !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
@@ -109,7 +109,7 @@ contains
        !#   <source>parameters</source>
        !#   <defaultValue>1.0d0</defaultValue>
        !#   <description>The maximum mass ratio to consider.</description>
-       !#   <type>float</type>
+       !#   <type>real</type>
        !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
@@ -117,7 +117,7 @@ contains
        !#   <source>parameters</source>
        !#   <defaultValue>10_c_size_t</defaultValue>
        !#   <description>The number of bins in mass ratio to use.</description>
-       !#   <type>float</type>
+       !#   <type>real</type>
        !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
     end if
@@ -126,7 +126,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The redshift at which to compute the subhalo mass function.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -135,7 +135,7 @@ contains
     !#   <defaultValue>0.18d0</defaultValue>
     !#   <defaultSource>\citep{boylan-kolchin_theres_2010}</defaultSource>
     !#   <description>The fractional scatter (relative to the Poisson scatter) in the negative binomial distribution used in likelihood calculations.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>

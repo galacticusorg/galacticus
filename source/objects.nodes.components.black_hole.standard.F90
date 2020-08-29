@@ -46,7 +46,7 @@ module Node_Component_Black_Hole_Standard
   !#  <properties>
   !#   <property>
   !#     <name>mass</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <classDefault>defaultBlackHoleComponent%massSeed()</classDefault>
@@ -54,7 +54,7 @@ module Node_Component_Black_Hole_Standard
   !#   </property>
   !#   <property>
   !#     <name>spin</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <getFunction>Node_Component_Black_Hole_Standard_Spin</getFunction>
@@ -63,26 +63,26 @@ module Node_Component_Black_Hole_Standard
   !#   </property>
   !#   <property>
   !#     <name>radialPosition</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
   !#   <property>
   !#     <name>tripleInteractionTime</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
   !#   <property>
   !#     <name>massSeed</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <getFunction>Node_Component_Black_Hole_Standard_Seed_Mass</getFunction>
   !#   </property>
   !#   <property>
   !#     <name>spinSeed</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <getFunction>Node_Component_Black_Hole_Standard_Seed_Spin</getFunction>
@@ -90,13 +90,13 @@ module Node_Component_Black_Hole_Standard
   !#   <property>
   !#     <name>accretionRate</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" isVirtual="true" />
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#   </property>
   !#   <property>
   !#     <name>radiativeEfficiency</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" isVirtual="true" />
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#   </property>
   !#  </properties>
@@ -160,7 +160,7 @@ contains
     !#   <defaultValue>5.0d0</defaultValue>
     !#   <description>The factor by which the Bondi-Hoyle accretion rate of spheroid gas onto black holes in enhanced.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>bondiHoyleAccretionEnhancementHotHalo</name>
@@ -168,7 +168,7 @@ contains
     !#   <defaultValue>6.0d0</defaultValue>
     !#   <description>The factor by which the Bondi-Hoyle accretion rate of hot halo gas onto black holes in enhanced.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>bondiHoyleAccretionHotModeOnly</name>
@@ -176,7 +176,7 @@ contains
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Determines whether accretion from the hot halo should only occur if the halo is in the hot accretion mode.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !# </inputParameter>
 
     ! Get temperature of accreting gas.
@@ -186,7 +186,7 @@ contains
     !#   <defaultValue>1.0d2</defaultValue>
     !#   <description>The assumed temperature (in Kelvin) of gas in the spheroid when computing Bondi-Hoyle accretion rates onto black holes.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !# </inputParameter>
 
     ! Get wind efficiency and scaling.
@@ -196,7 +196,7 @@ contains
     !#   <defaultValue>2.4d-3</defaultValue>
     !#   <description>The efficiency of the black hole-driven wind: $L_\mathrm{wind} = \epsilon_\mathrm{wind} \dot{M}_\bullet \clight^2$.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>blackHoleWindEfficiencyScalesWithRadiativeEfficiency</name>
@@ -204,7 +204,7 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether the black hole wind efficiency should scale with the radiative efficiency of the accretion disk.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !# </inputParameter>
 
     ! Options controlling AGN feedback.
@@ -222,7 +222,7 @@ contains
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>Efficiency with which radio-mode feedback is coupled to the hot halo.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !# </inputParameter>
 
     ! Get options controlling output.

@@ -36,19 +36,19 @@ module Node_Component_Dynamics_Statistics_Bars
   !#  <properties>
   !#   <property>
   !#     <name>time</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
   !#   <property>
   !#     <name>barInstabilityTimescale</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
   !#   <property>
   !#     <name>adiabaticRatio</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
@@ -88,7 +88,7 @@ contains
        !#   <defaultValue>0.1d0</defaultValue>
        !#   <description>The frequency (in fractions of the host halo dynamical time) at which to record the bar dynamical status of satellite galaxies.</description>
        !#   <source>parameters_</source>
-       !#   <type>double</type>
+       !#   <type>real</type>
        !# </inputParameter>
     end if
     return

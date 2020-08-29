@@ -45,26 +45,26 @@ module Node_Component_Disk_Standard
   !#  <properties>
   !#   <property>
   !#     <name>isInitialized</name>
-  !#     <type>logical</type>
+  !#     <type>boolean</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
   !#   <property>
   !#     <name>massStellar</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of stars in the standard disk."/>
   !#   </property>
   !#   <property>
   !#     <name>massStellarFormed</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#   </property>
   !#   <property>
   !#     <name>fractionMassRetained</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#   </property>
@@ -77,7 +77,7 @@ module Node_Component_Disk_Standard
   !#   </property>
   !#   <property>
   !#     <name>massGas</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the standard disk."/>
@@ -91,14 +91,14 @@ module Node_Component_Disk_Standard
   !#   </property>
   !#   <property>
   !#     <name>angularMomentum</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
   !#     <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of the standard disk."/>
   !#   </property>
   !#   <property>
   !#     <name>radius</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output unitsInSI="megaparsec" comment="Radial scale length in the standard disk."/>
@@ -106,13 +106,13 @@ module Node_Component_Disk_Standard
   !#   <property>
   !#     <name>halfMassRadius</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <getFunction>Node_Component_Disk_Standard_Half_Mass_Radius</getFunction>
   !#   </property>
   !#   <property>
   !#     <name>velocity</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output unitsInSI="kilo" comment="Circular velocity of the standard disk at scale length."/>
@@ -215,7 +215,7 @@ contains
        !#   <defaultValue>1.0d-6</defaultValue>
        !#   <description>The mass tolerance used to judge whether the disk is physically plausible.</description>
        !#   <source>parameters_</source>
-       !#   <type>double</type>
+       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>diskStructureSolverRadius</name>
@@ -223,7 +223,7 @@ contains
        !#   <defaultValue>1.0d0</defaultValue>
        !#   <description>The radius (in units of the standard scale length) to use in solving for the size of the disk.</description>
        !#   <source>parameters_</source>
-       !#   <type>double</type>
+       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>diskRadiusSolverCole2000Method</name>
@@ -239,7 +239,7 @@ contains
        !#   <defaultValue>.true.</defaultValue>
        !#   <description>Specifies whether or not negative angular momentum is allowed for the disk.</description>
        !#   <source>parameters_</source>
-       !#   <type>double</type>
+       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>diskLuminositiesStellarInactive</name>

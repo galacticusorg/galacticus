@@ -90,7 +90,7 @@ contains
     !#   <source>parameters</source>
     !#   <variable>magnitudesAbsolute</variable>
     !#   <description>The absolute magnitudes corresponding to bin centers.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>

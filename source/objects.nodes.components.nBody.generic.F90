@@ -35,7 +35,7 @@ module Node_Component_NBody_Generic
   !#  <properties>
   !#   <property>
   !#     <name>reals</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>

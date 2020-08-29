@@ -252,7 +252,7 @@ contains
              call allocateArray(chemicalsMasses ,[chemicalsCount])
              !# <inputParameter>
              !#   <name>chemicalsToTrack</name>
-             !#   <cardinality>1..*</cardinality>
+             !#   <cardinality>1..</cardinality>
              !#   <description>The names of the chemicals to be tracked.</description>
              !#   <source>globalParameters</source>
              !#   <type>string</type>

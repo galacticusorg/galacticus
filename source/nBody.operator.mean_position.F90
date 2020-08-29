@@ -58,7 +58,7 @@ contains
     !#   <name>selfBoundParticlesOnly</name>
     !#   <source>parameters</source>
     !#   <description>If true, the mean position and velocity are computed only for self-bound particles</description>
-    !#   <type>logical</type>
+    !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>

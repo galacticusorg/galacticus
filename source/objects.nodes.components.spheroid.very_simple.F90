@@ -39,13 +39,13 @@ module Node_Component_Spheroid_Very_Simple
   !#  <properties>
   !#   <property>
   !#     <name>isInitialized</name>
-  !#     <type>logical</type>
+  !#     <type>boolean</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
   !#   <property>
   !#     <name>massStellar</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of stars in the very simple spheroid."/>
@@ -59,7 +59,7 @@ module Node_Component_Spheroid_Very_Simple
   !#   </property>
   !#   <property>
   !#     <name>massGas</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the very simple spheroid."/>
@@ -86,7 +86,7 @@ module Node_Component_Spheroid_Very_Simple
   !#   </property>
   !#   <property>
   !#     <name>radius</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output unitsInSI="megaparsec" comment="Radial scale length in the spheroid."/>
@@ -94,13 +94,13 @@ module Node_Component_Spheroid_Very_Simple
   !#   <property>
   !#     <name>halfMassRadius</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <getFunction>Node_Component_Spheroid_Very_Simple_Half_Mass_Radius</getFunction>
   !#   </property>
   !#   <property>
   !#     <name>velocity</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output unitsInSI="kilo" comment="Circular velocity of the spheroid."/>
@@ -144,7 +144,7 @@ contains
        !#   <defaultValue>100.0d0</defaultValue>
        !#   <description>The absolute mass scale below which calculations in the very simple spheroid component are allowed to become inaccurate.</description>
        !#   <source>parameters_</source>
-       !#   <type>double</type>
+       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>spheroidVerySimpleTrackAbundances</name>
@@ -168,7 +168,7 @@ contains
        !#   <defaultValue>1.0d-6</defaultValue>
        !#   <description>The mass tolerance used to judge whether the spheroid is physically plausible.</description>
        !#   <source>parameters_</source>
-       !#   <type>double</type>
+       !#   <type>real</type>
        !# </inputParameter>
     end if
     return

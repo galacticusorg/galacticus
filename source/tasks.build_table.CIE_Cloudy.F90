@@ -72,7 +72,7 @@ contains
     !#   <description>The maximum metallicity to tabulated, expressed as log-10 relative to Solar.</description>
     !#   <defaultValue>1.5d0</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>includeContinuum</name>

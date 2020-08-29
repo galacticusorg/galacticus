@@ -249,7 +249,7 @@ contains
           !#   <cardinality>1</cardinality>
           !#   <description>An additional conversion factor to apply to the property to get it into the correct units.</description>
           !#   <source>subParameters</source>
-          !#   <type>float</type>
+          !#   <type>real</type>
           !# </inputParameter>
        end if
        deallocate(subParameters)
@@ -323,7 +323,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <description>The mass unit in the SI system.</description>
        !#   <source>subParameters</source>
-       !#   <type>float</type>
+       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>hubbleExponent</name>
@@ -364,7 +364,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <description>The length unit in the SI system.</description>
        !#   <source>subParameters</source>
-       !#   <type>float</type>
+       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>hubbleExponent</name>
@@ -405,7 +405,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <description>The velocity unit in the SI system.</description>
        !#   <source>subParameters</source>
-       !#   <type>float</type>
+       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>hubbleExponent</name>

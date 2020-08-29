@@ -117,7 +117,7 @@ contains
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The minimum mass galaxy to include in a mock catalog correlation function calculation.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMaximum</name>
@@ -125,7 +125,7 @@ contains
     !#   <defaultValue>1.0d16</defaultValue>
     !#   <description>The maximum mass galaxy to include in a mock catalog correlation function calculation.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>separationMinimum</name>
@@ -133,7 +133,7 @@ contains
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The minimum separation to compute in a mock catalog correlation function calculation.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>separationMaximum</name>
@@ -141,7 +141,7 @@ contains
     !#   <defaultValue>30.0d0</defaultValue>
     !#   <description>The maximum separation to compute in a mock catalog correlation function calculation.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>separationCount</name>
@@ -149,7 +149,7 @@ contains
     !#   <defaultValue>15</defaultValue>
     !#   <description>The number of bins in separation to compute in a mock catalog correlation function calculation.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomSampleCount</name>
@@ -158,7 +158,7 @@ contains
     !#   <variable>randomSampleCountText</variable>
     !#   <description>The number of random points to use when constructing random catalogs. Can be either a fixed number or, if prefixed with ``{\normalfont \ttfamily *}'', a multiplicative factor.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !# </inputParameter>
     if (extract(randomSampleCountText,1,1) == "*") then
        randomSampleCountType=randomSampleCountTypeMultiplicative
@@ -175,7 +175,7 @@ contains
     !#   <defaultValue>40.0d0</defaultValue>
     !#   <description>The maximum radial separation of galaxies to consider when computing projected correlation functions.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>halfIntegral</name>
@@ -183,7 +183,7 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Set to {\normalfont \ttfamily true} if the projected correlation function is computed as $w_\mathrm{p}(r_\mathrm{p})=\int_0^{+\pi_\mathrm{max}} \xi(r_\mathrm{p},\pi) \mathrm{d} \pi$, instead of the usual $w_\mathrm{p}(r_\mathrm{p})=\int_{-\pi_\mathrm{max}}^{+\pi_\mathrm{max}} \xi(r_\mathrm{p},\pi) \mathrm{d} \pi$.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>widthBuffer</name>
@@ -191,7 +191,7 @@ contains
     !#   <defaultValue>30.0d0</defaultValue>
     !#   <description>The width of the buffer region around survey geometry to ensure galaxies are not lost when moving to redshift space.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
@@ -203,7 +203,7 @@ contains
     !#   <defaultSource>Uniformly random distribution within the box.</defaultSource>
     !#   <description>The vector (in units of the box length) giving the origin of the coordinate system to use in mock catalog construction.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -212,7 +212,7 @@ contains
     !#   <defaultSource>Isotropically random on the unit sphere.</defaultSource>
     !#   <description>The vector, in spherical coordinates $(\theta,\phi)$, about which the mock catalog should be rotated.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -221,7 +221,7 @@ contains
     !#   <defaultSource>Uniformly random distribution between $0$ and $2\pi$.</defaultSource>
     !#   <description>The angle through which the mock catalog should be rotated.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     self=taskCatalogProjectedCorrelationFunction(galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCount,randomSampleCountType,halfIntegral,cosmologyParameters_,cosmologyFunctions_,surveyGeometry_,randomNumberGenerator_,parametersRoot)

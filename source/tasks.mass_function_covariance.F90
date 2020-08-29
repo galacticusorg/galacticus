@@ -189,7 +189,7 @@ contains
     !#   <defaultValue>1.0d08</defaultValue>
     !#   <description>The minimum mass in the mass function for covariance calculations.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMaximum</name>
@@ -197,7 +197,7 @@ contains
     !#   <defaultValue>1.0d13</defaultValue>
     !#   <description>The maximum mass in the mass function for covariance calculations.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>includePoisson</name>
@@ -229,7 +229,7 @@ contains
     !#   <defaultValue>1.0d10</defaultValue>
     !#   <description>The minimum halo mass to use when computing mass function covariance matrices.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massHaloMaximum</name>

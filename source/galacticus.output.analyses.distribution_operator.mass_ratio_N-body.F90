@@ -61,21 +61,21 @@ contains
     !#   <name>massParentMinimum</name>
     !#   <source>parameters</source>
     !#   <description>Minimum mass of the parent halo over which to integrate.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massParentMaximum</name>
     !#   <source>parameters</source>
     !#   <description>Maximum mass of the parent halo over which to integrate.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeParent</name>
     !#   <source>parameters</source>
     !#   <description>The time at which the parent halo is defined.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="nbodyHaloMassError" name="nbodyHaloMassError_" source="parameters"/>

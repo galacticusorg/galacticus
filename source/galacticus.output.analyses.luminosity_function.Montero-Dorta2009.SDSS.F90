@@ -78,7 +78,7 @@ contains
     !#   <defaultValue>0.01d0</defaultValue>
     !#   <defaultSource>Computed from the quoted 95\% (S/N$\approx$1.64) depth of $r=22.2$ (\href{http://classic.sdss.org/dr7/}{http://classic.sdss.org/dr7/}), and assuming that most galaxies are at the limiting magnitude of $17.77$ for this sample using $\sigma_M=2.5 \log_{10}[1+1/\left\{\hbox{S/N}_\mathrm{lim} 10^{-0.4(m-m_\mathrm{lim})}\right\}]$.</defaultSource>
     !#   <description>The minimum random error for SDSS absolute magnitudes.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -88,7 +88,7 @@ contains
     !#   <defaultValue>0.01d0</defaultValue>
     !#   <defaultSource>Computed from the quoted 95\% (S/N$\approx$1.64) depth of $r=22.2$ (\href{http://classic.sdss.org/dr7/}{http://classic.sdss.org/dr7/}), and assuming that most galaxies are at the limiting magnitude of $17.77$ for this sample using $\sigma_M=2.5 \log_{10}[1+1/\left\{\hbox{S/N}_\mathrm{lim} 10^{-0.4(m-m_\mathrm{lim})}\right\}]$.</defaultSource>
     !#   <description>The minimum random error for SDSS absolute magnitudes.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -98,7 +98,7 @@ contains
     !#   <defaultValue>[0.01d0]</defaultValue>
     !#   <defaultSource>Computed from the quoted 95\% (S/N$\approx$1.64) depth of $r=22.2$ (\href{http://classic.sdss.org/dr7/}{http://classic.sdss.org/dr7/}), and assuming that most galaxies are at the limiting magnitude of $17.77$ for this sample using $\sigma_M=2.5 \log_{10}[1+1/\left\{\hbox{S/N}_\mathrm{lim} 10^{-0.4(m-m_\mathrm{lim})}\right\}]$.</defaultSource>
     !#   <description>The coefficients of the random error polynomial for SDSS absolute magnitudes.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -107,7 +107,7 @@ contains
     !#   <variable>systematicErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.0d0]</defaultValue>
     !#   <description>The coefficients of the systematic error polynomial for SDSS absolute magnitudes.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -116,7 +116,7 @@ contains
     !#   <variable>sizeSourceLensing</variable>
     !#   <defaultValue>2.0d-3</defaultValue>
     !#   <description>The characteristic source size for gravitational lensing calculations.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>

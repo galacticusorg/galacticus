@@ -136,7 +136,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d10</defaultValue>
     !#   <description>For the {\normalfont \ttfamily augment} operator a description of resolution limit for new trees.</description>
-    !#   <type>double precision</type>
+    !#   <type>real</type>
     !#   <cardinality>0..</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -144,7 +144,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, perform checks of the augmentation process.</description>
-    !#   <type>logical</type>
+    !#   <type>boolean</type>
     !#   <cardinality>0..</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -176,7 +176,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>10000</defaultValue>
     !#   <description>The maximum allowed number of tree build attempts.</description>
-    !#   <type>logical</type>
+    !#   <type>boolean</type>
     !#   <cardinality>0..</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -226,8 +226,8 @@ contains
        !#   <variable>timeSnapshots</variable>
        !#   <source>parameters</source>
        !#   <description>For {\normalfont \ttfamily augment} description of redshift snapshots.</description>
-       !#   <type>double precision</type>
-       !#   <cardinality> 0..</cardinality>
+       !#   <type>real</type>
+       !#   <cardinality>0..</cardinality>
        !# </inputParameter>
        do i=1,size(timeSnapshots)
           timeSnapshots(i)=cosmologyFunctions_ %cosmicTime                 (                  &

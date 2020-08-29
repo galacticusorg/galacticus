@@ -34,7 +34,7 @@ module Node_Component_Formation_Times_Cole2000
   !#  <properties>
   !#   <property>
   !#     <name>formationTime</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
   !#     <getFunction bindsTo="component">FormationTimeCole2000FormationTime</getFunction>
@@ -66,7 +66,7 @@ contains
     !#   <defaultValue>2.0d0</defaultValue>
     !#   <description>Factor by which halo mass must have increased to trigger a new formation event.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>haloReformationOnPromotionOnly</name>

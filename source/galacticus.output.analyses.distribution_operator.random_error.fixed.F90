@@ -51,7 +51,7 @@ contains
     !#   <source>parameters</source>
     !#   <variable>rootVariance_</variable>
     !#   <description>The root variance of the random error distribution.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     ! Construct the object.

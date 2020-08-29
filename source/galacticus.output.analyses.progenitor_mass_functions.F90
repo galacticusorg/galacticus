@@ -116,7 +116,7 @@ contains
     !#   <source>parameters</source>
     !#   <description>The diagonal of the covariance matrix is forced to be at least equal to this fraction multiplied by the target dataset squared.</description>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -124,7 +124,7 @@ contains
     !#   <source>parameters</source>
     !#   <description>If true, the likelihood is computed in $\log\phi$ instead of in $\phi$.</description>
     !#   <defaultValue>.false.</defaultValue>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -132,7 +132,7 @@ contains
     !#   <source>parameters</source>
     !#   <description>The minimum mass ratio to include in likelihood calculations.</description>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -140,7 +140,7 @@ contains
     !#   <source>parameters</source>
     !#   <description>The maximum mass ratio to include in likelihood calculations.</description>
     !#   <defaultValue>huge(0.0d0)</defaultValue>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     if (parameters%isPresent('fileName')) then

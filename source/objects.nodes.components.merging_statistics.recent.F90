@@ -83,7 +83,7 @@ contains
     !#   <defaultValue>0.25d0</defaultValue>
     !#   <description>The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>nodeRecentMajorMergerInterval</name>
@@ -91,7 +91,7 @@ contains
     !#   <defaultValue>2.0d0</defaultValue>
     !#   <description>The time interval used to define ``recent'' mergers in the {\normalfont \ttfamily recent} merging statistics component. This parameter is in units of Gyr if {\normalfont \ttfamily [nodeRecentMajorMergerIntervalType]}$=${\normalfont \ttfamily absolute}, or in units of the halo dynamical time if {\normalfont \ttfamily [nodeRecentMajorMergerIntervalType]}$=${\normalfont \ttfamily dynmical}.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>nodeRecentMajorMergerIntervalType</name>
@@ -99,7 +99,7 @@ contains
     !#   <defaultValue>var_str('dynamical')</defaultValue>
     !#   <description>Specifies the units for the {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} parameter. If set to {\normalfont \ttfamily absolute} then {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} is given in Gyr, while if set to {\normalfont \ttfamily dynamical} {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} is given in units of the halo dynamical time.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !#   <variable>nodeRecentMajorMergerIntervalTypeText</variable>
     !# </inputParameter>
     select case (char(nodeRecentMajorMergerIntervalTypeText))
@@ -116,7 +116,7 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether ``recent'' for satellite galaxies is measured from the current time, or from the time at which they were last isolated.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !# </inputParameter>
     return
   end subroutine Node_Component_Merging_Statistics_Recent_Initialize

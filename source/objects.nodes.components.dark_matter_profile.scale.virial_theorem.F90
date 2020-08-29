@@ -41,7 +41,7 @@ module Node_Component_Scale_Virial_Theorem
   !#  <properties>
   !#   <property>
   !#     <name>scale</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="megaParsec" comment="Scale radius of the dark matter profile [Mpc]."/>
@@ -49,13 +49,13 @@ module Node_Component_Scale_Virial_Theorem
   !#   </property>
   !#   <property>
   !#     <name>scaleGrowthRate</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
   !#   <property>
   !#     <name>scaleIsLimited</name>
-  !#     <type>logical</type>
+  !#     <type>boolean</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>.true.</classDefault>
@@ -96,7 +96,7 @@ contains
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <source>globalParameters_</source>
     !#   <description>A boost to the energy</description>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -104,7 +104,7 @@ contains
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <source>globalParameters_</source>
     !#   <description>The exponent of mass ratio appearing in the orbital energy term in the ``virial theorem'' dark matter profile scale model.</description>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -112,7 +112,7 @@ contains
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <source>globalParameters_</source>
     !#   <description>Factor multiplying the estimate of the internal energy of unresolved accretion in the ``virial theorem'' dark matter profile scale model.</description>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
    return

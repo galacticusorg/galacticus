@@ -37,7 +37,7 @@ module Node_Component_Basic_Extended_Tracking
   !#  <properties>
   !#   <property>
   !#     <name>massMaximum</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>

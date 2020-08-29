@@ -43,7 +43,7 @@ module Node_Component_Satellite_Orbiting
   !#  <properties>
   !#   <property>
   !#     <name>position</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Orbital position of the node."/>
@@ -51,7 +51,7 @@ module Node_Component_Satellite_Orbiting
   !#   </property>
   !#   <property>
   !#     <name>velocity</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output labels="[X,Y,Z]" unitsInSI="kilo" comment="Orbital velocity of the node."/>
@@ -59,14 +59,14 @@ module Node_Component_Satellite_Orbiting
   !#   </property>
   !#   <property>
   !#     <name>mergeTime</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
   !#   </property>
   !#   <property>
   !#     <name>timeOfMerging</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <classDefault>-1.0d0</classDefault>
@@ -74,14 +74,14 @@ module Node_Component_Satellite_Orbiting
   !#   </property>
   !#   <property>
   !#     <name>destructionTime</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
   !#   </property>
   !#   <property>
   !#     <name>boundMass</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <classDefault>selfBasicComponent%mass()</classDefault>
@@ -101,7 +101,7 @@ module Node_Component_Satellite_Orbiting
   !#   </property>
   !#   <property>
   !#     <name>tidalHeatingNormalized</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="kilo**2/megaParsec**2" comment="Energy/radius^2 of satellite."/>
@@ -161,7 +161,7 @@ contains
        !#   <defaultValue>.true.</defaultValue>
        !#   <source>parameters_</source>
        !#   <description>If true, then {\normalfont \ttfamily [satelliteOrbitingDestructionMass]} specifies the fractional mass a halo must reach before it is tidally destroyed. Otherwise, {\normalfont \ttfamily [satelliteOrbitingDestructionMass]} specifies an absolute mass.</description>
-       !#   <type>double</type>
+       !#   <type>real</type>
        !#   <cardinality>1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
@@ -170,7 +170,7 @@ contains
        !#   <defaultValue>0.01d0</defaultValue>
        !#   <description>The mass (possibly fractional---see {\normalfont \ttfamily [satelliteOrbitingDestructionMassIsFractional]}) below which the satellite is considered to be tidally destroyed and merged with the central halo.</description>
        !#   <source>parameters_</source>
-       !#   <type>double</type>
+       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>satelliteBoundMassInitializeType</name>
@@ -188,7 +188,7 @@ contains
        !#   <defaultValue>1.0d0</defaultValue>
        !#   <description>The maximum radius of the satellite halo in units of its virial radius. If {\normalfont \ttfamily [satelliteBoundMassInitializeType]} is set to 'maximumRadius', this value will be used to compute the initial bound mass of the satellite halo assuming that its density profile is 0 beyond this maximum radius.</description>
        !#   <source>parameters_</source>
-       !#   <type>double</type>
+       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>satelliteDensityContrast</name>
@@ -196,7 +196,7 @@ contains
        !#   <defaultValue>200.0d0</defaultValue>
        !#   <description>The density contrast of the satellite halo. If {\normalfont \ttfamily [satelliteBoundMassInitializeType]} is set to 'densityContrast', this value will be used to compute the initial bound mass of the satellite halo.</description>
        !#   <source>parameters_</source>
-       !#   <type>double</type>
+       !#   <type>real</type>
        !# </inputParameter>
        ! Validate the parameters.
        select case (satelliteBoundMassInitializeType)

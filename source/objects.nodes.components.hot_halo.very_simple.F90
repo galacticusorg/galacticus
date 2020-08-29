@@ -38,7 +38,7 @@ module Node_Component_Hot_Halo_Very_Simple
   !#  <properties>
   !#   <property>
   !#     <name>mass</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the hot halo."/>
@@ -52,7 +52,7 @@ module Node_Component_Hot_Halo_Very_Simple
   !#   </property>
   !#   <property>
   !#     <name>unaccretedMass</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas that failed to accrete into the hot halo."/>
@@ -60,7 +60,7 @@ module Node_Component_Hot_Halo_Very_Simple
   !#   <property>
   !#     <name>outflowingMass</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#   </property>
   !#   <property>
@@ -72,7 +72,7 @@ module Node_Component_Hot_Halo_Very_Simple
   !#   <property>
   !#     <name>hotHaloCoolingMass</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" isVirtual="true" />
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#   </property>
   !#   <property>
@@ -83,7 +83,7 @@ module Node_Component_Hot_Halo_Very_Simple
   !#   </property>
   !#   <property>
   !#     <name>outerRadius</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" isVirtual="true" />
   !#   </property>

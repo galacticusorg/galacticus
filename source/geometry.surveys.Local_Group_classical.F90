@@ -61,7 +61,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>300.0d-3</defaultValue>
     !#   <description>The maximum distance for the sample of classical Local Group galaxies.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -69,7 +69,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d5</defaultValue>
     !#   <description>The minimum stellar mass for a classical Local Group dwarf galaxy.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=surveyGeometryLocalGroupClassical(distanceMaximumSurvey,massThreshold)

@@ -44,13 +44,13 @@ module Node_Component_Disk_Very_Simple
   !#  <properties>
   !#   <property>
   !#     <name>isInitialized</name>
-  !#     <type>logical</type>
+  !#     <type>boolean</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
   !#   <property>
   !#     <name>massStellar</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of stars in the very simple disk."/>
@@ -64,7 +64,7 @@ module Node_Component_Disk_Very_Simple
   !#   </property>
   !#   <property>
   !#     <name>massGas</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the very simple disk."/>
@@ -138,7 +138,7 @@ contains
        !#   <defaultValue>100.0d0</defaultValue>
        !#   <description>The absolute mass scale below which calculations in the very simple disk component are allowed to become inaccurate.</description>
        !#   <source>parameters_</source>
-       !#   <type>double</type>
+       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>diskVerySimpleTrackAbundances</name>
@@ -170,7 +170,7 @@ contains
        !#   <defaultValue>0.0d0</defaultValue>
        !#   <description>Gas mass below which the analytic solver will prune a galaxy.</description>
        !#   <source>parameters_</source>
-       !#   <type>double</type>
+       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>diskVerySimpleAnalyticSolverPruneMassStars</name>
@@ -178,7 +178,7 @@ contains
        !#   <defaultValue>0.0d0</defaultValue>
        !#   <description>Stellar mass below which the analytic solver will prune a galaxy.</description>
        !#   <source>parameters_</source>
-       !#   <type>double</type>
+       !#   <type>real</type>
        !# </inputParameter>
        ! Attach the cooling mass pipe from the hot halo component.
        call diskVerySimpleComponent%attachPipe()

@@ -53,7 +53,7 @@ contains
     !#   <source>parameters</source>
     !#   <variable>dumpToGraphVizConstructorParameters%path</variable>
     !#   <description>Specifies the directory to which merger tree structure should be dumped.</description>
-    !#   <type>text</type>
+    !#   <type>string</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>

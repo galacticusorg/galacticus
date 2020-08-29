@@ -373,7 +373,7 @@ contains
              call Memory_Usage_Record(sizeof(luminosityFilter)+sizeof(luminosityType)+sizeof(luminosityPostprocessSet),blockCount=4)
              !# <inputParameter>
              !#   <name>luminosityRedshift</name>
-             !#   <cardinality>0..*</cardinality>
+             !#   <cardinality>0..</cardinality>
              !#   <description>The redshift for which to compute each specified stellar luminosity.</description>
              !#   <source>globalParameters</source>
              !#   <type>real</type>
@@ -392,7 +392,7 @@ contains
              if (globalParameters%isPresent('luminosityBandRedshift')) then
                 !# <inputParameter>
                 !#   <name>luminosityBandRedshift</name>
-                !#   <cardinality>0..*</cardinality>
+                !#   <cardinality>0..</cardinality>
                 !#   <description>If present, force filters to be shifted to this redshift rather than that specified by {\normalfont \ttfamily [luminosityRedshift]}. Allows sampling of the SED at wavelengths corresponding to other redshifts.</description>
                 !#   <source>globalParameters</source>
                 !#   <type>real</type>
@@ -402,14 +402,14 @@ contains
              end if
              !# <inputParameter>
              !#   <name>luminosityFilter</name>
-             !#   <cardinality>0..*</cardinality>
+             !#   <cardinality>0..</cardinality>
              !#   <description>The filter name for each stellar luminosity to be computed.</description>
              !#   <source>globalParameters</source>
              !#   <type>string</type>
              !# </inputParameter>
              !# <inputParameter>
              !#   <name>luminosityType</name>
-             !#   <cardinality>0..*</cardinality>
+             !#   <cardinality>0..</cardinality>
              !#   <description>
              !#      The luminosity type for each stellar luminosity to be computed:
              !#      \begin{description}
@@ -429,7 +429,7 @@ contains
                      & call Galacticus_Error_Report('luminosityPostprocessSet and luminosityFilter input arrays must have same dimension'//{introspection:location})
                 !# <inputParameter>
                 !#   <name>luminosityPostprocessSet</name>
-                !#   <cardinality>0..*</cardinality>
+                !#   <cardinality>0..</cardinality>
                 !#   <description>The name of the set of postprocessing algorithms to apply to this filter.</description>
                 !#   <source>globalParameters</source>
                 !#   <type>string</type>

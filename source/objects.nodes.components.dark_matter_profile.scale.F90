@@ -38,7 +38,7 @@ module Node_Component_Dark_Matter_Profile_Scale
   !#  <properties>
   !#   <property>
   !#     <name>scale</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="get" />
   !#     <output unitsInSI="megaParsec" comment="Scale radius of the dark matter profile [Mpc]."/>
@@ -46,13 +46,13 @@ module Node_Component_Dark_Matter_Profile_Scale
   !#   </property>
   !#   <property>
   !#     <name>scaleGrowthRate</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
   !#   <property>
   !#     <name>scaleIsLimited</name>
-  !#     <type>logical</type>
+  !#     <type>boolean</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>.true.</classDefault>
@@ -92,7 +92,7 @@ contains
     !#   <defaultValue>4.0d0</defaultValue>
     !#   <description>The minimum concentration allowed for dark matter profiles.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>darkMatterProfileMaximumConcentration</name>
@@ -100,7 +100,7 @@ contains
     !#   <defaultValue>100.0d0</defaultValue>
     !#   <description>The maximum concentration allowed for dark matter profiles.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>mergerTreeStructureOutputDarkMatterProfileScale</name>

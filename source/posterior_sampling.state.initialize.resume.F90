@@ -65,7 +65,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <description>If true, restore the state of the simulation.</description>
     !#   <source>parameters</source>
-    !#   <type>logical</type>
+    !#   <type>boolean</type>
     !# </inputParameter>
     self=posteriorSampleStateInitializeResume(logFileRoot,restoreState)
     !# <inputParametersValidate source="parameters"/>

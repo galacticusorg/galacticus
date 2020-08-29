@@ -34,7 +34,7 @@ module Node_Component_Spin_Random
   !#  <properties>
   !#   <property>
   !#     <name>spin</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="0.0d0" comment="Spin parameter of the node."/>
@@ -42,7 +42,7 @@ module Node_Component_Spin_Random
   !#   <property>
   !#     <name>spinGrowthRate</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <getFunction bindsTo="component">SpinRandomSpinGrowthRate</getFunction>
   !#   </property>
@@ -74,7 +74,7 @@ contains
     !#   <defaultValue>2.0d0</defaultValue>
     !#   <description>The factor by which a node must increase in mass before its spin parameter is reset.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !# </inputParameter>
     return
   end subroutine Node_Component_Spin_Random_Initialize

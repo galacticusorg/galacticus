@@ -59,7 +59,7 @@ contains
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The fractional mass interval occupied by the trees. Where the intervals of trees of different mass would overlap this interval will be truncated.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !# </inputParameter>
     self=mergerTreeBuildMassesReadXML(fileName,massIntervalFractional)
     !# <inputParametersValidate source="parameters"/>

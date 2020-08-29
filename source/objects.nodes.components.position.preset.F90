@@ -34,7 +34,7 @@ module Node_Component_Position_Preset
   !#  <properties>
   !#   <property>
   !#     <name>position</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <getFunction bindsTo="component">PositionPresetPosition</getFunction>
@@ -43,7 +43,7 @@ module Node_Component_Position_Preset
   !#   </property>
   !#   <property>
   !#     <name>velocity</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <getFunction bindsTo="component">PositionPresetVelocity</getFunction>
@@ -83,7 +83,7 @@ contains
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>If true, the position of satellite halos will be adjusted to match that of their host halo.</description>
        !#   <source>parameters_</source>
-       !#   <type>bool</type>
+       !#   <type>boolean</type>
        !# </inputParameter>
     end if
     return

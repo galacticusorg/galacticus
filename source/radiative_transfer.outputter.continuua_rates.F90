@@ -65,7 +65,7 @@ contains
     allocate(elementIndices(elementsCount))
     !# <inputParameter>
     !#   <name>elements</name>
-    !#   <cardinality>1..*</cardinality>
+    !#   <cardinality>1..</cardinality>
     !#   <description>The names of the elements to be tracked.</description>
     !#   <source>parameters</source>
     !#   <type>string</type>

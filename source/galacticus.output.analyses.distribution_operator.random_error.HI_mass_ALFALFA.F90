@@ -85,7 +85,7 @@ contains
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <variable>a</variable>
     !#   <description>Parameter $a$ in the ALFALFA HI mass error model.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -94,7 +94,7 @@ contains
     !#   <defaultValue>5.885d0</defaultValue>
     !#   <variable>b</variable>
     !#   <description>Parameter $b$ in the ALFALFA HI mass error model.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -103,7 +103,7 @@ contains
     !#   <defaultValue>0.505d0</defaultValue>
     !#   <variable>c</variable>
     !#   <description>Parameter $c$ in the ALFALFA HI mass error model.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="outputAnalysisMolecularRatio" name="outputAnalysisMolecularRatio_" source="parameters"/>

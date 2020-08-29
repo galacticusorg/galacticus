@@ -61,7 +61,7 @@ contains
     !#   <source>parameters</source>
     !#   <variable>zeroPoint</variable>
     !#   <description>The zero-point of the property value used in the polynomial systematic offset property operator class.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -69,7 +69,7 @@ contains
     !#   <source>parameters</source>
     !#   <variable>coefficient</variable>
     !#   <description>The coefficients in the polynomial systematic offset property operator class.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     ! Construct the object.

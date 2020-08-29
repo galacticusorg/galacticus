@@ -81,35 +81,35 @@ contains
     !#   <name>lengthSoftening</name>
     !#   <source>parameters</source>
     !#   <description>The softening length.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>unitMassInSI</name>
     !#   <source>parameters</source>
     !#   <description>The mass unit expressed in the SI system.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>unitLengthInSI</name>
     !#   <source>parameters</source>
     !#   <description>The length unit expressed in the SI system.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>unitVelocityInSI</name>
     !#   <source>parameters</source>
     !#   <description>The velocity unit expressed in the SI system.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>unitVelocityInSI</name>
     !#   <source>parameters</source>
     !#   <description>The velocity unit expressed in the SI system.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=nbodyImporterGadgetBinary(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI)

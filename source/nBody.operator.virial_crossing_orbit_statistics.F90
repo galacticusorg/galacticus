@@ -78,7 +78,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, compute cross-simulation virial crossing orbit statistics between the first and all simulations. Otherwise, compute virial crossing orbit statistics within each simulation.</description>
-    !#   <type>logical</type>
+    !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -86,7 +86,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, add Hubble flow to velocities.</description>
-    !#   <type>logical</type>
+    !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -110,7 +110,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The sampling rate for particles.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -153,7 +153,7 @@ contains
     !#   <source>parameters</source>
     !#   <description>If true, include results for the unbootstrapped (i.e. original) sample.</description>
     !#   <defaultValue>.true.</defaultValue>
-    !#   <type>logical</type>
+    !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>

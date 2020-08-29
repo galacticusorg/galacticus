@@ -33,7 +33,7 @@ module Node_Component_Formation_Times_Mass_Fraction
   !#  <properties>
   !#   <property>
   !#     <name>formationTime</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output unitsInSI="gigaYear" comment="The time at which a fixed fraction of the node''s mass was assembled."/>
@@ -60,7 +60,7 @@ contains
     !#   <defaultValue>0.5d0</defaultValue>
     !#   <source>parameters_</source>
     !#   <description>Fractional mass of primary progenitor used to define formation time.</description>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     return

@@ -39,7 +39,7 @@ module Node_Component_Black_Hole_Simple
   !#  <properties>
   !#   <property>
   !#     <name>mass</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <classDefault>defaultBlackHoleComponent%massSeed()</classDefault>
@@ -47,7 +47,7 @@ module Node_Component_Black_Hole_Simple
   !#   </property>
   !#   <property>
   !#     <name>massSeed</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <getFunction>Node_Component_Black_Hole_Simple_Seed_Mass</getFunction>
@@ -101,7 +101,7 @@ contains
     !#   <defaultValue>1.0d-3</defaultValue>
     !#   <description>The ratio of the rates of black hole growth and spheroid stellar mass growth.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !# </inputParameter>
     ! Options controlling AGN feedback.
     !# <inputParameter>
@@ -119,7 +119,7 @@ contains
        !#   <defaultValue>1.0d-3</defaultValue>
        !#   <description>The efficiency with which accretion onto a black hole heats the hot halo.</description>
        !#   <source>parameters_</source>
-       !#   <type>double</type>
+       !#   <type>real</type>
        !# </inputParameter>
     else
        blackHoleHeatingEfficiency=0.0d0
@@ -131,7 +131,7 @@ contains
     !#   <defaultValue>2.2157d-3</defaultValue>
     !#   <description>The efficiency of the black hole accretion-driven wind.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !# </inputParameter>
     ! Get options controlling output.
     !# <inputParameter>

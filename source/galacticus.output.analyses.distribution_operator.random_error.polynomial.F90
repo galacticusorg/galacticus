@@ -59,7 +59,7 @@ contains
     !#   <source>parameters</source>
     !#   <variable>zeroPoint</variable>
     !#   <description>The zero-point of the property value used in the polynomial random error distribution class.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -67,7 +67,7 @@ contains
     !#   <source>parameters</source>
     !#   <variable>coefficient</variable>
     !#   <description>The coefficients in the polynomial random error distribution class.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -75,7 +75,7 @@ contains
     !#   <source>parameters</source>
     !#   <variable>errorMinimum</variable>
     !#   <description>The minimum error in the polynomial random error distribution class.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -83,7 +83,7 @@ contains
     !#   <source>parameters</source>
     !#   <variable>errorMaximum</variable>
     !#   <description>The maximum error in the polynomial random error distribution class.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     ! Construct the object.

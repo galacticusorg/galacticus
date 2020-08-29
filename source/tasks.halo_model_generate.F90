@@ -104,7 +104,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <description>The minimum mass galaxy to include in a mock halo model realization.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMaximum</name>
@@ -112,7 +112,7 @@ contains
     !#   <defaultValue>1.0d16</defaultValue>
     !#   <description>The maximum mass galaxy to include in a mock halo model realization.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"          source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>

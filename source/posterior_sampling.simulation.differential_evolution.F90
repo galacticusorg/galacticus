@@ -250,7 +250,7 @@ contains
     !#   <description>If true, attempt to balance the workload across different compute nodes.</description>
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
-    !#   <type>logical</type>
+    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>ignoreChainNumberAdvice</name>
@@ -258,7 +258,7 @@ contains
     !#   <description>If true, ignore warnings and errors about not being able to span the full parameter space with the number of chains used.</description>
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
-    !#   <type>logical</type>
+    !#   <type>boolean</type>
     !# </inputParameter>
     !# <objectBuilder class="posteriorSampleLikelihood"               name="posteriorSampleLikelihood_"               source="parameters"/>
     !# <objectBuilder class="posteriorSampleConvergence"              name="posteriorSampleConvergence_"              source="parameters"/>

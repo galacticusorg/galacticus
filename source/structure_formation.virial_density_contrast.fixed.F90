@@ -75,7 +75,7 @@ contains
     !#  <source>parameters</source>
     !#  <defaultValue>200.0d0</defaultValue>
     !#  <description>The virial density contrast to use in the fixed value model.</description>
-    !#  <type>float</type>
+    !#  <type>real</type>
     !#  <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -91,7 +91,7 @@ contains
     !#  <source>parameters</source>
     !#  <defaultValue>2.0d0</defaultValue>
     !#  <description>The ratio of the turnaround to virial radii in the fixed value model.</description>
-    !#  <type>float</type>
+    !#  <type>real</type>
     !#  <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>

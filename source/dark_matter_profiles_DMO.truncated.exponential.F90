@@ -112,7 +112,7 @@ contains
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>The truncation scale (in units of the virial radius).</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -120,7 +120,7 @@ contains
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Parameter $\alpha$ in the \cite{kazantzidis_2006} truncated profile.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -128,7 +128,7 @@ contains
     !#   <defaultValue>3.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Parameter $\beta$ in the \cite{kazantzidis_2006} truncated profile.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -136,7 +136,7 @@ contains
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Parameter $\gamma$ in the \cite{kazantzidis_2006} truncated profile.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>

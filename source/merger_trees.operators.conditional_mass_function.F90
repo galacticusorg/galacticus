@@ -268,7 +268,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d1</defaultValue>
     !#   <description>The maximum mass ratio to bin when constructing conditional halo mass functions.</description>
-    !#   <type>logical</type>
+    !#   <type>boolean</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     call allocateArray(parentRedshifts    ,[max(1,parameters%count('parentRedshifts'    ,zeroIfNotPresent=.true.))])

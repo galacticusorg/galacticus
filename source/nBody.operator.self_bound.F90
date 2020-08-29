@@ -69,7 +69,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d-2</defaultValue>
     !#   <description>The tolerance in the summed weight of bound particles which must be attained to declare convergence.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -77,7 +77,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The sampling rate for particles.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>

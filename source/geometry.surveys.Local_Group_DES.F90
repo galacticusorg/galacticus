@@ -58,7 +58,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>300.0d-3</defaultValue>
     !#   <description>The maximum distance at which galaxies are to be included in the survey.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=surveyGeometryLocalGroupDES(distanceMaximumSurvey)

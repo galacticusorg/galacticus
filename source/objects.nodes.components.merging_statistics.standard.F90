@@ -38,7 +38,7 @@ module Node_Component_Merging_Statistics_Standard
   !#  <properties>
   !#   <property>
   !#     <name>galaxyMajorMergerTime</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
@@ -46,7 +46,7 @@ module Node_Component_Merging_Statistics_Standard
   !#   </property>
   !#   <property>
   !#     <name>nodeMajorMergerTime</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
@@ -54,7 +54,7 @@ module Node_Component_Merging_Statistics_Standard
   !#   </property>
   !#   <property>
   !#     <name>nodeFormationTime</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
@@ -86,7 +86,7 @@ module Node_Component_Merging_Statistics_Standard
   !#   </property>
   !#   <property>
   !#     <name>massWhenFirstIsolated</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
@@ -122,7 +122,7 @@ contains
     !#   <defaultValue>0.25d0</defaultValue>
     !#   <description>The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>nodeFormationMassFraction</name>
@@ -130,7 +130,7 @@ contains
     !#   <defaultValue>0.5d0</defaultValue>
     !#   <description>The mass fraction in the main branch progenitor used to define the formation time of each halo.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>hierarchyLevelResetFactor</name>
@@ -138,7 +138,7 @@ contains
     !#   <defaultValue>1.0d100</defaultValue>
     !#   <description>The factor by which a node's mass must increase before the previous maximum hierarchy level is forgotten.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !# </inputParameter>
     ! Bind the hierarchy level get functions.
     call mergingStatistics%nodeHierarchyLevelFunction       (Node_Component_Merging_statistics_Standard_Hierarchy_Level)

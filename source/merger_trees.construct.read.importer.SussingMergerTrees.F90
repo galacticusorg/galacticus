@@ -219,7 +219,7 @@ contains
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>Specify the probability that any given tree should processed (to permit subsampling).</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massOptions</name>

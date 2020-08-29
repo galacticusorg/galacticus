@@ -36,7 +36,7 @@ module Node_Component_Mass_Flow_Statistics_Standard
   !#  <properties>
   !#   <property>
   !#     <name>cooledMass</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar" comment="Cumulative mass of gas cooled directly onto galaxy."/>
@@ -68,7 +68,7 @@ contains
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether or not mass flow statistics should be reset to zero at each output.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
+    !#   <type>real</type>
     !# </inputParameter>
     return
   end subroutine Node_Component_Mass_Flow_Statistics_Standard_Initialize

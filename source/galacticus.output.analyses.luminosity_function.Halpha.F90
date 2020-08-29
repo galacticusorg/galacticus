@@ -94,7 +94,7 @@ contains
     !#   <name>luminosities</name>
     !#   <source>parameters</source>
     !#   <description>The luminosities corresponding to bin centers.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>

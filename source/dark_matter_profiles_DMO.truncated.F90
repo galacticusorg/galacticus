@@ -107,7 +107,7 @@ contains
     !#   <defaultValue>2.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>The minimum radius (in units of the virial radius) to begin truncating the density profile.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -115,7 +115,7 @@ contains
     !#   <defaultValue>4.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>The maximum radius (in units of the virial radius) to finish truncating the density profile.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterProfileDMO"   name="darkMatterProfileDMO_"   source="parameters"/>

@@ -181,21 +181,21 @@ contains
     !#   <name>separations</name>
     !#   <source>parameters</source>
     !#   <description>The separations corresponding to bin centers.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMinima</name>
     !#   <source>parameters</source>
     !#   <description>The minimum mass of each mass sample.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMaxima</name>
     !#   <source>parameters</source>
     !#   <description>The maximum mass of each mass sample.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>

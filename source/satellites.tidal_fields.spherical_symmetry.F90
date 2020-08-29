@@ -52,7 +52,7 @@ contains
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The factor by which to boost satellite tidal fields in the {\normalfont \ttfamily sphericalSymmetry} tidal field class.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !# </inputParameter>
     self=satelliteTidalFieldSphericalSymmetry(factorBoost)
     !# <inputParametersValidate source="parameters"/>

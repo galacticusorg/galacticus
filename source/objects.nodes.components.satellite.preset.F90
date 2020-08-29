@@ -37,13 +37,13 @@ module Node_Component_Satellite_Preset
   !#  <properties>
   !#   <property>
   !#     <name>isOrphan</name>
-  !#     <type>logical</type>
+  !#     <type>boolean</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
   !#   <property>
   !#     <name>mergeTime</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <classDefault>-1.0d0</classDefault>
@@ -53,14 +53,14 @@ module Node_Component_Satellite_Preset
   !#   </property>
   !#   <property>
   !#     <name>timeOfMerging</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
   !#   </property>
   !#   <property>
   !#     <name>boundMass</name>
-  !#     <type>double</type>
+  !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <getFunction>SatellitePresetMergeBoundMass</getFunction>

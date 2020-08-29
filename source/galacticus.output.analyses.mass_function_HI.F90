@@ -90,7 +90,7 @@ contains
     !#   <source>parameters</source>
     !#   <variable>masses</variable>
     !#   <description>The masses corresponding to bin centers.</description>
-    !#   <type>float</type>
+    !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
