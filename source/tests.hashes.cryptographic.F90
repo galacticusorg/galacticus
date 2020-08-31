@@ -37,7 +37,7 @@ program Test_Hashes_Cryptographic
   ! module.
   myText="dolphin monkey badger marmoset"
   myHash=Hash_MD5(myText)
-  call Assert("MD5 hash [c.f. Perl Crypt::PasswdMD5]",char(myHash),"aSgEiNBQlbr73RsSHQZjK.")
+  call Assert("MD5 hash [c.f. Perl Crypt::PasswdMD5]",char(myHash),"4ZAhhB6m4Wn7TCccmTKAc@")
 
   ! End unit tests.
   call Unit_Tests_End_Group()
