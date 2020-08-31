@@ -20,6 +20,7 @@ use Storable qw(dclone);
 use Galacticus::Build::SourceTree::Process::SourceIntrospection;
 use Galacticus::Build::SourceTree::Process::Utils qw(performIO);
 use Galacticus::Build::SourceTree::Process::FunctionClass::Utils;
+use Galacticus::Build::SourceTree::Parse::Declarations;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'functionClass'} = \&Process_FunctionClass;
@@ -407,23 +408,6 @@ sub Process_FunctionClass {
 					    $supported = -1;
 					    push(@failureMessage,"could not find a matching internal variable for parameter [".$name."]");
 					}
-				    } elsif ( exists($constructorNode->{'directive'}->{'regEx'   }) ) {
-					# A regular expression parameter. Currently not supported.
-					$supported = -2;
-					push(@failureMessage,"regular expression parameter [".$constructorNode->{'directive'}->{'regEx'}."] not supported");
-
-					print Dumper($nonAbstractClass);
-					die('REGEX PARAMETER SHOULD NOT EXIST');
-
-				    } elsif ( exists($constructorNode->{'directive'}->{'iterator'}) ) {
-					# A parameter whose name iterates over a set of possible names. Currently not supported.
-					$supported = -3;
-					push(@failureMessage,"iterator parameter [".$constructorNode->{'directive'}->{'iterator'}."] not supported");
-
-					print Dumper($nonAbstractClass);
-					die('ITERATOR PARAMETER SHOULD NOT EXIST');
-
-					
 				    }
 				} else {
 				    $supported = -4;
@@ -731,25 +715,6 @@ CODE
 				if      ( exists($constructorNode->{'directive'}->{'name'    }) ) {
 				    # A regular parameter, defined by its name.
 				    push(@{$allowedParameters->{$source}->{'all'}},         $constructorNode->{'directive'}->{'name' });
-				} elsif ( exists($constructorNode->{'directive'}->{'regEx'   }) ) {
-				    # A regular expression parameter.
-				    push(@{$allowedParameters->{$source}->{'all'}},"regEx:".$constructorNode->{'directive'}->{'regEx'});
-				} elsif ( exists($constructorNode->{'directive'}->{'iterator'}) ) {
-				    # A parameter whose name iterates over a set of possible names.
-				    if ( $constructorNode->{'directive'}->{'iterator'} =~ m/\(\#([a-zA-Z0-9]+)\-\>([a-zA-Z0-9]+)\)/ ) {
-					my $directiveName = $1;
-					my $attributeName = $2;
-					die('Process_FunctionClass(): locations not found for directives')
-					    unless ( exists($directiveLocations->{$directiveName}) );
-					foreach my $fileName ( &List::ExtraUtils::as_array($directiveLocations->{$directiveName}->{'file'}) ) {
-					    foreach ( &Galacticus::Build::Directives::Extract_Directives($fileName,$directiveName) ) {
-						(my $parameterName = $constructorNode->{'directive'}->{'iterator'}) =~ s/\(\#$directiveName\-\>$attributeName\)/$_->{$attributeName}/;
-						push(@{$allowedParameters->{$source}->{'all'}},$parameterName);
-					    }
-					}
-				    } else {
-					die('Process_FunctionClass(): nothing to iterate over');
-				    }
 				}
 			    }
 			    if ( $constructorNode->{'type'} eq "objectBuilder"  ) {
@@ -3414,8 +3379,6 @@ CODE
 		my $class = $classes{$className};
 		$documentation   .= "\\item[{\\normalfont \\ttfamily ".$class->{'name'}."}] ".$class->{'description'};
 		$documentation   .= " \\iflabelexists{phys:".$directive->{'name'}.":".$class->{'name'}."}{See \\S\\ref{phys:".$directive->{'name'}.":".$class->{'name'}."}.}{}\n";
-
-
 		# Search the tree for this class to find the interface to the parameters constructor.
 		my $node = $classes{$className}->{'tree'}->{'firstChild'};
 		$node = $node->{'sibling'}
