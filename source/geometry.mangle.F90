@@ -220,7 +220,7 @@ contains
     if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"mangle")) then
        ! Clone the mangle repo.
        call Directory_Make(galacticusPath(pathTypeDataDynamic)//"mangle")
-       call System_Command_Do("cd "//galacticusPath(pathTypeDataDynamic)//"mangle; git clone https://github.com/mollyswanson/mangle.git",iStatus)
+       call System_Command_Do("cd "//galacticusPath(pathTypeDataDynamic)//"; git clone https://github.com/mollyswanson/mangle.git",iStatus)
        if (iStatus /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"mangle"            )) &
             & call Galacticus_Error_Report('failed to clone mangle repo'       //{introspection:location})
     end if
