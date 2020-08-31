@@ -278,7 +278,7 @@ contains
     !#   <defaultValue>[0.0d0]</defaultValue>
     !#   <description>The set of parent halo redshifts to use when constructing conditional halo mass functions.</description>
     !#   <type>real</type>
-    !#   <cardinality>1..</cardinality>
+    !#   <cardinality>1..*</cardinality>
     !# </inputParameter>
     call allocateArray(progenitorRedshifts,[max(1,parameters%count('progenitorRedshifts',zeroIfNotPresent=.true.))])
     !# <inputParameter>
@@ -287,7 +287,7 @@ contains
     !#   <defaultValue>[1.0d0]</defaultValue>
     !#   <description>The set of progenitor halo redshifts to use when constructing conditional halo mass functions.</description>
     !#   <type>real</type>
-    !#   <cardinality>1..</cardinality>
+    !#   <cardinality>1..*</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>primaryProgenitorDepth</name>

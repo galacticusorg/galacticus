@@ -46,7 +46,7 @@ module Node_Component_Black_Hole_Standard
   !#  <properties>
   !#   <property>
   !#     <name>mass</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <classDefault>defaultBlackHoleComponent%massSeed()</classDefault>
@@ -54,7 +54,7 @@ module Node_Component_Black_Hole_Standard
   !#   </property>
   !#   <property>
   !#     <name>spin</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <getFunction>Node_Component_Black_Hole_Standard_Spin</getFunction>
@@ -63,26 +63,26 @@ module Node_Component_Black_Hole_Standard
   !#   </property>
   !#   <property>
   !#     <name>radialPosition</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
   !#   <property>
   !#     <name>tripleInteractionTime</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
   !#   <property>
   !#     <name>massSeed</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <getFunction>Node_Component_Black_Hole_Standard_Seed_Mass</getFunction>
   !#   </property>
   !#   <property>
   !#     <name>spinSeed</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <getFunction>Node_Component_Black_Hole_Standard_Seed_Spin</getFunction>
@@ -90,13 +90,13 @@ module Node_Component_Black_Hole_Standard
   !#   <property>
   !#     <name>accretionRate</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" isVirtual="true" />
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#   </property>
   !#   <property>
   !#     <name>radiativeEfficiency</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" isVirtual="true" />
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#   </property>
   !#  </properties>

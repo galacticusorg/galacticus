@@ -38,7 +38,7 @@ module Node_Component_Inter_Output_Standard
   !#  <properties>
   !#   <property>
   !#     <name>diskStarFormationRate</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
   !#     <classDefault>0.0d0</classDefault>
@@ -46,7 +46,7 @@ module Node_Component_Inter_Output_Standard
   !#   </property>
   !#   <property>
   !#     <name>spheroidStarFormationRate</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
   !#     <output unitsInSI="massSolar/gigaYear" comment="Spheroid star formation rate averaged over time between current and previous outputs."/>

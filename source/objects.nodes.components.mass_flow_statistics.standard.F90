@@ -36,7 +36,7 @@ module Node_Component_Mass_Flow_Statistics_Standard
   !#  <properties>
   !#   <property>
   !#     <name>cooledMass</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar" comment="Cumulative mass of gas cooled directly onto galaxy."/>

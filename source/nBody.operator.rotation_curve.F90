@@ -69,7 +69,7 @@ contains
     !#   <source>parameters</source>
     !#   <description>Radii at which the rotation curve should be computed.</description>
     !#   <type>real</type>
-    !#   <cardinality>0..</cardinality>
+    !#   <cardinality>0..*</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>bootstrapSampleCount</name>

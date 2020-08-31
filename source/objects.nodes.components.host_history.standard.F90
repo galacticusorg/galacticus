@@ -33,7 +33,7 @@ module Node_Component_Host_History_Standard
   !#  <properties>
   !#   <property>
   !#     <name>hostMassMaximum</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>

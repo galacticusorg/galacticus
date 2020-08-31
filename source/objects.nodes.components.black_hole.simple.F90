@@ -39,7 +39,7 @@ module Node_Component_Black_Hole_Simple
   !#  <properties>
   !#   <property>
   !#     <name>mass</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <classDefault>defaultBlackHoleComponent%massSeed()</classDefault>
@@ -47,7 +47,7 @@ module Node_Component_Black_Hole_Simple
   !#   </property>
   !#   <property>
   !#     <name>massSeed</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <getFunction>Node_Component_Black_Hole_Simple_Seed_Mass</getFunction>

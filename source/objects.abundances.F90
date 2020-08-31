@@ -326,7 +326,7 @@ contains
              call allocateArray(elementsIndices,[elementsCount])
              !# <inputParameter>
              !#   <name>elementsToTrack</name>
-             !#   <cardinality>1..</cardinality>
+             !#   <cardinality>1..*</cardinality>
              !#   <description>The names of the elements to be tracked.</description>
              !#   <source>globalParameters</source>
              !#   <type>string</type>

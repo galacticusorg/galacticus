@@ -49,7 +49,7 @@ contains
     !#   <source>parameters</source>
     !#   <description>The set of properties of the orbit to output.</description>
     !#   <type>string</type>
-    !#   <cardinality>1..</cardinality>
+    !#   <cardinality>1..*</cardinality>
     !# </inputParameter>
     self=nodePropertyExtractorSatelliteVirialOrbit(properties)
     !# <inputParametersValidate source="parameters"/>

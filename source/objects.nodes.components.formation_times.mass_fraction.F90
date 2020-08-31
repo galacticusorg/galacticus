@@ -33,7 +33,7 @@ module Node_Component_Formation_Times_Mass_Fraction
   !#  <properties>
   !#   <property>
   !#     <name>formationTime</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output unitsInSI="gigaYear" comment="The time at which a fixed fraction of the node''s mass was assembled."/>

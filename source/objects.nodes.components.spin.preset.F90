@@ -34,14 +34,14 @@ module Node_Component_Spin_Preset
   !#  <properties>
   !#   <property>
   !#     <name>spin</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="0.0d0" comment="Spin parameter of the node."/>
   !#   </property>
   !#   <property>
   !#     <name>spinGrowthRate</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>

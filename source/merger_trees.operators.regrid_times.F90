@@ -141,7 +141,7 @@ contains
        !#   <source>parameters</source>
        !#   <description>The redshifts at which merger trees are to regridded when the {\normalfont \ttfamily [snapshotSpacing]}$=${\normalfont \ttfamily list} option is selected.</description>
        !#   <type>real</type>
-       !#   <cardinality>0..</cardinality>
+       !#   <cardinality>0..*</cardinality>
        !# </inputParameter>
        do iTime=1,size(snapshotTimes)
           snapshotTimes(iTime)=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(snapshotTimes(iTime)))

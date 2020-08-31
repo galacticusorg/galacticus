@@ -43,14 +43,14 @@ module Node_Component_Spin_Vitvitska
   !#  <properties>
   !#   <property>
   !#     <name>spin</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="get" />
   !#     <output unitsInSI="0.0d0" comment="Spin parameter of the node."/>
   !#   </property>
   !#   <property>
   !#     <name>spinVector</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="get" />
   !#     <output labels="[X,Y,Z]" unitsInSI="0.0d0" comment="Spin vector of the node."/>
@@ -58,7 +58,7 @@ module Node_Component_Spin_Vitvitska
   !#   </property>
   !#   <property>
   !#     <name>angularMomentumAccretionRate</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
@@ -66,7 +66,7 @@ module Node_Component_Spin_Vitvitska
   !#   <property>
   !#     <name>spinGrowthRate</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" isDeferred="get" />
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#   </property>
   !#  </properties>

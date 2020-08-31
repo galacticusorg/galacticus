@@ -38,7 +38,7 @@ module Node_Component_Merging_Statistics_Standard
   !#  <properties>
   !#   <property>
   !#     <name>galaxyMajorMergerTime</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
@@ -46,7 +46,7 @@ module Node_Component_Merging_Statistics_Standard
   !#   </property>
   !#   <property>
   !#     <name>nodeMajorMergerTime</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
@@ -54,7 +54,7 @@ module Node_Component_Merging_Statistics_Standard
   !#   </property>
   !#   <property>
   !#     <name>nodeFormationTime</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
@@ -86,7 +86,7 @@ module Node_Component_Merging_Statistics_Standard
   !#   </property>
   !#   <property>
   !#     <name>massWhenFirstIsolated</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>

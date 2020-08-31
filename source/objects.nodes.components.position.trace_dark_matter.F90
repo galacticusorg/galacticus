@@ -35,7 +35,7 @@ module Node_Component_Position_Trace_Dark_Matter
   !#  <properties>
   !#   <property>
   !#     <name>position</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Position of the node (in physical coordinates)."/>

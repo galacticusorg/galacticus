@@ -71,21 +71,21 @@ contains
     !#   <source>parameters</source>
     !#   <description>A list of named properties on which to filter.</description>
     !#   <type>string</type>
-    !#   <cardinality>0..</cardinality>
+    !#   <cardinality>0..*</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>rangeLow</name>
     !#   <source>parameters</source>
     !#   <description>The lowest value of each property to pass (``{\normalfont \ttfamily -infinity}'' is interpreted as the lowest possible value for the property.</description>
     !#   <type>string</type>
-    !#   <cardinality>0..</cardinality>
+    !#   <cardinality>0..*</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>rangeHigh</name>
     !#   <source>parameters</source>
     !#   <description>The highest value of each property to pass (``{\normalfont \ttfamily +infinity}'' is interpreted as the lowest possible value for the property.</description>
     !#   <type>string</type>
-    !#   <cardinality>0..</cardinality>
+    !#   <cardinality>0..*</cardinality>
     !# </inputParameter>
     allocate(propertyRanges(size(propertyNames)))
     do i=1,size(propertyNames)

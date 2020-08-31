@@ -9,7 +9,6 @@ use File::Slurp;
 use List::Uniq ':all';
 use List::MoreUtils qw{ any };
 use List::ExtraUtils;
-use Galacticus::Doc::Parameters;
 use Galacticus::Build::Directives;
 use Storable;
 
@@ -94,26 +93,8 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 	    push
 		(
 		 @{$parametersPerFile->{$fileIdentifier}->{'parameter'}},
-		 map 
-		 {
-		     (! exists($_->{'source'}) || $_->{'source'} eq "globalParameters" || $_->{'source'} eq "parameters_")
-			 ?
-			 (	
-				exists($_->{'regEx'}) 
-				? 
-				"regEx:".&Galacticus::Doc::Parameters::ExpandRegEx($_->{'regEx'},$sourceDirectoryName."/source") 
-				:
-				(
-				 exists($_->{'iterator'}) 
-				 ?
-				 "iterator:".$_->{'iterator'} 
-				 :
-				 $_->{'name'}
-				)
-			 )
-			 :
-			 ()
-		 }
+		 map
+		 {$_->{'name'}}
 		 &Galacticus::Build::Directives::Extract_Directives($fileToProcess,"inputParameter",comment => qr/^\s*(!\#|\/\/\@)/) 
 		);
 	    # Find all "objectBuilder" directives with non-standard parameter names, extract names from them, and push to the list of parameters.

@@ -18,7 +18,7 @@ done
 # Clear out old build files.
 rm -f                                                                                                                                     \
    doc/methods/*.tex doc/inputParameters/*.tex doc/enumerations/definitions/*.tex doc/enumerations/specifiers/*.tex doc/contributions.tex \
-   doc/source_documentation.tex doc/dataEnumerationSpecifiers.tex doc/dataEnumerations.tex doc/dataMethods.tex doc/dataParameters.tex
+   doc/source_documentation.tex doc/dataEnumerationSpecifiers.tex doc/dataEnumerations.tex doc/dataMethods.tex
 
 # Ensure that nodeComponent and treeNode objects are built, along with any functions.
 rm -rf work/build
@@ -61,9 +61,6 @@ fi
 
 # Order method descriptions.
 ls methods/*.tex | sort | awk '{print "\\input{"substr($1,1,length($1)-4)"}"}' > autoMethods.tex
-
-# Order input paramter definitions.
-ls inputParameters/*.tex | sort | awk '{print "\\input{"substr($1,1,length($1)-4)"}"}' > autoInputParameters.tex
 
 # Order enumeration definitions.
 ls enumerations/definitions/*.tex | sort | awk '{print "\\input{"substr($1,1,length($1)-4)"}"}' > autoEnumerationDefinitions.tex

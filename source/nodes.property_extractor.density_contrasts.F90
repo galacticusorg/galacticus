@@ -78,7 +78,7 @@ contains
     allocate(densityContrasts(parameters%count('densityContrasts')))
     !# <inputParameter>
     !#   <name>densityContrasts</name>
-    !#   <cardinality>1..</cardinality>
+    !#   <cardinality>1..*</cardinality>
     !#   <description>A list of density contrasts at which to output data.</description>
     !#   <source>parameters</source>
     !#   <type>real</type>

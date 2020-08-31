@@ -43,7 +43,7 @@ module Node_Component_Black_Hole_Noncentral
   !#  <properties>
   !#   <property>
   !#     <name>radialPosition</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#   </property>

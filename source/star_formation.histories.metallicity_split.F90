@@ -142,7 +142,7 @@ contains
        !#   <source>parameters</source>
        !#   <variable>metallicityBoundaries(1:size(metallicityBoundaries)-1)</variable>
        !#   <type>real</type>
-       !#   <cardinality>1..</cardinality>
+       !#   <cardinality>1..*</cardinality>
        !# </inputParameter>
        metallicityBoundaries(size(metallicityBoundaries))=metallicitySplitMetallicityInfinite
     else

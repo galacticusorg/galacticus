@@ -20,8 +20,8 @@
       <xs:enumeration value="2"   />
       <xs:enumeration value="3"   />
       <xs:enumeration value="0..1"/>
-      <xs:enumeration value="0.." />
-      <xs:enumeration value="1.." />
+      <xs:enumeration value="0..*"/>
+      <xs:enumeration value="1..*"/>
     </xs:restriction>
   </xs:simpleType>
 

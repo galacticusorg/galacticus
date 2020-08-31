@@ -70,14 +70,14 @@ contains
     !#   <source>parameters</source>
     !#   <description>Inner radii of spherical shells within which the velocity dispersion should be computed.</description>
     !#   <type>real</type>
-    !#   <cardinality>0..</cardinality>
+    !#   <cardinality>0..*</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>radiusOuter</name>
     !#   <source>parameters</source>
     !#   <description>Outer radii of spherical shells within which the velocity dispersion should be computed.</description>
     !#   <type>real</type>
-    !#   <cardinality>0..</cardinality>
+    !#   <cardinality>0..*</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>bootstrapSampleCount</name>

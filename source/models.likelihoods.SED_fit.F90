@@ -101,28 +101,28 @@ contains
 
     !# <inputParameter>
     !#   <name>magnitude</name>
-    !#   <cardinality>1..</cardinality>
+    !#   <cardinality>1..*</cardinality>
     !#   <description>The magnitudes of the broad-band SED.</description>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>error</name>
-    !#   <cardinality>1..</cardinality>
+    !#   <cardinality>1..*</cardinality>
     !#   <description>The errors on the magnitudes of the broad-band SED.</description>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>filter</name>
-    !#   <cardinality>1..</cardinality>
+    !#   <cardinality>1..*</cardinality>
     !#   <description>The names of the filters in the broad-band SED.</description>
     !#   <source>parameters</source>
     !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>system</name>
-    !#   <cardinality>1..</cardinality>
+    !#   <cardinality>1..*</cardinality>
     !#   <description>The photometric system (AB or Vega) of the broad-band SED.</description>
     !#   <source>parameters</source>
     !#   <type>real</type>

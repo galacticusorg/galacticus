@@ -137,7 +137,7 @@ contains
     !#   <defaultValue>1.0d10</defaultValue>
     !#   <description>For the {\normalfont \ttfamily augment} operator a description of resolution limit for new trees.</description>
     !#   <type>real</type>
-    !#   <cardinality>0..</cardinality>
+    !#   <cardinality>0..*</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>performChecks</name>
@@ -145,7 +145,7 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, perform checks of the augmentation process.</description>
     !#   <type>boolean</type>
-    !#   <cardinality>0..</cardinality>
+    !#   <cardinality>0..*</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>toleranceScale</name>
@@ -153,7 +153,7 @@ contains
     !#   <defaultValue>0.15d0</defaultValue>
     !#   <description>The tolerance scale used in deciding if a trial tree is an acceptable match.</description>
     !#   <type>real</type>
-    !#   <cardinality>0..</cardinality>
+    !#   <cardinality>0..*</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>retryMaximum</name>
@@ -161,7 +161,7 @@ contains
     !#   <defaultValue>50</defaultValue>
     !#   <description>The number of tree build attempts to complete before rescaling the tolerance.</description>
     !#   <type>integer</type>
-    !#   <cardinality>0..</cardinality>
+    !#   <cardinality>0..*</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>rescaleMaximum</name>
@@ -169,7 +169,7 @@ contains
     !#   <defaultValue>20</defaultValue>
     !#   <description>The maximum allowed number of tolerance rescalings.</description>
     !#   <type>integer</type>
-    !#   <cardinality>0..</cardinality>
+    !#   <cardinality>0..*</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>attemptsMaximum</name>
@@ -177,7 +177,7 @@ contains
     !#   <defaultValue>10000</defaultValue>
     !#   <description>The maximum allowed number of tree build attempts.</description>
     !#   <type>boolean</type>
-    !#   <cardinality>0..</cardinality>
+    !#   <cardinality>0..*</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massCutOffAttemptsMaximum</name>
@@ -185,7 +185,7 @@ contains
     !#   <defaultValue>50</defaultValue>
     !#   <description>The number of trees with nodes above the mass resolution to allow before adjusting the mass cut-off tolerance.</description>
     !#   <type>integer</type>
-    !#   <cardinality>0..</cardinality>
+    !#   <cardinality>0..*</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massCutOffScaleFactor</name>
@@ -193,7 +193,7 @@ contains
     !#   <defaultValue>0.05d0</defaultValue>
     !#   <description>The amount by which to increase the mass cut-off scale tolerance after exhausting tree build attempts.</description>
     !#   <type>real</type>
-    !#   <cardinality>0..</cardinality>
+    !#   <cardinality>0..*</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massOvershootAttemptsMaximum</name>
@@ -201,7 +201,7 @@ contains
     !#   <defaultValue>50</defaultValue>
     !#   <description>The number of failed trees to allow before increasing the mass of the parent node.</description>
     !#   <type>integer</type>
-    !#   <cardinality>0..</cardinality>
+    !#   <cardinality>0..*</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massOvershootScaleFactor</name>
@@ -209,7 +209,7 @@ contains
     !#   <defaultValue>0.05d0</defaultValue>
     !#   <description>The amount by which to increase the mass overshoot factor after exhausting tree build attempts.</description>
     !#   <type>real</type>
-    !#   <cardinality>0..</cardinality>
+    !#   <cardinality>0..*</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>useOneNodeTrees</name>
@@ -227,7 +227,7 @@ contains
        !#   <source>parameters</source>
        !#   <description>For {\normalfont \ttfamily augment} description of redshift snapshots.</description>
        !#   <type>real</type>
-       !#   <cardinality>0..</cardinality>
+       !#   <cardinality>0..*</cardinality>
        !# </inputParameter>
        do i=1,size(timeSnapshots)
           timeSnapshots(i)=cosmologyFunctions_ %cosmicTime                 (                  &

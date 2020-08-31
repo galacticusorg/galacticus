@@ -434,7 +434,7 @@ contains
     !#   <description>The name of the file(s) from which merger tree data should be read when using the {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\normalfont \ttfamily read} tree construction method.</description>
     !#   <source>parameters</source>
     !#   <type>string</type>
-    !#   <cardinality>1..</cardinality>
+    !#   <cardinality>1..*</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>forestSizeMaximum</name>
@@ -644,7 +644,7 @@ contains
        !#   <description>Names of real datasets to be additionally read and stored in the nodes of the merger tree when using the {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\normalfont \ttfamily read} tree construction method.</description>
        !#   <source>parameters</source>
        !#   <type>string</type>
-       !#   <cardinality>1..</cardinality>
+       !#   <cardinality>1..*</cardinality>
        !# </inputParameter>
     end if
     allocate(presetNamedIntegers(parameters%count('presetNamedIntegers',zeroIfNotPresent=.true.)))
@@ -654,7 +654,7 @@ contains
        !#   <description>Names of integer datasets to be additionally read and stored in the nodes of the merger tree when using the {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\normalfont \ttfamily read} tree construction method.</description>
        !#   <source>parameters</source>
        !#   <type>string</type>
-       !#   <cardinality>1..</cardinality>
+       !#   <cardinality>1..*</cardinality>
        !# </inputParameter>
     end if
     !# <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"                                                                                  />

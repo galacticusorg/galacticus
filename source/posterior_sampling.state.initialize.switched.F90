@@ -56,14 +56,14 @@ contains
     !#   <source>parameters</source>
     !#   <description>Names of parameters to be initialized by initializer number 1.</description>
     !#   <type>string</type>
-    !#   <cardinality>0..</cardinality>
+    !#   <cardinality>0..*</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>modelParameterName2</name>
     !#   <source>parameters</source>
     !#   <description>Names of parameters to be initialized by initializer number 2.</description>
     !#   <type>string</type>
-    !#   <cardinality>0..</cardinality>
+    !#   <cardinality>0..*</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="posteriorSampleStateInitialize" name="stateInitializeMethod1" parameterName="posteriorSampleStateInitializeMethod1" source="parameters"/>
     !# <objectBuilder class="posteriorSampleStateInitialize" name="stateInitializeMethod2" parameterName="posteriorSampleStateInitializeMethod2" source="parameters"/>

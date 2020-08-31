@@ -10,7 +10,6 @@ use LaTeX::Encode;
 use Fcntl qw(SEEK_SET);
 use UNIVERSAL;
 use Fortran::Utils;
-use Galacticus::Doc::Parameters;
 
 # Scan Fortran90 source code and extract various useful data from "!@" lines.
 # Andrew Benson 12-Mar-2010
@@ -50,8 +49,6 @@ while ( my $fileName = readdir(dirHndl) ) {
 closedir(dirHndl);
 
 # Initialize data hashes.
-my %parametersRead;
-my %parametersData;
 my %objects;
 my %enumerations;
 my @emptyDefaults;
@@ -165,11 +162,6 @@ foreach my $fileName ( @fileNames ) {
 		}
 	    }
 	    
-	    # Check for parameter reading lines - used to check that all parameters are documented.
-	    if ( $rawLine =~ m/^\s*call\s+get_input_parameter\s*\(\s*[\"\']\s*(\w+)\s*[\"\']/i ) {
-		$parametersRead{$1} .= $fileName." ";
-	    }
-	    
 	    # Search for "!@".
 	    my $process = 0;
 	    if ( $rawLine =~ m/^\s*(\!|\/\/)\@\s/ ) {
@@ -209,99 +201,6 @@ foreach my $fileName ( @fileNames ) {
 			($enumerations{$contents->{'name'}}->{'module'     } = $programUnits[$programUnitIndex]) =~ s/^module://;
 			$enumerations {$contents->{'name'}}->{'file'       } = $leafName;
 			    $enumerations {$contents->{'name'}}->{'description'} = $contents->{'description'};
-		    } elsif ( $dataType eq "inputParameter" ) {
-			# Handle parameters defined as regular expressions.
-			if ( exists($contents->{'regEx'}) ) {
-			    $contents->{'name'} = "[regEx] ".latex_encode(&Galacticus::Doc::Parameters::ExpandRegEx($contents->{'regEx'},$sourceDir));
-			}
-			# Construct output data for this parameter.
-			(my $printName = $contents->{'name'}) =~ s/([^\\])_/$1\\_/g;
-			my $buffer  = "\\noindent {\\normalfont \\bfseries Name:} {\\normalfont \\ttfamily ".$printName."}\\\\\n";
-			$buffer .= "{\\normalfont \\bfseries Attached to:} ";
-			my $attachedTo;
-			my $attachedAt;
-			# Detect empty "defaultValue" elements.
-			if ( exists($contents->{'defaultValue'}) && UNIVERSAL::isa($contents->{'defaultValue'},"HASH") ) {
-			    push(
-				@emptyDefaults,
-				{
-				    name => $contents->{'name'},
-				    file => $fileNames[0]
-				}
-				);
-			    delete($contents->{'defaultValue'});
-			}
-			# Determine to what the parameter is attached.
-			if ( exists($contents->{'attachedTo'}) ) {
-			    my $programUnitIndex = scalar(@programUnits)-1;
-			    my $regEx = $contents->{'attachedTo'}.":";
-			    $programUnitIndex = -1 
-				unless ( defined($programUnits[$programUnitIndex]) );
-			    until ( $programUnitIndex == -1 || $programUnits[$programUnitIndex] =~ m/$regEx/ ) {
-				--$programUnitIndex
-			    }
-			    if ( $programUnitIndex >= 0 ) {
-				$attachedTo = "{\\normalfont \\ttfamily ".$programUnits[$programUnitIndex]."}";
-				$attachedAt = $programUnitIndex;
-			    } else {
-				$attachedTo = "unknown";
-				$attachedAt = -1;
-			    }
-			} else {
-			    $attachedTo = "{\\normalfont \\ttfamily ".$programUnits[-1]."}";
-			    $attachedAt = scalar(@programUnits)-1;
-			}
-			my $attachedLink = $leafName.":";
-			for(my $iAttach=0;$iAttach<=$attachedAt;++$iAttach) {
-			    if ( $programUnits[$iAttach] =~ m/^[^:]+:(.*)/ ) {
-				my $unitName = lc($1);
-				$unitName =~ s/\\_/_/g;
-				$attachedLink .= $unitName.":";
-			    }
-			}
-			$attachedLink =~ s/:$//;
-			$attachedLink =~ s/^work\/build\/(.*)\.p\.F90/$1.F90/;
-			my $targetPrefix;
-			my $targetSuffix;
-			if ( $attachedTo =~ m/:/ ) {
-			    $targetPrefix = "\\hyperlink{".$attachedLink."}{";
-			    $targetPrefix =~ s/\{\\tt\s+([^\}]+)\}/$1/;
-			    $targetPrefix =~ s/program:/prog:/;
-			    $targetPrefix =~ s/module:/mod:/;
-			    $targetPrefix =~ s/subroutine:/sub:/;
-			    $targetPrefix =~ s/function:/func:/;
-			    $targetSuffix = "}";
-			} else {
-			    $targetPrefix = "";
-			    $targetSuffix = "";
-			}
-			$attachedTo =~ s/_/\\_/g;
-			$buffer .= $targetPrefix.$attachedTo.$targetSuffix."\\\\\n";
-			(my $leafNameOriginal = $leafName) =~ s/^work\/build\/(.*)\.p\.F90/$1.F90/;
-			$buffer .= "{\\normalfont \\bfseries File:} \\hyperlink{".$leafNameOriginal."}{{\\normalfont \\ttfamily ".$leafNamePrint."}}\\\\\n";
-			$buffer .= "{\\normalfont \\bfseries Default value:} ";
-			if ( exists($contents->{'defaultValue'}) ) {
-			    $buffer .= $contents->{'defaultValue'};
-			} else {
-			    $buffer .= "none";
-			}
-			$buffer .= "\\\\\n";
-			$buffer .= "{\\normalfont \\bfseries Description:} ".$contents->{'description'};
-			$buffer .= "\\\\" unless ( $buffer =~ m/\}\s*$/ );
-			$buffer .= "\n\n";
-			my $descriptor = 
-			{
-			    description      => $buffer      ,
-			    file             => $fileNames[0],
-			    attachmentStatus => $attachedTo 
-			};
-			# Use this instance of this parameter description if it is the first
-			# instance seen, or if previous instances had unknown attachment status.
-			my $useThisInstance = 1;
-			$useThisInstance = 0
-			    if ( exists($parametersData{$contents->{'name'}}) && $parametersData{$contents->{'name'}}->{'attachmentStatus'} ne "unknown" );
-			$parametersData{$contents->{'name'}} = $descriptor
-			    if ( $useThisInstance == 1 );
 		    } elsif ( $dataType eq "objectMethod" ) {
 			my $object = lc($contents->{'object'});
 			$objects{$object}->{'methods'}->{lc($contents->{'method'})}->{'method'     } = $contents->{'method'     };
@@ -373,14 +272,7 @@ while ( $foundExtensions == 1 ) {
 }
 
 # Open output files.
-open(parametersHndl,">".$outputRoot."Parameters.tex");
 open(methodHndl    ,">".$outputRoot."Methods.tex");
-
-# Write parameter descriptions.
-my @sortedParameters = sort(keys(%parametersData));
-foreach my $parameterName ( @sortedParameters ) {
-    print parametersHndl $parametersData{$parameterName}->{'description'};
-}
 
 # Write method descriptions.
 foreach my $object ( sort(keys(%objects)) ) {
@@ -421,21 +313,7 @@ foreach my $object ( sort(keys(%objects)) ) {
 }
 
 # Close the output files.
-close(parametersHndl);
 close(methodHndl);
-
-# Write warning messages about missing data.
-foreach my $parameterRead ( keys(%parametersRead) ) {
-    unless ( exists($parametersData{$parameterRead}) ) {
-	print "Warning: missing data for input parameter [".$parameterRead."] in file ".$parametersRead{$parameterRead}."\n";
-    }
-}
-
-# Write warning messages about unknown attachments.
-foreach ( keys(%parametersRead) ) {
-    print "Warning: unknown attachment for input parameter [".$_."] in file ".$parametersData{$_}->{'file'}."\n"
-	if ( $parametersData{$_}->{'attachmentStatus'} eq "unknown" );
-}
 
 # Write warning messages about empty default values.
 foreach ( @emptyDefaults ) {

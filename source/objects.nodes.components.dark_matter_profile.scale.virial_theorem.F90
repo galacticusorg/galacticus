@@ -41,7 +41,7 @@ module Node_Component_Scale_Virial_Theorem
   !#  <properties>
   !#   <property>
   !#     <name>scale</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="megaParsec" comment="Scale radius of the dark matter profile [Mpc]."/>
@@ -49,13 +49,13 @@ module Node_Component_Scale_Virial_Theorem
   !#   </property>
   !#   <property>
   !#     <name>scaleGrowthRate</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
   !#   <property>
   !#     <name>scaleIsLimited</name>
-  !#     <type>boolean</type>
+  !#     <type>logical</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>.true.</classDefault>

@@ -34,7 +34,7 @@ module Node_Component_Formation_Times_Cole2000
   !#  <properties>
   !#   <property>
   !#     <name>formationTime</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
   !#     <getFunction bindsTo="component">FormationTimeCole2000FormationTime</getFunction>

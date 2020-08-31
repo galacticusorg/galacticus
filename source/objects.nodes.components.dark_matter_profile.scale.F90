@@ -38,7 +38,7 @@ module Node_Component_Dark_Matter_Profile_Scale
   !#  <properties>
   !#   <property>
   !#     <name>scale</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="get" />
   !#     <output unitsInSI="megaParsec" comment="Scale radius of the dark matter profile [Mpc]."/>
@@ -46,13 +46,13 @@ module Node_Component_Dark_Matter_Profile_Scale
   !#   </property>
   !#   <property>
   !#     <name>scaleGrowthRate</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
   !#   <property>
   !#     <name>scaleIsLimited</name>
-  !#     <type>boolean</type>
+  !#     <type>logical</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>.true.</classDefault>

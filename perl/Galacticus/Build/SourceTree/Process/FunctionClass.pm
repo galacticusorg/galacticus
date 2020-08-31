@@ -411,10 +411,19 @@ sub Process_FunctionClass {
 					# A regular expression parameter. Currently not supported.
 					$supported = -2;
 					push(@failureMessage,"regular expression parameter [".$constructorNode->{'directive'}->{'regEx'}."] not supported");
+
+					print Dumper($nonAbstractClass);
+					die('REGEX PARAMETER SHOULD NOT EXIST');
+
 				    } elsif ( exists($constructorNode->{'directive'}->{'iterator'}) ) {
 					# A parameter whose name iterates over a set of possible names. Currently not supported.
 					$supported = -3;
 					push(@failureMessage,"iterator parameter [".$constructorNode->{'directive'}->{'iterator'}."] not supported");
+
+					print Dumper($nonAbstractClass);
+					die('ITERATOR PARAMETER SHOULD NOT EXIST');
+
+					
 				    }
 				} else {
 				    $supported = -4;
@@ -3405,6 +3414,76 @@ CODE
 		my $class = $classes{$className};
 		$documentation   .= "\\item[{\\normalfont \\ttfamily ".$class->{'name'}."}] ".$class->{'description'};
 		$documentation   .= " \\iflabelexists{phys:".$directive->{'name'}.":".$class->{'name'}."}{See \\S\\ref{phys:".$directive->{'name'}.":".$class->{'name'}."}.}{}\n";
+
+
+		# Search the tree for this class to find the interface to the parameters constructor.
+		my $node = $classes{$className}->{'tree'}->{'firstChild'};
+		$node = $node->{'sibling'}
+		    while ( $node && ( $node->{'type'} ne "interface" || ( ! exists($node->{'name'}) || $node->{'name'} ne $className) ) );
+		next
+		    unless ( $node );
+		# Find all constructor names.
+		$node = $node->{'firstChild'};
+		my @constructors;
+		while ( $node ) {
+		    push(@constructors,@{$node->{'names'}})
+			if ( $node->{'type'} eq "moduleProcedure" );
+		    $node = $node->{'sibling'};
+		}
+		# Search for constructors.
+		$node = $classes{$className}->{'tree'}->{'firstChild'};
+		my @objects;
+		my @parameters;
+		while ( $node ) {
+		    # Identify constructor functions.
+		    if ( $node->{'type'} eq "function" && (grep {$_ eq $node->{'name'}} @constructors) ) {
+			my $constructorNode = $node->{'firstChild'};
+			my $depth           = 0;
+			while ( $constructorNode ) {
+			    # Process node.			  
+			    if ( $constructorNode->{'type'} eq "inputParameter" ) {
+				my $description =  "\\item[{\\normalfont \\ttfamily [".latex_encode($constructorNode->{'directive'}->{'name'})."]}] ";
+				$description .= "(".$constructorNode->{'directive'}->{'type'}."; ".$constructorNode->{'directive'}->{'cardinality'}.") ";
+				if ( exists($constructorNode->{'directive'}->{'defaultValue'}) ) {
+				    my $value = latex_encode($constructorNode->{'directive'}->{'defaultValue'});
+				    $value = "true"
+					if ( $value eq ".true." );
+				    $value = "false"
+					if ( $value eq ".false." );
+				    if ( $constructorNode->{'directive'}->{'type'} eq "real" ) {
+					$value =~ s/(\d)d([\+\-0-9])/$1e$2/g;
+				    }
+				    if ( $constructorNode->{'directive'}->{'type'} eq "integer" ) {
+					$value =~ s/\\_c\\_size\\_t//;
+				    }
+				    if ( $constructorNode->{'directive'}->{'type'} eq "string" ) {
+					$value =~ s/^var\\_str\(['"](.*)['"]\)/$1/;
+				    }
+				    $description .= " \\{{\\normalfont \\ttfamily ".$value."}".(exists($constructorNode->{'directive'}->{'defaultSource'}) ? "; ".$constructorNode->{'directive'}->{'defaultSource'} : "")."\\} ";
+				}
+				$description .= $constructorNode->{'directive'}->{'description'};
+				push(
+				    @parameters,
+				    $description	   
+				    );
+			    }
+			    if ( $constructorNode->{'type'} eq "objectBuilder" ) {				
+				push(
+				    @objects,
+				    $constructorNode->{'directive'}->{'class'}
+				    );
+			    }
+			    $constructorNode = &Galacticus::Build::SourceTree::Walk_Tree($constructorNode,\$depth);
+			    last
+				if ( $depth < 0 );
+			}
+		    }
+		    $node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
+		}
+		$documentation .= "\n\\textbf{Parameters:}\n\\begin{description}\n".join("\n",@parameters)."\\end{description}\n"
+		    if ( @parameters );
+		$documentation .= "\n\\textbf{Objects:}\n\\begin{itemize}\n".join("\n",map {"\\item {\\normalfont \\ttfamily ".latex_encode($_)."}"} sort(@objects))."\\end{itemize}\n"
+		    if ( @objects );
 	    }
 	    $documentation   .= "\\end{description}\n\n";
 	    system("mkdir -p doc/methods");

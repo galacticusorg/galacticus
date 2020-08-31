@@ -177,7 +177,8 @@ contains
          &                                                                                      likelihoodNormalize
 
     ! Check and read parameters.
-    !# <objectBuilder class="nodePropertyExtractor"      name="nodePropertyExtractor_"      source="parameters"          />
+    unoperatorParameters=parameters%subParameters('unoperatorParameters',requireValue=.false.)
+    !# <objectBuilder class="nodePropertyExtractor"                name="nodePropertyExtractor_"                source="parameters"          />
     !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyOperator_"       source="parameters"          />
     !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyUnoperator_"     source="unoperatorParameters"/>
     !# <objectBuilder class="outputAnalysisWeightOperator"         name="outputAnalysisWeightOperator_"         source="parameters"          />
@@ -185,7 +186,6 @@ contains
     !# <objectBuilder class="outputAnalysisDistributionNormalizer" name="outputAnalysisDistributionNormalizer_" source="parameters"          />
     !# <objectBuilder class="galacticFilter"                       name="galacticFilter_"                       source="parameters"          />
     !# <objectBuilder class="outputTimes"                          name="outputTimes_"                          source="parameters"          />
-    unoperatorParameters=parameters%subParameters('unoperatorParameters',requireValue=.false.)
     call allocateArray(binCenter   ,[int(parameters%count('binCenter'),kind=c_size_t)                          ])
     call allocateArray(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t)*self%outputTimes_%count()])
     if (parameters%count('outputWeight') /= parameters%count('binCenter')*self%outputTimes_%count()) &

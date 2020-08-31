@@ -40,7 +40,7 @@ module Node_Component_Hot_Halo_Outflow_Tracking
   !#  <properties>
   !#   <property>
   !#     <name>trackedOutflowMass</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar" comment="Mass in the hot phase of the hot halo arrived via direct outflow."/>

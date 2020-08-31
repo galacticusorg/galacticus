@@ -55,9 +55,7 @@ sub Process_InputParameters {
 	if ( $node->{'type'} eq "inputParameter" && ! $node->{'directive'}->{'processed'} ) {
 	    # Generate source code for the input parameter.
 	    $node->{'directive'}->{'processed'} =  1;
-	    my $nameForFile;
-	    my $nameForDocumentation;
-	    my $inputParameterSource                ;
+	    my $inputParameterSource;
 	    $inputParameterSource .= "  ! Auto-generated input parameter\n";
 	    if ( exists($node->{'directive'}->{'name'}) ) {
 		# Simple parameter defined by a name.
@@ -81,22 +79,6 @@ sub Process_InputParameters {
 		$inputParameterSource .= ",writeOutput=".($node->{'directive'}->{'writeOutput'} eq "no" ? ".false." : ".true.")
 		    if ( exists($node->{'directive'}->{'writeOutput'}) );
 		$inputParameterSource .= ")\n";
-		# Use raw name for file and documentation.
-		$nameForFile          = $node->{'directive'}->{'name'};
-		$nameForDocumentation = $node->{'directive'}->{'name'};
-		if ( $node->{'directive'}->{'name'} =~ m/\(/ ) {
-		    # Parameter name is a function.
-		    $nameForFile          =~ s/[^a-zA-Z0-9_]//g;
-		    $nameForDocumentation =  "determined at run time";
-		}
-		$nameForDocumentation = latex_encode($node->{'directive'}->{'regEx'})
-		    if ( exists($node->{'directive'}->{'regEx'}) );
-		# Add suffix to file name to avoid conflicts between parameters with identical names.
-		my $nodeFile = $node;
-		while ( $nodeFile->{'type'} ne "file" ) {
-		    $nodeFile = $nodeFile->{'parent'};
-		}
-		$nameForFile .= "_".substr(md5_hex($nodeFile->{'name'}),0,6);
 	    }
 	    $inputParameterSource .= "  ! End auto-generated input parameter\n\n";
 	    # Create a new node.
@@ -136,86 +118,9 @@ sub Process_InputParameters {
 		    die("Process_InputParameters(): missing property '".$property."'");
 		}
 	    }
-	    # Create documentation.
-	    system("mkdir -p doc/inputParameters");
-	    open(my $defHndl,">doc/inputParameters/".$nameForFile.".tex");
-	    print $defHndl "\\noindent {\\normalfont \\bfseries Name:} {\\normalfont \\ttfamily ".latex_encode($nameForDocumentation)."}\\\\\n";
-	    my $definedIn;
-	    my @hyperTarget;
-	    my $fileIn;
-	    my $parent = $node->{'parent'};
-	    while ( $parent ) {
-		if ( exists($parent->{'name'}) ) {
-		    $definedIn = $parent->{'type'}.":".latex_encode($parent->{'name'})
-			if (
-			    ! $definedIn
-			    &&
-			    (
-			     $parent->{'type'} eq "module" 
-			     ||
-			     $parent->{'type'} eq "subroutine"
-			     ||
-			     $parent->{'type'} eq "function"
-			     ||
-			     $parent->{'type'} eq "program"
-			    )
-			);
-		    $fileIn = $parent->{'name'}
-		        if ( $parent->{'type'} eq "file" );
-		    if ( $definedIn ) {
-			my $hyperTargetName = $parent->{'name'};
-			$hyperTargetName = lc($hyperTargetName)
-			    unless ( $parent->{'type'} eq "file" );
-			unshift(@hyperTarget,$hyperTargetName);
-		    }
-		}
-		$parent = $parent->{'parent'};
-	    }
-	    print $defHndl "{\\normalfont \\bfseries Type:} ".$node->{'directive'}->{'type'}." ".$node->{'directive'}->{'cardinality'}."\\\\\n";	    
-	    if ( exists($node->{'directive'}->{'defaultValue'}) ) {
-		my $defaultValue = $node->{'directive'}->{'defaultValue'};
-		if ( $defaultValue =~ m/^\s*([\d\.]+)d(\+|\-)?(\d+)\s*$/ ) {
-		    my $number     = $1;
-		    my $sign       = $2;
-		    my $exponent   = $3;
-		    $defaultValue  = "\$".$number;
-		    if ( $exponent != 0 ) {
-			$defaultValue .= " \\times 10^{";
-			$defaultValue .= "-"
-			    if ( $sign && $sign eq "-" );
-			$defaultValue .= $exponent."}";
-		    }
-		    $defaultValue   .= "\$";
-		} else {
-		    $defaultValue = latex_encode($defaultValue);
-		}
-		print $defHndl "{\\normalfont \\bfseries Default value:} ".$defaultValue;
-		print $defHndl " ".$node->{'directive'}->{'defaultSource'}
-		    if ( exists($node->{'directive'}->{'defaultSource'}) );
-		print $defHndl "\\\\\n";
-	    }
-	    print $defHndl "{\\normalfont \\bfseries Description:} ".$node->{'directive'}->{'description'};
-	    print $defHndl ($node->{'directive'}->{'description'} =~ m/\\end\{[a-z]+\}\s*$/ ? "" : " \\\\")."\n";	    
-	    if ( $fileIn =~ m/\.Inc$/ ) {
-		print $defHndl "{\\normalfont \\bfseries Defined in:} {\\normalfont \\ttfamily ".$definedIn."}\\\\\n";
-		print $defHndl "{\\normalfont \\bfseries File:} {\\normalfont \\ttfamily ".latex_encode($fileIn)."}\\\\\n";
-	    } else {
-		print $defHndl "{\\normalfont \\bfseries Defined in:} \\hyperlink{".join(":",@hyperTarget)."}{{\\normalfont \\ttfamily ".$definedIn."}}\\\\\n";
-		print $defHndl "{\\normalfont \\bfseries File:} \\hyperlink{".$fileIn."}{{\\normalfont \\ttfamily ".latex_encode($fileIn)."}}\\\\\n";
-	    }
-	    print $defHndl "{\\normalfont \\bfseries Used by:} ".join(", ",map {"\\hyperlink{".&replace($_,qr/\.exe$/s,".F90")."}{\\normalfont \\ttfamily ".latex_encode($_)."}"} @influencedExecutableNames)."\\\\\n\n";
-	    close($defHndl);
 	}
 	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }
-}
-
-sub replace {
-    my $text    = shift();
-    my $regEx   = shift();
-    my $replace = shift();
-    $text =~ s/$regEx/$replace/;
-    return $text;
 }
 
 1;

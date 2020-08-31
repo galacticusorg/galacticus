@@ -63,7 +63,7 @@ contains
     !#   <source>parameters</source>
     !#   <description>The mass points used to define a piecewise power-law initial mass function.</description>
     !#   <type>real</type>
-    !#   <cardinality>1..</cardinality>
+    !#   <cardinality>1..*</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponent</name>
@@ -71,7 +71,7 @@ contains
     !#   <source>parameters</source>
     !#   <description>The exponents used to define a piecewise power-law initial mass function.</description>
     !#   <type>real</type>
-    !#   <cardinality>1..</cardinality>
+    !#   <cardinality>1..*</cardinality>
     !# </inputParameter>
     self=initialMassFunctionPiecewisePowerLaw(mass,exponent)
     !# <inputParametersValidate source="parameters"/>

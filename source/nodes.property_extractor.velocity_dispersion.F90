@@ -72,7 +72,7 @@ contains
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
     !# <inputParameter>
     !#   <name>radiusSpecifiers</name>
-    !#   <cardinality>1..</cardinality>
+    !#   <cardinality>1..*</cardinality>
     !#   <description>A list of radius specifiers at which to output the velocity dispersion.</description>
     !#   <source>parameters</source>
     !#   <type>real</type>

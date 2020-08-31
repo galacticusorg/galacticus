@@ -38,7 +38,7 @@ module Node_Component_Position_Preset_Orphans
   !#  <properties>
   !#   <property>
   !#     <name>position</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <getFunction bindsTo="component">PositionPresetOrphansPosition</getFunction>
@@ -47,13 +47,13 @@ module Node_Component_Position_Preset_Orphans
   !#   </property>
   !#   <property>
   !#     <name>positionOrphan</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="get" />
   !#   </property>
   !#   <property>
   !#     <name>velocity</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <getFunction bindsTo="component">PositionPresetOrphansVelocity</getFunction>
@@ -62,13 +62,13 @@ module Node_Component_Position_Preset_Orphans
   !#   </property>
   !#   <property>
   !#     <name>velocityOrphan</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="get" />
   !#   </property>
   !#   <property>
   !#     <name>timeAssign</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
