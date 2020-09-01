@@ -120,8 +120,8 @@ contains
     rateOutflowTotal=+rateOutflowEjective  &
          &           +rateOutflowExpulsive
     ! Compute dynamical timescale.
-    if (velocity <= 0.0d0) then
-       ! Velocity is zero, so dynamical timescale is undefined. This is acceptable only if the ouflow rate is zero.
+    if (velocity <= 0.0d0 .or. radius <= 0.0d0) then
+       ! Velocity and/or radius is zero, so dynamical timescale is undefined. This is acceptable only if the ouflow rate is zero.
        timescaleDynamical=1.0d0
        if (rateOutflowTotal > 0.0d0) call Galacticus_Error_Report('outflow in unphysical component'//{introspection:location})
     else
