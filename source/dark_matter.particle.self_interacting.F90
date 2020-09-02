@@ -34,12 +34,19 @@
      !@     <method>crossSectionSelfInteraction</method>
      !@     <type>\doublezero</type>
      !@     <arguments></arguments>
-     !@     <description>Return the self-interaction cross section of the dark matter particle.</description>
+     !@     <description>Return the self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>crossSectionSelfInteractionDifferential</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>double precision, intent(in   ) :: theta</arguments>
+     !@     <description>Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\Omega$, of the dark matter particle in units of cm$^2$ g$^{-1}$ ster$^{-1}$.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                                selfInteractingDMDestructor
-     procedure :: mass                        => selfInteractingDMMass
-     procedure :: crossSectionSelfInteraction => selfInteractingDMCrossSectionSelfInteraction
+     final     ::                                            selfInteractingDMDestructor
+     procedure :: mass                                    => selfInteractingDMMass
+     procedure :: crossSectionSelfInteraction             => selfInteractingDMCrossSectionSelfInteraction
+     procedure :: crossSectionSelfInteractionDifferential => selfInteractingDMCrossSectionSelfInteractionDifferential
   end type darkMatterParticleSelfInteractingDarkMatter
 
   interface darkMatterParticleSelfInteractingDarkMatter
@@ -112,3 +119,17 @@ contains
     selfInteractingDMCrossSectionSelfInteraction=self%crossSectionSelfInteraction_
     return
   end function selfInteractingDMCrossSectionSelfInteraction
+
+  double precision function selfInteractingDMCrossSectionSelfInteractionDifferential(self,theta)
+    !% Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\theta$, in units of cm$^2$ g$^{-1}$
+    !% ster$^{-1}$, of a self-interacting dark matter particle.
+    implicit none
+    class           (darkMatterParticleSelfInteractingDarkMatter), intent(inout) :: self
+    double precision                                             , intent(in   ) :: theta
+
+    ! Currently isotropic scattering is assumed.
+    selfInteractingDMCrossSectionSelfInteractionDifferential=+self%crossSectionSelfInteraction() &
+         &                                                   *0.5d0                              &
+         &                                                   *sin(theta)
+    return
+  end function selfInteractingDMCrossSectionSelfInteractionDifferential
