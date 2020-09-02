@@ -59,8 +59,6 @@ contains
     !#   <name>massThreshold</name>
     !#   <source>parameters</source>
     !#   <description>The parameter $M_0$ (in units of $M_\odot$) appearing in the mass threshold for the halo mass galactic filter class.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     self=galacticFilterHaloMass(massThreshold,virialDensityContrast_)

@@ -66,11 +66,9 @@ contains
 
     !# <inputParameter>
     !#   <name>sample</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('all')</defaultValue>
     !#   <description>The sample to use for the halo shape parameter algorithm of \cite{klypin_multidark_2014}.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !#   <variable>sampleText</variable>
     !# </inputParameter>
     !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>

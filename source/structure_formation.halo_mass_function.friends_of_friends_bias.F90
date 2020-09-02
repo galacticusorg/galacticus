@@ -75,8 +75,6 @@ contains
     !#   <name>massParticle</name>
     !#   <source>parameters</source>
     !#   <description>Parameter $M_\mathrm{particle}$ appearing in model for friends-of-friends errors in the halo mass function.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massInfiniteToMassSharpEdge</name>
@@ -84,22 +82,16 @@ contains
     !#   <defaultValue>0.98d0</defaultValue>
     !#   <defaultSource>\cite[estimate based on comments in text]{more_overdensity_2011}</defaultSource>
     !#   <description>The ratio of the friends-of-friends mass in the limit of infinite number of particles to the mass of the halo enclosed within a sharp-edged sphere bounding an isodensity surface equal to the critical density for percolation.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>linkingLength</name>
     !#   <source>parameters</source>
     !#   <description>The linking length (in physical Mpc) used in the friends-of-friends algorithm.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>linkingLengthIsComoving</name>
     !#   <source>parameters</source>
     !#   <description>Specifies whether or not the given linking length is in comoving units.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"  name="cosmologyParameters_"  source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>

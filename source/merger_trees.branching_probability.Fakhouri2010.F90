@@ -62,57 +62,45 @@ contains
 
     !# <inputParameter>
     !#   <name>alpha</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.133d0</defaultValue>
     !#   <defaultSource>\citep{fakhouri_merger_2010}</defaultSource>
     !#   <description>The parameter $\alpha$ appearing in equation~(1) of \cite{fakhouri_merger_2010}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>beta</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>-1.995d0</defaultValue>
     !#   <defaultSource>\citep{fakhouri_merger_2010}</defaultSource>
     !#   <description>The parameter $\beta$ appearing in equation~(1) of \cite{fakhouri_merger_2010}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gamma</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.263d0</defaultValue>
     !#   <defaultSource>\citep{fakhouri_merger_2010}</defaultSource>
     !#   <description>The parameter $\gamma$ appearing in equation~(1) of \cite{fakhouri_merger_2010}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>eta</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0993d0</defaultValue>
     !#   <defaultSource>\citep{fakhouri_merger_2010}</defaultSource>
     !#   <description>The parameter $\eta$ appearing in equation~(1) of \cite{fakhouri_merger_2010}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>A</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0104d0</defaultValue>
     !#   <defaultSource>\citep{fakhouri_merger_2010}</defaultSource>
     !#   <description>The parameter $A$ appearing in equation~(1) of \cite{fakhouri_merger_2010}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>xiBar</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>9.72d-3</defaultValue>
     !#   <defaultSource>\citep{fakhouri_merger_2010}</defaultSource>
     !#   <description>The parameter $\bar{\xi}$ appearing in equation~(1) of \cite{fakhouri_merger_2010}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>

@@ -71,60 +71,44 @@ contains
 
     !# <inputParameter>
     !#   <name>gammaInitial</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The initial proposal size, $\gamma$.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gammaMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum allowed proposal size, $\gamma$.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gammaMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum allowed proposal size, $\gamma$.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gammaAdjustFactor</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The factor by which to adjust the proposal size, $\gamma$.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>acceptanceRateMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum acceptable acceptance rate.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>acceptanceRateMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum acceptable acceptance rate.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>updateCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of steps between potential updates of the proposal size.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outliersInAcceptanceRate</name>
     !#   <defaultValue>.true.</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of steps between potential updates of the proposal size.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=posteriorSampleDffrntlEvltnProposalSizeAdaptive(gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate)
     !# <inputParametersValidate source="parameters"/>

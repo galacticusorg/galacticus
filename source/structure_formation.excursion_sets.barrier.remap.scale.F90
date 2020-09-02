@@ -59,8 +59,6 @@ contains
     !#   <variable>factor</variable>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The factor by which to rescale the excursion set barrier.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>applyTo</name>
@@ -68,8 +66,6 @@ contains
     !#   <variable>self%applyToText</variable>
     !#   <defaultValue>var_str('nonRates')</defaultValue>
     !#   <description>Specifies whether rescaling is to be applied to the barrier when used for rate calculation, for other calculations, or both.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
     self=excursionSetBarrierRemapScale(factor,enumerationExcursionSetRemapEncode(char(self%applyToText),includesPrefix=.false.),excursionSetBarrier_)

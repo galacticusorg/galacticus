@@ -63,35 +63,27 @@ contains
 
     !# <inputParameter>
     !#   <name>wavelength</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d4</defaultValue>
     !#   <description>The wavelength of the photon packet (in \AA).</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>wavelengthMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.5d4</defaultValue>
     !#   <description>The minimum wavelength of the photon packet (in \AA).</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>wavelengthMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.0d4</defaultValue>
     !#   <description>The maximum wavelength of the photon packet (in \AA).</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>luminosity</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The luminosity of the photon packet (in $L_\odot$).</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=radiativeTransferPhotonPacketSimple(wavelength,wavelengthMinimum,wavelengthMaximum,luminosity)
     !# <inputParametersValidate source="parameters"/>

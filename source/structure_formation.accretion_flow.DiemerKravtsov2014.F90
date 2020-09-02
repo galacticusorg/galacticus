@@ -75,8 +75,6 @@ contains
     !#   <defaultValue>+1.1250d0</defaultValue>
     !#   <defaultSource>Derived by Andrew Benson by constructing simple functional forms which fit the plots in figure 18 of \cite{diemer_dependence_2014}.</defaultSource>
     !#   <description>The parameter $b_0$ in the fitting function $b(\nu,z)=b_0 (1+z)^{b_z} \nu^{b_\nu}$ for the parameter $b(\nu,z)$ appearing in equation (4) of \cite{diemer_dependence_2014}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>bz</name>
@@ -84,8 +82,6 @@ contains
     !#   <defaultValue>+0.625d0</defaultValue>
     !#   <defaultSource>Derived by Andrew Benson by constructing simple functional forms which fit the plots in figure 18 of \cite{diemer_dependence_2014}.</defaultSource>
     !#   <description>The parameter $b_z$ in the fitting function $b(\nu,z)=b_0 (1+z)^{b_z} \nu^{b_\nu}$ for the parameter $b(\nu,z)$ appearing in equation (4) of \cite{diemer_dependence_2014}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>bnu</name>
@@ -93,8 +89,6 @@ contains
     !#   <defaultValue>-0.2250d0</defaultValue>
     !#   <defaultSource>Derived by Andrew Benson by constructing simple functional forms which fit the plots in figure 18 of \cite{diemer_dependence_2014}.</defaultSource>
     !#   <description>The parameter $b_\nu$ in the fitting function $b(\nu,z)=b_0 (1+z)^{b_z} \nu^{b_\nu}$ for the parameter $b(\nu,z)$ appearing in equation (4) of \cite{diemer_dependence_2014}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>s0</name>
@@ -102,8 +96,6 @@ contains
     !#   <defaultValue>+1.3925d0</defaultValue>
     !#   <defaultSource>Derived by Andrew Benson by constructing simple functional forms which fit the plots in figure 18 of \cite{diemer_dependence_2014}.</defaultSource>
     !#   <description>The parameter $s_0$ in the fitting function $s(\nu,z)=s_0 (1+z)^{s_z} \nu^{s_\nu}$ for the parameter $s(\nu,z)$ appearing in equation (4) of \cite{diemer_dependence_2014}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sz</name>
@@ -111,8 +103,6 @@ contains
     !#   <defaultValue>-0.199d0</defaultValue>
     !#   <defaultSource>Derived by Andrew Benson by constructing simple functional forms which fit the plots in figure 18 of \cite{diemer_dependence_2014}.</defaultSource>
     !#   <description>The parameter $s_z$ in the fitting function $s(\nu,z)=s_0 (1+z)^{s_z} \nu^{s_\nu}$ for the parameter $s(\nu,z)$ appearing in equation (4) of \cite{diemer_dependence_2014}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>snu</name>
@@ -120,8 +110,6 @@ contains
     !#   <defaultValue>+0.0875d0</defaultValue>
     !#   <defaultSource>Derived by Andrew Benson by constructing simple functional forms which fit the plots in figure 18 of \cite{diemer_dependence_2014}.</defaultSource>
     !#   <description>The parameter $s_\nu$ in the fitting function $s(\nu,z)=s_0 (1+z)^{s_z} \nu^{s_\nu}$ for the parameter $s(\nu,z)$ appearing in equation (4) of \cite{diemer_dependence_2014}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>

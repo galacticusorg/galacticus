@@ -94,16 +94,12 @@ contains
     !#   <name>fileName</name>
     !#   <source>parameters</source>
     !#   <description>The name of the file to read.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>label</name>
     !#   <source>parameters</source>
     !#   <description>A label for the simulation</description>
     !#   <defaultValue>var_str('primary')</defaultValue>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     if (parameters%isPresent('readColumns')) then
        allocate(readColumnsText(parameters%count('readColumns')))
@@ -113,8 +109,6 @@ contains
        !#   <source>parameters</source>
        !#   <variable>readColumnsText</variable>
        !#   <description>The names of additional columns to read.</description>
-       !#   <type>string</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
        do i=1,size(readColumns)
           readColumns(i)=enumerationRockstarColumnEncode(char(readColumnsText(i)),includesPrefix=.false.)

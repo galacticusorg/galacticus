@@ -73,20 +73,16 @@ contains
 
     !# <inputParameter>
     !#   <name>factor</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultSource>\citep{mo_formation_1998}</defaultSource>
     !#   <defaultValue>sqrt(0.5d0)</defaultValue>
     !#   <description>The ratio of galaxy radius to $\lambda r_\mathrm{vir}$ in the ``fixed'' galactic structure radius solver algorithm.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>radiusFixed</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('virial')</defaultValue>
     !#   <description>The radius to use in the ``fixed'' galactic structure radius solver algorithm. Allowed options are ``virial'' and ``turnaround''.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>

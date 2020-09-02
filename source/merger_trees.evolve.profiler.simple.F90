@@ -68,27 +68,21 @@ contains
 
     !# <inputParameter>
     !#   <name>timeStepMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-6</defaultValue>
     !#   <description>The smallest timestep to use in profiling ODE solver steps.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeStepMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d+1</defaultValue>
     !#   <description>The largest timestep to use in profiling ODE solver steps.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeStepPointsPerDecade</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>3</defaultValue>
     !#   <description>The number of bins per decade of timestep to use when profiling ODE solver steps.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     self=mergerTreeEvolveProfilerSimple(timeStepMinimum,timeStepMaximum,timeStepPointsPerDecade)
     !# <inputParametersValidate source="parameters"/>

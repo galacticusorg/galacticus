@@ -59,10 +59,8 @@ contains
     !# <inputParameter>
     !#   <name>temperature</name>
     !#   <variable>temperature_</variable>
-    !#   <cardinality>1</cardinality>
     !#   <description>The temperature of the black body radiation field.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=radiationFieldBlackBody(temperature_)
     !# <inputParametersValidate source="parameters"/>

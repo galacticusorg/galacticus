@@ -51,11 +51,9 @@ contains
 
     !# <inputParameter>
     !#   <name>topLevel</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, output the index of the host at the top level of the hierarchy, otherwise output the index of the direct host.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
      self=nodePropertyExtractorIndicesHost(topLevel)
     !# <inputParametersValidate source="parameters"/>

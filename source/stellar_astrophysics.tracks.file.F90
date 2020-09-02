@@ -84,8 +84,6 @@ contains
     !#   <name>fileName</name>
     !#   <defaultValue>galacticusPath(pathTypeDataStatic)//'stellarAstrophysics/Stellar_Tracks_Padova.hdf5'</defaultValue>
     !#   <description>The name of the HDF5 file from which to read stellar tracks.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !#   <source>parameters</source>
     !# </inputParameter>
     self=stellarTracksFile(char(fileName))

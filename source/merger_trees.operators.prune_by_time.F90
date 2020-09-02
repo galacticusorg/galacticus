@@ -53,8 +53,6 @@ contains
     !#   <variable>pruneByTimeConstructorParameters%timeEarliest</variable>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>Redshift at which to truncate merger tree branches.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMinimum</name>
@@ -62,8 +60,6 @@ contains
     !#   <variable>pruneByTimeConstructorParameters%massMinimum</variable>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>Minimum mass for which to consider merger tree branches for truncation.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMaximum</name>
@@ -71,8 +67,6 @@ contains
     !#   <variable>pruneByTimeConstructorParameters%massMaximum</variable>
     !#   <defaultValue>huge(0.0d0)</defaultValue>
     !#   <description>Maximum mass for which to consider merger tree branches for truncation.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     pruneByTimeConstructorParameters%timeEarliest             &

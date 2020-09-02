@@ -55,11 +55,9 @@ contains
 
     !# <inputParameter>
     !#   <name>timescaleMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-3</defaultValue>
     !#   <description>The minimum timescale for star formation in units of the dynamical time.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="starFormationTimescale"  name="starFormationTimescale_"  source="parameters"/>
     self=starFormationTimescaleLowerLimited(timescaleMinimum,starFormationTimescale_)

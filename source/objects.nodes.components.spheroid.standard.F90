@@ -219,27 +219,21 @@ contains
        ! Read parameters controlling the physical implementation.
        !# <inputParameter>
        !#   <name>spheroidEnergeticOutflowMassRate</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-2</defaultValue>
        !#   <description>The proportionallity factor relating mass outflow rate from the spheroid to the energy input rate divided by $V_\mathrm{spheroid}^2$.</description>
        !#   <source>parameters_</source>
-       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>spheroidMassToleranceAbsolute</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-6</defaultValue>
        !#   <description>The mass tolerance used to judge whether the spheroid is physically plausible.</description>
        !#   <source>parameters_</source>
-       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>spheroidLuminositiesStellarInactive</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not spheroid stellar luminosities are inactive properties (i.e. do not appear in any ODE being solved).</description>
        !#   <source>parameters_</source>
-       !#   <type>boolean</type>
        !# </inputParameter>
     end if
     return
@@ -306,12 +300,10 @@ contains
        !$omp critical (spheroidStandardInitializeAngularMomentum)
        !# <inputParameter>
        !#   <name>spheroidAngularMomentumAtScaleRadius</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultSource>($I_2/I_3$ where $I_n=\int_0^\infty \rho(r) r^n \mathrm{d}r$, where $\rho(r)$ is the spheroid density profile, unless either $I_2$ or $I_3$ is infinite, in which case a default of $1/2$ is used instead.)</defaultSource>
        !#   <defaultValue>spheroidAngularMomentumAtScaleRadiusDefault</defaultValue>
        !#   <description>The assumed ratio of the specific angular momentum at the scale radius to the mean specific angular momentum of the standard spheroid component.</description>
        !#   <source>parameters_</source>
-       !#   <type>real</type>
        !# </inputParameter>
        !$omp end critical (spheroidStandardInitializeAngularMomentum)
     end if

@@ -57,16 +57,12 @@ contains
     !#   <source>parameters</source>
     !#   <variable>pruneNonEssentialConstructorParameters%essentialNodeID</variable>
     !#   <description>ID of the essential node to avoid pruning.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>essentialNodeTime</name>
     !#   <source>parameters</source>
     !#   <variable>pruneNonEssentialConstructorParameters%essentialNodeTime</variable>
     !#   <description>Time of the essential node to avoid pruning.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParametersValidate source="parameters"/>
     return

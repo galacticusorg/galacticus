@@ -88,16 +88,12 @@ contains
     !#   <defaultValue>3.046d0</defaultValue>
     !#   <defaultSource>\citep{mangano_relic_2005}</defaultSource>
     !#   <description>The effective number of neutrino species.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>neutrinoMassSummed</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The summed mass (in electron volts) of all neutrino species.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>

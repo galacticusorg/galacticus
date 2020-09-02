@@ -53,18 +53,14 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true, store/restore the tabulated solution to/from file when possible.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>energyFixedAt</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('turnaround')</defaultValue>
     !#   <description>Selects the epoch at which the energy of a spherical top hat perturbation in a dark energy cosmology should be
     !#     ``fixed'' for the purposes of computing virial density contrasts. (See the discussion in
     !#     \citealt{percival_cosmological_2005}; \S8.)</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_" source="parameters"/>
     self=virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy(tableStore,enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyFunctions_)

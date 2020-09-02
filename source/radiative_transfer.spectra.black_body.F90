@@ -49,19 +49,15 @@ contains
 
     !# <inputParameter>
     !#   <name>temperature</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>5.0d3</defaultValue>
     !#   <description>The temperature of the black body spectrum (in Kelvin).</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>luminosityBolometric</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The bolometric luminosity of the black body spectrum (in $L_\odot$).</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=radiativeTransferSpectrumBlackBody(temperature,luminosityBolometric)
     !# <inputParametersValidate source="parameters"/>

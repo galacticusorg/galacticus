@@ -120,10 +120,8 @@ contains
 
     !# <inputParameter>
     !#   <name>degreesOfFreedom</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The degrees of freedom of the Student-t distribution function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=distributionFunction1DStudentT(degreesOfFreedom,randomNumberGenerator_)

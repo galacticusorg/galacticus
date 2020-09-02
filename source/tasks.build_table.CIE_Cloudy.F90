@@ -52,35 +52,27 @@ contains
 
     !# <inputParameter>
     !#   <name>fileNameCoolingFunction</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The file name to which the cooling function table should be stored.</description>
     !#   <defaultValue>galacticusPath(pathTypeDataDynamic)//'cooling/cooling_function_Atomic_CIE_Cloudy.hdf5'</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>fileNameChemicalState</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The file name to which the chemical state table should be stored.</description>
     !#   <defaultValue>galacticusPath(pathTypeDataDynamic)//'chemicalState/chemical_state_Atomic_CIE_Cloudy.hdf5'</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>metallicityLogarithmicMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum metallicity to tabulated, expressed as log-10 relative to Solar.</description>
     !#   <defaultValue>1.5d0</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>includeContinuum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true include the cumulative fraction of total power emitted in the continuum.</description>
     !#   <defaultValue>.true.</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     self=taskBuildTableCIECloudy(fileNameCoolingFunction,fileNameChemicalState,metallicityLogarithmicMaximum,includeContinuum)
     !# <inputParametersValidate source="parameters"/>

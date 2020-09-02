@@ -51,8 +51,6 @@ contains
     !#   <source>parameters</source>
     !#   <description>The factor by which virial mass must increase for previous non-isolation to be ignored.</description>
     !#   <defaultValue>2.0d0</defaultValue>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=nbodyOperatorFlagAlwaysIsolated(massFactor)
     !# <inputParametersValidate source="parameters"/>

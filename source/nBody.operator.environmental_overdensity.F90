@@ -52,45 +52,35 @@ contains
     double precision                                                       :: radiusSphere, densityParticleMean, &
          &                                                                    lengthBox
     integer         (c_size_t                             )                :: sampleRate
-    logical                                                                   periodic
+    logical                                                                :: periodic
 
     !# <inputParameter>
     !#   <name>radiusSphere</name>
     !#   <source>parameters</source>
     !#   <description>The radius of the sphere within which to measure environmental overdensity.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>densityParticleMean</name>
     !#   <source>parameters</source>
     !#   <description>The mean density of particles in the simulation.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sampleRate</name>
     !#   <source>parameters</source>
     !#   <description>One in {\normalfont \ttfamily [sampleRate]} particles will be sampled when computed environmental overdensities.</description>
     !#   <defaultValue>1_c_size_t</defaultValue>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>lengthBox</name>
     !#   <source>parameters</source>
     !#   <description>The length of the periodic box.</description>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>periodic</name>
     !#   <source>parameters</source>
     !#   <description>If true, periodic boundary conditions will be used.</description>
     !#   <defaultValue>.false.</defaultValue>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=nbodyOperatorEnvironmentalOverdensity(radiusSphere,densityParticleMean,sampleRate,lengthBox,periodic)
     !# <inputParametersValidate source="parameters"/>

@@ -48,10 +48,8 @@ contains
 
     !# <inputParameter>
     !#   <name>fileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the file which contains fit coefficients for the time per tree fitting function.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     self=metaTreeProcessingTimeFile(fileName)
     return

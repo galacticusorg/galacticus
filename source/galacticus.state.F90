@@ -263,20 +263,16 @@ contains
           ! Get the base name of the state files.
           !# <inputParameter>
           !#   <name>stateFileRoot</name>
-          !#   <cardinality>1</cardinality>
           !#   <defaultValue>var_str('none')</defaultValue>
           !#   <description>The root name of files to which the internal state is written (to permit restarts).</description>
           !#   <source>globalParameters</source>
-          !#   <type>string</type>
           !# </inputParameter>
           ! Get the base name of the files to retrieve from.
           !# <inputParameter>
           !#   <name>stateRetrieveFileRoot</name>
-          !#   <cardinality>1</cardinality>
           !#   <defaultValue>var_str('none')</defaultValue>
           !#   <description>The root name of files to which the internal state is retrieved from (to restart).</description>
           !#   <source>globalParameters</source>
-          !#   <type>string</type>
           !# </inputParameter>
           ! Record active status of store and retrieve.
           stateStoreActive   =(stateFileRoot         /= "none")

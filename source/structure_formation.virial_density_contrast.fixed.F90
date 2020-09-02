@@ -75,24 +75,18 @@ contains
     !#  <source>parameters</source>
     !#  <defaultValue>200.0d0</defaultValue>
     !#  <description>The virial density contrast to use in the fixed value model.</description>
-    !#  <type>real</type>
-    !#  <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#  <name>densityType</name>
     !#  <source>parameters</source>
     !#  <defaultValue>var_str('critical')</defaultValue>
     !#  <description>The reference density to use in the fixed value virial density contrast model. Either of {\normalfont \ttfamily critical} and {\normalfont \ttfamily mean} are allowed.</description>
-    !#  <type>string</type>
-    !#  <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#  <name>turnAroundOverVirialRadius</name>
     !#  <source>parameters</source>
     !#  <defaultValue>2.0d0</defaultValue>
     !#  <description>The ratio of the turnaround to virial radii in the fixed value model.</description>
-    !#  <type>real</type>
-    !#  <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>

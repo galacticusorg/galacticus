@@ -97,8 +97,6 @@ contains
     !#   <name>redshiftBin</name>
     !#   <source>parameters</source>
     !#   <description>The redshift bin (0, 1, or 2) of the \cite{caputi_stellar_2011} to use.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     self=surveyGeometryCaputi2011UKIDSSUDS(redshiftBin,cosmologyFunctions_,randomNumberGenerator_)
     !# <inputParametersValidate source="parameters"/>

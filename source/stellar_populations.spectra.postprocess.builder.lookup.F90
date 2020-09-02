@@ -60,11 +60,9 @@ contains
     allocate(postprocessors(countPostprocessors))
     !# <inputParameter>
     !#   <name>names</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>[var_str('default')]</defaultValue>
     !#   <description>The names assigned to stellar spectra postprocessors.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="stellarPopulationSpectraPostprocessor" name="postprocessors(i)%stellarPopulationSpectraPostprocessor_" source="parameters" copy="i=1,countPostprocessors"/>
     self=stellarPopulationSpectraPostprocessorBuilderLookup(names,postprocessors)

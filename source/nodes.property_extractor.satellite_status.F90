@@ -60,11 +60,9 @@ contains
 
     !# <inputParameter>
     !#   <name>discriminator</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('boundMass')</defaultValue>
     !#   <description>Specifies whether bound mass or position history will be used to determine satellite orphan status.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     self=nodePropertyExtractorSatelliteStatus(enumerationSatelliteStatusDiscriminatorEncode(char(discriminator),includesPrefix=.false.))
     !# <inputParametersValidate source="parameters"/>

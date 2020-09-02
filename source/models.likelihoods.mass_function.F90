@@ -98,59 +98,43 @@ contains
 
     !# <inputParameter>
     !#   <name>massFunctionFileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the file containing the mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>haloMassMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum halo mass over which to integrate.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>haloMassMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum halo mass over which to integrate.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum redshift over which to integrate.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum redshift over which to integrate.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>useSurveyLimits</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true, limit redshift integration range based on survey geometry limits.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>modelSurfaceBrightness</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true, model the effects of surface brightness incompleteness on the mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>surfaceBrightnessLimit</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The limiting surface brightness to which to integrate.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !# <objectBuilder class="haloMassFunction"   name="haloMassFunction_"   source="parameters"/>

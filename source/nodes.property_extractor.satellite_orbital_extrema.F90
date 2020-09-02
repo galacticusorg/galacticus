@@ -55,19 +55,15 @@ contains
 
     !# <inputParameter>
     !#   <name>extractPericenter</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether or not satellite orbital pericenter data (radius, velocity) should be extracted.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>extractApocenter</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether or not satellite orbital apocenter data (radius, velocity) should be extracted.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     self=nodePropertyExtractorSatelliteOrbitalExtrema(extractPericenter,extractApocenter)
     !# <inputParametersValidate source="parameters"/>

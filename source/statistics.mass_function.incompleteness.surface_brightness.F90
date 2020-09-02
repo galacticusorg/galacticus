@@ -52,38 +52,28 @@ contains
 
     !# <inputParameter>
     !#   <name>limit</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>Limiting surface brightness for mass function incompleteness calculations.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>zeroPoint</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>Mass zero point for the mass function incompleteness surface brightness model, i.e. $M_0$ in $\mu(M) = \alpha \log_{10}(M/M_0)+\beta$.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>slope</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>Slope of mass function incompleteness surface brightness model, i.e. $\alpha$ in $\mu(M) = \alpha \log_{10}(M/M_0)+\beta$.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>offset</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>Offset in the mass function incompleteness surface brightness model, i.e. $beta$ in $\mu(M) = \alpha \log_{10}(M/M_0)+\beta$.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>scatter</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>Scatter in the mass function incompleteness surface brightness model.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     self=massFunctionIncompletenessSurfaceBrightness(limit,zeroPoint,slope,offset,scatter)
     !# <inputParametersValidate source="parameters"/>

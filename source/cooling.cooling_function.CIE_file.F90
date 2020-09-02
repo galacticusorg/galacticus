@@ -194,8 +194,6 @@ contains
     !#   <name>fileName</name>
     !#   <source>parameters</source>
     !#   <description>The name of the file containing a tabulation of the collisional ionization equilibrium cooling function.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     self=coolingFunctionCIEFile(fileName)
     !# <inputParametersValidate source="parameters"/>

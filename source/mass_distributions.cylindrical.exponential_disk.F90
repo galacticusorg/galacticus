@@ -140,36 +140,28 @@ contains
 
     !# <inputParameter>
     !#   <name>scaleHeight</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultSource>\citep{kregel_flattening_2002}</defaultSource>
     !#   <defaultValue>0.137d0</defaultValue>
     !#   <description>The scale height of the exponential disk profile.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>scaleRadius</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The scale radius of the exponential disk profile.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>mass</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The mass of the exponential disk profile.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>dimensionless</name>
     !#   <defaultValue>.true.</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true the exponential disk profile is considered to be dimensionless.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <conditionalCall>
     !#  <call>self=massDistributionExponentialDisk(scaleHeight=scaleHeight{conditions})</call>

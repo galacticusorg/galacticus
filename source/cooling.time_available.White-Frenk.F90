@@ -57,8 +57,6 @@ contains
     !#  <source>parameters</source>
     !#  <defaultValue>0.0d0</defaultValue>
     !#  <description>Interpolates (geometrically) between the age of the Universe and the halo dynamical time for the time available for cooling in the \cite{white_galaxy_1991} method.</description>
-    !#  <type>real</type>
-    !#  <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=coolingTimeAvailableWhiteFrenk1991(ageFactor,darkMatterHaloScale_)

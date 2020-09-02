@@ -252,10 +252,8 @@ contains
              call allocateArray(chemicalsMasses ,[chemicalsCount])
              !# <inputParameter>
              !#   <name>chemicalsToTrack</name>
-             !#   <cardinality>1..*</cardinality>
              !#   <description>The names of the chemicals to be tracked.</description>
              !#   <source>globalParameters</source>
-             !#   <type>string</type>
              !# </inputParameter>
              ! Validate the input names by looking them up in the list of chemical names.
              chemicalNameLengthMaximum=0

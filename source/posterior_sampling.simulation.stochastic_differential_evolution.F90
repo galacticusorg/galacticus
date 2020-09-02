@@ -79,10 +79,8 @@ contains
     self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(parameters)
     !# <inputParameter>
     !#   <name>temperatureScale</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The temperature scale.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     call self%initialize(temperatureScale)
     !# <inputParametersValidate source="parameters"/>

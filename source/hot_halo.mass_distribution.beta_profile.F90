@@ -100,11 +100,9 @@ contains
 
     !# <inputParameter>
     !#   <name>beta</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.0d0/3.0d0</defaultValue>
     !#   <description>The value of $\beta$ in $\beta$-profile hot halo mass distributions.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="hotHaloMassDistributionCoreRadius" name="hotHaloMassDistributionCoreRadius_" source="parameters"/>
     self=hotHaloMassDistributionBetaProfile(beta,hotHaloMassDistributionCoreRadius_)

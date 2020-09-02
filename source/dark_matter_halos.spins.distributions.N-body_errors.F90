@@ -126,29 +126,21 @@ contains
     !#   <name>massParticle</name>
     !#   <source>parameters</source>
     !#   <description>Mass of particle in the simulation.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>particleCountMinimum</name>
     !#   <source>parameters</source>
     !#   <description>Minimum number of particles per halo in the N-body simulation.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>energyEstimateParticleCountMaximum</name>
     !#   <source>parameters</source>
     !#   <description>Maximum number of particles used in estimating the potential energy of halos. Set to a very large number if no such maximum was used.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshift</name>
     !#   <source>parameters</source>
     !#   <description>Redshift at which the spin distribution should be evaluated.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>logNormalRange</name>
@@ -156,8 +148,6 @@ contains
     !#   <defaultValue>100.0d0</defaultValue>
     !#   <defaultSource>A large range which will include (almost) the entirety of the distribution.</defaultSource>
     !#   <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=${\normalfont \ttfamily [logNormalRange]}</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="haloSpinDistribution"         name="distributionIntrinsic"         source="parameters"/>
     !# <objectBuilder class="nbodyHaloMassError"           name="nbodyHaloMassError_"           source="parameters"/>

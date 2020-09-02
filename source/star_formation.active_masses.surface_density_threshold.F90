@@ -56,19 +56,15 @@ contains
 
     !# <inputParameter>
     !#   <name>surfaceDensityThreshold</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The surface density threshold above which ISM gas participates in star formation.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentVelocity</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>Tne exponent of velocity in the surface density threshold for star formation.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     self=starFormationActiveMassSurfaceDensityThreshold(surfaceDensityThreshold,exponentVelocity,darkMatterProfileDMO_)

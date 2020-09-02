@@ -141,51 +141,39 @@ contains
     end if
     !# <inputParameter>
     !#   <name>walltimeMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>-1_kind_int8</defaultValue>
     !#   <description>If set to a positive number, this is the maximum wall time for which forest evolution is allowed to proceed before the task gives up.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>evolveSingleForest</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true then each forest is processed sequentially, with multiple parallel threads (if available) working on the same forest. If false, multiple forests are processed simultaneously, with a single parallel thread (if available) working on each.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>evolveSingleForestSections</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>100</defaultValue>
     !#   <description>The number of timesteps into which forests should be split when processing single forests in parallel.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>evolveSingleForestMassMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The minimum tree mass for which forests should be processed in parallel.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>suspendToRAM</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether trees should be suspended to RAM (otherwise they are suspend to file).</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     if (.not.suspendToRAM) then
        !# <inputParameter>
        !#   <name>suspendPath</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The path to which tree suspension files will be stored.</description>
        !#   <source>parameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
     end if
     !# <objectBuilder class="mergerTreeConstructor"  name="mergerTreeConstructor_"  source="parameters"/>

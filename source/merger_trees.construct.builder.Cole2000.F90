@@ -114,48 +114,36 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The largest probability of branching allowed in a timestep in merger trees built by the \cite{cole_hierarchical_2000} method.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>accretionLimit</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The largest fractional mass change due to subresolution accretion allowed in a timestep in merger trees built by the \cite{cole_hierarchical_2000} method.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftMaximum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d5</defaultValue>
     !#   <description>The highest redshift to which merger trees will be built in the \cite{cole_hierarchical_2000} method.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>branchIntervalStep</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If {\normalfont \ttfamily false} use the original \cite{cole_hierarchical_2000} method to determine whether branching occurs in a timestep. If {\normalfont \ttfamily true} draw branching intervals from a negative exponential distribution.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>toleranceResolutionSelf</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d-6</defaultValue>
     !#   <description>The fractional tolerance in node mass at the resolution limit below which branch mis-orderings will be ignored.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>toleranceResolutionParent</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d-3</defaultValue>
     !#   <description>The fractional tolerance in parent node mass at the resolution limit below which branch mis-orderings will be ignored.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"/>
     !# <objectBuilder class="mergerTreeMassResolution"       name="mergerTreeMassResolution_"       source="parameters"/>

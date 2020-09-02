@@ -167,98 +167,74 @@ contains
 
     !# <inputParameter>
     !#   <name>stepsMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>huge(0)</defaultValue>
     !#   <description>The maximum number of steps to take.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>acceptanceAverageCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of steps over which to average the acceptance rate.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>stateSwapCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of steps between state swap steps.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>recomputeCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>-1</defaultValue>
     !#   <description>The number of steps between forced recomputations of the likelihood.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>logFlushCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of steps between flushing the log file.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>reportCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of steps between issuing reports.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sampleOutliers</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true, sample from outlier states.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>interactionRoot</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('none')</defaultValue>
     !#   <description>Root file name for interaction files, or `{\normalfont \ttfamily none}' if interaction is not required.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>logFileRoot</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>Root file name for log files.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>appendLogs</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true, do not overwrite existing log files, but instead append to them.</description>
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>loadBalance</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true, attempt to balance the workload across different compute nodes.</description>
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>ignoreChainNumberAdvice</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true, ignore warnings and errors about not being able to span the full parameter space with the number of chains used.</description>
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <objectBuilder class="posteriorSampleLikelihood"               name="posteriorSampleLikelihood_"               source="parameters"/>
     !# <objectBuilder class="posteriorSampleConvergence"              name="posteriorSampleConvergence_"              source="parameters"/>

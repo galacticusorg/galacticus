@@ -59,8 +59,6 @@ contains
     !#   <defaultValue>0.03687d0</defaultValue>
     !#   <defaultSource>\citep{bett_spin_2007}</defaultSource>
     !#   <description>The fixed value of spin in a $\delta$-function spin distribution.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParametersValidate source="parameters"/>
     return

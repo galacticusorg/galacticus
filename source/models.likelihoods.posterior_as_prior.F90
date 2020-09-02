@@ -97,32 +97,24 @@ contains
 
     !# <inputParameter>
     !#   <name>chainBaseName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The base name of the MCMC chain files to read.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>neighborCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of nearest neighbors to use when estimating the posterior likelihood.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>tolerance</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>Tolerance to use when estimating the posterior likelihood.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exclusions</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>List of parameter indices to exclude from the posterior likelihood calculation.</description>
     !#   <defaultValue>[integer :: ]</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="posteriorSampleLikelihood" name="posteriorSampleLikelihood_" source="parameters"/>
     self=posteriorSampleLikelihoodPosteriorAsPrior(char(chainBaseName),neighborCount,tolerance,exclusions,posteriorSampleLikelihood_)

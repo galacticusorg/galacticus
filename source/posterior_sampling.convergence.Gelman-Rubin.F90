@@ -101,66 +101,50 @@ contains
 
     !# <inputParameter>
     !#   <name>thresholdHatR</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.2d0</defaultValue>
     !#   <description>The $\hat{R}$ value at which convergence is declared.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>burnCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0</defaultValue>
     !#   <description>The number of steps to burn before computing convergence.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>testCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The interval in number of steps at which to check convergence.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outlierCountMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0</defaultValue>
     !#   <description>The maximum number of outlier states allowed.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outlierSignificance</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.05d0</defaultValue>
     !#   <description>The significance at which to declare a state an outlier.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outlierLogLikelihoodOffset</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The log-likelihood offset at which to declare a state an outlier.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>reportCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The interval in number of steps at which to report on convergence status.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>logFileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the file to which convergence state should be logged.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=posteriorSampleConvergenceGelmanRubin(thresholdHatR,burnCount,testCount,outlierCountMaximum,outlierSignificance,outlierLogLikelihoodOffset,reportCount,logFileName)
     !# <inputParametersValidate source="parameters"/>

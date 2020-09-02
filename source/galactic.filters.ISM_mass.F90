@@ -54,8 +54,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>ismMassConstructorParameters%massThreshold</variable>
     !#   <description>The parameter $M_0$ (in units of $M_\odot$) appearing in the ISM mass threshold for the ISM mass galactic filter class.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParametersValidate source="parameters"/>
     return

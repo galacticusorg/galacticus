@@ -52,27 +52,21 @@ contains
 
     !# <inputParameter>
     !#   <name>efficiency</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.01d0</defaultValue>
     !#   <description>The efficiency of star formation for the dynamical time method.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentVelocity</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>-1.50d0</defaultValue>
     !#   <description>The velocity exponent for star formation for the dynamical time method.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timescaleMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-3</defaultValue>
     !#   <description>The minimum timescale for star formation.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=starFormationTimescaleDynamicalTime(efficiency,exponentVelocity,timescaleMinimum)
     !# <inputParametersValidate source="parameters"/>

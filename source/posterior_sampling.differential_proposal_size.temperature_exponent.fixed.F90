@@ -52,10 +52,8 @@ contains
 
     !# <inputParameter>
     !#   <name>exponentValue</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The exponent of temperature.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed(exponentValue)
     !# <inputParametersValidate source="parameters"/>

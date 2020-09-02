@@ -156,102 +156,80 @@ contains
     ! Get accretion rate enhancement factors.
     !# <inputParameter>
     !#   <name>bondiHoyleAccretionEnhancementSpheroid</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>5.0d0</defaultValue>
     !#   <description>The factor by which the Bondi-Hoyle accretion rate of spheroid gas onto black holes in enhanced.</description>
     !#   <source>parameters_</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>bondiHoyleAccretionEnhancementHotHalo</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>6.0d0</defaultValue>
     !#   <description>The factor by which the Bondi-Hoyle accretion rate of hot halo gas onto black holes in enhanced.</description>
     !#   <source>parameters_</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>bondiHoyleAccretionHotModeOnly</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Determines whether accretion from the hot halo should only occur if the halo is in the hot accretion mode.</description>
     !#   <source>parameters_</source>
-    !#   <type>real</type>
     !# </inputParameter>
 
     ! Get temperature of accreting gas.
     !# <inputParameter>
     !#   <name>bondiHoyleAccretionTemperatureSpheroid</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d2</defaultValue>
     !#   <description>The assumed temperature (in Kelvin) of gas in the spheroid when computing Bondi-Hoyle accretion rates onto black holes.</description>
     !#   <source>parameters_</source>
-    !#   <type>real</type>
     !# </inputParameter>
 
     ! Get wind efficiency and scaling.
     !# <inputParameter>
     !#   <name>blackHoleWindEfficiency</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.4d-3</defaultValue>
     !#   <description>The efficiency of the black hole-driven wind: $L_\mathrm{wind} = \epsilon_\mathrm{wind} \dot{M}_\bullet \clight^2$.</description>
     !#   <source>parameters_</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>blackHoleWindEfficiencyScalesWithRadiativeEfficiency</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether the black hole wind efficiency should scale with the radiative efficiency of the accretion disk.</description>
     !#   <source>parameters_</source>
-    !#   <type>real</type>
     !# </inputParameter>
 
     ! Options controlling AGN feedback.
     !# <inputParameter>
     !#   <name>blackHoleHeatsHotHalo</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether or not the black hole launched jets should heat the hot halo.</description>
     !#   <source>parameters_</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>blackHoleRadioModeFeedbackEfficiency</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>Efficiency with which radio-mode feedback is coupled to the hot halo.</description>
     !#   <source>parameters_</source>
-    !#   <type>real</type>
     !# </inputParameter>
 
     ! Get options controlling output.
     !# <inputParameter>
     !#   <name>blackHoleOutputAccretion</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not accretion rates and jet powers will be output.</description>
     !#   <source>parameters_</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
 
     ! Get options controlling output.
     !# <inputParameter>
     !#   <name>blackHoleOutputData</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not properties for all black holes (rather than just the central black hole) will be output.</description>
     !#   <source>parameters_</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
 
     !# <inputParameter>
     !#   <name>blackHoleOutputMergers</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not properties of black hole mergers will be output.</description>
     !#   <source>parameters_</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
 
     ! Check if cold mode is explicitly tracked.

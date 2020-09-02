@@ -70,8 +70,6 @@ contains
        !#   <source>parameters</source>
        !#   <variable>electronScatteringOpticalDepth</variable>
        !#   <description>The optical depth to reaionization in the instantReionization \gls{igm} state model.</description>
-       !#   <type>real</type>
-       !#   <cardinality>1</cardinality>
        !# </inputParameter>
      else
        haveReionizationRedshift=.true.
@@ -82,8 +80,6 @@ contains
        !#   <defaultValue>9.97d0</defaultValue>
        !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
        !#   <description>The redshift of reionization in the instantReionization \gls{igm} state model.</description>
-       !#   <type>real</type>
-       !#   <cardinality>1</cardinality>
        !# </inputParameter>
     end if
     !# <inputParameter>
@@ -92,8 +88,6 @@ contains
     !#   <variable>reionizationTemperature</variable>
     !#   <defaultValue>1.0d4</defaultValue>
     !#   <description>The post-reionization temperature (in units of Kelvin) in the instantReionization \gls{igm} state model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>presentDayTemperature</name>
@@ -101,8 +95,6 @@ contains
     !#   <variable>presentDayTemperature</variable>
     !#   <defaultValue>1.0d3</defaultValue>
     !#   <description>The present day temperature (in units of Kelvin) in the instantReionization \gls{igm} state model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="intergalacticMediumState" name="preReionizationState" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"  source="parameters"/>

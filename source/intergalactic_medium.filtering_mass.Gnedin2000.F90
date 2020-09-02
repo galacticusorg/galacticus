@@ -133,11 +133,9 @@ contains
 
     !# <inputParameter>
     !#   <name>timeTooEarlyIsFatal</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true, requesting the filtering mass at a time earlier than the initial time provided by the \cite{naoz_growth_2005} fit will result in a fatal error. Otherwise, the filtering mass is fixed at this initial value for earlier times.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>

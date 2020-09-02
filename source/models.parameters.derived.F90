@@ -57,17 +57,13 @@ contains
 
     !# <inputParameter>
     !#   <name>name</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the parameter.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>definition</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The definition of the parameter.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     self=modelParameterDerived(name,definition)
      !# <inputParametersValidate source="parameters"/>

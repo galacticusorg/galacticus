@@ -86,8 +86,6 @@ contains
     !#   <defaultValue>2.881d0</defaultValue>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $A$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>B</name>
@@ -96,8 +94,6 @@ contains
     !#   <defaultValue>1.257d0</defaultValue>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $b$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>C</name>
@@ -106,8 +102,6 @@ contains
     !#   <defaultValue>1.022d0</defaultValue>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $c$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>D</name>
@@ -116,8 +110,6 @@ contains
     !#   <defaultValue>0.060d0</defaultValue>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $d$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>C0</name>
@@ -126,8 +118,6 @@ contains
     !#   <defaultValue>3.681d0</defaultValue>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $c_0$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>C1</name>
@@ -136,8 +126,6 @@ contains
     !#   <defaultValue>5.033d0</defaultValue>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $c_1$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>X0</name>
@@ -146,8 +134,6 @@ contains
     !#   <defaultValue>0.424d0</defaultValue>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $x_0$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>X1</name>
@@ -156,8 +142,6 @@ contains
     !#   <defaultValue>0.526d0</defaultValue>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $x_1$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>inverseSigma0</name>
@@ -166,8 +150,6 @@ contains
     !#   <defaultValue>1.047d0</defaultValue>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $\sigma^{-1}_0$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>inverseSigma1</name>
@@ -176,8 +158,6 @@ contains
     !#   <defaultValue>1.646d0</defaultValue>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $\sigma^{-1}_1$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>alpha</name>
@@ -186,8 +166,6 @@ contains
     !#   <defaultValue>6.948d0</defaultValue>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $\alpha$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>beta</name>
@@ -196,8 +174,6 @@ contains
     !#   <defaultValue>7.386d0</defaultValue>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $\beta$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"      source="parameters"/>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>

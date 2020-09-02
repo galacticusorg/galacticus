@@ -60,8 +60,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>1</defaultValue>
     !#   <description>The depth in the substructure hierarchy at which to prune a tree.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     pruneHierarchyConstructorParameters=pruneHierarchyConstructorInternal(hierarchyDepth)
     !# <inputParametersValidate source="parameters"/>

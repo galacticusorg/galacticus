@@ -49,35 +49,27 @@ contains
 
     !# <inputParameter>
     !#   <name>opacityExponent</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.7d0</defaultValue>
     !#   <description>The exponent of wavelength appearing in the opacity.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>birthCloudLifetime</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-2</defaultValue>
     !#   <description>The duration which stars remain within their birth clouds.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>opticalDepthISM</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.5d0</defaultValue>
     !#   <description>The effective optical depth of the ISM.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>opticalDepthBirthClouds</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The effective optical depth of birth clouds.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=stellarSpectraDustAttenuationCharlotFall2000(opacityExponent,birthCloudLifetime,opticalDepthISM,opticalDepthBirthClouds)
     !# <inputParametersValidate source="parameters"/>

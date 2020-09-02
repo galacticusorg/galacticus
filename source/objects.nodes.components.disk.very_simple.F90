@@ -134,51 +134,39 @@ contains
        ! Read parameters controlling the physical implementation.
        !# <inputParameter>
        !#   <name>diskVerySimpleMassScaleAbsolute</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>100.0d0</defaultValue>
        !#   <description>The absolute mass scale below which calculations in the very simple disk component are allowed to become inaccurate.</description>
        !#   <source>parameters_</source>
-       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>diskVerySimpleTrackAbundances</name>
-       !#   <cardinality>0..1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not to track abundances in the very simple disk component.</description>
        !#   <source>parameters_</source>
-       !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>diskVerySimpleTrackLuminosities</name>
-       !#   <cardinality>0..1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not to track stellar luminosities in the very simple disk component.</description>
        !#   <source>parameters_</source>
-       !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>diskVerySimpleUseAnalyticSolver</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>If true, employ an analytic ODE solver when evolving satellites.</description>
        !#   <source>parameters_</source>
-       !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>diskVerySimpleAnalyticSolverPruneMassGas</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>0.0d0</defaultValue>
        !#   <description>Gas mass below which the analytic solver will prune a galaxy.</description>
        !#   <source>parameters_</source>
-       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>diskVerySimpleAnalyticSolverPruneMassStars</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>0.0d0</defaultValue>
        !#   <description>Stellar mass below which the analytic solver will prune a galaxy.</description>
        !#   <source>parameters_</source>
-       !#   <type>real</type>
        !# </inputParameter>
        ! Attach the cooling mass pipe from the hot halo component.
        call diskVerySimpleComponent%attachPipe()

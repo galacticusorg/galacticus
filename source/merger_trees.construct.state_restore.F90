@@ -50,11 +50,9 @@ contains
 
     !# <inputParameter>
     !#   <name>fileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the file containing the stored merger tree.</description>
     !#   <defaultValue>var_str('storedTree.dat')</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     self=mergerTreeConstructorStateRestored(fileName)
     !# <inputParametersValidate source="parameters"/>

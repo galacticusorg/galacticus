@@ -101,96 +101,72 @@ contains
     !#   <defaultValue>[+0.049d0,+0.548d0,+1.229d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $B$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.0001$--$0.005$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>bRatioIntermediate</name>
     !#   <defaultValue>[+1.044d0,+1.535d0,+3.396d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $B$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.005$--$0.05$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>bRatioHigh</name>
     !#   <defaultValue>[+2.878d0,+3.946d0,+2.982d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $B$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.05$--$0.5$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gammaRatioLow</name>
     !#   <defaultValue>[+0.109d0,+0.114d0,+0.110d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $\gamma$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.0001$--$0.005$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gammaRatioIntermediate</name>
     !#   <defaultValue>[+0.098d0,+0.087d0,+0.050d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $\gamma$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.005$--$0.05$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gammaRatioHigh</name>
     !#   <defaultValue>[+0.071d0,+0.030d0,-0.012d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $\gamma$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.05$--$0.5$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sigmaRatioLow</name>
     !#   <defaultValue>[+0.077d0,+0.094d0,+0.072d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $\sigma$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.0001$--$0.005$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sigmaRatioIntermediate</name>
     !#   <defaultValue>[+0.073d0,+0.083d0,+0.118d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $\sigma$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.005$--$0.05$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sigmaRatioHigh</name>
     !#   <defaultValue>[+0.091d0,+0.139d0,+0.187d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $\sigma$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.05$--$0.5$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>muRatioLow</name>
     !#   <defaultValue>[+1.220d0,+1.231d0,+1.254d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $\mu$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.0001$--$0.005$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>muRatioIntermediate</name>
     !#   <defaultValue>[+1.181d0,+1.201d0,+1.236d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $\mu$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.005$--$0.05$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>muRatioHigh</name>
     !#   <defaultValue>[+1.100d0,+1.100d0,+1.084d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $\mu$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.05$--$0.5$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>

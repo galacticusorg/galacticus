@@ -65,8 +65,6 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <source>parameters</source>
     !#   <description>If true, stellar luminosities will be treated as inactive properties.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="starFormationRateDisks"      name="starFormationRateDisks_"      source="parameters"/>
     !# <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters"/>

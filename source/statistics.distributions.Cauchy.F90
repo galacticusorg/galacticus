@@ -63,17 +63,13 @@ contains
 
     !# <inputParameter>
     !#   <name>median</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The median of the Cauchy distribution function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>scale</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The scale parameter of the Cauchy distribution function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=distributionFunction1DCauchy(median,scale,randomNumberGenerator_)

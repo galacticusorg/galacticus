@@ -87,32 +87,24 @@ contains
     end if
     !# <inputParameter>
     !#   <name>haloCatalogFileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The file name of the halo catalog to populate.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>galaxyCatalogFileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The file name to which the galaxy catalog should be output.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum mass galaxy to include in a mock halo model realization.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d16</defaultValue>
     !#   <description>The maximum mass galaxy to include in a mock halo model realization.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"          source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>

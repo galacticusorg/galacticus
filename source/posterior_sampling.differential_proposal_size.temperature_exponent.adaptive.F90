@@ -70,52 +70,38 @@ contains
 
     !# <inputParameter>
     !#   <name>exponentInitial</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The initial exponent.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum allowed exponent.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum allowed exponent.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentAdjustFactor</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The factor by which to adjust the exponent.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gradientMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum acceptable gradient of acceptance rate with log-temperature.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gradientMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum acceptable gradient of acceptance rate with log-temperature.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>updateCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of steps between potential updates of the temperature exponent.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive(exponentInitial,exponentMinimum,exponentMaximum,exponentAdjustFactor,gradientMinimum,gradientMaximum,updateCount)
     !# <inputParametersValidate source="parameters"/>

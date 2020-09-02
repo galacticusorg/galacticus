@@ -58,16 +58,12 @@ contains
     !#   <source>parameters</source>
     !#   <variable>normalization</variable>
     !#   <description>Parameter $\sigma_{12}$ appearing in model for random errors in the halo mass function.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>fractionalErrorHighMass</name>
     !#   <source>parameters</source>
     !#   <variable>fractionalErrorHighMass</variable>
     !#   <description>Parameter $\sigma_\infty$ appearing in model for random errors in the halo mass function.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponent</name>
@@ -82,8 +78,6 @@ contains
     !#    where $\sigma_{12}=${\normalfont \ttfamily [normalization]}, and $\gamma=${\normalfont
     !#    \ttfamily [exponent]}.
     !#   </description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     nbodyHaloMassErrorPowerLawParameters%normalizationSquared          =normalization          **2
     nbodyHaloMassErrorPowerLawParameters%fractionalErrorHighMassSquared=fractionalErrorHighMass**2

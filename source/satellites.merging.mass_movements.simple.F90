@@ -58,27 +58,21 @@ contains
 
     !# <inputParameter>
     !#   <name>massRatioMajorMerger</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.25d0</defaultValue>
     !#   <description>The mass ratio above which mergers are considered to be ``major''.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>destinationGasMinorMerger</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('spheroid')</defaultValue>
     !#   <description>The component to which satellite galaxy gas moves to as a result of a minor merger.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>destinationStarsMinorMerger</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('spheroid')</defaultValue>
     !#   <description>The component to which satellite galaxy stars move to as a result of a minor merger.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     self=mergerMassMovementsSimple(massRatioMajorMerger,enumerationDestinationMergerEncode(char(destinationGasMinorMerger),includesPrefix=.false.),enumerationDestinationMergerEncode(char(destinationStarsMinorMerger),includesPrefix=.false.))
     !# <inputParametersValidate source="parameters"/>

@@ -130,8 +130,6 @@ contains
     !#  <source>parameters</source>
     !#  <defaultValue>0.2d0</defaultValue>
     !#  <description>The friends-of-friends linking length to use in computing virial density contrasts with the percolation analysis of \cite{more_overdensity_2011}.</description>
-    !#  <type>real</type>
-    !#  <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     ! Build a pointer to a container object which stores all objects needed by the percolation density solver. If this construct

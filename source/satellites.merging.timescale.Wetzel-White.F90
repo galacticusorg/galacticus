@@ -55,11 +55,9 @@ contains
 
     !# <inputParameter>
     !#   <name>timescaleMultiplier</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.75d0</defaultValue>
     !#   <description>A multiplier for the merging timescale in dynamical friction timescale calculations.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=satelliteMergingTimescalesWetzelWhite2010(timescaleMultiplier,cosmologyFunctions_)

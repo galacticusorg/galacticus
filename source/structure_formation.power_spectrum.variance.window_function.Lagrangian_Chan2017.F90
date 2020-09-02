@@ -58,8 +58,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The parameter ``$f$'' which defines the scale of the Gaussian window.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     self = powerSpectrumWindowFunctionLagrangianChan2017(cosmologyParameters_,f)

@@ -66,11 +66,9 @@ contains
 
     !# <inputParameter>
     !#   <name>Rv</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>3.1d0</defaultValue>
     !#   <description>The relative visibility, $R_\mathrm{V}$.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     self=stellarSpectraDustAttenuationCardelli1989(Rv)
     !# <inputParametersValidate source="parameters"/>

@@ -99,24 +99,18 @@ contains
     !#   <defaultValue>var_str('fallThrough')</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>radiusFractionalTruncateMinimum</name>
     !#   <defaultValue>2.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>The minimum radius (in units of the virial radius) to begin truncating the density profile.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>radiusFractionalTruncateMaximum</name>
     !#   <defaultValue>4.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>The maximum radius (in units of the virial radius) to finish truncating the density profile.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterProfileDMO"   name="darkMatterProfileDMO_"   source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>

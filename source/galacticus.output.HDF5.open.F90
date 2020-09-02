@@ -56,55 +56,43 @@ contains
     if (.not.galacticusOutputFileIsOpen) then
        !# <inputParameter>
        !#   <name>galacticusOutputFileName</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>var_str('galacticus.hdf5')</defaultValue>
        !#   <description>The name of the file to which \glc\ results will be written.</description>
        !#   <source>parameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>galacticusOutputScratchFileName</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>galacticusOutputFileName</defaultValue>
        !#   <description>The name of the file to which \glc\ results will be written temporarily during runs.</description>
        !#   <source>parameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>hdf5SieveBufferSize</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>65536</defaultValue>
        !#   <description>The size of the sieve buffer used by the HDF5 library to speed reading/writing of partial datasets.</description>
        !#   <source>parameters</source>
-       !#   <type>integer</type>
        !#   <variable>sieveBufferSize</variable>
        !# </inputParameter>
        hdf5SieveBufferSize=sieveBufferSize
        !# <inputParameter>
        !#   <name>hdf5UseLatestFormat</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether to use the latest HDF5 file format.</description>
        !#   <source>parameters</source>
-       !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>hdf5CacheElementsCount</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>521_size_t</defaultValue>
        !#   <description>Number of elements in the raw data chunk cache.</description>
        !#   <source>parameters</source>
-       !#   <type>boolean</type>
        !#   <variable>cacheElementsCount</variable>
        !# </inputParameter>
        hdf5CacheElementsCount=cacheElementsCount
        !# <inputParameter>
        !#   <name>hdf5CacheSizeBytes</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>1048576_size_t</defaultValue>
        !#   <description>Size of the raw data chunk cache in bytes.</description>
        !#   <source>parameters</source>
-       !#   <type>boolean</type>
        !#   <variable>cacheSizeBytes</variable>
        !# </inputParameter>
        hdf5CacheSizeBytes=cacheSizeBytes
@@ -138,21 +126,17 @@ contains
        ! Read parameters.
        !# <inputParameter>
        !#   <name>hdf5ChunkSize</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>1024_hsize_t</defaultValue>
        !#   <description>The chunk size used for outputting HDF5 datasets.</description>
        !#   <source>parameters</source>
-       !#   <type>integer</type>
        !#   <variable>chunksize</variable>
        !# </inputParameter>
        hdf5ChunkSize=chunksize
        !# <inputParameter>
        !#   <name>hdf5CompressionLevel</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>-1</defaultValue>
        !#   <description>The compression level used for outputting HDF5 datasets.</description>
        !#   <source>parameters</source>
-       !#   <type>integer</type>
        !# </inputParameter>
 
        ! Set default chunking and compression levels.

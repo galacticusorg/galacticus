@@ -52,8 +52,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>0.01d0</defaultValue>
     !#   <description>The ratio of outflow rate to star formation rate in disks.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=stellarFeedbackOutflowsFixed(fraction)
     !# <inputParametersValidate source="parameters"/>

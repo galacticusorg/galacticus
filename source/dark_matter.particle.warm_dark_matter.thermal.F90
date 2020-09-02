@@ -74,8 +74,6 @@ contains
     !#   <variable>massValue</variable>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The mass (in keV) of the theral warm dark matter particle.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>degreesOfFreedomEffective</name>
@@ -83,8 +81,6 @@ contains
     !#   <variable>degreesOfFreedomEffectiveValue</variable>
     !#   <defaultValue>1.5d0</defaultValue>
     !#   <description>The effective number of degrees of freedom for the thermal warm dark matter particle.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     self=darkMatterParticleWDMThermal(massValue,degreesOfFreedomEffectiveValue,cosmologyParameters_)

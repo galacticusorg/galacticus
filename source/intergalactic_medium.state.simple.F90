@@ -64,8 +64,6 @@ contains
     !#   <defaultValue>9.97d0</defaultValue>
     !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
     !#   <description>The redshift of reionization in the simple \gls{igm} state model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>reionizationTemperature</name>
@@ -73,8 +71,6 @@ contains
     !#   <variable>reionizationTemperature</variable>
     !#   <defaultValue>1.0d4</defaultValue>
     !#   <description>The post-reionization temperature (in units of Kelvin) in the simple \gls{igm} state model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>preReionizationTemperature</name>
@@ -82,8 +78,6 @@ contains
     !#   <variable>preReionizationTemperature</variable>
     !#   <defaultValue>10.0d0</defaultValue>
     !#   <description>The pre-reionization temperature (in units of Kelvin) in the simple \gls{igm} state model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>

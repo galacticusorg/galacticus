@@ -99,43 +99,33 @@ contains
     
     !# <inputParameter>
     !#   <name>boundaries</name>
-    !#   <cardinality>2</cardinality>
     !#   <defaultValue>[+0.0d0,+1.0d0]</defaultValue>
     !#   <description>The $r$-interval spanned by the computational domain.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>countCells</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>3_c_size_t</defaultValue>
     !#   <description>The number of cells in the domain in radius.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>convergencePercentile</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.99d0</defaultValue>
     !#   <description>The percentile used in the convergence criterion.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>convergenceThreshold</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.0d0</defaultValue>
     !#   <description>The threshold for the convergence measure.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>convergenceRatioThreshold</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.1d0</defaultValue>
     !#   <description>The threshold for the change in convergence criterion.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="radiativeTransferMatter"      name="radiativeTransferMatter_"      source="parameters"/>
     !# <objectBuilder class="radiativeTransferConvergence" name="radiativeTransferConvergence_" source="parameters"/>

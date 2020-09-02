@@ -105,106 +105,80 @@ contains
 
     !# <inputParameter>
     !#   <name>stepsMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>huge(0)</defaultValue>
     !#   <description>The maximum number of steps to take.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>logFlushCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of steps between flushing the log file.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>reportCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of steps between issuing reports.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>interactionRoot</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('none')</defaultValue>
     !#   <description>Root file name for interaction files, or `{\normalfont \ttfamily none}' if interaction is not required.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>logFileRoot</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>Root file name for log files.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>logFilePreviousRoot</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('none')</defaultValue>
     !#   <description>Root file name for log files from which to resume.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>resume</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, resume from a previous set of log files.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>appendLogs</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true, do not overwrite existing log files, but instead append to them.</description>
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>inertiaWeight</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.72d0</defaultValue>
     !#   <description>Inertia parameter.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>accelerationCoefficientPersonal</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.193d0</defaultValue>
     !#   <description>Personal accleration parameter.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>accelerationCoefficientGlobal</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.193d0</defaultValue>
     !#   <description>Global accleration parameter.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>velocityCoefficient</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.5d0</defaultValue>
     !#   <description>Velocity parameter.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>velocityCoefficientInitial</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>Velocity parameter.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="posteriorSampleLikelihood"        name="posteriorSampleLikelihood_"        source="parameters"/>
     !# <objectBuilder class="posteriorSampleConvergence"       name="posteriorSampleConvergence_"       source="parameters"/>

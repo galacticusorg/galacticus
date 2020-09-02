@@ -71,10 +71,8 @@ contains
     !#   <name>logLikelihoodAccept</name>
     !#   <variable>self%logLikelihoodAccept</variable>
     !#   <defaultValue>huge(0.0d0)</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>The log-likelihood which should be ``accepted''---once the log-likelihood reaches this value (or larger) no further updates to the chain will be made.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     if     (                                                                                   &
          &   parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.) &

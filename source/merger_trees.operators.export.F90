@@ -70,8 +70,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>var_str('galacticusExportedTrees.hdf5')</defaultValue>
     !#   <description>The name of the file to which merger trees should be exported.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exportFormat</name>
@@ -79,8 +77,6 @@ contains
     !#   <variable>exportFormatText</variable>
     !#   <defaultValue>var_str('galacticus')</defaultValue>
     !#   <description>The output format to use when exporting merger trees.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>

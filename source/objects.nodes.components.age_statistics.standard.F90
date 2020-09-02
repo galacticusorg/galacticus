@@ -94,11 +94,9 @@ contains
     if (defaultAgeStatisticsComponent%standardIsActive()) then
        !# <inputParameter>
        !#   <name>ageStatisticsStandardIsInactive</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not the variables of the standard age statistics component are inactive (i.e. do not appear in any ODE being solved).</description>
        !#   <source>parameters_</source>
-       !#   <type>boolean</type>
        !# </inputParameter>
     end if
     return

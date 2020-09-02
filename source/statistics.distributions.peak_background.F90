@@ -60,17 +60,13 @@ contains
 
     !# <inputParameter>
     !#   <name>varianceBackground</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The variance in the background density field.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>thresholdCollapse</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The threshold for collapse of density perturbations.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=distributionFunction1DPeakBackground(varianceBackground,thresholdCollapse,randomNumberGenerator_)

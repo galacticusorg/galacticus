@@ -70,23 +70,17 @@ contains
     !#   <name>filterName</name>
     !#   <source>parameters</source>
     !#   <description>The filter to select.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>filterType</name>
     !#   <source>parameters</source>
     !#   <description>The filter type (rest or observed) to select.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     if (redshiftBandIsPresent) then
        !# <inputParameter>
        !#   <name>redshiftBand</name>
        !#   <source>parameters</source>
        !#   <description>The redshift of the band (if not the output redshift).</description>
-       !#   <type>real</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
     end if
     !# <inputParameter>
@@ -94,24 +88,18 @@ contains
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Multiplicative coefficient for optical depth in the ISM.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>depthOpticalCloudsCoefficient</name>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Multiplicative coefficient for optical depth in birth clouds.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>wavelengthExponent</name>
     !#   <defaultValue>0.7d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Exponent of wavelength in the optical depth.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     if (redshiftBandIsPresent) then

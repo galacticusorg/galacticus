@@ -90,11 +90,9 @@ contains
        ! Read parameters controlling the physical implementation.
        !# <inputParameter>
        !#   <name>diskMassToleranceAbsolute</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-6</defaultValue>
        !#   <description>The mass tolerance used to judge whether the disk is physically plausible.</description>
        !#   <source>parameters_</source>
-       !#   <type>real</type>
        !# </inputParameter>
     end if
     return

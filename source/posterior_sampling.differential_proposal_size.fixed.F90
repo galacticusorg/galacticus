@@ -52,10 +52,8 @@ contains
 
     !# <inputParameter>
     !#   <name>proposalSize</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The proposal size, $\gamma$.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=posteriorSampleDffrntlEvltnProposalSizeFixed(proposalSize)
     !# <inputParametersValidate source="parameters"/>

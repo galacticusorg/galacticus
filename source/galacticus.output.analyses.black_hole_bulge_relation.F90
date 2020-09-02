@@ -57,8 +57,6 @@ contains
     !#   <variable>systematicErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.0d0]</defaultValue>
     !#   <description>The coefficients of the systematic error polynomial.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorPolynomialCoefficient</name>
@@ -66,8 +64,6 @@ contains
     !#   <variable>randomErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.09d0]</defaultValue>
     !#   <description>The coefficients of the random error polynomial.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorMinimum</name>
@@ -75,8 +71,6 @@ contains
     !#   <variable>randomErrorMinimum</variable>
     !#   <defaultValue>0.09d0</defaultValue>
     !#   <description>The minimum random error for stellar masses.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorMaximum</name>
@@ -84,8 +78,6 @@ contains
     !#   <variable>randomErrorMaximum</variable>
     !#   <defaultValue>0.09d0</defaultValue>
     !#   <description>The minimum random error for stellar masses.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !# <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>

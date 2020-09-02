@@ -70,8 +70,6 @@ contains
     !#   <name>redshiftBin</name>
     !#   <source>parameters</source>
     !#   <description>The redshift bin (0, 1, 2, 3, 4, 5, 6, or 7) of the \cite{tomczak_galaxy_2014} mass function to use.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     self=surveyGeometryTomczak2014ZFOURGE(redshiftBin,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>

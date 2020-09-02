@@ -59,58 +59,42 @@ contains
     !#   <name>fileName</name>
     !#   <source>parameters</source>
     !#   <description>The name of the file to read.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>label</name>
     !#   <source>parameters</source>
     !#   <description>A label for the simulation</description>
     !#   <defaultValue>var_str('primary')</defaultValue>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>particleType</name>
     !#   <source>parameters</source>
     !#   <description>The particle type to read from the Gadget bianry file.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>lengthSoftening</name>
     !#   <source>parameters</source>
     !#   <description>The softening length.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>unitMassInSI</name>
     !#   <source>parameters</source>
     !#   <description>The mass unit expressed in the SI system.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>unitLengthInSI</name>
     !#   <source>parameters</source>
     !#   <description>The length unit expressed in the SI system.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>unitVelocityInSI</name>
     !#   <source>parameters</source>
     !#   <description>The velocity unit expressed in the SI system.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>unitVelocityInSI</name>
     !#   <source>parameters</source>
     !#   <description>The velocity unit expressed in the SI system.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=nbodyImporterGadgetBinary(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI)
     !# <inputParametersValidate source="parameters"/>

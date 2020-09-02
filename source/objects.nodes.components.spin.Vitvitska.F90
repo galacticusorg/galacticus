@@ -105,16 +105,12 @@ contains
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <source>parameters_</source>
     !#   <description>The exponent of mass ratio appearing in the orbital angular momentum term in the Vitvitska spin model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>spinVitvitskaEvolveDifferentially</name>
     !#   <defaultValue>.false.</defaultValue>
     !#   <source>parameters_</source>
     !#   <description>If true, the spin vector of the halo evolves under differential evolution due to the accretion of subresolution mass. If false, the spin vector is held fixed during differential evolution and only updates during node mergers. While the former should be more realistic, the latter is currently preferred as the standard hot halo component treatment of angular momentum relies on this assumption.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     ! Bind deferred functions.
     call spin%spinFunction          (Node_Component_Spin_Vitvitska_Spin            )

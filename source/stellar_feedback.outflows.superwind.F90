@@ -51,16 +51,12 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>200.0d0</defaultValue>
     !#   <description>The velocity scale at which the \gls{sne}-driven superwind outflow rate transitions to a constant.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massLoading</name>
     !#   <source>parameters</source>
     !#   <defaultValue>2.0d0</defaultValue>
     !#   <description>The mass-loading of ``superwind'' outflows.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=stellarFeedbackOutflowsSuperWind(velocityCharacteristic,massLoading)
     !# <inputParametersValidate source="parameters"/>

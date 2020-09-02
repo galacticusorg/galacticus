@@ -62,56 +62,44 @@ contains
     !# <inputParameter>
     !#   <name>convertToBinary</name>
     !#   <variable>self%convertToBinary</variable>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether halo and tree files in the ``Sussing'' format should be converted to binary the first time they are read and stored to file. This allows rapid re-reading in future.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>binaryFormatOld</name>
     !#   <variable>self%binaryFormatOld</variable>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether the old binary format is to be used (for reading only).</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>forestFile</name>
     !#   <variable>self%forestFile</variable>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('none')</defaultValue>
     !#   <description>Name of file containing data on number of halos in each forest.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>forestFirst</name>
     !#   <variable>self%forestFirst</variable>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1</defaultValue>
     !#   <description>Index of first forest to include.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>forestLast</name>
     !#   <variable>self%forestLast</variable>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>-1</defaultValue>
     !#   <description>Index of last forest to include.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>forestReverseSnapshotOrder</name>
     !#   <variable>self%forestReverseSnapshotOrder</variable>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, the order of forest snapshots will be reversed after being read. This may be necessary to cause them to match the order of snapshot files.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     self%useForestFile            =self%forestFile /= "none"
     self%mergerTreeImporterSussing=mergerTreeImporterSussing(parameters)

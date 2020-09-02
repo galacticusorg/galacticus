@@ -83,8 +83,6 @@ contains
     !#   <defaultValue>3.0d-4</defaultValue>
     !#   <description>Minimum spin for which the distribution function should be calculated.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>spinMaximum</name>
@@ -92,8 +90,6 @@ contains
     !#   <defaultValue>0.5d0</defaultValue>
     !#   <description>Maximum spin for which the distribution function should be calculated.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>spinPointsPerDecade</name>
@@ -101,8 +97,6 @@ contains
     !#   <defaultValue>10.0d0</defaultValue>
     !#   <description>Number of points per decade of spin at which to calculate the distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>haloMassMinimum</name>
@@ -110,16 +104,12 @@ contains
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>Minimum halo mass above which spin distribution should be averaged.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outputGroup</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('.')</defaultValue>
     !#   <description>The HDF5 output group within which to write spin distribution data.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="parameters"/>
     !# <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>

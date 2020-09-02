@@ -136,24 +136,18 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>100.0d0</defaultValue>
     !#   <description>The initial redshift from which integration of linear growth should be begin.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftInitialDelta</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The initial step in redshift used to estimate growth rates of perturbations using finite differencing.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>cambCountPerDecade</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0</defaultValue>
     !#   <description>The number of points per decade of wavenumber to compute in the CAMB transfer function. A value of 0 allows CAMB to choose what it considers to be optimal spacing of wavenumbers.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>

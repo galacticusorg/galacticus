@@ -61,35 +61,27 @@ contains
 
     !# <inputParameter>
     !#   <name>massHalo</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d12</defaultValue>
     !#   <description>The final mass of the merger tree base halo to consider when building a smoothly accreting merger tree, in units of $M_\odot$.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massHaloResolution</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d9</defaultValue>
     !#   <description>The final mass of the merger tree base halo to consider when building a smoothly accreting merger tree, in units of $M_\odot$.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massHaloDeclineFactor</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.9d0</defaultValue>
     !#   <description>The factor by which halo mass should decrease in each step back in time building a smoothly accreting merger tree, in units of $M_\odot$.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftBase</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The redshift at which to plant the base node when building the smoothly accreting merger tree.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"/>
     !# <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"/>

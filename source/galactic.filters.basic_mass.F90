@@ -54,8 +54,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>basicMassConstructorParameters%massThreshold</variable>
     !#   <description>The parameter $M_0$ (in units of $M_\odot$) appearing in the basic mass threshold for the basic mass galactic filter class.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParametersValidate source="parameters"/>
     return

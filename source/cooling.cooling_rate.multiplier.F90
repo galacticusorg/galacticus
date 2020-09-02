@@ -55,8 +55,6 @@ contains
     !#  <source>parameters</source>
     !#  <defaultValue>0.0d0</defaultValue>
     !#  <description>The value by which cooling rates should be multiplied.</description>
-    !#  <type>real</type>
-    !#  <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="coolingRate" name="coolingRate_" source="parameters"/>
     self=coolingRateMultiplier(multiplier,coolingRate_)

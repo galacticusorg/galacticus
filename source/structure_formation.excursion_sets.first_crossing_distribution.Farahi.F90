@@ -143,48 +143,36 @@ contains
     !#   <name>fileName</name>
     !#   <defaultValue>var_str('none')</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !#   <description>The name of the file to/from which tabulations of barrier first crossing probabilities should be written/read. If set to ``{\normalfont \ttfamily none}'' tables will not be stored.</description>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeStepFractional</name>
     !#   <defaultValue>0.01d0</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !#   <description>The fractional time step used when computing barrier crossing rates (i.e. the step used in finite difference calculations).</description>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>varianceNumberPerUnitProbability</name>
     !#   <defaultValue>1000</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !#   <description>The number of points to tabulate per unit variance for first crossing probabilities.</description>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>varianceNumberPerUnit</name>
     !#   <defaultValue>40</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !#   <description>The number of points to tabulate per unit variance for first crossing rates.</description>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>varianceNumberPerDecade</name>
     !#   <defaultValue>400</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !#   <description>The number of points to tabulate per decade of progenitor variance for first crossing rates.</description>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeNumberPerDecade</name>
     !#   <defaultValue>10</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !#   <description>The number of points to tabulate per decade of time.</description>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>

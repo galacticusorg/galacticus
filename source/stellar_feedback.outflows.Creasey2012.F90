@@ -59,8 +59,6 @@ contains
     !#   <defaultValue>1.15d0</defaultValue>
     !#   <defaultSource>\citep{creasey_how_2012}</defaultSource>
     !#   <description>The parameter $\mu$ appearing in the \cite{creasey_how_2012} model for supernovae feedback.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>nu</name>
@@ -68,8 +66,6 @@ contains
     !#   <defaultValue>0.16d0</defaultValue>
     !#   <defaultSource>\citep{creasey_how_2012}</defaultSource>
     !#   <description>The parameter $\nu$ appearing in the \cite{creasey_how_2012} model for supernovae feedback.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>beta0</name>
@@ -77,8 +73,6 @@ contains
     !#   <defaultValue>13.0d0</defaultValue>
     !#   <defaultSource>\citep{creasey_how_2012}</defaultSource>
     !#   <description>The parameter $\beta_0$ appearing in the \cite{creasey_how_2012} model for supernovae feedback.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="starFormationRateSurfaceDensityDisks" name="starFormationRateSurfaceDensityDisks_" source="parameters"/>
     self=stellarFeedbackOutflowsCreasey2012(mu,nu,beta0,starFormationRateSurfaceDensityDisks_)

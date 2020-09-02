@@ -60,37 +60,29 @@ contains
     !#   <name>normalization</name>
     !#   <defaultValue>0.150d0</defaultValue>
     !#   <defaultSource>\citep{trac_scorch_2015}</defaultSource>
-    !#   <cardinality>1</cardinality>
     !#   <description>The normalization parameter, $A$, for the \cite{tinker_towardhalo_2008} halo mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>a</name>
     !#   <defaultValue>1.36d0</defaultValue>
     !#   <defaultSource>\citep{trac_scorch_2015}</defaultSource>
-    !#   <cardinality>1</cardinality>
     !#   <description>The parameter $a$ for the \cite{tinker_towardhalo_2008} halo mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>b</name>
     !#   <defaultValue>2.54d0</defaultValue>
     !#   <defaultSource>\citep{trac_scorch_2015}</defaultSource>
-    !#   <cardinality>1</cardinality>
     !#   <description>The parameter $b$ for the \cite{tinker_towardhalo_2008} halo mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>c</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.14d0</defaultValue>
     !#   <defaultSource>\citep{trac_scorch_2015}</defaultSource>
     !#   <description>The parameter $c$ for the \cite{tinker_towardhalo_2008} halo mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>

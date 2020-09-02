@@ -52,8 +52,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>multiplier</variable>
     !#   <description>Multiplying factor.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=outputAnalysisPropertyOperatorMultiply(multiplier)
     !# <inputParametersValidate source="parameters"/>

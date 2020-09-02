@@ -58,15 +58,11 @@ contains
     !#   <name>name</name>
     !#   <source>parameters</source>
     !#   <description>The name of this property.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>description</name>
     !#   <source>parameters</source>
     !#   <description>A description of this property.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="nodePropertyExtractor" name="propertyNumerator_"   parameterName="nodePropertyExtractorNumerator"   source="parameters"/>
     !# <objectBuilder class="nodePropertyExtractor" name="propertyDenominator_" parameterName="nodePropertyExtractorDenominator" source="parameters"/>

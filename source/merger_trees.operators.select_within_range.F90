@@ -51,8 +51,6 @@ contains
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <variable>selectWithinRangeConstructorParameters%baseMassMinimum</variable>
     !#   <description>Base node mass below which trees should be ignored.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>baseMassMaximum</name>
@@ -60,8 +58,6 @@ contains
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <variable>selectWithinRangeConstructorParameters%baseMassMaximum</variable>
     !#   <description>Base node mass above which trees should be ignored.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParametersValidate source="parameters"/>
     return

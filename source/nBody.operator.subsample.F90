@@ -55,8 +55,6 @@ contains
     !#   <name>rate</name>
     !#   <source>parameters</source>
     !#   <description>The rate at which to subsample points.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=nbodyOperatorSubsample(rate,randomNumberGenerator_)

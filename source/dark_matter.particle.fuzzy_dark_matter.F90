@@ -52,8 +52,6 @@ contains
     !#   <variable>massValue</variable>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The mass (in units of $10^{-22}$~eV) of the fuzzy dark matter particle.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     self=darkMatterParticleFuzzyDarkMatter(massValue)
     !# <inputParametersValidate source="parameters"/>

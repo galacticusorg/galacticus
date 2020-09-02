@@ -101,52 +101,38 @@ contains
 
     !# <inputParameter>
     !#   <name>magnitude</name>
-    !#   <cardinality>1..*</cardinality>
     !#   <description>The magnitudes of the broad-band SED.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>error</name>
-    !#   <cardinality>1..*</cardinality>
     !#   <description>The errors on the magnitudes of the broad-band SED.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>filter</name>
-    !#   <cardinality>1..*</cardinality>
     !#   <description>The names of the filters in the broad-band SED.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>system</name>
-    !#   <cardinality>1..*</cardinality>
     !#   <description>The photometric system (AB or Vega) of the broad-band SED.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>burstCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of bursts events to include in the star formation history.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>dustType</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The type of dust model to apply to the SED.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>startTime</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The definition of start time (absolute {\normalfont \ttfamily time} or {\normalfont \ttfamily age}).</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"                           name="cosmologyFunctions_"                           source="parameters"/>
     !# <objectBuilder class="stellarPopulationSelector"                    name="stellarPopulationSelector_"                    source="parameters"/>

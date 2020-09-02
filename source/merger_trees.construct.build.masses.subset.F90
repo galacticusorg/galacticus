@@ -53,17 +53,13 @@ contains
 
     !# <inputParameter>
     !#   <name>subsetBegin</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The first entry in the subset (indexed from 1).</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>subsetEnd</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The last entry in the subset (indexed from 1).</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <objectBuilder class="mergerTreeBuildMasses" name="mergerTreeBuildMasses_" source="parameters"/>
     self=mergerTreeBuildMassesSubset(subsetBegin,subsetEnd,mergerTreeBuildMasses_)

@@ -56,31 +56,23 @@ contains
 
     !# <inputParameter>
     !#   <name>shape</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The shape parameter of the gamma distribution function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>rate</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The rate parameter of the gamma distribution function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>limitLower</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The lower limit of the gamma distribution function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>limitUpper</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The upper limit of the gamma distribution function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=distributionFunction1DGamma(shape,rate,randomNumberGenerator_,limitLower,limitUpper)

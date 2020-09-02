@@ -49,11 +49,9 @@ contains
 
     !# <inputParameter>
     !#   <name>boundaries</name>
-    !#   <cardinality>2</cardinality>
     !#   <defaultValue>[0.0d0,1.0d0]</defaultValue>
     !#   <description>The $r$-interval spanned by the computational domain.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
      self=computationalDomainVolumeIntegratorSpherical(boundaries)
     !# <inputParametersValidate source="parameters"/>

@@ -73,11 +73,9 @@ contains
 
     !# <inputParameter>
     !#   <name>acceptedStateCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of states to use in acceptance rate statistics.</description>
     !#   <defaultValue>100</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     self=posteriorSampleStateSimple(acceptedStateCount)
     !# <inputParametersValidate source="parameters"/>

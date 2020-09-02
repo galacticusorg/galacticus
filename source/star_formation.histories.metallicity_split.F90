@@ -111,27 +111,21 @@ contains
 
     !# <inputParameter>
     !#   <name>timeStep</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The time step to use in tabulations of star formation histories [Gyr].</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeStepFine</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.01d0</defaultValue>
     !#   <description>The fine time step to use in tabulations of star formation histories [Gyr].</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeFine</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The period prior to each output for which the fine time step is used in tabulations of star formation histories [Gyr].</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     if (parameters%isPresent('metallicityBoundaries')) then
        self%countMetallicities=parameters%count('metallicityBoundaries')
@@ -142,33 +136,27 @@ contains
        !#   <source>parameters</source>
        !#   <variable>metallicityBoundaries(1:size(metallicityBoundaries)-1)</variable>
        !#   <type>real</type>
-       !#   <cardinality>1..*</cardinality>
+       !#   <cardinality>0..*</cardinality>
        !# </inputParameter>
        metallicityBoundaries(size(metallicityBoundaries))=metallicitySplitMetallicityInfinite
     else
        !# <inputParameter>
        !#   <name>countMetallicities</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>10</defaultValue>
        !#   <description>The number of bins in metallicity to use when tabulating star formation histories.</description>
        !#   <source>parameters</source>
-       !#   <type>integer</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>metallicityMinimum</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-4</defaultValue>
        !#   <description>The upper limit to the metallicity in the lowest metallicity bin when tabulating star formation histories [Solar units].</description>
        !#   <source>parameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>metallicityMaximum</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d+1</defaultValue>
        !#   <description>The upper limit to the metallicity in the highest metallicity bin when tabulating star formation histories [Solar units].</description>
        !#   <source>parameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
     end if
     !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>

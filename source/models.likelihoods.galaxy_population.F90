@@ -74,34 +74,26 @@ contains
 
     !# <inputParameter>
     !#   <name>baseParametersFileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The base set of parameters to use.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomize</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true, randomize models (i.e. change the random seed).</description>
     !#   <defaultValue>.false.</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>evolveForestsVerbosity</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The verbosity level to use while performing evolve forests tasks.</description>
     !#   <defaultValue>Galacticus_Verbosity_Level()</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>failedParametersFileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The filename to which parameters of failed models should be written.</description>
     !#   <defaultValue>var_str('./failedParameters.xml')</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     allocate(parametersModel)
     parametersModel=inputParameters                          (baseParametersFileName,noOutput=.true.)

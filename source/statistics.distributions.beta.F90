@@ -59,17 +59,13 @@ contains
 
     !# <inputParameter>
     !#   <name>alpha</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The $\alpha$ parameter of the beta distribution function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>beta</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The $\beta$ parameter of the beta distribution function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=distributionFunction1DBeta(alpha,beta,randomNumberGenerator_)

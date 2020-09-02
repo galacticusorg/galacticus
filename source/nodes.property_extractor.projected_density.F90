@@ -70,18 +70,14 @@ contains
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
     !# <inputParameter>
     !#   <name>radiusSpecifiers</name>
-    !#   <cardinality>1..*</cardinality>
     !#   <description>A list of radius specifiers at which to output the projected density profile.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>includeRadii</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether or not the radii at which projected density data are output should also be included in the output file.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=nodePropertyExtractorProjectedDensity(radiusSpecifiers,includeRadii,darkMatterHaloScale_)

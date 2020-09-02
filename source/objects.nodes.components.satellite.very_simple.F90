@@ -81,11 +81,9 @@ contains
     ! Determine if satellite orbits are to be reset on halo formation events.
     !# <inputParameter>
     !#   <name>satelliteOrbitResetOnHaloFormation</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether satellite virial orbital parameters should be reset on halo formation events.</description>
     !#   <source>parameters_</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     return
   end subroutine Node_Component_Satellite_Very_Simple_Initialize

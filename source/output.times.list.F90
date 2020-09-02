@@ -70,10 +70,8 @@ contains
     if (parameters%isPresent('times')) then
        !# <inputParameter>
        !#   <name>times</name>
-       !#   <cardinality>1..*</cardinality>
        !#   <description>A list of (space-separated) times at which \glc\ results should be output. Times need not be in any particular order.</description>
        !#   <source>parameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
        call sort(times)
     else
@@ -82,8 +80,6 @@ contains
        !#   <defaultValue>[0.0d0]</defaultValue>
        !#   <variable>times</variable>
        !#   <description>A list of (space-separated) redshifts at which \glc\ results should be output. Redshifts need not be in any particular order.</description>
-       !#   <type>real</type>
-       !#   <cardinality>1..*</cardinality>
        !#   <source>parameters</source>
        !# </inputParameter>
        call sort(times)

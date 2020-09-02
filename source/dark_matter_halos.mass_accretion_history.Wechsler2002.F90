@@ -71,20 +71,16 @@ contains
 
     !# <inputParameter>
     !#   <name>formationRedshiftCompute</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true, compute formation redshift automatically for \cite{wechsler_concentrations_2002} halo mass accretion histories.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     if (.not.formationRedshiftCompute) then
        ! In this case, read the formation redshift.
        !# <inputParameter>
        !#   <name>formationRedshift</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The formation redshift to use in \cite{wechsler_concentrations_2002} halo mass accretion histories.</description>
        !#   <source>parameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
     end if
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>

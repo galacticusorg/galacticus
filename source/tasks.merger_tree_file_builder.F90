@@ -116,104 +116,82 @@ contains
 
     !# <inputParameter>
     !#   <name>inputFileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the file from which to read merger tree data.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     if (parameters%isPresent('particlesFileName')) then
        !# <inputParameter>
        !#   <name>particlesFileName</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The name of the file from which to read particle data.</description>
        !#   <source>parameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
     else
        particlesFileName=''
     end if
     !# <inputParameter>
     !#   <name>outputFileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the file to which to write merger tree data.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outputFormat</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The format to use for merger tree output.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>columnHeaders</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, the file is assumed to contain a single line of column headers, which will be skipped.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>columnSeparator</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str(',')</defaultValue>
     !#   <description>The separator for columns.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     if (columnSeparator == "space") columnSeparator=" "
     massParticle%isSet=parameters%isPresent('massParticle')
     if (massParticle%isSet) then
        !# <inputParameter>
        !#   <name>massParticle</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The mass of the simulation particle.</description>
        !#   <source>parameters</source>
        !#   <variable>massParticle%value</variable>
-       !#   <type>real</type>
        !# </inputParameter>
     end if
     dummyHostId%isSet=parameters%isPresent('dummyHostId')
     if (dummyHostId%isSet) then
        !# <inputParameter>
        !#   <name>dummyHostId</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>If present, specifies the dummy host ID for self-hosting halos. Otherwise, self-hosting halos have {\normalfont \ttfamily hostIndex == nodeIndex}.</description>
        !#   <source>parameters</source>
        !#   <variable>dummyHostId%value</variable>
-       !#   <type>real</type>
        !# </inputParameter>
     end if
     haloMassesIncludeSubhalos%isSet=parameters%isPresent('haloMassesIncludeSubhalos')
     if (haloMassesIncludeSubhalos%isSet) then
        !# <inputParameter>
        !#   <name>haloMassesIncludeSubhalos</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>Specifies whether or not halo masses include the masses of their subhalos.</description>
        !#   <source>parameters</source>
        !#   <variable>haloMassesIncludeSubhalos%value</variable>
-       !#   <type>boolean</type>
        !# </inputParameter>
     end if
     if (includesHubbleFlow%isSet) then
        !# <inputParameter>
        !#   <name>includesHubbleFlow</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>Specifies whether or not Hubble flow is included in velocities.</description>
        !#   <source>parameters</source>
        !#   <variable>includesHubbleFlow%value</variable>
-       !#   <type>boolean</type>
        !# </inputParameter>
     end if
     if (positionsArePeriodic%isSet) then
        !# <inputParameter>
        !#   <name>positionsArePeriodic</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>Specifies whether or not positions are periodic.</description>
        !#   <source>parameters</source>
        !#   <variable>positionsArePeriodic%value</variable>
-       !#   <type>boolean</type>
        !# </inputParameter>
     end if
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
@@ -227,17 +205,13 @@ contains
        subParameters=parameters%subParameters('property',requireValue=.false.,copyInstance=i)
        !# <inputParameter>
        !#   <name>name</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The name of the property to read.</description>
        !#   <source>subParameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>column</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The column from which to read the property.</description>
        !#   <source>subParameters</source>
-       !#   <type>integer</type>
        !# </inputParameter>
        properties(i)%property              =enumerationPropertyTypeEncode(char(name),includesPrefix=.false.)
        properties(i)%column                =column
@@ -246,10 +220,10 @@ contains
           !# <inputParameter>
           !#   <name>conversionFactor</name>
           !#   <variable>properties(i)%conversionFactor%value</variable>
-          !#   <cardinality>1</cardinality>
           !#   <description>An additional conversion factor to apply to the property to get it into the correct units.</description>
-          !#   <source>subParameters</source>
-          !#   <type>real</type>
+	  !#   <source>subParameters</source>
+	  !#   <type>real</type>
+	  !#   <cardinality>1</cardinality>
           !# </inputParameter>
        end if
        deallocate(subParameters)
@@ -261,17 +235,13 @@ contains
        subParameters=parameters%subParameters('particleProperty',requireValue=.false.,copyInstance=i)
        !# <inputParameter>
        !#   <name>name</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The name of the particle property to read.</description>
        !#   <source>subParameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>column</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The column from which to read the particle property.</description>
        !#   <source>subParameters</source>
-       !#   <type>integer</type>
        !# </inputParameter>
        deallocate(subParameters)
        particleProperties(i)%property=enumerationPropertyTypeEncode(char(name),includesPrefix=.false.)
@@ -284,26 +254,20 @@ contains
        subParameters=parameters%subParameters('metaData',requireValue=.false.,copyInstance=i)
        !# <inputParameter>
        !#   <name>name</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The name of the metadata.</description>
        !#   <source>subParameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>content</name>
        !#   <variable>metaDataContent</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>The value of the metadata.</description>
        !#   <source>subParameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>type</name>
        !#   <variable>metaDataType</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>The metadata type.</description>
        !#   <source>subParameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
        deallocate(subParameters)
        metaData(i)%name   =name
@@ -320,34 +284,26 @@ contains
        !# <inputParameter>
        !#   <name>unitsInSI</name>
        !#   <variable>unitsMassInSI</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>The mass unit in the SI system.</description>
        !#   <source>subParameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>hubbleExponent</name>
        !#   <variable>unitsMassHubbleExponent</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>The exponent of the ``little-$h$'' Hubble parameter needed to convert the masses to little-$h$-free units.</description>
        !#   <source>subParameters</source>
-       !#   <type>integer</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>scaleFactorExponent</name>
        !#   <variable>unitsMassScaleFactorExponent</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>The exponent of the cosmological scale factor needed to convert the masses to physical units.</description>
        !#   <source>subParameters</source>
-       !#   <type>integer</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>name</name>
        !#   <variable>unitsMassName</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>A human-readable name for the units of mass.</description>
        !#   <source>subParameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
        deallocate(subParameters)
     end if
@@ -361,34 +317,26 @@ contains
        !# <inputParameter>
        !#   <name>unitsInSI</name>
        !#   <variable>unitsLengthInSI</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>The length unit in the SI system.</description>
        !#   <source>subParameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>hubbleExponent</name>
        !#   <variable>unitsLengthHubbleExponent</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>The exponent of the ``little-$h$'' Hubble parameter needed to convert the lengthes to little-$h$-free units.</description>
        !#   <source>subParameters</source>
-       !#   <type>integer</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>scaleFactorExponent</name>
        !#   <variable>unitsLengthScaleFactorExponent</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>The exponent of the cosmological scale factor needed to convert the lengthes to physical units.</description>
        !#   <source>subParameters</source>
-       !#   <type>integer</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>name</name>
        !#   <variable>unitsLengthName</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>A human-readable name for the units of length.</description>
        !#   <source>subParameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
        deallocate(subParameters)
     end if
@@ -402,34 +350,26 @@ contains
        !# <inputParameter>
        !#   <name>unitsInSI</name>
        !#   <variable>unitsVelocityInSI</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>The velocity unit in the SI system.</description>
        !#   <source>subParameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>hubbleExponent</name>
        !#   <variable>unitsVelocityHubbleExponent</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>The exponent of the ``little-$h$'' Hubble parameter needed to convert the velocities to little-$h$-free units.</description>
        !#   <source>subParameters</source>
-       !#   <type>integer</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>scaleFactorExponent</name>
        !#   <variable>unitsVelocityScaleFactorExponent</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>The exponent of the cosmological scale factor needed to convert the velocities to physical units.</description>
        !#   <source>subParameters</source>
-       !#   <type>integer</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>name</name>
        !#   <variable>unitsVelocityName</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>A human-readable name for the units of velocity.</description>
        !#   <source>subParameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
        deallocate(subParameters)
     end if

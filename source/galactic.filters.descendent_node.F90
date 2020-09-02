@@ -57,15 +57,11 @@ contains
     !#   <name>redshiftDescendent</name>
     !#   <source>parameters</source>
     !#   <description>The redshift of the descendent node to which to apply the filter.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>allowSelf</name>
     !#   <source>parameters</source>
     !#   <description>If true, the node itself is considered as a possible descendent, otherwise the node itself is excldued from the descendent node search.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="galacticFilter"      name="galacticFilter_"      source="parameters"/>

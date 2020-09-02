@@ -165,35 +165,27 @@ contains
     
     !# <inputParameter>
     !#   <name>iterationAverageCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>5</defaultValue>
     !#   <description>The number of iterations over which to average the photoionization rate.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>temperatureMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The minimum temperature that matter is allowed to reach in the case of zero photoheating.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>abundancePattern</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('solar')</defaultValue>
     !#   <description>The abundance pattern to use.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>metallicity</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>metallicitySolar</defaultValue>
     !#   <description>The metallicity to use.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     if (parameters%isPresent('elements')) then
        allocate(elements(parameters%count('elements')))
@@ -202,35 +194,27 @@ contains
     end if
     !# <inputParameter>
     !#   <name>elements</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>['H']</defaultValue>
     !#   <description>The elements to include.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outputRates</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, output photoionization and heating rates.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outputAbsorptionCoefficients</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, output absorption coefficients of each species (at the hydrogen Lyman continuum edge).</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>convergencePercentile</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.90d0</defaultValue>
     !#   <description>The percentile used in the convergence criterion.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="massDistribution"                        name="massDistribution_"                        source="parameters"/>
     !# <objectBuilder class="atomicCrossSectionIonizationPhoto"       name="atomicCrossSectionIonizationPhoto_"       source="parameters"/>

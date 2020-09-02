@@ -64,12 +64,10 @@ contains
 
     !# <inputParameter>
     !#   <name>massThresholdHarrassment</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The host halo mass threshold for harrassment to take effect.</description>
     !#   <source>parameters</source>
     !# <variable>self%massThresholdHarrassment</variable>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="satelliteTidalField" name="self%satelliteTidalField_" source="parameters"/>
     self%galacticDynamicsBarInstabilityEfstathiou1982=galacticDynamicsBarInstabilityEfstathiou1982(parameters)

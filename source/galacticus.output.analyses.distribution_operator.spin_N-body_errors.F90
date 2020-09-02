@@ -57,8 +57,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, integration tolerance failures are tolerated (a warning is issued but calculations will continue).</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="parameters"/>
     self=outputAnalysisDistributionOperatorSpinNBodyErrors(errorTolerant,haloSpinDistribution_)

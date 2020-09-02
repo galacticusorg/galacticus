@@ -69,8 +69,6 @@ contains
     !#   <name>redshiftBin</name>
     !#   <source>parameters</source>
     !#   <description>The redshift bin (0, 1, 2, 3, 4, 5, or 6) of the \cite{muzzin_evolution_2013} mass function to use.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     self=surveyGeometryMuzzin2013ULTRAVISTA(redshiftBin,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>

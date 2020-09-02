@@ -161,42 +161,32 @@ contains
        !#   <defaultValue>.true.</defaultValue>
        !#   <source>parameters_</source>
        !#   <description>If true, then {\normalfont \ttfamily [satelliteOrbitingDestructionMass]} specifies the fractional mass a halo must reach before it is tidally destroyed. Otherwise, {\normalfont \ttfamily [satelliteOrbitingDestructionMass]} specifies an absolute mass.</description>
-       !#   <type>real</type>
-       !#   <cardinality>1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>satelliteOrbitingDestructionMass</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>0.01d0</defaultValue>
        !#   <description>The mass (possibly fractional---see {\normalfont \ttfamily [satelliteOrbitingDestructionMassIsFractional]}) below which the satellite is considered to be tidally destroyed and merged with the central halo.</description>
        !#   <source>parameters_</source>
-       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>satelliteBoundMassInitializeType</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>var_str('basicMass')</defaultValue>
        !#   <description>Specify how to initialize the bound mass of a satellite halo. By default, the initial bound mass of a satellite halo is set to the node mass.</description>
        !#   <source>parameters_</source>
-       !#   <type>string</type>
        !#   <variable>satelliteBoundMassInitializeTypeText</variable>
        !# </inputParameter>
        satelliteBoundMassInitializeType=enumerationSatelliteBoundMassInitializeTypeEncode(char(satelliteBoundMassInitializeTypeText),includesPrefix=.false.)
        !# <inputParameter>
        !#   <name>satelliteMaximumRadiusOverVirialRadius</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d0</defaultValue>
        !#   <description>The maximum radius of the satellite halo in units of its virial radius. If {\normalfont \ttfamily [satelliteBoundMassInitializeType]} is set to 'maximumRadius', this value will be used to compute the initial bound mass of the satellite halo assuming that its density profile is 0 beyond this maximum radius.</description>
        !#   <source>parameters_</source>
-       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>satelliteDensityContrast</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>200.0d0</defaultValue>
        !#   <description>The density contrast of the satellite halo. If {\normalfont \ttfamily [satelliteBoundMassInitializeType]} is set to 'densityContrast', this value will be used to compute the initial bound mass of the satellite halo.</description>
        !#   <source>parameters_</source>
-       !#   <type>real</type>
        !# </inputParameter>
        ! Validate the parameters.
        select case (satelliteBoundMassInitializeType)

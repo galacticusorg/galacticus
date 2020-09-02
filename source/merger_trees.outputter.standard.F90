@@ -168,16 +168,12 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>var_str('Outputs')</defaultValue>
     !#   <description>The name of the HDF5 group to which outputs will be written.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outputReferences</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether or not references to individual merger tree datasets should be output.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="galacticFilter"        name="galacticFilter_"        source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>

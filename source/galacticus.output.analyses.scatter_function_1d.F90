@@ -117,172 +117,128 @@ contains
     !#   <source>parameters</source>
     !#   <variable>label</variable>
     !#   <description>A label for the analysis.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>xAxisLabel</name>
     !#   <source>parameters</source>
     !#   <description>A label for the $x$-axis in a plot of this analysis.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>yAxisLabel</name>
     !#   <source>parameters</source>
     !#   <description>A label for the $y$-axis in a plot of this analysis.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>xAxisIsLog</name>
     !#   <source>parameters</source>
     !#   <description>If true, indicates that the $x$-axis should be logarithmic in a plot of this analysis.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>yAxisIsLog</name>
     !#   <source>parameters</source>
     !#   <description>If true, indicates that the $y$-axis should be logarithmic in a plot of this analysis.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>comment</name>
     !#   <source>parameters</source>
     !#   <variable>comment</variable>
     !#   <description>A descriptive comment for the analysis.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>propertyLabel</name>
     !#   <source>parameters</source>
     !#   <variable>propertyLabel</variable>
     !#   <description>A label for the property variable.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>propertyComment</name>
     !#   <source>parameters</source>
     !#   <variable>propertyComment</variable>
     !#   <description>A descriptive comment for the property variable.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>propertyUnits</name>
     !#   <source>parameters</source>
     !#   <variable>propertyUnits</variable>
     !#   <description>A human-readable description of the units for the property.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>propertyUnitsInSI</name>
     !#   <source>parameters</source>
     !#   <variable>propertyUnitsInSI</variable>
     !#   <description>A units for the property in the SI system.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>scatterLabel</name>
     !#   <source>parameters</source>
     !#   <variable>scatterLabel</variable>
     !#   <description>A label for the scatter.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>scatterComment</name>
     !#   <source>parameters</source>
     !#   <variable>scatterComment</variable>
     !#   <description>A descriptive comment for the scatter.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>scatterUnits</name>
     !#   <source>parameters</source>
     !#   <variable>scatterUnits</variable>
     !#   <description>A human-readable description of the units for the scatter.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>scatterUnitsInSI</name>
     !#   <source>parameters</source>
     !#   <variable>scatterUnitsInSI</variable>
     !#   <description>A units for the scatter in the SI system.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>binCenter</name>
     !#   <source>parameters</source>
     !#   <variable>binCenter</variable>
     !#   <description>The value of the property at the center of each bin.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>bufferCount</name>
     !#   <source>parameters</source>
     !#   <variable>bufferCount</variable>
     !#   <description>The number of buffer bins to include below and above the range of actual bins.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outputWeight</name>
     !#   <source>parameters</source>
     !#   <variable>outputWeight</variable>
     !#   <description>The weight to assign to each bin at each output.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceModel</name>
     !#   <source>parameters</source>
     !#   <variable>covarianceModel</variable>
     !#   <description>The model to use for computing covariances.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialBinsPerDecade</name>
     !#   <source>parameters</source>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins per decade of halo mass to use when constructing volume function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMinimum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d8</defaultValue>
     !#   <description>The minimum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMaximum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d16</defaultValue>
     !#   <description>The maximum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>likelihoodNormalize</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true then normalize the likelihood to make it a probability density.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     if (parameters%isPresent('scatterValueTarget')) then
        if (parameters%isPresent('scatterCovarianceTarget')) then
@@ -290,16 +246,12 @@ contains
           !#   <name>scatterValueTarget</name>
           !#   <source>parameters</source>
           !#   <description>The target function for likelihood calculations.</description>
-          !#   <type>real</type>
-          !#   <cardinality>0..1</cardinality>
           !# </inputParameter>
           !# <inputParameter>
           !#   <name>scatterCovarianceTarget</name>
           !#   <source>parameters</source>
           !#   <variable>scatterCovarianceTarget1D</variable>
           !#   <description>The target function covariance for likelihood calculations.</description>
-          !#   <type>real</type>
-          !#   <cardinality>0..1</cardinality>
           !# </inputParameter>
           if (size(scatterCovarianceTarget1D) == size(scatterValueTarget)**2) then
              allocate(scatterCovarianceTarget(size(scatterValueTarget),size(scatterValueTarget)))
@@ -318,8 +270,6 @@ contains
     !#   <source>parameters</source>
     !#   <description>A label for the target dataset in a plot of this analysis.</description>
     !#   <defaultValue>var_str('')</defaultValue>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     ! Build the object.
     !# <conditionalCall>

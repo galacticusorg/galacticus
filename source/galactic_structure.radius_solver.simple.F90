@@ -56,11 +56,9 @@ contains
 
     !# <inputParameter>
     !#   <name>useFormationHalo</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether or not the ``formation halo'' should be used when solving for the radii of galaxies.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     self=galacticStructureSolverSimple(useFormationHalo,darkMatterProfileDMO_)

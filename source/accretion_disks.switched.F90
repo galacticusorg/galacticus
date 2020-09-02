@@ -84,8 +84,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>'0.01d0'</defaultValue>
     !#   <description>The accretion rate (in Eddington units) below which a switched accretion disk becomes an ADAF.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>accretionRateThinDiskMaximum</name>
@@ -95,24 +93,18 @@ contains
     !#   <description>
     !#    The accretion rate (in Eddington units) above which a switched accretion disk becomes an ADAF.
     !#   </description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>accretionRateTransitionWidth</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The width (in $\ln[\dot{M}/\dot{M}_\mathrm{Eddington}]$) over which transitions between accretion disk states occur.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>scaleADAFRadiativeEfficiency</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether the radiative efficiency of the ADAF component in a switched accretion disk scales with accretion rate.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="accretionDisks" parameterName="accretionDisksADAFMethod"           name="accretionDisksADAF_"           source="parameters"/>
     !# <objectBuilder class="accretionDisks" parameterName="accretionDisksShakuraSunyaevMethod" name="accretionDisksShakuraSunyaev_" source="parameters"/>

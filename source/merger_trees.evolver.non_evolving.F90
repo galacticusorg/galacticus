@@ -51,8 +51,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, prune the tree to the evolve-to-time after each evolution.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     self=mergerTreeEvolverNonEvolving(pruneTree)
     !# <inputParametersValidate source="parameters"/>

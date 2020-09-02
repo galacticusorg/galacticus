@@ -167,105 +167,77 @@ contains
     !#   <name>label</name>
     !#   <source>parameters</source>
     !#   <description>A label for the mass function.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>comment</name>
     !#   <source>parameters</source>
     !#   <description>A descriptive comment for the mass function.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>separations</name>
     !#   <source>parameters</source>
     !#   <description>The separations corresponding to bin centers.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMinima</name>
     !#   <source>parameters</source>
     !#   <description>The minimum mass of each mass sample.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMaxima</name>
     !#   <source>parameters</source>
     !#   <description>The maximum mass of each mass sample.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massHaloBinsPerDecade</name>
-    !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch galaxies.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massHaloMinimum</name>
-    !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>1.0d8</defaultValue>
     !#   <description>The minimum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massHaloMaximum</name>
-    !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>1.0d16</defaultValue>
     !#   <description>The maximum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>wavenumberCount</name>
-    !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>60_c_size_t</defaultValue>
     !#   <description>The number of bins in wavenumber to use in computing the correlation function.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>wavenumberMinimum</name>
-    !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>1.0d-3</defaultValue>
     !#   <description>The minimum wavenumber to use when computing the correlation function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>wavenumberMaximum</name>
-    !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>1.0d4</defaultValue>
     !#   <description>The maximum wavenumber to use when computing the correlation function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>integralConstraint</name>
-    !#   <cardinality>0..1</cardinality>
     !#   <description>The integral constraint for these correlation functions.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>depthLineOfSight</name>
-    !#   <cardinality>0..1</cardinality>
     !#   <description>The line-of-sight depth over which the correlation function was projected.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>halfIntegral</name>
-    !#   <cardinality>0..1</cardinality>
     !#   <description>Set to true if the projection integrand should be over line-of-sight depths greater than zero.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     if (parameters%isPresent('binnedProjectedCorrelationTarget')) then
        if (parameters%isPresent('binnedProjectedCorrelationCovarianceTarget')) then
@@ -274,16 +246,12 @@ contains
           !#   <source>parameters</source>
           !#   <description>The target function for likelihood calculations.</description>
           !#   <variable>binnedProjectedCorrelationTarget1D</variable>
-          !#   <type>real</type>
-          !#   <cardinality>0..1</cardinality>
           !# </inputParameter>
           !# <inputParameter>
           !#   <name>binnedProjectedCorrelationCovarianceTarget</name>
           !#   <source>parameters</source>
           !#   <variable>binnedProjectedCorrelationCovarianceTarget1D</variable>
           !#   <description>The target function covariance for likelihood calculations.</description>
-          !#   <type>real</type>
-          !#   <cardinality>0..1</cardinality>
           !# </inputParameter>
           if (size(binnedProjectedCorrelationCovarianceTarget1D) == size(binnedProjectedCorrelationTarget1D)**2) then
              allocate(binnedProjectedCorrelationTarget          (size(separations                       ),size(massMinima                        )))
@@ -304,8 +272,6 @@ contains
     !#   <source>parameters</source>
     !#   <description>A label for the target dataset in a plot of this analysis.</description>
     !#   <defaultValue>var_str('')</defaultValue>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="galacticFilter"                     name="galacticFilter_"                                                            source="parameters"/>
     !# <objectBuilder class="outputTimes"                        name="outputTimes_"                                                               source="parameters"/>

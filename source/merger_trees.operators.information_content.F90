@@ -66,8 +66,6 @@ contains
     !#   <variable>informationContentConstructorParameters%outputGroupName</variable>
     !#   <defaultValue>var_str('treeInformationContent')</defaultValue>
     !#   <description>The name of an \gls{hdf5} group to which tree information content should be written.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     informationContentConstructorParameters%treeCount=0_c_size_t
     !# <inputParametersValidate source="parameters"/>

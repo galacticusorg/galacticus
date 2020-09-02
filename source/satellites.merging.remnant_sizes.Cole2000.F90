@@ -59,11 +59,9 @@ contains
 
     !# <inputParameter>
     !#   <name>energyOrbital</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The orbital energy used in the ``cole2000'' merger remnant sizes calculation in units of the characteristic orbital energy.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="mergerProgenitorProperties" name="mergerProgenitorProperties_" source="parameters"/>
     self=mergerRemnantSizeCole2000(energyOrbital,mergerProgenitorProperties_)

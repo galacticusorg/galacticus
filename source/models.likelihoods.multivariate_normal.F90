@@ -74,17 +74,13 @@ contains
     allocate(covariance(parameters%count('means'),parameters%count('means')))
     !# <inputParameter>
     !#   <name>means</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The mean of the multivariate normal distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covariance</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The covariance matrix for the of the multivariate normal distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=posteriorSampleLikelihoodMultivariateNormal(means,covariance)
     !# <inputParametersValidate source="parameters"/>

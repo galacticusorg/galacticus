@@ -69,11 +69,9 @@ contains
 
     !# <inputParameter>
     !#   <name>countHistoryTimes</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of times at which a galaxy's stellar properties history is stored.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <objectBuilder class="outputTimes"               name="outputTimes_"               source="parameters"/>
     !# <objectBuilder class="stellarPopulationSelector" name="stellarPopulationSelector_" source="parameters"/>

@@ -433,209 +433,157 @@ contains
     !#   <name>fileNames</name>
     !#   <description>The name of the file(s) from which merger tree data should be read when using the {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\normalfont \ttfamily read} tree construction method.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
-    !#   <cardinality>1..*</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>forestSizeMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0_c_size_t</defaultValue>
     !#   <description>The maximum number of nodes allowed in a forest before it will be broken up into trees and processed individually. A value of 0 implies that forests should never be split.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>presetMergerTimes</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether merging times for subhalos should be preset when reading merger trees from a file.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>presetMergerNodes</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether the target nodes for mergers should be preset (i.e. determined from descendent nodes). If they are not, merging will be with each satellite's host node.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>presetSubhaloMasses</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether subhalo mass should be preset when reading merger trees from a file.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>subhaloAngularMomentaMethod</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('summation')</defaultValue>
     !#   <description>Specifies how to account for subhalo angular momentum when adding subhalo mass to host halo mass.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !#   <variable>subhaloAngularMomentaMethodText</variable>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>presetSubhaloIndices</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether subhalo indices should be preset when reading merger trees from a file.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>presetPositions</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether node positions should be preset when reading merger trees from a file.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>presetScaleRadii</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether node scale radii should be preset when reading merger trees from a file.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>scaleRadiiFailureIsFatal</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether failure to set a node scale radii should be regarded as a fatal error. (If not, a fallback method to set scale radius is used in such cases.)</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>presetScaleRadiiConcentrationMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>3.0d0</defaultValue>
     !#   <description>The lowest concentration ($c=r_\mathrm{vir}/r_\mathrm{s}$) allowed when setting scale radii, $r_\mathrm{s}$.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>presetScaleRadiiConcentrationMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>60.0d0</defaultValue>
     !#   <description>The largest concentration ($c=r_\mathrm{vir}/r_\mathrm{s}$) allowed when setting scale radii, $r_\mathrm{s}$.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>presetScaleRadiiMinimumMass</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The minimum halo mass for which scale radii should be preset (if {\normalfont \ttfamily [presetScaleRadii]}$=${\normalfont \ttfamily true}).</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>presetUnphysicalSpins</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>When reading merger trees from file and presetting halo spins, detect unphysical (&lt;=0) spins and preset them using the selected halo spin method.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>presetSpins</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether node spins should be preset when reading merger trees from a file.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>presetSpins3D</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether node 3-D spin vectors should be preset when reading merger trees from a file.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>presetOrbits</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether node orbits should be preset when reading merger trees from a file.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>presetOrbitsSetAll</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Forces all orbits to be set. If the computed orbit does not cross the virial radius, then select one at random instead.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>presetOrbitsAssertAllSet</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Asserts that all virial orbits must be preset. If any can not be set, \glc\ will stop.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>presetOrbitsBoundOnly</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether only bound node orbits should be set.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>beginAt</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>-1_kind_int8</defaultValue>
     !#   <description>Specifies the index of the tree to begin at. (Use -1 to always begin with the first tree.)</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outputTimeSnapTolerance</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The relative tolerance required to ``snap'' a node time to the closest output time.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>missingHostsAreFatal</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether nodes with missing host nodes should be considered to be fatal---see \S\ref{sec:MergerTreeFileProcessing}.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>treeIndexToRootNodeIndex</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether tree indices should always be set to the index of their root node.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>allowBranchJumps</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether nodes are allowed to jump between branches.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>allowSubhaloPromotions</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether subhalos are permitted to be promoted to being isolated halos.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     allocate(presetNamedReals   (parameters%count('presetNamedReals'   ,zeroIfNotPresent=.true.)))
     if (size(presetNamedReals   ) > 0) then
@@ -643,8 +591,6 @@ contains
        !#   <name>presetNamedReals</name>
        !#   <description>Names of real datasets to be additionally read and stored in the nodes of the merger tree when using the {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\normalfont \ttfamily read} tree construction method.</description>
        !#   <source>parameters</source>
-       !#   <type>string</type>
-       !#   <cardinality>1..*</cardinality>
        !# </inputParameter>
     end if
     allocate(presetNamedIntegers(parameters%count('presetNamedIntegers',zeroIfNotPresent=.true.)))
@@ -653,8 +599,6 @@ contains
        !#   <name>presetNamedIntegers</name>
        !#   <description>Names of integer datasets to be additionally read and stored in the nodes of the merger tree when using the {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\normalfont \ttfamily read} tree construction method.</description>
        !#   <source>parameters</source>
-       !#   <type>string</type>
-       !#   <cardinality>1..*</cardinality>
        !# </inputParameter>
     end if
     !# <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"                                                                                  />

@@ -98,8 +98,6 @@ contains
     !#   <variable>radiusEnvironment</variable>
     !#   <defaultValue>7.0d0</defaultValue>
     !#   <description>The radius of the sphere used to determine the variance in the environmental density.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=haloEnvironmentNormal(radiusEnvironment,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_)
     !# <inputParametersValidate source="parameters"/>

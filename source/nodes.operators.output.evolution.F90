@@ -54,11 +54,9 @@ contains
 
     !# <inputParameter>
     !#   <name>outputFileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('mergerTreeEvolution.xml')</defaultValue>
     !#   <description>The name of the file to which merger tree evolution should be output.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="galacticFilter" parameterName="galacticFilterMethod" name="galacticFilter_" source="parameters">
     !#  <default>

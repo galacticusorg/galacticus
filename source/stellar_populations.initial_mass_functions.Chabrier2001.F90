@@ -57,51 +57,39 @@ contains
 
     !# <inputParameter>
     !#   <name>massUpper</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>125.0d0</defaultValue>
     !#   <description>The upper mass limit for the \cite{chabrier_galactic_2001} \gls{imf}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massLower</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The lower mass limit for the \cite{chabrier_galactic_2001} \gls{imf}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massTransition</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The transition limit for the \cite{chabrier_galactic_2001} \gls{imf}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sigma</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.69d0</defaultValue>
     !#   <description>The width of the lognormal part of the \cite{chabrier_galactic_2001} \gls{imf}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponent</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>-2.3d0</defaultValue>
     !#   <description>The exponent of the power law part of the \cite{chabrier_galactic_2001} \gls{imf}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massCharacteristic</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.08d0</defaultValue>
     !#   <description>Characteristic mass of the lognormal part of the \cite{chabrier_galactic_2001} \gls{imf}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=initialMassFunctionChabrier2001(massLower,massTransition,massUpper,exponent,massCharacteristic,sigma)
     !# <inputParametersValidate source="parameters"/>

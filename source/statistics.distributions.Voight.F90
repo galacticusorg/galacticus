@@ -57,40 +57,30 @@ contains
 
     !# <inputParameter>
     !#   <name>gamma</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The parameter $\gamma$ of the Voight function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>mu</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The parameter $\gamma$ of the Voight function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sigma</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The parameter $\sigma$ of the Voight function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>limitLower</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The lower limit of the Voight function.</description>
     !#   <defaultValue>-huge(0.0d0)</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>limitUpper</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The upper limit of the Voight function.</description>
     !#   <defaultValue>+huge(0.0d0)</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=distributionFunction1DVoight(gamma,mu,sigma,limitLower,limitUpper,randomNumberGenerator_)

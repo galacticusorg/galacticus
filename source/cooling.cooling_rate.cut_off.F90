@@ -75,32 +75,24 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Specifies whether to use the virial velocity of the formation node or current node in the cooling rate ``cut-off'' modifier.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>velocityCutOff</name>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>The velocity below which cooling is suppressed in the ``cut-off'' cooling rate modifier method.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftCutOff</name>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>The redshift below which cooling is suppressed in the ``cut-off'' cooling rate modifier method.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>whenCutOff</name>
     !#   <defaultValue>var_str('after')</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Specifies whether cooling is cut off before or after {\normalfont \ttfamily [redshiftCutOff]}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="coolingRate"         name="coolingRate_"         source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>

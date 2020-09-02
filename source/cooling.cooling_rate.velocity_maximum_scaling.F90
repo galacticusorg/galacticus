@@ -74,64 +74,48 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The timescale (in Gyr) for cooling in low mass halos at $z=0$ in the velocity maximum scaling scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timescaleMinimum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.001d0</defaultValue>
     !#   <description>The minimum timescale (in Gyr) for cooling the velocity maximum scaling scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentRedshift</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-1.5d0</defaultValue>
     !#   <description>The exponent of $(1+z)$ in the cooling timescale for low mass halos in the velocity maximum scaling scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentVelocity</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The exponent of velocity in the cooling timescale for low mass halos in the velocity maximum scaling scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>velocityCutOff</name>
     !#   <source>parameters</source>
     !#   <defaultValue>200.0d0</defaultValue>
     !#   <description>The halo maximum velocity scale appearing in the exponential term for cooling timescale in the velocity maximum scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>velocityCutOffExponentRedshift</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The exponent of $(1+z)$ in the velocity scale appearing in the exponential term for cooling timescale in the velocity maximum scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>widthCutOff</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The width appearing in the exponential term for cooling timescale in the velocity maximum scaling scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentCutOff</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The exponent appearing in the exponential term for cooling timescale in the velocity maximum scaling scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>

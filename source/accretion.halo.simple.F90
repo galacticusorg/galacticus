@@ -116,47 +116,37 @@ contains
        if (parameters%isPresent("redshiftReionization")) call Galacticus_Error_Report("only one of [opticalDepthReionization] and [redshiftReionization] should be specified"//{introspection:location})
        !# <inputParameter>
        !#   <name>opticalDepthReionization</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The optical depth to electron scattering below which baryonic accretion is suppressed.</description>
        !#   <source>parameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
        timeReionization=intergalacticMediumState_%electronScatteringTime(opticalDepthReionization,assumeFullyIonized=.true.)
     else
        !# <inputParameter>
        !#   <name>redshiftReionization</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
        !#   <defaultValue>9.97d0</defaultValue>
        !#   <description>The redshift below which baryonic accretion is suppressed.</description>
        !#   <source>parameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
        timeReionization=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftReionization))
     end if
     !# <inputParameter>
     !#   <name>velocitySuppressionReionization</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>35.0d0</defaultValue>
     !#   <description>The velocity scale below which baryonic accretion is suppressed.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>accretionNegativeAllowed</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether negative accretion (mass loss) is allowed in the simple halo accretion model.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>accretionNewGrowthOnly</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether accretion from the \gls{igm} is allowed only when a halo is growing past its previous greatest mass.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     self=accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
     !# <inputParametersValidate source="parameters"/>

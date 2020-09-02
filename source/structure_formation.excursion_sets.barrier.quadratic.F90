@@ -56,8 +56,6 @@ contains
     !#   <variable>coefficientConstant</variable>
     !#   <defaultValue>1.67d0</defaultValue>
     !#   <description>The constant coefficient in the quadratic excursion set barrier.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>coefficientLinear</name>
@@ -65,8 +63,6 @@ contains
     !#   <variable>coefficientLinear</variable>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The linear coefficient in the quadratic excursion set barrier.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>coefficientQuadratic</name>
@@ -74,8 +70,6 @@ contains
     !#   <variable>coefficientQuadratic</variable>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The quadratic coefficient in the quadratic excursion set barrier.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=excursionSetBarrierQuadratic(coefficientConstant,coefficientLinear,coefficientQuadratic)
     !# <inputParametersValidate source="parameters"/>

@@ -51,8 +51,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>massParticle</variable>
     !#   <description>The mass of the particle in the N-body simulation in which friends-of-friends groups were found.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     nbodyHaloMassErrorFriendsOfFriendsParameters=nbodyHaloMassErrorFriendsOfFriends(massParticle)
     !# <inputParametersValidate source="parameters"/>

@@ -100,59 +100,43 @@ contains
     parametersUnconditioned=parameters%subParameters("unconditioned",requireValue=.false.)
     !# <inputParameter>
     !#   <name>fileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the file containing the halo mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshift</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The redshift at which to evaluate the halo mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massRangeMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum halo mass to include in the likelihood evaluation.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>binCountMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum number of halos per bin required to permit bin to be included in likelihood evaluation.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massFunctionType</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The type of mass function () model to use.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>errorModel</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The error model to use for the halo mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massParticle</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The N-body particle mass.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>environmentAveraged</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true, the mass function will ve averaged over all environments.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"                    source="parameters"             />
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"                   source="parameters"             />

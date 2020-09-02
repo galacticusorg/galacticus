@@ -64,16 +64,12 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The minimum redshift for the survey.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftMaximum</name>
     !#   <defaultValue>huge(1.0d0)</defaultValue>
     !#   <source>parameters</source>
     !#   <description>The maximum redshift for the survey.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     ! Build the object.
     self=surveyGeometryFullSky(redshiftMinimum,redshiftMaximum,cosmologyFunctions_)

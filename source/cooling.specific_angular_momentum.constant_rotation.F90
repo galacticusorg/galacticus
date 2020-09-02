@@ -85,33 +85,27 @@ contains
 
     !# <inputParameter>
     !#   <name>sourceAngularMomentumSpecificMean</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('hotGas')</defaultValue>
     !#   <description>
     !#    The component (``{\normalfont \ttfamily hotGas}'' or ``{\normalfont \ttfamily darkMatter}'') from which the mean specific angular momentum should be computed for
     !#    calculations of cooling gas specific angular momentum.
     !#   </description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sourceNormalizationRotation</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('hotGas')</defaultValue>
     !#   <description>
     !#    The component (``{\normalfont \ttfamily hotGas}'' or ``{\normalfont \ttfamily darkMatter}'') from which the constant rotation speed should be computed for
     !#    calculations of cooling gas specific angular momentum.
     !#   </description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>useInteriorMean</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether to use the specific angular momentum at the cooling radius, or the mean specific angular momentum interior to that radius.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterProfileDMO"    name="darkMatterProfileDMO_"    source="parameters"/>
     !# <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>

@@ -228,48 +228,36 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins in parent mass when constructing conditional halo mass functions.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>parentMassMinimum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d10</defaultValue>
     !#   <description>The minimum parent halo mass to bin when constructing conditional halo mass functions.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>parentMassMaximum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d15</defaultValue>
     !#   <description>The maximum parent halo mass to bin when constructing conditional halo mass functions.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massRatioCount</name>
     !#   <source>parameters</source>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins in mass ratio when constructing conditional halo mass functions.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massRatioMinimum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d-4</defaultValue>
     !#   <description>The minimum mass ratio to bin when constructing conditional halo mass functions.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massRatioMaximum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d1</defaultValue>
     !#   <description>The maximum mass ratio to bin when constructing conditional halo mass functions.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     call allocateArray(parentRedshifts    ,[max(1,parameters%count('parentRedshifts'    ,zeroIfNotPresent=.true.))])
     !# <inputParameter>
@@ -277,8 +265,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>[0.0d0]</defaultValue>
     !#   <description>The set of parent halo redshifts to use when constructing conditional halo mass functions.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1..*</cardinality>
     !# </inputParameter>
     call allocateArray(progenitorRedshifts,[max(1,parameters%count('progenitorRedshifts',zeroIfNotPresent=.true.))])
     !# <inputParameter>
@@ -286,64 +272,48 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>[1.0d0]</defaultValue>
     !#   <description>The set of progenitor halo redshifts to use when constructing conditional halo mass functions.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1..*</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>primaryProgenitorDepth</name>
     !#   <source>parameters</source>
     !#   <defaultValue>2</defaultValue>
     !#   <description>The depth in progenitor ranking for which to store ranked progenitor mass functions. For example, a value of 2 means store mass functions for the most massive, and second most massive progenitor.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>subhaloHierarchyDepth</name>
     !#   <source>parameters</source>
     !#   <defaultValue>2</defaultValue>
     !#   <description>The depth in the subhalo hierarchy for which to store unevolved subhalo mass functions.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>formationRateTimeFraction</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.01d0</defaultValue>
     !#   <description>The fraction of the current time over which to estimate the formation rate of halos when computing merger tree statistics.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>alwaysIsolatedHalosOnly</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Include only halos which have always been isolated when computing merger tree statistics?</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>extendedStatistics</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Compute extended statistics (formation rate function, $N^\mathrm{th}$ most-massive progenitor mass functions, etc.)?</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>computeCovariances</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Compute covariances for accumulated statistics?</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outputGroupName</name>
     !#   <source>parameters</source>
     !#   <defaultValue>var_str('conditionalMassFunction')</defaultValue>
     !#   <description>The name of the HDF5 group to which the conditional mass function should be output.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     ! Construct the instance.
     self=mergerTreeOperatorConditionalMF(                           &

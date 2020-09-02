@@ -54,8 +54,6 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Force the use of zero metallicity (or lowest metallicity available) for all stellar populations.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="initialMassFunction" name="initialMassFunction_" source="parameters"/>
     self=stellarPopulationSpectraFSPS(forceZeroMetallicity,initialMassFunction_)

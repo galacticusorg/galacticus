@@ -54,18 +54,14 @@ contains
     !# <inputParameter>
     !#   <name>wavelengthMinimum</name>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum wavelength (in units of \AA) to pass the spectrum.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>wavelengthMaximum</name>
     !#   <defaultValue>huge(0.0d0)</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum wavelength (in units of \AA) to pass the spectrum.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="radiativeTransferSpectrum" name="radiativeTransferSpectrum_" source="parameters"/>
     self=radiativeTransferSpectrumBandPassFilter(wavelengthMinimum,wavelengthMaximum,radiativeTransferSpectrum_)

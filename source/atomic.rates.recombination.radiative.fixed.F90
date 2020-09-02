@@ -48,10 +48,8 @@ contains
 
     !# <inputParameter>
     !#   <name>rateCoefficient</name>
-    !#   <cardinality>2</cardinality>
     !#   <description>The rate coefficient (in units of cm$^3$ s$^{-1}$) for radiative recombination.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=atomicRecombinationRateRadiativeFixed(rateCoefficient)
     !# <inputParametersValidate source="parameters"/>

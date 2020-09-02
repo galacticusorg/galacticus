@@ -47,11 +47,9 @@ contains
 
     !# <inputParameter>
     !#   <name>Rv</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.7d0</defaultValue>
     !#   <description>The relative visibility, $R_\mathrm{V}$.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=stellarSpectraDustAttenuationPrevotBouchet(Rv)
     !# <inputParametersValidate source="parameters"/>

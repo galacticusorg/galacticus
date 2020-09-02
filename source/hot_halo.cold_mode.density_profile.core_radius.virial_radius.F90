@@ -55,11 +55,9 @@ contains
 
     !# <inputParameter>
     !#   <name>coreRadiusOverVirialRadius</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.3d0</defaultValue>
     !#   <description>The core radius in the hot halo density profile in units of the virial radius.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=hotHaloColdModeCoreRadiiVirialFraction(coreRadiusOverVirialRadius,darkMatterHaloScale_)

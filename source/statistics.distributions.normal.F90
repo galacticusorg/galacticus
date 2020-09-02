@@ -70,34 +70,26 @@ contains
 
     !# <inputParameter>
     !#   <name>mean</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The mean of the normal distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>variance</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The variance of the normal distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     if (parameters%isPresent('limitLower')) then
        !# <inputParameter>
        !#   <name>limitLower</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The lower limit of the normal distribution.</description>
        !#   <source>parameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
     end if
     if (parameters%isPresent('limitUpper')) then
        !# <inputParameter>
        !#   <name>limitUpper</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The upper limit of the normal distribution.</description>
        !#   <source>parameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
     end if
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>

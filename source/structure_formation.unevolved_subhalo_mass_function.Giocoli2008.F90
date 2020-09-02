@@ -57,8 +57,6 @@ contains
     !#   <defaultValue>0.21d0</defaultValue>
     !#   <defaultSource>\cite{giocoli_population_2008}</defaultSource>
     !#   <description>The parameter $N_0$ in the \cite{giocoli_population_2008} unevolved subhalo mass function fit.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponent</name>
@@ -67,8 +65,6 @@ contains
     !#   <defaultValue>0.8d0</defaultValue>
     !#   <defaultSource>\cite{giocoli_population_2008}</defaultSource>
     !#   <description>The parameter $\alpha$ in the \cite{giocoli_population_2008} unevolved subhalo mass function fit.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParametersValidate source="parameters"/>
    return

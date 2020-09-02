@@ -102,8 +102,6 @@ contains
     !#   <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>Values of the $\mu$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sigma1</name>
@@ -111,8 +109,6 @@ contains
     !#   <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>Values of the $\sigma_1$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sigma2</name>
@@ -120,8 +116,6 @@ contains
     !#   <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>Values of the $\sigma_2$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>a0</name>
@@ -129,8 +123,6 @@ contains
     !#   <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>Values of the $a_0$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>a1</name>
@@ -138,8 +130,6 @@ contains
     !#   <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>Values of the $a_1$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>a2</name>
@@ -147,8 +137,6 @@ contains
     !#   <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>Values of the $a_2$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>a3</name>
@@ -156,8 +144,6 @@ contains
     !#   <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>Values of the $a_3$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>

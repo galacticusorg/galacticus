@@ -52,8 +52,6 @@ contains
     !#   <variable>fixedConstructorParameters%massResolution</variable>
     !#   <defaultValue>5.0d9</defaultValue>
     !#   <description>The mass resolution to use when building merger trees.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParametersValidate source="parameters"/>
     return

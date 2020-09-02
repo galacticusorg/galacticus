@@ -86,39 +86,29 @@ contains
 
     !# <inputParameter>
     !#   <name>halfWidth</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The shell half-width.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>densityContrast</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The shell density contrast.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>volumeFillingFactor</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The shell volume filling factor.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>radiusBoundary</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The boundary radius within which to populate shells.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>dimensionless</name>
     !#   <defaultValue>.true.</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true the shell overdensities profile is considered to be dimensionless.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <objectBuilder class="massDistribution"      name="massDistribution_"      source="parameters"/>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>

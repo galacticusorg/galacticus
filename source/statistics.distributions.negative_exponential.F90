@@ -52,10 +52,8 @@ contains
 
     !# <inputParameter>
     !#   <name>rate</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The rate parameter of the negative exponential distribution function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=distributionFunction1DNegativeExponential(rate,randomNumberGenerator_)

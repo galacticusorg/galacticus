@@ -63,20 +63,16 @@ contains
 
     !# <inputParameter>
     !#   <name>energyOrbital</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The orbital energy in units of the characteristic orbital energy.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>efficiencyRadiative</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultSource>\citep{covington_predicting_2008}</defaultSource>
     !#   <defaultValue>2.75d0</defaultValue>
     !#   <description>The coefficient, $C_\mathrm{rad}$ energy used in the \cite{covington_predicting_2008} merger remnant size algorithm.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale"        name="darkMatterHaloScale_"        source="parameters"/>
     !# <objectBuilder class="mergerProgenitorProperties" name="mergerProgenitorProperties_" source="parameters"/>

@@ -79,24 +79,18 @@ contains
     !#   <name>overdensity</name>
     !#   <source>parameters</source>
     !#   <description>The overdensity of the environment.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>radiusEnvironment</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The radius of the sphere used to determine the variance in the environmental density.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massEnvironment</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d15</defaultValue>
     !#   <description>The mass within the sphere sphere used to determine the variance in the environmental density.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !# <objectBuilder class="linearGrowth"       name="linearGrowth_"       source="parameters"/>

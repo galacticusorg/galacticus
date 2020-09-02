@@ -92,59 +92,45 @@ contains
     end if
     !# <inputParameter>
     !#   <name>massMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d10</defaultValue>
     !#   <description>The minimum mass at which to tabulate excursion set solutions.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d15</defaultValue>
     !#   <description>The maximum mass at which to tabulate excursion set solutions.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massesPerDecade</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of points per decade of mass at which to tabulate excursion set solutions.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The minimum redshift at which to tabulate excursion set solutions.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10.0d0</defaultValue>
     !#   <description>The maximum redshift at which to tabulate excursion set solutions.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timesPerDecade</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of points per decade of time at which to tabulate excursion set solutions.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outputGroup</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('excursionSets')</defaultValue>
     !#   <description>The HDF5 output group within which to write excursion set solution data.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"       name="cosmologyParameters_"       source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>

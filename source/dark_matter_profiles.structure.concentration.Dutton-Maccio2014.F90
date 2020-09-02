@@ -100,51 +100,37 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>var_str('nfwVirial')</defaultValue>
     !#   <description>The type of halo definition for which the concentration-mass relation should be computed. Allowed values are {\normalfont \ttfamily nfwVirial}, {\normalfont \ttfamily nfwCritical200}, {\normalfont \ttfamily einastoCritical200}, and {\normalfont \ttfamily userDefined}.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     if (fitType == "userDefined") then
        !# <inputParameter>
        !#   <name>a1</name>
        !#   <source>parameters</source>
        !#   <description>Parameter $a_1$ in the \cite{dutton_cold_2014} halo concentration--mass relation.</description>
-       !#   <type>real</type>
-       !#   <cardinality>1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>a2</name>
        !#   <source>parameters</source>
        !#   <description>Parameter $a_2$ in the \cite{dutton_cold_2014} halo concentration--mass relation.</description>
-       !#   <type>real</type>
-       !#   <cardinality>1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>a3</name>
        !#   <source>parameters</source>
        !#   <description>Parameter $a_3$ in the \cite{dutton_cold_2014} halo concentration--mass relation.</description>
-       !#   <type>real</type>
-       !#   <cardinality>1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>a4</name>
        !#   <source>parameters</source>
        !#   <description>Parameter $a_4$ in the \cite{dutton_cold_2014} halo concentration--mass relation.</description>
-       !#   <type>real</type>
-       !#   <cardinality>1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>b1</name>
        !#   <source>parameters</source>
        !#   <description>Parameter $b_1$ in the \cite{dutton_cold_2014} halo concentration--mass relation.</description>
-       !#   <type>real</type>
-       !#   <cardinality>1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>b2</name>
        !#   <source>parameters</source>
        !#   <description>Parameter $b_2$ in the \cite{dutton_cold_2014} halo concentration--mass relation.</description>
-       !#   <type>real</type>
-       !#   <cardinality>1</cardinality>
        !# </inputParameter>
        self=darkMatterProfileConcentrationDuttonMaccio2014(a1,a2,a3,a4,b1,b2,cosmologyParameters_,cosmologyFunctions_)
     else

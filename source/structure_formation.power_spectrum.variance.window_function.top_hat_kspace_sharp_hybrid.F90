@@ -76,8 +76,6 @@ contains
     !#     requested smoothing mass. Alternatively, a value of {\normalfont \ttfamily natural} will be supplied in which case the normalization
     !#     is chosen such that, in real-space, $W(r=0)=1$. This results in a contained mass of $M=6 \pi^2 \bar{\rho} k_\mathrm{s}^{-3}$.
     !#   </description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>radiiRatio</name>
@@ -87,8 +85,6 @@ contains
     !#     The parameter $\beta$ in the relation $r_\mathrm{s}=\beta r_\mathrm{th}$ between $k$-space sharp and top-hat window
     !#     function radii in the hybrid window function used for computing the variance in the power spectrum.
     !#   </description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     if (normalization == 'natural') then

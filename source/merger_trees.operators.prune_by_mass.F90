@@ -52,8 +52,6 @@ contains
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <variable>pruneByMassConstructorParameters%massThreshold</variable>
     !#   <description>Threshold mass below which merger tree branches should be pruned.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>preservePrimaryProgenitor</name>
@@ -61,8 +59,6 @@ contains
     !#   <defaultValue>.true.</defaultValue>
     !#   <variable>pruneByMassConstructorParameters%preservePrimaryProgenitor</variable>
     !#   <description>If true, primary progenitor status is preserved even if the primary progenitor is pruned from the tree.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParametersValidate source="parameters"/>
     return

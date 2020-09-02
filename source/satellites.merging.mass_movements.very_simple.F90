@@ -54,11 +54,9 @@ contains
 
     !# <inputParameter>
     !#   <name>massRatioMajorMerger</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.25d0</defaultValue>
     !#   <description>The mass ratio above which mergers are considered to be ``major''.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=mergerMassMovementsVerySimple(massRatioMajorMerger)
     !# <inputParametersValidate source="parameters"/>

@@ -54,16 +54,12 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The radiative efficiency of the Eddington-limited accretion disk.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>efficiencyJet</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The jet efficiency of the Eddington-limited accretion disk.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=accretionDisksEddingtonLimited(efficiencyRadiation,efficiencyJet)
     !# <inputParametersValidate source="parameters"/>

@@ -56,8 +56,6 @@ contains
     !#   <defaultValue>2.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>The fraction of the inverse dynamical time to use as the rate for infall of the cold mode component.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=coldModeInfallRateDynamicalTime(dynamicalRateFraction,darkMatterHaloScale_)

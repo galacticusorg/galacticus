@@ -60,19 +60,15 @@ contains
 
     !# <inputParameter>
     !#   <name>position</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>[0.0d0,0.0d0,0.0d0]</defaultValue>
     !#   <description>The position of the point source.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>label</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('unknown')</defaultValue>
     !#   <description>A descriptive label for the source.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="radiativeTransferSpectrum" name="radiativeTransferSpectrum_" source="parameters"/>
     !# <objectBuilder class="randomNumberGenerator"     name="randomNumberGenerator_"     source="parameters"/>

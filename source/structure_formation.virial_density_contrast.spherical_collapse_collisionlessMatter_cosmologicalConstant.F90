@@ -75,8 +75,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true, store/restore the tabulated solution to/from file when possible.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(tableStore,cosmologyFunctions_)

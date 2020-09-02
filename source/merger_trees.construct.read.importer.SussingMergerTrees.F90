@@ -158,76 +158,58 @@ contains
 
     !# <inputParameter>
     !#   <name>fatalMismatches</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether mismatches in cosmological parameter values between \glc\ and ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree files should be considered fatal.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>fatalNonTreeNode</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether nodes in snapshot files but not in the merger tree file should be considered fatal when importing from the ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013}.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>subvolumeCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1</defaultValue>
     !#   <description>Specifies the number of subvolumes \emph{along each axis} into which a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree files should be split for processing through \glc.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>subvolumeBuffer</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>Specifies the buffer region (in units of Mpc$/h$ to follow the format convention) around subvolumes of a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree file which should be read in to ensure that no halos are missed from trees.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>subvolumeIndex</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>[0,0,0]</defaultValue>
     !#   <description>Specifies the index (in each dimension) of the subvolume of a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree file to process. Indices range from 0 to {\normalfont \ttfamily [subvolumeCount]}$-1$.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>badValue</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>-0.5d0</defaultValue>
     !#   <description>Use for bad value detection in ``Sussing'' merger trees. Values for scale radius and halo spin which exceed this threshold are assumed to be bad.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>badValueTest</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('lessThan')</defaultValue>
     !#   <description>Use for bad value detection in ``Sussing'' merger trees. Values which exceed the threshold in ths specified direction are assumed to be bad.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !#   <variable>badValueTestText</variable>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>treeSampleRate</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>Specify the probability that any given tree should processed (to permit subsampling).</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massOptions</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('default')</defaultValue>
     !#   <description>Mass option for Sussing merger trees.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !#   <variable>massOptionText</variable>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"    name="cosmologyParameters_"    source="parameters"/>

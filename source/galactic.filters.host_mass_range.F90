@@ -50,15 +50,11 @@ contains
     !#   <name>massMinimum</name>
     !#   <source>parameters</source>
     !#   <description>The minimum mass of host halo to pass.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMaximum</name>
     !#   <source>parameters</source>
     !#   <description>The maximum mass of host halo to pass.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=galacticFilterHostMassRange(massMinimum,massMaximum)
     !# <inputParametersValidate source="parameters"/>

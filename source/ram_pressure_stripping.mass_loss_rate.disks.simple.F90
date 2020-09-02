@@ -54,11 +54,9 @@ contains
 
     !# <inputParameter>
     !#   <name>rateFractionalMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10.0d0</defaultValue>
     !#   <description>The maximum fractional mass loss rate per dynamical time in the simple model of mass loss from disks due to ram pressure stripping.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
     self=ramPressureStrippingDisksSimple(rateFractionalMaximum,hotHaloRamPressureForce_)

@@ -48,17 +48,13 @@ contains
 
     !# <inputParameter>
     !#   <name>mean</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The mean mass of halo to simulate when using a Gaussian sampling of the halo mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>rootVariance</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The dispersion in mass of halo to simulate when using a Gaussian sampling of the halo mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=mergerTreeBuildMassDistributionGaussian(mean,rootVariance)
     !# <inputParametersValidate source="parameters"/>

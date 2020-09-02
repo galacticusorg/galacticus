@@ -3405,21 +3405,143 @@ CODE
 			while ( $constructorNode ) {
 			    # Process node.			  
 			    if ( $constructorNode->{'type'} eq "inputParameter" ) {
+				# Get the associated variable declaration.
+				my $declaration;
+				my $variableName = exists($constructorNode->{'directive'}->{'variable'}) ? $constructorNode->{'directive'}->{'variable'} : $constructorNode->{'directive'}->{'name'};
+				if ( $variableName =~ m/([a-zA-Z0-9_]+)(\s*\(\s*[a-zA-Z0-9_:,]\s*\)\s*)??\%([a-zA-Z0-9_]+)/ ) {
+				    my $objectName         = $1;
+				    my $objectVariableName = $3;
+				    if ( $objectName eq "self" || $objectName eq $node->{'name'} ) {
+					my $parentClass = $class;
+					while ( $parentClass ) {
+					    my $node = $parentClass->{'tree'}->{'firstChild'};
+					    $node = $node->{'sibling'}
+					    while ( $node && ( $node->{'type'} ne "type" || ( ! exists($node->{'name'}) || $node->{'name'} ne $parentClass->{'name'} ) ) );
+					    last
+						unless ( $node );
+					    $declaration = &Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration($node,$objectVariableName)
+						if ( &Galacticus::Build::SourceTree::Parse::Declarations::DeclarationExists($node,$objectVariableName) );
+					    last
+						if ( $declaration );
+					    # Move to the parent class.
+					    $parentClass = ($parentClass->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$parentClass->{'extends'}};
+					}
+				    } else {
+					# The object being read into is not the object being constructed. We can handle a few special types here.
+					if ( &Galacticus::Build::SourceTree::Parse::Declarations::DeclarationExists($node,$objectName) ) {
+					    my $declarationTmp = &Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration($node,$objectName);
+					    if ( $declarationTmp->{'intrinsic'} eq "type" ) {
+						if      ( $declarationTmp->{'type'} eq "statefulDouble"  ) {
+						    $declaration = dclone($declarationTmp);
+						    $declaration->{'intrinsic'} = "double precision";
+						    $declaration->{'type'     } = undef();
+						} elsif ( $declarationTmp->{'type'} eq "statefulInteger" ) {
+						    $declaration = dclone($declarationTmp);
+						    $declaration->{'intrinsic'} = "integer";
+						    $declaration->{'type'     } = undef();
+						} elsif ( $declarationTmp->{'type'} eq "statefulLogical" ) {
+						    $declaration = dclone($declarationTmp);
+						    $declaration->{'intrinsic'} = "logical";
+						    $declaration->{'type'     } = undef();
+						}
+					    }
+					}
+				    }
+				} else {
+				    $declaration = &Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration($node,$variableName)
+					if ( &Galacticus::Build::SourceTree::Parse::Declarations::DeclarationExists($node,$variableName) );
+				}
+				unless ( $declaration ) {
+				    if ( exists($constructorNode->{'directive'}->{'type'}) && exists($constructorNode->{'directive'}->{'cardinality'}) ) {
+					$declaration->{'parameterType'       } = $constructorNode->{'directive'}->{'type'       };
+					$declaration->{'parameterCardinality'} = $constructorNode->{'directive'}->{'cardinality'};
+				    } else {
+					print "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): unable to find parameter variable declaration for \"".$constructorNode->{'directive'}->{'name'}."\" in class \"".$className."\"\n";
+					die('abort');
+				    }
+				}
+				## Determine the type of the variable.
+				my $type;
+				if ( exists($declaration->{'parameterType'}) ) {
+				    $type = $declaration->{'parameterType'};
+				} else {
+				    if      ( $declaration->{'intrinsic'} eq "double precision"                                               ) {
+					$type = "real";
+				    } elsif ( $declaration->{'intrinsic'} eq "integer"                                                        ) {
+					$type = "integer";
+				    } elsif ( $declaration->{'intrinsic'} eq "logical"                                                        ) {
+					$type = "boolean";
+				    } elsif ( $declaration->{'intrinsic'} eq "character"                                                      ) {
+					$type = "string";
+				    } elsif ( $declaration->{'intrinsic'} eq "type"             && $declaration->{'type'} eq "varying_string" ) {
+					$type = "string";
+				    } else {
+					print "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): unable to determine parameter type - declaration follows:\n";
+					print Dumper($declaration);
+					die('aborting');
+				    }
+				}
+				## Determine the allowed cardinality.
+				my $cardinality;
+				if ( exists($declaration->{'parameterCardinality'}) ) {
+				    $cardinality = $declaration->{'parameterCardinality'};
+				} else {
+				    my $cardinalityMinimum;
+				    my $cardinalityMaximum;
+				    my @dimension = grep {$_ =~ /dimension/} @{$declaration->{'attributes'}};
+				    if ( @dimension ) {
+					# Non-scalar.
+					if ( $dimension[0] =~ m/^dimension\s*\(\s*(.+?)\s*\)/ ) {
+					    my @shape = split(/\s*,\s*/,$1);
+					    $cardinalityMaximum = 1;
+					    for(my $i=0;$i<scalar(@shape);++$i) {
+						if ( $shape[$i] =~ m/^\d+$/ ) {
+						    $cardinalityMaximum *= $shape[$i];
+						} else {
+						    $cardinalityMaximum = "*";
+						    last;
+						}
+					    }
+					} else {
+					    print "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): unable to parse dimension attribute - declaration follows:\n";
+					    print Dumper($declaration);
+					    die('aborting');
+					}
+				    } else {
+					# Scalar variable.
+					$cardinalityMaximum = 1;
+				    }
+				    if ( $cardinalityMaximum eq "*" ) {
+					# No upper limit.
+					if ( exists($constructorNode->{'directive'}->{'defaultValue'}) ) {
+					    $cardinality = "0..*"; # Default is present, no upper limit - can have zero or more.
+					} else {
+					    $cardinality = "1..*"; # Default not present, no upper limit - can have one or more.
+					}
+				    } else {
+					# Upper limit exists.
+					if ( exists($constructorNode->{'directive'}->{'defaultValue'}) ) {
+					    $cardinality = "0,".$cardinalityMaximum; # Default is present, has upper limit - can have zero or upper limit.
+					} else {
+					    $cardinality = $cardinalityMaximum; # Default not present, has upper limit - must have precisely the upper limit.
+					}
+				    }
+				}
 				my $description =  "\\item[{\\normalfont \\ttfamily [".latex_encode($constructorNode->{'directive'}->{'name'})."]}] ";
-				$description .= "(".$constructorNode->{'directive'}->{'type'}."; ".$constructorNode->{'directive'}->{'cardinality'}.") ";
+				$description .= "(".$type."; ".$cardinality.") ";
 				if ( exists($constructorNode->{'directive'}->{'defaultValue'}) ) {
 				    my $value = latex_encode($constructorNode->{'directive'}->{'defaultValue'});
 				    $value = "true"
 					if ( $value eq ".true." );
 				    $value = "false"
 					if ( $value eq ".false." );
-				    if ( $constructorNode->{'directive'}->{'type'} eq "real" ) {
+				    if ( $type eq "real" ) {
 					$value =~ s/(\d)d([\+\-0-9])/$1e$2/g;
 				    }
-				    if ( $constructorNode->{'directive'}->{'type'} eq "integer" ) {
+				    if ( $type eq "integer" ) {
 					$value =~ s/\\_c\\_size\\_t//;
 				    }
-				    if ( $constructorNode->{'directive'}->{'type'} eq "string" ) {
+				    if ( $type eq "string" ) {
 					$value =~ s/^var\\_str\(['"](.*)['"]\)/$1/;
 				    }
 				    $description .= " \\{{\\normalfont \\ttfamily ".$value."}".(exists($constructorNode->{'directive'}->{'defaultSource'}) ? "; ".$constructorNode->{'directive'}->{'defaultSource'} : "")."\\} ";

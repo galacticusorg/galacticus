@@ -56,10 +56,8 @@ contains
 
     !# <inputParameter>
     !#   <name>stopAfterCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of correlation lengths to continue after convergence before stopping.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="posteriorSampleConvergence" name="posteriorSampleConvergence_" source="parameters"/>
     self=posteriorSampleStoppingCriterionCorrelationLength(stopAfterCount,posteriorSampleConvergence_)

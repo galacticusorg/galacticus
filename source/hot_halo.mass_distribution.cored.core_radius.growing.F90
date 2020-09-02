@@ -67,19 +67,15 @@ contains
 
     !# <inputParameter>
     !#   <name>coreRadiusOverScaleRadius</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The core radius in the hot halo density profile in units of the dark matter profile scale radius.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>coreRadiusOverVirialRadiusMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10.0d0</defaultValue>
     !#   <description>The maximum core radius in the ``growing'' hot halo density profile in units of the virial radius.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>

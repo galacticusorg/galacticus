@@ -50,19 +50,15 @@ contains
 
     !# <inputParameter>
     !#   <name>rBoundaries</name>
-    !#   <cardinality>2</cardinality>
     !#   <defaultValue>[0.0d0,1.0d0]</defaultValue>
     !#   <description>The $r$-interval spanned by the computational domain.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>zBoundaries</name>
-    !#   <cardinality>2</cardinality>
     !#   <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
     !#   <description>The $z$-interval spanned by the computational domain.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     boundaries(1,:)=rBoundaries
     boundaries(2,:)=zBoundaries

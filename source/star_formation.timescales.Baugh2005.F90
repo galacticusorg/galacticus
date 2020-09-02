@@ -61,24 +61,18 @@ contains
     !#   <defaultValue>8.0d0</defaultValue>
     !#   <description>The timescale (in Gyr) for star formation in the \cite{baugh_can_2005} prescription.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentVelocity</name>
     !#   <defaultValue>-3.0d0</defaultValue>
     !#   <description>The exponent for velocity in the \cite{baugh_can_2005} prescription for star formation.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentExpansionFactor</name>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The exponent for expansion factor in the \cite{baugh_can_2005} prescription for star formation.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=starFormationTimescaleBaugh2005(timescale,exponentVelocity,exponentExpansionFactor,cosmologyFunctions_)

@@ -78,8 +78,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>var_str('turnaround')</defaultValue>
     !#   <description>The radius at which the energy of a spherical top-hat perturbation in a dark energy cosmology can be considered to be fixed.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !# <objectBuilder class="linearGrowth"       name="linearGrowth_"       source="parameters"/>

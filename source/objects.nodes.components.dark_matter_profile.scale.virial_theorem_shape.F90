@@ -78,11 +78,9 @@ contains
 
     !# <inputParameter>
     !#   <name>mergerTreeStructureOutputDarkMatterProfileShape</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not dark matter halo shape parameter is included in outputs of merger trees.</description>
     !#   <source>parameters_</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     ! Bind the shape get function.
     call darkMatterProfile%shapeFunction(Node_Component_Dark_Matter_Profile_VT_Shape_Shape)

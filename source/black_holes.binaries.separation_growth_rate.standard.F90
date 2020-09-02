@@ -58,21 +58,17 @@ contains
 
     !# <inputParameter>
     !#   <name>stellarDensityChangeBinaryMotion</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>The change in density due to the black hole's motion.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>computeVelocityDispersion</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether or not the velocity dispersion of dark matter and stars should be computed using Jeans equation
     !#      in black hole binary hardening calculations. If {\normalfont \ttfamily false}, then the velocity dispersions are assumed to equal
     !#      the characteristic velocity of dark matter and spheroid.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=blackHoleBinarySeparationGrowthRateStandard(stellarDensityChangeBinaryMotion,computeVelocityDispersion,darkMatterHaloScale_)

@@ -72,19 +72,15 @@ contains
 
     !# <inputParameter>
     !#   <name>timeOffsetMaximumAbsolute</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.010d0</defaultValue>
     !#   <description>The maximum absolute time difference (in Gyr) allowed between merging pairs of galaxies.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeOffsetMaximumRelative</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.001d0</defaultValue>
     !#   <description>The maximum time difference (relative to the cosmic time at the merger epoch) allowed between merging pairs of galaxies.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="nodeOperator" name="nodeOperator_" source="parameters"/>
     self=mergerTreeEvolveTimestepSatellite(timeOffsetMaximumAbsolute,timeOffsetMaximumRelative,nodeOperator_)

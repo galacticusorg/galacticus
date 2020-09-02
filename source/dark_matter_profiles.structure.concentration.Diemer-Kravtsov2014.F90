@@ -92,8 +92,6 @@ contains
     !#   <variable>kappa</variable>
     !#   <defaultValue>0.69d0</defaultValue>
     !#   <description>The parameter $\kappa$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>phi0</name>
@@ -101,8 +99,6 @@ contains
     !#   <variable>phi0</variable>
     !#   <defaultValue>6.58d0</defaultValue>
     !#   <description>The parameter $\phi_0$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>phi1</name>
@@ -110,8 +106,6 @@ contains
     !#   <variable>phi1</variable>
     !#   <defaultValue>1.37d0</defaultValue>
     !#   <description>The parameter $\phi_1$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>eta0</name>
@@ -119,8 +113,6 @@ contains
     !#   <variable>eta0</variable>
     !#   <defaultValue>6.82d0</defaultValue>
     !#   <description>The parameter $\eta_0$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>eta1</name>
@@ -128,8 +120,6 @@ contains
     !#   <variable>eta1</variable>
     !#   <defaultValue>1.42d0</defaultValue>
     !#   <description>The parameter $\eta_1$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>alpha</name>
@@ -137,8 +127,6 @@ contains
     !#   <variable>alpha</variable>
     !#   <defaultValue>1.12d0</defaultValue>
     !#   <description>The parameter $\alpha$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>beta</name>
@@ -146,8 +134,6 @@ contains
     !#   <variable>beta</variable>
     !#   <defaultValue>1.69d0</defaultValue>
     !#   <description>The parameter $\beta$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>scatter</name>
@@ -155,8 +141,6 @@ contains
     !#   <variable>scatter</variable>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The scatter (in dex) to assume in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>

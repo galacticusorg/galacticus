@@ -54,24 +54,18 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>5.0d9</defaultValue>
     !#   <description>The minimum mass resolution to use when building merger trees.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massResolutionMaximum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>huge(0.0d0)</defaultValue>
     !#   <description>The maximum mass resolution to use when building merger trees.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massResolutionFractional</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d-3</defaultValue>
     !#   <description>The fraction of the tree's root node mass to be used for the mass resolution when building merger trees.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=mergerTreeMassResolutionScaled(massResolutionMinimum,massResolutionMaximum,massResolutionFractional)
     !# <inputParametersValidate source="parameters"/>

@@ -53,8 +53,6 @@ contains
     !#   <name>fractionGasThreshold</name>
     !#   <source>parameters</source>
     !#   <description>The ISM gas fraction above which to pass.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=galacticFilterGasFractionISM(fractionGasThreshold)
     !# <inputParametersValidate source="parameters"/>

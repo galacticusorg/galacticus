@@ -61,8 +61,6 @@ contains
     !#   <variable>a</variable>
     !#   <defaultValue>0.707d0</defaultValue>
     !#   <description>The parameter $a$ in the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse excursion set barrier remapping.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>b</name>
@@ -70,8 +68,6 @@ contains
     !#   <variable>b</variable>
     !#   <defaultValue>0.500d0</defaultValue>
     !#   <description>The parameter $b$ in the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse excursion set barrier remapping.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>c</name>
@@ -79,8 +75,6 @@ contains
     !#   <variable>c</variable>
     !#   <defaultValue>0.600d0</defaultValue>
     !#   <description>The parameter $c$ in the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse excursion set barrier remapping.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>applyTo</name>
@@ -88,8 +82,6 @@ contains
     !#   <variable>self%applyToText</variable>
     !#   <defaultValue>var_str('nonRates')</defaultValue>
     !#   <description>Specifies whether rescaling is to be applied to the barrier when used for rate calculation, for other calculations, or both.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
     self=excursionSetBarrierRemapShethMoTormen(a,b,c,enumerationExcursionSetRemapEncode(char(self%applyToText),includesPrefix=.false.),excursionSetBarrier_)

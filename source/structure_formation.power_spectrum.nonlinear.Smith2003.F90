@@ -89,24 +89,18 @@ contains
     !#   <defaultValue>.true.</defaultValue>
     !#   <defaultSource>\href{https://www.roe.ac.uk/~jap/haloes/}{{\normalfont \ttfamily https://www.roe.ac.uk/\~jap/haloes/}}</defaultSource>
     !#   <description>If true, include the correction proposed on John Peacock's \href{https://www.roe.ac.uk/~jap/haloes/}{web page}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>includeQuasiLinearPower</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true, include quasi-linear contribution to the power spectrum.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>includeHaloPower</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true, include halo contribution to the power spectrum.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>

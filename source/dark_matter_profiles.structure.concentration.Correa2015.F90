@@ -78,8 +78,6 @@ contains
     !#   <defaultValue>887.0d0</defaultValue>
     !#   <defaultSource>\cite{correa_accretion_2015}</defaultSource>
     !#   <description>The parameter $A$ appearin in eqn.~(17) of \cite{correa_accretion_2015}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>

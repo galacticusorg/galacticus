@@ -51,27 +51,21 @@ contains
 
     !# <inputParameter>
     !#   <name>xBoundaries</name>
-    !#   <cardinality>2</cardinality>
     !#   <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
     !#   <description>The $x$-interval spanned by the computational domain.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>yBoundaries</name>
-    !#   <cardinality>2</cardinality>
     !#   <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
     !#   <description>The $y$-interval spanned by the computational domain.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>zBoundaries</name>
-    !#   <cardinality>2</cardinality>
     !#   <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
     !#   <description>The $z$-interval spanned by the computational domain.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     boundaries(1,:)=xBoundaries
     boundaries(2,:)=yBoundaries

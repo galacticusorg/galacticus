@@ -97,8 +97,6 @@ contains
     !#   <defaultValue>0.788d0</defaultValue>
     !#   <defaultSource>\citep{comparat_accurate_2017}</defaultSource>
     !#   <description>The parameter $\bar{a}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>p</name>
@@ -106,8 +104,6 @@ contains
     !#   <defaultValue>0.807d0</defaultValue>
     !#   <defaultSource>\citep{comparat_accurate_2017}</defaultSource>
     !#   <description>The parameter $\bar{p}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>q</name>
@@ -115,8 +111,6 @@ contains
     !#   <defaultValue>1.795d0</defaultValue>
     !#   <defaultSource>\citep{comparat_accurate_2017}</defaultSource>
     !#   <description>The parameter $\bar{q}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>normalization</name>
@@ -124,8 +118,6 @@ contains
     !#   <defaultValue>0.333d0</defaultValue>
     !#   <defaultSource>\citep{comparat_accurate_2017}</defaultSource>
     !#   <description>The normalization parameter $\bar{A}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=haloMassFunctionBhattacharya2011(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,a,p,q,normalization)
     !# <inputParametersValidate source="parameters"/>

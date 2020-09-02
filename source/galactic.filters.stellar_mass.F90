@@ -54,8 +54,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>stellarMassConstructorParameters%massThreshold</variable>
     !#   <description>The parameter $M_0$ (in units of $M_\odot$) appearing in the stellar mass threshold for the stellar mass galactic filter class.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParametersValidate source="parameters"/>
     return

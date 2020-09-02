@@ -59,8 +59,6 @@ contains
     !#   <variable>self%label</variable>
     !#   <description>A label for the simulation</description>
     !#   <defaultValue>var_str('*')</defaultValue>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self     %importers => null()
     importer_           => null()

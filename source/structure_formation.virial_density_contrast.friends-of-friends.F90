@@ -52,8 +52,6 @@ contains
     !#  <source>parameters</source>
     !#  <defaultValue>0.2d0</defaultValue>
     !#  <description>The friends-of-friends linking length algorithm to use in computing virial density contrast.</description>
-    !#  <type>real</type>
-    !#  <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#  <name>densityRatio</name>
@@ -61,8 +59,6 @@ contains
     !#  <defaultValue>4.688d0</defaultValue>
     !#  <defaultSource>Value appropriate for an \gls{nfw} profile with concentration $c=6.88$ which is the concentration found by \cite{prada_halo_2011} for halos with $\sigma=1.686$ which is the approximate critical overdensity for collapse.</defaultSource>
     !#  <description>The ratio of mean virial density to density at the virial radius to assume when setting virial density contrasts in the friends-of-friends model.</description>
-    !#  <type>real</type>
-    !#  <cardinality>1</cardinality>
     !# </inputParameter>
     self=virialDensityContrastFriendsOfFriends(linkingLength,densityRatio)
     return

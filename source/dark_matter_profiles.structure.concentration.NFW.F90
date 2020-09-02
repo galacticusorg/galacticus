@@ -86,8 +86,6 @@ contains
     !#   <defaultValue>0.01d0</defaultValue>
     !#   <defaultSource>\cite{navarro_structure_1996}</defaultSource>
     !#   <description>The parameter $f$ appearing in the halo concentration algorithm of \cite{navarro_structure_1996}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>C</name>
@@ -96,8 +94,6 @@ contains
     !#   <defaultValue>2000.0d0</defaultValue>
     !#   <defaultSource>\cite{navarro_structure_1996}</defaultSource>
     !#   <description>The parameter $C$ appearing in the halo concentration algorithm of \cite{navarro_structure_1996}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>

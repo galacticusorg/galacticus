@@ -100,49 +100,37 @@ contains
 
     !# <inputParameter>
     !#   <name>mass</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The mass of the ellipsoid.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>scaleLength</name>
-    !#   <cardinality>3</cardinality>
     !#   <description>The scale lengths of the ellipsoid along each axis.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>axis1</name>
     !#   <defaultValue>[1.0d0,0.0d0,0.0d0]</defaultValue>
-    !#   <cardinality>3</cardinality>
     !#   <description>The unit vector defining the first axis of the ellipsoid.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>axis2</name>
     !#   <defaultValue>[0.0d0,1.0d0,0.0d0]</defaultValue>
-    !#   <cardinality>3</cardinality>
     !#   <description>The unit vector defining the second axis of the ellipsoid.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>axis3</name>
     !#   <defaultValue>[0.0d0,0.0d0,1.0d0]</defaultValue>
-    !#   <cardinality>3</cardinality>
     !#   <description>The unit vector defining the third axis of the ellipsoid.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>dimensionless</name>
     !#   <defaultValue>.true.</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true the Gaussian ellipsoid profile is considered to be dimensionless.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     axes(1)=axis1
     axes(2)=axis2

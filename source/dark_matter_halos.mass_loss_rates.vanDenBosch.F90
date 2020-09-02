@@ -62,16 +62,12 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>0.13d0</defaultValue>
     !#   <description>The mass loss timescale normalization (in Gyr) for the \cite{van_den_bosch_mass_2005} dark matter halo mass loss rate algorithm.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>zeta</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.36d0</defaultValue>
     !#   <description>The mass loss scaling with halo mass for the \cite{van_den_bosch_mass_2005} dark matter halo mass loss rate algorithm.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>

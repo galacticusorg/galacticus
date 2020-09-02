@@ -78,8 +78,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>0.05d0</defaultValue>
     !#   <description>The fraction of a halo's mass assembled at ``formation'' in the halo concentration algorithm of \cite{schneider_structure_2015}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterProfileConcentration" name="referenceConcentration"             source="referenceParameters"/>
     !# <objectBuilder class="criticalOverdensity"            name="referenceCriticalOverdensity"       source="referenceParameters"/>

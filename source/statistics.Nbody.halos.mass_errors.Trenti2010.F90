@@ -60,8 +60,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>massParticle</variable>
     !#   <description>The mass of the particle in the N-body simulation in which halos were found.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>correlationNormalization</name>
@@ -69,8 +67,6 @@ contains
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <variable>correlationNormalization</variable>
     !#   <description>Variable $C_0$ in the model for the correlation between halo mass errors: $C_{12} = C_0 [M_2/M_1]^\alpha [(1+z_2)/(1+z_1)]^\beta$.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>correlationMassExponent</name>
@@ -78,8 +74,6 @@ contains
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <variable>correlationMassExponent</variable>
     !#   <description>Variable $\alpha$ in the model for the correlation between halo mass errors: $C_{12} = C_0 [M_2/M_1]^\alpha [(1+z_2)/(1+z_1)]^\beta$.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>correlationRedshiftExponent</name>
@@ -87,8 +81,6 @@ contains
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <variable>correlationRedshiftExponent</variable>
     !#   <description>Variable $\beta$ in the model for the correlation between halo mass errors: $C_{12} = C_0 [M_2/M_1]^\alpha [(1+z_2)/(1+z_1)]^\beta$.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=nbodyHaloMassErrorTrenti2010(massParticle,correlationNormalization,correlationMassExponent,correlationRedshiftExponent,cosmologyFunctions_)

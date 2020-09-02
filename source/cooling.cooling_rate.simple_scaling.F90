@@ -64,40 +64,30 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The timescale (in Gyr) for cooling in low mass halos at $z=0$ in the simple caling scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentRedshift</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-1.5d0</defaultValue>
     !#   <description>The exponent of $(1+z)$ in the cooling timescale for low mass halos in the simple caling scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massCutOff</name>
     !#   <source>parameters</source>
     !#   <defaultValue>200.0d0</defaultValue>
     !#   <description>The halo mass scale appearing in the exponential term for cooling timescale in the simple caling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>widthCutOff</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The width appearing in the exponential term for cooling timescale in the simple caling scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentCutOff</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The exponent appearing in the exponential term for cooling timescale in the simple caling scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=coolingRateSimpleScaling(timeScale,exponentRedshift,massCutOff,widthCutOff,exponentCutOff,cosmologyFunctions_)

@@ -56,38 +56,28 @@ contains
     !#   <name>rangeLower</name>
     !#   <source>parameters</source>
     !#   <description>Lower integration limit for the normal distribution weight operator.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>rangeUpper</name>
     !#   <source>parameters</source>
     !#   <description>Upper integration limit for the normal distribution weight operator.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>rootVariance</name>
     !#   <source>parameters</source>
     !#   <description>Root variance for the normal distribution weight operator.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>extentLower</name>
     !#   <defaultValue>-huge(0.0d0)</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Lower extent for the normal distribution weight operator.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>extentUpper</name>
     !#   <defaultValue>+huge(0.0d0)</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Upper extent for the normal distribution weight operator.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=outputAnalysisPropertyOperatorNormal(rangeLower,rangeUpper,extentLower,extentUpper,rootVariance)
     !# <inputParametersValidate source="parameters"/>

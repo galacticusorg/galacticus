@@ -87,10 +87,8 @@ contains
     if (parameters%isPresent('densityContrast')) then
        !# <inputParameter>
        !#   <name>densityContrast</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The density contrast within which to compute the Sunyaev-Zeldovich parameter.</description>
        !#   <source>parameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
     end if
     !# <conditionalCall>

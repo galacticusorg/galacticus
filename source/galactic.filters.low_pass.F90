@@ -57,8 +57,6 @@ contains
     !#   <name>threshold</name>
     !#   <source>parameters</source>
     !#   <description>The threshold value below which to pass.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
     select type (nodePropertyExtractor_)

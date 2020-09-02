@@ -80,75 +80,57 @@ contains
 
     !# <inputParameter>
     !#   <name>wavelengthMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.3d4</defaultValue>
     !#   <description>The minimum wavelength at which to sample photon packets.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>wavelengthMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10.0d4</defaultValue>
     !#   <description>The maximum wavelength at which to sample photon packets.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>wavelengthCountPerDecade</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of wavelengths per decade at which to sample photon packets.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>countPhotonsPerWavelength</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10_c_size_t</defaultValue>
     !#   <description>The number of photon packets to generate at each wavelength.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>countPhotonsPerWavelengthFinalIteration</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>countPhotonsPerWavelength</defaultValue>
     !#   <description>The number of photon packets to generate at each wavelength on the final iteration.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>countIterationsMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1_c_size_t</defaultValue>
     !#   <description>The minimum number of iterations.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>countIterationsMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10_c_size_t</defaultValue>
     !#   <description>The maximum number of iterations.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outputGroupName</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('radiativeTransferModel')</defaultValue>
     !#   <description>The name of the group to which results should be output.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outputIterations</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, output data for all iterations, not just the final iteration.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <objectBuilder class="computationalDomain"           name="computationalDomain_"           source="parameters"/>
     !# <objectBuilder class="radiativeTransferConvergence"  name="radiativeTransferConvergence_"  source="parameters"/>

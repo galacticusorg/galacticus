@@ -58,17 +58,13 @@ contains
 
     !# <inputParameter>
     !#   <name>probabilitySuccess</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The probability of success for a single trial.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>countTrials</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of trials.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=distributionFunctionDiscrete1DBinomial(probabilitySuccess,countTrials,randomNumberGenerator_)

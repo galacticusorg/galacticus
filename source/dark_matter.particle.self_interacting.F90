@@ -64,8 +64,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>crossSectionSelfInteraction</variable>
     !#   <description>The self-interaction cross section in units of cm$^2$ g$^{-1}$.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     self=darkMatterParticleSelfInteractingDarkMatter(crossSectionSelfInteraction,darkMatterParticle_)

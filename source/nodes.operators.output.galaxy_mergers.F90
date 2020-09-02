@@ -55,11 +55,9 @@ contains
 
     !# <inputParameter>
     !#   <name>mergersGroupName</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('galaxyMergers')</defaultValue>
     !#   <description>The name of the HDF5 group to which galaxy merger data should be output.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="galacticFilter" parameterName="galacticFilterSatellite" name="galacticFilterSatellite_" source="parameters">
     !#  <default>

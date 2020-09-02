@@ -79,8 +79,6 @@ contains
     !#   <defaultValue>0.01d0</defaultValue>
     !#   <defaultSource>\cite{bullock_profiles_2001}</defaultSource>
     !#   <description>The parameter $F$ appearing in the halo concentration algorithm of \cite{bullock_profiles_2001}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>K</name>
@@ -88,8 +86,6 @@ contains
     !#   <defaultValue>4.0d0</defaultValue>
     !#   <defaultSource>\cite{bullock_profiles_2001}</defaultSource>
     !#   <description>The parameter $K$ appearing in the halo concentration algorithm of \cite{bullock_profiles_2001}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>

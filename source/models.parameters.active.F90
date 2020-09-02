@@ -64,11 +64,9 @@ contains
 
     !# <inputParameter>
     !#   <name>name</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the parameter.</description>
     !#   <defaultValue>var_str('')</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="distributionFunction1D" parameterName="distributionFunction1DPrior"     name="prior"     source="parameters"/>
     !# <objectBuilder class="distributionFunction1D" parameterName="distributionFunction1DPerturber" name="perturber" source="parameters"/>

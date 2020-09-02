@@ -62,8 +62,6 @@ contains
     !#   <name>massParticle</name>
     !#   <source>parameters</source>
     !#   <description>Mass of particle in the simulation to which the spherical overdensity algorithm was applied.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>

@@ -63,24 +63,18 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>0.01d0</defaultValue>
     !#   <description>The ratio of outflow rate to star formation rate in disks.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentVelocity</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-2.0d0</defaultValue>
     !#   <description>The exponent of virial velocity in the outflow rate in disks.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentRedshift</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The exponent of redshift in the outflow rate in disks.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>

@@ -100,63 +100,47 @@ contains
     !#   <source>parameters</source>
     !#   <description>If true, all off-diagonal elements of the covariance matrix are set to zero.</description>
     !#   <defaultValue>.false.</defaultValue>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceTargetOnly</name>
     !#   <source>parameters</source>
     !#   <description>If true, only the covariance of the target dataset is accounted for (otherwise the model covariance is added).</description>
     !#   <defaultValue>.false.</defaultValue>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>rootVarianceTargetFractional</name>
     !#   <source>parameters</source>
     !#   <description>The diagonal of the covariance matrix is forced to be at least equal to this fraction multiplied by the target dataset squared.</description>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>likelihoodInLog</name>
     !#   <source>parameters</source>
     !#   <description>If true, the likelihood is computed in $\log\phi$ instead of in $\phi$.</description>
     !#   <defaultValue>.false.</defaultValue>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massRatioLikelihoodMinimum</name>
     !#   <source>parameters</source>
     !#   <description>The minimum mass ratio to include in likelihood calculations.</description>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massRatioLikelihoodMaximum</name>
     !#   <source>parameters</source>
     !#   <description>The maximum mass ratio to include in likelihood calculations.</description>
     !#   <defaultValue>huge(0.0d0)</defaultValue>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     if (parameters%isPresent('fileName')) then
        !# <inputParameter>
        !#   <name>fileName</name>
        !#   <source>parameters</source>
        !#   <description>The name of the file from which to read progenitor mass function parameters.</description>
-       !#   <type>string</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>instance</name>
        !#   <source>parameters</source>
        !#   <description>The mass function instance to use from the file.</description>
-       !#   <type>integer</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
        self=outputAnalysisProgenitorMassFunction(char(fileName),instance,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,likelihoodInLog,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_)
     else
@@ -165,80 +149,58 @@ contains
        !#   <source>parameters</source>
        !#   <variable>label</variable>
        !#   <description>A label for the progenitor mass function.</description>
-       !#   <type>string</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>comment</name>
        !#   <source>parameters</source>
        !#   <variable>comment</variable>
        !#   <description>A descriptive comment for the progenitor mass function.</description>
-       !#   <type>string</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>massRatioMinimum</name>
        !#   <source>parameters</source>
        !#   <description>Minimum mass ratio for the progenitor mass function.</description>
-       !#   <type>real</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>massRatioMaximum</name>
        !#   <source>parameters</source>
        !#   <description>Maximum mass ratio for the progenitor mass function.</description>
-       !#   <type>real</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>countMassRatio</name>
        !#   <source>parameters</source>
        !#   <description>Number of mass ratios at which to compute the progenitor mass function.</description>
-       !#   <type>real</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>massParentMinimum</name>
        !#   <source>parameters</source>
        !#   <description>Minimum mass of the parent halo for the progenitor mass function.</description>
-       !#   <type>real</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>massParentMaximum</name>
        !#   <source>parameters</source>
        !#   <description>Maximum mass of the parent halo for the progenitor mass function.</description>
-       !#   <type>real</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>redshiftProgenitor</name>
        !#   <source>parameters</source>
        !#   <description>Redshift of the progenitor halos.</description>
-       !#   <type>real</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>redshiftParent</name>
        !#   <source>parameters</source>
        !#   <description>Redshift of the parent halos.</description>
-       !#   <type>real</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>alwaysIsolatedOnly</name>
        !#   <source>parameters</source>
        !#   <description>If true, include only progenitors which have been always isolated halos.</description>
-       !#   <type>boolean</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
        if (parameters%isPresent('targetLabel')) then
           !# <inputParameter>
           !#   <name>targetLabel</name>
           !#   <source>parameters</source>
           !#   <description>Label for the target dataset.</description>
-          !#   <type>real</type>
-          !#   <cardinality>0..1</cardinality>
           !# </inputParameter>
        end if
        if (parameters%isPresent('functionValueTarget')) then
@@ -247,16 +209,12 @@ contains
              !#   <name>functionValueTarget</name>
              !#   <source>parameters</source>
              !#   <description>The target function for likelihood calculations.</description>
-             !#   <type>real</type>
-             !#   <cardinality>0..1</cardinality>
              !# </inputParameter>
              !# <inputParameter>
              !#   <name>functionCovarianceTarget</name>
              !#   <source>parameters</source>
              !#   <variable>functionCovarianceTarget1D</variable>
              !#   <description>The target function covariance for likelihood calculations.</description>
-             !#   <type>real</type>
-             !#   <cardinality>0..1</cardinality>
              !# </inputParameter>
              if (size(functionCovarianceTarget1D) == size(functionValueTarget)**2) then
                 allocate(functionCovarianceTarget(size(functionValueTarget),size(functionValueTarget)))

@@ -53,11 +53,9 @@ contains
 
     !# <inputParameter>
     !#   <name>gamma</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The multiplicative factor, $\gamma$, used to compute the cooling coefficient.</description>
     !#   <source>parameters</source>
     !#   <defaultValue>0.67d0</defaultValue>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="atomicRecombinationRateRadiative" name="atomicRecombinationRateRadiative_" source="parameters"/>
     self=atomicRecombinationRateRadiativeCoolingFixed(gamma,atomicRecombinationRateRadiative_)

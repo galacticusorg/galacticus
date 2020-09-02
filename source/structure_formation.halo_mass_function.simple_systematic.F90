@@ -56,16 +56,12 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>Parameter $\alpha$ appearing in model for simple systematic shift in the halo mass function.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>beta</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>Parameter $\beta$ appearing in model for simple systematic shift in the halo mass function.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"  source="parameters"/>
     !# <objectBuilder class="haloMassFunction"    name="referenceMassFunction" source="parameters"/>

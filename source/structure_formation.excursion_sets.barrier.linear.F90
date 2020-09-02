@@ -54,8 +54,6 @@ contains
     !#   <variable>coefficientConstant</variable>
     !#   <defaultValue>1.67d0</defaultValue>
     !#   <description>The constant coefficient in the linear excursion set barrier.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>coefficientLinear</name>
@@ -63,8 +61,6 @@ contains
     !#   <variable>coefficientLinear</variable>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The linear coefficient in the linear excursion set barrier.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=excursionSetBarrierLinear(coefficientConstant,coefficientLinear)
     !# <inputParametersValidate source="parameters"/>

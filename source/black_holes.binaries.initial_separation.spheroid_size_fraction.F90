@@ -50,11 +50,9 @@ contains
 
     !# <inputParameter>
     !#   <name>spheroidRadiusFraction</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The fraction of the spheroid radius at which merging black holes will be initially placed.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=blackHoleBinaryInitialSeparationSpheroidRadiusFraction(spheroidRadiusFraction)
     !# <inputParametersValidate source="parameters"/>

@@ -55,17 +55,13 @@ contains
 
     !# <inputParameter>
     !#   <name>logFileRoot</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The root file name of the stae files from which to resume.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>restoreState</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true, restore the state of the simulation.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     self=posteriorSampleStateInitializeResume(logFileRoot,restoreState)
     !# <inputParametersValidate source="parameters"/>

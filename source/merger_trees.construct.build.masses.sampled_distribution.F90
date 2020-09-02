@@ -70,29 +70,23 @@ contains
     !# <inputParameter>
     !#   <name>massTreeMinimum</name>
     !#   <variable>self%massTreeMinimum</variable>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d10</defaultValue>
     !#   <description>The minimum mass of merger tree base halos to consider when sampled masses from a distribution, in units of $M_\odot$.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massTreeMaximum</name>
     !#   <variable>self%massTreeMaximum</variable>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d15</defaultValue>
     !#   <description>The maximum mass of merger tree base halos to consider when sampled masses from a distribution, in units of $M_\odot$.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>treesPerDecade</name>
     !#   <variable>self%treesPerDecade</variable>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10.0d0</defaultValue>
     !#   <description>The number of merger trees masses to sample per decade of base halo mass.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="mergerTreeBuildMassDistribution" name="self%mergerTreeBuildMassDistribution_" source="parameters"/>
     !# <inputParametersValidate source="parameters"/>

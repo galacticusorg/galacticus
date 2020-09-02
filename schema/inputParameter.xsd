@@ -31,9 +31,9 @@
 	<xs:element name="name"          type="xs:string"        minOccurs="1" maxOccurs="1"/>
 	<xs:element name="source"        type="xs:string"        minOccurs="1" maxOccurs="1"/>
 	<xs:element name="variable"      type="xs:string"        minOccurs="0" maxOccurs="1"/>
-	<xs:element name="type"          type="xs:parameterType" minOccurs="1" maxOccurs="1"/>
+	<xs:element name="type"          type="xs:parameterType" minOccurs="0" maxOccurs="1"/>
 	<xs:element name="description"   type="xs:string"        minOccurs="1" maxOccurs="1"/>
-	<xs:element name="cardinality"   type="xs:cardinality"   minOccurs="1" maxOccurs="1"/>
+	<xs:element name="cardinality"   type="xs:cardinality"   minOccurs="0" maxOccurs="1"/>
 	<xs:element name="defaultValue"  type="xs:string"        minOccurs="0" maxOccurs="1"/>
 	<xs:element name="defaultSource" type="xs:string"        minOccurs="0" maxOccurs="1"/>
       </xs:all>

@@ -55,29 +55,21 @@ contains
     !#   <name>massParticle</name>
     !#   <source>parameters</source>
     !#   <description>The particle mass to use for two-body relaxation calculations.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>lengthSoftening</name>
     !#   <source>parameters</source>
     !#   <description>The softening length to use for two-body relaxation calculations.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeStart</name>
     !#   <source>parameters</source>
     !#   <description>The time at which two-body relaxation is assumed to have begun.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>efficiency</name>
     !#   <source>parameters</source>
     !#   <description>The fractional efficiency of two-body relaxation heating.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     self=darkMatterProfileHeatingTwoBodyRelaxation(massParticle,lengthSoftening,timeStart,efficiency)
     !# <inputParametersValidate source="parameters"/>

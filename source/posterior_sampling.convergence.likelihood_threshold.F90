@@ -55,11 +55,9 @@ contains
 
     !# <inputParameter>
     !#   <name>likelihoodThreshold</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The threshold log-likelihood above which convergence is declared.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=posteriorSampleConvergenceLikelihoodThreshold(likelihoodThreshold)
     !# <inputParametersValidate source="parameters"/>

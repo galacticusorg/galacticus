@@ -193,75 +193,57 @@ contains
 
     !# <inputParameter>
     !#   <name>emulatorRebuildCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of steps between rebuilds of the emulator.</description>
     !#   <defaultValue>100</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>polynomialOrder</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The order of the polynomial to fit to the likelihood surface.</description>
     !#   <defaultValue>2</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sigmaBuffer</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The buffer size in units of the likelihood error to use when deciding whether to emulate the likelihood.</description>
     !#   <defaultValue>3.0d0</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>logLikelihoodBuffer</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The buffer size in log-likelihood to use when deciding whether to emulate the likelihood.</description>
     !#   <defaultValue>10.0d0</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>logLikelihoodErrorTolerance</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The tolerance on the likelihood error to accept when deciding whether to emulate the likelihood.</description>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>reportCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of steps between reports of emulator performance.</description>
     !#   <defaultValue>10</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>emulateOutliers</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true, then outlier chains are always emulated once the simulation is converged.</description>
     !#   <defaultValue>.true.</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>dumpEmulatorFileRoot</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of a file to which emulator internal state will be dumped. (If empty, no dump occurs.)</description>
     !#   <defaultValue>var_str('')</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>dummyEmulator</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true, then the emulator is constructed, and performance measured, but likelihoods are always simulated directly.</description>
     !#   <defaultValue>.false.</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
      !# <objectBuilder class="posteriorSampleLikelihood" name="posteriorSampleLikelihood_" source="parameters"/>
     self=posteriorSampleLikelihoodGaussianRegression(emulatorRebuildCount,polynomialOrder,sigmaBuffer,logLikelihoodBuffer,logLikelihoodErrorTolerance,reportCount,emulateOutliers,char(dumpEmulatorFileRoot),dummyEmulator,posteriorSampleLikelihood_)

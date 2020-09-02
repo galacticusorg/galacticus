@@ -57,31 +57,23 @@ contains
 
     !# <inputParameter>
     !#   <name>wavelengthMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum wavelength (in units of \AA) for the power-law spectrum.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>wavelengthMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum wavelength (in units of \AA) for the power-law spectrum.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponent</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The exponent of the power-law spectrum.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>normalization</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The normalization (in units of $L_\odot / \AA$) of the power-law spectrum.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=radiativeTransferSpectrumPowerLaw(wavelengthMinimum,wavelengthMaximum,exponent,normalization)
     !# <inputParametersValidate source="parameters"/>

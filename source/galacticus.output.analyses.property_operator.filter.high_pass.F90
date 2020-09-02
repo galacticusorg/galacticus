@@ -52,8 +52,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>filterThreshold</variable>
     !#   <description>Threshold for the high-pass filter distribution operator.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=outputAnalysisPropertyOperatorFilterHighPass(filterThreshold)
     !# <inputParametersValidate source="parameters"/>

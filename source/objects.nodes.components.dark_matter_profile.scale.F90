@@ -88,27 +88,21 @@ contains
     ! Get parameters.
     !# <inputParameter>
     !#   <name>darkMatterProfileMinimumConcentration</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>4.0d0</defaultValue>
     !#   <description>The minimum concentration allowed for dark matter profiles.</description>
     !#   <source>parameters_</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>darkMatterProfileMaximumConcentration</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>100.0d0</defaultValue>
     !#   <description>The maximum concentration allowed for dark matter profiles.</description>
     !#   <source>parameters_</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>mergerTreeStructureOutputDarkMatterProfileScale</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not dark matter halo scale radius is included in outputs of merger trees.</description>
     !#   <source>parameters_</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     ! Bind the scale get function.
     call darkMatterProfile%scaleFunction(Node_Component_Dark_Matter_Profile_Scale_Scale)

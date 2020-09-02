@@ -55,11 +55,9 @@ contains
 
     !# <inputParameter>
     !#   <name>multiplier</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>5.0d0</defaultValue>
     !#   <description>Specifies the rate at which reheated mass is returned to the hot phase in units of the inverse halo dynamical timed.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     self=hotHaloOutflowReincorporationHaloDynamicalTime(multiplier,darkMatterHaloScale_)

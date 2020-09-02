@@ -78,11 +78,9 @@ contains
     
     !# <inputParameter>
     !#   <name>collectMemoryUsageData</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether or not to collect and output data on the memory used while processing trees.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     self=treeProcessingTimerConstructorInternal(collectMemoryUsageData)
     !# <inputParametersValidate source="parameters"/>

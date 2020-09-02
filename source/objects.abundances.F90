@@ -326,10 +326,8 @@ contains
              call allocateArray(elementsIndices,[elementsCount])
              !# <inputParameter>
              !#   <name>elementsToTrack</name>
-             !#   <cardinality>1..*</cardinality>
              !#   <description>The names of the elements to be tracked.</description>
              !#   <source>globalParameters</source>
-             !#   <type>string</type>
              !# </inputParameter>
              ! Validate the input names by looking them up in the list of atomic names.
              do iElement=1,elementsCount

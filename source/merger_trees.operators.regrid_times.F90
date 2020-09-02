@@ -85,40 +85,30 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether or not to dump merger trees as they are regridded.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>snapTolerance</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The fractional tolerance used in deciding if a node should be snapped to a time on the grid.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>regridCount</name>
     !#   <source>parameters</source>
     !#   <defaultValue>100</defaultValue>
     !#   <description>Number of points in time to use when regridding merger trees.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>expansionFactorStart</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>Starting expansion factor to use when regridding merger trees.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>expansionFactorEnd</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>Ending expansion factor to use when regridding merger trees.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>snapshotSpacing</name>
@@ -126,8 +116,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>var_str('logarithmic')</defaultValue>
     !#   <description>Type of spacing to use in merger tree regridding (linear or logarithmic).</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     ! Find the spacing type to be used.
     snapshotSpacing=enumerationSnapshotSpacingEncode(char(snapshotSpacingText),includesPrefix=.false.)
@@ -140,8 +128,6 @@ contains
        !#   <variable>snapshotTimes</variable>
        !#   <source>parameters</source>
        !#   <description>The redshifts at which merger trees are to regridded when the {\normalfont \ttfamily [snapshotSpacing]}$=${\normalfont \ttfamily list} option is selected.</description>
-       !#   <type>real</type>
-       !#   <cardinality>0..*</cardinality>
        !# </inputParameter>
        do iTime=1,size(snapshotTimes)
           snapshotTimes(iTime)=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(snapshotTimes(iTime)))

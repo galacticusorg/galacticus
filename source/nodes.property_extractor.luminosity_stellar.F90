@@ -70,23 +70,17 @@ contains
     !#   <name>filterName</name>
     !#   <source>parameters</source>
     !#   <description>The filter to select.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>filterType</name>
     !#   <source>parameters</source>
     !#   <description>The filter type (rest or observed) to select.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     if (redshiftBandIsPresent) then
        !# <inputParameter>
        !#   <name>redshiftBand</name>
        !#   <source>parameters</source>
        !#   <description>The redshift of the band (if not the output redshift).</description>
-       !#   <type>real</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
     end if
     if (postprocessChainIsPresent) then
@@ -94,8 +88,6 @@ contains
        !#   <name>postprocessChain</name>
        !#   <source>parameters</source>
        !#   <description>The postprocessing chain to use.</description>
-       !#   <type>string</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
     end if
     !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>

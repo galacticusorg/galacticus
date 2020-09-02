@@ -53,17 +53,13 @@ contains
 
     !# <inputParameter>
     !#   <name>mass</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The mass of the cloud.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>radius</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The radius of the cloud.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=massDistributionConstantDensityCloud(mass,radius)
     !# <inputParametersValidate source="parameters"/>

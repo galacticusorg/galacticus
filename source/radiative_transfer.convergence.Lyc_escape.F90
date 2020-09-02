@@ -48,11 +48,9 @@ contains
     
     !# <inputParameter>
     !#   <name>toleranceRelative</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-3</defaultValue>
     !#   <description>The relative tolerance in hydrogen Lyc escape required to declare convergence.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=radiativeTransferConvergenceLycEscape(toleranceRelative)
     return

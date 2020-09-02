@@ -81,11 +81,9 @@ contains
 
     !# <inputParameter>
     !#   <name>tripleBlackHoleInteraction</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not triple black hole interactions will be accounted for.</description>
     !#   <source>parameters_</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     return
   end subroutine Node_Component_Black_Hole_Noncentral_Initialize

@@ -76,8 +76,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true, computed properties and results will be stored back to the file from which a simulation ws imported (assuming it is of HDF5 type).</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="nBodyImporter" name="nBodyImporter_" source="parameters"/>
     !# <objectBuilder class="nBodyOperator" name="nBodyOperator_" source="parameters"/>

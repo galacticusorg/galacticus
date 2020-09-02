@@ -84,8 +84,6 @@ contains
     !#   <name>fileName</name>
     !#   <defaultValue>galacticusPath(pathTypeDataStatic)//'stellarAstrophysics/Stellar_Properties_Compilation.xml'</defaultValue>
     !#   <description>The name of the XML file from which to read stellar properties (ejected masses, yields, etc.).</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !#   <source>parameters</source>
     !# </inputParameter>
     self=stellarAstrophysicsFile(char(fileName))

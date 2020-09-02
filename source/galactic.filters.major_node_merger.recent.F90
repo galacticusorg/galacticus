@@ -55,8 +55,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>timeRecent</variable>
     !#   <description>The parameter $\Delta t$ (in units of Gyr) appearing in the recent node major merger galactic filter class.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=galacticFilterNodeMajorMergerRecent(timeRecent)
     !# <inputParametersValidate source="parameters"/>

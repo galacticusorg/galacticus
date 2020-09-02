@@ -58,15 +58,11 @@ contains
     !#   <name>rangeLower</name>
     !#   <source>parameters</source>
     !#   <description>Lower integration limit for the nbodyMass distribution weight operator.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>rangeUpper</name>
     !#   <source>parameters</source>
     !#   <description>Upper integration limit for the nbodyMass distribution weight operator.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="nodePropertyExtractor"           name="nodePropertyExtractor_"           source="parameters"/>
     !# <objectBuilder class="outputAnalysisPropertyOperator"  name="outputAnalysisPropertyOperator_"  source="parameters"/>

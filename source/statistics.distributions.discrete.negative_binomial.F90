@@ -55,17 +55,13 @@ contains
 
     !# <inputParameter>
     !#   <name>probabilitySuccess</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The probability of success for a single trial.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>countFailures</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of failures.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=distributionFunctionDiscrete1DNegativeBinomial(probabilitySuccess,countFailures,randomNumberGenerator_)

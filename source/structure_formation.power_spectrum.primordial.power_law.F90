@@ -60,8 +60,6 @@ contains
     !#   <defaultValue>0.9649d0</defaultValue>
     !#   <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
     !#   <description>The index of the power-law primordial power spectrum.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>running</name>
@@ -69,8 +67,6 @@ contains
     !#   <variable>powerLawConstructorParameters%running</variable>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The running, $\d n_\mathrm{s} / \d \ln k$, of the power spectrum index.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>wavenumberReference</name>
@@ -78,8 +74,6 @@ contains
     !#   <variable>powerLawConstructorParameters%wavenumberReference</variable>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>When a running power spectrum index is used, this is the wavenumber at which the index is equal to {\normalfont \ttfamily [index]}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParametersValidate source="parameters"/>
     return

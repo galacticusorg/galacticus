@@ -51,8 +51,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The timescale (in Gyr) for cooling in the simple cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=coolingRateSimple(timeScale)
     !# <inputParametersValidate source="parameters"/>

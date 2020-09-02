@@ -53,8 +53,6 @@ contains
     !#   <name>massElement</name>
     !#   <source>parameters</source>
     !#   <description>The atomic mass of the element used to define metallicity.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=outputAnalysisPropertyOperatorMetallicity12LogNH(massElement)
     !# <inputParametersValidate source="parameters"/>

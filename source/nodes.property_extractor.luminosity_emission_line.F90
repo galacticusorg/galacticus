@@ -111,16 +111,12 @@ contains
     !#   <name>lineNames</name>
     !#   <source>parameters</source>
     !#   <description>The emission lines to extract.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>depthOpticalISMCoefficient</name>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Multiplicative coefficient for optical depth in the ISM.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="starFormationRateDisks"        name="starFormationRateDisks_"        source="parameters"/>
     !# <objectBuilder class="starFormationRateSpheroids"    name="starFormationRateSpheroids_"    source="parameters"/>

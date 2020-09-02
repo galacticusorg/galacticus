@@ -69,8 +69,6 @@ contains
     !#   <defaultValue>0.04326d0</defaultValue>
     !#   <defaultSource>\citep{bett_spin_2007}</defaultSource>
     !#   <description>The parameter $\lambda_0$ in the halo spin distribution of \cite{bett_spin_2007}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>alpha</name>
@@ -78,8 +76,6 @@ contains
     !#   <defaultValue>2.509d0</defaultValue>
     !#   <defaultSource>\citep{bett_spin_2007}</defaultSource>
     !#   <description>The parameter $\alpha$ in the halo spin distribution of \cite{bett_spin_2007}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     bett2007ConstructorParameters=bett2007ConstructorInternal(lambda0,alpha)
     !# <inputParametersValidate source="parameters"/>

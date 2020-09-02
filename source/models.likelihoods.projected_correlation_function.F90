@@ -113,38 +113,28 @@ contains
 
     !# <inputParameter>
     !#   <name>haloMassMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum halo mass over which to integrate.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>haloMassMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum halo mass over which to integrate.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>lineOfSightDepth</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The line of sight depth over which to integrate.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>halfIntegral</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true, integrate only over positive line of sight depths.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>fileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the file containing the target projected correlation function.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="powerSpectrum"                name="powerSpectrum_"                source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>

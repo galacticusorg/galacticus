@@ -57,11 +57,9 @@ contains
 
     !# <inputParameter>
     !#   <name>sample</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('SMCbar')</defaultValue>
     !#   <description>The name of the sample from \cite{gordon_quantitative_2003} to use in dust attenuation calculations.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     self=stellarSpectraDustAttenuationGordon2003(enumerationGordon2003SampleEncode(char(sample),includesPrefix=.false.))
     !# <inputParametersValidate source="parameters"/>

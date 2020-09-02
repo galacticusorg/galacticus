@@ -60,8 +60,6 @@ contains
     !#   <defaultValue>0.5d0</defaultValue>
     !#   <source>parameters_</source>
     !#   <description>Fractional mass of primary progenitor used to define formation time.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     return
   end subroutine Node_Component_Formation_Times_Mass_Fraction_Initialize

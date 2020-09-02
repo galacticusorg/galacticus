@@ -70,8 +70,6 @@ contains
     !#   <name>errorFractionalMaximum</name>
     !#   <source>parameters</source>
     !#   <description>Maximum allowed fractional error in halo mass.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"  source="parameters"/>
     !# <objectBuilder class="nbodyHaloMassError"  name="nBodyHaloMassError_"   source="parameters"/>

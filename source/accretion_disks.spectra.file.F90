@@ -70,8 +70,6 @@ contains
     !#   <name>fileName</name>
     !#   <source>parameters</source>
     !#   <description>The name of a file from which to read tabulated spectra of accretion disks.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     fileConstructorParameters=fileConstructorInternal(char(fileName))
     !# <inputParametersValidate source="parameters"/>

@@ -87,8 +87,6 @@ contains
     !#   <defaultSource>\citep{obreschkow_simulation_2009}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>The parameter, $K$ (in units of m$^4$ kg$^{-2}$), appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>fSigma</name>
@@ -96,8 +94,6 @@ contains
     !#   <defaultSource>\citep{obreschkow_simulation_2009}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>The parameter, $\langle f_\sigma \rangle$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>A1</name>
@@ -105,8 +101,6 @@ contains
     !#   <defaultSource>\citep{obreschkow_simulation_2009}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>The parameter, $A_1$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>A2</name>
@@ -116,8 +110,6 @@ contains
     !#   <description>
     !#    The parameter, $A_2$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
     !#   </description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>alpha1</name>
@@ -125,8 +117,6 @@ contains
     !#   <defaultSource>\citep{obreschkow_simulation_2009}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>The parameter, $\alpha_1$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>alpha2</name>
@@ -134,8 +124,6 @@ contains
     !#   <defaultSource>\citep{obreschkow_simulation_2009}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>The parameter, $\alpha_2$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>beta</name>
@@ -143,8 +131,6 @@ contains
     !#   <defaultSource>\citep{obreschkow_simulation_2009}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>The parameter, $\beta$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>scatter</name>
@@ -152,8 +138,6 @@ contains
     !#   <defaultSource>(Obsreschkow, private communication)</defaultSource>
     !#   <source>parameters</source>
     !#   <description>The scatter (in dex) in the molecular ratio $\log_{10}R_\mathrm{mol}$ of \cite{obreschkow_simulation_2009} compared to observational data.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=outputAnalysisMolecularRatioObreschkow2009(K,fSigma,A1,A2,alpha1,alpha2,beta,scatter)
     !# <inputParametersValidate source="parameters"/>

@@ -120,8 +120,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>var_str('planck200CritRelaxedMass')</defaultValue>
     !#   <description>The sample to use for the halo concentration algorithm of \cite{klypin_multidark_2014}.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>

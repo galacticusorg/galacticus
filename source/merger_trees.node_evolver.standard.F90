@@ -134,83 +134,63 @@ contains
 
     !# <inputParameter>
     !#   <name>odeToleranceAbsolute</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.01d0</defaultValue>
     !#   <description>The absolute tolerance used in solving differential equations for node evolution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>odeToleranceRelative</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-2</defaultValue>
     !#   <description>The relative tolerance used in solving differential equations for node evolution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>odeJacobianStepSizeRelative</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.01d0</defaultValue>
     !#   <description>The relative step size to use when perturbing properties for purposes of computing a finite difference approximation to the ODE system Jacobian.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>odeAlgorithm</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('rungeKuttaCashKarp')</defaultValue>
     !#   <description>The algorithm to use in the ODE solver.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>odeAlgorithmNonJacobian</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('rungeKuttaCashKarp')</defaultValue>
     !#   <description>The algorithm to use in the ODE solver.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>odeLatentIntegratorType</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('trapezoidal')</defaultValue>
     !#   <description>The type of integrator to use for latent variables.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>odeLatentIntegratorOrder</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>15</defaultValue>
     !#   <description>The order of the integrator for latent variables.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>odeLatentIntegratorIntervalsMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1000</defaultValue>
     !#   <description>The maxium number of intervals allowed in the integrator for latent variables.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>profileOdeEvolver</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether or not to profile the ODE evolver.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>reuseODEStepSize</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true, re-use the previous ODE step size when resuming the evolution of a node. Otherwise, the initial step size is not specified.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <objectBuilder class="mergerTreeNodeMerger"     name="mergerTreeNodeMerger_"     source="parameters"/>
     !# <objectBuilder class="nodeOperator"             name="nodeOperator_"             source="parameters"/>

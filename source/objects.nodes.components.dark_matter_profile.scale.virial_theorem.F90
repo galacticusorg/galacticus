@@ -96,24 +96,18 @@ contains
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <source>globalParameters_</source>
     !#   <description>A boost to the energy</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>darkMatterProfileScaleVirialTheoremMassExponent</name>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <source>globalParameters_</source>
     !#   <description>The exponent of mass ratio appearing in the orbital energy term in the ``virial theorem'' dark matter profile scale model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>darkMatterProfileScaleVirialTheoremUnresolvedEnergy</name>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <source>globalParameters_</source>
     !#   <description>Factor multiplying the estimate of the internal energy of unresolved accretion in the ``virial theorem'' dark matter profile scale model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
    return
   end subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Initialize

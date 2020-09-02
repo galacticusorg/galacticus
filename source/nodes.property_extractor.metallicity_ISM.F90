@@ -56,8 +56,6 @@ contains
     !#   <name>element</name>
     !#   <source>parameters</source>
     !#   <description>The atomic symbol for the element to use to define metallicity.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     indexElement=Abundances_Index_From_Name(element)
     self=nodePropertyExtractorMetallicityISM(indexElement)

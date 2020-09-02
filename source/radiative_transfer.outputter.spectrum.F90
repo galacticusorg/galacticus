@@ -66,51 +66,39 @@ contains
 
     !# <inputParameter>
     !#   <name>wavelengthMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.3d4</defaultValue>
     !#   <description>The minimum wavelength at which to compute spectra.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>wavelengthMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10.0d4</defaultValue>
     !#   <description>The maximum wavelength at which to compute spectra.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>wavelengthCountPerDecade</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10_c_size_t</defaultValue>
     !#   <description>The number of wavelengths per decade at which to compute spectra.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>thetaMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The minimum angle $\theta$ at which to bin the emergent spectrum.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>thetaMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>+Pi</defaultValue>
     !#   <description>The maximum angle $\theta$ at which to bin the emergent spectrum.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>countThetas</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1_c_size_t</defaultValue>
     !#   <description>The number of bins in angle $\theta$ at which to compute spectra.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     self=radiativeTransferOutputterSpectrum(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,thetaMinimum,thetaMaximum,countThetas)
     !# <inputParametersValidate source="parameters"/>

@@ -85,27 +85,21 @@ contains
     ageUniverse=cosmologyFunctions_%cosmicTime(1.0d0)
     !# <inputParameter>
     !#   <name>timeBegin</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.05d0*ageUniverse</defaultValue>
     !#   <description>The earliest time at which to tabulate the volume averaged history of galaxies (in Gyr).</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeEnd</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>ageUniverse</defaultValue>
     !#   <description>The latest time at which to tabulate the volume averaged history of galaxies (in Gyr).</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>historyCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>30</defaultValue>
     !#   <description>The number of steps (spaced logarithmically in cosmic time) at which to tabulate the volume averaged history of galaxies.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     self=mergerTreeEvolveTimestepHistory(historyCount,timeBegin,timeEnd,cosmologyFunctions_,starFormationRateDisks_,starFormationRateSpheroids_)
     !# <inputParametersValidate source="parameters"/>

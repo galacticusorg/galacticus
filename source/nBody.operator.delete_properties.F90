@@ -51,8 +51,6 @@ contains
     !#   <name>propertyNames</name>
     !#   <source>parameters</source>
     !#   <description>A list of named properties to be deleted from the simulation.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..*</cardinality>
     !# </inputParameter>
     self=nbodyOperatorDeleteProperties(propertyNames)
     !# <inputParametersValidate source="parameters"/>

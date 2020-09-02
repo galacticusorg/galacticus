@@ -79,11 +79,9 @@ contains
       ! Read parameters controlling the physical implementation.
        !# <inputParameter>
        !#   <name>positionsPresetSatelliteToHost</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>If true, the position of satellite halos will be adjusted to match that of their host halo.</description>
        !#   <source>parameters_</source>
-       !#   <type>boolean</type>
        !# </inputParameter>
     end if
     return

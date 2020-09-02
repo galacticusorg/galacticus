@@ -64,11 +64,9 @@ contains
 
     !# <inputParameter>
     !#   <name>massFlowStatisticsResetOnOutput</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether or not mass flow statistics should be reset to zero at each output.</description>
     !#   <source>parameters_</source>
-    !#   <type>real</type>
     !# </inputParameter>
     return
   end subroutine Node_Component_Mass_Flow_Statistics_Standard_Initialize

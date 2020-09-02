@@ -48,11 +48,9 @@ contains
 
     !# <inputParameter>
     !#   <name>timeLimit</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-2</defaultValue>
     !#   <description>The maximum age of stellar populations to retain in the ``recent'' spectra postprocessing method.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=stellarPopulationSpectraPostprocessorRecent(timeLimit)
     return

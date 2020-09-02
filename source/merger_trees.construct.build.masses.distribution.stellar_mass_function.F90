@@ -256,59 +256,43 @@ contains
 
     !# <inputParameter>
     !#   <name>normalization</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The value $\phi_0$ in a Schechter function, $\sigma(M) = \phi_0 (M/M_\star)^\alpha \exp(-[M/M_\star]^\beta)$, describing the errors on the stellar mass function to be assumed when computing the optimal sampling density function for tree masses.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>alpha</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The value $\alpha$ in a Schechter function describing the errors on the stellar mass function to be assumed when computing the optimal sampling density function for tree masses.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>beta</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The value $\beta$ in a Schechter function describing the errors on the stellar mass function to be assumed when computing the optimal sampling density function for tree masses.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massCharacteristic</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The value $M_\star$ in a Schechter function describing the errors on the stellar mass function to be assumed when computing the optimal sampling density function for tree masses.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>constant</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The constant error contribution to the stellar mass function to be assumed when computing the optimal sampling density function for tree masses.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>binWidthLogarithmic</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The logarithmic width of bins in the stellar mass function to be assumed when computing the optimal sampling density function for tree masses.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum stellar mass to consider when computing the optimal sampling density function for tree masses.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum stellar mass to consider when computing the optimal sampling density function for tree masses.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="haloMassFunction"        name="haloMassFunction_"        source="parameters"/>
     !# <objectBuilder class="conditionalMassFunction" name="conditionalMassFunction_" source="parameters"/>

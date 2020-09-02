@@ -70,11 +70,9 @@ contains
 
     !# <inputParameter>
     !#   <name>randomSpinResetMassFactor</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.0d0</defaultValue>
     !#   <description>The factor by which a node must increase in mass before its spin parameter is reset.</description>
     !#   <source>parameters_</source>
-    !#   <type>real</type>
     !# </inputParameter>
     return
   end subroutine Node_Component_Spin_Random_Initialize

@@ -55,8 +55,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>stellarMassMorphologyConstructorParameters%spheroidToTotalRatioThreshold</variable>
     !#   <description>The parameter $R_0$ appearing in the stellar mass-weight morphology threshold for the stellar mass-weighted morphology galactic filter class.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParametersValidate source="parameters"/>
     return

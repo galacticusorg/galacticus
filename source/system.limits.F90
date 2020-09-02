@@ -55,11 +55,9 @@ contains
 
     !# <inputParameter>
     !#   <name>cpuLimit</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0_c_long</defaultValue>
     !#   <description>The CPU time limit for the run, in seconds.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     if (cpuLimit > 0_c_long) then
        !$ cpuLimit=cpuLimit*OMP_Get_Max_Threads()

@@ -135,15 +135,11 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Force the use of zero metallicity (or lowest metallicity available) for all stellar populations.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>fileName</name>
     !#   <source>parameters</source>
     !#   <description>The name of the file from which to read spectra.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=stellarPopulationSpectraFile(forceZeroMetallicity,char(fileName))
     !# <inputParametersValidate source="parameters"/>

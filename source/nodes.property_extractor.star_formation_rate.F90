@@ -74,8 +74,6 @@ contains
     !#   <name>component</name>
     !#   <source>parameters</source>
     !#   <description>The component from which to extract star formation rate.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     select case (enumerationGalacticComponentEncode(char(component),includesPrefix=.false.))
     case (galacticComponentDisk    )

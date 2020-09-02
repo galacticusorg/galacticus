@@ -84,16 +84,12 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>var_str('luminosity')</defaultValue>
     !#   <description>The property (luminosity, or size) to be affected by gravitational lensing.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sizeSource</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.001d0</defaultValue>
     !#   <description>The source size to assume for gravitational lensing calculations.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
     !# <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>

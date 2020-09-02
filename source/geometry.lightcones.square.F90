@@ -133,7 +133,8 @@ contains
     type            (geometryLightconeSquare )                            :: squareConstructorParameters
     type            (inputParameters         ), intent(inout)             :: parameters
     double precision                          , dimension(3,3)            :: unitVector
-    double precision                          , dimension(3)              :: origin
+    double precision                          , dimension(3)              :: origin                     , unitVector1         , &
+         &                                                                   unitVector2                , unitVector3
     double precision                          , dimension(:), allocatable :: redshift                   , outputTimes
     class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_
@@ -154,72 +155,54 @@ contains
     !#   <source>parameters</source>
     !#   <variable>origin</variable>
     !#   <description>The origin for the lightcone.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>unitVector1</name>
     !#   <source>parameters</source>
-    !#   <variable>unitVector(:,1)</variable>
     !#   <description>The first (radial) unit vector defining the lightcone geometry.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    unitVector(:,1)=unitVector1
     !# <inputParameter>
     !#   <name>unitVector2</name>
     !#   <source>parameters</source>
-    !#   <variable>unitVector(:,2)</variable>
     !#   <description>The second (angular) unit vector defining the lightcone geometry.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    unitVector(:,1)=unitVector2
     !# <inputParameter>
     !#   <name>unitVector3</name>
     !#   <source>parameters</source>
-    !#   <variable>unitVector(:,3)</variable>
     !#   <description>The third (angular) unit vector defining the lightcone geometry.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    unitVector(:,1)=unitVector3
     !# <inputParameter>
     !#   <name>lengthReplication</name>
     !#   <source>parameters</source>
     !#   <variable>lengthReplication</variable>
     !#   <description>The length of the simulation box being used to construct the lightcone.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>lengthUnitsInSI</name>
     !#   <source>parameters</source>
     !#   <variable>lengthUnitsInSI</variable>
     !#   <description>The units of the box length in the SI system.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>lengthHubbleExponent</name>
     !#   <source>parameters</source>
     !#   <variable>lengthHubbleExponent</variable>
     !#   <description>The exponent of the ``little-$h$'' parameter used in the definition of the box length.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>angularSize</name>
     !#   <source>parameters</source>
     !#   <variable>angularSize</variable>
     !#   <description>The angular size (i.e. side length) of the square field of view of the lightcone (in units of degrees).</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshift</name>
     !#   <source>parameters</source>
     !#   <variable>redshift</variable>
     !#   <description>The redshifts of output times to be used in the lightcone.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeEvolvesAlongLightcone</name>
@@ -227,8 +210,6 @@ contains
     !#   <defaultValue>.true.</defaultValue>
     !#   <variable>timeEvolvesAlongLightcone</variable>
     !#   <description>If {\normalfont \ttfamily true}, cosmic time evolves along the lightcone as expected. Otherwise, time is fixed at the present epoch throughout the lightone. This allows construction of lightcones with no evolution.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>

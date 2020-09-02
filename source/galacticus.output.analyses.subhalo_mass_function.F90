@@ -92,8 +92,6 @@ contains
        !#   <name>fileName</name>
        !#   <source>parameters</source>
        !#   <description>The name of the file from which to read the target dataset.</description>
-       !#   <type>string</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
     else
        !# <inputParameter>
@@ -101,24 +99,18 @@ contains
        !#   <source>parameters</source>
        !#   <defaultValue>1.0d-4</defaultValue>
        !#   <description>The minimum mass ratio to consider.</description>
-       !#   <type>real</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>massRatioMaximum</name>
        !#   <source>parameters</source>
        !#   <defaultValue>1.0d0</defaultValue>
        !#   <description>The maximum mass ratio to consider.</description>
-       !#   <type>real</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>countMassRatios</name>
        !#   <source>parameters</source>
        !#   <defaultValue>10_c_size_t</defaultValue>
        !#   <description>The number of bins in mass ratio to use.</description>
-       !#   <type>real</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
     end if
     !# <inputParameter>
@@ -126,8 +118,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The redshift at which to compute the subhalo mass function.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>negativeBinomialScatterFractional</name>
@@ -135,8 +125,6 @@ contains
     !#   <defaultValue>0.18d0</defaultValue>
     !#   <defaultSource>\citep{boylan-kolchin_theres_2010}</defaultSource>
     !#   <description>The fractional scatter (relative to the Poisson scatter) in the negative binomial distribution used in likelihood calculations.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialBinsPerDecade</name>
@@ -144,8 +132,6 @@ contains
     !#   <variable>covarianceBinomialBinsPerDecade</variable>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins per decade of halo mass to use when constructing subhalo mass function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMinimum</name>
@@ -153,8 +139,6 @@ contains
     !#   <variable>covarianceBinomialMassHaloMinimum</variable>
     !#   <defaultValue>1.0d8</defaultValue>
     !#   <description>The minimum halo mass to consider when constructing subhalo mass function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMaximum</name>
@@ -162,8 +146,6 @@ contains
     !#   <variable>covarianceBinomialMassHaloMaximum</variable>
     !#   <defaultValue>1.0d16</defaultValue>
     !#   <description>The maximum halo mass to consider when constructing subhalo mass function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>

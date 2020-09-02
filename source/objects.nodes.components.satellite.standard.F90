@@ -108,30 +108,24 @@ contains
         ! Determine if satellite orbits are to be stored.
         !# <inputParameter>
         !#   <name>satelliteOrbitStoreOrbitalParameters</name>
-        !#   <cardinality>1</cardinality>
         !#   <defaultValue>.true.</defaultValue>
         !#   <description>Specifies whether satellite virial orbital parameters should be stored (otherwise they are computed
         !#      again---possibly at random---each time they are requested).</description>
         !#   <source>parameters_</source>
-        !#   <type>boolean</type>
         !# </inputParameter>
         ! Determine if satellite orbits are to be reset on halo formation events.
         !# <inputParameter>
         !#   <name>satelliteOrbitResetOnHaloFormation</name>
-        !#   <cardinality>1</cardinality>
         !#   <defaultValue>.false.</defaultValue>
         !#   <description>Specifies whether satellite virial orbital parameters should be reset on halo formation events.</description>
         !#   <source>parameters_</source>
-        !#   <type>boolean</type>
         !# </inputParameter>
         ! Determine if bound mass is an inactive variable.
         !# <inputParameter>
         !#   <name>satelliteBoundMassIsInactive</name>
-        !#   <cardinality>1</cardinality>
         !#   <defaultValue>.false.</defaultValue>
         !#   <description>Specifies whether or not the bound mass variable of the standard satellite component is inactive (i.e. does not appear in any ODE being solved).</description>
         !#   <source>parameters_</source>
-        !#   <type>boolean</type>
         !# </inputParameter>
          ! Specify the function to use for setting virial orbits.
         call satellite%virialOrbitSetFunction(Node_Component_Satellite_Standard_Virial_Orbit_Set)

@@ -57,8 +57,6 @@ contains
     !#   <name>band</name>
     !#   <source>parameters</source>
     !#   <description>The band for which the survey geometry should be computed.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=surveyGeometryMonteroDorta2009SDSS(band,cosmologyFunctions_)

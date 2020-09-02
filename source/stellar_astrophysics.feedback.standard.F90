@@ -70,19 +70,15 @@ contains
 
     !# <inputParameter>
     !#   <name>initialMassForSupernovaeTypeII</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>8.0d0</defaultValue>
     !#   <description>The minimum mass that a star must have in order that is result in a Type II supernova.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>supernovaEnergy</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d51</defaultValue>
     !#   <description>The energy produced by a supernova (in ergs).</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     ! Convert energy to M☉ (km/s)².
     supernovaEnergy=supernovaEnergy*ergs/massSolar/kilo**2

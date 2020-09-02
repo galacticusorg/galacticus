@@ -78,18 +78,14 @@ contains
     allocate(densityContrasts(parameters%count('densityContrasts')))
     !# <inputParameter>
     !#   <name>densityContrasts</name>
-    !#   <cardinality>1..*</cardinality>
     !#   <description>A list of density contrasts at which to output data.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>darkMatterOnly</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether or not density contrast data should be computed using the dark matter component alone.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>

@@ -61,8 +61,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>3.0d0</defaultValue>
     !#   <description>Number of degrees of freedom to assume when computing the energy density of cooling gas in the ``simple'' cooling time class.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="coolingFunction" name="coolingFunction_" source="parameters"/>
     !# <objectBuilder class="chemicalState"   name="chemicalState_"   source="parameters"/>

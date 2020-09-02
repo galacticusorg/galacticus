@@ -83,27 +83,21 @@ contains
 
     !# <inputParameter>
     !#   <name>timeStep</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The time step to use in tabulations of star formation histories [Gyr].</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeStepFine</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.01d0</defaultValue>
     !#   <description>The fine time step to use in tabulations of star formation histories [Gyr].</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeFine</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The period prior to each output for which the fine time step is used in tabulations of star formation histories [Gyr].</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     self=starFormationHistoryInSitu(timeStep,timeStepFine,timeFine,outputTimes_)

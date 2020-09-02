@@ -61,23 +61,17 @@ contains
     !#   <name>selfBoundParticlesOnly</name>
     !#   <source>parameters</source>
     !#   <description>If true, the mean position and velocity are computed only for self-bound particles.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>radius</name>
     !#   <source>parameters</source>
     !#   <description>Radii at which the rotation curve should be computed.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..*</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>bootstrapSampleCount</name>
     !#   <source>parameters</source>
     !#   <defaultValue>30_c_size_t</defaultValue>
     !#   <description>The number of bootstrap resamples of the particles that should be used.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=nbodyOperatorRotationCurve(selfBoundParticlesOnly,bootstrapSampleCount,radius,randomNumberGenerator_)

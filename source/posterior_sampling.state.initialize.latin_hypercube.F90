@@ -58,11 +58,9 @@ contains
 
     !# <inputParameter>
     !#   <name>maximinTrialCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1000</defaultValue>
     !#   <description>The number of trial Latin Hypercubes to construct when seeking the maximum minimum separation sample.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=posteriorSampleStateInitializeLatinHypercube(maximinTrialCount,randomNumberGenerator_)

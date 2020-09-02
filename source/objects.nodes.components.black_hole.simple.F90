@@ -97,29 +97,23 @@ contains
     ! Get accretion rate enhancement factors.
     !# <inputParameter>
     !#   <name>blackHoleToSpheroidStellarGrowthRatio</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-3</defaultValue>
     !#   <description>The ratio of the rates of black hole growth and spheroid stellar mass growth.</description>
     !#   <source>parameters_</source>
-    !#   <type>real</type>
     !# </inputParameter>
     ! Options controlling AGN feedback.
     !# <inputParameter>
     !#   <name>blackHoleHeatsHotHalo</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether or not the black hole should heat the hot halo.</description>
     !#   <source>parameters_</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     if (blackHoleHeatsHotHalo) then
        !# <inputParameter>
        !#   <name>blackHoleHeatingEfficiency</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-3</defaultValue>
        !#   <description>The efficiency with which accretion onto a black hole heats the hot halo.</description>
        !#   <source>parameters_</source>
-       !#   <type>real</type>
        !# </inputParameter>
     else
        blackHoleHeatingEfficiency=0.0d0
@@ -127,20 +121,16 @@ contains
     ! Get options controlling winds.
     !# <inputParameter>
     !#   <name>blackHoleWindEfficiency</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.2157d-3</defaultValue>
     !#   <description>The efficiency of the black hole accretion-driven wind.</description>
     !#   <source>parameters_</source>
-    !#   <type>real</type>
     !# </inputParameter>
     ! Get options controlling output.
     !# <inputParameter>
     !#   <name>blackHoleOutputAccretion</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not accretion rates and jet powers will be output.</description>
     !#   <source>parameters_</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     return
   end subroutine Node_Component_Black_Hole_Simple_Initialize

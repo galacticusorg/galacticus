@@ -84,11 +84,9 @@ contains
     if (defaultDynamicsStatisticsComponent%barsIsActive()) then
        !# <inputParameter>
        !#   <name>dynamicsStatisticsBarsFrequency</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>0.1d0</defaultValue>
        !#   <description>The frequency (in fractions of the host halo dynamical time) at which to record the bar dynamical status of satellite galaxies.</description>
        !#   <source>parameters_</source>
-       !#   <type>real</type>
        !# </inputParameter>
     end if
     return

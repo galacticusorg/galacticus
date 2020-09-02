@@ -47,24 +47,18 @@ contains
 
     !# <inputParameter>
     !#   <name>redshiftMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum redshift at which to output.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum redshift at which to output.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>countRedshifts</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of redshifts at which to output.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=outputTimesUniformSpacingInRedshift(redshiftMinimum,redshiftMaximum,countRedshifts,cosmologyFunctions_)

@@ -59,22 +59,16 @@ contains
     !#   <name>a</name>
     !#   <source>parameters</source>
     !#   <description>Coefficients of the polynomial in concentration in the concentration error model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>b</name>
     !#   <source>parameters</source>
     !#   <description>The exponent of particle number in the concentration error model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massParticle</name>
     !#   <source>parameters</source>
     !#   <description>The mass of the particle in the N-body simulation.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
     self=outputAnalysisDistributionOperatorRndmErrNbdyCnc(a,b,massParticle,nodePropertyExtractor_)

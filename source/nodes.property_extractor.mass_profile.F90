@@ -55,10 +55,8 @@ contains
     allocate(radii(parameters%count('radii')))
     !# <inputParameter>
     !#   <name>radii</name>
-    !#   <cardinality>1..*</cardinality>
     !#   <description>A list of radii at which to output the mass profile.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=nodePropertyExtractorMassProfile(radii)
     !# <inputParametersValidate source="parameters"/>

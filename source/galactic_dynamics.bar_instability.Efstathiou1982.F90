@@ -63,27 +63,21 @@ contains
 
     !# <inputParameter>
     !#   <name>stabilityThresholdStellar</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.1d0</defaultValue>
     !#   <description>The stability threshold in the \cite{efstathiou_stability_1982} algorithm for purely stellar disks.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>stabilityThresholdGaseous</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.7d0</defaultValue>
     !#   <description>The stability threshold in the \cite{efstathiou_stability_1982} algorithm for purely gaseous disks.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timescaleMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-9</defaultValue>
     !#   <description>The minimum absolute dynamical timescale (in Gyr) to use in the \cite{efstathiou_stability_1982} algorithm.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=galacticDynamicsBarInstabilityEfstathiou1982(stabilityThresholdStellar,stabilityThresholdGaseous,timescaleMinimum)
     !# <inputParametersValidate source="parameters"/>

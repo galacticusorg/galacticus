@@ -51,15 +51,11 @@ contains
     !#   <name>thresholdMinimum</name>
     !#   <source>parameters</source>
     !#   <description>Minimum threshold for the min-max property operator.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>thresholdMaximum</name>
     !#   <source>parameters</source>
     !#   <description>Maximum threshold for the min-max property operator.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=outputAnalysisPropertyOperatorMinMax(thresholdMinimum,thresholdMaximum)
     !# <inputParametersValidate source="parameters"/>

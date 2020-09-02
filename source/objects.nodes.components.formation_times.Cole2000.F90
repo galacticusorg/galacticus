@@ -62,20 +62,16 @@ contains
 
     !# <inputParameter>
     !#   <name>haloReformationMassFactor</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.0d0</defaultValue>
     !#   <description>Factor by which halo mass must have increased to trigger a new formation event.</description>
     !#   <source>parameters_</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>haloReformationOnPromotionOnly</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether halo reformation should occur only at node promotion events, or at the precise time that
     !#      the halo mass has increased sufficiently in mass.</description>
     !#   <source>parameters_</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     return
   end subroutine Node_Component_Formation_Times_Cole2000_Initialize

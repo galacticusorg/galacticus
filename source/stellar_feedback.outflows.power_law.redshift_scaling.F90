@@ -54,8 +54,6 @@ contains
     !#   <variable>self%exponentRedshift</variable>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The redshift scaling of characteristic velocity for \gls{sne}-driven outflow rates in disks.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="self%cosmologyFunctions_" source="parameters"/>
     self%stellarFeedbackOutflowsPowerLaw=stellarFeedbackOutflowsPowerLaw(parameters)

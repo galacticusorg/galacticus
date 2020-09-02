@@ -325,7 +325,6 @@ contains
           ! Get luminosity output option.
           !# <inputParameter>
           !#   <name>luminosityOutputOption</name>
-          !#   <cardinality>1</cardinality>
           !#   <defaultValue>var_str('present')</defaultValue>
           !#   <description>
           !#      Selects which luminosities will be output at each output time:
@@ -336,7 +335,6 @@ contains
           !#      \end{description}
           !#   </description>
           !#   <source>globalParameters</source>
-          !#   <type>integer</type>
           !#   <variable>luminosityOutputOptionText</variable>
           !# </inputParameter>
           select case (char(luminosityOutputOptionText))
@@ -373,10 +371,8 @@ contains
              call Memory_Usage_Record(sizeof(luminosityFilter)+sizeof(luminosityType)+sizeof(luminosityPostprocessSet),blockCount=4)
              !# <inputParameter>
              !#   <name>luminosityRedshift</name>
-             !#   <cardinality>0..*</cardinality>
              !#   <description>The redshift for which to compute each specified stellar luminosity.</description>
              !#   <source>globalParameters</source>
-             !#   <type>real</type>
              !#   <variable>luminosityRedshiftText</variable>
              !# </inputParameter>
              do iLuminosity=1,size(luminosityRedshiftText)
@@ -392,24 +388,19 @@ contains
              if (globalParameters%isPresent('luminosityBandRedshift')) then
                 !# <inputParameter>
                 !#   <name>luminosityBandRedshift</name>
-                !#   <cardinality>0..*</cardinality>
                 !#   <description>If present, force filters to be shifted to this redshift rather than that specified by {\normalfont \ttfamily [luminosityRedshift]}. Allows sampling of the SED at wavelengths corresponding to other redshifts.</description>
                 !#   <source>globalParameters</source>
-                !#   <type>real</type>
                 !# </inputParameter>
              else
                 luminosityBandRedshift=luminosityRedshift
              end if
              !# <inputParameter>
              !#   <name>luminosityFilter</name>
-             !#   <cardinality>0..*</cardinality>
              !#   <description>The filter name for each stellar luminosity to be computed.</description>
              !#   <source>globalParameters</source>
-             !#   <type>string</type>
              !# </inputParameter>
              !# <inputParameter>
              !#   <name>luminosityType</name>
-             !#   <cardinality>0..*</cardinality>
              !#   <description>
              !#      The luminosity type for each stellar luminosity to be computed:
              !#      \begin{description}
@@ -421,7 +412,6 @@ contains
              !#      \end{description}
              !#   </description>
              !#   <source>globalParameters</source>
-             !#   <type>string</type>
              !# </inputParameter>
              ! Read postprocessing set information.
              if (globalParameters%count('luminosityPostprocessSet',zeroIfNotPresent=.true.) > 0) then
@@ -429,10 +419,8 @@ contains
                      & call Galacticus_Error_Report('luminosityPostprocessSet and luminosityFilter input arrays must have same dimension'//{introspection:location})
                 !# <inputParameter>
                 !#   <name>luminosityPostprocessSet</name>
-                !#   <cardinality>0..*</cardinality>
                 !#   <description>The name of the set of postprocessing algorithms to apply to this filter.</description>
                 !#   <source>globalParameters</source>
-                !#   <type>string</type>
                 !# </inputParameter>
              else
                 luminosityPostprocessSet="default"

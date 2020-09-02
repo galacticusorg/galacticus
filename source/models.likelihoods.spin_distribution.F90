@@ -89,52 +89,38 @@ contains
 
     !# <inputParameter>
     !#   <name>fileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the file containing the target spin distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>distributionType</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the spin distribution to use.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshift</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The redshift at which to compute the spin distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massParticle</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The mass of a particle in the N-body simulation.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massHaloMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum halo mass over which to integrate.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>particleCountMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum particle count used in N-body halos.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>energyEstimateParticleCountMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum number of N-body particles used in estimating halo energies.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>logNormalRange</name>
@@ -142,8 +128,6 @@ contains
     !#   <defaultValue>100.0d0</defaultValue>
     !#   <defaultSource>A large range which will include (almost) the entirety of the distribution.</defaultSource>
     !#   <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=${\normalfont \ttfamily [logNormalRange]}</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
      !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     !# <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>

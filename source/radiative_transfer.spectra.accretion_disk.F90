@@ -54,19 +54,15 @@ contains
     
     !# <inputParameter>
     !#   <name>massBlackHole</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d6</defaultValue>
     !#   <description>The mass of the black hole at the center of the accretion disk.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>accretionRateEddington</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-1</defaultValue>
     !#   <description>Accretion rate onto the black hole in units of the Eddington rate.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="accretionDiskSpectra" name="accretionDiskSpectra_" source="parameters"/>
     self=radiativeTransferSpectrumAccretionDisk(massBlackHole,accretionRateEddington,accretionDiskSpectra_)

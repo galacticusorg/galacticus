@@ -57,27 +57,21 @@ contains
 
     !# <inputParameter>
     !#   <name>G0</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.57d0</defaultValue>
     !#   <description>The parameter $G_0$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gamma1</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.38d0</defaultValue>
     !#   <description>The parameter $\gamma_1$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gamma2</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>-0.01d0</defaultValue>
     !#   <description>The parameter $\gamma_2$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="criticalOverdensity" name="criticalOverdensity_" source="parameters"/>
     self=mergerTreeBranchingProbabilityModifierParkinson2008(G0,gamma1,gamma2,criticalOverdensity_)

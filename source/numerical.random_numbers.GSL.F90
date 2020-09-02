@@ -140,27 +140,21 @@ contains
 
     !# <inputParameter>
     !#   <name>seed</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>219_c_long</defaultValue>
     !#   <description>A seed value for the random number generator.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>ompThreadOffset</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, offset the seed by the OpenMP thread number.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>mpiRankOffset</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, offset the seed by the MPI process rank.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     self=randomNumberGeneratorGSL(seed,ompThreadOffset,mpiRankOffset)
     !# <inputParametersValidate source="parameters"/>

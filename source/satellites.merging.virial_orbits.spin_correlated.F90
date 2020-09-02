@@ -62,8 +62,6 @@ contains
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>The parameter $\alpha$ which expresses the strength of the correlation between satellite orbital angular momentum and the spin of the host halo.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="virialOrbit"  name="virialOrbit_" source="parameters"/>
     self=virialOrbitSpinCorrelated(alpha,virialOrbit_)

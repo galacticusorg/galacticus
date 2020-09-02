@@ -66,30 +66,24 @@ contains
 
     !# <inputParameter>
     !#   <name>normalization</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultSource>\citep{shi_extended_2011}</defaultSource>
     !#   <defaultValue>0.5248d-10</defaultValue>
     !#   <description>The normalization of the extended Schmidt star formation law [$M_\odot$ yr$^{-1}$pc$^{-2}$].</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentGas</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultSource>\citep{shi_extended_2011}</defaultSource>
     !#   <defaultValue>1.0000d+0</defaultValue>
     !#   <description>The exponent of gas surface density in the extended Schmidt star formation law.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentStars</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultSource>\citep{shi_extended_2011}</defaultSource>
     !#   <defaultValue>0.4800d+0</defaultValue>
     !#   <description>The exponent of stellar surface density in the extended Schmidt star formation law.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=starFormationRateSurfaceDensityDisksExtendedSchmidt(normalization,exponentGas,exponentStars)
     !# <inputParametersValidate source="parameters"/>

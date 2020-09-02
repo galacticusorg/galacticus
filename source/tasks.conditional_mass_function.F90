@@ -80,34 +80,26 @@ contains
 
     !# <inputParameter>
     !#   <name>outputGroupName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the file to which the computed conditional mass function should be output.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The minimum redshift for which to compute the conditional mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The maximum redshift for which to compute the conditional mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>useSurveyLimits</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether the limiting redshifts for integrating over the halo mass function should be limited by those of a galaxy survey.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     if (parameters%isPresent('massBinCenters').or.parameters%isPresent('massLogarithmDelta')) then
        if     (                                                 &
@@ -124,17 +116,13 @@ contains
             & ) call Galacticus_Error_Report('ambigous mass specification'                                                               //{introspection:location})
        !# <inputParameter>
        !#   <name>massBinCenters</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>Logarithmic mass bins centers for conditional mass function calculations.</description>
        !#   <source>parameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>massLogarithmDelta</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>Logarithmic widths of mass bins for conditional mass function calculations.</description>
        !#   <source>parameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
     else
        if     (                                                 &
@@ -151,55 +139,43 @@ contains
             & ) call Galacticus_Error_Report('all of [massMinimum], [massMaximum], and [countMass] must be specified if any is specified'//{introspection:location})
        !# <inputParameter>
        !#   <name>massMinimum</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d8</defaultValue>
        !#   <description>The minimum mass for which to compute the conditional mass function.</description>
        !#   <source>parameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>massMaximum</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d12</defaultValue>
        !#   <description>The maximum mass for which to compute the conditional mass function.</description>
        !#   <source>parameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>countMass</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>21</defaultValue>
        !#   <description>The number of bins for which to compute the conditional mass function.</description>
        !#   <source>parameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
     end if
     !# <inputParameter>
     !#   <name>massHalo</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('all')</defaultValue>
     !#   <description>The halo mass for which to compute the conditional mass function. A value of ``all'' will cause the conditional mass function to be integrated over the halo mass function, giving the mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !#   <variable>massHaloText</variable>
     !# </inputParameter>
     integrateOverHaloMassFunction=(massHaloText == "all")
     if (integrateOverHaloMassFunction) then
        !# <inputParameter>
        !#   <name>massHaloMinimum</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d6</defaultValue>
        !#   <description>The minimum halo mass to use when integrating over the halo mass function.</description>
        !#   <source>parameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>massHaloMaximum</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d16</defaultValue>
        !#   <description>The maximum halo mass to use when integrating over the halo mass function.</description>
        !#   <source>parameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
     else
        text=char(massHaloText)

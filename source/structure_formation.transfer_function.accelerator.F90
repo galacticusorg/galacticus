@@ -62,8 +62,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of points per decade of wavenumber at which to tabulate the transfer function.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="transferFunction" name="transferFunction_" source="parameters"/>
     self=transferFunctionAccelerator(transferFunction_,tablePointsPerDecade)

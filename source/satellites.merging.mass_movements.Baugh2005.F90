@@ -60,35 +60,27 @@ contains
 
     !# <inputParameter>
     !#   <name>massRatioMajorMerger</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.25d0</defaultValue>
     !#   <description>The mass ratio above which mergers are considered to be ``major''.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>ratioMassBurst</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.05d0</defaultValue>
     !#   <description>The mass ratio above which mergers are considered to trigger a burst.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>fractionGasCriticalBurst</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.75d0</defaultValue>
     !#   <description>The host gas fraction above which mergers are considered to trigger a burst.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>destinationGasMinorMerger</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('spheroid')</defaultValue>
     !#   <description>The component to which satellite galaxy gas moves to as a result of a minor merger.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     self=mergerMassMovementsBaugh2005(massRatioMajorMerger,enumerationDestinationMergerEncode(char(destinationGasMinorMerger),includesPrefix=.false.),ratioMassBurst,fractionGasCriticalBurst)
     !# <inputParametersValidate source="parameters"/>

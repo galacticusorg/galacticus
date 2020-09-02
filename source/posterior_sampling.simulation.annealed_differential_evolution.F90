@@ -86,18 +86,14 @@ contains
     self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(parameters)
     !# <inputParameter>
     !#   <name>temperatureLevelCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number temperature levels to use.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>temperatureMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum temperature to reach.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     call self%initialize(temperatureLevelCount,temperatureMaximum)
     !# <inputParametersValidate source="parameters"/>

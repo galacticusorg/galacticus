@@ -95,35 +95,27 @@ contains
     !# <inputParameter>
     !#   <name>index</name>
     !#   <variable>index_</variable>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>4.0d0</defaultValue>
     !#   <description>The S\'ersic index.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>radiusHalfMass</name>
     !#   <defaultValue>1.0d0</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>The half mass radius of the S\'ersic profile.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>mass</name>
     !#   <defaultValue>1.0d0</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>The mass of the S\'ersic profile.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>dimensionless</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true the S\'ersic profile is considered to be dimensionless.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <conditionalCall>
     !#  <call>self=massDistributionSersic(index_{conditions})</call>

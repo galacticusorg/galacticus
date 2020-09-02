@@ -60,16 +60,12 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>250.0d0</defaultValue>
     !#   <description>The velocity scale at which the \gls{sne}-driven outflow rate equals the star formation rate in disks.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponent</name>
     !#   <source>parameters</source>
     !#   <defaultValue>3.5d0</defaultValue>
     !#   <description>The velocity scaling of the \gls{sne}-driven outflow rate in disks.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=stellarFeedbackOutflowsPowerLaw(velocityCharacteristic,exponent)
     !# <inputParametersValidate source="parameters"/>

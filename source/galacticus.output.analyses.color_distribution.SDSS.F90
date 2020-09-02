@@ -55,8 +55,6 @@ contains
     !#   <name>distributionNumber</name>
     !#   <source>parameters</source>
     !#   <description>The number (1-16) of the distribution to compute.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !# <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>

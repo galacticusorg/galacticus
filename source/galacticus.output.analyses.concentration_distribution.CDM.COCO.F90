@@ -57,15 +57,11 @@ contains
     !#   <name>distributionNumber</name>
     !#   <source>parameters</source>
     !#   <description>The number (1-7) of the distribution to compute.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>formationTimeRecent</name>
     !#   <source>parameters</source>
     !#   <description>Halos which ``formed'' more recently than this time in the past will be excluded from the analysis.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>

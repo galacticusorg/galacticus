@@ -76,8 +76,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>fileName</variable>
     !#   <description>The name of the file from which to read intergalactic medium state data.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>

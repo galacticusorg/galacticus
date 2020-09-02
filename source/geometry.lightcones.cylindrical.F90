@@ -110,32 +110,24 @@ contains
     !#   <name>radiusCylinderComoving</name>
     !#   <source>parameters</source>
     !#   <description>The comoving radius of the cylinder to populate.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>radiusBufferComoving</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The comoving buffer radius to add around the cylinder. This is used to ensure that the sample within the cylinder is complete.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massHaloLens</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-1.0d0</defaultValue>
     !#   <description>The mass of the primary lens halo (or a negative value for no lens).</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftLens</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-1.0d0</defaultValue>
     !#   <description>The redshift of the primary lens halo (or a negative value for no lens).</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"          source="parameters"/>
     !# <objectBuilder class="outputTimes"                  name="outputTimes_"                 source="parameters"/>

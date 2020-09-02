@@ -63,8 +63,6 @@ contains
     !#   <name>absoluteMagnitudeThreshold</name>
     !#   <source>parameters</source>
     !#   <description>The parameter $M_0$ appearing in the stellar absolute magnitude threshold for the stellar absolute magnitude galactic filter class.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     stellarAbsoluteMagnitudesConstructorParameters=galacticFilterStellarAbsoluteMagnitudes(absoluteMagnitudeThreshold)
     !# <inputParametersValidate source="parameters"/>

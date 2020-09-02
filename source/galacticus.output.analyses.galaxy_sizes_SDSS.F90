@@ -67,16 +67,12 @@ contains
     !#   <name>distributionNumber</name>
     !#   <source>parameters</source>
     !#   <description>The number (1-34) of the distribution to compute.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massStellarRatio</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.3d0</defaultValue>
     !#   <description>The stellar mass bulge-to-total ratio used to discriminate late-type vs. early-type galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sizeSourceLensing</name>
@@ -84,8 +80,6 @@ contains
     !#   <variable>sizeSourceLensing</variable>
     !#   <defaultValue>2.0d-3</defaultValue>
     !#   <description>The characteristic source size for gravitational lensing calculations.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     !# <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>

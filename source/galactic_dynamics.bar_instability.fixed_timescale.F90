@@ -49,11 +49,9 @@ contains
 
     !# <inputParameter>
     !#   <name>timescale</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The timescale for bar instability.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=galacticDynamicsBarInstabilityFixedTimescale(timescale)
     !# <inputParametersValidate source="parameters"/>

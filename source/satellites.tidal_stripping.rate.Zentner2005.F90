@@ -74,11 +74,9 @@ contains
 
     !# <inputParameter>
     !#   <name>efficiency</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.5d0</defaultValue>
     !#   <description>The dimensionless rate coefficient apeparing in the \cite{zentner_physics_2005} expression for the tidal mass loss rate from subhalos.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=satelliteTidalStrippingZentner2005(efficiency,darkMatterHaloScale_)

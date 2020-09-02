@@ -65,10 +65,8 @@ contains
     allocate(elementIndices(elementsCount))
     !# <inputParameter>
     !#   <name>elements</name>
-    !#   <cardinality>1..*</cardinality>
     !#   <description>The names of the elements to be tracked.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     do i=1,elementsCount
        elementIndices(i)=Atom_Lookup(shortLabel=elements(i))

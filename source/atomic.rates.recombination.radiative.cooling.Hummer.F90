@@ -71,11 +71,9 @@ contains
 
     !# <inputParameter>
     !#   <name>gamma</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The multiplicative factor, $\gamma$, used to compute the cooling coefficient in cases of non-hydrogenic or helium-like ions.</description>
     !#   <source>parameters</source>
     !#   <defaultValue>0.67d0</defaultValue>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="atomicRecombinationRateRadiative" name="atomicRecombinationRateRadiative_" source="parameters"/>
     self=atomicRecombinationRateRadiativeCoolingHummer(gamma,atomicRecombinationRateRadiative_)

@@ -48,11 +48,9 @@ contains
 
     !# <inputParameter>
     !#   <name>timescale</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-2</defaultValue>
     !#   <description>The timescale for ``escape'' of stellar populations in the ``unescaped'' spectra postprocessing method.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=stellarPopulationSpectraPostprocessorUnescaped(timescale)
     return

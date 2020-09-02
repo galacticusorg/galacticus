@@ -64,39 +64,29 @@ contains
 
     !# <inputParameter>
     !#   <name>radius</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The cloud radius.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>densityContrast</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The cloud density contrast.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>volumeFillingFactor</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The cloud volume filling factor.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>radiusBoundary</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The boundary radius within which to populate clouds.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>dimensionless</name>
     !#   <defaultValue>.true.</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true the cloud overdensities profile is considered to be dimensionless.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <objectBuilder class="massDistribution"      name="massDistribution_"      source="parameters"/>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>

@@ -58,8 +58,6 @@ contains
     !#   <defaultValue>0.03687d0</defaultValue>
     !#   <defaultSource>\citep{bett_spin_2007}</defaultSource>
     !#   <description>The median spin in a log-normal spin distribution.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sigma</name>
@@ -68,8 +66,6 @@ contains
     !#   <defaultValue>0.5102d0</defaultValue>
     !#   <defaultSource>(\citealt{bett_spin_2007}; note that in this reference the value of $\sigma$ quoted is for $\log_{10}\lambda$, while here we use $\log\lambda$)</defaultSource>
     !#   <description>The width of a log-normal spin distribution.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     logNormalConstructorParameters%median=log(logNormalConstructorParameters%median)
     !# <inputParametersValidate source="parameters"/>

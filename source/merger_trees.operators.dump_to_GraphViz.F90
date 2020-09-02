@@ -53,8 +53,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>dumpToGraphVizConstructorParameters%path</variable>
     !#   <description>Specifies the directory to which merger tree structure should be dumped.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMinimum</name>
@@ -62,8 +60,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>dumpToGraphVizConstructorParameters%massMinimum</variable>
     !#   <description>Specifies the minimum root mass for which merger tree structure should be dumped.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMaximum</name>
@@ -71,8 +67,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>dumpToGraphVizConstructorParameters%massMaximum</variable>
     !#   <description>Specifies the minimum root mass for which merger tree structure should be dumped.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>scaleNodesByLogMass</name>
@@ -80,8 +74,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>dumpToGraphVizConstructorParameters%scaleNodesByLogMass</variable>
     !#   <description>Specifies whether or not node sizes should be scaled by the logarithm of their mass.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>edgeLengthsToTimes</name>
@@ -89,8 +81,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>dumpToGraphVizConstructorParameters%edgeLengthsToTimes</variable>
     !#   <description>Specifies whether or not the lengths of edges in the graph should be scaled to time differences between nodes.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParametersValidate source="parameters"/>
     return

@@ -54,8 +54,6 @@ contains
     !#   <name>timescaleOutflowFractionalMinimum</name>
     !#   <source>parameters</source>
     !#   <description>The minimum timescale (in units of the component dynamical time) for outflows due to stellar feedback.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="stellarFeedbackOutflows" name="stellarFeedbackOutflows_" source="parameters"/>
     self=stellarFeedbackOutflowsRateLimit(timescaleOutflowFractionalMinimum,stellarFeedbackOutflows_)

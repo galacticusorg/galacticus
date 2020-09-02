@@ -55,28 +55,22 @@ contains
 
     !# <inputParameter>
     !#   <name>scaleHeight</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultSource>\citep{kregel_flattening_2002}</defaultSource>
     !#   <defaultValue>0.137d0</defaultValue>
     !#   <description>The scale height of the Gaussian slab profile.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>densityCentral</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The density in the slab mid-plane.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>dimensionless</name>
     !#   <defaultValue>.true.</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true the Gaussian slab profile is considered to be dimensionless.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     self=massDistributionGaussianSlab(scaleHeight,densityCentral,dimensionless)
     !# <inputParametersValidate source="parameters"/>

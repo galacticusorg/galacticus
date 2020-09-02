@@ -72,8 +72,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>redshiftInterval</variable>
     !#   <description>The redshift interval (1, 2, or 3) to use.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>computeScatter</name>
@@ -81,8 +79,6 @@ contains
     !#   <variable>computeScatter</variable>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, the scatter in log10(stellar mass) is computed. Otherwise, the mean is computed.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>systematicErrorPolynomialCoefficient</name>
@@ -90,16 +86,12 @@ contains
     !#   <variable>systematicErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.0d0]</defaultValue>
     !#   <description>The coefficients of the systematic error polynomial for stellar vs halo mass relation.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>likelihoodBin</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0_c_size_t</defaultValue>
     !#   <description>If $>0$ then use only the mass bin given by this value in the likelihood calculation.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>

@@ -103,35 +103,27 @@ contains
     call allocateArray(radiusTree,[fixedHalosCount])
     !# <inputParameter>
     !#   <name>massTree</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>spread(1.0d12,1,fixedHalosCount)</defaultValue>
     !#   <description>Specifies the masses of halos to use when building halos.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>treeCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>spread(1,1,fixedHalosCount)</defaultValue>
     !#   <description>Specifies the number of halos to use when building halos.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>radiusTree</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>spread(-1.0d0,1,fixedHalosCount)</defaultValue>
     !#   <description>Specifies the radii within which halo masses are specified when building halos.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massIntervalFractional</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The fractional mass interval occupied by the trees. Where the intervals of trees of different mass would overlap this interval will be truncated.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>

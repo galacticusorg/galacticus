@@ -157,41 +157,31 @@ contains
     !#   <name>instantaneousRecyclingApproximation</name>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, then use an instantaneous recycling approximation when computing recycling, yield, and energy input rates.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
     !#   <source>parameters</source>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massLongLived</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The mass below which stars are assumed to be infinitely long-lived in the instantaneous approximation for stellar evolution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>ageEffective</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>13.8d0</defaultValue>
     !#   <description>The effective age to use for computing SNeIa yield when using the instantaneous stellar evolution approximation.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>recycledFraction</name>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>The recycled fraction to use in the instantaneous stellar evolution approximation. (If not specified it will be computed internally.)</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>metalYield</name>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>The metal yield to use in the instantaneous stellar evolution approximation. (If not specified it will be computed internally.)</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="initialMassFunction"      name="initialMassFunction_"      source="parameters"/>
     !# <objectBuilder class="stellarAstrophysics"      name="stellarAstrophysics_"      source="parameters"/>

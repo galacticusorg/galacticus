@@ -59,29 +59,21 @@ contains
     !#   <name>countPoints</name>
     !#   <source>parameters</source>
     !#   <description>The number of random points to generate.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>xRange</name>
     !#   <source>parameters</source>
     !#   <description>The range within which to generate points in the $x$-direction.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>yRange</name>
     !#   <source>parameters</source>
     !#   <description>The range within which to generate points in the $y$-direction.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>zRange</name>
     !#   <source>parameters</source>
     !#   <description>The range within which to generate points in the $z$-direction.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=nbodyImporterRandom(countPoints,xRange,yRange,zRange,randomNumberGenerator_)

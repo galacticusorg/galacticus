@@ -38,11 +38,9 @@ contains
     ! Get the verbosity level parameter.
     !# <inputParameter>
     !#   <name>verbosityLevel</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1</defaultValue>
     !#   <description>The level of verbosity for \glc\ (higher values give more verbosity).</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     call Galacticus_Verbosity_Level_Set(verbosityLevel)
     return

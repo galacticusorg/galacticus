@@ -54,11 +54,9 @@ contains
 
     !# <inputParameter>
     !#   <name>initializeNodeClassHierarchy</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true then initialize the node class hierarchy in the posterior sampling class. This should be set to false if the likelihood function will instead perform this action.</description>
     !#   <defaultValue>.true.</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     if (initializeNodeClassHierarchy) then
        if (associated(parameters%parent)) then

@@ -88,24 +88,18 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>0.707d0</defaultValue>
     !#   <description>The parameter $a$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>p</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.3d0</defaultValue>
     !#   <description>The parameter $p$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>normalization</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.3221836349d0</defaultValue>
     !#   <description>The normalization parameter $A$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=haloMassFunctionShethTormen(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,a,p,normalization)
     !# <inputParametersValidate source="parameters"/>

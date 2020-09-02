@@ -80,11 +80,9 @@ contains
        ! Read parameters controlling the physical implementation.
        !# <inputParameter>
        !#   <name>hotHaloVerySimpleDelayedMassScaleRelative</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-2</defaultValue>
        !#   <description>The mass scale, relative to the total mass of the node, below which calculations in the delayed very simple hot halo component are allowed to become inaccurate.</description>
        !#   <source>parameters_</source>
-       !#   <type>real</type>
        !# </inputParameter>
     end if
     !$omp end critical (Node_Component_Hot_Halo_Very_Simple_Delayed_Initialize)
