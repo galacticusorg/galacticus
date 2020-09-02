@@ -66,7 +66,7 @@ module Node_Component_Merging_Statistics_Standard
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="get" />
   !#     <output unitsInSI="0.0d0" comment="The current level of the node in the tree hierarchy (0 for a (non-sub-)halo; 1 for a sub-halo; 2 for a sub-sub-halo; etc.)."/>
-  !#     <classDefault>-1.0d0</classDefault>
+  !#     <classDefault>-1</classDefault>
   !#   </property>
   !#   <property>
   !#     <name>nodeHierarchyLevelMaximum</name>
@@ -74,7 +74,7 @@ module Node_Component_Merging_Statistics_Standard
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="get" />
   !#     <output unitsInSI="0.0d0" comment="Maximum level that the node ever reached in the tree hierarchy (0 for a (non-sub-)halo; 1 for a sub-halo; 2 for a sub-sub-halo; etc.)."/>
-  !#     <classDefault>-1.0d0</classDefault>
+  !#     <classDefault>-1</classDefault>
   !#   </property>
   !#   <property>
   !#     <name>nodeHierarchyLevelDepth</name>
@@ -82,7 +82,7 @@ module Node_Component_Merging_Statistics_Standard
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output unitsInSI="0.0d0" comment="Maximum level of the node in the tree hierarchy that could possibly ever be reached (0 for a (non-sub-)halo; 1 for a sub-halo; 2 for a sub-sub-halo; etc.)."/>
-  !#     <classDefault>-1.0d0</classDefault>
+  !#     <classDefault>-1</classDefault>
   !#   </property>
   !#   <property>
   !#     <name>massWhenFirstIsolated</name>
@@ -99,8 +99,9 @@ module Node_Component_Merging_Statistics_Standard
   !$omp threadprivate(darkMatterHaloMassAccretionHistory_,mergerMassMovements_)
 
   ! Parameters controlling the statistics gathered.
-  double precision                                                  :: nodeFormationMassFraction          , nodeMajorMergerFraction, &
+  double precision                                                  :: nodeFormationMassFraction             , nodeMajorMergerFraction, &
        &                                                               hierarchyLevelResetFactor
+  logical                                                           :: mergingStatisticsAssumeMonotonicGrowth
 
   ! Queriable merging statistics object.
   type            (nodeComponentMergingStatisticsStandard)          :: mergingStatistics
@@ -133,6 +134,14 @@ contains
     !#   <defaultValue>1.0d100</defaultValue>
     !#   <description>The factor by which a node's mass must increase before the previous maximum hierarchy level is forgotten.</description>
     !#   <source>parameters_</source>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>mergingStatisticsAssumeMonotonicGrowth</name>
+    !#   <cardinality>0..1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true assume that halo mass growth is monotonic along each branch when computing node formation times.</description>
+    !#   <source>parameters_</source>
+    !#   <type>boolean</type>
     !# </inputParameter>
     ! Bind the hierarchy level get functions.
     call mergingStatistics%nodeHierarchyLevelFunction       (Node_Component_Merging_statistics_Standard_Hierarchy_Level)
@@ -278,15 +287,22 @@ contains
     use :: Galacticus_Nodes                , only : defaultMergingStatisticsComponent, nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     use :: Merger_Tree_Walkers             , only : mergerTreeWalkerAllNodes
     implicit none
-    type   (treeNode                      ), intent(inout), pointer :: node
-    type   (treeNode                      )               , pointer :: nodeHost          , nodeWork
-    class  (nodeComponentMergingStatistics)               , pointer :: mergingStatistics
-    class  (nodeComponentBasic            )               , pointer :: basic
-    type   (mergerTreeWalkerAllNodes      )                         :: treeWalker
-    integer                                                         :: nodeHierarchyLevel, nodeHierarchyLevelDepth
+    type            (treeNode                      ), intent(inout), pointer :: node
+    type            (treeNode                      )               , pointer :: nodeHost          , nodeWork               , &
+         &                                                                      nodeParent        , nodeFormation
+    class           (nodeComponentMergingStatistics)               , pointer :: mergingStatistics , mergingStatisticsParent
+    class           (nodeComponentBasic            )               , pointer :: basic
+    type            (mergerTreeWalkerAllNodes      )                         :: treeWalker
+    double precision                                                         :: timeFormation
+    integer                                                                  :: nodeHierarchyLevel, nodeHierarchyLevelDepth
+    logical                                                                  :: isBranchTip
 
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
+    ! If merging statistics are already set in this node, then they have been set in all nodes in this tree and we can simply
+    ! return.
+    mergingStatistics => node%mergingStatistics(autoCreate=.true.)
+    if (mergingStatistics%nodeFormationTime() >= 0.0d0) return
     ! Perform our own depth-first walk of the tree. This is necessary as we must set merging statistic properties based on the
     ! initial state of the tree, while for nodes that exist at later times this function may only be called on that node after the
     ! tree is already evolved.
@@ -294,9 +310,7 @@ contains
     do while (treeWalker%next(nodeWork))
        ! Create a merger statistics component and initialize it.
        mergingStatistics => nodeWork%mergingStatistics(autoCreate=.true.)
-       ! If merging statistics are already set in this node, then they have been set in all nodes in this tree and we can simply
-       ! return.
-       if (mergingStatistics%nodeFormationTime() >= 0.0d0) return
+       ! Compute the initial hierarchy level.
        nodeHierarchyLevel =  0
        nodeHost           => nodeWork
        do while (nodeHost%isSatellite())
@@ -304,22 +318,60 @@ contains
           nodeHost           => nodeHost          %parent
        end do
        ! Find the maximum possible hierarchy level.
-       nodeHierarchyLevelDepth =  0
-       nodeHost                => nodeWork
-       do while (associated(nodeHost))
-          if (.not.nodeHost%isPrimaryProgenitor() .and. associated(nodeHost%parent)) &
-               & nodeHierarchyLevelDepth =  nodeHierarchyLevelDepth       +1
-          nodeHost                       => nodeHost               %parent
-       end do
+       isBranchTip=.not.associated(nodeWork%firstChild)
+       if (isBranchTip) then
+          ! No primary progenitor, so we must compute node hierarchy level depth.
+          nodeHierarchyLevelDepth =  0
+          nodeHost                => nodeWork
+          do while (associated(nodeHost))
+             if (.not.nodeHost%isPrimaryProgenitor() .and. associated(nodeHost%parent)) then
+                nodeHierarchyLevelDepth =  nodeHierarchyLevelDepth       +1
+                mergingStatisticsParent => nodeHost%parent%mergingStatistics(autoCreate=.true.)
+                if (mergingStatisticsParent%nodeHierarchyLevelDepth() > -1) then
+                   nodeHierarchyLevelDepth= nodeHierarchyLevelDepth+mergingStatisticsParent%nodeHierarchyLevelDepth()
+                   exit
+                end if
+             end if
+             nodeHost => nodeHost%parent
+          end do
+       end if
        ! Set the initial merging statistics.
        basic => nodeWork%basic()
-       call mergingStatistics%       nodeHierarchyLevelSet(nodeHierarchyLevel     )
-       call mergingStatistics%nodeHierarchyLevelMaximumSet(nodeHierarchyLevel     )
-       call mergingStatistics%  nodeHierarchyLevelDepthSet(nodeHierarchyLevelDepth)
-       call mergingStatistics%    massWhenFirstIsolatedSet(           basic%mass())
-       call mergingStatistics%    galaxyMajorMergerTimeSet(                 -1.0d0)
-       call mergingStatistics%      nodeMajorMergerTimeSet(                 -1.0d0)
-       call mergingStatistics%        nodeFormationTimeSet(Dark_Matter_Halo_Formation_Time(nodeWork,nodeFormationMassFraction,darkMatterHaloMassAccretionHistory_))
+       call mergingStatistics    %       nodeHierarchyLevelSet(nodeHierarchyLevel     )
+       call mergingStatistics    %nodeHierarchyLevelMaximumSet(nodeHierarchyLevel     )
+       call mergingStatistics    %    massWhenFirstIsolatedSet(           basic%mass())
+       call mergingStatistics    %    galaxyMajorMergerTimeSet(                 -1.0d0)
+       call mergingStatistics    %      nodeMajorMergerTimeSet(                 -1.0d0)
+       if (.not.mergingStatisticsAssumeMonotonicGrowth) then
+          timeFormation=Dark_Matter_Halo_Formation_Time(                                                                         &
+               &                                        node                               =nodeWork                           , &
+               &                                        formationMassFraction              =nodeFormationMassFraction          , &
+               &                                        darkMatterHaloMassAccretionHistory_=darkMatterHaloMassAccretionHistory_  &
+               &                                       )
+          call mergingStatistics%nodeFormationTimeSet(timeFormation)
+       end if
+       if (isBranchTip) then
+           nodeParent    => nodeWork
+           nodeFormation => nodeWork
+           do while (associated(nodeParent))
+              mergingStatisticsParent => nodeParent%mergingStatistics(autoCreate=.true.)
+              call mergingStatisticsParent%nodeHierarchyLevelDepthSet(nodeHierarchyLevelDepth)
+              if (mergingStatisticsAssumeMonotonicGrowth) then
+                 timeFormation=Dark_Matter_Halo_Formation_Time(                                                                         &
+                      &                                        node                               =nodeParent                         , &
+                      &                                        formationMassFraction              =nodeFormationMassFraction          , &
+                      &                                        darkMatterHaloMassAccretionHistory_=darkMatterHaloMassAccretionHistory_, &
+                      &                                        nodeFormation                      =nodeFormation                        &
+                      &                                       )
+                 call mergingStatisticsParent%nodeFormationTimeSet(timeFormation)
+              end if
+              if (nodeParent%isPrimaryProgenitor()) then
+                 nodeParent => nodeParent%parent
+              else
+                 nodeParent => null()
+              end if
+           end do
+        end if
     end do
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Merger_Tree_Init

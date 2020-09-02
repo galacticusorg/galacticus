@@ -167,8 +167,10 @@ contains
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     type            (treeNode          )               , pointer :: childNode          , nodeParent
-    class           (nodeComponentBasic)               , pointer :: childBasicComponent, basicParent   , basic
-    double precision                                             :: deltaTime          , massUnresolved, progenitorMassTotal
+    class           (nodeComponentBasic)               , pointer :: childBasicComponent, basicParent     , &
+         &                                                          basic
+    double precision                                             :: deltaTime          , massUnresolved  , &
+         &                                                          progenitorMassTotal, timeLastIsolated
 
     ! Get the basic component.
     basic => node%basic()
@@ -176,12 +178,22 @@ contains
     select type (basic)
     class is (nodeComponentBasicStandard)
        ! Set the last isolated time to the current time at the farthest point along the future of this branch.
-       nodeParent => node
-       do while (associated(nodeParent%parent).and.nodeParent%isPrimaryProgenitor())
-          nodeParent => nodeParent%parent
-       end do
-       basicParent => nodeParent%basic()
-       call basic%timeLastIsolatedSet(basicParent%time())
+       if (.not.associated(node%firstChild)) then
+          nodeParent => node
+          do while (associated(nodeParent%parent).and.nodeParent%isPrimaryProgenitor())
+             nodeParent => nodeParent%parent
+          end do
+          basicParent      => nodeParent %basic()
+          timeLastIsolated =  basicParent%time ()
+          ! Set the last isolated time for all nodes along this branch - this avoids having to re-walk this branch for each node
+          ! along it.
+          nodeParent => node
+          do while (associated(nodeParent%parent).and.nodeParent%isPrimaryProgenitor())
+             basicParent => nodeParent%basic()
+             call basicParent%timeLastIsolatedSet(timeLastIsolated)
+             nodeParent => nodeParent%parent
+          end do
+       end if
        ! Determine node status.
        if (node%isSatellite()) then
           ! Node is a satellite - we assume no accretion.

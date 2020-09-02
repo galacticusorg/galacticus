@@ -50,10 +50,9 @@ contains
 
   subroutine multiLevelHierarchyProcess(self,node)
     !% Processes a node merging event, utilizing a multi level substructure hierarchy.
-    use :: Galacticus_Error   , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes   , only : treeNode
-    use :: Satellite_Promotion, only : Satellite_Move_To_New_Host
-    use :: String_Handling    , only : operator(//)
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : treeNode
+    use :: String_Handling , only : operator(//)
     implicit none
     class(mergerTreeNodeMergerMultiLevelHierarchy), intent(inout)          :: self
     type (treeNode                               ), intent(inout), pointer :: node
