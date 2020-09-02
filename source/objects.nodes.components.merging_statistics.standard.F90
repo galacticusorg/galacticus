@@ -137,11 +137,9 @@ contains
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>mergingStatisticsAssumeMonotonicGrowth</name>
-    !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true assume that halo mass growth is monotonic along each branch when computing node formation times.</description>
     !#   <source>parameters_</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     ! Bind the hierarchy level get functions.
     call mergingStatistics%nodeHierarchyLevelFunction       (Node_Component_Merging_statistics_Standard_Hierarchy_Level)
