@@ -48,7 +48,7 @@ sub Parse_Declarations {
 		    if ( my @matches = ( $processedLine =~ $Fortran::Utils::intrinsicDeclarations{$_}->{'regEx'} ) ) {
 			my $intrinsic  = $Fortran::Utils::intrinsicDeclarations{$_}->{'intrinsic'};
 			my $type;
-			($type         = $matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'type'}]) =~ s/\((.*)\)/$1/
+			($type         = $matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'type'}]) =~ s/\(\s*([^\s]*)\s*\)/$1/
 			    if ( $matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'type'}] );
 			my $openMP = $matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'openmp'}] ? 1 : 0;
 			my $attributesText = $matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'attributes'}];
@@ -159,7 +159,7 @@ sub BuildDeclarations {
 	    if ( exists($_->{'openMP'}) && $_->{'openMP'} );
 	$declarationCode    .= $_->{'intrinsic'};
 	$declarationCode    .= "(".$_->{'type'}.")"
-	    if ( exists($_->{'type'}) && $_->{'type'} );
+	    if ( exists($_->{'type'}) && defined($_->{'type'}) );
 	$declarationCode    .= ", ".join(", ",@{$_->{'attributes'}})
 	    if ( exists($_->{'attributes'}) && $_->{'attributes'} && scalar(@{$_->{'attributes'}}) > 0 );
 	$declarationCode    .= " :: ".join(", ",@{$_->{'variables'}})."\n";
