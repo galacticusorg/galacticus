@@ -625,7 +625,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Spheroid_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Spheroid_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Spheroid_Standard_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the standard spheroid node mass rate of change.
     use :: Abundances_Structure            , only : abs                     , abundances          , max                  , operator(*)
     use :: Galacticus_Error                , only : Galacticus_Error_Report
@@ -637,7 +637,6 @@ contains
          &                                          zeroStellarLuminosities
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
-    logical                                , intent(in   )          :: odeConverged
     logical                                , intent(inout)          :: interrupt
     procedure       (                     ), intent(inout), pointer :: interruptProcedure
     integer                                , intent(in   )          :: propertyType
@@ -649,7 +648,7 @@ contains
     type            (history              )                         :: historyTransferRate
     type            (stellarLuminosities  ), save                   :: luminositiesStellarRates
     !$omp threadprivate(luminositiesStellarRates)
-    !$GLC attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Return immediately if this class is not in use or only inactive properties are to be computed.
     if (.not.defaultSpheroidComponent%standardIsActive() .or. propertyType == propertyTypeInactive) return

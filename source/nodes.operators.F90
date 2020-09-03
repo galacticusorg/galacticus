@@ -61,12 +61,11 @@ module Nodes_Operators
   !#   <type>void</type>
   !#   <pass>yes</pass>
   !#   <argument>type     (treeNode     ), intent(inout)          :: node             </argument>
-  !#   <argument>logical                 , intent(in   )          :: odeConverged     </argument>
   !#   <argument>logical                 , intent(inout)          :: interrupt        </argument>
   !#   <argument>procedure(interruptTask), intent(inout), pointer :: functionInterrupt</argument>
   !#   <argument>integer                 , intent(in   )          :: propertyType     </argument>
   !#   <code>
-  !#    !$GLC attributes unused :: self, node, odeConverged, interrupt, functionInterrupt, propertyType
+  !#    !$GLC attributes unused :: self, node, interrupt, functionInterrupt, propertyType
   !#   </code>
   !#  </method>
   !#  <method name="differentialEvolutionStepFinalState" >

@@ -100,7 +100,7 @@ contains
     return
   end subroutine starFormationSpheroidsDestructor
 
-  subroutine starFormationSpheroidsDifferentialEvolution(self,node,odeConverged,interrupt,functionInterrupt,propertyType)
+  subroutine starFormationSpheroidsDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !% Perform star formation in a spheroid.
     use :: Abundances_Structure          , only : abundances
     use :: Galacticus_Nodes              , only : propertyTypeInactive, propertyTypeActive, propertyTypeAll, nodeComponentSpheroid
@@ -109,7 +109,6 @@ contains
     implicit none
     class           (nodeOperatorStarFormationSpheroids), intent(inout)          :: self
     type            (treeNode                          ), intent(inout)          :: node
-    logical                                             , intent(in   )          :: odeConverged
     logical                                             , intent(inout)          :: interrupt
     procedure       (interruptTask                     ), intent(inout), pointer :: functionInterrupt
     integer                                             , intent(in   )          :: propertyType
@@ -122,7 +121,6 @@ contains
          &                                                                          rateAbundancesStellar
     type            (history                           )                         :: rateHistoryStarFormation, ratePropertiesStellar
     type            (stellarLuminosities               )                         :: rateLuminositiesStellar
-    !$GLC attributes unused :: odeConverged
     
     spheroid => node%spheroid()
     if (propertyType == propertyTypeInactive) then

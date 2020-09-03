@@ -274,39 +274,33 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Satellite_Orbiting_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Satellite_Orbiting_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Satellite_Orbiting_Rate_Compute(thisNode,interrupt,interruptProcedure,propertyType)
     !% Compute rate of change for satellite properties.
     use :: Galactic_Structure_Accelerations  , only : Galactic_Structure_Acceleration
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
-    use :: Galactic_Structure_Options        , only : coordinateSystemCartesian       , massTypeGalactic                        , radiusLarge
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
+    use :: Galactic_Structure_Options        , only : coordinateSystemCartesian
     use :: Galactic_Structure_Tidal_Tensors  , only : Galactic_Structure_Tidal_Tensor
-    use :: Galacticus_Nodes                  , only : defaultSatelliteComponent       , interruptTask                           , nodeComponentBasic   , nodeComponentSatellite, &
-          &                                           nodeComponentSatelliteOrbiting  , propertyTypeInactive                    , treeNode
+    use :: Galacticus_Nodes                  , only : defaultSatelliteComponent       , interruptTask       , nodeComponentBasic   , nodeComponentSatellite, &
+          &                                           nodeComponentSatelliteOrbiting  , propertyTypeInactive, treeNode
     use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec
     use :: Numerical_Constants_Math          , only : Pi
-    use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes      , only : kilo
     use :: Tensors                           , only : assignment(=)                   , operator(*)
     use :: Vectors                           , only : Vector_Magnitude                , Vector_Product
     implicit none
     type            (treeNode                      ), pointer     , intent(inout) :: thisNode
-    logical                                                       , intent(in   ) :: odeConverged
     logical                                                       , intent(inout) :: interrupt
     procedure       (interruptTask                 ), pointer     , intent(inout) :: interruptProcedure
     integer                                                       , intent(in   ) :: propertyType
     class           (nodeComponentSatellite        ), pointer                     :: satelliteComponent
-    class           (nodeComponentBasic            ), pointer                     :: basicComponent
     type            (treeNode                      ), pointer                     :: hostNode
     double precision                                , dimension(3)                :: position                     , velocity                 , &
          &                                                                           parentAccelerationBulk
-    double precision                                , parameter                   :: radiusVirialFraction  =1.0d-2
-    double precision                                                              :: radius                       , halfMassRadiusSatellite  , &
-         &                                                                           halfMassRadiusCentral        , orbitalRadiusTest        , &
-         &                                                                           radiusVirial                 , orbitalPeriod            , &
-         &                                                                           satelliteMass                , basicMass                , &
-         &                                                                           massDestruction              , tidalHeatingNormalized   , &
-         &                                                                           angularFrequency             , radialFrequency          , &
-         &                                                                           parentEnclosedMass
+    double precision                                                              :: radius                       , orbitalPeriod            , &
+         &                                                                           satelliteMass                , radialFrequency          , &
+         &                                                                           parentEnclosedMass           , tidalHeatingNormalized   , &
+         &                                                                           angularFrequency
     type            (tensorRank2Dimension3Symmetric)                              :: tidalTensor                  , tidalTensorPathIntegrated
 
     ! Return immediately if inactive variables are requested.
@@ -377,67 +371,29 @@ contains
                   &                                                +satelliteTidalHeatingRate_%heatingRate   (thisNode) &
                   &                                               )
           end if
-          ! Get half-mass radii of central and satellite galaxies. We first check that the total mass in the galactic component
-          ! (found by setting the radius to "radiusLarge") is non-zero as we do not want to attempt to find the half-mass radius
-          ! of the galactic component, if no galactic component exists. To correctly handle the case that numerical errors lead
-          ! to a zero-size galactic component (the enclosed mass within zero radius is non-zero and equals to the total mass of
-          ! this component), we do a further check that the enclosed mass within zero radius is smaller than half of the total
-          ! mass in the galactic component.
-          if     (                                                                                             &
-               &   Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGalactic,radius=radiusLarge)     &
-               &   >                                                                                           &
-               &   max(                                                                                        &
-               &       0.0d0,                                                                                  &
-               &       2.0d0*Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGalactic,radius=0.0d0) &
-               &      )                                                                                        &
+          ! Test for merging.
+          if     (                                &
+               &   radius > 0.0d0                 &
+               &  .and.                           &
+               &   radius < radiusMerge(thisNode) &
                & ) then
-             halfMassRadiusCentral  =Galactic_Structure_Radius_Enclosing_Mass(hostNode,fractionalMass=0.5d0,massType=massTypeGalactic)
-          else
-             halfMassRadiusCentral  =0.0d0
+             ! Merging criterion met - trigger an interrupt.
+             interrupt          =  .true.
+             interruptProcedure => Node_Component_Satellite_Orbiting_Trigger_Merger
+             return
           end if
-          if     (                                                                                             &
-               &   Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGalactic,radius=radiusLarge)     &
-               &   >                                                                                           &
-               &   max(                                                                                        &
-               &       0.0d0,                                                                                  &
-               &       2.0d0*Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGalactic,radius=0.0d0) &
-               &      )                                                                                        &
+          ! Test for destruction.
+          satelliteMass=satelliteComponent%boundMass()
+          if     (                                           &
+               &   satelliteMass > 0.0d0                     &
+               &  .and.                                      &
+               &   satelliteMass < massDestruction(thisNode) &
                & ) then
-             halfMassRadiusSatellite=Galactic_Structure_Radius_Enclosing_Mass(thisNode,fractionalMass=0.5d0,massType=massTypeGalactic)
-          else
-             halfMassRadiusSatellite=0.0d0
-          end if
-          satelliteMass     =  satelliteComponent%boundMass()
-          basicComponent    => thisNode          %basic    ()
-          basicMass         =  basicComponent    %mass     ()
-          radiusVirial      =  darkMatterHaloScale_%virialRadius(hostNode)
-          orbitalRadiusTest =  max(halfMassRadiusSatellite+halfMassRadiusCentral,radiusVirialFraction*radiusVirial)
-          ! Test merging and destruction criteria.
-          if (satelliteOrbitingDestructionMassIsFractional) then
-             massDestruction=satelliteOrbitingDestructionMass*basicMass
-          else
-             massDestruction=satelliteOrbitingDestructionMass
-          end if
-          if (odeConverged) then
-             ! Test for merging.
-             if     (                             &
-                  &   radius > 0.0d0              &
-                  &  .and.                        &
-                  &   radius <  orbitalRadiusTest &
-                  & ) then
-                ! Merging criterion met - trigger an interrupt.
-                interrupt          =  .true.
-                interruptProcedure => Node_Component_Satellite_Orbiting_Trigger_Merger
-                return
-             end if
-             ! Test for destruction.
-             if (satelliteMass <  massDestruction) then
-                ! Destruction criterion met - trigger an interrupt.
-                interrupt          =  .true.
-                interruptProcedure => Node_Component_Satellite_Orbiting_Trigger_Destruction
-                return
-             end if
-          end if
+             ! Destruction criterion met - trigger an interrupt.
+             interrupt          =  .true.
+             interruptProcedure => Node_Component_Satellite_Orbiting_Trigger_Destruction
+             return
+          end if          
        end if
     end select
     return
@@ -446,19 +402,19 @@ contains
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Satellite_Orbiting_Scale_Set</unitName>
   !# </scaleSetTask>
-  subroutine Node_Component_Satellite_Orbiting_Scale_Set(thisNode)
-    !% Set scales for properties of {\normalfont \ttfamily thisNode}.
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Galacticus_Nodes                  , only : nodeComponentSatellite          , nodeComponentSatelliteOrbiting, treeNode
-    use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec
-    use :: Numerical_Constants_Prefixes      , only : kilo
-    use :: Tensors                           , only : tensorUnitR2D3Sym
+  subroutine Node_Component_Satellite_Orbiting_Scale_Set(node)
+    !% Set scales for properties of {\normalfont \ttfamily node}.
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite, nodeComponentSatelliteOrbiting, nodeComponentBasic, treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear              , megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Tensors                         , only : tensorUnitR2D3Sym
     implicit none
-    type            (treeNode              ), pointer  , intent(inout) :: thisNode
-    class           (nodeComponentSatellite), pointer                  :: satelliteComponent
+    type            (treeNode              ), pointer  , intent(inout) :: node
+    class           (nodeComponentBasic    ), pointer                  :: basic
+    class           (nodeComponentSatellite), pointer                  :: satellite
     double precision                        , parameter                :: positionScaleFractional                 =1.0d-2                              , &
          &                                                                velocityScaleFractional                 =1.0d-2                              , &
-         &                                                                boundMassScaleFractional                =1.0d-2                              , &
+         &                                                                boundMassScaleFractional                =1.0d-6                              , &
          &                                                                tidalTensorPathIntegratedScaleFractional=1.0d-2                              , &
          &                                                                tidalHeatingNormalizedScaleFractional   =1.0d-2
     double precision                                                   :: virialRadius                                   , virialVelocity              , &
@@ -466,39 +422,44 @@ contains
          &                                                                satelliteMass
 
     ! Get the satellite component.
-    satelliteComponent => thisNode%satellite()
+    satellite => node%satellite()
     ! Ensure that it is of the orbiting class.
-    select type (satelliteComponent)
+    select type (satellite)
     class is (nodeComponentSatelliteOrbiting)
        ! Get characteristic scales.
-       satelliteMass               =Galactic_Structure_Enclosed_Mass   (thisNode)
-       virialRadius                =darkMatterHaloScale_%virialRadius  (thisNode)
-       virialVelocity              =darkMatterHaloScale_%virialVelocity(thisNode)
+       if (satelliteOrbitingDestructionMassIsFractional) then
+          basic         =>                                  node %basic()
+          satelliteMass =  satelliteOrbitingDestructionMass*basic%mass ()
+       else
+          satelliteMass =  satelliteOrbitingDestructionMass
+       end if
+       virialRadius                =darkMatterHaloScale_%virialRadius  (node)
+       virialVelocity              =darkMatterHaloScale_%virialVelocity(node)
        virialIntegratedTidalTensor = virialVelocity/virialRadius*megaParsec/kilo/gigaYear
        virialTidalHeatingNormalized=(virialVelocity/virialRadius)**2
-       call satelliteComponent%positionScale                 (                                          &
-            &                                                  [1.0d0,1.0d0,1.0d0]                      &
-            &                                                 *virialRadius                             &
-            &                                                 *                 positionScaleFractional &
-            &                                                )
-       call satelliteComponent%velocityScale                 (                                          &
-            &                                                  [1.0d0,1.0d0,1.0d0]                      &
-            &                                                 *virialVelocity                           &
-            &                                                 *                 velocityScaleFractional &
-            &                                                )
-       call satelliteComponent%boundMassScale                (                                          &
-            &                                                  satelliteMass                            &
-            &                                                 *                boundMassScaleFractional &
-            &                                                )
-       call satelliteComponent%tidalTensorPathIntegratedScale(                                          &
-            &                                                  tensorUnitR2D3Sym                        &
-            &                                                 *virialIntegratedTidalTensor              &
-            &                                                 *tidalTensorPathIntegratedScaleFractional &
-            &                                                )
-       call satelliteComponent%tidalHeatingNormalizedScale   (                                          &
-            &                                                  virialTidalHeatingNormalized             &
-            &                                                 *   tidalHeatingNormalizedScaleFractional &
-            &                                                )
+       call satellite%positionScale                 (                                          &
+            &                                        +[1.0d0,1.0d0,1.0d0]                      &
+            &                                        *virialRadius                             &
+            &                                        *                 positionScaleFractional &
+            &                                       )
+       call satellite%velocityScale                 (                                          &
+            &                                        +[1.0d0,1.0d0,1.0d0]                      &
+            &                                        *virialVelocity                           &
+            &                                        *                 velocityScaleFractional &
+            &                                       )
+       call satellite%boundMassScale                (                                          &
+            &                                        +satelliteMass                            &
+            &                                        *                boundMassScaleFractional &
+            &                                       )
+       call satellite%tidalTensorPathIntegratedScale(                                          &
+            &                                        +tensorUnitR2D3Sym                        &
+            &                                        *virialIntegratedTidalTensor              &
+            &                                        *tidalTensorPathIntegratedScaleFractional &
+            &                                       )
+       call satellite%tidalHeatingNormalizedScale   (                                          &
+            &                                        +virialTidalHeatingNormalized             &
+            &                                        *   tidalHeatingNormalizedScaleFractional &
+            &                                       )
     end select
     return
   end subroutine Node_Component_Satellite_Orbiting_Scale_Set
@@ -601,18 +562,86 @@ contains
     return
   end subroutine Node_Component_Satellite_Orbiting_Trigger_Merger
 
+  double precision function radiusMerge(node)
+    !% Compute the merging radius for a node.
+    use :: Galacticus_Nodes                  , only : treeNode
+    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
+    use :: Galactic_Structure_Options        , only : massTypeGalactic                , radiusLarge
+    implicit none
+    type            (treeNode), intent(inout) :: node
+    type            (treeNode), pointer       :: nodeHost
+    double precision          , parameter     :: radiusVirialFraction =1.0d-2
+    double precision                          :: halfMassRadiusCentral       , halfMassRadiusSatellite, &
+         &                                       radiusVirial
+
+    ! Find the host node.
+    nodeHost => node%mergesWith()
+    ! Get half-mass radii of central and satellite galaxies. We first check that the total mass in the galactic component
+    ! (found by setting the radius to "radiusLarge") is non-zero as we do not want to attempt to find the half-mass radius
+    ! of the galactic component, if no galactic component exists. To correctly handle the case that numerical errors lead
+    ! to a zero-size galactic component (the enclosed mass within zero radius is non-zero and equals to the total mass of
+    ! this component), we do a further check that the enclosed mass within zero radius is smaller than half of the total
+    ! mass in the galactic component.
+    if     (                                                                                             &
+         &   Galactic_Structure_Enclosed_Mass(nodeHost,massType=massTypeGalactic,radius=radiusLarge)     &
+         &   >                                                                                           &
+         &   max(                                                                                        &
+         &       0.0d0,                                                                                  &
+         &       2.0d0*Galactic_Structure_Enclosed_Mass(nodeHost,massType=massTypeGalactic,radius=0.0d0) &
+         &      )                                                                                        &
+         & ) then
+       halfMassRadiusCentral  =Galactic_Structure_Radius_Enclosing_Mass(nodeHost,fractionalMass=0.5d0,massType=massTypeGalactic)
+    else
+       halfMassRadiusCentral  =0.0d0
+    end if
+    if     (                                                                                             &
+         &   Galactic_Structure_Enclosed_Mass(node    ,massType=massTypeGalactic,radius=radiusLarge)     &
+         &   >                                                                                           &
+         &   max(                                                                                        &
+         &       0.0d0,                                                                                  &
+         &       2.0d0*Galactic_Structure_Enclosed_Mass(node    ,massType=massTypeGalactic,radius=0.0d0) &
+         &      )                                                                                        &
+         & ) then
+       halfMassRadiusSatellite=Galactic_Structure_Radius_Enclosing_Mass(node    ,fractionalMass=0.5d0,massType=massTypeGalactic)
+    else
+       halfMassRadiusSatellite=0.0d0
+    end if    
+    radiusVirial=darkMatterHaloScale_%virialRadius(nodeHost)
+    radiusMerge =max(halfMassRadiusSatellite+halfMassRadiusCentral,radiusVirialFraction*radiusVirial)
+    return
+  end function radiusMerge
+  
   subroutine Node_Component_Satellite_Orbiting_Trigger_Destruction(node)
     !% Trigger destruction of the satellite by setting the time until destruction to zero.
     use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
     implicit none
     type (treeNode              ), intent(inout), target  :: node
-    class(nodeComponentSatellite)               , pointer :: satelliteComponent
+    class(nodeComponentSatellite)               , pointer :: satellite
 
-    satelliteComponent => node%satellite()
-    call satelliteComponent%destructionTimeSet(0.0d0)
+    ! Test the destruction criterion.
+    satellite => node%satellite()
+    if (satellite%boundMass() < massDestruction(node)) &
+         & call satellite%destructionTimeSet(0.0d0)
     return
   end subroutine Node_Component_Satellite_Orbiting_Trigger_Destruction
 
+  double precision function massDestruction(node)
+    !% Compute the destruction mass for a node.
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    implicit none
+    type (treeNode          ), intent(inout) :: node
+    class(nodeComponentBasic), pointer       :: basic
+ 
+    if (satelliteOrbitingDestructionMassIsFractional) then
+       basic           =>  node %basic()
+       massDestruction =  +basic%mass ()                    &
+            &             *satelliteOrbitingDestructionMass
+    else
+       massDestruction =  +satelliteOrbitingDestructionMass
+    end if
+    return
+  end function massDestruction
+  
   function Node_Component_Satellite_Orbiting_Virial_Orbit(self) result(orbit)
     !% Return the orbit of the satellite at the virial radius.
     use :: Galacticus_Nodes, only : nodeComponentSatelliteOrbiting, treeNode

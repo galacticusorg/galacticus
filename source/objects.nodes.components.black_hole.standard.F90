@@ -317,7 +317,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Black_Hole_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Black_Hole_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Black_Hole_Standard_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the black hole node mass rate of change.
     use :: Galacticus_Nodes                , only : defaultBlackHoleComponent, interruptTask        , nodeComponentBasic  , nodeComponentBlackHole, &
           &                                         nodeComponentHotHalo     , nodeComponentSpheroid, propertyTypeInactive, treeNode
@@ -329,7 +329,6 @@ contains
     implicit none
     type            (treeNode              ), intent(inout), pointer   :: node
     logical                                 , intent(inout)            :: interrupt
-    logical                                 , intent(in   )            :: odeConverged
     procedure       (interruptTask         ), intent(inout), pointer   :: interruptProcedure
     integer                                 , intent(in   )            :: propertyType
     class           (nodeComponentBlackHole)               , pointer   :: blackHoleCentral                                                                                                                                   , blackHole
@@ -348,7 +347,6 @@ contains
          &                                                                spheroidDensityRadius2                                                                                                                            , spheroidGasMass                                                , &
          &                                                                spheroidRadius                                                                                                                                    , windEfficiencyNet                                              , &
          &                                                                windFraction                                                                                                                                      , hotModeFraction
-    !$GLC attributes unused :: odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return

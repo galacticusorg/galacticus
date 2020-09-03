@@ -1000,7 +1000,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Hot_Halo_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Hot_Halo_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Hot_Halo_Standard_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the hot halo node mass rate of change.
     use :: Abundances_Structure                 , only : abs
     use :: Accretion_Halos                      , only : accretionModeHot                             , accretionModeTotal
@@ -1015,7 +1015,6 @@ contains
     use :: Radiation_Fields                     , only : radiationFieldIntergalacticBackground
     implicit none
     type            (treeNode              )           , intent(inout), pointer :: node
-    logical                                            , intent(in   )          :: odeConverged
     logical                                            , intent(inout)          :: interrupt
     procedure       (interruptTask         )           , intent(inout), pointer :: interruptProcedure
     integer                                            , intent(in   )          :: propertyType
@@ -1030,7 +1029,6 @@ contains
          &                                                                         massLossRate                , massToDensityConversion, &
          &                                                                         outerRadius                 , outerRadiusGrowthRate  , &
          &                                                                         massAccretionRate
-    !$GLC attributes unused :: odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return

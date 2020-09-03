@@ -89,7 +89,7 @@ contains
     return
   end subroutine stellarFeedbackDisksDestructor
   
-  subroutine stellarFeedbackDisksDifferentialEvolution(self,node,odeConverged,interrupt,functionInterrupt,propertyType)
+  subroutine stellarFeedbackDisksDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !% Perform star formation in a disk.
     use :: Abundances_Structure          , only : abundances          , zeroAbundances
     use :: Galacticus_Nodes              , only : propertyTypeInactive, nodeComponentDisk, nodeComponentHotHalo
@@ -98,7 +98,6 @@ contains
     implicit none
     class           (nodeOperatorStellarFeedbackDisks), intent(inout)          :: self
     type            (treeNode                        ), intent(inout)          :: node
-    logical                                           , intent(in   )          :: odeConverged
     logical                                           , intent(inout)          :: interrupt
     procedure       (interruptTask                   ), intent(inout), pointer :: functionInterrupt
     integer                                           , intent(in   )          :: propertyType
@@ -114,7 +113,6 @@ contains
          &                                                                        rateAbundancesStellar   , rateAbundancesOutflow
     type            (history                         )                         :: ratePropertiesStellar
     type            (stellarLuminosities             )                         :: rateLuminositiesStellar
-    !$GLC attributes unused :: odeConverged
 
     if (propertyType == propertyTypeInactive) return
     ! Get the star formation rate.

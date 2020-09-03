@@ -239,7 +239,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Hot_Halo_Cold_Mode_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Hot_Halo_Cold_Mode_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the hot halo node mass rate of change.
     use :: Abundances_Structure                 , only : abs
     use :: Accretion_Halos                      , only : accretionModeCold
@@ -251,18 +251,16 @@ contains
     use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloOutflowAngularMomentumAlwaysGrows     , outerRadiusOverVirialRadiusMinimum
     use :: Numerical_Constants_Math             , only : Pi
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: node
-    logical                                   , intent(in   )          :: odeConverged
-    logical                                   , intent(inout)          :: interrupt
-    procedure       (interruptTask           ), intent(inout), pointer :: interruptProcedure
-    integer                                   , intent(in   )          :: propertyType
-    class           (nodeComponentHotHalo    )               , pointer :: hotHalo
-    class           (nodeComponentBasic      )               , pointer :: basic
-    double precision                                                   :: angularMomentumAccretionRate, densityAtOuterRadius , &
-         &                                                                massAccretionRate           , massLossRate         , &
-         &                                                                outerRadius                 , outerRadiusGrowthRate, &
-         &                                                                gasMass                     , infallRate
-    !$GLC attributes unused :: odeConverged
+    type            (treeNode            ), intent(inout), pointer :: node
+    logical                               , intent(inout)          :: interrupt
+    procedure       (interruptTask       ), intent(inout), pointer :: interruptProcedure
+    integer                               , intent(in   )          :: propertyType
+    class           (nodeComponentHotHalo)               , pointer :: hotHalo
+    class           (nodeComponentBasic  )               , pointer :: basic
+    double precision                                               :: angularMomentumAccretionRate, densityAtOuterRadius , &
+         &                                                            massAccretionRate           , massLossRate         , &
+         &                                                            outerRadius                 , outerRadiusGrowthRate, &
+         &                                                            gasMass                     , infallRate
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return

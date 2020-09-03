@@ -127,18 +127,17 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute rates of change of properties in the standard implementation of the basic component.
     use :: Galacticus_Nodes, only : defaultMassFlowStatisticsComponent, nodeComponentMassFlowStatistics, nodeComponentMassFlowStatisticsStandard, propertyTypeInactive, &
           &                         treeNode
     implicit none
     type     (treeNode                       ), pointer, intent(inout) :: node
-    logical                                            , intent(in   ) :: odeConverged
     logical                                   ,          intent(inout) :: interrupt
     procedure(                               ), pointer, intent(inout) :: interruptProcedure
     integer                                   , intent(in   )          :: propertyType
     class    (nodeComponentMassFlowStatistics), pointer                :: massFlowStatistics
-    !$GLC attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return

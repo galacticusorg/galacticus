@@ -74,13 +74,12 @@ contains
     return
   end subroutine subsubhaloPromotionDestructor
 
-  subroutine subsubhaloPromotionDifferentialEvolution(self,node,odeConverged,interrupt,functionInterrupt,propertyType)
+  subroutine subsubhaloPromotionDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !% Determine if sub-sub-halos should be promoted.
     use :: Galacticus_Nodes, only : propertyTypeInactive, nodeComponentSatellite
     implicit none
     class           (nodeOperatorSubsubhaloPromotion), intent(inout)          :: self
     type            (treeNode                       ), intent(inout)          :: node
-    logical                                          , intent(in   )          :: odeConverged
     logical                                          , intent(inout)          :: interrupt
     procedure       (interruptTask                  ), intent(inout), pointer :: functionInterrupt
     integer                                          , intent(in   )          :: propertyType
@@ -88,7 +87,7 @@ contains
     double precision                                 , dimension(3)           :: positionSatellite
     double precision                                                          :: radiusSatellite  , massBoundHost, &
          &                                                                       massEnclosedHost
-    !$GLC attributes unused :: self, odeConverged
+    !$GLC attributes unused :: self
     
     ! Return if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
