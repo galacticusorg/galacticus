@@ -296,13 +296,3 @@ Suppose, for example, that we wish to construct a luminosity function of galaxie
 \begin{equation}
  \phi_k = \sum_i \sum_{j=1}^{N_i} \left\{ \begin{array}{ll} w_i & \hbox{ if  } L_k-\Delta k/2 < l_{i,j} \le L_k+\Delta k/2 \\ 0 & \hbox{ otherwise.} \end{array} \right.
 \end{equation}
-
-\section{Meta-Analysis of \glc}\index{analysis!meta}\index{analysis!{\normalfont \scshape Galacticus}@analysis!galacticus}
-
-\glc\ contains functionality which allow it to analyze and profile its own performance:
-
-\begin{description}
-  \item[Merger tree processing times:] (See \S\ref{sec:methodsMergerTreeOperator}.) Records the time taken to construct and evolve each merger tree.
-
-  \item[Differential evolution profiling:] (See \S\ref{sec:methodsMergerTreeEvolveProfiler}.) This meta-analysis profiles the steps taken by the ODE solver. Setting {\normalfont \ttfamily [profileOdeEvolver]}$=${\normalfont \ttfamily true} will activate profiling.
-\end{description}
