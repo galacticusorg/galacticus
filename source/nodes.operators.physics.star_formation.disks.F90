@@ -139,7 +139,7 @@ contains
     return
   end subroutine starFormationDisksDifferentialEvolutionStepFinalState
 
-  subroutine starFormationDisksDifferentialEvolution(self,node,odeConverged,interrupt,functionInterrupt,propertyType)
+  subroutine starFormationDisksDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !% Perform star formation in a disk.
     use :: Abundances_Structure          , only : abundances
     use :: Galacticus_Nodes              , only : propertyTypeInactive , propertyTypeActive, propertyTypeAll, nodeComponentDisk, &
@@ -149,7 +149,6 @@ contains
     implicit none
     class           (nodeOperatorStarFormationDisks), intent(inout)          :: self
     type            (treeNode                      ), intent(inout)          :: node
-    logical                                         , intent(in   )          :: odeConverged
     logical                                         , intent(inout)          :: interrupt
     procedure       (interruptTask                 ), intent(inout), pointer :: functionInterrupt
     integer                                         , intent(in   )          :: propertyType
@@ -164,7 +163,6 @@ contains
          &                                                                      rateAbundancesStellar
     type            (history                       )                         :: rateHistoryStarFormation, ratePropertiesStellar
     type            (stellarLuminosities           )                         :: rateLuminositiesStellar , rateLuminositiesTransfer
-    !$GLC attributes unused :: odeConverged
     
     disk => node%disk()
     if (propertyType == propertyTypeInactive) then

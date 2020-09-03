@@ -678,11 +678,10 @@ contains
     use :: Galacticus_Nodes, only : interruptTask, propertyTypeInactive, rateComputeState
     implicit none
     double precision               , intent(in   ), dimension(:  ) :: time
-    double precision               , intent(in   ), dimension(:,:) :: propertyValues                      , propertyRates
+    double precision               , intent(in   ), dimension(:,:) :: propertyValues               , propertyRates
     double precision               , intent(in   ), dimension(:  ) :: inactivePropertyInitialValues
     logical                        , intent(inout), dimension(:  ) :: evaluate
     double precision               , intent(  out), dimension(:,:) :: integrands
-    logical                        , parameter                     :: odeConverged                 =.true.
     procedure       (interruptTask), pointer                       :: functionInterrupt
     logical                                                        :: interrupt
     integer                                                        :: iTime
@@ -707,8 +706,8 @@ contains
           ! Set derivatives to zero initially.
           call standardSelf%activeNode%odeStepRatesInitialize()
           ! Compute derivatives.
-          call standardSelf%galacticStructureSolver_%revert(standardSelf%activeNode                                                                             )
-          call standardDerivativesCompute                  (standardSelf%activeNode,odeConverged,interrupt,functionInterrupt,standardSelf%propertyTypeIntegrator)
+          call standardSelf%galacticStructureSolver_%revert(standardSelf%activeNode                                                                )
+          call standardDerivativesCompute                  (standardSelf%activeNode,interrupt,functionInterrupt,standardSelf%propertyTypeIntegrator)
           ! Serialize rates into integrand array.
           call standardSelf%activeNode%serializeRates(integrands(:,iTime),standardSelf%propertyTypeIntegrator)
        end if
@@ -738,7 +737,7 @@ contains
     double precision                     , intent(in   )               :: time
     double precision                     , intent(in   ), dimension(:) :: y
     double precision                     , intent(  out), dimension(:) :: dydt
-    logical                                                            :: interrupt         , odeConverged
+    logical                                                            :: interrupt
     procedure       (interruptTask     ), pointer                      :: functionInterrupt
     class           (nodeComponentBasic), pointer                      :: basic
     integer         (kind_int8         )                               :: systemClockCount
@@ -776,17 +775,13 @@ contains
     end if
     ! Set derivatives to zero initially.
     call standardSelf%activeNode%odeStepRatesInitialize()
-    ! Determine if the ODE evolver has reached sufficiently small errors for this step.
-    call standardSolver%errors(standardSelf%propertyErrors(1:standardSelf%propertyCountActive))
-    standardSelf%propertyTolerances(1:standardSelf%propertyCountActive)=standardODEStepTolerances(y)
-    odeConverged=all(standardSelf%propertyErrors(1:standardSelf%propertyCountActive) <= standardSelf%propertyTolerances(1:standardSelf%propertyCountActive))
     if (standardSelf%interruptFirstFound .and. time >= standardSelf%timeInterruptFirst) then
        ! Already beyond the location of the first interrupt, simply return zero derivatives.
        dydt                              (1:standardSelf%propertyCountActive)=0.0d0
        standardSelf%propertyRatesPrevious(1:standardSelf%propertyCountActive)=0.0d0
     else
        ! Compute derivatives.
-       call standardDerivativesCompute(standardSelf%activeNode,odeConverged,interrupt,functionInterrupt,standardSelf%propertyTypeODE)
+       call standardDerivativesCompute(standardSelf%activeNode,interrupt,functionInterrupt,standardSelf%propertyTypeODE)
        ! Check whether an interrupt has been requested.
        select case (interrupt)
        case (.false.)
@@ -823,8 +818,8 @@ contains
     double precision               , dimension(standardSelf%propertyCountActive,standardSelf%propertyCountActive)                :: jacobian
     procedure       (interruptTask), pointer                                                                                     :: functionInterrupt
     double precision               , parameter                                                                                   :: deltaTiny            =1.0d-10
-    logical                                                                                                                      :: interrupt                    , odeConverged
-    integer   (c_size_t)                                                                                                                   :: i
+    logical                                                                                                                      :: interrupt
+    integer   (c_size_t)                                                                                                         :: i
     double precision                                                                                                             :: propertyValueDelta
 
     ! Return success by default.
@@ -837,10 +832,10 @@ contains
        jacobian(1:standardSelf%propertyCountActive,1:standardSelf%propertyCountActive)=0.0d0
     else
        ! Compute rates at current parameter values.
-       call standardSelf%activeNode%deserializeValues     (propertyValues0(1:standardSelf%propertyCountActive)             ,standardSelf%propertyTypeODE)
+       call standardSelf%activeNode%deserializeValues     (propertyValues0(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
        call standardSelf%activeNode%odeStepRatesInitialize(                                                                                             )
-       call standardDerivativesCompute                    (standardSelf%activeNode,odeConverged,interrupt,functionInterrupt,standardSelf%propertyTypeODE)
-       call standardSelf%activeNode%serializeRates        (propertyRates0                                                  ,standardSelf%propertyTypeODE)
+       call standardDerivativesCompute                    (standardSelf%activeNode,interrupt,functionInterrupt,standardSelf%propertyTypeODE)
+       call standardSelf%activeNode%serializeRates        (propertyRates0                                     ,standardSelf%propertyTypeODE)
        ! If an interrupt was triggered, then derivatives will all be zero, so we set the Jacobian to zero here and exit.
        if (interrupt) then
           jacobian(1:standardSelf%propertyCountActive,1:standardSelf%propertyCountActive)=0.0d0
@@ -861,11 +856,11 @@ contains
              propertyValues1   =+propertyValues0
              propertyValues1(i)=+propertyValues1           (i) &
                   &             +propertyValueDelta
-             call standardSelf%activeNode%deserializeValues     (propertyValues1                                                      ,standardSelf%propertyTypeODE)
-             call standardSelf%activeNode%odeStepRatesInitialize(                                                                                                  )
-             call standardSelf%galacticStructureSolver_%revert  (standardSelf%activeNode                                                                           )
-             call standardDerivativesCompute                    (standardSelf%activeNode     ,odeConverged,interrupt,functionInterrupt,standardSelf%propertyTypeODE)
-             call standardSelf%activeNode%serializeRates        (propertyRates1                                                       ,standardSelf%propertyTypeODE)
+             call standardSelf%activeNode%deserializeValues     (propertyValues1                                         ,standardSelf%propertyTypeODE)
+             call standardSelf%activeNode%odeStepRatesInitialize(                                                                                     )
+             call standardSelf%galacticStructureSolver_%revert  (standardSelf%activeNode                                                              )
+             call standardDerivativesCompute                    (standardSelf%activeNode     ,interrupt,functionInterrupt,standardSelf%propertyTypeODE)
+             call standardSelf%activeNode%serializeRates        (propertyRates1                                          ,standardSelf%propertyTypeODE)
              jacobian(i,:)=+(                  &
                   &          +propertyRates1   &
                   &          -propertyRates0   &
@@ -879,7 +874,7 @@ contains
     return
   end function standardODEsJacobian
 
-  subroutine standardDerivativesCompute(node,odeConverged,interrupt,functionInterruptReturn,propertyType)
+  subroutine standardDerivativesCompute(node,interrupt,functionInterruptReturn,propertyType)
     !% Call routines to set alls derivatives for {\normalfont \ttfamily node}.
     use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
     !# <include directive="rateComputeTask" type="moduleUse">
@@ -887,7 +882,6 @@ contains
     !# </include>
     implicit none
     type     (treeNode), intent(inout), pointer :: node
-    logical            , intent(in   )          :: odeConverged
     logical            , intent(  out)          :: interrupt
     procedure(        ), intent(  out), pointer :: functionInterruptReturn
     integer            , intent(in   )          :: propertyType
@@ -906,10 +900,10 @@ contains
     if (.not.node%isSolvable) return
     ! Call component routines to compute derivatives.
     !# <include directive="rateComputeTask" type="functionCall" functionType="void">
-    !#  <functionArgs>node,odeConverged,interrupt,functionInterrupt,propertyType</functionArgs>
+    !#  <functionArgs>node,interrupt,functionInterrupt,propertyType</functionArgs>
     include 'objects.node.component.derivatives.inc'
     !# </include>
-    call standardSelf%nodeOperator_%differentialEvolution(node,odeConverged,interrupt,functionInterrupt,propertyType)
+    call standardSelf%nodeOperator_%differentialEvolution(node,interrupt,functionInterrupt,propertyType)
     ! Return the procedure pointer.
     functionInterruptReturn => functionInterrupt
     return

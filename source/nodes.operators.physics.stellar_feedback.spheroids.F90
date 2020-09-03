@@ -89,7 +89,7 @@ contains
     return
   end subroutine stellarFeedbackSpheroidsDestructor
   
-  subroutine stellarFeedbackSpheroidsDifferentialEvolution(self,node,odeConverged,interrupt,functionInterrupt,propertyType)
+  subroutine stellarFeedbackSpheroidsDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !% Perform star formation in a spheroid.
     use :: Abundances_Structure          , only : abundances          , zeroAbundances
     use :: Galacticus_Nodes              , only : propertyTypeInactive, nodeComponentSpheroid, nodeComponentHotHalo
@@ -98,7 +98,6 @@ contains
     implicit none
     class           (nodeOperatorStellarFeedbackSpheroids), intent(inout)          :: self
     type            (treeNode                            ), intent(inout)          :: node
-    logical                                               , intent(in   )          :: odeConverged
     logical                                               , intent(inout)          :: interrupt
     procedure       (interruptTask                       ), intent(inout), pointer :: functionInterrupt
     integer                                               , intent(in   )          :: propertyType
@@ -114,7 +113,6 @@ contains
          &                                                                            rateAbundancesStellar   , rateAbundancesOutflow
     type            (history                             )                         :: ratePropertiesStellar
     type            (stellarLuminosities                 )                         :: rateLuminositiesStellar
-    !$GLC attributes unused :: odeConverged
 
     if (propertyType == propertyTypeInactive) return
     ! Get the star formation rate.

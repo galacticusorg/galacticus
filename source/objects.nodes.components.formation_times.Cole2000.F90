@@ -114,19 +114,17 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Formation_Times_Cole2000_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Formation_Times_Cole2000_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Formation_Times_Cole2000_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Check for need to update the formation time of a node in the {\normalfont \ttfamily Cole2000} formation time component.
     use :: Galacticus_Nodes, only : defaultFormationTimeComponent, interruptTask, nodeComponentBasic, nodeComponentFormationTime, &
           &                         propertyTypeInactive         , treeNode
     implicit none
     type     (treeNode                   ), intent(inout), pointer :: node
-    logical                               , intent(in   )          :: odeConverged
     logical                               , intent(inout)          :: interrupt
     procedure(interruptTask              ), intent(inout), pointer :: interruptProcedure
     integer                               , intent(in   )          :: propertyType
     class    (nodeComponentFormationTime )               , pointer :: formationTime
     class    (nodeComponentBasic         )               , pointer :: basicFormation    , basic
-    !$GLC attributes unused :: odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return

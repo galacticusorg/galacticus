@@ -155,12 +155,11 @@ contains
     return
   end subroutine multiDifferentialEvolutionPre
 
-  subroutine multiDifferentialEvolution(self,node,odeConverged,interrupt,functionInterrupt,propertyType)
+  subroutine multiDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !% Act on a node during differential evolution.
     implicit none
     class    (nodeOperatorMulti), intent(inout)          :: self
     type     (treeNode         ), intent(inout)          :: node
-    logical                     , intent(in   )          :: odeConverged
     logical                     , intent(inout)          :: interrupt
     procedure(interruptTask    ), intent(inout), pointer :: functionInterrupt
     integer                     , intent(in   )          :: propertyType
@@ -168,7 +167,7 @@ contains
 
     process_ => self%processes
     do while (associated(process_))
-       call process_%process_%differentialEvolution(node,odeConverged,interrupt,functionInterrupt,propertyType)
+       call process_%process_%differentialEvolution(node,interrupt,functionInterrupt,propertyType)
        process_ => process_%next
     end do
     return

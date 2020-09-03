@@ -37,7 +37,7 @@ sub Class_State {
 	 {
 	     intrinsic  => "class"                                                  ,
 	     type       => $classTypeName                                           ,
-	     attributes => [ "public", "allocatable" ]                              ,
+	     attributes => [ "public", "allocatable", "target" ]                    ,
 	     variables  => [ "default".ucfirst($code::class->{'name'})."Component" ]
 	 });
     push

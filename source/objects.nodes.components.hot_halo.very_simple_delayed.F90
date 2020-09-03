@@ -163,7 +163,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Hot_Halo_VS_Delayed_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Hot_Halo_VS_Delayed_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Hot_Halo_VS_Delayed_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the very simple hot halo component mass rate of change.
     use :: Abundances_Structure              , only : abundances                   , operator(*)                          , zeroAbundances
     use :: Galacticus_Nodes                  , only : nodeComponentHotHalo         , nodeComponentHotHaloVerySimpleDelayed, propertyTypeInactive, treeNode, &
@@ -171,7 +171,6 @@ contains
     use :: Hot_Halo_Outflows_Reincorporations, only : hotHaloOutflowReincorporation, hotHaloOutflowReincorporationClass
     implicit none
     type            (treeNode                          ), intent(inout), pointer :: node
-    logical                                             , intent(in   )          :: odeConverged
     logical                                             , intent(inout)          :: interrupt
     procedure       (                                  ), intent(inout), pointer :: interruptProcedure
     integer                                             , intent(in   )          :: propertyType
@@ -180,7 +179,7 @@ contains
     type            (abundances                        ), save                   :: abundancesReturnRate
     !$omp threadprivate(abundancesReturnRate)
     double precision                                                             :: outflowReturnRate
-    !$GLC attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return

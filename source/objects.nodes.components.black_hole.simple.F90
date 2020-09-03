@@ -212,7 +212,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Black_Hole_Simple_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Black_Hole_Simple_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Black_Hole_Simple_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the black hole mass rate of change.
     use :: Galacticus_Nodes            , only : defaultBlackHoleComponent, interruptTask        , nodeComponentBlackHole, nodeComponentBlackHoleSimple, &
           &                                     nodeComponentHotHalo     , nodeComponentSpheroid, propertyTypeInactive  , treeNode
@@ -220,7 +220,6 @@ contains
     use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
     type            (treeNode                ), intent(inout), pointer :: node
-    logical                                   , intent(in   )          :: odeConverged
     logical                                   , intent(inout)          :: interrupt
     procedure       (interruptTask           ), intent(inout), pointer :: interruptProcedure
     integer                                   , intent(in   )          :: propertyType
@@ -233,7 +232,6 @@ contains
          &                                                                energyInputRate                               , heatingRate          , &
          &                                                                massAccretionRate                             , restMassAccretionRate, &
          &                                                                x
-    !$GLC attributes unused :: odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return

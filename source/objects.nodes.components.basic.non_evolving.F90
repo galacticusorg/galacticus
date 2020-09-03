@@ -92,18 +92,17 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Basic_Non_Evolving_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Basic_Non_Evolving_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Basic_Non_Evolving_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute rates of change of properties in the standard implementation of the basic component.
     use :: Galacticus_Nodes, only : defaultBasicComponent, nodeComponentBasic, nodeComponentBasicNonEvolving, propertyTypeInactive, &
           &                         treeNode
     implicit none
     type     (treeNode          ), intent(inout), pointer :: node
-    logical                      , intent(in   )          :: odeConverged
     logical                      , intent(inout)          :: interrupt
     procedure(                  ), intent(inout), pointer :: interruptProcedure
     integer                      , intent(in   )          :: propertyType
     class    (nodeComponentBasic)               , pointer :: basicComponent
-    !$GLC attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
 
     ! Return immediately if inactive variables are requested.

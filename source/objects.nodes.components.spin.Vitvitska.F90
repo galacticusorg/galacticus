@@ -414,21 +414,20 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Spin_Vitvitska_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Spin_Vitvitska_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Spin_Vitvitska_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute rates of change of properties in the Vitvitska implementation of the spin component.
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum
     use :: Galacticus_Nodes      , only : defaultSpinComponent             , nodeComponentSpin, nodeComponentSpinVitvitska, propertyTypeInactive, &
           &                               treeNode
     implicit none
     type            (treeNode         ), intent(inout), pointer :: node
-    logical                            , intent(in   )          :: odeConverged
     logical                            , intent(inout)          :: interrupt
     procedure       (                 ), intent(inout), pointer :: interruptProcedure
     integer                            , intent(in   )          :: propertyType
     class           (nodeComponentSpin)               , pointer :: spin
     double precision                                            :: spinMagnitude     , spinGrowthRate
     double precision                   , dimension(3)           :: spinVector
-    !$GLC attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return

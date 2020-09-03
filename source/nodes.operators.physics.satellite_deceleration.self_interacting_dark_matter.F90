@@ -75,18 +75,17 @@ contains
     return
   end subroutine satelliteDecelerationSIDMDestructor
   
-  subroutine satelliteDecelerationSIDMDifferentialEvolution(self,node,odeConverged,interrupt,functionInterrupt,propertyType)
+  subroutine satelliteDecelerationSIDMDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !% Perform deceleration of a satellite due to dark matter self-interactions.
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
     class    (nodeOperatorSatelliteDecelerationSIDM), intent(inout)          :: self
     type     (treeNode                             ), intent(inout)          :: node
-    logical                                         , intent(in   )          :: odeConverged
     logical                                         , intent(inout)          :: interrupt
     procedure(interruptTask                        ), intent(inout), pointer :: functionInterrupt
     integer                                         , intent(in   )          :: propertyType
     class    (nodeComponentSatellite               )               , pointer :: satellite
-    !$GLC attributes unused :: odeConverged, interrupt, functionInterrupt, propertyType
+    !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
 
     if (.not.node%isSatellite()) return
     satellite => node%satellite()

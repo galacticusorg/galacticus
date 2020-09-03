@@ -208,14 +208,13 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Age_Statistics_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Age_Statistics_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Age_Statistics_Standard_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the exponential disk node mass rate of change.
     use :: Galacticus_Nodes, only : defaultAgeStatisticsComponent, interruptTask       , nodeComponentAgeStatistics, nodeComponentAgeStatisticsStandard, &
           &                         nodeComponentBasic           , nodeComponentDisk   , nodeComponentSpheroid     , propertyTypeActive                , &
           &                         propertyTypeAll              , propertyTypeInactive, treeNode
     implicit none
     type            (treeNode                    ), intent(inout), pointer :: node
-    logical                                       , intent(in   )          :: odeConverged
     logical                                       , intent(inout)          :: interrupt
     procedure       (interruptTask               ), intent(inout), pointer :: interruptProcedure
     integer                                       , intent(in   )          :: propertyType
@@ -226,7 +225,6 @@ contains
     double precision                                                       :: time                     , diskStarFormationRate, &
          &                                                                    spheroidStarFormationRate
     logical                                                                :: isGeneric
-    !$GLC attributes unused :: odeConverged
 
     ! Return immediately if the standard age statistics component is not active.
     if (.not.defaultAgeStatisticsComponent%standardIsActive()) return

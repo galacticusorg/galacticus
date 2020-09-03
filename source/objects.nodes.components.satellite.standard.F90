@@ -216,19 +216,18 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Satellite_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Satellite_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Satellite_Standard_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the time until satellite merging rate of change.
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatellite, nodeComponentSatelliteStandard, propertyTypeActive, &
           &                         propertyTypeAll          , propertyTypeInactive  , treeNode
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
-    logical                                 , intent(in   )          :: odeConverged
     logical                                 , intent(inout)          :: interrupt
     procedure       (                      ), intent(inout), pointer :: interruptProcedure
     integer                                 , intent(in   )          :: propertyType
     class           (nodeComponentSatellite)               , pointer :: satellite
     double precision                                                 :: massLossRate
-    !$GLC attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Return immediately if this class is not in use.
     if (.not.defaultSatelliteComponent%standardIsActive()) return

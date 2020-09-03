@@ -254,20 +254,18 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Hot_Halo_Very_Simple_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Hot_Halo_Very_Simple_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Hot_Halo_Very_Simple_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the very simple hot halo component mass rate of change.
     use :: Accretion_Halos , only : accretionModeTotal
     use :: Galacticus_Nodes, only : nodeComponentHotHalo   , nodeComponentHotHaloVerySimple, propertyTypeInactive, treeNode, &
          &                          defaultHotHaloComponent
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
-    logical                               , intent(in   )          :: odeConverged
     logical                               , intent(inout)          :: interrupt
     procedure       (                    ), intent(inout), pointer :: interruptProcedure
     integer                               , intent(in   )          :: propertyType
     class           (nodeComponentHotHalo)               , pointer :: hotHalo
     double precision                                               :: massAccretionRate   , failedMassAccretionRate
-    !$GLC attributes unused :: odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return

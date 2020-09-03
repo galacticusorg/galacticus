@@ -648,7 +648,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Disk_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Disk_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedureReturn,propertyType)
+  subroutine Node_Component_Disk_Standard_Rate_Compute(node,interrupt,interruptProcedureReturn,propertyType)
     !% Compute the standard disk node mass rate of change.
     use :: Abundances_Structure            , only : abs                    , abundances           , max               , operator(*)              , &
           &                                         zeroAbundances
@@ -662,7 +662,6 @@ contains
          &                                          zeroStellarLuminosities
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
-    logical                                , intent(in   )          :: odeConverged
     class           (nodeComponentDisk    )               , pointer :: disk
     class           (nodeComponentSpheroid)               , pointer :: spheroid
     class           (nodeComponentHotHalo )               , pointer :: hotHalo
@@ -678,7 +677,6 @@ contains
     type            (history              )                         :: historyTransferRate
     type            (stellarLuminosities  ), save                   :: luminositiesTransferRate
     !$omp threadprivate(luminositiesTransferRate)
-    !$GLC attributes unused :: odeConverged
 
     ! Return immediately if this class is not in use or only inactive properties are being computed.
     if (.not.defaultDiskComponent%standardIsActive() .or. propertyType == propertyTypeInactive) return
