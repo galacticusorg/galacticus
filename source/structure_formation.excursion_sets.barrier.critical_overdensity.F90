@@ -27,7 +27,7 @@
   type, extends(excursionSetBarrierClass) :: excursionSetBarrierCriticalOverdensity
      !% A critical overdensity excursion set barrier class.
      private
-     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_ => null()
+     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
    contains
      final     ::                    criticalOverdensityDestructor
