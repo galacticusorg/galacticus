@@ -23,6 +23,7 @@
 module Node_Component_Hot_Halo_VS_Delayed
   !% Implements an extension to the very simple hot halo node component by including an outflowed reservoir
   !% with delayed reincorporation.
+  use :: Hot_Halo_Outflows_Reincorporations, only : hotHaloOutflowReincorporationClass
   implicit none
   private
   public :: Node_Component_Hot_Halo_VS_Delayed_Node_Merger        , Node_Component_Hot_Halo_VS_Delayed_Rate_Compute     , &
@@ -57,8 +58,12 @@ module Node_Component_Hot_Halo_VS_Delayed
   !# </component>
 
   ! Options controlling the numerical implementation.
-  double precision :: hotHaloVerySimpleDelayedMassScaleRelative
+  double precision                                               :: hotHaloVerySimpleDelayedMassScaleRelative
 
+  ! Objects used by this component.
+  class           (hotHaloOutflowReincorporationClass ), pointer :: hotHaloOutflowReincorporation_
+  !$omp threadprivate(hotHaloOutflowReincorporation_)
+  
 contains
 
   !# <nodeComponentInitializationTask>
@@ -106,6 +111,7 @@ contains
     !$GLC attributes unused :: parameters_
 
     if (defaultHotHaloComponent%verySimpleDelayedIsActive()) then
+       !# <objectBuilder class="hotHaloOutflowReincorporation" name="hotHaloOutflowReincorporation_" source="parameters_"/>
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call nodePromotionEvent  %attach(defaultHotHaloComponent,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloVerySimpleDelayed'                          )
        call satelliteMergerEvent%attach(defaultHotHaloComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentHotHaloVerySimpleDelayed',dependencies=dependencies)
@@ -124,6 +130,7 @@ contains
     implicit none
 
     if (defaultHotHaloComponent%verySimpleDelayedIsActive()) then
+       !# <objectDestructor name="hotHaloOutflowReincorporation_"/>
        call nodePromotionEvent  %detach(defaultHotHaloComponent,nodePromotion  )
        call satelliteMergerEvent%detach(defaultHotHaloComponent,satelliteMerger)
        call postEvolveEvent     %detach(defaultHotHaloComponent,postEvolve     )
@@ -167,20 +174,18 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Hot_Halo_VS_Delayed_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the very simple hot halo component mass rate of change.
-    use :: Abundances_Structure              , only : abundances                   , operator(*)                          , zeroAbundances
-    use :: Galacticus_Nodes                  , only : nodeComponentHotHalo         , nodeComponentHotHaloVerySimpleDelayed, propertyTypeInactive, treeNode, &
-         &                                            defaultHotHaloComponent
-    use :: Hot_Halo_Outflows_Reincorporations, only : hotHaloOutflowReincorporation, hotHaloOutflowReincorporationClass
+    use :: Abundances_Structure, only : abundances                   , operator(*)                          , zeroAbundances
+    use :: Galacticus_Nodes    , only : nodeComponentHotHalo         , nodeComponentHotHaloVerySimpleDelayed, propertyTypeInactive, treeNode, &
+         &                              defaultHotHaloComponent
     implicit none
-    type            (treeNode                          ), intent(inout), pointer :: node
-    logical                                             , intent(inout)          :: interrupt
-    procedure       (                                  ), intent(inout), pointer :: interruptProcedure
-    integer                                             , intent(in   )          :: propertyType
-    class           (nodeComponentHotHalo              )               , pointer :: hotHalo
-    class           (hotHaloOutflowReincorporationClass)               , pointer :: hotHaloOutflowReincorporation_
-    type            (abundances                        ), save                   :: abundancesReturnRate
+    type            (treeNode             ), intent(inout), pointer :: node
+    logical                                , intent(inout)          :: interrupt
+    procedure       (                     ), intent(inout), pointer :: interruptProcedure
+    integer                                , intent(in   )          :: propertyType
+    class           (nodeComponentHotHalo )               , pointer :: hotHalo
+    type            (abundances           ), save                   :: abundancesReturnRate
     !$omp threadprivate(abundancesReturnRate)
-    double precision                                                             :: outflowReturnRate
+    double precision                                                :: outflowReturnRate
     !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Return immediately if inactive variables are requested.
@@ -194,8 +199,7 @@ contains
     select type (hotHalo)
     class is (nodeComponentHotHaloVerySimpleDelayed)
        ! Move outflowed material back to the hot reservoir.
-       hotHaloOutflowReincorporation_ =>  hotHaloOutflowReincorporation      (    )
-       outflowReturnRate              =  +hotHaloOutflowReincorporation_%rate(node)
+       outflowReturnRate=hotHaloOutflowReincorporation_%rate(node)
        if (hotHalo%outflowedMass() > 0.0d0) then
           abundancesReturnRate           =  +outflowReturnRate             &
                &                            *hotHalo%outflowedAbundances() &
