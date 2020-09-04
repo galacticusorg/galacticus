@@ -57,6 +57,7 @@ contains
     else
        workNode => node
     end if
+    formationNode => null()
     do while (associated(workNode))
        formationNode => workNode
        basicWork     => workNode%basic()
