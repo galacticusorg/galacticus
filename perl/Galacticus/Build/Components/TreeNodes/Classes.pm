@@ -127,14 +127,12 @@ sub Tree_Node_Class_Get {
 	     }
 	    ]
     };
-	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
-autoCreateActual=.false.
-if (present(autoCreate)) autoCreateActual=autoCreate
-CODE
-	if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
-	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 instanceActual=1
 if (present(instance)) instanceActual=instance
+autoCreateActual=.false.
+if (present(autoCreate)) autoCreateActual=autoCreate
 if (autoCreateActual.and.allocated(self%component{ucfirst($class->{'name'})})) then
    ! If we are allowed to autocreate the component and it still has generic type then deallocate it to force it to be created later.
    if (same_type_as(self%component{ucfirst($class->{'name'})}(1),{ucfirst($class->{'name'})}Class)) deallocate(self%component{ucfirst($class->{'name'})})
@@ -151,6 +149,8 @@ CODE
     } else {
 	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self, instance, instanceActual
+autoCreateActual=.false.
+if (present(autoCreate)) autoCreateActual=autoCreate
 if (autoCreateActual) then
  ! Support for this component was not compiled, so we can not create it.
  component => null()
