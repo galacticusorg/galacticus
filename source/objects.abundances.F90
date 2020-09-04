@@ -363,11 +363,10 @@ contains
 
   subroutine Abundances_Destroy(self)
     !% Destroy an abundances object.
-    use :: Memory_Management, only : deallocateArray
     implicit none
     class(abundances), intent(inout) :: self
 
-    if (allocated(self%elementalValue)) call deallocateArray(self%elementalValue)
+    if (allocated(self%elementalValue)) deallocate(self%elementalValue)
     return
   end subroutine Abundances_Destroy
 
@@ -698,11 +697,10 @@ contains
 
   subroutine Abundances_Allocate_Elemental_Values(self)
     !% Ensure that the {\normalfont \ttfamily elementalValue} array in an {\normalfont \ttfamily abundances} is allocated.
-    use :: Memory_Management, only : allocateArray
     implicit none
     type(abundances), intent(inout) :: self
 
-    if (.not.allocated(self%elementalValue)) call allocateArray(self%elementalValue,[elementsCount])
+    if (.not.allocated(self%elementalValue)) allocate(self%elementalValue(elementsCount))
     return
   end subroutine Abundances_Allocate_Elemental_Values
 
