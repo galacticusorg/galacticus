@@ -166,7 +166,12 @@ contains
     type            (history                       )                         :: rateHistoryStarFormation, ratePropertiesStellar
     type            (stellarLuminosities           )                         :: rateLuminositiesStellar , rateLuminositiesTransfer
     
+    ! Check for a realistic disk, return immediately if disk is unphysical.
     disk => node%disk()
+    if     (     disk%angularMomentum() < 0.0d0 &
+         &  .or. disk%radius         () < 0.0d0 &
+         &  .or. disk%massGas        () < 0.0d0 &
+         & ) return
     if (propertyType == propertyTypeInactive) then
        ! For inactive property solution make use of the "massStellarFormed" property to determine the star formation rate.
        rateStarFormation=disk%massStellarFormedRateGet()
