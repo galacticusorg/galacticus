@@ -1883,7 +1883,7 @@ call mpiBarrier()
     end if
 #else
     self%counter=0
-/#endif
+#endif
     !$ self%ompLock_=ompLock()
     return
   end function counterConstructor
