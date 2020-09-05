@@ -1883,14 +1883,16 @@ call mpiBarrier()
     end if
 #else
     self%counter=0
-#endif
+/#endif
     !$ self%ompLock_=ompLock()
     return
   end function counterConstructor
 
   subroutine counterDestructor(self)
     !% Destructor for the MPI counter class.
+#ifdef USEMPI
     use :: MPI_F08, only : MPI_Win_Free, MPI_Free_Mem
+#endif
     implicit none
     type   (mpiCounter), intent(inout) :: self
 #ifdef USEMPI
