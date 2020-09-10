@@ -84,8 +84,10 @@ contains
     integer(c_size_t                  )                :: forestNumber
     !$GLC attributes unused :: self
 
+#ifdef USEMPI
     !$omp master
     if (mpiSelf%rank() == 0) forestNumber=fcfsForestCounter%get()
     !$omp end master
+#endif
     return
   end subroutine fcfsPing
