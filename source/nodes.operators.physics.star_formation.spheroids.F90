@@ -111,16 +111,24 @@ contains
     procedure       (interruptTask                     ), intent(inout), pointer :: functionInterrupt
     integer                                             , intent(in   )          :: propertyType
     class           (nodeComponentSpheroid             )               , pointer :: spheroid
-    double precision                                                             :: rateStarFormation       , massFuel           , &
-         &                                                                          rateMassStellar         , rateEnergyInput    , &
+    double precision                                    , parameter              :: radiusMinimum           =1.0d-12 ! ⎫
+    double precision                                    , parameter              :: massMinimum             =1.0d-06 ! ⎬ Minimum absolute scales for physically plausible spheroids.
+    double precision                                    , parameter              :: angularMomentumMinimum  =1.0d-20 ! ⎭
+    double precision                                                             :: rateStarFormation               , massFuel             , &
+         &                                                                          rateMassStellar                 , rateEnergyInput      , &
          &                                                                          rateMassFuel
     logical                                                                      :: luminositiesCompute
-    type            (abundances                        )                         :: abundancesFuel          , rateAbundancesFuels, &
+    type            (abundances                        )                         :: abundancesFuel                  , rateAbundancesFuels  , &
          &                                                                          rateAbundancesStellar
-    type            (history                           )                         :: rateHistoryStarFormation, ratePropertiesStellar
+    type            (history                           )                         :: rateHistoryStarFormation        , ratePropertiesStellar
     type            (stellarLuminosities               )                         :: rateLuminositiesStellar
     
+    ! Check for a realistic spheroid, return immediately if spheroid is unphysical.
     spheroid => node%spheroid()
+    if     (     spheroid%angularMomentum() < angularMomentumMinimum &
+         &  .or. spheroid%radius         () <          radiusMinimum &
+         &  .or. spheroid%massGas        () <            massMinimum &
+         & ) return
     if (propertyType == propertyTypeInactive) then
        ! For inactive property solution make use of the "massStellarFormed" property to determine the star formation rate.
        rateStarFormation=spheroid%massStellarFormedRateGet()

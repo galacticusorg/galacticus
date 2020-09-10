@@ -1994,6 +1994,7 @@ contains
          &                                                                                                             indexEnd                               , indexMidpoint
     type            (varying_string                                 )                                               :: message
     character       (len=32                                         )                                               :: label
+    logical                                                                                                         :: precisionLost
     !$GLC attributes initialized :: previous
 
     ! If the interval has zero size, return a zero result.
@@ -2033,7 +2034,8 @@ contains
          & .or.                                                &
          &  abs(error) <= self%toleranceRelative*abs(integral)
     ! Iterate until convergence is reached.
-    do while (.not.all(converged) .and. intervalCount < self%intervalsMaximum)
+    precisionLost=.false.
+    do while (.not.all(converged) .and. intervalCount < self%intervalsMaximum .and. .not.precisionLost)
        ! Bisect the head interval. By construction, this will always be the interval with the largest absolute error.
        current       => head      ! Pop the head from the list.
        head          => head%next
@@ -2120,6 +2122,7 @@ contains
           end do
           call Galacticus_Display_Unindent('done')
           call Galacticus_Display_Indent  ('current integrals:')
+          current => head
           do i=1,size(current%fa)
              message="integral : error  (i="
              write (label,'(i12)') i
@@ -2134,7 +2137,9 @@ contains
           end do
           call Galacticus_Display_Unindent('done')
           call Galacticus_Display_Unindent('done')
-          call Galacticus_Error_Report("loss of precision in integration interval"//{introspection:location})
+          ! Force exit.
+          precisionLost=.true.
+          exit          
        end if
        ! Evaluate the function at the midpoint of the current interval.
        mustEvaluate=.not.converged
@@ -2356,7 +2361,13 @@ contains
     deallocate(listRank )
     ! Report error if number of intervals was exceeded.
     if (present(status)) status=errorStatusSuccess
-    if (intervalCount >= self%intervalsMaximum .and. .not.all(converged)) then
+    if (precisionLost) then
+       if (present(status)) then
+          status=errorStatusFail
+       else
+          call Galacticus_Error_Report("loss of precision in integration interval"//{introspection:location})
+       end if
+    else if (intervalCount >= self%intervalsMaximum .and. .not.all(converged)) then
        if (present(status)) then
           status=errorStatusFail
        else

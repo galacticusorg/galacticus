@@ -27,6 +27,7 @@
      private
    contains
      procedure :: forestNumber => fcfsForestNumber
+     procedure :: ping         => fcfsPing
   end type evolveForestsWorkShareFCFS
 
   interface evolveForestsWorkShareFCFS
@@ -74,3 +75,19 @@ contains
     fcfsForestNumber=fcfsForestCounter%increment()+1_c_size_t
     return
   end function fcfsForestNumber
+
+  subroutine fcfsPing(self)
+    !% Return the number of the next forest to process.
+    use :: MPI_Utilities, only : mpiSelf
+    implicit none
+    class  (evolveForestsWorkShareFCFS), intent(inout) :: self
+    integer(c_size_t                  )                :: forestNumber
+    !$GLC attributes unused :: self
+
+#ifdef USEMPI
+    !$omp master
+    if (mpiSelf%rank() == 0) forestNumber=fcfsForestCounter%get()
+    !$omp end master
+#endif
+    return
+  end subroutine fcfsPing

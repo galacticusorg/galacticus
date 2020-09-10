@@ -327,7 +327,7 @@ contains
     else
        self%gsl_odeiv2_driver   =gsl_odeiv2_driver_alloc_y_new      (self%gsl_odeiv2_system,self%gsl_odeiv2_step_type,hStart_,toleranceAbsolute_,toleranceRelative_                         )
     end if
-    ! set integrator error tolerance behavior.
+    ! Set integrator error tolerance behavior.
     self%integratorErrorTolerant=integratorErrorTolerant_
     return
   end function odeSolverConstructor

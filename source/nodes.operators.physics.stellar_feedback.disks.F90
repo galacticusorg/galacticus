@@ -114,13 +114,19 @@ contains
     type            (history                         )                         :: ratePropertiesStellar
     type            (stellarLuminosities             )                         :: rateLuminositiesStellar
 
+    ! Do nothing during inactive property solving.
     if (propertyType == propertyTypeInactive) return
+    ! Check for a realistic disk, return immediately if disk is unphysical.
+    disk => node%disk()
+    if     (     disk%angularMomentum() < 0.0d0 &
+         &  .or. disk%radius         () < 0.0d0 &
+         &  .or. disk%massGas        () < 0.0d0 &
+         & ) return
     ! Get the star formation rate.
     rateStarFormation=self%starFormationRateDisks_%rate(node)   
     ! Compute abundances of star forming gas.
-    disk          => node%disk         ()
-    massGas       =  disk%massGas      ()
-    abundancesGas =  disk%abundancesGas()
+    massGas      =disk%massGas      ()
+    abundancesGas=disk%abundancesGas()
     call abundancesGas%massToMassFraction(massGas)
     ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
     ratePropertiesStellar=disk%stellarPropertiesHistory()

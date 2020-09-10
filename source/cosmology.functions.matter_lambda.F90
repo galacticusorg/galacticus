@@ -53,7 +53,7 @@
           &                                                                   interpolatorLuminosityDistanceKCorrected
      logical                                                               :: distanceTableInitialized                        =.false.
      integer                                                               :: distanceTableNumberPoints
-     double precision                                                      :: distanceTableTimeMaximum                                 , distanceTableTimeMinimum                            =1.0d-4
+     double precision                                                      :: distanceTableTimeMaximum                                 , distanceTableTimeMinimum                            =1.0d+0
      double precision                          , allocatable, dimension(:) :: distanceTableComovingDistance                            , distanceTableComovingDistanceNegated                       , &
           &                                                                   distanceTableLuminosityDistanceNegated                   , distanceTableTime                                          , &
           &                                                                   distanceTableLuminosityDistanceKCorrectedNegated
@@ -1121,6 +1121,8 @@ contains
     use :: Memory_Management    , only : allocateArray, deallocateArray
     use :: Numerical_Integration, only : integrator
     use :: Numerical_Ranges     , only : Make_Range   , rangeTypeLogarithmic
+    use :: Numerical_Constants_Astronomical, only : gigaYear  , megaParsec
+    use :: Numerical_Constants_Physical    , only : speedLight
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout), target :: self
     double precision                                , intent(in   )         :: time
@@ -1155,10 +1157,13 @@ contains
          &                              )
     matterLambdaSelfGlobal => self
     do iTime=1,self%distanceTableNumberPoints
-       self%distanceTableComovingDistance(iTime)=integrator_%integrate(                                                                              &
-            &                                                          self%expansionFactor(self%distanceTableTime(iTime                         )), &
-            &                                                          self%expansionFactor(self%distanceTableTime(self%distanceTableNumberPoints))  &
-            &                                                         )
+       self%distanceTableComovingDistance(iTime)=+integrator_%integrate(                                                                              &
+            &                                                           self%expansionFactor(self%distanceTableTime(iTime                         )), &
+            &                                                           self%expansionFactor(self%distanceTableTime(self%distanceTableNumberPoints))  &
+            &                                                          )                                                                              &
+            &                                    *speedLight                                                                                          &
+            &                                    *gigaYear                                                                                            &
+            &                                    /megaParsec       
        self              %distanceTableLuminosityDistanceNegated              (iTime)   &
             & =      self%distanceTableComovingDistance                       (iTime)   &
             &       /self%expansionFactor              (self%distanceTableTime(iTime))
@@ -1183,19 +1188,17 @@ contains
     self%interpolatorDistanceInverse             =interpolator(self%distanceTableComovingDistanceNegated            ,self%distanceTableTime                   )
     self%interpolatorLuminosityDistance          =interpolator(self%distanceTableLuminosityDistanceNegated          ,self%distanceTableComovingDistanceNegated)
     self%interpolatorLuminosityDistanceKCorrected=interpolator(self%distanceTableLuminosityDistanceKCorrectedNegated,self%distanceTableComovingDistanceNegated)
-     ! Flag that the table is now initialized.
+    ! Flag that the table is now initialized.
     self%distanceTableInitialized=.true.
     return
   end subroutine matterLambdaMakeDistanceTable
 
   double precision function matterLambdaComovingDistanceIntegrand(expansionFactor)
     !% Integrand function used in computing the comoving distance.
-    use :: Numerical_Constants_Astronomical, only : gigaYear  , megaParsec
-    use :: Numerical_Constants_Physical    , only : speedLight
     implicit none
     double precision, intent(in   ) :: expansionFactor
 
-    matterLambdaComovingDistanceIntegrand=speedLight*gigaYear/megaParsec/expansionFactor**2/matterLambdaSelfGlobal%expansionRate(expansionFactor)
+    matterLambdaComovingDistanceIntegrand=1.0d0/expansionFactor**2/matterLambdaSelfGlobal%expansionRate(expansionFactor)
     return
   end function matterLambdaComovingDistanceIntegrand
 

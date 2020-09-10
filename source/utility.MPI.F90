@@ -25,7 +25,7 @@ module MPI_Utilities
   use               :: MPI_F08           , only : MPI_Win                , MPI_Datatype
 #endif
   !$ use            :: Locks             , only : ompLock
-  use   , intrinsic :: ISO_C_Binding     , only : c_size_t
+  use   , intrinsic :: ISO_C_Binding     , only : c_size_t              , c_ptr
   use               :: ISO_Varying_String, only : varying_string
   private
   public :: mpiInitialize, mpiFinalize, mpiBarrier, mpiSelf, mpiCounter
@@ -227,11 +227,13 @@ module MPI_Utilities
   type :: mpiCounter
      !% An MPI-global counter class. The counter can be incremented and will return a globally unique integer, beginning at 0.
 #ifdef USEMPI
-     type   (MPI_Win     )                            :: window
-     type   (MPI_Datatype)                            :: typeClass
+     type   (MPI_Win     ) :: window
+     type   (MPI_Datatype) :: typeClass
+     type   (c_ptr       ) :: counter
+#else
+     integer(c_size_t    ) :: counter
 #endif
-     integer(c_size_t    ), allocatable, dimension(:) :: counter
-     !$ type(ompLock )                                :: ompLock_
+     !$ type(ompLock )     :: ompLock_
    contains
      !@ <objectMethods>
      !@   <object>mpiCounter</object>
@@ -1837,16 +1839,19 @@ contains
 
   function counterConstructor() result(self)
     !% Constructor for MPI counter class.
-    use, intrinsic :: ISO_C_Binding   , only : C_Null_Ptr
+    use, intrinsic :: ISO_C_Binding   , only : C_Null_Ptr, C_F_Pointer
 #ifdef USEMPI
     use            :: Galacticus_Error, only : Galacticus_Error_Report
-    use            :: MPI_F08         , only : MPI_Win_Create         , MPI_Address_Kind, MPI_Info_Null, MPI_Comm_World, &
-         &                                     MPI_TypeClass_Integer  , MPI_SizeOf      , MPI_Type_Match_Size
+    use            :: MPI_F08         , only : MPI_Win_Create         , MPI_Address_Kind, MPI_Info_Null      , MPI_Comm_World    , &
+         &                                     MPI_TypeClass_Integer  , MPI_SizeOf      , MPI_Type_Match_Size, MPI_Alloc_Mem     , &
+         &                                     MPI_Win_Lock           , MPI_Put         , MPI_Win_Unlock     , MPI_Lock_Exclusive
 #endif
     implicit none
     type   (mpiCounter      ) :: self
 #ifdef USEMPI
     integer                   :: mpiSize, iError
+    integer(c_size_t), dimension(1) :: countInitial
+    integer(c_size_t), pointer :: countInitialPointer
 
     call MPI_SizeOf(0_c_size_t,mpiSize,iError)
     if (iError /= 0) call Galacticus_Error_Report('failed to get type size'//{introspection:location})
@@ -1854,17 +1859,29 @@ contains
     if (iError /= 0) call Galacticus_Error_Report('failed to get type'     //{introspection:location})
     if (mpiSelf%rank() == 0) then
        ! The rank-0 process allocates space for the counter and creates its window.
-       allocate(self%counter(1))
-       self%counter=0
-       call MPI_Win_Create(self%counter,int(mpiSize,kind=MPI_Address_Kind),mpiSize,MPI_Info_Null,MPI_Comm_World,self%window,iError)
+       call MPI_Alloc_Mem(int(mpiSize,kind=MPI_Address_Kind),MPI_Info_Null,self%counter,iError)
+       if (iError /= 0) call Galacticus_Error_Report('failed to allocate counter memory'//{introspection:location})
+       call C_F_Pointer(self%counter,countInitialPointer)
+       call MPI_Win_Create(countInitialPointer,int(mpiSize,kind=MPI_Address_Kind),mpiSize,MPI_Info_Null,MPI_Comm_World,self%window,iError)
        if (iError /= 0) call Galacticus_Error_Report('failed to create RMA window'//{introspection:location})
+       call mpiBarrier()
+       !$omp master
+       ! Initialize the counter to zero.
+       call MPI_Win_Lock(MPI_Lock_Exclusive,0,0,self%window,iError)
+       if (iError /= 0) call Galacticus_Error_Report('failed to lock RMA window'  //{introspection:location})
+       countInitial=0_c_size_t
+       call MPI_Put(countInitial,1,self%typeClass,0,0_MPI_Address_Kind,1,self%typeClass,self%window,iError)
+       if (iError /= 0) call Galacticus_Error_Report('failed to set MPI counter'  //{introspection:location})
+       call MPI_Win_Unlock(0,self%window,iError)
+       if (iError /= 0) call Galacticus_Error_Report('failed to unlock RMA window'//{introspection:location})
+       !$omp end master
     else
        ! Other processes create a zero-size window.
        call MPI_Win_Create(C_Null_Ptr  ,               0_MPI_Address_Kind,mpiSize,MPI_Info_Null,MPI_Comm_World,self%window,iError)
        if (iError /= 0) call Galacticus_Error_Report('failed to create RMA window'//{introspection:location})
+call mpiBarrier()
     end if
 #else
-    allocate(self%counter(1))
     self%counter=0
 #endif
     !$ self%ompLock_=ompLock()
@@ -1873,12 +1890,16 @@ contains
 
   subroutine counterDestructor(self)
     !% Destructor for the MPI counter class.
+#ifdef USEMPI
+    use :: MPI_F08, only : MPI_Win_Free, MPI_Free_Mem
+#endif
     implicit none
     type   (mpiCounter), intent(inout) :: self
 #ifdef USEMPI
     integer                            :: iError
 
-    call MPI_Win_Free(self%window,iError)
+    call MPI_Win_Free(self%window ,iError)
+    call MPI_Free_Mem(self%counter,iError)
 #else
     !$GLC attributes unused :: self
 #endif
@@ -1911,8 +1932,8 @@ contains
     counterIncrement=counterOut(1)
 #else
     !$ call self%ompLock_%  set()
-    counterIncrement=self%counter(1)
-    self%counter(1)=self%counter(1)+1_c_size_t
+    counterIncrement=self%counter
+    self%counter=self%counter+1_c_size_t
     !$ call self%ompLock_%unset()
 #endif
     return
@@ -1940,10 +1961,10 @@ contains
     call MPI_Win_Unlock(0,self%window,iError)
     if (iError /= 0) call Galacticus_Error_Report('failed to unlock RMA window'         //{introspection:location})
     !$ call self%ompLock_%unset()
-    counterGet=counterOut(1)-1
+    counterGet=counterOut(1)-1_c_size_t
 #else
     !$ call self%ompLock_%  set()
-    counterGet=self%counter(1)-1_c_size_t
+    counterGet=self%counter-1_c_size_t
     !$ call self%ompLock_%unset()
 #endif
     return

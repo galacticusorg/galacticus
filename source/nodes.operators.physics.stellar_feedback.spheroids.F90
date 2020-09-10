@@ -103,24 +103,33 @@ contains
     integer                                               , intent(in   )          :: propertyType
     class           (nodeComponentSpheroid               )               , pointer :: spheroid
     class           (nodeComponentHotHalo                )               , pointer :: hotHalo
-    double precision                                                               :: rateStarFormation       , massGas                   , &
-         &                                                                            angularMomentum         , fractionEjected           , &
-         &                                                                            rateMassStellar         , rateEnergyInput           , &
-         &                                                                            rateMassFuel            , rateMassOutflowEjected    , &
-         &                                                                            rateMassOutflowExpelled , rateMassOutflowTotal      , &
-         &                                                                            massSpheroid            , rateAngularMomentumOutflow
-    type            (abundances                          )                         :: abundancesGas           , rateAbundancesFuels       , &
-         &                                                                            rateAbundancesStellar   , rateAbundancesOutflow
+    double precision                                      , parameter              :: radiusMinimum           =1.0d-12 ! ⎫
+    double precision                                      , parameter              :: massMinimum             =1.0d-06 ! ⎬ Minimum absolute scales for physically plausible spheroids.
+    double precision                                      , parameter              :: angularMomentumMinimum  =1.0d-20 ! ⎭
+    double precision                                                               :: rateStarFormation               , massGas                   , &
+         &                                                                            angularMomentum                 , fractionEjected           , &
+         &                                                                            rateMassStellar                 , rateEnergyInput           , &
+         &                                                                            rateMassFuel                    , rateMassOutflowEjected    , &
+         &                                                                            rateMassOutflowExpelled         , rateMassOutflowTotal      , &
+         &                                                                            massSpheroid                    , rateAngularMomentumOutflow
+    type            (abundances                          )                         :: abundancesGas                   , rateAbundancesFuels       , &
+         &                                                                            rateAbundancesStellar           , rateAbundancesOutflow
     type            (history                             )                         :: ratePropertiesStellar
     type            (stellarLuminosities                 )                         :: rateLuminositiesStellar
 
+    ! Do nothing during inactive property solving.
     if (propertyType == propertyTypeInactive) return
+    ! Check for a realistic spheroid, return immediately if spheroid is unphysical.
+    spheroid => node%spheroid()
+    if     (     spheroid%angularMomentum() < angularMomentumMinimum &
+         &  .or. spheroid%radius         () <          radiusMinimum &
+         &  .or. spheroid%massGas        () <            massMinimum &
+         & ) return
     ! Get the star formation rate.
     rateStarFormation=self%starFormationRateSpheroids_%rate(node)   
     ! Compute abundances of star forming gas.
-    spheroid      => node    %spheroid     ()
-    massGas       =  spheroid%massGas      ()
-    abundancesGas =  spheroid%abundancesGas()
+    massGas      =spheroid%massGas      ()
+    abundancesGas=spheroid%abundancesGas()
     call abundancesGas%massToMassFraction(massGas)
     ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
     ratePropertiesStellar=spheroid%stellarPropertiesHistory()

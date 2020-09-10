@@ -53,7 +53,6 @@ module iso_varying_string
      private
      character(LEN=1), dimension(:), allocatable :: chars
    contains
-     final :: vsFinalize
      !@ <objectMethod>
      !@   <object>varying_string</object>
      !@   <method>destroy</method>
@@ -2692,14 +2691,6 @@ contains
     if (allocated(string%chars)) deallocate(string%chars)
     return
   end subroutine destroy_VS
-
-  subroutine vsFinalize (string)
-    !% Destroy a varying string object by deallocating it. Can be necessary to avoid memory leaks in some instances.
-    type(varying_string), intent(inout) :: string
-
-    if (allocated(string%chars)) deallocate(string%chars)
-    return
-  end subroutine vsFinalize
 
   subroutine load_from_file_VS(string,fileName)
     !% Load a varying string object with the contents of a file (specified by {\normalfont \ttfamily fileName}).
