@@ -2035,7 +2035,7 @@ contains
          &  abs(error) <= self%toleranceRelative*abs(integral)
     ! Iterate until convergence is reached.
     precisionLost=.false.
-    do while (.not.all(converged) .and. intervalCount < self%intervalsMaximum .and. precisionLost)
+    do while (.not.all(converged) .and. intervalCount < self%intervalsMaximum .and. .not.precisionLost)
        ! Bisect the head interval. By construction, this will always be the interval with the largest absolute error.
        current       => head      ! Pop the head from the list.
        head          => head%next
