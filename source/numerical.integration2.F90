@@ -2069,7 +2069,7 @@ contains
             &  .or.                 &
             &   midpoint==current%b &
             & ) then
-          if (Galacticus_Verbosity_Level() < verbosityStandard) call Galacticus_Verbosity_Level_Set(verbosityStandard)
+          if (Galacticus_Verbosity_Level() < verbosityStandard .and. .not.present(status)) call Galacticus_Verbosity_Level_Set(verbosityStandard)
           call Galacticus_Display_Indent('integration failure:')
           call Galacticus_Display_Indent('current intervals:')
           message="a/b/(b-a)       ="
