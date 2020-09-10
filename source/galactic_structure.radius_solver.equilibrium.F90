@@ -209,7 +209,7 @@ contains
     node%isPhysicallyPlausible=.true.
     node%isSolvable           =.true.
     include 'galactic_structure.radius_solver.plausible.inc'
-     if (node%isPhysicallyPlausible) then
+    if (node%isPhysicallyPlausible) then
        ! Initialize the solver state.
        equilibriumIterationCount=0
        equilibriumFitMeasure    =2.0d0*self%solutionTolerance
