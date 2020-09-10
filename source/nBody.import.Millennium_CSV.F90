@@ -149,6 +149,7 @@ contains
          &                                                                                      gotPositionZ            , gotVelocityX, &
          &                                                                                      gotVelocityY            , gotVelocityZ, &
          &                                                                                      gotID
+    !$GLC attributes initialized :: columns
 
     call Galacticus_Display_Indent('import simulation from MillenniumCSV file',verbosityStandard)
     allocate(simulations(1))

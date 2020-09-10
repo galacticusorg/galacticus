@@ -122,6 +122,7 @@ contains
     type            (varying_string                  ), save                             :: lockTypeSimple    , lockTypeSatellite    , lockTypeSatelliteDestruction
     integer                                                                              :: timeStepSmallest
     !$omp threadprivate(lockTypeSimple,lockTypeSatellite)
+    !$GLC attributes initialized :: lockNodeSimple, lockNodeSatellite, lockNodeSatelliteDestruction
 
     ! Find all timesteps.
     timeEvolveToSimple              =self%simple              %timeEvolveTo(node,taskSimple              ,taskSelfSimple              ,report,lockNode,lockType)
