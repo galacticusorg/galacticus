@@ -179,19 +179,21 @@ contains
     !#  <functionArgs>node</functionArgs>
     include 'galactic_structure.radius_solver.plausible.inc'
     !# </include>
-    ! Determine which node to use for halo properties.
-    if (self%useFormationHalo) then
-       if (.not.associated(node%formationNode)) call Galacticus_Error_Report('no formation node exists'//{introspection:location})
-       haloNode => node%formationNode
-    else
-       haloNode => node
+    if (node%isPhysicallyPlausible) then
+       ! Determine which node to use for halo properties.
+       if (self%useFormationHalo) then
+          if (.not.associated(node%formationNode)) call Galacticus_Error_Report('no formation node exists'//{introspection:location})
+          haloNode => node%formationNode
+       else
+          haloNode => node
+       end if
+       ! Solve for each component.
+       !# <include directive="radiusSolverTask" type="functionCall" functionType="void">
+       !#  <functionArgs>node,componentActive,specificAngularMomentumRequired,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet</functionArgs>
+       !#  <onReturn>if (componentActive) call radiusSolve(node,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)</onReturn>
+       include 'galactic_structure.radius_solver.tasks.inc'
+       !# </include>
     end if
-    ! Solve for each component.
-    !# <include directive="radiusSolverTask" type="functionCall" functionType="void">
-    !#  <functionArgs>node,componentActive,specificAngularMomentumRequired,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet</functionArgs>
-    !#  <onReturn>if (componentActive) call radiusSolve(node,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)</onReturn>
-    include 'galactic_structure.radius_solver.tasks.inc'
-    !# </include>
     return
 
   contains
