@@ -78,10 +78,14 @@ contains
 
   subroutine fcfsPing(self)
     !% Return the number of the next forest to process.
+#ifdef USEMPI
     use :: MPI_Utilities, only : mpiSelf
+#endif
     implicit none
     class  (evolveForestsWorkShareFCFS), intent(inout) :: self
+#ifdef USEMPI
     integer(c_size_t                  )                :: forestNumber
+#endif
     !$GLC attributes unused :: self
 
 #ifdef USEMPI
