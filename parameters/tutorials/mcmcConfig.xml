@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <!-- Parameters for tutorial on constraining Galacticus parameters - https://github.com/galacticusorg/galacticus/wiki/Tutorial%3A-Constraining-Galacticus-Parameters -->
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <verbosityLevel value="1"/>
+
+  <taskMethod value="posteriorSample">
+    <initializeNodeClassHierarchy value="false"/>
+  </taskMethod>
+
+  <galacticusOutputFileName value="galacticus.hdf5"/>
+
+  <posteriorSampleLikelihoodMethod value="galaxyPopulation">
+    <baseParametersFileName   value="parameters/tutorials/mcmcBase.xml"      />
+    <failedParametersFileName value="./failedParameters.xml"/>
+    <randomize                value="false"                                    />
+    <evolveForestsVerbosity   value="0"                                        />
+  </posteriorSampleLikelihoodMethod>
+
+  <!-- MCMC -->
+  <posteriorSampleSimulationMethod value="differentialEvolution">
+    <stepsMaximum           value="1000"/>
+    <acceptanceAverageCount value="    10"/>
+    <stateSwapCount         value="     100"/>
+    <logFileRoot            value="mcmcChains"/>
+    <reportCount            value="10"/>
+    <sampleOutliers         value="false"/>
+    <logFlushCount          value="      1"/>
+
+    <posteriorSampleStateMethod value="correlation">
+      <acceptedStateCount value="100"/>
+    </posteriorSampleStateMethod>
+
+    <posteriorSampleStateInitializeMethod value="latinHypercube">
+      <maximinTrialCount value="100"/>
+    </posteriorSampleStateInitializeMethod>
+    
+    <posteriorSampleConvergenceMethod value="gelmanRubin">
+      <thresholdHatR              value=" 5.00"/>
+      <burnCount                  value="10"   />
+      <testCount                  value="10"   />
+      <outlierCountMaximum        value=" 1"   />
+      <outlierSignificance        value=" 0.95"/>
+      <outlierLogLikelihoodOffset value="60"   />
+      <reportCount                value=" 1"   />
+      <logFileName                value="mcmcConvergence.log"/>
+    </posteriorSampleConvergenceMethod>
+    
+    <posteriorSampleStoppingCriterionMethod value="stepCount">
+      <stopAfterCount value="10"/>
+    </posteriorSampleStoppingCriterionMethod>
+
+    <posteriorSampleDffrntlEvltnRandomJumpMethod   value="adaptive"/>
+
+    <posteriorSampleDffrntlEvltnProposalSizeMethod value="adaptive" >
+      <gammaInitial          value="0.500e+0"/>
+      <gammaAdjustFactor     value="1.100e+0"/>
+      <gammaMinimum          value="1.000e-4"/>
+      <gammaMaximum          value="3.000e+0"/>
+      <acceptanceRateMinimum value="0.100e+0"/>
+      <acceptanceRateMaximum value="0.900e+0"/>
+      <updateCount           value="10"     />
+    </posteriorSampleDffrntlEvltnProposalSizeMethod>
+
+     <!-- Feedback -->
+     <modelParameterMethod value="active">
+       <name value="nodeOperatorMethod::nodeOperatorMethod[2]::stellarFeedbackOutflowsMethod::stellarFeedbackOutflowsMethod::velocityCharacteristic"/>
+       <distributionFunction1DPrior value="uniform">
+	 <limitLower value="25.0"/>
+	 <limitUpper value="500.0"/>
+       </distributionFunction1DPrior>
+       <operatorUnaryMapper value="identity"/>
+       <distributionFunction1DPerturber value="cauchy">
+	 <median value="0.0"/>
+	 <scale value="1.0e-3"/>
+       </distributionFunction1DPerturber>
+     </modelParameterMethod>
+  
+  </posteriorSampleSimulationMethod>
+
+  <!-- Random seed -->
+  <randomNumberGeneratorMethod value="GSL">
+    <seed          value="219" />
+    <mpiRankOffset value="true"/>
+  </randomNumberGeneratorMethod>
+  
+</parameters>
