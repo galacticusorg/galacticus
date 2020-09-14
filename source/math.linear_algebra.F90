@@ -208,6 +208,7 @@ module Linear_Algebra
      module procedure vectorUnassignment
      module procedure matrixAssignmentConstructor
      module procedure matrixUnassignment
+     module procedure matrixLUUnassignment
   end interface assignment(=)
 
   ! Operator interfaces.
@@ -980,7 +981,7 @@ contains
   !! Matrix functions.
   
   function matrixLUConstructor(matrix_) result(self)
-    !% Constructor for {\normalfont \ttfamily matrixLU} class which builds the matrixLU from an array.
+    !% Constructor for {\normalfont \ttfamily matrixLU} class which builds the matrix from an array.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Interface_GSL   , only : GSL_Success
     implicit none
@@ -1047,6 +1048,21 @@ contains
     return
   end function matrixLUSquareSystemSolve
 
+  subroutine matrixLUUnassignment(array,self)
+    !% Assign elements of a {\normalfont \ttfamily matrixLU} class to an array
+    implicit none
+    double precision          , intent(  out), dimension(:,:) :: array
+    type            (matrixLU), intent(in   )                 :: self
+    integer         (c_size_t)                                :: i    , j
+
+    do i=1_c_size_t,self%size_(1)
+       do j=1_c_size_t,self%size_(2)
+          array(i,j)=gsl_matrix_get(self%matrix_,i-1_c_size_t,j-1_c_size_t)
+       end do
+    end do
+    return
+  end subroutine matrixLUUnassignment
+  
   !! Geometrical transformations.
   
   function matrixRotation(points,pointsRotated)
