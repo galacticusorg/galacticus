@@ -197,7 +197,7 @@ Output is controlled by parameters given within the {\normalfont \ttfamily merge
 \begin{description}
 \item[{\normalfont \ttfamily outputMergerTrees}] If {\normalfont \ttfamily true} then each merger tree is output to the relevant sub-group at each output time (see \S\ref{sec:nodeDataGroup}). Otherwise merger trees are not output. [Default: {\normalfont \ttfamily true}.]
 \item[{\normalfont \ttfamily outputReferences}] If {\normalfont \ttfamily true} then an HDF5 reference dataset is written for each merger tree subgroup (see \S\ref{sec:mergerTreeSubgroups}). [Default: {\normalfont \ttfamily false}.]
-\item[{\normalfont \ttfamily galacticFilterMethod}] A ``galactic filter'' (see \S\ref{sec:methodsGalacticFilter}) which is applied to each node in the tree to determine whether or not it should be output. By combining multiple filters it is possible to construct arbitrarily complex criteria for output. [Default: {\normalfont \ttfamily always}.]
+\item[{\normalfont \ttfamily galacticFilterMethod}] A \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf#methods.galacticFilter}{\normalfont \ttfamily galacticFilter} which is applied to each node in the tree to determine whether or not it should be output. By combining multiple filters it is possible to construct arbitrarily complex criteria for output. [Default: {\normalfont \ttfamily always}.]
 \end{description}
 
 \subsubsection{nodeData group}\label{sec:nodeDataGroup}\hyperdef{sec}{nodeDataGroup}{}
