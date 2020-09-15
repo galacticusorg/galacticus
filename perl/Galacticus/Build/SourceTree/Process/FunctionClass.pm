@@ -3289,7 +3289,7 @@ CODE
 	    }
 
 	    # Generate documentation.
-	    my $documentation = "\\subsubsection{".$directive->{'descriptiveName'}."}\\label{sec:methods".ucfirst($directive->{'name'})."}\n\n";
+	    my $documentation = "\\subsubsection{".$directive->{'descriptiveName'}."}\\label{sec:methods".ucfirst($directive->{'name'})."}\\hyperdef{methods}{".$directive->{'name'}."}{}\n\n";
 	    $documentation   .= "Additional implementations for ".lc($directive->{'descriptiveName'})." are added using the {\\normalfont \\ttfamily ".$directive->{'name'}."} class.\n";
 	    $documentation   .= "The implementation should be placed in a file containing the directive:\n";
 	    $documentation   .= "\\begin{verbatim}\n";
