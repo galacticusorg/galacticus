@@ -248,7 +248,7 @@ contains
        ! Tabulate the χ_d factor.
        self%xMaximum=xMaximum
        countX       =int(xMaximum*dble(countPerUnit))+1
-       allocate(x(countX))
+       allocate(x                 (countX))
        allocate(decelerationFactor(countX))
        x                       =  Make_Range(0.0d0,xMaximum,countX,rangeTypeLinear)
        darkMatterParticleSIDM_ => darkMatterParticle_
