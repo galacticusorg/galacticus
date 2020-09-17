@@ -43,6 +43,7 @@
      double precision                                                      :: expansionFactorMaximum                                   , expansionFactorPrevious                             =-1.0d0, &
           &                                                                   timeMaximum                                              , timePrevious                                        =-1.0d0, &
           &                                                                   timeTurnaround
+     double precision                                       , dimension(2) :: expansionRatePrevious                                    , expansionRateExpansionFactorPrevious
      logical                                                               :: ageTableInitialized                             =.false.
      integer                                                               :: ageTableNumberPoints
      double precision                                                      :: ageTableTimeMaximum                             =20.0d0  , ageTableTimeMinimum                                 =1.0d-4
@@ -154,11 +155,13 @@ contains
 
     ! Determine if this universe will collapse. We take the Friedmann equation, which gives H²(a) as a function of expansion
     ! factor, a, and solve for where H²(a)=0. If this has a real solution, then we have a collapsing universe.
-    self%collapsingUniverse    =.false.
-    self%enableRangeChecks     =.true.
-    self%expansionFactorMaximum=0.0d0
-    self%timeTurnaround        =0.0d0
-    self%timeMaximum           =0.0d0
+    self%collapsingUniverse                  =.false.
+    self%enableRangeChecks                   =.true.
+    self%expansionFactorMaximum              =0.0d0
+    self%timeTurnaround                      =0.0d0
+    self%timeMaximum                         =0.0d0
+    self%expansionRatePrevious               =-1.0d0
+    self%expansionRateExpansionFactorPrevious=-1.0d0
     if    (Values_Agree(self%cosmologyParameters_%OmegaCurvature (),0.0d0,absTol=omegaTolerance)) then
        if (Values_Agree(self%cosmologyParameters_%OmegaDarkEnergy(),0.0d0,absTol=omegaTolerance)) then
           ! Einstein-de Sitter case. Always expands to infinity.
@@ -512,11 +515,20 @@ contains
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: expansionFactor
 
-    ! Required value is simply the Hubble parameter but expressed in units of inverse Gyr.
-    matterLambdaExpansionRate                                                                      &
-         & = self                     %hubbleParameterEpochal(expansionFactor    =expansionFactor) &
-         &  *self%cosmologyParameters_%HubbleConstant        (hubbleUnitsTime                    ) &
-         &  /self%cosmologyParameters_%HubbleConstant        (hubbleUnitsStandard                )
+    if      (expansionFactor == self%expansionRateExpansionFactorPrevious(1)) then
+       matterLambdaExpansionRate=self%expansionRatePrevious(1)
+    else if (expansionFactor == self%expansionRateExpansionFactorPrevious(2)) then
+       matterLambdaExpansionRate=self%expansionRatePrevious(2)
+    else
+       ! Required value is simply the Hubble parameter but expressed in units of inverse Gyr.
+       self%expansionRateExpansionFactorPrevious(1)=self%expansionRateExpansionFactorPrevious(2)
+       self%expansionRatePrevious               (1)=self%expansionRatePrevious               (2)
+       self%expansionRateExpansionFactorPrevious(2)=+                                                                     expansionFactor
+       self%expansionRatePrevious               (2)=+self                     %hubbleParameterEpochal(expansionFactor    =expansionFactor) &
+            &                                       *self%cosmologyParameters_%HubbleConstant        (hubbleUnitsTime                    ) &
+            &                                       /self%cosmologyParameters_%HubbleConstant        (hubbleUnitsStandard                )
+       matterLambdaExpansionRate                  =+self%expansionRatePrevious(2)
+    end if
     return
   end function matterLambdaExpansionRate
 
