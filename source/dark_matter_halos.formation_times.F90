@@ -40,10 +40,10 @@ contains
     type            (treeNode                               ), pointer                          :: formationNode                      , workNode
     class           (nodeComponentBasic                     ), pointer                          :: basicParent                        , basic   , &
          &                                                                                         basicWork
-    double precision                                                                            :: massNode                           , timeNode
-
+    double precision                                                                            :: massNode                           , massWork, &
+         &                                                                                         timeWork
+    
     basic    => node %basic()
-    timeNode =  basic%time ()
     massNode =  basic%mass ()
     if (present(nodeFormation)) then
        ! We have an initial guess for the formation node. If necessary, walk back up the tree to find the appopriate starting
@@ -56,7 +56,7 @@ contains
        end do
     else
        workNode => node
-    end if
+    end if  
     formationNode => null()
     do while (associated(workNode))
        formationNode => workNode
@@ -69,11 +69,13 @@ contains
        Dark_Matter_Halo_Formation_Time=darkMatterHaloMassAccretionHistory_%time(formationNode,formationMassFraction*massNode)
     else
        ! Interpolate to get the exact time of formation.
-       basicParent => workNode%parent%basic()
-       Dark_Matter_Halo_Formation_Time=                                 basicWork%time()  &
-            &                          +(basicParent%time()            -basicWork%time()) &
-            &                          *(formationMassFraction*massNode-basicWork%mass()) &
-            &                          /(basicParent%mass()            -basicWork%mass())
+       basicParent => workNode %parent%basic()
+       massWork    =  basicWork       %mass ()
+       timeWork    =  basicWork       %time ()
+       Dark_Matter_Halo_Formation_Time=                                 timeWork  &
+            &                          +(basicParent%time()            -timeWork) &
+            &                          *(formationMassFraction*massNode-massWork) &
+            &                          /(basicParent%mass()            -massWork)
        if (present(nodeFormation)) nodeFormation => workNode
     end if
     return
