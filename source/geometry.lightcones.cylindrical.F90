@@ -254,8 +254,8 @@ contains
        call File_Unlock(fileLock)
     else
        !! Compute the covariance matrix.
-       integratorVertical     = integrator(cosmicVarianceIntegrandVertical,integrationRule=GSL_Integ_Gauss15,toleranceRelative=1.0d-3,toleranceAbsolute=1.0d-6)
-       integratorRadial       = integrator(cosmicVarianceIntegrandRadial  ,integrationRule=GSL_Integ_Gauss15,toleranceRelative=1.0d-3                         )
+       integratorVertical     = integrator(cosmicVarianceIntegrandVertical,integrationRule=GSL_Integ_Gauss15,toleranceRelative=1.0d-2,toleranceAbsolute=1.0d-4)
+       integratorRadial       = integrator(cosmicVarianceIntegrandRadial  ,integrationRule=GSL_Integ_Gauss15,toleranceRelative=1.0d-2                         )
        wavenumberMaximumRadial=+wavenumberMaximumFactor &
             &                  /radiusCylinderComoving
        ! Set the time to the present epoch - we will apply our own linear growth to the power spectrum below.

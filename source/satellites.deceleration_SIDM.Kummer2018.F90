@@ -124,8 +124,8 @@ contains
     use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
     use :: Galactic_Structure_Potentials     , only : Galactic_Structure_Potential
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Radius_Enclosing_Mass
-    use :: Galactic_Structure_Options        , only : coordinateSystemCartesian
-    use :: Galacticus_Nodes                  , only : nodeComponentSatellite,nodeComponentBasic
+    use :: Galactic_Structure_Options        , only : coordinateSystemCartesian               , radiusLarge
+    use :: Galacticus_Nodes                  , only : nodeComponentSatellite                  , nodeComponentBasic
     use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus
     use :: Vectors                           , only : Vector_Magnitude
     implicit none
@@ -174,15 +174,19 @@ contains
     if (massBoundary > 0.0d0) then
        radiusBoundary   =Galactic_Structure_Radius_Enclosing_Mass(node,mass  =      massBoundary  )
        radiusHalfMass   =Galactic_Structure_Radius_Enclosing_Mass(node,mass  =0.5d0*massBoundary  )
-       potentialBoundary=Galactic_Structure_Potential            (node,radius=      radiusBoundary)
-       potentialHalfMass=Galactic_Structure_Potential            (node,radius=      radiusHalfMass)
-       potentialEscape  =+potentialBoundary               &
-            &            -potentialHalfMass               &
-            &            +gravitationalConstantGalacticus &
-            &            *massBoundary                    &
-            &            /radiusBoundary
-       if (potentialEscape > 0.0d0) then
-          velocityEscape=sqrt(2.0d0*potentialEscape)
+       if (radiusBoundary < 0.5d0*radiusLarge) then
+          potentialBoundary=Galactic_Structure_Potential            (node,radius=      radiusBoundary)
+          potentialHalfMass=Galactic_Structure_Potential            (node,radius=      radiusHalfMass)
+          potentialEscape  =+potentialBoundary               &
+               &            -potentialHalfMass               &
+               &            +gravitationalConstantGalacticus &
+               &            *massBoundary                    &
+               &            /radiusBoundary
+          if (potentialEscape > 0.0d0) then
+             velocityEscape=sqrt(2.0d0*potentialEscape)
+          else
+             velocityEscape=0.0d0
+          end if
        else
           velocityEscape=0.0d0
        end if
@@ -244,7 +248,7 @@ contains
        ! Tabulate the χ_d factor.
        self%xMaximum=xMaximum
        countX       =int(xMaximum*dble(countPerUnit))+1
-       allocate(x(countX))
+       allocate(x                 (countX))
        allocate(decelerationFactor(countX))
        x                       =  Make_Range(0.0d0,xMaximum,countX,rangeTypeLinear)
        darkMatterParticleSIDM_ => darkMatterParticle_

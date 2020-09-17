@@ -124,7 +124,7 @@ contains
     use :: Galactic_Structure_Options        , only : massTypeGalactic
     use :: Galacticus_Error                  , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                  , only : nodeComponentDisk               , nodeComponentSpheroid    , treeNode
-    use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus
     use :: Satellite_Merging_Mass_Movements  , only : destinationMergerDisk           , destinationMergerSpheroid, destinationMergerUnmoved
     implicit none
     class           (mergerProgenitorPropertiesStandard), intent(inout)         :: self
@@ -136,6 +136,7 @@ contains
          &                                                                         radiusSatellite                , massSpheroidSatellite
     class           (nodeComponentDisk                 ), pointer               :: diskHost                       , diskSatellite
     class           (nodeComponentSpheroid             ), pointer               :: spheroidHost                   , spheroidSatellite
+    double precision                                    , parameter             :: massComponentMinimum=1.0d-30
     double precision                                                            :: massComponent                  , factorDarkMatterDiskHost         , &
          &                                                                         radiusHalfMassDiskHost         , factorDarkMatterSpheroidHost     , &
          &                                                                         hostSpheroidHalfMassRadius     , factorDarkMatterDiskSatellite    , &
@@ -161,7 +162,7 @@ contains
     massComponent                  =+spheroidHost     %massStellar   () &
          &                          +spheroidHost     %massGas       ()
     hostSpheroidHalfMassRadius     =+spheroidHost     %halfMassRadius()
-    if (hostSpheroidHalfMassRadius > 0.0d0 .and. massComponent > 0.0d0) then
+    if (hostSpheroidHalfMassRadius > 0.0d0 .and. massComponent > massComponentMinimum) then
        factorDarkMatterSpheroidHost     =+spheroidHost%angularMomentum()                                        &
             &                            /massComponent**1.5d0                                                  &
             &                            /sqrt(gravitationalConstantGalacticus*hostSpheroidHalfMassRadius     )
@@ -171,7 +172,7 @@ contains
     massComponent                  =+    diskHost     %massStellar   () &
         &                           +    diskHost     %massGas       ()
     radiusHalfMassDiskHost         =+    diskHost     %halfMassRadius()
-    if (radiusHalfMassDiskHost > 0.0d0 .and. massComponent > 0.0d0) then
+    if (radiusHalfMassDiskHost > 0.0d0 .and. massComponent > massComponentMinimum) then
        factorDarkMatterDiskHost         =+    diskHost%angularMomentum()                                        &
             &                            /massComponent**1.5d0                                                  &
             &                            /sqrt(gravitationalConstantGalacticus*radiusHalfMassDiskHost         )
@@ -181,7 +182,7 @@ contains
     massComponent                  =+spheroidSatellite%massStellar   () &
          &                          +spheroidSatellite%massGas       ()
     radiusHalfMassSpheroidSatellite=+spheroidSatellite%halfMassRadius()
-    if (radiusHalfMassSpheroidSatellite > 0.0d0 .and. massComponent > 0.0d0) then
+    if (radiusHalfMassSpheroidSatellite > 0.0d0 .and. massComponent > massComponentMinimum) then
        factorDarkMatterSpheroidSatellite=+spheroidSatellite%angularMomentum()                                   &
             &                            /massComponent**1.5d0                                                  &
             &                            /sqrt(gravitationalConstantGalacticus*radiusHalfMassSpheroidSatellite)
@@ -191,7 +192,7 @@ contains
     massComponent                  =+    diskSatellite%massStellar   () &
          &                          +    diskSatellite%massGas       ()
     radiusHalfMassDiskSatellite    =+    diskSatellite%halfMassRadius()
-    if (radiusHalfMassDiskSatellite > 0.0d0 .and. massComponent > 0.0d0) then
+    if (radiusHalfMassDiskSatellite > 0.0d0 .and. massComponent > massComponentMinimum) then
        factorDarkMatterDiskSatellite    =+    diskSatellite%angularMomentum()                                   &
             &                            /massComponent**1.5d0                                                  &
             &                            /sqrt(gravitationalConstantGalacticus*radiusHalfMassDiskSatellite    )
@@ -278,7 +279,7 @@ contains
        call Galacticus_Error_Report('unrecognized moveTo descriptor'//{introspection:location})
     end select
     ! Compute the angular momentum factor.
-    if (massSpheroidSatellite+massSpheroidHost > 0.0d0) then
+    if (massSpheroidSatellite+massSpheroidHost > massComponentMinimum) then
        factorAngularMomentum=factorAngularMomentum/(massSpheroidSatellite+massSpheroidHost)
     else
        factorAngularMomentum=1.0d0

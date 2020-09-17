@@ -937,7 +937,14 @@ contains
           end if
        end do
     end if
-   matrixCovarianceProduct=y.dot.self%linearSystemSolve(y)
+    matrixCovarianceProduct=y.dot.self%linearSystemSolve(y)
+    if (matrixCovarianceProduct < 0.0d0) then
+       if (present(status)) then
+          status=GSL_ESing
+       else
+          call Galacticus_Error_Report('matrix is not semi-positive definite'//{introspection:location})
+       end if
+    end if
     return
   end function matrixCovarianceProduct
   
