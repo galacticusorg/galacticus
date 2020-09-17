@@ -176,6 +176,10 @@ contains
          &           *self%cosmologyFunctions_%expansionRate(expansionFactor) &
          &           /                                       expansionFactor  &
          &           /deltaCritEffectiveGrowthRate                            &
-         &           /mass
+         &           *  mass                                                  &
+         &           /(                                                       &
+         &             +mass                                                  &
+         &             -massBranch                                            &
+         &            )**2
     return
   end function fakhouri2010Rate
