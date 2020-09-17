@@ -170,7 +170,8 @@ sub Process_Enumerations {
 		$moduleNode = $moduleNode->{'parent'};
 	    } until ( ! $moduleNode ||  $moduleNode->{'type'} eq "module" );
 	    if ( $moduleNode ) {
-		print $defHndl "Provided by: & {\\normalfont \\ttfamily module} \\hyperlink{".$moduleNode->{'parent'}->{'name'}.":".lc($moduleNode->{'name'})."}{\\normalfont \\ttfamily ".latex_encode($moduleNode->{'name'})."} \\\\\n";
+		(my $fileName = $moduleNode->{'parent'}->{'name'}) =~ s/\./_/g;
+		print $defHndl "Provided by: & {\\normalfont \\ttfamily module} \\href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Source.pdf\\#source.".$fileName.":".lc($moduleNode->{'name'})."}{\\normalfont \\ttfamily ".latex_encode($moduleNode->{'name'})."} \\\\\n";
 	    }
 	    my $first = 1;
 	    foreach ( &List::ExtraUtils::as_array($node->{'directive'}->{'entry'}) ) {

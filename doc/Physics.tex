@@ -90,7 +90,7 @@ Selected using {\normalfont \ttfamily accretionHaloTotalMethod}$=${\normalfont \
 
 \section{Cosmology Functions}\index{cosmology}
 
-The background cosmology describes the evolution of an isotropic, homoegeneous Universe within which our calculations are carried out. For the purposes of \glc, the background cosmology is used to relate expansion factor/redshift to cosmic time and to compute the density of various components (e.g. dark matter, dark energy, etc.) at different epochs. Background cosmological models are specified via the {\normalfont \ttfamily cosmologyMethod}, and the physics that must be implemented for each cosmological model is describe in more detail in \S\ref{sec:methodsCosmologyFunctions}. Currently implemented cosmological models are as follows.
+The background cosmology describes the evolution of an isotropic, homoegeneous Universe within which our calculations are carried out. For the purposes of \glc, the background cosmology is used to relate expansion factor/redshift to cosmic time and to compute the density of various components (e.g. dark matter, dark energy, etc.) at different epochs. Background cosmological models are specified via the {\normalfont \ttfamily cosmologyMethod}, and the physics that must be implemented for each cosmological model is describe in more detail \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.cosmologyFunctions}{here}. Currently implemented cosmological models are as follows.
 
 \subsection{Matter + Lambda}\label{phys:cosmologyFunctions:cosmologyFunctionsMatterLambda}
 
@@ -102,7 +102,7 @@ Selected with {\normalfont \ttfamily cosmologyMethod}$=${\normalfont \ttfamily m
 
 \section{Circumnuclear Accretion Disks}\label{sec:CircumnuclearDisks}\index{accretion disks}\index{accretion!disk}
 
-Circumnuclear accretion disks surrounding supermassive black holes at the centers of galaxies influence the evolution of both the black hole (via accretion rates of mass and angular momentum and possibly by extracting rotational energy from the black hole) and the surrounding galaxy if they lead to energetic outflows (e.g. jets) from the nuclear region. Accretion disk type is specified via the {\normalfont \ttfamily accretionDisksMethod}, and the physics that must be implemented for each accretion disk type is describe in more detail in \S\ref{sec:AccretionDisks}. Current implementations of accretion disks are as follows.
+Circumnuclear accretion disks surrounding supermassive black holes at the centers of galaxies influence the evolution of both the black hole (via accretion rates of mass and angular momentum and possibly by extracting rotational energy from the black hole) and the surrounding galaxy if they lead to energetic outflows (e.g. jets) from the nuclear region. Accretion disk type is specified via the {\normalfont \ttfamily accretionDisksMethod}, and the physics that must be implemented for each accretion disk type is describe in more detail \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#sec.accretionDisks}{here}. Current implementations of accretion disks are as follows.
 
 \subsection{Shakura-Sunyaev Geometrically Thin, Radiatively Efficient Disks}
 
@@ -152,7 +152,7 @@ A variety of functions are used to describe structure formation in dark matter d
 
 \subsection{Primordial Power Spectrum}\label{sec:PrimordialPowerSpectrum}\index{power spectrum!primordial}
 
-The functional form of the primordial dark matter power spectrum is selected via the {\normalfont \ttfamily powerSpectrumMethod} parameter. The power spectrum is computed from the specified primordial power spectrum and the transfer function (see \S\ref{sec:methodsTransferFunction}) and normalized to a value of $\sigma_8$ specified by {\normalfont \ttfamily [sigma\_8]}.
+The functional form of the primordial dark matter power spectrum is selected via the {\normalfont \ttfamily powerSpectrumMethod} parameter. The power spectrum is computed from the specified primordial power spectrum and the \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.transferFunction}{transfer function} and normalized to a value of $\sigma_8$ specified by {\normalfont \ttfamily [sigma\_8]}.
 
 \subsubsection{(Running) Power Law Spectrum}
 
@@ -256,13 +256,13 @@ T(k) \rightarrow T(k) (1+[\epsilon k R_\mathrm{c}^0]^{2\nu})^{-\eta/\nu},
 \end{equation}
 where $R_\mathrm{c}^0=${\normalfont \ttfamily [transferFunctionWdmCutOffScale]}, $\epsilon=${\normalfont \ttfamily [transferFunctionWdmEpsilon]}, $\eta=${\normalfont \ttfamily [transferFunctionWdmEta]}, $\nu=${\normalfont \ttfamily [transferFunctionWdmNu]}.
 
-\subsubsection{{\normalfont \scshape CAMB}}\label{sec:TransferFunction:CAMB}
+\subsubsection{{\normalfont \scshape CAMB}}\label{sec:TransferFunction:CAMB}\hyperdef{phys}{TransferFunction:CAMB}{}
 
 Selected with {\normalfont \ttfamily transferFunctionMethod}$=${\normalfont \ttfamily CAMB}, this method uses the \href{http://camb.info/}{\normalfont \scshape CAMB} code to compute the \gls{cdm} transfer function. It requires that the mass fraction of helium in the early Universe be specified via the {\normalfont \ttfamily Y\_He} parameter. {\normalfont \scshape CAMB} will be downloaded and run if the transfer function needs to be computed. It will then be stored in a file for future reference.
 
 \subsubsection{File}
 
-Selected with {\normalfont \ttfamily transferFunctionMethod}$=${\normalfont \ttfamily file}, this method reads a tabulated transfer function from an XML file (specified via the {\normalfont \ttfamily transferFunctionFile} parameter), interpolating between tabulated points. The structure of the transfer function file is described in \S\ref{sec:methodsTransferFunction}.
+Selected with {\normalfont \ttfamily transferFunctionMethod}$=${\normalfont \ttfamily file}, this method reads a tabulated transfer function from an XML file (specified via the {\normalfont \ttfamily transferFunctionFile} parameter), interpolating between tabulated points. The structure of the transfer function file is described \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.transferFunction}{here}.
 
 \subsection{Linear Growth Function}\index{linear growth}
 
@@ -380,7 +380,7 @@ Selected with {\normalfont \ttfamily haloMassFunctionMethod}$=${\normalfont \ttf
 \begin{equation}
 n(M,t) = 2 {\Omega_\mathrm{M} \rho_\mathrm{crit} \over M^2} \alpha \sigma^2(M) f[S(M,t)],
 \end{equation}
-where $\alpha = \mathrm{d}\ln\sigma/\mathrm{d}\ln M$ and $f[S]$ is the excursion set barrier first crossing distribution for variance $S(M)=\sigma^2(M)$, computed using the selected {\normalfont \ttfamily excursionSetFirstCrossingMethod} (see \S\ref{sec:methodsExcursionSetFirstCrossing}).
+where $\alpha = \mathrm{d}\ln\sigma/\mathrm{d}\ln M$ and $f[S]$ is the excursion set barrier first crossing distribution for variance $S(M)=\sigma^2(M)$, computed using the selected \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.excursionSetFirstCrossing}{\normalfont \ttfamily excursionSetFirstCrossingMethod}.
 
 \subsubsection{Sheth-Tormen}\label{phys:haloMassFunction:haloMassFunctionShethTormen}
 
@@ -418,7 +418,7 @@ where $f_\mathrm{infall, cold mode}=${\normalfont \ttfamily [dynamicalRateFracti
 
 The method to be used for computing the conditional mass function (for use in data modelling) is specified by the {\normalfont \ttfamily conditionalMassFunctionMethod} parameter.
 
-\subsection{Behroozi et al. (2010)}\label{phys:conditionalMassFunction:conditionalMassFunctionBehroozi2010}
+\subsection{Behroozi et al. (2010)}\label{phys:conditionalMassFunction:conditionalMassFunctionBehroozi2010}\hyperdef{phys}{conditionalMassFunction:conditionalMassFunctionBehroozi2010}{}
 
 Selected with {\normalfont \ttfamily conditionalMassFunctionMethod}$=${\normalfont \ttfamily Behroozi2010}, this method uses the functional form given by \citeauthor{behroozi_comprehensive_2010}~(\citeyear{behroozi_comprehensive_2010}; see also \citealt{leauthaud_new_2011}). The mean number of central galaxies of stellar mass, $M_\star$, in halos of mass $M_\mathrm{h}$ is given by:
 \begin{equation}
@@ -480,7 +480,7 @@ Selected using {\normalfont \ttfamily coolingFunctionMethods}$=${\normalfont \tt
 
 \subsubsection{Collisional Ionization Eqiulibrium From File}
 
-Selected using {\normalfont \ttfamily coolingFunctionMethods}$=${\normalfont \ttfamily CIE\_from\_file}, in this method the cooling function is read from a file specified by the {\normalfont \ttfamily coolingFunctionFile} parameter. The format of this file is specified in \S\ref{sec:methodsCoolingFunction}. The cooling function is assumed to be computed under conditions of collisional ionization equilibrium and therefore to scale as $\rho^2$.
+Selected using {\normalfont \ttfamily coolingFunctionMethods}$=${\normalfont \ttfamily CIE\_from\_file}, in this method the cooling function is read from a file specified by the {\normalfont \ttfamily coolingFunctionFile} parameter. The format of this file is specified \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.coolingFunction}{here}. The cooling function is assumed to be computed under conditions of collisional ionization equilibrium and therefore to scale as $\rho^2$.
 
 \subsubsection{CMB Compton Cooling}
 
@@ -823,7 +823,7 @@ Selected with {\normalfont \ttfamily darkMatterProfileConcentrationMethod}$=${\n
 \begin{equation}
  c = 4 \left(1 + \left[ {t  \over 3.75 t_\mathrm{form}}\right]^{8.4}\right)^{1/8},
 \end{equation}
-where $t$ is the time for the halo and $t_\mathrm{form}$ is a formation time defined by \cite{zhao_accurate_2009} as the time at which the main branch progenitor of the halo had a mass equal to $0.04$ of the current halo mass. This formation time is computed directly from the merger tree branch associated with each halo. If the no branch exists or does not extend to the formation time then the formation time is computed by extrapolating the mass of the earliest resolved main branch progenitor to earlier times using the selected mass accretion history method (see \S\ref{sec:methodsDarkMatterHaloMassAccretionHistory}).
+where $t$ is the time for the halo and $t_\mathrm{form}$ is a formation time defined by \cite{zhao_accurate_2009} as the time at which the main branch progenitor of the halo had a mass equal to $0.04$ of the current halo mass. This formation time is computed directly from the merger tree branch associated with each halo. If the no branch exists or does not extend to the formation time then the formation time is computed by extrapolating the mass of the earliest resolved main branch progenitor to earlier times using the selected \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.darkMatterHaloMassAccretionHistory}{mass accretion history} method.
 
 \subsubsection{Mu\~noz-Cuartas (2011)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationMunozCuartas2011}
 
@@ -971,7 +971,7 @@ resulting in a sample of halos representative of a volume of space.
 
 \subsubsection{Stellar Mass Function}
 
-Selected with {\normalfont \ttfamily haloMassFunctionSamplingMethod}$=${\normalfont \ttfamily stellarMassFunction}, in this case the sampling density is chosen to give optimally minimal errors on the model stellar mass function (see \S\ref{sec:OptimalSamplingStellarMassFunction} for full details). This calculation requires the observational errors on the stellar mass function to be known. A simple model of the form
+Selected with {\normalfont \ttfamily haloMassFunctionSamplingMethod}$=${\normalfont \ttfamily stellarMassFunction}, in this case the sampling density is chosen to give optimally minimal errors on the model stellar mass function (see \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.mergerTreeBuildMassDistribution}{here} for full details). This calculation requires the observational errors on the stellar mass function to be known. A simple model of the form
 \begin{equation}
  \sigma^2(M) = \left[\phi_0 \left({M\over M_*}\right)^\alpha \exp\left(-\left[{M\over M_*}\right]^\beta\right)\right]^2 + \sigma_0^2
 \end{equation}
@@ -1824,7 +1824,7 @@ Selected using {\normalfont \ttfamily ionizatonStateMethod}$=${\normalfont \ttfa
 
 \subsection{Collisional Ionization Equilibruim From File}
 
-Selected using {\normalfont \ttfamily ionizatonStateMethod}$=${\normalfont \ttfamily CIE\_from\_file}, in this method the chemical state is read from a file specified by the {\normalfont \ttfamily chemicalStateFile} parameter. The format of this file is specified in \S\ref{sec:methodsChemicalState}. The chemical state is assumed to be computed under conditions of collisional ionization equilibrium and therefore densities scale as $\rho$. Optional H{\normalfont \scshape i} and H{\normalfont \scshape ii} densities, if present in the file, will be read and used when returning the densities of ``chemical'' species.
+Selected using {\normalfont \ttfamily ionizatonStateMethod}$=${\normalfont \ttfamily CIE\_from\_file}, in this method the chemical state is read from a file specified by the {\normalfont \ttfamily chemicalStateFile} parameter. The format of this file is specified \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.chemicalState}{here}. The chemical state is assumed to be computed under conditions of collisional ionization equilibrium and therefore densities scale as $\rho$. Optional H{\normalfont \scshape i} and H{\normalfont \scshape ii} densities, if present in the file, will be read and used when returning the densities of ``chemical'' species.
 
 \section{Mass Function Incompleteness}\index{mass functions!incompleteness}
 
@@ -1958,7 +1958,7 @@ For composite properties (e.g. abundances), the specification element should con
 
 \subsection{Smooth Accretion}\label{sec:SmoothAccretion}
 
-Selected with {\normalfont \ttfamily mergerTreeConstructMethod}$=${\normalfont \ttfamily smoothAccretion}, this method builds a branchless merger tree with a smooth accretion history using the selected mass accretion history method (see \S\ref{sec:methodsDarkMatterHaloMassAccretionHistory}). The tree has a final mass of {\normalfont \ttfamily mergerTreeHaloMass} (in units of $M_\odot$) at redshift {\normalfont \ttfamily mergerTreeBaseRedshift} and is continued back in time by decreasing the halo mass by a factor {\normalfont \ttfamily mergerTreeHaloMassDeclineFactor} at each new \gls{node} until a specified {\normalfont \ttfamily mergerTreeHaloMassResolution} (in units of $M_\odot$) is reached.
+Selected with {\normalfont \ttfamily mergerTreeConstructMethod}$=${\normalfont \ttfamily smoothAccretion}, this method builds a branchless merger tree with a smooth accretion history using the selected \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.darkMatterHaloMassAccretionHistory}{mass accretion history} method. The tree has a final mass of {\normalfont \ttfamily mergerTreeHaloMass} (in units of $M_\odot$) at redshift {\normalfont \ttfamily mergerTreeBaseRedshift} and is continued back in time by decreasing the halo mass by a factor {\normalfont \ttfamily mergerTreeHaloMassDeclineFactor} at each new \gls{node} until a specified {\normalfont \ttfamily mergerTreeHaloMassResolution} (in units of $M_\odot$) is reached.
 
 \subsection{State Restore}\label{sec:TreeConstructStateRestore}\index{debugging!restoring merger tree internal state}
 
@@ -2012,7 +2012,7 @@ Calculation of branching probabilities involves computation of several hypergeom
 
 \subsection{Generalized Press-Schechter}
 
-Selected with {\normalfont \ttfamily treeBranchingMethod}$=${\normalfont \ttfamily generalizedPress-Schechter}, this method computes branching probabilities from solutions to the excursion set barrier first crossing rate problem (using the selected {\normalfont \ttfamily excursionSetFirstCrossingMethod}; see \S\ref{sec:methodsExcursionSetFirstCrossing}). Specifically, the branching probability per unit time is:
+Selected with {\normalfont \ttfamily treeBranchingMethod}$=${\normalfont \ttfamily generalizedPress-Schechter}, this method computes branching probabilities from solutions to the excursion set barrier first crossing rate problem (using the selected \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.excursionSetFirstCrossingMethod}{\normalfont \ttfamily excursionSetFirstCrossingMethod}). Specifically, the branching probability per unit time is:
 \begin{equation}
  {\d f \over \d t} = {\mathrm{d} t \over \mathrm{d}\omega} \int_{M_\mathrm{min}}^{M/2} {M \over M^\prime} {\d f \over \d t} {\d S \over \d M^\prime} \left| {\d t \over \d \omega}\right| G[\omega,\sigma(M),\sigma(M^\prime)] \d M^\prime,
 \end{equation}
@@ -2020,7 +2020,7 @@ where $\omega = \delta_\mathrm{c,0}/D(t)$. The rate of accretion of mass in halo
 \begin{equation}
  {\d R \over \d t} =  {\mathrm{d} t \over \mathrm{d}\omega} \int_0^{M_\mathrm{min}} {\d f \over \d t} {\d S \over \d M^\prime} \left| {\d t \over \d \omega}\right| G[\omega,\sigma(M),\sigma(M^\prime)] \d M^\prime.
 \end{equation}
-In the above, $G[\omega,\sigma(M),\sigma(M^\prime)]$ is a modification to the merger rate as computed by the selected {\normalfont \ttfamily treeBranchingModifierMethod} (see \S\ref{sec:methodsMergerTreeBranchingProbabilityModifier}). If {\normalfont \ttfamily [generalizedPressSchechterSmoothAccretion]}$=${\normalfont \ttfamily true} then smooth accretion (i.e. accretion of matter not in dark matter halos) is accounted for at the rate:
+In the above, $G[\omega,\sigma(M),\sigma(M^\prime)]$ is a modification to the merger rate as computed by the selected \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.mergerTreeBranchingProbabilityModifier}{\normalfont \ttfamily treeBranchingModifierMethod}. If {\normalfont \ttfamily [generalizedPressSchechterSmoothAccretion]}$=${\normalfont \ttfamily true} then smooth accretion (i.e. accretion of matter not in dark matter halos) is accounted for at the rate:
 \begin{equation}
  {\d R_\mathrm{s} \over \d t} =  {\mathrm{d} t \over \mathrm{d}\omega} G[\omega,\sigma_\mathrm{max},\sigma(M^\prime)] {\d \stackrel{\sim}{f} \over \d t},
 \end{equation}
@@ -2078,7 +2078,7 @@ When merger trees are to be read from file, a number of different file formats a
 
 \subsection{Galacticus}\label{phys:mergerTreeImporter:mergerTreeImporterGalacticus}
 
-Selected with {\normalfont \ttfamily mergerTreeImporterMethod}$=${\normalfont \ttfamily galacticus}, this method reads merger tree structures from an HDF5 file specified by the {\normalfont \ttfamily mergerTreeReadFileName} parameter. The structure of these HDF5 files is described in \S\ref{sec:MergerTreeFiles}.
+Selected with {\normalfont \ttfamily mergerTreeImporterMethod}$=${\normalfont \ttfamily galacticus}, this method reads merger tree structures from an HDF5 file specified by the {\normalfont \ttfamily mergerTreeReadFileName} parameter. The structure of these HDF5 files is described \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here}.
 
 \subsection{Sussing Merger Trees}\label{phys:mergerTreeImporter:mergerTreeImporterSussing}
 
@@ -2134,15 +2134,15 @@ Subsequent lines identify the \gls{ahf} halo files for each snapshot (files can 
 
 Merger tree files of this type can be split into subvolumes before processing. This is useful if the file is too large to read into memory in one go. The number of subvolumes to use (in each of the three dimensions of the simulation cube) is specified by the {\normalfont \ttfamily [mergerTreeImportSussingSubvolumeCount]} parameter. The specific subvolume to process is specified by the {\normalfont \ttfamily [mergerTreeImportSussingSubvolumeIndex]} parameter, which should give the index (running from $0$ to {\normalfont \ttfamily [mergerTreeImportSussingSubvolumeCount]}$-1$) in each dimension (whitespace separated). To ensure that no halos are missed from trees near the edge of the subvolume, a buffer region around the subvolume is also read. The width of this buffer (in units of Mpc$/h$ to follow the format convention) is specified via the {\normalfont \ttfamily [mergerTreeImportSussingSubvolumeBuffer]} parameter. 
 
-\section{Merger Tree Pre-evolution Processing}
+\section{Merger Tree Pre-evolution Operators}
 
-Arbitrary processing of merger trees prior to their evolution can be carried out using the {\normalfont \ttfamily mergerTreePreEvolveTask} directive (see \S\ref{sec:MergerTreePreEvolveTask}). Currently defined tasks are defined below.
+Arbitrary processing of merger trees prior to their evolution can be carried out using the \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.mergerTreeOperator}{\normalfont \ttfamily mergerTreeOperator} class. Currently defined tasks are defined below.
 
 \subsection{Enforce Monotonic Mass Growth}\index{merger tree!mass accretion history!monotonic}
 
 This task enforces monotonic growth a halo mass along each branch of each merger tree. It does this by searching the tree for nodes which are less massive than the sum of the masses of their immediate progenitors, and increasing the mass of such nodes to equal the sum of the masses of their immediate progenitors. To enforce monotonic mass growth along branches set {\normalfont \ttfamily [mergerTreeEnforceMonotonicGrowth]}$=${\normalfont \ttfamily true}.
 
-\subsection{Interpolate Tree to Time Grid}\label{sec:MergerTreeTimeRegrid}\index{merger tree!fixed time steps}\index{merger tree!regrid times}
+\subsection{Interpolate Tree to Time Grid}\label{sec:MergerTreeTimeRegrid}\hyperdef{sec}{MergerTreeTimeRegrid}{}\index{merger tree!fixed time steps}\index{merger tree!regrid times}
 
 This task will interpolate the merger tree structure onto a new array of timesteps if {\normalfont \ttfamily [mergerTreeRegridTimes]}$=${\normalfont \ttfamily true}. The timestep array is specified via the parameters:
 \begin{description}
@@ -2434,7 +2434,7 @@ Selected with {\normalfont \ttfamily stellarPopulationSpectraMethod}$=${\normalf
 
 \subsection{File}
 
-Selected with {\normalfont \ttfamily stellarPopulationSpectraMethod}$=${\normalfont \ttfamily file} this method reads stellar population spectra from an HDF5 file, with format described in \S\ref{sec:methodsStellarPopulationSpectra}.
+Selected with {\normalfont \ttfamily stellarPopulationSpectraMethod}$=${\normalfont \ttfamily file} this method reads stellar population spectra from an HDF5 file, with format described \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.stellarPopulationSpectra}{here}.
 
 \section{Stellar Population Spectra Postprocessing}\label{sec:StellarSpectraPostprocessing}\hyperdef{sec}{stellarSpectraPostprocessing}{}
 

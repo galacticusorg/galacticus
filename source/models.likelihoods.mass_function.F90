@@ -33,8 +33,8 @@
   !#   computed mass function at the $i^\mathrm{th}$ separation, and $w_i^\mathrm{obs}$ is the observed mass function at the
   !#   $i^\mathrm{th}$ separation. The mass function is computed using the halo model and the parameterized conditional galaxy mass
   !#   function of \cite[][see also \protect\cite{leauthaud_new_2011};
-  !#   \S\protect\ref{phys:conditionalMassFunction:conditionalMassFunctionBehroozi2010}]{behroozi_comprehensive_2010}. The details of the
-  !#   mass function calculation are specified by the following subparameters:
+  !#   \protect\href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#phys.conditionalMassFunction:conditionalMassFunctionBehroozi2010}{\normalfont \ttfamily conditionalMassFunctionBehroozi2010}]{behroozi_comprehensive_2010}.
+  !#   The details of the mass function calculation are specified by the following subparameters:
   !#   \begin{description}
   !#   \item[{\normalfont \ttfamily haloMass(Min|Max)imum}] The minimum/maximum halo mass over which to integrate in the halo model;
   !#   \item[{\normalfont \ttfamily redshift(Min|Max)imum}] The minimum/maximum redshift over which to integrate in the halo model;

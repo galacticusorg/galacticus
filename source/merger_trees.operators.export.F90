@@ -31,8 +31,9 @@
   !#   the node indices), descendent indices, masses and redshifts are exported. Positions and velocities are exported if available. If
   !#   {\normalfont \ttfamily IRATE}-format output is requested then ``snapshot'' numbers will be assigned to nodes based on the time
   !#   at which they exist. This usually only makes sense if the nodes are defined on a time grid (i.e. if merger trees were extracted
-  !#   from an N-body simulation, or if trees were re-gridded onto such a time grid; see \S\ref{sec:MergerTreeTimeRegrid}). Export
-  !#   happens after any merger tree pre-evolution tasks (see \S\ref{sec:MergerTreePreEvolveTask}).
+  !#   from an N-body simulation, or if trees were re-gridded onto such a time grid; see
+  !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.MergerTreeTimeRegrid}{here}).
+  !#   Export happens after any merger tree pre-evolution tasks (see \S\ref{sec:MergerTreePreEvolveTask}).
   !#  </description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorExport
