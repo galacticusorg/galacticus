@@ -51,21 +51,38 @@
   !#  <visibility>public</visibility>
   !#  <encodeFunction>yes</encodeFunction>
   !#  <validator>yes</validator>
-  !#  <entry label="scale"     />
-  !#  <entry label="id"        />
-  !#  <entry label="desc_scale"/>
-  !#  <entry label="desc_id"   />
-  !#  <entry label="num_prog"  />
-  !#  <entry label="pid"       />
-  !#  <entry label="upid"      />
-  !#  <entry label="desc_pid"  />
-  !#  <entry label="phantom"   />
-  !#  <entry label="sam_Mvir"  />
-  !#  <entry label="Mvir"      />
-  !#  <entry label="Rvir"      />
-  !#  <entry label="rs"        />
-  !#  <entry label="vrms"      />
-  !#  <entry label="mmp"       />
+  !#  <entry label="scale"           />
+  !#  <entry label="id"              />
+  !#  <entry label="desc_scale"      />
+  !#  <entry label="desc_id"         />
+  !#  <entry label="num_prog"        />
+  !#  <entry label="pid"             />
+  !#  <entry label="upid"            />
+  !#  <entry label="desc_pid"        />
+  !#  <entry label="phantom"         />
+  !#  <entry label="sam_Mvir"        />
+  !#  <entry label="Mvir"            />
+  !#  <entry label="Rvir"            />
+  !#  <entry label="rs"              />
+  !#  <entry label="vrms"            />
+  !#  <entry label="mmp"             />
+  !#  <entry label="scale_of_last_MM"/>
+  !#  <entry label="Vmax"            />
+  !#  <entry label="X"               />
+  !#  <entry label="Y"               />
+  !#  <entry label="Z"               />
+  !#  <entry label="VX"              />
+  !#  <entry label="VY"              />
+  !#  <entry label="VZ"              />
+  !#  <entry label="JX"              />
+  !#  <entry label="JY"              />
+  !#  <entry label="JZ"              />
+  !#  <entry label="Spin"            />
+  !#  <entry label="Breadth_first_ID"/>
+  !#  <entry label="Depth_first_ID"  />
+  !#  <entry label="Tree_root_ID"    />
+  !#  <entry label="Orig_halo_ID"    />
+  !#  <entry label="Snap_num"        />
   !# </enumeration>
 
   !# <enumeration>
@@ -144,26 +161,43 @@ contains
        allocate(self%readColumnsType(size(self%readColumns)))
        do i=1,size(self%readColumns)
           select case (self%readColumns(i))
-          case   (                          &
-               &  rockstarColumnScale     , &
-               &  rockstarColumnDesc_scale, &
-               &  rockstarColumnSam_Mvir  , &
-               &  rockstarColumnMvir      , &
-               &  rockstarColumnRvir      , &
-               &  rockstarColumnRs        , &
-               &  rockstarColumnVrms        &
+          case   (                                 &
+               &  rockstarColumnScale            , &
+               &  rockstarColumnDesc_scale       , &
+               &  rockstarColumnSam_Mvir         , &
+               &  rockstarColumnMvir             , &
+               &  rockstarColumnRvir             , &
+               &  rockstarColumnRs               , &
+               &  rockstarColumnVrms             , &
+               &  rockstarColumnscale_of_last_MM , &
+               &  rockstarColumnVmax             , &
+               &  rockstarColumnX                , &
+               &  rockstarColumnY                , &
+               &  rockstarColumnZ                , &
+               &  rockstarColumnVX               , &
+               &  rockstarColumnVY               , &
+               &  rockstarColumnVZ               , &
+               &  rockstarColumnJX               , &
+               &  rockstarColumnJY               , &
+               &  rockstarColumnJZ               , &
+               &  rockstarColumnSpin               &
                & )
              self%readColumnsRealCount      =self%readColumnsRealCount   +1
              self%readColumnsType        (i)=columnTypeReal
-          case   (                          &
-               &  rockstarColumnId        , &
-               &  rockstarColumnDesc_id   , &
-               &  rockstarColumnNum_prog  , &
-               &  rockstarColumnPid       , &
-               &  rockstarColumnUpid      , &
-               &  rockstarColumnDesc_pid  , &
-               &  rockstarColumnPhantom   , &
-               &  rockstarColumnMmp         &
+          case   (                                 &
+               &  rockstarColumnId               , &
+               &  rockstarColumnDesc_id          , &
+               &  rockstarColumnNum_prog         , &
+               &  rockstarColumnPid              , &
+               &  rockstarColumnUpid             , &
+               &  rockstarColumnDesc_pid         , &
+               &  rockstarColumnPhantom          , &
+               &  rockstarColumnMmp              , &
+               &  rockstarColumnBreadth_first_ID , &
+               &  rockstarColumnDepth_first_ID   , &
+               &  rockstarColumnTree_root_ID     , &
+               &  rockstarColumnOrig_halo_ID     , &
+               &  rockstarColumnSnap_num           &
                & )
              self%readColumnsIntegerCount   =self%readColumnsIntegerCount+1
              self%readColumnsType        (i)=columnTypeInteger
@@ -198,8 +232,8 @@ contains
     double precision                                      , dimension( :    ), allocatable :: expansionFactor
     double precision                                      , dimension( :  ,:), allocatable :: propertiesReal
     integer         (c_size_t             )               , dimension( :  ,:), allocatable :: propertiesInteger
-    double precision                                      , dimension(0:22  )              :: columnsReal
-    integer         (c_size_t             ), dimension(0:22  )                             :: columnsInteger
+    double precision                                      , dimension(0:31  )              :: columnsReal
+    integer         (c_size_t             )               , dimension(0:31  )              :: columnsInteger
     integer         (c_size_t             )                                                :: countHalos       , countTrees, &
          &                                                                                    i
     integer                                                                                :: status           , j         , &
@@ -214,7 +248,7 @@ contains
     simulations(1)%label=self%label
     ! Count lines in file. (Subtract 1 since one lines gives the number of distinct trees.)
     countHalos=Count_Lines_In_File(self%fileName,comment_char="#")-1_c_size_t
-    countTrees=                                                    0_c_size_t
+    countTrees=                                                    0_c_size_t    
     ! Allocate storage
     call allocateArray(simulations(1)%position       ,[3_c_size_t,countHalos])
     call allocateArray(simulations(1)%velocity       ,[3_c_size_t,countHalos])
@@ -243,7 +277,8 @@ contains
                   &        columnsInteger( 3: 8), &
                   &        columnsReal   ( 9:13), &
                   &        columnsInteger(14:14), &
-                  &        columnsReal   (15:22)
+                  &        columnsReal   (15:26), &
+                  &        columnsInteger(27:31)
              expansionFactor            (  i)=columnsReal   ( 0   )
              simulations(1) %particleIDs(  i)=columnsInteger( 1   )
              simulations(1) %position   (:,i)=columnsReal   (17:19)
@@ -308,6 +343,8 @@ contains
                 columnName='isMostMassiveProgenitor'
              case (rockstarColumnPhantom   )
                 columnName='isPhantom'
+             case (rockstarColumnSnap_num  )
+                columnName='snapshotID'
              end select
              call simulations(1)%propertiesInteger%set(columnName,propertiesInteger(:,jInteger))
           case (columnTypeReal   )
@@ -321,7 +358,7 @@ contains
                 columnName='massVirial'
                 propertiesReal(:,jReal)=+propertiesReal                                    (:,jReal             ) &
                      &                  /self          %cosmologyParameters_%HubbleConstant(  hubbleUnitsLittleH)
-             end select
+            end select
              call simulations(1)%propertiesReal   %set(columnName,propertiesReal   (:,jReal   ))
           end select
        end do
