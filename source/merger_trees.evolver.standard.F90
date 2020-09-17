@@ -274,7 +274,8 @@ contains
     integer         (kind_int8                 ), optional          , intent(in   ) :: systemClockMaximum
     integer         (omp_lock_kind             ), optional          , intent(inout) :: initializationLock
     type            (treeNode                  )           , pointer                :: nodeLock                          , nodeNext         , &
-         &                                                                             nodeParent                        , node
+         &                                                                             nodeParent                        , node             , &
+         &                                                                             nodeSiblingNext                   , nodeParentNext
     class           (nodeEvent                 )           , pointer                :: event
     double precision                            , parameter                         :: timeTolerance              =1.0d-5
     double precision                            , parameter                         :: largeTime                  =1.0d10
@@ -299,7 +300,7 @@ contains
          &                                                                             nodeProgressed                    , nextNodeFound    , &
          &                                                                             didEvolve                         , interrupted      , &
          &                                                                             nodesRemain
-    
+
     ! Iterate through all trees.
     suspendTree               =  .false.
     anyTreeExistsAtOutputTime =  .false.
@@ -437,13 +438,11 @@ contains
                    nodesTotalCount=nodesTotalCount+1
                    ! Find the next node that we will process.
                    call treeWalker%setNode(node)
-                   ! If the node has no parent but is not the base node of the current tree it must have been removed from the
-                   ! tree. Process it, but then exit the tree walk and start over.
-                   if (.not.associated(node%parent).and..not.associated(node,currentTree%baseNode)) then
-                      nodeNext   => null()
-                   else
-                      nodesRemain=treeWalker%next(nodeNext)
-                   end if
+                   ! Store pointers to the parent and sibling of this node, to be possibly used when deciding the next node to
+                   ! process. Initialize the next node pointer to null.
+                   nodeParentNext  => node%parent
+                   nodeSiblingNext => node%sibling
+                   nodeNext        => null()
                    ! Evolve this node if it has a parent (or will transfer to another tree where it will have a parent), exists
                    ! before the output time, has no children (i.e. they've already all been processed), and either exists before
                    ! the final time in its tree, or exists precisely at that time and has some attached event yet to occur.
@@ -617,6 +616,38 @@ contains
                       end if
                    end if evolveCondition
                    ! Step to the next node to consider.
+                   if (associated(nodeNext)) then
+                      ! The next node to consider has already been determined.
+                      nodesRemain=.true.
+                   else
+                      ! The next node to consider has not yet been determined.
+                      if (associated(node)) then
+                         ! The current node still exists - simply walk to the next node in the tree using our tree walker.
+                         nodesRemain=treeWalker%next(nodeNext)
+                      else
+                         ! The current node no longer exists. Attempt to used the sibling or parent of the node (saved from before
+                         ! it was destroyed) as our next node. If either is available step down to the deepest satellite or child
+                         ! of that node.
+                         if (associated(nodeSiblingNext).or.associated(nodeParentNext)) then
+                            if (associated(nodeSiblingNext)) then
+                               nodeNext => nodeSiblingNext
+                            else
+                               nodeNext => nodeParentNext
+                            end if
+                            do while (associated(nodeNext%firstSatellite).or.associated(nodeNext%firstChild))
+                               if (associated(nodeNext%firstSatellite)) then
+                                  nodeNext => nodeNext%firstSatellite
+                               else
+                                  nodeNext => nodeNext%firstChild
+                               end if
+                            end do
+                         else
+                            ! The current node no longer exists, and had no sibling or parent - we having nothing left to process
+                            ! in this tree so set the next node to null to force the loop to exit.
+                            nodeNext => null()
+                         end if
+                      end if
+                   end if
                    node => nodeNext
                 end do treeWalkLoop
                 ! Output tree progress information.
@@ -715,22 +746,23 @@ contains
     double precision                                                                  :: evolveToTime
     type            (treeNode                     ), intent(inout)          , pointer :: node
     double precision                               , intent(in   )                    :: timeEnd
-    type            (treeNode                     )                         , pointer :: nodeSatellite                    , nodeSibling
+    type            (treeNode                     )                         , pointer :: nodeSatellite       , nodeSibling
     procedure       (timestepTask                 ), intent(  out)          , pointer :: timestepTask_
     class           (*                            ), intent(  out)          , pointer :: timestepSelf
     logical                                        , intent(in   )                    :: report
     type            (treeNode                     ), intent(  out), optional, pointer :: nodeLock
     type            (varying_string               ), intent(  out), optional          :: lockType
     procedure       (timestepTask                 )                         , pointer :: timestepTaskInternal
-    class           (nodeComponentBasic           )                         , pointer :: basicParent                      , basicSatellite    , &
-         &                                                                               basicSibling                     , basic
+    class           (nodeComponentBasic           )                         , pointer :: basicParent         , basicSatellite    , &
+         &                                                                               basicSibling        , basic
     class           (nodeComponentSatellite       )                         , pointer :: satelliteSatellite
     class           (nodeEvent                    )                         , pointer :: event
     class           (treeEvent                    )                         , pointer :: treeEvent_
-    double precision                                                                  :: expansionFactor                  , expansionTimescale, &
-         &                                                                               hostTimeLimit                    , time              , &
-         &                                                                               timeEarliest                     , evolveToTimeStep  , &
-         &                                                                               hostTimeStep
+    double precision                                                                  :: expansionFactor     , expansionTimescale, &
+         &                                                                               hostTimeLimit       , time              , &
+         &                                                                               timeEarliest        , evolveToTimeStep  , &
+         &                                                                               hostTimeStep        , timeNode          , &
+         &                                                                               timeSatellite
     character       (len=9                        )                                   :: timeFormatted
     type            (varying_string               ), save                             :: message
     !$omp threadprivate(message)
@@ -742,67 +774,32 @@ contains
     if (present(nodeLock)) nodeLock => null()
     if (present(lockType)) lockType = 'null'
     ! Get the basic component of the node.
-    basic => node%basic()
-    ! Ensure that this node is not evolved beyond the time of any of its current satellites.
-    nodeSatellite => node%firstSatellite
-    time=basic%time()
-    do while (associated(nodeSatellite))
-       basicSatellite => nodeSatellite%basic()
-       if (max(basicSatellite%time(),time) < evolveToTime) then
-          if (present(nodeLock)) nodeLock => nodeSatellite
-          if (present(lockType)) lockType =  "hosted satellite"
-          evolveToTime=max(basicSatellite%time(),time)
-       end if
-       if (report) call Evolve_To_Time_Report("hosted satellite: ",evolveToTime,nodeSatellite%index())
-       nodeSatellite => nodeSatellite%sibling
-    end do
-    ! Also ensure that this node is not evolved beyond the time at which any of its mergees merge. In some cases, the node may
-    ! already be in the future of a mergee. In such cases, simply freeze it at the current time.
-    nodeSatellite => node%firstMergee
-    time=basic%time()
-    do while (associated(nodeSatellite))
-       satelliteSatellite => nodeSatellite%satellite()
-       if (max(satelliteSatellite%timeOfMerging(),time) < evolveToTime) then
-          if (present(nodeLock)) nodeLock => nodeSatellite
+    basic    => node %basic()
+    timeNode =  basic%time ()
+    ! Ensure that the timestep doesn't exceed any event attached to the tree.
+    treeEvent_ => node%hostTree%event
+    do while (associated(treeEvent_))
+       if (max(treeEvent_%time,timeNode) <= evolveToTime) then
+          if (present(nodeLock)) nodeLock => node%hostTree%baseNode
           if (present(lockType)) then
-             write (timeFormatted,'(f7.4)') max(satelliteSatellite%timeOfMerging(),time)
-             lockType =  "mergee ("//trim(timeFormatted)//")"
+             lockType =  "tree event ("
+             lockType=lockType//treeEvent_%ID//")"
           end if
-          evolveToTime=max(satelliteSatellite%timeOfMerging(),time)
+          evolveToTime=max(treeEvent_%time,timeNode)
        end if
-       if (report) call Evolve_To_Time_Report("mergee limit: ",evolveToTime,nodeSatellite%index())
-       nodeSatellite => nodeSatellite%siblingMergee
+       if (report) then
+          message="tree event ("
+          message=message//treeEvent_%ID//"): "
+          call Evolve_To_Time_Report(char(message),evolveToTime,node%hostTree%baseNode%index())
+       end if
+       treeEvent_ => treeEvent_%next
     end do
-    ! Also ensure that a primary progenitor does not evolve in advance of siblings. This is important since we can not promote a
-    ! primary progenitor into its parent until all siblings have become satellites in that parent.
-    if (node%isPrimaryProgenitor()) then
-       nodeSibling => node%sibling
-       do while (associated(nodeSibling))
-          basicSibling => nodeSibling%basic()
-          if (max(basic%time(),basicSibling%time()) < evolveToTime) then
-             if (present(nodeLock)) nodeLock => nodeSibling
-             if (present(lockType)) lockType =  "sibling"
-             evolveToTime=max(basic%time(),basicSibling%time())
-          end if
-          if (report) call Evolve_To_Time_Report("sibling: ",evolveToTime,nodeSibling%index())
-          nodeSibling => nodeSibling%sibling
-       end do
-    end if
-    ! Also ensure that the timestep taken does not exceed the allowed timestep for this specific node.
-    if (report) call Galacticus_Display_Indent("timestepping criteria")
-    evolveToTimeStep=self%mergerTreeEvolveTimestep_%timeEvolveTo(node,timestepTaskInternal,timestepSelf,report,nodeLock,lockType)
-    if (evolveToTimeStep <= evolveToTime) then
-       evolveToTime  =  evolveToTimeStep
-       timestepTask_ => timestepTaskInternal
-    else
-       timestepTask_ => null()
-       timestepSelf  => null()
-    end if
-    if (report) call Galacticus_Display_Unindent("done")
-    ! Also ensure that the timestep doesn't exceed any event attached to the node.
+    ! Return early if the timestep is already zero.
+    if (evolveToTime == timeNode) return
+    ! Ensure that the timestep doesn't exceed any event attached to the node.
     event => node%event
     do while (associated(event))
-       if (max(event%time,time) <= evolveToTime) then
+       if (max(event%time,timeNode) <= evolveToTime) then
           if (present(nodeLock)) nodeLock => event%node
           if (present(lockType)) then
              lockType =  "event ("
@@ -816,7 +813,7 @@ contains
              end select
              lockType=lockType//")"
           end if
-          evolveToTime=max(event%time,time)
+          evolveToTime=max(event%time,timeNode)
           timestepTask_ => standardNodeEventsPerform
        end if
        if (report) then
@@ -826,24 +823,71 @@ contains
        end if
        event => event%next
     end do
-    ! Also ensure that the timestep doesn't exceed any event attached to the tree.
-    treeEvent_ => node%hostTree%event
-    do while (associated(treeEvent_))
-       if (max(treeEvent_%time,time) <= evolveToTime) then
-          if (present(nodeLock)) nodeLock => node%hostTree%baseNode
-          if (present(lockType)) then
-             lockType =  "tree event ("
-             lockType=lockType//treeEvent_%ID//")"
-          end if
-          evolveToTime=max(treeEvent_%time,time)
+    ! Return early if the timestep is already zero.
+    if (evolveToTime == timeNode) return
+    ! Also ensure that the timestep taken does not exceed the allowed timestep for this specific node.
+    if (report) call Galacticus_Display_Indent("timestepping criteria")
+    evolveToTimeStep=self%mergerTreeEvolveTimestep_%timeEvolveTo(node,timestepTaskInternal,timestepSelf,report,nodeLock,lockType)
+    if (evolveToTimeStep <= evolveToTime) then
+       evolveToTime  =  evolveToTimeStep
+       timestepTask_ => timestepTaskInternal
+    else
+       timestepTask_ => null()
+       timestepSelf  => null()
+    end if
+    if (report) call Galacticus_Display_Unindent("done")
+    if (evolveToTime == timeNode) return
+    ! Ensure that this node is not evolved beyond the time of any of its current satellites.
+    nodeSatellite => node%firstSatellite
+    do while (associated(nodeSatellite))
+       basicSatellite => nodeSatellite %basic()
+       timeSatellite  =  basicSatellite%time ()
+       if (max(timeSatellite,timeNode) < evolveToTime) then
+          if (present(nodeLock)) nodeLock => nodeSatellite
+          if (present(lockType)) lockType =  "hosted satellite"
+          evolveToTime=max(timeSatellite,timeNode)
        end if
-       if (report) then
-          message="tree event ("
-          message=message//treeEvent_%ID//"): "
-          call Evolve_To_Time_Report(char(message),evolveToTime,node%hostTree%baseNode%index())
-       end if
-       treeEvent_ => treeEvent_%next
+       if (report) call Evolve_To_Time_Report("hosted satellite: ",evolveToTime,nodeSatellite%index())
+       if (evolveToTime == timeNode) exit
+       nodeSatellite => nodeSatellite%sibling
     end do
+    ! Return early if the timestep is already zero.
+    if (evolveToTime == timeNode) return
+    ! Also ensure that this node is not evolved beyond the time at which any of its mergees merge. In some cases, the node may
+    ! already be in the future of a mergee. In such cases, simply freeze it at the current time.
+    nodeSatellite => node%firstMergee
+    do while (associated(nodeSatellite))
+       satelliteSatellite => nodeSatellite%satellite()
+       if (max(satelliteSatellite%timeOfMerging(),timeNode) < evolveToTime) then
+          if (present(nodeLock)) nodeLock => nodeSatellite
+          if (present(lockType)) then
+             write (timeFormatted,'(f7.4)') max(satelliteSatellite%timeOfMerging(),timeNode)
+             lockType =  "mergee ("//trim(timeFormatted)//")"
+          end if
+          evolveToTime=max(satelliteSatellite%timeOfMerging(),timeNode)
+       end if
+       if (report) call Evolve_To_Time_Report("mergee limit: ",evolveToTime,nodeSatellite%index())
+       nodeSatellite => nodeSatellite%siblingMergee
+    end do
+    ! Return early if the timestep is already zero.
+    if (evolveToTime == timeNode) return
+    ! Also ensure that a primary progenitor does not evolve in advance of siblings. This is important since we can not promote a
+    ! primary progenitor into its parent until all siblings have become satellites in that parent.
+    if (node%isPrimaryProgenitor()) then
+       nodeSibling => node%sibling
+       do while (associated(nodeSibling))
+          basicSibling => nodeSibling%basic()
+          if (max(timeNode,basicSibling%time()) < evolveToTime) then
+             if (present(nodeLock)) nodeLock => nodeSibling
+             if (present(lockType)) lockType =  "sibling"
+             evolveToTime=max(timeNode,basicSibling%time())
+          end if
+          if (report) call Evolve_To_Time_Report("sibling: ",evolveToTime,nodeSibling%index())
+          nodeSibling => nodeSibling%sibling
+       end do
+    end if
+    ! Return early if the timestep is already zero.
+    if (evolveToTime == timeNode) return
     ! Limit time based on satellite status.
     select case (node%isSatellite())
     case (.false.)
@@ -867,13 +911,13 @@ contains
           ! The host halo has no parent. The satellite must therefore be evolving to some event (e.g. a merger). We have to allow
           ! it to evolve ahead of the host halo in this case to avoid deadlocks.
           basicParent => node%parent%basic()
-          time=max(basicParent%time(),basic%time())
+          time=max(basicParent%time(),timeNode)
        end if
        ! Check if the host has a child.
        select case (associated(node%parent%firstChild))
        case (.true. )
           ! Host still has a child - do not let the satellite evolve beyond the host.
-          hostTimeLimit=max(time,basic%time())
+          hostTimeLimit=max(time,timeNode)
           ! Check for any merge targets directed at this node.
           nodeSatellite => node%firstMergee
           timeEarliest=huge(1.0d0)
@@ -894,13 +938,13 @@ contains
              ! Avoid use of expansion timescale if host absolute timestep is non-positive. This allows static universe cases to be handled.
              hostTimeStep      =                                                 self%timestepHostAbsolute
           end if
-          hostTimeLimit=max(time+hostTimeStep,basic%time())
+          hostTimeLimit=max(time+hostTimeStep,timeNode)
           ! Check if this criterion will actually limit the evolution time.
           if (hostTimeLimit < evolveToTime) then
              ! Satellite evolution will be limited by being required to not advance too far ahead of the host halo. If the
              ! timestep we can advance is less than a specified fraction of what is possible, then skip this for now.
-             if (hostTimeLimit-basic%time() < self%fractionTimestepSatelliteMinimum*hostTimeStep) then
-                hostTimeLimit=basic%time()
+             if (hostTimeLimit-timeNode < self%fractionTimestepSatelliteMinimum*hostTimeStep) then
+                hostTimeLimit=timeNode
              end if
           end if
        end select
@@ -913,17 +957,17 @@ contains
        if (report) call Evolve_To_Time_Report("satellite in host limit: ",evolveToTime,node%parent%index())
     end select
     ! Check that end time exceeds current time.
-    if (evolveToTime < basic%time()) then
+    if (evolveToTime < timeNode) then
        message='end time ('
        write (timeFormatted,'(f7.4)') evolveToTime
        message=message//trim(timeFormatted)//' Gyr) is before current time ('
-       write (timeFormatted,'(f7.4)') basic%time()
+       write (timeFormatted,'(f7.4)') timeNode
        message=message//trim(timeFormatted)//' Gyr) of node '
        message=message//node%index()
        message=message//' (time difference is '
-       write (timeFormatted,'(e8.2)') basic%time()-evolveToTime
+       write (timeFormatted,'(e8.2)') timeNode-evolveToTime
        message=message//trim(timeFormatted)
-       if (.not.self%mergerTreeNodeEvolver_%isAccurate(basic%time(),evolveToTime)) then
+       if (.not.self%mergerTreeNodeEvolver_%isAccurate(timeNode,evolveToTime)) then
           ! End time is well before current time. This is an error. Call ourself with reporting switched on to generate a report
           ! on the time limits.
           message=message//' Gyr)'
@@ -1150,7 +1194,7 @@ contains
     implicit none
     type            (mergerTree), intent(inout), target  :: tree
     integer                     , intent(inout)          :: statusDeadlock
-    type            (treeEvent )               , pointer :: eventLast              , eventNext, event
+    type            (treeEvent )               , pointer :: eventLast            , eventNext, event
     double precision                                     :: treeTimeEarliest
     logical                                              :: mergerTreeEvolverDone
 
