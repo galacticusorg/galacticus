@@ -22,7 +22,7 @@
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorRedshiftLastIsolated">
-  !#  <description>A redshiftLastIsolated property extractor class.</description>
+  !#  <description>A node property extractor class which extracts the redshift at which a \gls{node} was last isolated---named ``{\normalfont \ttfamily redshiftLastIsolated}.</description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRedshiftLastIsolated
      !% A redshiftLastIsolated property extractor class.

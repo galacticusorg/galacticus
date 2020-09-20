@@ -328,7 +328,8 @@ foreach ( sort(keys(%enumerations)) ) {
     print oHndl "\\begin{tabular}{rp{130mm}}\n";
     print oHndl "Description: & ".$enumerations{$_}->{'description'}." \\\\\n";
     (my $enumerationFile = $enumerations{$_}->{'file'}) =~ s/^work\/build\/(.*)\.p\.F90/$1.F90/;
-    print oHndl "Provided by: & {\\normalfont \\ttfamily module} \\hyperlink{".$enumerationFile.":".lc($enumerations{$_}->{'module'})."}{\\normalfont \\ttfamily ".latex_encode($enumerations{$_}->{'module'})."} \\\\\n";
+    $enumerationFile =~ s/\./_/g;
+    print oHndl "Provided by: & {\\normalfont \\ttfamily module} \\href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Source.pdf\\#source.".$enumerationFile.":".lc($enumerations{$_}->{'module'})."}{\\normalfont \\ttfamily ".latex_encode($enumerations{$_}->{'module'})."} \\\\\n";
     my $first = 1;
     foreach my $entry ( @{$enumerations{$_}->{'entry'}} ) {
 	print oHndl "Members:"

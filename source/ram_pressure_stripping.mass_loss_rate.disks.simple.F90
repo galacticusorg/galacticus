@@ -95,7 +95,7 @@ contains
     !% \begin{equation}
     !% \alpha = F_\mathrm{ram}/F_\mathrm{gravity},
     !% \end{equation}
-    !% $F_\mathrm{ram}$ is the ram pressure force from the hot halo (see \S\ref{sec:HotHaloRamPressureForce}), and
+    !% $F_\mathrm{ram}$ is the ram pressure force from the hot halo (see \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.hotHaloRamPressureForce}{here}), and
     !% \begin{equation}
     !% F_\mathrm{gravity} = 2 \pi \mathrm{G} \Sigma_\mathrm{gas}(r_{1/2}) \Sigma_\mathrm{total}(r_{1/2})
     !% \end{equation}

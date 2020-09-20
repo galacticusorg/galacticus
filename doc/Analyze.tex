@@ -166,7 +166,7 @@ The {\normalfont \ttfamily Parameters} group contains a record of all parameter 
 
 The {\normalfont \ttfamily Version} group contains a record of the \glc\ version used for this model, storing the major and minor version numbers, the revision number and the {\normalfont \scshape Git} branch and hash (if the code is being maintained using {\normalfont \scshape Git}, otherwise a value of ``{\normalfont \ttfamily unknown}'' is entered). Additionally, the time at which the model was run is stored and, if the {\normalfont \ttfamily galacticusConfig.xml} file (see \S\ref{sec:ConfigFile}) is present and contains contact details, the name and e-mail address of the person who ran the model.
 
-\subsection{globalHistory}\label{sec:globalHistory}\index{history!global}\index{outputs!global history}
+\subsection{globalHistory}\label{sec:globalHistory}\hyperdef{sec}{globalHistory}{}\index{history!global}\index{outputs!global history}
 
 The {\normalfont \ttfamily globalHistory} group stores volume averaged properties of the model universe as a function of time. Currently, the properties stored are:
 \begin{description}
@@ -211,72 +211,6 @@ To allow locating of nodes belonging to a given merger tree in the datasets in t
 \subsubsection{mergerTree subgroups}\label{sec:mergerTreeSubgroups}
 
 These subgroups will be present if the {\normalfont \ttfamily [mergerTreeOutputReferences]} parameter is set to true. Each {\normalfont \ttfamily mergerTree} subgroup contains HDF5 references to all data on a single merger tree. The group consists of a collection of scalar references each of which points to the appropriate region of the corresponding dataset in the {\normalfont \ttfamily nodeData} group. Additionally, the {\normalfont \ttfamily volumeWeight} attribute of this group gives the weight (in Mpc$^{-3}$) which should be assigned to this tree (and all nodes in it) to create a volume-averaged sample. (A second attribute, {\normalfont \ttfamily volumeWeightUnitsInSI}, gives the units of {\normalfont \ttfamily volumeWeight} in the SI system.)
-
-\subsection{Optional Outputs}
-
-Numerous other quantities can be optionally output. These are documented below:
-
-\subsubsection{Redshifts}\index{redshift!output}\index{output!redshift}
-
-The redshift corresponding to the time at which a node was last isolated can be output by setting {\normalfont \ttfamily [outputNodeRedshifts]} to {\normalfont \ttfamily true}. This quantity will be output as {\normalfont \ttfamily basicRedshiftLastIsolated}.
-
-\subsubsection{Mass Accretion Histories}
-
-A mass accretion history (i.e. mass as a function of time) for the main branch in each merger tree can be output by setting {\normalfont \ttfamily massAccretionHistoryOutput}$=${\normalfont \ttfamily true}. If requested, a new group {\normalfont \ttfamily massAccretionHistories} will be made in the \glc\ output file. It will contain groups called {\normalfont \ttfamily mergerTreeN} where {\normalfont \ttfamily N} is the merger tree index. Each such group will contain the following three datasets, defined for the main branch of the tree\footnote{``Main branch'' is defined by starting from the root node of a tree and repeatedly stepping back to the most massive progenitor of the branch. This does not necessarily pick out the most massive progenitor at a given time.}:
-\begin{description}
- \item [{\normalfont \ttfamily nodeIndex}] The index of the node in the tree;
- \item [{\normalfont \ttfamily nodeTime}] The time at this point in the tree (in Gyr);
- \item [{\normalfont \ttfamily nodeMass}] The mass of the node at this point in the tree (in $M_\odot$). The {\normalfont \ttfamily nodeMass} property is defined to be the total mass of each node in a merger tree. Therefore, it includes both dark and baryonic mass. Additionally, the mass of a node includes the mass of any satellite nodes that it may contain. The mean density of the node depends on the method selected by the {\normalfont \ttfamily virialDensityContrastMethod} parameter.
-\end{description}
-
-\subsubsection{Merger Tree Dump}
-
-A full dump of merger tree structure by setting {\normalfont \ttfamily mergerTreeStructureDump}$=${\normalfont \ttfamily true}. In this case, files will be dumped to the directory specified by {\normalfont \ttfamily [mergerTreeStructureDumpDirectory]} for each merger tree with final mass between {\normalfont \ttfamily [mergerTreeStructureDumpMassMinimum]} and {\normalfont \ttfamily [mergerTreeStructureDumpMassMaximum]}. Each tree is dumped to a file named ``{\normalfont \ttfamily mergerTreeDump:\textless treeIndex\textgreater:1.gv}'' in the specified directory in {\normalfont \scshape GraphViz} format.
-
-\subsubsection{Conditional Mass Functions}
-
-Setting {\normalfont \ttfamily [mergerTreeComputeConditionalMassFunction]}$=${\normalfont \ttfamily true} will cause conditional mass functions to be computed and output to the \glc\ output file in a group named ``{\normalfont \ttfamily conditionalMassFunction}''. The mass functions are binned in parent halo mass, and the mass ratio of the progenitor to parent halo. Bins are logarithmically spaced in mass (and mass ratio), with the range and number of bins controlled by the parameters:
-\begin{itemize}
-\item {\normalfont \ttfamily [mergerTreeComputeConditionalMassFunctionParentMassCount]};
-\item {\normalfont \ttfamily [mergerTreeComputeConditionalMassFunctionParentMassMinimum]};
-\item {\normalfont \ttfamily [mergerTreeComputeConditionalMassFunctionParentMassMaximum]};
-\item {\normalfont \ttfamily [mergerTreeComputeConditionalMassFunctionMassRatioCount]};
-\item {\normalfont \ttfamily [mergerTreeComputeConditionalMassFunctionMassRatioMinimum]};
-\item {\normalfont \ttfamily [mergerTreeComputeConditionalMassFunctionMassRatioMaximum]}.
-\end{itemize}
-The resulting parent masses and mass ratios are written to datasets {\normalfont \ttfamily massParent} and {\normalfont \ttfamily massRatio} respectively. Parent and progenitor halos are defined at a set of redshifts defined by the arrays {\normalfont \ttfamily [mergerTreeComputeConditionalMassFunctionParentRedshifts]}, and {\normalfont \ttfamily [mergerTreeComputeConditionalMassFunctionProgenitorRedshifts]}, which are written to datasets {\normalfont \ttfamily redshiftParent} and {\normalfont \ttfamily redshiftProgenitor}. The resulting conditional masses functions are written to datasets {\normalfont \ttfamily conditionalMassFunction} and {\normalfont \ttfamily conditionalMassFunctionError}.
-
-In addition to standard progenitor mass functions, the progenitor mass function conditioned on progenitor rank (i.e. 1$^\mathrm{st}$ most massive, 2$^\mathrm{nd}$, \ldots, $n^\mathrm{th}$ most massive progenitor) is computed and output to the datasets {\normalfont \ttfamily primaryProgenitorMassFunction} and {\normalfont \ttfamily primaryProgenitorMassFunctionError}. The depth (i.e. $n$) is specifed by {\normalfont \ttfamily [mergerTreeComputeConditionalMassFunctionPrimaryProgenitorDepth]}.
-
-Finally, the progenitor mass functoin conditioned on recent formation is computed and output to the datasets {\normalfont \ttfamily formationRateFunction} and {\normalfont \ttfamily formationRateFunctionError}. To be considered ``recently formed'' a progenitor must have formed between $t$ and $t(1-\Delta)$ where $t$ is the progenitor time and $\Delta=${\normalfont \ttfamily [mergerTreeConditionalMassFunctionFormationRateTimeFraction]}.
-
-\subsubsection{Pre-Evolution Merger Trees}
-
-\glc\ can output the full structure of merger trees prior to any evolution. Merger tree structure can be requested by setting {\normalfont \ttfamily mergerTreeStructureOutput}$=${\normalfont \ttfamily true}. Structures are written to a new group, {\normalfont \ttfamily mergerTreeStructures}, in the \glc\ output file. This group will contain groups called {\normalfont \ttfamily mergerTreeN} where {\normalfont \ttfamily N} is the merger tree index. Each such group will contain the following datasets:
-\begin{description}
- \item [{\normalfont \ttfamily nodeIndex}] The index of the node in the tree;
- \item [{\normalfont \ttfamily childIndex}] The index of this node's first child node;
- \item [{\normalfont \ttfamily parentIndex}] The index of this node's parent node;
- \item [{\normalfont \ttfamily siblingIndex}] The index of this node's sibling node;
- \item [{\normalfont \ttfamily nodeTime}] The time at this point in the tree (in Gyr);
- \item [{\normalfont \ttfamily nodeMass}] The mass of the node at this point in the tree (in $M_\odot$). The {\normalfont \ttfamily nodeMass} property is defined to be the total mass of each node in a merger tree. Therefore, it includes both dark and baryonic mass. Additionally, the mass of a node includes the mass of any satellite nodes that it may contain. The mean density of the node depends on the method selected by the {\normalfont \ttfamily virialDensityContrastMethod} parameter.
-\end{description}
-Additional, optional, datasets can be added by setting appropriate input parameters. Currently these include:
-\begin{itemize}
- \item [Virial quantities] If {\normalfont \ttfamily mergerTreeStructureOutputVirialQuantities}$=${\normalfont \ttfamily true} then two additional datasets are included:
- \begin{description}
-  \item [{\normalfont \ttfamily nodeVirialRadius}] The virial radius of the node (in Mpc);
-  \item [{\normalfont \ttfamily nodeVirialVelocity}] The virial velocity of the node (in km/s);
- \end{description}
- \item [Dark matter scale radii] If {\normalfont \ttfamily mergerTreeStructureOutputDarkMatterScaleRadius}$=${\normalfont \ttfamily true} then an additional dataset is included:
- \begin{description}
-  \item [{\normalfont \ttfamily darkMatterScaleRadius}] The scale radius of this node's dark matter halo profile (in Mpc);
- \end{description}
- \item [Merger tree final descendent] If {\normalfont \ttfamily outputFinalDescendentIndices}$=${\normalfont \ttfamily true} then an additional dataset is included:
- \begin{description}
-  \item [{\normalfont \ttfamily finalDescendentIndex}] The index of the final descendent that this node will reach in its merger trees;
- \end{description}
-\end{itemize}
 
 \section{Topics in Analysis of \glc\ Outputs}
 

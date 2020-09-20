@@ -80,17 +80,19 @@
   !#     a branch of the tree. After processing the tree in this way, \glc\ builds additional links which identify the child node of each
   !#     halo and any sibling nodes. These are not required to specify the tree structure but are computationally convenient.
   !#   \item It is acceptable for a node to begin its existence as a subhalo (i.e. to have never had an isolated node progenitor). Such
-  !#     nodes will be created as satellites in the merger tree and, providing the selected node components (see \S\ref{sec:Components})
+  !#     nodes will be created as satellites in the merger tree and, providing the selected node components (see
+  !#     \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.Components}{here})
   !#     initialize their properties appropriately, will be evolved correctly.
   !#   \item It is acceptable for an isolated node to have progenitors, none of which are a primary progenitor. This can happen if all
   !#     progenitors descend into subhalos in the isolated node. In such cases, \glc\ will create a clone of the isolated node at a very
   !#     slightly earlier time to act as the primary progenitor. This is necessary to allow the tree to be processed correctly, but does
   !#     not affect the evolution of the tree.
-  !#   \item Normally, cases where a node's host node cannot be found in the \gls{forest} will cause \glc\ to exit with an error. Setting
-  !#     {\normalfont \ttfamily [mergerTreeReadMissingHostsAreFatal]}$=${\normalfont \ttfamily false} will instead circumvent this issue
-  !#     by making any such nodes self-hosting (i.e. they become isolated nodes rather than subhalos). Note that this behavior is not a
-  !#     physically correct way to treat such cases---it is intended only to allow trees to be processed in cases where the full
-  !#     \gls{forest} is not available.
+  !#   \item \hyperdef{methods}{mergerTreeConstructRead}{missingHosts} Normally, cases where a node's host node cannot be found in
+  !#     the \gls{forest} will cause \glc\ to exit with an error. Setting {\normalfont \ttfamily
+  !#     [mergerTreeReadMissingHostsAreFatal]}$=${\normalfont \ttfamily false} will instead circumvent this issue by making any such
+  !#     nodes self-hosting (i.e. they become isolated nodes rather than subhalos). Note that this behavior is not a physically
+  !#     correct way to treat such cases---it is intended only to allow trees to be processed in cases where the full \gls{forest}
+  !#     is not available.
   !#   \item It is acceptable for nodes to jump between branches in a tree, or even to jump between branches in different trees. In the
   !#     latter case, all trees linked by jumping nodes (a so-called ``\gls{forest}'' of connected trees) must be stored as a single
   !#     forest (with multiple root-nodes) in the merger tree file. \glc\ will process this \gls{forest} of trees simultaneously,
@@ -153,7 +155,7 @@
   !#     by seeking a value which gives the correct half mass radius. It is therefore important that the definition of halo mass
   !#     (specifically the virial overdensity) in \protect\glc\ be the same as was used in computing the input half mass radii.}. This
   !#   requires a dark matter profile scale component which supports setting of the scale length (see
-  !#   \S\ref{sec:DarkMatterProfileComponent}).
+  !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.DarkMatterProfileScale}{here}).
   !#   
   !#   \textbf{Satellite Merger Times:}\index{merger times}\index{satellite!merger times} If {\normalfont \ttfamily
   !#     [mergerTreeReadPresetMergerTimes]}$=${\normalfont \ttfamily true} then merger times for satellites will be computed directly
@@ -166,7 +168,7 @@
   !#   within the {\normalfont \ttfamily haloTrees} group (see
   !#   \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group}{here}) then the spin parameters
   !#   of nodes will be computed and set. This requires a dark matter halo spin component which supports setting of the spin (see
-  !#   \S\ref{sec:DarkMatterHaloSpinComponent}).
+  !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.DarkMatterHaloSpinComponent}{here}).
   !#  </description>
   !# </mergerTreeConstructor>
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorRead
@@ -695,7 +697,7 @@ contains
     !# <inputParameter>
     !#   <name>missingHostsAreFatal</name>
     !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether nodes with missing host nodes should be considered to be fatal---see \S\ref{sec:MergerTreeFileProcessing}.</description>
+    !#   <description>Specifies whether nodes with missing host nodes should be considered to be fatal---see \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.mergerTreeConstructRead.missingHosts}{here}.</description>
     !#   <source>parameters</source>
     !# </inputParameter>
     !# <inputParameter>

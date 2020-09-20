@@ -1,4 +1,4 @@
-\chapter{Node Components}\label{sec:Components}
+\chapter{Node Components}\label{sec:Components}\hyperdef{sec}{Component}{}
 
 In addition to the implementations described here, each component class has a ``{\normalfont \ttfamily null}'' implementation. Selecting this implementation---which has no properties and does not respond to any events---effectively switches off the relevant component class. Of course, this is safe only if none of the other active implementations expect to get or set properties of the component class (or if they rely on a sensible implementation of that class).
 
@@ -26,7 +26,7 @@ In the standard black implementation the mass and spin evolve as:
 \dot{M}_\bullet &=& (1-\epsilon_\mathrm{radiation}-\epsilon_\mathrm{jet}) \dot{M}_0 \\
 \dot{j}_\bullet &=& \dot{j}(M_\bullet,j_\bullet,\dot{M}_0),
 \end{eqnarray}
-where $\dot{M}_0$ is the rest mass accretion rate, $\epsilon_\mathrm{radiation}$ is the radiative efficiency of the accretion flow feeding the black hole, $\epsilon_\mathrm{jet}$ is the efficiency with which accretion power is converted to jet power and $\dot{j}(M_\bullet,j_\bullet,\dot{M}_0)$ is the spin-up function of that accretion flow (see \S\ref{sec:AccretionDisks}). The rest mass accretion rate is computed assuming Bondi-Hoyle-Lyttleton accretion from the spheroid gas reservoir (with an assumed temperature of {\normalfont \ttfamily [bondiHoyleAccretionTemperatureSpheroid]}) enhanced by a factor of {\normalfont \ttfamily [bondiHoyleAccretionEnhancementSpheroid]} and from the host halo (with whatever temperature that hot halo temperature profile specifies; see \S\ref{sec:HotHaloTemperature}) enhanced by a factor of {\normalfont \ttfamily [bondiHoyleAccretionEnhancementHotHalo]}. For accretion from the hot halo, the Bondi radius is limited to the outer radius of the hot halo. Additionally, the accretion rate is limited to:
+where $\dot{M}_0$ is the rest mass accretion rate, $\epsilon_\mathrm{radiation}$ is the radiative efficiency of the accretion flow feeding the black hole, $\epsilon_\mathrm{jet}$ is the efficiency with which accretion power is converted to jet power and $\dot{j}(M_\bullet,j_\bullet,\dot{M}_0)$ is the spin-up function of that accretion flow (see \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.AccretionDisks}{here}). The rest mass accretion rate is computed assuming Bondi-Hoyle-Lyttleton accretion from the spheroid gas reservoir (with an assumed temperature of {\normalfont \ttfamily [bondiHoyleAccretionTemperatureSpheroid]}) enhanced by a factor of {\normalfont \ttfamily [bondiHoyleAccretionEnhancementSpheroid]} and from the host halo (with whatever temperature that hot halo temperature profile specifies; see \S\ref{sec:HotHaloTemperature}) enhanced by a factor of {\normalfont \ttfamily [bondiHoyleAccretionEnhancementHotHalo]}. For accretion from the hot halo, the Bondi radius is limited to the outer radius of the hot halo. Additionally, the accretion rate is limited to:
 \begin{equation}
  \dot{M}_\mathrm{0,~hot~halo,~maximum} = M_\mathrm{hot}/\tau_\mathrm{sound~crossing},
 \end{equation}
@@ -70,7 +70,7 @@ For numerical ease, the fraction, $f_\mathrm{wind}$, of the wind luminosity adde
 where $x=\rho_\mathrm{ISM}/\rho_\mathrm{wind,critical}-1/2$.
 \end{description}
 
-The radial position, $r_\bullet$, evolves according to the selected radial migration method (see \S\ref{sec:methodsBlackHoleBinarySeparationGrowthRate}).
+The radial position, $r_\bullet$, evolves according to the selected \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.blackHoleBinarySeparationGrowthRate}{radial migration} method.
 
 Interactions between black hole triplets are accounted for if {\normalfont \ttfamily [tripleBlackHoleInteraction]}$=${\normalfont \ttfamily true} (and if at least three black holes exist within the \gls{node} of course). In this case the triple is treated as consisting of an inner binary (assumed to be the central black hole and the black hole closest to it) and a third, singleton black hole. When the tertiary black hole reaches a separation of 
 \begin{equation}
@@ -150,7 +150,7 @@ for either velocity, then that system is ejected from the node. Ejected black ho
 
 \noindent\emph{Node mergers:} None.\\
 
-\noindent\emph{Satellite merging:} The black holes in the two merging galaxies can be instantaneously merged, or taken at an initial separation (see \S\ref{sec:blackHoleBinaryInitialRadii}), it is then evolved until reaching zero separation whereupon it is assumed to undergo merger. Properties are computed using the selected black hole binary merger method (see \S\ref{sec:methodsBlackHoleBinaryMerger}). In addition, the recoil velocity of the new black hole due to gravitational wave emission is computed using the selected method (see \S\ref{sec:binaryBlackHoleRecoil}), and if greater than the potential at the center of the galaxy, is assumed to have escaped the galaxy. Black holes which escape the galaxy are simply discarded and no longer tracked. For computational purposes, they are replaced with a ``null'', zero mass black hole at the center of the galaxy. If any other black hole comes within a distance 
+\noindent\emph{Satellite merging:} The black holes in the two merging galaxies can be instantaneously merged, or taken at an initial separation (see \S\ref{sec:blackHoleBinaryInitialRadii}), it is then evolved until reaching zero separation whereupon it is assumed to undergo merger. Properties are computed using the selected \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.blackHoleBinaryMerger}{black hole binary merger}. In addition, the recoil velocity of the new black hole due to gravitational wave emission is computed using the selected method (see \S\ref{sec:binaryBlackHoleRecoil}), and if greater than the potential at the center of the galaxy, is assumed to have escaped the galaxy. Black holes which escape the galaxy are simply discarded and no longer tracked. For computational purposes, they are replaced with a ``null'', zero mass black hole at the center of the galaxy. If any other black hole comes within a distance 
 \begin{equation}
 a_\mathrm{h} = {\mathrm{G} M_\bullet \over 4 \sigma^2},
 \end{equation}
@@ -200,7 +200,7 @@ where $\epsilon_{\bullet wind}=${\normalfont \ttfamily [blackHoleWindEfficiency]
 
 \noindent\emph{Node mergers:} None.\\
 
-\noindent\emph{Satellite merging:} The black holes in the two merging galaxies are instantaneously merged. Properties are computed using the selected black hole binary merger method (see \S\ref{sec:methodsBlackHoleBinaryMerger}).\\
+\noindent\emph{Satellite merging:} The black holes in the two merging galaxies are instantaneously merged. Properties are computed using the selected \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.blackHoleBinaryMerger}{black hole binary merger} method.\\
 
 \noindent\emph{Node promotion:} None.\\
 
@@ -409,7 +409,7 @@ A fraction $1-${\normalfont \ttfamily [hotHaloAngularMomentumLossFraction]} of t
 
 \noindent\emph{Node promotion:} Any hot halo properties of the parent \gls{node} are added to those of the \gls{node} prior to promotion.\\
 
-\noindent\emph{Halo formation:} If {\normalfont \ttfamily [hotHaloOutflowReturnOnFormation]}$=${\normalfont \ttfamily true} then all outflowed gas is returned to the hot gas reservoir on halo formation events (see \S\ref{sec:HaloFormationEvents}).\\
+\noindent\emph{Halo formation:} If {\normalfont \ttfamily [hotHaloOutflowReturnOnFormation]}$=${\normalfont \ttfamily true} then all outflowed gas is returned to the hot gas reservoir on \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#sec.HaloFormationEvents}{halo formation events}.\\
 
 \subsection{``Outflow Tracking'' Implementation}
 
@@ -513,7 +513,7 @@ N/A---disk radii are computed using the selected galactic structure solver.
 
 \subsection{``Standard Implementation}\label{sec:DiskStandard}
 
-This implementation assumes a disk with a cylindrical symmetry and a flattened profile in which stars trace gas. Currently, one option for the density profile is allowed\footnote{The disk density distribution is handled internally using a {\normalfont \ttfamily massDistribution} object (see \S\ref{sec:methodsMassDistribution}). As such, any mass distribution implemented as an extension of the {\normalfont \ttfamily massDistribution} class (and which is described by a single length scale) could be trivially addded to the standard disk component.}:
+This implementation assumes a disk with a cylindrical symmetry and a flattened profile in which stars trace gas. Currently, one option for the density profile is allowed\footnote{The disk density distribution is handled internally using a \protect\href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.massDistribution}{\normalfont \ttfamily massDistribution} object. As such, any mass distribution implemented as an extension of the {\normalfont \ttfamily massDistribution} class (and which is described by a single length scale) could be trivially addded to the standard disk component.}:
 \begin{description}
 \item [{\normalfont \ttfamily exponentialDisk}] Assumes an exponential profile, $\rho(R,z) = \rho_0 \exp(-r/r_\mathrm{s}) \hbox{sech}^2(z/z_\mathrm{s})$, for the disk \gls{component} of a galaxy. The thickness, $z_\mathrm{s}/r_\mathrm{s}$ is set by the parameter {\normalfont \ttfamily [heightToRadialScaleDisk]}.
 \end{description}
@@ -655,7 +655,7 @@ with $\tau_\mathrm{spheroid, star~formation}$ being the greater of the star form
 
 \subsection{``Standard'' Implementation}
 
-The standard spheroid implementation assumes a spheroid density profile described by a single length scale in which stars trace gas. Currently, two options for the density profile are allowed\footnote{The spheroid density distribution is handled internally using a {\normalfont \ttfamily massDistribution} object (see \S\ref{sec:methodsMassDistribution}). As such, any mass distribution implemented as an extension of the {\normalfont \ttfamily massDistribution} class (and which is described by a single length scale) could be trivially addded to the standard spheroid component.}:
+The standard spheroid implementation assumes a spheroid density profile described by a single length scale in which stars trace gas. Currently, two options for the density profile are allowed\footnote{The spheroid density distribution is handled internally using a \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.massDistribution}{\normalfont \ttfamily massDistribution} object. As such, any mass distribution implemented as an extension of the {\normalfont \ttfamily massDistribution} class (and which is described by a single length scale) could be trivially addded to the standard spheroid component.}:
 \begin{description}
 \item [{\normalfont \ttfamily hernquist}] Assumes a Hernquist profile \citep{hernquist_analytical_1990} for the spheroidal \gls{component} of a galaxy.
 \item [{\normalfont \ttfamily sersic}] Assumes a S\'ersic profile (\citealt{sersic_influence_1963}; see also \citealt{mazure_exact_2002}) for the spheroidal \gls{component} of a galaxy in which stars trace gas. The projected density profile of the spheroid is given by:
@@ -746,7 +746,7 @@ which is just the usual production of starlight due to star formation. As the fu
 
 \noindent\emph{Node mergers:} None\\
 
-\noindent\emph{Satellite merging:} Spheroids may be created as the result of a satellite merging event, as dictated by the selected merger remnant mass movement method (see \S\ref{sec:methodsMergerMassMovements}).\\
+\noindent\emph{Satellite merging:} Spheroids may be created as the result of a satellite merging event, as dictated by the selected \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.mergerMassMovements}{merger remnant mass movement} method.\\
 
 \noindent\emph{Node promotion:} None.\\
 
@@ -983,7 +983,7 @@ The preset satellite orbit implementation defines the following properties:
  \item [{\normalfont \ttfamily timeOfMerging}] The cosmological time at which the satellite will merge with its host: $T_\mathrm{satellite, merge}$.
  \item [{\normalfont \ttfamily boundMass}] The remaining, total bound mass of the satellite (this property is read only---it is determined from the {\normalfont \ttfamily boundMassHistory} property).
  \item [{\normalfont \ttfamily boundMassHistory}] A history time-series of the total bound mass of the satellite.
- \item [{\normalfont \ttfamily virialOrbit}] The orbit (a {\normalfont \ttfamily keplerOrbit} object; see \S\ref{sec:KeplerOrbits}) of the satellite at virial orbit crossing.
+ \item [{\normalfont \ttfamily virialOrbit}] The orbit (a \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#sec.KeplerOrbits}{\normalfont \ttfamily keplerOrbit} object) of the satellite at virial orbit crossing.
 \end{description}
 
 Note that the {\normalfont \ttfamily mergeTime} and {\normalfont \ttfamily timeOfMerging} effectively provide the same information. For that reason, setting one of them will automatically set the other accordingly.
@@ -1040,7 +1040,7 @@ The simple satellite orbit implementation defines the following properties:
 \begin{description}
  \item [{\normalfont \ttfamily mergeTime}] The time until the satellite will merge with its host: $t_\mathrm{satellite, merge}$ [{\normalfont \ttfamily satelliteMergeTime}].
  \item [{\normalfont \ttfamily boundMass}] The remaining, total bound mass of the satellite: $M_\mathrm{node,bound}$ [{\normalfont \ttfamily satelliteBoundMass}].
- \item[{\normalfont \ttfamily virialOrbit}] The orbit (returned as a {\normalfont \ttfamily keplerOrbit} object; see \S\ref{sec:KeplerOrbits}) of the satellite at the point of virial radius crossing.
+ \item[{\normalfont \ttfamily virialOrbit}] The orbit (returned as a \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#sec.KeplerOrbits}{\normalfont \ttfamily keplerOrbit} object) of the satellite at the point of virial radius crossing.
 \end{description}
 
 \subsubsection{Initialization}
@@ -1053,7 +1053,7 @@ Properties are evolved according to:
 \begin{equation}
  \dot{t}_\mathrm{satellite, merge} = -1,
 \end{equation}
-with $\dot{M}_\mathrm{node,bound}$ set to the rate given by the {\normalfont \ttfamily darkMatterHaloMassLossRateMethod} method (see \S\ref{sec:methodsDarkMatterHaloMassLossRate}). The virial orbit is a fixed quantity and does not evolve.
+with $\dot{M}_\mathrm{node,bound}$ set to the rate given by the \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.darkMatterHaloMassLossRate}{\normalfont \ttfamily darkMatterHaloMassLossRateMethod} method. The virial orbit is a fixed quantity and does not evolve.
 
 \subsubsection{Event Evolution}
 
@@ -1073,7 +1073,7 @@ The orbiting satellite orbit implementation defines the following properties:
  \item [{\normalfont \ttfamily velocity}] The 3-dimensional velocity of the satellite relative to its host: $\mathbf{v}=(v_x,v_y,v_z)$.
  \item [{\normalfont \ttfamily mergeTime}] The time until the satellite will merge with its host: $t_\mathrm{satellite, merge}$ [{\normalfont \ttfamily satelliteMergeTime}].
  \item [{\normalfont \ttfamily boundMass}] The remaining, total bound mass of the satellite: $M_\mathrm{node,bound}$ [{\normalfont \ttfamily satelliteBoundMass}].
- \item[{\normalfont \ttfamily virialOrbit}] The orbit (returned as a {\normalfont \ttfamily keplerOrbit} object; see \S\ref{sec:KeplerOrbits}) of the satellite at the point of virial radius crossing.
+ \item[{\normalfont \ttfamily virialOrbit}] The orbit (returned as a \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#sec.KeplerOrbits}{\normalfont \ttfamily keplerOrbit} object) of the satellite at the point of virial radius crossing.
  \item[{\normalfont \ttfamily tidalTensorPathIntegrated}] The time integral of the tidal tensor along the orbit of the satellite from initialization: $G_{ij}$.
  \item[{\normalfont \ttfamily tidalHeatingNormalized}] The tidal heating energy per radius squared desposited into the satellite: $Q_\mathrm{tidal}$.
 \end{description}
@@ -1136,7 +1136,7 @@ None.
 
 \noindent\emph{Node promotion:} The properties are updated to equal those of the parent node.\\
 
-\section{Dark Matter Halo Spin}\label{sec:DarkMatterHaloSpinComponent}
+\section{Dark Matter Halo Spin}\label{sec:DarkMatterHaloSpinComponent}\hyperdef{sec}{DarkMatterHaloSpinComponent}{}
 
 \subsection{``Random'' Implementation}
 
@@ -1246,11 +1246,11 @@ The spin parameter does not evolve.
 
 \noindent\emph{Node promotion:} None.
 
-\section{Dark Matter Profile}\label{sec:DarkMatterProfileComponent}
+\section{Dark Matter Profile}\label{sec:DarkMatterProfileComponent}\hyperdef{sec}{DarkMatterProfileComponent}{}
 
 This \gls{component} stores dynamic properties associated with dark matter halo density profiles.
 
-\subsection{``Scale'' Implementation}\label{sec:DarkMatterProfileScale}
+\subsection{``Scale'' Implementation}\label{sec:DarkMatterProfileScale}\hyperdef{sec}{DarkMatterProfileScale}{}
 
 \subsubsection{Properties}
 
@@ -1302,7 +1302,7 @@ The scale radius grows linearly with time to interpolate between the scale radii
 
 \noindent\emph{Node promotion:} None.\\
 
-\subsection{``Scale+Shape'' Implementation}\label{sec:DarkMatterProfileScaleShape}
+\subsection{``Scale+Shape'' Implementation}\label{sec:DarkMatterProfileScaleShape}\hyperdef{sec}{DarkMatterProfileScaleShape}{}
 
 \subsubsection{Properties}
 
@@ -1316,7 +1316,7 @@ The scale$+$shape dark matter profile implementation defines the following prope
 
 \subsubsection{Initialization}
 
-The scale length of each node, if not already assigned, is assigned using the concentration parameter function (see \S\ref{sec:DarkMatterProfileConcentration}), but is not allowed to drop below {\normalfont \ttfamily [darkMatterProfileMinimumConcentration]}, such that the scale length is equal to the virial radius divided by that concentration. The shape parameter of each \gls{node} is assigned using the dark matter profile shape function (see \S\ref{sec:methodsDarkMatterProfileShape}).
+The scale length of each node, if not already assigned, is assigned using the concentration parameter function (see \S\ref{sec:DarkMatterProfileConcentration}), but is not allowed to drop below {\normalfont \ttfamily [darkMatterProfileMinimumConcentration]}, such that the scale length is equal to the virial radius divided by that concentration. The shape parameter of each \gls{node} is assigned using the \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.darkMatterProfileShape}{dark matter profile shape} function.
 
 \subsubsection{Differential Evolution}
 

@@ -20,7 +20,15 @@
 !% Contains a module which implements a dump to \gls{graphviz} operator on merger trees.
 
   !# <mergerTreeOperator name="mergerTreeOperatorDumpToGraphViz">
-  !#  <description>Provides a dump to \gls{graphviz} operator on merger trees.</description>
+  !#  <description>
+  !#     A merger tree operator class which dumps the full structure of each merger tree to a file using the \gls{graphviz}
+  !#     format. All trees with root node basic mass between {\normalfont \ttfamily [massMinimum]} and {\normalfont \ttfamily
+  !#     [massMaximum]} will be dumped to a file named ``{\normalfont \ttfamily mergerTreeDump:\textless
+  !#     treeIndex\textgreater:1.gv}'' in the directory specified by {\normalfont \ttfamily [path]}. If {\normalfont \ttfamily
+  !#     [scaleNodesByLogMass]}$=${\normalfont \ttfamily true} then the size of each \gls{graphviz} node is scaled in proportion to
+  !#     the logarithm of the halo mass. If {\normalfont \ttfamily [edgeLengthsToTimes]}$=${\normalfont \ttfamily true} then the
+  !#     lengths of edges in the \gls{graphviz} graph are scaled in proportion to the time difference between the connected nodes.
+  !#  </description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorDumpToGraphViz
      !% A dump to \gls{graphviz} merger tree operator class.

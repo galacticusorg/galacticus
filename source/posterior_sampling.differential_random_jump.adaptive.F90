@@ -22,8 +22,9 @@
 
   !# <posteriorSampleDffrntlEvltnRandomJump name="posteriorSampleDffrntlEvltnRandomJumpAdaptive">
   !#  <description>
-  !#   The random jumps are drawn from the distributions specified in the {\normalfont \ttfamily random} element of each parameter (see
-  !#   \S\ref{sec:ParametersPriors}) and then multiplied by the currently occupied range of each parameter (i.e. the maximum value of the
+  !#   The random jumps are drawn from the distributions specified in the {\normalfont \ttfamily random} element of each
+  !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.modelParameter}{modelParameter}
+  !#   object and then multiplied by the currently occupied range of each parameter (i.e. the maximum value of the
   !#   parameter over all current chain states minus the minimum value of each parameter over all current chain states).
   !#  </description>
   !# </posteriorSampleDffrntlEvltnRandomJump>

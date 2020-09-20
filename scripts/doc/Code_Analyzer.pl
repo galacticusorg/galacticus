@@ -395,7 +395,9 @@ sub Output_Data {
 	
 	# Output header line for unit, skipping nameless interfaces (i.e. abstract interfaces) and any children of such interfaces.
 	unless ( $unitIsAbstract == 1 || $parentUnitIsAbstract == 1 ) {
-	    print $outputHandle "\\noindent{\\normalfont \\bfseries ".$unitType.":} \\hypertarget{".$unitID."}{{\\normalfont \\ttfamily ".$unitName."}}\\index[code]{".$unitName."\@\{\\normalfont \\ttfamily ".$unitName."} (".$unitType.")}\n\n";
+	    (my $hyperdefTarget = $unitID) =~ s/\./_/g;
+	    $hyperdefTarget =~ s/_/\\_/g;
+	    print $outputHandle "\\noindent{\\normalfont \\bfseries ".$unitType.":} \\hypertarget{".$unitID."}\\hyperdef{source}{".$hyperdefTarget."}{}{{\\normalfont \\ttfamily ".$unitName."}}\\index[code]{".$unitName."\@\{\\normalfont \\ttfamily ".$unitName."} (".$unitType.")}\n\n";
 
 	    # Begin tabulated output.
 	    my $tableOpen = "\\begin{supertabular}{lp{70mm}p{70mm}}\n";
