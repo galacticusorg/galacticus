@@ -139,7 +139,6 @@ contains
     class           (cosmologyFunctionsClass                             ), intent(inout), target         :: cosmologyFunctions_
     class           (outputTimesClass                                    ), intent(inout), target         :: outputTimes_
     integer         (c_size_t                                            ), parameter                     :: massHaloCount                                         =26
-    double precision                                                      , parameter                     :: massHaloMinimum                                       = 1.0d10, massHaloMaximum                              =1.0d15
     integer                                                               , parameter                     :: covarianceBinomialBinsPerDecade                       =10
     double precision                                                      , parameter                     :: covarianceBinomialMassHaloMinimum                     = 1.0d08, covarianceBinomialMassHaloMaximum            =1.0d16
     double precision                                                      , allocatable  , dimension(:  ) :: massHalo                                                      , massStellarDataLogarithmic                          , &
@@ -173,7 +172,8 @@ contains
     logical                                                               , parameter                     :: likelihoodNormalize                                   =.false.
     integer         (c_size_t                                            )                                :: iBin
     double precision                                                                                      :: massStellarLimit                                              , redshiftMinimum                                  , &
-         &                                                                                                   redshiftMaximum
+         &                                                                                                   redshiftMaximum                                               , massHaloMinimum                                  , &
+         &                                                                                                   massHaloMaximum
     type            (varying_string                                      )                                :: analysisLabel                                                 , weightPropertyLabel                              , &
          &                                                                                                   weightPropertyDescription                                     , groupRedshiftName
     type            (hdf5Object                                          )                                :: fileData                                                      , groupRedshift
@@ -228,8 +228,6 @@ contains
     !#      &amp;                      )
     !#  </constructor>
     !# </referenceConstruct>
-    ! Create bins in halo mass.
-    massHalo=Make_Range(log10(massHaloMinimum),log10(massHaloMaximum),int(massHaloCount),rangeType=rangeTypeLinear)
     ! Read observational data and convert masses to logarithmic.
     call fileData%openFile(char(galacticusPath(pathTypeDataStatic))//"observations/stellarHaloMassRelation/stellarHaloMassRelation_COSMOS_Leauthaud2012.hdf5")
     groupRedshiftName=var_str('redshiftInterval')//redshiftInterval
@@ -238,6 +236,10 @@ contains
     call groupRedshift%readDataset('massHaloMean',massHaloMeanData)
     call groupRedshift%readDataset('massHaloLow' ,massHaloLowData )
     call groupRedshift%readDataset('massHaloHigh',massHaloHighData)
+    ! Create bins in halo mass.
+    massHaloMinimum=massHaloMeanData(1                     )
+    massHaloMaximum=massHaloMeanData(size(massHaloMeanData))
+    massHalo       =Make_Range(log10(massHaloMinimum),log10(massHaloMaximum),int(massHaloCount),rangeType=rangeTypeLinear)
     ! Find a spline fit to the observed data, and compute the uncertainty in logarithm of halo mass.
     allocate(massHaloErrorDataLogarithmic(size(massStellarData)))
     massStellarDataLogarithmic  =log(massStellarData )
