@@ -18,11 +18,11 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a program which tests the \cite{tinker_towardhalo_2008} mass function by comparing to Jeremy Tinker's
-!% \href{http://cosmo.nyu.edu/~tinker/massfunction/MF_code.tar}{code}.
+!% \href{https://cosmo.nyu.edu/~tinker/massfunction/MF_code.tar}{code}.
 
 program Tests_Halo_Mass_Function_Tinker
   !% Tests the \cite{tinker_towardhalo_2008} mass function by comparing to Jeremy Tinker's
-  !% \href{http://cosmo.nyu.edu/~tinker/massfunction/MF_code.tar}{code}.
+  !% \href{https://cosmo.nyu.edu/~tinker/massfunction/MF_code.tar}{code}.
   use :: Cosmological_Density_Field, only : criticalOverdensity           , criticalOverdensityClass
   use :: Cosmology_Functions       , only : cosmologyFunctions            , cosmologyFunctionsClass
   use :: Cosmology_Parameters      , only : cosmologyParameters           , cosmologyParametersClass, hubbleUnitsLittleH

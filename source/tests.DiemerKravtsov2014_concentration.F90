@@ -20,7 +20,7 @@
 !% Contains a program which tests the \cite{diemer_universal_2014} halo concentration algorithm.
 
 program Test_DiemerKravtsov2014_Concentration
-  !% Tests the \cite{diemer_universal_2014} halo concentration algorithm. Values of concentration are taken from their \href{http://www.benediktdiemer.com/wp-content/uploads/2014/07/Concentration_WMAP7_median.txt}{website}.
+  !% Tests the \cite{diemer_universal_2014} halo concentration algorithm. Values of concentration were taken from their website\footnote{File no longer available---was downloaded from {\normalfont \ttfamily http://www.benediktdiemer.com/wp-content/uploads/2014/07/Concentration_WMAP7_median.txt}}.
   use :: Cosmological_Density_Field          , only : cosmologicalMassVariance                        , cosmologicalMassVarianceClass    , criticalOverdensity                , criticalOverdensityClass
   use :: Cosmology_Functions                 , only : cosmologyFunctions                              , cosmologyFunctionsClass
   use :: Cosmology_Parameters                , only : cosmologyParameters                             , cosmologyParametersClass         , hubbleUnitsLittleH

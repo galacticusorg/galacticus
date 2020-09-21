@@ -18,12 +18,11 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a program which tests the \cite{navarro_structure_1996} halo concentration algorithm in a dark energy Universe.
-!% Comparisons are made to the \href{http://www.astro.uvic.ca/~jfn/charden/charden.tar.gz}{``{\normalfont \ttfamily charden}''} code written by
-!% Julio Navarro.
+!% Comparisons are made to the {\normalfont \ttfamily charden} code written by Julio Navarro.
 
 program Test_NFW96_Concentration_Dark_Energy
   !% Tests the \cite{navarro_structure_1996} halo concentration algorithm in a dark energy Universe. Comparisons are made to the
-  !% \href{http://www.astro.uvic.ca/~jfn/charden/charden.tar.gz}{``{\normalfont \ttfamily charden}''} code written by Julio Navarro.
+  !% {\normalfont \ttfamily charden} code written by Julio Navarro.
   use :: Cosmology_Functions                 , only : cosmologyFunctions                 , cosmologyFunctionsClass
   use :: Cosmology_Parameters                , only : cosmologyParameters                , cosmologyParametersClass           , hubbleUnitsLittleH
   use :: Dark_Matter_Profiles_Concentration  , only : darkMatterProfileConcentration     , darkMatterProfileConcentrationClass

@@ -37,7 +37,7 @@
   !#  \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here}. An example of how to construct such a file
   !#  can be found in the {\normalfont \ttfamily tests/nBodyMergerTrees} folder. In that folder, the {\normalfont \ttfamily
   !#    getMillenniumTrees.pl} script will retrieve a sample of merger trees from the
-  !#  \href{http://www.g-vo.org/MyMillennium3/}{Millennium Simulation database} and use the {\normalfont \ttfamily
+  !#  \href{http://gavo.mpa-garching.mpg.de/Millennium/}{Millennium Simulation database} and use the {\normalfont \ttfamily
   !#    Merger\_Tree\_File\_Maker.exe} code supplied with \glc\ to convert these into an HDF5 file suitable for reading into \glc. The
   !#  {\normalfont \ttfamily getMillenniumTrees.pl} script requires you to have a username and password to access the Millennium
   !#  Simulation database\footnote{If you do not have a username and password for the Millennium Simulation database you can request one

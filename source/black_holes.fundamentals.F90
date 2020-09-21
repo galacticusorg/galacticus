@@ -539,8 +539,7 @@ contains
   end function A2
 
   double precision function Black_Hole_Rotational_Energy_Spin_Down_Node(thisBlackHole)
-    !% Wrapper function for \href{func:black_hole_rotational_energy_spin_down_spin}{{\normalfont \ttfamily
-    !% Black\_Hole\_Rotational\_Energy\_Spin\_Down\_Node}} which takes a tree node as input.
+    !% Computes the spin down rate of a black hole due to extraction of rotational energy for the primary black hole.
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
     class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole

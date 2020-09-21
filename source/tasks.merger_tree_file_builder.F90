@@ -53,7 +53,7 @@
   !#   \begin{description}
   !#   \item [{\normalfont \ttfamily galacticus}] merger trees are exported in \glc's native format described in detail
   !#     \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here};
-  !#   \item [{\normalfont \ttfamily irate}] merger trees are exported in the \href{https://bitbucket.org/eteq/irate-format}{\normalfont
+  !#   \item [{\normalfont \ttfamily irate}] merger trees are exported in the \href{https://irate-format.readthedocs.io/en/stable/formatspec.html}{\normalfont
   !#       \ttfamily IRATE} format.
   !#   \end{description}
   !#   

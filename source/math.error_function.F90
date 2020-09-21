@@ -186,7 +186,7 @@ contains
   end function Faddeeva
 
  function erfApproximateQuad(x)
-    !% An \href{http://sites.google.com/site/winitzki/sergei-winitzkis-files/erf-approx.pdf}{approximation to the error function}
+    !% An approximation to the error function due to \cite{winitzki_uniform_2003}.
     !% that is designed to be very accurate in the vicinity of zero and infinity.
     use :: Kind_Numbers            , only : kind_quad
     use :: Numerical_Constants_Math, only : PiQuadPrecision
