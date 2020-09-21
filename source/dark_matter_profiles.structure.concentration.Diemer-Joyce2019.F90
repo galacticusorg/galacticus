@@ -247,9 +247,9 @@ contains
     class           (darkMatterProfileConcentrationDiemerJoyce2019), intent(inout)          :: self
     type            (treeNode                                     ), intent(inout), target  :: node
     class           (nodeComponentBasic                           )               , pointer :: basic
-    double precision                                                                        :: peakHeight          , massHalo          , &
-         &                                                                                     alphaEffective      , A                 , &
-         &                                                                                     B                   , C                 , &
+    double precision                                                                        :: peakHeight    , massHalo, &
+         &                                                                                     alphaEffective, A       , &
+         &                                                                                     B             , C       , &
          &                                                                                     GTilde
     type            (rootFinder                                   ), save                   :: finder
     !$omp threadprivate(finder)
@@ -338,11 +338,11 @@ contains
      implicit none
      double precision, intent(in   ) :: concentration
 
-     GRoot    =+diemerJoyce2019GRoot                                 &
-          &    -concentration                                        &
-          &    /(                                                    &
-          &      +           log(1.0d0+concentration)                &
-          &      -concentration/(1.0d0+concentration)                &
-          &     )**((5.0d0+diemerJoyce2019PowerSpectrumSlope)/6.0d0)
+     GRoot  =+diemerJoyce2019GRoot                                 &
+          &  -concentration                                        &
+          &  /(                                                    &
+          &    +              log(1.0d0+concentration)             &
+          &    -concentration/   (1.0d0+concentration)             &
+          &   )**((5.0d0+diemerJoyce2019PowerSpectrumSlope)/6.0d0)
      return
   end function GRoot
