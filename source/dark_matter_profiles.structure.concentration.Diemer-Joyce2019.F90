@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Xiaolong Du
+  
   !% An implementation of dark matter halo profile concentrations using the
   !% \cite{diemer_accurate_2019} algorithm.
 
