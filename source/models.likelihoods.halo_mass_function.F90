@@ -97,7 +97,6 @@ contains
     class           (darkMatterProfileDMOClass                ), pointer       :: darkMatterProfileDMO_
     class           (haloEnvironmentClass                     ), pointer       :: haloEnvironment_
 
-    parametersUnconditioned=parameters%subParameters("unconditioned",requireValue=.false.)
     !# <inputParameter>
     !#   <name>fileName</name>
     !#   <description>The name of the file containing the halo mass function.</description>
@@ -138,26 +137,34 @@ contains
     !#   <description>If true, the mass function will ve averaged over all environments.</description>
     !#   <source>parameters</source>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"                    source="parameters"             />
-    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"                   source="parameters"             />
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_"              source="parameters"             />
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVarianceUnconditioned_" source="parametersUnconditioned"/>
-    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"                   source="parameters"             />
-    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensityUnconditioned_"      source="parametersUnconditioned"/>
-    !# <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"                   source="parameters"             />
-    !# <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"                  source="parameters"             />
-    !# <objectBuilder class="haloEnvironment"          name="haloEnvironment_"                       source="parameters"             />
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="parameters"/>
+    !# <objectBuilder class="haloEnvironment"          name="haloEnvironment_"          source="parameters"/>
+    if (environmentAveraged) then
+       parametersUnconditioned=parameters%subParameters("unconditioned",requireValue=.false.)
+       !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVarianceUnconditioned_" source="parametersUnconditioned"/>
+       !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensityUnconditioned_"      source="parametersUnconditioned"/>
+    else
+       cosmologicalMassVarianceUnconditioned_ => null()
+       criticalOverdensityUnconditioned_      => null()
+    end if
     self=posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,binCountMinimum,char(massFunctionType),enumerationHaloMassFunctionErrorModelEncode(char(errorModel),includesPrefix=.false.),massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceUnconditioned_,criticalOverdensityUnconditioned_,darkMatterHaloScale_,darkMatterProfileDMO_,haloEnvironment_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"                   />
-    !# <objectDestructor name="cosmologyParameters_"                  />
-    !# <objectDestructor name="cosmologicalMassVariance_"             />
-    !# <objectDestructor name="cosmologicalMassVarianceUnconditioned_"/>
-    !# <objectDestructor name="criticalOverdensity_"                  />
-    !# <objectDestructor name="criticalOverdensityUnconditioned_"     />
-    !# <objectDestructor name="darkMatterHaloScale_"                  />
-    !# <objectDestructor name="darkMatterProfileDMO_"                 />
-    !# <objectDestructor name="haloEnvironment_"                      />
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !# <objectDestructor name="criticalOverdensity_"     />
+    !# <objectDestructor name="darkMatterHaloScale_"     />
+    !# <objectDestructor name="darkMatterProfileDMO_"    />
+    !# <objectDestructor name="haloEnvironment_"         />
+    if (environmentAveraged) then
+       !# <objectDestructor name="cosmologicalMassVarianceUnconditioned_"/>
+       !# <objectDestructor name="criticalOverdensityUnconditioned_"     />
+    end if
     return
   end function haloMassFunctionConstructorParameters
 
@@ -286,15 +293,17 @@ contains
     implicit none
     type(posteriorSampleLikelihoodHaloMassFunction), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"                   />
-    !# <objectDestructor name="self%cosmologyParameters_"                  />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"             />
-    !# <objectDestructor name="self%criticalOverdensity_"                  />
-    !# <objectDestructor name="self%darkMatterHaloScale_"                  />
-    !# <objectDestructor name="self%darkMatterProfileDMO_"                 />
-    !# <objectDestructor name="self%haloEnvironment_"                      />
-    !# <objectDestructor name="self%cosmologicalMassVarianceUnconditioned_"/>
-    !# <objectDestructor name="self%criticalOverdensityUnconditioned_"     />
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%cosmologyParameters_"     />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !# <objectDestructor name="self%criticalOverdensity_"     />
+    !# <objectDestructor name="self%darkMatterHaloScale_"     />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"    />
+    !# <objectDestructor name="self%haloEnvironment_"         />
+    if (self%environmentAveraged) then
+       !# <objectDestructor name="self%cosmologicalMassVarianceUnconditioned_"/>
+       !# <objectDestructor name="self%criticalOverdensityUnconditioned_"     />
+    end if
     return
   end subroutine haloMassFunctionDestructor
 
