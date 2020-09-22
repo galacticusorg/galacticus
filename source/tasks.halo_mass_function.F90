@@ -52,8 +52,8 @@
      class           (transferFunctionClass            ), pointer :: transferFunction_                   => null()
      class           (outputTimesClass                 ), pointer :: outputTimes_                        => null()
      class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_       => null()
-     double precision                                             :: haloMassMinimum                              , haloMassMaximum
-     integer                                                      :: pointsPerDecade
+     double precision                                             :: haloMassMinimum                              , haloMassMaximum, &
+          &                                                          pointsPerDecade
      type            (varying_string                   )          :: outputGroup
      logical                                                      :: includeUnevolvedSubhaloMassFunction
      ! Pointer to the parameters for this task.
@@ -96,8 +96,8 @@ contains
     class           (darkMatterProfileScaleRadiusClass), pointer               :: darkMatterProfileScaleRadius_
     type            (inputParameters                  ), pointer               :: parametersRoot
     type            (varying_string                   )                        :: outputGroup
-    double precision                                                           :: haloMassMinimum                    , haloMassMaximum
-    integer                                                                    :: pointsPerDecade
+    double precision                                                           :: haloMassMinimum                    , haloMassMaximum, &
+         &                                                                        pointsPerDecade
     logical                                                                    :: includeUnevolvedSubhaloMassFunction
     
     ! Ensure the nodes objects are initialized.
@@ -127,7 +127,7 @@ contains
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>pointsPerDecade</name>
-    !#   <defaultValue>10</defaultValue>
+    !#   <defaultValue>10.0d0</defaultValue>
     !#   <description>The number of points per decade of halo mass at which to tabulate halo mass functions.</description>
     !#   <source>parameters</source>
     !# </inputParameter>
@@ -242,8 +242,8 @@ contains
     class           (transferFunctionClass            ), intent(in   ), target :: transferFunction_
     class           (outputTimesClass                 ), intent(in   ), target :: outputTimes_
     type            (varying_string                   ), intent(in   )         :: outputGroup
-    double precision                                   , intent(in   )         :: haloMassMinimum                    , haloMassMaximum
-    integer                                            , intent(in   )         :: pointsPerDecade
+    double precision                                   , intent(in   )         :: haloMassMinimum                    , haloMassMaximum, &
+         &                                                                        pointsPerDecade
     logical                                            , intent(in   )         :: includeUnevolvedSubhaloMassFunction
     type            (inputParameters                  ), intent(in   ), target :: parameters
     !# <constructorAssign variables="haloMassMinimum,haloMassMaximum,pointsPerDecade,outputGroup,includeUnevolvedSubhaloMassFunction,*cosmologyParameters_,*cosmologyFunctions_,*virialDensityContrast_,*darkMatterProfileDMO_,*criticalOverdensity_,*linearGrowth_,*haloMassFunction_,*haloEnvironment_,*unevolvedSubhaloMassFunction_,*darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *cosmologicalMassVariance_,*darkMatterHaloBias_,*transferFunction_, *outputTimes_"/>
@@ -344,7 +344,7 @@ contains
     call allocateArray(outputTurnaroundRadius                        ,[          outputCount])
     call allocateArray(outputCharacteristicMass                      ,[          outputCount])
     ! Compute number of tabulation points.
-    massCount=int(log10(self%haloMassMaximum/self%haloMassMinimum)*dble(self%pointsPerDecade))+1
+    massCount=int(log10(self%haloMassMaximum/self%haloMassMinimum)*self%pointsPerDecade)+1
     call allocateArray(massHalo                                      ,[massCount            ])
     call allocateArray(massFunctionDifferential                      ,[massCount,outputCount])
     call allocateArray(massFunctionDifferentialLogarithmic           ,[massCount,outputCount])
