@@ -86,6 +86,8 @@ sub parameterCount {
     }
     die("Galacticus::Constraints::Parameters::parametersCount(): could not determine number of parameters")
 	unless ( defined($parameterCount) );
+    $parameterCount /= 2
+	if ( $config->{'posteriorSampleSimulationMethod'}->{'value'} eq "particleSwarm" );
     return $parameterCount;
 }
 
@@ -140,7 +142,13 @@ sub maximumPosteriorParameterVector {
     die('found no acceptable states')
 	unless ( @maximumLikelihoodParameters );
     # Convert parameters to a PDL.
-    my $maximumLikelihoodVector = pdl @maximumLikelihoodParameters;
+    my $maximumLikelihoodVector;
+    if ( $config->{'posteriorSampleSimulationMethod'}->{'value'} eq "particleSwarm" ) {
+	my $indexMaximum = scalar(@maximumLikelihoodParameters)/2-1;
+	$maximumLikelihoodVector = pdl @maximumLikelihoodParameters[0..$indexMaximum];
+    } else {
+	$maximumLikelihoodVector = pdl @maximumLikelihoodParameters                  ;
+    }
     # Return the vector.
     return ($maximumLikelihoodVector, $maximumLikelihood);
 }
