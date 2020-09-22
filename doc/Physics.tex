@@ -102,7 +102,7 @@ Selected with {\normalfont \ttfamily cosmologyMethod}$=${\normalfont \ttfamily m
 
 \section{Circumnuclear Accretion Disks}\label{sec:CircumnuclearDisks}\index{accretion disks}\index{accretion!disk}
 
-Circumnuclear accretion disks surrounding supermassive black holes at the centers of galaxies influence the evolution of both the black hole (via accretion rates of mass and angular momentum and possibly by extracting rotational energy from the black hole) and the surrounding galaxy if they lead to energetic outflows (e.g. jets) from the nuclear region. Accretion disk type is specified via the {\normalfont \ttfamily accretionDisksMethod}, and the physics that must be implemented for each accretion disk type is describe in more detail \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#sec.accretionDisks}{here}. Current implementations of accretion disks are as follows.
+Circumnuclear accretion disks surrounding supermassive black holes at the centers of galaxies influence the evolution of both the black hole (via accretion rates of mass and angular momentum and possibly by extracting rotational energy from the black hole) and the surrounding galaxy if they lead to energetic outflows (e.g. jets) from the nuclear region. Accretion disk type is specified via the {\normalfont \ttfamily accretionDisksMethod}, and the physics that must be implemented for each accretion disk type is describe in more detail \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf#sec.AccretionDisks}{here}. Current implementations of accretion disks are as follows.
 
 \subsection{Shakura-Sunyaev Geometrically Thin, Radiatively Efficient Disks}
 
@@ -2012,7 +2012,7 @@ Calculation of branching probabilities involves computation of several hypergeom
 
 \subsection{Generalized Press-Schechter}
 
-Selected with {\normalfont \ttfamily treeBranchingMethod}$=${\normalfont \ttfamily generalizedPress-Schechter}, this method computes branching probabilities from solutions to the excursion set barrier first crossing rate problem (using the selected \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.excursionSetFirstCrossingMethod}{\normalfont \ttfamily excursionSetFirstCrossingMethod}). Specifically, the branching probability per unit time is:
+Selected with {\normalfont \ttfamily treeBranchingMethod}$=${\normalfont \ttfamily generalizedPress-Schechter}, this method computes branching probabilities from solutions to the excursion set barrier first crossing rate problem (using the selected \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf#methods.excursionSetFirstCrossing}{\normalfont \ttfamily excursionSetFirstCrossingMethod}). Specifically, the branching probability per unit time is:
 \begin{equation}
  {\d f \over \d t} = {\mathrm{d} t \over \mathrm{d}\omega} \int_{M_\mathrm{min}}^{M/2} {M \over M^\prime} {\d f \over \d t} {\d S \over \d M^\prime} \left| {\d t \over \d \omega}\right| G[\omega,\sigma(M),\sigma(M^\prime)] \d M^\prime,
 \end{equation}

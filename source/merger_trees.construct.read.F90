@@ -87,7 +87,7 @@
   !#     progenitors descend into subhalos in the isolated node. In such cases, \glc\ will create a clone of the isolated node at a very
   !#     slightly earlier time to act as the primary progenitor. This is necessary to allow the tree to be processed correctly, but does
   !#     not affect the evolution of the tree.
-  !#   \item \hyperdef{methods}{mergerTreeConstructRead}{missingHosts} Normally, cases where a node's host node cannot be found in
+  !#   \item \hyperdef{methods}{mergerTreeConstructRead.missingHosts}{} Normally, cases where a node's host node cannot be found in
   !#     the \gls{forest} will cause \glc\ to exit with an error. Setting {\normalfont \ttfamily
   !#     [mergerTreeReadMissingHostsAreFatal]}$=${\normalfont \ttfamily false} will instead circumvent this issue by making any such
   !#     nodes self-hosting (i.e. they become isolated nodes rather than subhalos). Note that this behavior is not a physically
