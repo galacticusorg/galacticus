@@ -123,7 +123,7 @@ contains
     !#   <source>parameters</source>
     !#   <variable>b0</variable>
     !#   <defaultValue>3.20d0</defaultValue>
-    !#   <description>The parameter $\b_0$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
+    !#   <description>The parameter $b_0$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
