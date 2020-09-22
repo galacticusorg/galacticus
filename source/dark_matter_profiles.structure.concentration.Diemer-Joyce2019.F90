@@ -141,7 +141,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>cAlpha</variable>
     !#   <defaultValue>0.21d0</defaultValue>
-    !#   <attachedTo>module</attachedTo>
     !#   <description>The parameter $c_{\alpha}$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
