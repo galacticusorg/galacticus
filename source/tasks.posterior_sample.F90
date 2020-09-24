@@ -44,7 +44,7 @@ contains
     !% Constructor for the {\normalfont \ttfamily posteriorSample} task class which takes a parameter set as input.
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Input_Parameters, only : inputParameter              , inputParameters
-    use :: Node_Components , only : Node_Components_Initialize
+    use :: Node_Components , only : Node_Components_Initialize  , Node_Components_Thread_Initialize 
     implicit none
     type   (taskPosteriorSample           )                :: self
     type   (inputParameters               ), intent(inout) :: parameters
@@ -67,8 +67,9 @@ contains
        else
           parametersRoot => parameters
        end if
-       call nodeClassHierarchyInitialize(parametersRoot)
-       call Node_Components_Initialize  (parametersRoot)
+       call nodeClassHierarchyInitialize     (parametersRoot)
+       call Node_Components_Initialize       (parametersRoot)
+       call Node_Components_Thread_Initialize(parametersRoot)
     end if
     !# <objectBuilder class="posteriorSampleSimulation" name="posteriorSampleSimulation_" source="parameters"/>
     self=taskPosteriorSample(posteriorSampleSimulation_)
@@ -90,12 +91,15 @@ contains
 
   subroutine posteriorSampleDestructor(self)
     !% Destructor for the {\normalfont \ttfamily posteriorSample} task class.
-    use :: Node_Components, only : Node_Components_Uninitialize
+    use :: Node_Components, only : Node_Components_Uninitialize , Node_Components_Thread_Uninitialize
     implicit none
     type(taskPosteriorSample), intent(inout) :: self
 
     !# <objectDestructor name="self%posteriorSampleSimulation_"/>
-    if (self%nodeClassHierarchyInitialized) call Node_Components_Uninitialize()
+    if (self%nodeClassHierarchyInitialized) then
+       call Node_Components_Thread_Uninitialize()
+       call Node_Components_Uninitialize       ()
+    end if
     return
   end subroutine posteriorSampleDestructor
 
