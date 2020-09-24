@@ -480,14 +480,14 @@ contains
     ! Compute the mass function.
     allocate(massFunction(size(self%mass)))
     do i=1,size(self%mass)
-       massFunction(i)=+haloMassFunctionAveraged_%integrated(                     &
-            &                                                self%time          , &
-            &                                                self%massMinimum(i), &
-            &                                                self%massMaximum(i)  &
-            &                                               )                     &
-            &          /log(                                                      &
-            &                                               +self%massMaximum(i)  &
-            &                                               /self%massMinimum(i)  &
+       massFunction(i)=+haloMassFunctionConvolved_%integrated(                     &
+            &                                                 self%time          , &
+            &                                                 self%massMinimum(i), &
+            &                                                 self%massMaximum(i)  &
+            &                                                )                     &
+            &          /log(                                                       &
+            &                                                +self%massMaximum(i)  &
+            &                                                /self%massMinimum(i)  &
             &              )
     end do
     ! Evaluate the log-likelihood.
