@@ -94,9 +94,12 @@ contains
        call Galacticus_Error_Report('provide either a linear or non-linear power spectrum'          //{introspection:location})
     end if
     ! Initialize correlation range.
-    self%time             =-huge(0.0d0)
-    self%separationMinimum=+huge(0.0d0)
-    self%separationMaximum=-huge(0.0d0)
+    self%time                           =-huge(0.0d0)
+    self%timeVolumeAveraged             =-huge(0.0d0)
+    self%separationMinimum              =+huge(0.0d0)
+    self%separationMaximum              =-huge(0.0d0)
+    self%separationMinimumVolumeAveraged=+huge(0.0d0)
+    self%separationMaximumVolumeAveraged=-huge(0.0d0)
     return
   end function powerSpectrumTransformConstructorInternal
 
