@@ -67,7 +67,8 @@
           &                                                                                  radiusTurnaroundNowOriginal                                , radiusHRTANowOriginal               , &
           &                                                                                  timeNowScaled                                              , radiusSplashbackTurnaround          , &
           &                                                                                  ratioRadiusSplashbackHRTA                                  , radiusSplashbackOriginal            , &
-          &                                                                                  radiusSplashbackScaled                                     , radiusMinimumPhysical
+          &                                                                                  radiusSplashbackScaled                                     , radiusMinimumPhysical               , &
+          &                                                                                  scaleFactorVelocity
    contains
      !@ <objectMethods>
      !@   <object>accretionFlowsShi2016</object>
@@ -106,20 +107,29 @@ contains
     !% Constructor for the {\normalfont \ttfamily shi2016} accretion flow class that takes a parameter set as input.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (accretionFlowsShi2016                  )                :: self
-    type (inputParameters                        ), intent(inout) :: parameters
-    class(cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
-    class(cosmologyParametersClass               ), pointer       :: cosmologyParameters_
-    class(darkMatterHaloMassAccretionHistoryClass), pointer       :: darkMatterHaloMassAccretionHistory_
-    class(darkMatterHaloScaleClass               ), pointer       :: darkMatterHaloScale_
-    class(sphericalCollapseSolverClass           ), pointer       :: sphericalCollapseSolver_
+    type            (accretionFlowsShi2016                  )                :: self
+    type            (inputParameters                        ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
+    class           (cosmologyParametersClass               ), pointer       :: cosmologyParameters_
+    class           (darkMatterHaloMassAccretionHistoryClass), pointer       :: darkMatterHaloMassAccretionHistory_
+    class           (darkMatterHaloScaleClass               ), pointer       :: darkMatterHaloScale_
+    class           (sphericalCollapseSolverClass           ), pointer       :: sphericalCollapseSolver_
+    double precision                                                         :: scaleFactorVelocity
 
+    !# <inputParameter>
+    !#   <name>scaleFactorVelocity</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>A scale factor to be applied to inflow velocities.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale"                name="darkMatterHaloScale_"                source="parameters"/>
     !# <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"/>
     !# <objectBuilder class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"/>
     !# <objectBuilder class="sphericalCollapseSolver"            name="sphericalCollapseSolver_"            source="parameters"/>
-    self=accretionFlowsShi2016(cosmologyParameters_,cosmologyFunctions_,darkMatterHaloMassAccretionHistory_,darkMatterHaloScale_,sphericalCollapseSolver_)
+    self=accretionFlowsShi2016(scaleFactorVelocity,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloMassAccretionHistory_,darkMatterHaloScale_,sphericalCollapseSolver_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="darkMatterHaloMassAccretionHistory_"/>
     !# <objectDestructor name="darkMatterHaloScale_"               />
@@ -128,17 +138,18 @@ contains
     return
   end function shi2016ConstructorParameters
 
-  function shi2016ConstructorInternal(cosmologyParameters_,cosmologyFunctions_,darkMatterHaloMassAccretionHistory_,darkMatterHaloScale_,sphericalCollapseSolver_) result(self)
+  function shi2016ConstructorInternal(scaleFactorVelocity,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloMassAccretionHistory_,darkMatterHaloScale_,sphericalCollapseSolver_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily shi2016} accretion flows class.
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
-    type (accretionFlowsShi2016                  )                        :: self
-    class(cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
-    class(cosmologyParametersClass               ), intent(in   ), target :: cosmologyParameters_
-    class(darkMatterHaloMassAccretionHistoryClass), intent(in   ), target :: darkMatterHaloMassAccretionHistory_
-    class(darkMatterHaloScaleClass               ), intent(in   ), target :: darkMatterHaloScale_
-    class(sphericalCollapseSolverClass           ), intent(in   ), target :: sphericalCollapseSolver_
-    !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloMassAccretionHistory_, *darkMatterHaloScale_, *sphericalCollapseSolver_"/>
+    type            (accretionFlowsShi2016                  )                        :: self
+    class           (cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
+    class           (cosmologyParametersClass               ), intent(in   ), target :: cosmologyParameters_
+    class           (darkMatterHaloMassAccretionHistoryClass), intent(in   ), target :: darkMatterHaloMassAccretionHistory_
+    class           (darkMatterHaloScaleClass               ), intent(in   ), target :: darkMatterHaloScale_
+    class           (sphericalCollapseSolverClass           ), intent(in   ), target :: sphericalCollapseSolver_
+    double precision                                         , intent(in   )         :: scaleFactorVelocity
+    !# <constructorAssign variables="scaleFactorVelocity, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloMassAccretionHistory_, *darkMatterHaloScale_, *sphericalCollapseSolver_"/>
 
     ! Validate cosmology.
     if (.not.Values_Agree(self%cosmologyParameters_%OmegaCurvature           (),+0.0d0,absTol=1.0d-3))                      &
@@ -213,6 +224,8 @@ contains
     else
        shi2016Velocity =   self%interpolatorVelocityPhysical%interpolate           (      radius)
     end if
+    shi2016Velocity=+shi2016Velocity          &
+         &          *self%scaleFactorVelocity
     return
   end function shi2016Velocity
   
