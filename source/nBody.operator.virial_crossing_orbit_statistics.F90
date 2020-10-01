@@ -33,7 +33,8 @@
      private
      double precision                                      :: velocityMinimum                 , velocityMaximum     , &
           &                                                   separationMinimum               , separationMaximum   , &
-          &                                                   bootstrapSampleRate             , time
+          &                                                   bootstrapSampleRate             , time                , &
+          &                                                   velocityCut
      integer         (c_size_t                  )          :: velocityCount                   , bootstrapSampleCount
      logical                                               :: includeUnbootstrapped           , crossCount          , &
           &                                                   addHubbleFlow
@@ -68,7 +69,7 @@ contains
     double precision                                                            :: velocityMinimum       , velocityMaximum     , &
          &                                                                         separationMinimum     , separationMaximum   , &
          &                                                                         bootstrapSampleRate   , redshift            , &
-         &                                                                         time
+         &                                                                         time                  , velocityCut
     integer         (c_size_t                                  )                :: velocityCount         , bootstrapSampleCount
     logical                                                                     :: includeUnbootstrapped , crossCount          , &
          &                                                                         addHubbleFlow
@@ -134,6 +135,12 @@ contains
     !#   <description>If true, include results for the unbootstrapped (i.e. original) sample.</description>
     !#   <defaultValue>.true.</defaultValue>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>velocityCut</name>
+    !#   <source>parameters</source>
+    !#   <description>Pairs with (radial or tangential) velocities in excess of this value (in virial units) are cut from the sample.</description>
+    !#   <defaultValue>huge(0.0d0)</defaultValue>
+    !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
@@ -143,9 +150,9 @@ contains
        do while (associated(parametersRoot%parent))
           parametersRoot => parametersRoot%parent
        end do
-       self=nbodyOperatorVirialCrossingOrbitStatistics(velocityMinimum,velocityMaximum,velocityCount,separationMinimum,separationMaximum,time,crossCount,addHubbleFlow,includeUnbootstrapped,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_,darkMatterHaloScale_,cosmologyFunctions_,parametersRoot)
+       self=nbodyOperatorVirialCrossingOrbitStatistics(velocityMinimum,velocityMaximum,velocityCount,separationMinimum,separationMaximum,time,crossCount,addHubbleFlow,velocityCut,includeUnbootstrapped,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_,darkMatterHaloScale_,cosmologyFunctions_,parametersRoot)
     else
-       self=nbodyOperatorVirialCrossingOrbitStatistics(velocityMinimum,velocityMaximum,velocityCount,separationMinimum,separationMaximum,time,crossCount,addHubbleFlow,includeUnbootstrapped,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_,darkMatterHaloScale_,cosmologyFunctions_,parameters    )
+       self=nbodyOperatorVirialCrossingOrbitStatistics(velocityMinimum,velocityMaximum,velocityCount,separationMinimum,separationMaximum,time,crossCount,addHubbleFlow,velocityCut,includeUnbootstrapped,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_,darkMatterHaloScale_,cosmologyFunctions_,parameters    )
     end if
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="randomNumberGenerator_"/>
@@ -154,13 +161,14 @@ contains
     return
   end function virialCrossingOrbitStatisticsConstructorParameters
 
-  function virialCrossingOrbitStatisticsConstructorInternal(velocityMinimum,velocityMaximum,velocityCount,separationMinimum,separationMaximum,time,crossCount,addHubbleFlow,includeUnbootstrapped,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_,darkMatterHaloScale_,cosmologyFunctions_,parameters) result (self)
+  function virialCrossingOrbitStatisticsConstructorInternal(velocityMinimum,velocityMaximum,velocityCount,separationMinimum,separationMaximum,time,crossCount,addHubbleFlow,velocityCut,includeUnbootstrapped,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_,darkMatterHaloScale_,cosmologyFunctions_,parameters) result (self)
     !% Internal constructor for the ``virialCrossingOrbitStatistics'' N-body operator class.
     implicit none
     type            (nbodyOperatorVirialCrossingOrbitStatistics)                        :: self
     double precision                                            , intent(in   )         :: velocityMinimum       , velocityMaximum     , &
          &                                                                                 separationMinimum     , separationMaximum   , &
-         &                                                                                 bootstrapSampleRate   , time
+         &                                                                                 bootstrapSampleRate   , time                , &
+         &                                                                                 velocityCut
     integer         (c_size_t                                  ), intent(in   )         :: velocityCount         , bootstrapSampleCount
     logical                                                     , intent(in   )         :: includeUnbootstrapped , crossCount          , &
          &                                                                                 addHubbleFlow
@@ -168,7 +176,7 @@ contains
     class           (darkMatterHaloScaleClass                  ), intent(in   ), target :: darkMatterHaloScale_
     class           (cosmologyFunctionsClass                   ), intent(in   ), target :: cosmologyFunctions_
     type            (inputParameters                           ), intent(in   ), target :: parameters
-    !# <constructorAssign variables="velocityMinimum, velocityMaximum, velocityCount, separationMinimum, separationMaximum, time, crossCount, addHubbleFlow, includeUnbootstrapped, bootstrapSampleCount, bootstrapSampleRate, *randomNumberGenerator_, *darkMatterHaloScale_, *cosmologyFunctions_"/>
+    !# <constructorAssign variables="velocityMinimum, velocityMaximum, velocityCount, separationMinimum, separationMaximum, time, crossCount, addHubbleFlow, velocityCut, includeUnbootstrapped, bootstrapSampleCount, bootstrapSampleRate, *randomNumberGenerator_, *darkMatterHaloScale_, *cosmologyFunctions_"/>
 
     self%parameters=inputParameters(parameters)
     return
@@ -211,7 +219,10 @@ contains
          &                                                                                         velocitiesRadial                   , separations                      , &
          &                                                                                         velocitiesTangential               , massVirial                       , &
          &                                                                                         separationsVirial                  , angularMomentumVirial            , &
-         &                                                                                         energyVirial
+         &                                                                                         energyVirial                       , velocityRadialMean               , &
+         &                                                                                         velocityTangentialMean             , velocityRadialDispersion         , &
+         &                                                                                         velocityTangentialDispersion
+    integer         (c_size_t                                  ), allocatable  , dimension(:  ) :: pairCountRadial                    , pairCountTangential
     integer         (c_size_t                                  ), allocatable  , dimension(:,:) :: weight1                            , weight2                          , &
          &                                                                                         weightPair
     logical                                                     , allocatable  , dimension(:  ) :: maskRadial                         , maskTangential
@@ -244,7 +255,13 @@ contains
     allocate(velocityMinimumBin               (self%velocityCount                     ))
     allocate(velocityMaximumBin               (self%velocityCount                     ))
     allocate(distributionVelocityRadialBin    (self%velocityCount,bootstrapSampleCount))
-    allocate(distributionVelocityTangentialBin(self%velocityCount,bootstrapSampleCount))    
+    allocate(distributionVelocityTangentialBin(self%velocityCount,bootstrapSampleCount))
+    allocate(pairCountRadial                  (                   bootstrapSampleCount))
+    allocate(pairCountTangential              (                   bootstrapSampleCount))
+    allocate(velocityRadialMean               (                   bootstrapSampleCount))
+    allocate(velocityTangentialMean           (                   bootstrapSampleCount))
+    allocate(velocityRadialDispersion         (                   bootstrapSampleCount))
+    allocate(velocityTangentialDispersion     (                   bootstrapSampleCount))
     velocityCentralBin=Make_Range(self%velocityMinimum,self%velocityMaximum,int(self%velocityCount),rangeTypeLinear,rangeBinned=.true.)
     velocityWidthBin  =velocityCentralBin(2)-velocityCentralBin(1)
     velocityMinimumBin=velocityCentralBin-0.5d0*velocityWidthBin
@@ -306,7 +323,13 @@ contains
 #endif
        distributionVelocityRadialBin    =0.0d0
        distributionVelocityTangentialBin=0.0d0
-       !$omp parallel private(iSample,j,jStart,jEnd,node,basic,weightPair,maskRadial,maskTangential,separations,positions,velocities,velocitiesRadial,velocitiesTangential,separationsVirial,angularMomentumVirial,energyVirial,neighborCount,neighborIndex,neighborDistanceSquared,neighborFinder) reduction(+:distributionVelocityRadialBin,distributionVelocityTangentialBin)
+       pairCountRadial                  =0_c_size_t
+       pairCountTangential              =0_c_size_t
+       velocityRadialMean               =0.0d0
+       velocityTangentialMean           =0.0d0
+       velocityRadialDispersion         =0.0d0
+       velocityTangentialDispersion     =0.0d0
+       !$omp parallel private(iSample,j,jStart,jEnd,node,basic,weightPair,maskRadial,maskTangential,separations,positions,velocities,velocitiesRadial,velocitiesTangential,separationsVirial,angularMomentumVirial,energyVirial,neighborCount,neighborIndex,neighborDistanceSquared,neighborFinder) reduction(+:distributionVelocityRadialBin,distributionVelocityTangentialBin,pairCountRadial,pairCountTangential,velocityRadialMean,velocityTangentialMean,velocityRadialDispersion,velocityTangentialDispersion)
        call Node_Components_Thread_Initialize(self%parameters)
        ! Allocate workspace.
        allocate(weightPair             (bootstrapSampleCount,size(simulations(iSimulation)%position,dim=2)))
@@ -389,7 +412,7 @@ contains
           !! Separation in virial units.
           separationsVirial(1:neighborCount)=+separations (1:neighborCount) &
                &                             /radiusVirial
-          where (separationsVirial(1:neighborCount) > 0.0d0)
+          where (separationsVirial(1:neighborCount) > 0.0d0 .and. velocitiesRadial(1:neighborCount) >= 0.0d0)
              !! Angular momentum in virial units.
              angularMomentumVirial(1:neighborCount)=+velocitiesTangential   (1:neighborCount)    &
                   &                                 *separationsVirial      (1:neighborCount)
@@ -429,9 +452,46 @@ contains
           if (neighborDistanceSquared(1) <= separationMaximum**2 .and. neighborDistanceSquared(neighborCount) >= separationMinimum**2) then
              jStart=searchArray(neighborDistanceSquared(1:neighborCount),separationMinimum**2)
              jEnd  =neighborCount
+             ! Accumulate statistics.
+             maskRadial    (1:jEnd-jStart+1)= velocitiesRadial       (jStart:jEnd) <  self%velocityCut      &
+                  &                          .and.                                                          &
+                  &                           velocitiesRadial       (jStart:jEnd) >  0.0d0                 &
+                  &                          .and.                                                          &
+                  &                           neighborDistanceSquared(jStart:jEnd) >  separationMinimum**2
+             maskTangential(1:jEnd-jStart+1)= velocitiesTangential   (jStart:jEnd) <  self%velocityCut      &
+                  &                          .and.                                                          &
+                  &                           velocitiesRadial       (jStart:jEnd) >  0.0d0                 &
+                  &                          .and.                                                          &
+                  &                           neighborDistanceSquared(jStart:jEnd) >  separationMinimum**2
+             do iSample=1,bootstrapSampleCount
+                if (weight1(iSample,i) == 0_c_size_t) cycle
+                pairCountRadial             (iSample)=pairCountRadial             (iSample)+     weight1(iSample,i) *sum(     weightPair(iSample,jStart:jEnd)                                      ,maskRadial    (1:jEnd-jStart+1))
+                pairCountTangential         (iSample)=pairCountTangential         (iSample)+     weight1(iSample,i) *sum(     weightPair(iSample,jStart:jEnd)                                      ,maskTangential(1:jEnd-jStart+1))
+                velocityRadialMean          (iSample)=velocityRadialMean          (iSample)+dble(weight1(iSample,i))*sum(dble(weightPair(iSample,jStart:jEnd))*velocitiesRadial    (jStart:jEnd)   ,maskRadial    (1:jEnd-jStart+1))
+                velocityRadialDispersion    (iSample)=velocityRadialDispersion    (iSample)+dble(weight1(iSample,i))*sum(dble(weightPair(iSample,jStart:jEnd))*velocitiesRadial    (jStart:jEnd)**2,maskRadial    (1:jEnd-jStart+1))
+                velocityTangentialMean      (iSample)=velocityTangentialMean      (iSample)+dble(weight1(iSample,i))*sum(dble(weightPair(iSample,jStart:jEnd))*velocitiesTangential(jStart:jEnd)   ,maskTangential(1:jEnd-jStart+1))
+                velocityTangentialDispersion(iSample)=velocityTangentialDispersion(iSample)+dble(weight1(iSample,i))*sum(dble(weightPair(iSample,jStart:jEnd))*velocitiesTangential(jStart:jEnd)**2,maskTangential(1:jEnd-jStart+1))
+             end do
+             ! Accumulate distributions.
              do j=1,self%velocityCount
-                maskRadial    (1:jEnd-jStart+1)=velocitiesRadial    (jStart:jEnd) >= velocityMinimumBin(j) .and. velocitiesRadial    (jStart:jEnd) < velocityMaximumBin(j) .and. velocitiesRadial(jStart:jEnd) > 0.0d0
-                maskTangential(1:jEnd-jStart+1)=velocitiesTangential(jStart:jEnd) >= velocityMinimumBin(j) .and. velocitiesTangential(jStart:jEnd) < velocityMaximumBin(j) .and. velocitiesRadial(jStart:jEnd) > 0.0d0
+                maskRadial    (1:jEnd-jStart+1)= velocitiesRadial       (jStart:jEnd) >= velocityMinimumBin(j) &
+                     &                          .and.                                                          &
+                     &                           velocitiesRadial       (jStart:jEnd) <  velocityMaximumBin(j) &
+                     &                          .and.                                                          &
+                     &                           velocitiesRadial       (jStart:jEnd) <  self%velocityCut      &
+                     &                          .and.                                                          &
+                     &                           velocitiesRadial       (jStart:jEnd) >  0.0d0                 &
+                     &                          .and.                                                          &
+                     &                           neighborDistanceSquared(jStart:jEnd) >  separationMinimum**2
+                maskTangential(1:jEnd-jStart+1)= velocitiesTangential   (jStart:jEnd) >= velocityMinimumBin(j) &
+                     &                          .and.                                                          &
+                     &                           velocitiesTangential   (jStart:jEnd) <  velocityMaximumBin(j) &
+                     &                          .and.                                                          &
+                     &                           velocitiesTangential   (jStart:jEnd) <  self%velocityCut      &
+                     &                          .and.                                                          &
+                     &                           velocitiesRadial       (jStart:jEnd) >  0.0d0                 &
+                     &                          .and.                                                          &
+                     &                           neighborDistanceSquared(jStart:jEnd) >  separationMinimum**2
                 do iSample=1,bootstrapSampleCount
                    if (weight1(iSample,i) == 0_c_size_t) cycle
                    distributionVelocityRadialBin    (j,iSample)=+distributionVelocityRadialBin    (j,iSample)+dble(weight1(iSample,i))*sum(dble(weightPair(iSample,jStart:jEnd))*velocitiesRadial(jStart:jEnd),maskRadial    (1:jEnd-jStart+1))
@@ -475,7 +535,22 @@ contains
        ! Reduce across MPI processes.
        distributionVelocityRadialBin    =mpiSelf%sum(distributionVelocityRadialBin    )
        distributionVelocityTangentialBin=mpiSelf%sum(distributionVelocityTangentialBin)
+       pairCountRadial                  =mpiSelf%sum(pairCountRadial                  )
+       pairCountTangential              =mpiSelf%sum(pairCountTangential              )
+       velocityRadialMean               =mpiSelf%sum(velocityRadialMean               )
+       velocityRadialDispersion         =mpiSelf%sum(velocityRadialDispersion         )
+       velocityTangentialMean           =mpiSelf%sum(velocityTangentialMean           )
+       velocityTangentialDispersion     =mpiSelf%sum(velocityTangentialDispersion     )
 #endif
+       ! Finalize statistics.
+       where (pairCountRadial     > 0_c_size_t)
+          velocityRadialMean          =               velocityRadialMean          /dble(pairCountRadial    )
+          velocityRadialDispersion    =sqrt(max(0.0d0,velocityRadialDispersion    /dble(pairCountRadial    )-velocityRadialMean    **2))
+       end where
+       where (pairCountTangential > 0_c_size_t)
+          velocityTangentialMean      =               velocityTangentialMean      /dble(pairCountTangential)
+          velocityTangentialDispersion=sqrt(max(0.0d0,velocityTangentialDispersion/dble(pairCountTangential)-velocityTangentialMean**2))
+       end where
        ! Normalize distributions.
        do i=1,bootstrapSampleCount
           if (sum(distributionVelocityRadialBin    (:,i)) > 0.0d0) distributionVelocityRadialBin    (:,i)=distributionVelocityRadialBin    (:,i)/sum(distributionVelocityRadialBin    (:,i))/velocityWidthBin
@@ -498,6 +573,10 @@ contains
                & call simulations(jSimulation)%analysis%writeDataset(velocityCentralBin               ,'virialCrossingOrbitVelocity'                           )
           call        simulations(jSimulation)%analysis%writeDataset(distributionVelocityRadialBin    ,'virialCrossingOrbitDistributionRadial'    //char(label))
           call        simulations(jSimulation)%analysis%writeDataset(distributionVelocityTangentialBin,'virialCrossingOrbitDistributionTangential'//char(label))
+          call        simulations(jSimulation)%analysis%writeDataset(velocityRadialMean               ,'velocityRadialMean'                       //char(label))
+          call        simulations(jSimulation)%analysis%writeDataset(velocityRadialDispersion         ,'velocityRadialDispersion'                 //char(label))
+          call        simulations(jSimulation)%analysis%writeDataset(velocityTangentialMean           ,'velocityTangentialMean'                   //char(label))
+          call        simulations(jSimulation)%analysis%writeDataset(velocityTangentialDispersion     ,'velocityTangentialDispersion'             //char(label))
           !$ call hdf5Access%unset()
 #ifdef USEMPI
        end if
