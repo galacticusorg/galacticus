@@ -205,8 +205,7 @@ contains
          &                                                                                      velocities                                   , velocityDispersionRadialBin         , &
          &                                                                                      velocityDispersionTangentialBin              , velocityDispersionRadialInflowingBin, &
          &                                                                                      velocityDispersionTangentialInflowingBin     , velocityRadialInflowingBin          , &
-         &                                                                                      pairCountInflowingBin                        , velocityTangentialBin               , &
-         &                                                                                      velocityTangentialInflowingBin
+         &                                                                                      pairCountInflowingBin
     type            (treeNode                               ), pointer                       :: node
     class           (nodeComponentBasic                     ), pointer                       :: basic
     double precision                                                                         :: radiusVirial                                 , velocityVirial
@@ -233,19 +232,17 @@ contains
     allocate(separationSquaredMaximumBin             (self%separationCount                     ))
     allocate(pairCountBin                            (self%separationCount,bootstrapSampleCount))
     allocate(velocityRadialBin                       (self%separationCount,bootstrapSampleCount))
-    allocate(velocityTangentialBin                   (self%separationCount,bootstrapSampleCount))
     allocate(velocityDispersionRadialBin             (self%separationCount,bootstrapSampleCount))
     allocate(velocityDispersionTangentialBin         (self%separationCount,bootstrapSampleCount))
     allocate(pairCountInflowingBin                   (self%separationCount,bootstrapSampleCount))
     allocate(velocityRadialInflowingBin              (self%separationCount,bootstrapSampleCount))
-    allocate(velocityTangentialInflowingBin          (self%separationCount,bootstrapSampleCount))
     allocate(velocityDispersionRadialInflowingBin    (self%separationCount,bootstrapSampleCount))
     allocate(velocityDispersionTangentialInflowingBin(self%separationCount,bootstrapSampleCount))    
     separationCentralBin       =Make_Range(self%separationMinimum,self%separationMaximum,int(self%separationCount),rangeTypeLogarithmic,rangeBinned=.true.)
     separationSquaredMinimumBin=(separationCentralBin/sqrt(separationCentralBin(2)/separationCentralBin(1)))**2
     separationSquaredMaximumBin=(separationCentralBin*sqrt(separationCentralBin(2)/separationCentralBin(1)))**2
     ! Iterate over simulations.
-    do iSimulation=1_c_size_t,size(simulations)
+    do iSimulation=2_c_size_t,2_c_size_t !! AJB HACK 1_c_size_t,size(simulations)
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
@@ -300,17 +297,15 @@ contains
 #ifdef USEMPI
        end if
 #endif
-       pairCountBin                            =0_c_size_t 
+       pairCountBin                            =0_c_size_t
        velocityRadialBin                       =0.0d0
-       velocityTangentialBin                   =0.0d0
        velocityDispersionRadialBin             =0.0d0
        velocityDispersionTangentialBin         =0.0d0
        pairCountInflowingBin                   =0.0d0
        velocityRadialInflowingBin              =0.0d0
-       velocityTangentialInflowingBin          =0.0d0
        velocityDispersionRadialInflowingBin    =0.0d0
        velocityDispersionTangentialInflowingBin=0.0d0
-       !$omp parallel private(iSample,j,jStart,jEnd,weightPair,mask,separations,positions,velocities,velocitiesRadial,velocitiesTangential,velocityRadialVirialSquared,neighborCount,neighborIndex,neighborDistanceSquared,neighborFinder) reduction(+:pairCountBin,velocityRadialBin,velocityTangentialBin,velocityDispersionRadialBin,velocityDispersionTangentialBin,pairCountInflowingBin,velocityRadialInflowingBin,velocityTangentialInflowingBin,velocityDispersionRadialInflowingBin,velocityDispersionTangentialInflowingBin)
+       !$omp parallel private(iSample,j,jStart,jEnd,weightPair,mask,separations,positions,velocities,velocitiesRadial,velocitiesTangential,velocityRadialVirialSquared,neighborCount,neighborIndex,neighborDistanceSquared,neighborFinder) reduction(+:pairCountBin,velocityRadialBin,velocityDispersionRadialBin,velocityDispersionTangentialBin,pairCountInflowingBin,velocityRadialInflowingBin,velocityDispersionRadialInflowingBin,velocityDispersionTangentialInflowingBin)
        call Node_Components_Thread_Initialize(self%parameters)
        ! Allocate workspace.
        allocate(weightPair                 (bootstrapSampleCount,size(simulations(iSimulation)%position,dim=2)))
@@ -418,12 +413,10 @@ contains
                      &               velocityRadialVirialSquared(jStart+1:jEnd) >= 0.0d0
                 pairCountBin                            (j,iSample)=+pairCountBin                            (j,iSample)+     weight1(iSample,i) *sum(     weightPair(iSample,jStart+1:jEnd)                                                            )
                 velocityRadialBin                       (j,iSample)=+velocityRadialBin                       (j,iSample)+dble(weight1(iSample,i))*sum(dble(weightPair(iSample,jStart+1:jEnd))*velocitiesRadial    (jStart+1:jEnd)                       )
-                velocityTangentialBin                   (j,iSample)=+velocityTangentialBin                   (j,iSample)+dble(weight1(iSample,i))*sum(dble(weightPair(iSample,jStart+1:jEnd))*velocitiesTangential(jStart+1:jEnd)                       )
                 velocityDispersionRadialBin             (j,iSample)=+velocityDispersionRadialBin             (j,iSample)+dble(weight1(iSample,i))*sum(dble(weightPair(iSample,jStart+1:jEnd))*velocitiesRadial    (jStart+1:jEnd)**2                    )
                 velocityDispersionTangentialBin         (j,iSample)=+velocityDispersionTangentialBin         (j,iSample)+dble(weight1(iSample,i))*sum(dble(weightPair(iSample,jStart+1:jEnd))*velocitiesTangential(jStart+1:jEnd)**2                    )
                 pairCountInflowingBin                   (j,iSample)=+pairCountInflowingBin                   (j,iSample)+dble(weight1(iSample,i))*sum(dble(weightPair(iSample,jStart+1:jEnd))                                       ,mask(1:jEnd-jStart))
                 velocityRadialInflowingBin              (j,iSample)=+velocityRadialInflowingBin              (j,iSample)+dble(weight1(iSample,i))*sum(dble(weightPair(iSample,jStart+1:jEnd))*velocitiesRadial    (jStart+1:jEnd)   ,mask(1:jEnd-jStart))
-                velocityTangentialInflowingBin          (j,iSample)=+velocityTangentialInflowingBin          (j,iSample)+dble(weight1(iSample,i))*sum(dble(weightPair(iSample,jStart+1:jEnd))*velocitiesTangential(jStart+1:jEnd)   ,mask(1:jEnd-jStart))
                 velocityDispersionRadialInflowingBin    (j,iSample)=+velocityDispersionRadialInflowingBin    (j,iSample)+dble(weight1(iSample,i))*sum(dble(weightPair(iSample,jStart+1:jEnd))*velocitiesRadial    (jStart+1:jEnd)**2,mask(1:jEnd-jStart))
                 velocityDispersionTangentialInflowingBin(j,iSample)=+velocityDispersionTangentialInflowingBin(j,iSample)+dble(weight1(iSample,i))*sum(dble(weightPair(iSample,jStart+1:jEnd))*velocitiesTangential(jStart+1:jEnd)**2,mask(1:jEnd-jStart))
              end do
@@ -464,20 +457,16 @@ contains
        ! Reduce across MPI processes.
        pairCountBin                            =mpiSelf%sum(pairCountBin                            )
        velocityRadialBin                       =mpiSelf%sum(velocityRadialBin                       )
-       velocityTangentialBin                   =mpiSelf%sum(velocityTangentialBin                   )
        velocityDispersionRadialBin             =mpiSelf%sum(velocityDispersionRadialBin             )
        velocityDispersionTangentialBin         =mpiSelf%sum(velocityDispersionTangentialBin         )
        pairCountInflowingBin                   =mpiSelf%sum(pairCountInflowingBin                   )
        velocityRadialInflowingBin              =mpiSelf%sum(velocityRadialInflowingBin              )
-       velocityTangentialInflowingBin          =mpiSelf%sum(velocityTangentialInflowingBin          )
        velocityDispersionRadialInflowingBin    =mpiSelf%sum(velocityDispersionRadialInflowingBin    )
        velocityDispersionTangentialInflowingBin=mpiSelf%sum(velocityDispersionTangentialInflowingBin)
 #endif
        ! Compute averages and dispersions.
        where (pairCountBin > 0_c_size_t)
           velocityRadialBin                       =+     velocityRadialBin                         &
-               &                                   /dble(pairCountBin             )
-          velocityTangentialBin                   =+     velocityTangentialBin                     &
                &                                   /dble(pairCountBin             )
           velocityDispersionRadialBin             =+     velocityDispersionRadialBin               &
                &                                   /dble(pairCountBin             )
@@ -487,17 +476,13 @@ contains
        where (pairCountInflowingBin > 0.0d0)
           velocityRadialInflowingBin              =+     velocityRadialInflowingBin                &
                &                                  /     pairCountInflowingBin      
-          velocityTangentialInflowingBin          =+     velocityTangentialInflowingBin            &
-               &                                  /     pairCountInflowingBin      
           velocityDispersionRadialInflowingBin    =+     velocityDispersionRadialInflowingBin      &
                &                                  /     pairCountInflowingBin      
           velocityDispersionTangentialInflowingBin=+     velocityDispersionTangentialInflowingBin  &
                &                                  /     pairCountInflowingBin      
        end where
-       velocityDispersionRadialBin             =velocityDispersionRadialBin             -velocityRadialBin             **2
-       velocityDispersionTangentialBin         =velocityDispersionTangentialBin         -velocityTangentialBin         **2
-       velocityDispersionRadialInflowingBin    =velocityDispersionRadialInflowingBin    -velocityRadialInflowingBin    **2
-       velocityDispersionTangentialInflowingBin=velocityDispersionTangentialInflowingBin-velocityTangentialInflowingBin**2
+       velocityDispersionRadialBin             =velocityDispersionRadialBin         -velocityRadialBin         **2
+       velocityDispersionRadialInflowingBin    =velocityDispersionRadialInflowingBin-velocityRadialInflowingBin**2
        where (velocityDispersionRadialBin          > 0.0d0)
           velocityDispersionRadialBin          =sqrt(velocityDispersionRadialBin        )
        elsewhere
@@ -537,11 +522,9 @@ contains
           if (.not.self%crossCount .or. iSimulation == 1 ) &
                & call simulations(jSimulation)%analysis%writeDataset(separationCentralBin                    ,'pairwiseVelocitySeparation'                                )
           call        simulations(jSimulation)%analysis%writeDataset(velocityRadialBin                       ,'pairwiseVelocityRadialMean'                   //char(label))
-          call        simulations(jSimulation)%analysis%writeDataset(velocityTangentialBin                   ,'pairwiseVelocityTangentialMean'               //char(label))
           call        simulations(jSimulation)%analysis%writeDataset(velocityDispersionRadialBin             ,'pairwiseVelocityRadialDispersion'             //char(label))
           call        simulations(jSimulation)%analysis%writeDataset(velocityDispersionTangentialBin         ,'pairwiseVelocityTangentialDispersion'         //char(label))
           call        simulations(jSimulation)%analysis%writeDataset(velocityRadialInflowingBin              ,'pairwiseVelocityRadialInflowingMean'          //char(label))
-          call        simulations(jSimulation)%analysis%writeDataset(velocityTangentialInflowingBin          ,'pairwiseVelocityTangentialInflowingMean'      //char(label))
           call        simulations(jSimulation)%analysis%writeDataset(velocityDispersionRadialInflowingBin    ,'pairwiseVelocityRadialInflowingDispersion'    //char(label))
           call        simulations(jSimulation)%analysis%writeDataset(velocityDispersionTangentialInflowingBin,'pairwiseVelocityTangentialInflowingDispersion'//char(label))
           !$ call hdf5Access%unset()
