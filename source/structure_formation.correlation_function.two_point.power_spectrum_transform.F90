@@ -133,8 +133,8 @@ contains
           self%separationMinimum=separation
           self%separationMaximum=separation
        end if
-       wavenumberMinimum=1.0d0/wavenumbersRange/max(separation,self%separationMaximum)
-       wavenumberMaximum=1.0d0*wavenumbersRange/min(separation,self%separationMinimum)
+       wavenumberMinimum=1.0d0/max(separation*wavenumbersRange,self%separationMaximum)
+       wavenumberMaximum=1.0d0/min(separation/wavenumbersRange,self%separationMinimum)
        countWavenumbers =int(log10(wavenumberMaximum/wavenumberMinimum)*dble(wavenumbersPerDecade),c_size_t)
        allocate(wavenumbers  (countWavenumbers))
        allocate(powerSpectrum(countWavenumbers))
@@ -203,8 +203,8 @@ contains
           self%separationMinimumVolumeAveraged=separation
           self%separationMaximumVolumeAveraged=separation
        end if
-       wavenumberMinimum=1.0d0/wavenumbersRange/max(separation,self%separationMaximumVolumeAveraged)
-       wavenumberMaximum=1.0d0*wavenumbersRange/min(separation,self%separationMinimumVolumeAveraged)
+       wavenumberMinimum=1.0d0/max(separation*wavenumbersRange,self%separationMaximumVolumeAveraged)
+       wavenumberMaximum=1.0d0/min(separation/wavenumbersRange,self%separationMinimumVolumeAveraged)
        countWavenumbers =int(log10(wavenumberMaximum/wavenumberMinimum)*dble(wavenumbersPerDecade),c_size_t)
        allocate(wavenumbers  (countWavenumbers))
        allocate(powerSpectrum(countWavenumbers))
