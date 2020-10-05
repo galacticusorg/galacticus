@@ -29,12 +29,13 @@ program Test_Parameters
   use :: Input_Parameters          , only : inputParameters
   use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group       , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  type (hdf5Object                   )          :: outputFile
-  type (varying_string               )          :: parameterFile            , parameterValue
-  class(cosmologyParametersClass     ), pointer :: cosmologyParameters_
-  class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
-  type (inputParameters              ), target  :: testParameters
-
+  type            (hdf5Object                   )          :: outputFile
+  type            (varying_string               )          :: parameterFile            , parameterValue
+  class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_
+  class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+  type            (inputParameters              ), target  :: testParameters
+  double precision                                         :: valueNumerical
+  
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
   ! Open an output file.
@@ -73,8 +74,16 @@ program Test_Parameters
   call Assert('re-added parameter exists'                   ,testParameters%isPresent('addedParameter'),.true.               )
   call Assert('re-added parameter value is correct'         ,parameterValue                            ,var_str('asdfghjkl' ))
   call Unit_Tests_End_Group()
-  ! End unit tests.
+  ! Test evaluation.
+  call Unit_Tests_Begin_Group("Parameter evaluation")
+  call testParameters%value('fixedValue'   ,valueNumerical)
+  call Assert('fixed value'              ,valueNumerical,+1.234000000d0,absTol=1.0d-6)
+  call testParameters%value('derivedValue1',valueNumerical)
+  call Assert('derived value'            ,valueNumerical,+1.234000000d1,absTol=1.0d-6)
+  call testParameters%value('derivedValue2',valueNumerical)
+  call Assert('derived value [recursive]',valueNumerical,-8.264825587d0,absTol=1.0d-6)
   call Unit_Tests_End_Group()
+  ! End unit tests.
   call Unit_Tests_Finish   ()
   ! Close down.
   call testParameters%destroy()

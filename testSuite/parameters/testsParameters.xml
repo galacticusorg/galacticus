@@ -42,4 +42,11 @@
       </stellarFeedbackOutflowsMethod>
     </nodeOperatorMethod>
   </nodeOperatorMethod>
+
+  <fixedValue value="1.234"/>
+  <derivedValue1 value="=10.0*[fixedValue]"/>
+  <derivedValue2 value="=2.3+[fixedValue]-[derivedValue2:derivedValue3]^2">
+    <derivedValue3 value="=exp([fixedValue])"/>
+  </derivedValue2>
+
 </parameters>

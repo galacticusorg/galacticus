@@ -39,6 +39,7 @@ my %moduleLibararies = (
     h5tb                => "hdf5hl_fortran",
     vectors             => "blas"          ,
     models_likelihoods  => "matheval"      ,
+    input_parameters    => "matheval"      ,
     interface_gsl       => "gsl"
     );
 # C includes that require a library to be linked. These are key-value pairs with the key being the include name, and the value the

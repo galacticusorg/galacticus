@@ -897,7 +897,7 @@ contains
 
     write (valueText,'(e24.16)') value
     call setAttribute(self%content,"value",trim(valueText))
-    return
+   return
   end subroutine inputParameterSetDouble
 
  subroutine inputParameterSetVarStr(self,value)
@@ -1345,7 +1345,7 @@ contains
     return
   end function inputParametersSubParameters
 
-  subroutine inputParametersValueName{Type¦label}(self,parameterName,parameterValue,defaultValue,errorStatus,writeOutput,copyInstance)
+  recursive subroutine inputParametersValueName{Type¦label}(self,parameterName,parameterValue,defaultValue,errorStatus,writeOutput,copyInstance)
     !% Return the value of the parameter specified by name.
     use :: FoX_dom         , only : hasAttribute           , node
     use :: Galacticus_Error, only : Galacticus_Error_Report
@@ -1380,29 +1380,44 @@ contains
     return
   end subroutine inputParametersValueName{Type¦label}
 
-  subroutine inputParametersValueNode{Type¦label}(self,parameterNode,parameterValue,errorStatus,writeOutput)
+  recursive subroutine inputParametersValueNode{Type¦label}(self,parameterNode,parameterValue,errorStatus,writeOutput)
     !% Return the value of the specified parameter.
     use :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName                        , hasAttribute                              , &
           &                           inException                      , node
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: IO_HDF5           , only : hdf5Access
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
-    {Type¦match¦^(Character|VarStr)Rank1$¦use :: String_Handling , only : String_Split_Words¦}
+    use :: String_Handling   , only : String_Split_Words               , String_Count_Words
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: IO_HDF5           , only : hdf5Access
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists   , getTextContent  => getTextContentTS, extractDataContent => extractDataContentTS
     use :: ISO_Varying_String, only : char                             , trim              , assignment(=)                      , operator(//)                              , &
          &                            operator(==)
     implicit none
-    class           (inputParameters), intent(inout)           :: self
-    type            (inputParameter ), intent(in   )           :: parameterNode
-    {Type¦intrinsic}                 , intent(  out)           :: parameterValue
-    integer                          , intent(  out), optional :: errorStatus
-    logical                          , intent(in   ), optional :: writeOutput
-    type            (node           )               , pointer  :: valueElement
-    type            (DOMException   )                          :: exception
-    integer                                                    :: status
-    logical                                                    :: hasValueAttribute, hasValueElement
+    class           (inputParameters           ), intent(inout), target      :: self
+    type            (inputParameter            ), intent(inout)              :: parameterNode
+    {Type¦intrinsic}                            , intent(  out)              :: parameterValue
+    integer                                     , intent(  out), optional    :: errorStatus
+    logical                                     , intent(in   ), optional    :: writeOutput
+    type            (node                      )               , pointer     :: valueElement
+    type            (inputParameters           )               , pointer     :: rootParameters
+    type            (inputParameters           )                             :: subParameters
+    character       (len=parameterLengthMaximum), dimension(:) , allocatable :: parameterNames
+    type            (DOMException              )                             :: exception
+    integer                                                                  :: status             , i              , &
+         &                                                                      countNames
+    logical                                                                  :: hasValueAttribute  , hasValueElement
+    character       (len=parameterLengthMaximum)                             :: expression         , parameterName  , &
+         &                                                                      workText
+    double precision                                                         :: workValue
+#ifdef MATHEVALAVAIL
+    integer         (kind_int8                 )                             :: evaluator
+    ! Declarations of GNU libmatheval procedures used.
+    integer         (kind_int8                 ), external                   :: Evaluator_Create_
+    double precision                            , external                   :: Evaluator_Evaluate_
+    external                                                                 :: Evaluator_Destroy_
+#endif
+
     {Type¦match¦^Long.*¦character(len=parameterLengthMaximum) :: parameterText¦}
     {Type¦match¦^(Character|VarStr)Rank1$¦type(varying_string) :: parameterText¦}
     !# <optionalArgument name="writeOutput" defaultsTo=".true." />
@@ -1411,6 +1426,7 @@ contains
     !$omp critical (FoX_DOM_Access)
     hasValueAttribute =  hasAttribute   (parameterNode%content,'value')
     hasValueElement   =  XML_Path_Exists(parameterNode%content,'value')
+    !$omp end critical (FoX_DOM_Access)
     if (hasValueAttribute .and. hasValueElement) then
        if (present(errorStatus)) then
           errorStatus=inputParameterErrorStatusAmbiguousValue
@@ -1418,11 +1434,13 @@ contains
           call Galacticus_Error_Report('ambiguous value attribute and element'//{introspection:location})
        end if
     else if (hasValueAttribute .or. hasValueElement) then
+       !$omp critical (FoX_DOM_Access)
        if (hasValueAttribute) then
           valueElement => getAttributeNode                 (parameterNode%content,"value"                          )
        else
           valueElement => XML_Get_First_Element_By_Tag_Name(parameterNode%content,"value",directChildrenOnly=.true.)
        end if
+       !$omp end critical (FoX_DOM_Access)
        if (trim(getTextContent(valueElement)) == "") then
           if (present(errorStatus)) then
              errorStatus=inputParameterErrorStatusEmptyValue
@@ -1435,7 +1453,58 @@ contains
                   &                      )
           end if
        else
+          ! Evaluate if an expression.
+          !$omp critical (FoX_DOM_Access)
+          expression=getTextContent(valueElement)
+          !$omp end critical (FoX_DOM_Access)
+         if (expression(1:1) == "=") then
+             {Type¦match¦^Double$¦if (.true.) then¦if (.false.) then}
+                ! This is an expression, and we have a scalar, floating point type - it can be evaluated.
+                !! Remove the initial "=".
+                expression=expression(2:len_trim(expression))
+                !! Replace other parameter values inside the parameter.
+                do while (index(expression,"[") /= 0)
+                   parameterName=expression(index(expression,"[")+1:index(expression,"]")-1)
+                   countNames=String_Count_Words(parameterName,":")
+                   allocate(parameterNames(countNames))
+                   call String_Split_Words(parameterNames,parameterName,":")
+                   rootParameters => self
+                   do while (associated(rootParameters%parent))
+                      rootParameters => rootParameters%parent
+                   end do
+                   do i=1,countNames-1
+                      if (i == 1) then
+                         subParameters=rootParameters%subParameters(trim(parameterNames(i)),requireValue=.false.)
+                      else
+                         subParameters=subParameters%subParameters(trim(parameterNames(i)),requireValue=.false.)
+                      end if
+                   end do
+                   if (countNames == 1) then
+                      call rootParameters%value(trim(parameterNames(countNames)),workValue)
+                   else
+                      call subParameters%value(trim(parameterNames(countNames)),workValue)
+                   end if
+                   write (workText,'(e24.16)') workValue
+                   deallocate(parameterNames)
+                   expression=expression(1:index(expression,"[")-1)//trim(adjustl(workText))//expression(index(expression,"]")+1:len_trim(expression))
+                end do
+                !! Evaluate the expression.
+#ifdef MATHEVALAVAIL
+                evaluator=Evaluator_Create_(trim(expression))
+                workValue=Evaluator_Evaluate_(evaluator,0,"",0.0d0)
+                call Evaluator_Destroy_(evaluator)
+                !$omp critical (FoX_DOM_Access)
+                call parameterNode%set(workValue)
+                valueElement => getAttributeNode                 (parameterNode%content,"value"                          )
+                !$omp end critical (FoX_DOM_Access)
+#else
+                call Galacticus_Error_Report('derived parameters require libmatheval, but it is not installed'//{introspection:location})
+#endif
+             end if
+          end if
+          ! Extract the value.          
           status=0
+          !$omp critical (FoX_DOM_Access)
           {Type¦match¦^(?!(Long|VarStr|Character))¦call extractDataContent(valueElement,parameterValue,iostat=status,ex=exception)¦}
           {Type¦match¦^(Long.*|(Character|VarStr)Rank1)$¦parameterText=getTextContent(valueElement,ex=exception)¦}
           {Type¦match¦^(VarStr|Character)$¦parameterValue=getTextContent(valueElement,ex=exception)¦}
@@ -1462,9 +1531,9 @@ contains
                 !$ call hdf5Access%unset()
              end if
           end if
+          !$omp end critical (FoX_DOM_Access)
        end if
     end if
-    !$omp end critical (FoX_DOM_Access)
     return
   end subroutine inputParametersValueNode{Type¦label}
 
