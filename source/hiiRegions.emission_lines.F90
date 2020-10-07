@@ -72,6 +72,7 @@ contains
           call file%openFile(char(galacticusPath(pathTypeDataStatic))//'hiiRegions/emissionLines.hdf5',readOnly=.true.)
           lines=file%openGroup("lines")
           call lines%datasets(lineNames)
+          allocate(wavelengths(size(lineNames)))
           do i=1,size(lineNames)
              dataset=lines%openDataset(char(lineNames(i)))
              call dataset%readAttribute("wavelength",wavelengths(i))
