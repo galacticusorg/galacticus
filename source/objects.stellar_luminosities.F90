@@ -309,6 +309,7 @@ contains
     use            :: Memory_Management                     , only : Memory_Usage_Record                         , allocateArray
     use            :: Sorting                               , only : sortIndex                                   , sortByIndex
     use            :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorBuilder, stellarPopulationSpectraPostprocessorBuilderClass
+    use            :: String_Handling                       , only : operator(//)
     implicit none
     class           (cosmologyFunctionsClass                          ), pointer                   :: cosmologyFunctions_
     class           (stellarPopulationSpectraPostprocessorBuilderClass), pointer                   :: stellarPopulationSpectraPostprocessorBuilder_
@@ -352,9 +353,9 @@ contains
           luminosityCount=globalParameters%count('luminosityRedshift',zeroIfNotPresent=.true.)
           luminosityCountUnmapped=luminosityCount
           if (globalParameters%count('luminosityFilter',zeroIfNotPresent=.true.) /= luminosityCount) &
-               & call Galacticus_Error_Report('luminosityFilter and luminosityRedshift input arrays must have same dimension'//{introspection:location})
+               & call Galacticus_Error_Report(var_str('luminosityFilter [')//globalParameters%count('luminosityFilter',zeroIfNotPresent=.true.)//'] and luminosityRedshift ['//luminosityCount//'] input arrays must have same dimension'//{introspection:location})
           if (globalParameters%count('luminosityType',zeroIfNotPresent=.true.) /= luminosityCount) &
-               & call Galacticus_Error_Report('luminosityType and luminosityRedshift input arrays must have same dimension'//{introspection:location})
+               & call Galacticus_Error_Report(var_str('luminosityType [')//globalParameters%count('luminosityType',zeroIfNotPresent=.true.)//'] and luminosityRedshift ['//luminosityCount//'] input arrays must have same dimension'//{introspection:location})
           if (globalParameters%isPresent('luminosityBandRedshift')) then
              if (globalParameters%count('luminosityBandRedshift',zeroIfNotPresent=.true.) /= luminosityCount) &
                   & call Galacticus_Error_Report('luminosityBandRedshift and luminosityRedshift input arrays must have same dimension'//{introspection:location})
