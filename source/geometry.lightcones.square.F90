@@ -167,13 +167,13 @@ contains
     !#   <source>parameters</source>
     !#   <description>The second (angular) unit vector defining the lightcone geometry.</description>
     !# </inputParameter>
-    unitVector(:,1)=unitVector2
+    unitVector(:,2)=unitVector2
     !# <inputParameter>
     !#   <name>unitVector3</name>
     !#   <source>parameters</source>
     !#   <description>The third (angular) unit vector defining the lightcone geometry.</description>
     !# </inputParameter>
-    unitVector(:,1)=unitVector3
+    unitVector(:,3)=unitVector3
     !# <inputParameter>
     !#   <name>lengthReplication</name>
     !#   <source>parameters</source>
