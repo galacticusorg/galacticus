@@ -262,18 +262,14 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Satellite_Orbiting_Rate_Compute(thisNode,interrupt,interruptProcedure,propertyType)
     !% Compute rate of change for satellite properties.
-    use :: Galactic_Structure_Accelerations  , only : Galactic_Structure_Acceleration
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options        , only : coordinateSystemCartesian
-    use :: Galactic_Structure_Tidal_Tensors  , only : Galactic_Structure_Tidal_Tensor
-    use :: Galacticus_Nodes                  , only : defaultSatelliteComponent       , interruptTask       , nodeComponentBasic   , nodeComponentSatellite, &
-          &                                           nodeComponentSatelliteOrbiting  , propertyTypeInactive, treeNode
-    use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec
-    use :: Numerical_Constants_Math          , only : Pi
-    use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus
-    use :: Numerical_Constants_Prefixes      , only : kilo
-    use :: Tensors                           , only : assignment(=)                   , operator(*)
-    use :: Vectors                           , only : Vector_Magnitude                , Vector_Product
+    use :: Galactic_Structure_Tidal_Tensors, only : Galactic_Structure_Tidal_Tensor
+    use :: Galacticus_Nodes                , only : defaultSatelliteComponent       , interruptTask       , nodeComponentBasic   , nodeComponentSatellite, &
+          &                                         nodeComponentSatelliteOrbiting  , propertyTypeInactive, treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear                        , megaParsec
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Tensors                         , only : assignment(=)                   , operator(*)
+    use :: Vectors                         , only : Vector_Magnitude                , Vector_Product
     implicit none
     type            (treeNode                      ), pointer     , intent(inout) :: thisNode
     logical                                                       , intent(inout) :: interrupt
@@ -281,13 +277,11 @@ contains
     integer                                                       , intent(in   ) :: propertyType
     class           (nodeComponentSatellite        ), pointer                     :: satelliteComponent
     type            (treeNode                      ), pointer                     :: hostNode
-    double precision                                , dimension(3)                :: position                     , velocity                 , &
-         &                                                                           parentAccelerationBulk
-    double precision                                                              :: radius                       , orbitalPeriod            , &
-         &                                                                           satelliteMass                , radialFrequency          , &
-         &                                                                           parentEnclosedMass           , tidalHeatingNormalized   , &
-         &                                                                           angularFrequency
-    type            (tensorRank2Dimension3Symmetric)                              :: tidalTensor                  , tidalTensorPathIntegrated
+    double precision                                , dimension(3)                :: position          , velocity
+    double precision                                                              :: radius            , orbitalPeriod            , &
+         &                                                                           satelliteMass     , radialFrequency          , &
+         &                                                                           angularFrequency  , tidalHeatingNormalized
+    type            (tensorRank2Dimension3Symmetric)                              :: tidalTensor       , tidalTensorPathIntegrated
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -307,17 +301,10 @@ contains
           tidalTensorPathIntegrated=  satelliteComponent%tidalTensorPathIntegrated(        )
           tidalHeatingNormalized   =  satelliteComponent%tidalHeatingNormalized   (        )
           radius                   =  Vector_Magnitude                            (position)
-          ! Set rate of change of position.
-          call satelliteComponent%positionRate(                               &
-               &                               +(kilo*gigaYear/megaParsec)    &
-               &                               *satelliteComponent%velocity() &
-               &                              )
-          ! Other rates are only non-zero if the satellite is at non-zero radius.
+          ! Rates are only non-zero if the satellite is at non-zero radius.
           if (radius > 0.0d0) then
              ! Calcluate tidal tensor and rate of change of integrated tidal tensor.
-             parentEnclosedMass    =Galactic_Structure_Enclosed_Mass(hostNode,radius  )
-             parentAccelerationBulk=Galactic_Structure_Acceleration (hostNode,position)           
-             tidalTensor           =Galactic_Structure_Tidal_Tensor (hostNode,position)             
+             tidalTensor       =Galactic_Structure_Tidal_Tensor (hostNode,position)             
              ! Compute the orbital period.
              angularFrequency  =  Vector_Magnitude(Vector_Product(position,velocity)) &
                   &              /radius**2                                           &
@@ -332,18 +319,7 @@ contains
              ! Find the orbital period. We use the larger of the angular and radial frequencies to avoid numerical problems for purely
              ! radial or purely circular orbits.
              orbitalPeriod     = 2.0d0*Pi/max(angularFrequency,radialFrequency)
-             ! Calculate position, velocity, mass loss, integrated tidal tensor, and heating rates. In the direct (i.e. non-dynamical
-             ! friction) acceleration we include a factor (1+m_{sat}/m_{host})=m_{sat}/µ (where µ is the reduced mass) to convert
-             ! from the two-body problem of satellite and host orbitting their common center of mass to the equivalent one-body
-             ! problem (since we're solving for the motion of the satellite relative to the center of the host which is held fixed).
-             call satelliteComponent%velocityRate                 (                                                     &
-                  &                                                +parentAccelerationBulk                              &
-                  &                                                *(                                                   &
-                  &                                                  +1.0d0                                             &
-                  &                                                  +satelliteComponent%boundMass()                    &
-                  &                                                  /parentEnclosedMass                                &
-                  &                                                )                                                    &
-                  &                                               )
+             ! Calculate mass loss, integrated tidal tensor, and heating rates.
              call satelliteComponent%boundMassRate                (                                                     &
                   &                                                +satelliteTidalStripping_%massLossRate    (thisNode) &
                   &                                               )

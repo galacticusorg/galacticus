@@ -858,7 +858,10 @@
       <dimensionless value="true"/>
     </spheroidMassDistribution>
     <treeNodeMethodSpin value="random"/>
-    <nodeOperatorMethod value="satelliteDynamicalFriction"/>
+    <nodeOperatorMethod value="multi" >
+      <nodeOperatorMethod value="satelliteOrbit"/>
+      <nodeOperatorMethod value="satelliteDynamicalFriction"/>
+    </nodeOperatorMethod>
     <satelliteDynamicalFrictionMethod value="chandrasekhar1943"/>
     <cosmologyFunctionsMethod value="matterLambda"/>
     <cosmologyParametersMethod value="simple">
