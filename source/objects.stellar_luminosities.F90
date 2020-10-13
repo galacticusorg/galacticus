@@ -1346,7 +1346,7 @@ contains
        if (luminosityFilter(i) == "emissionLineFilters") then
           call Stellar_Luminosities_Expand_Filter_Set( &
                & i                          ,          &
-               & 2_c_size_t                 ,          &
+               & 3_c_size_t                 ,          &
                & luminosityMap              ,          &
                & luminosityRedshiftText     ,          &
                & luminosityFilter           ,          &
