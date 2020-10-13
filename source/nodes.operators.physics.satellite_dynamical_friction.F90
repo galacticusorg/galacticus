@@ -76,7 +76,7 @@ contains
   end subroutine satelliteDynamicalFrictionDestructor
   
   subroutine satelliteDynamicalFrictionDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Perform deceleration of a satellite due to dark matter self-interactions.
+    !% Perform deceleration of a satellite due to dynamical friction.
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
     class    (nodeOperatorSatelliteDynamicalFriction), intent(inout)          :: self
