@@ -22,13 +22,12 @@
 !% Contains a module of satellite orbit tree node methods.
 module Node_Component_Satellite_Orbiting
   !% Implements the orbiting satellite component.
-  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleClass
-  use :: Kepler_Orbits               , only : keplerOrbit
-  use :: Satellite_Dynamical_Friction, only : satelliteDynamicalFrictionClass
-  use :: Satellite_Tidal_Heating     , only : satelliteTidalHeatingRateClass
-  use :: Satellite_Tidal_Stripping   , only : satelliteTidalStrippingClass
-  use :: Tensors                     , only : tensorRank2Dimension3Symmetric
-  use :: Virial_Orbits               , only : virialOrbit                    , virialOrbitClass
+  use :: Dark_Matter_Halo_Scales  , only : darkMatterHaloScaleClass
+  use :: Kepler_Orbits            , only : keplerOrbit
+  use :: Satellite_Tidal_Heating  , only : satelliteTidalHeatingRateClass
+  use :: Satellite_Tidal_Stripping, only : satelliteTidalStrippingClass
+  use :: Tensors                  , only : tensorRank2Dimension3Symmetric
+  use :: Virial_Orbits            , only : virialOrbit                    , virialOrbitClass
   implicit none
   private
   public :: Node_Component_Satellite_Orbiting_Scale_Set        , Node_Component_Satellite_Orbiting_Create             , &
@@ -120,12 +119,11 @@ module Node_Component_Satellite_Orbiting
   !# </enumeration>
 
   ! Objects used by this module.
-  class(darkMatterHaloScaleClass       ), pointer :: darkMatterHaloScale_
-  class(satelliteDynamicalFrictionClass), pointer :: satelliteDynamicalFriction_
-  class(satelliteTidalHeatingRateClass ), pointer :: satelliteTidalHeatingRate_
-  class(satelliteTidalStrippingClass   ), pointer :: satelliteTidalStripping_
-  class(virialOrbitClass               ), pointer :: virialOrbit_
-  !$omp threadprivate(darkMatterHaloScale_,satelliteDynamicalFriction_,satelliteTidalHeatingRate_,satelliteTidalStripping_,virialOrbit_)
+  class(darkMatterHaloScaleClass      ), pointer :: darkMatterHaloScale_
+  class(satelliteTidalHeatingRateClass), pointer :: satelliteTidalHeatingRate_
+  class(satelliteTidalStrippingClass  ), pointer :: satelliteTidalStripping_
+  class(virialOrbitClass              ), pointer :: virialOrbit_
+  !$omp threadprivate(darkMatterHaloScale_,satelliteTidalHeatingRate_,satelliteTidalStripping_,virialOrbit_)
 
   ! Option controlling whether or not unbound virial orbits are acceptable.
   logical         , parameter :: acceptUnboundOrbits=.false.
@@ -219,11 +217,10 @@ contains
     type(inputParameters), intent(inout) :: parameters_
 
     if (defaultSatelliteComponent%orbitingIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale"        name="darkMatterHaloScale_"        source="parameters_"/>
-       !# <objectBuilder class="satelliteDynamicalFriction" name="satelliteDynamicalFriction_" source="parameters_"/>
-       !# <objectBuilder class="satelliteTidalHeatingRate"  name="satelliteTidalHeatingRate_"  source="parameters_"/>
-       !# <objectBuilder class="satelliteTidalStripping"    name="satelliteTidalStripping_"    source="parameters_"/>
-       !# <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="parameters_"/>
+       !# <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters_"/>
+       !# <objectBuilder class="satelliteTidalHeatingRate" name="satelliteTidalHeatingRate_" source="parameters_"/>
+       !# <objectBuilder class="satelliteTidalStripping"   name="satelliteTidalStripping_"   source="parameters_"/>
+       !# <objectBuilder class="virialOrbit"               name="virialOrbit_"               source="parameters_"/>
     end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Thread_Initialize
@@ -237,11 +234,10 @@ contains
     implicit none
 
     if (defaultSatelliteComponent%orbitingIsActive()) then
-       !# <objectDestructor name="darkMatterHaloScale_"       />
-       !# <objectDestructor name="satelliteDynamicalFriction_"/>
-       !# <objectDestructor name="satelliteTidalHeatingRate_" />
-       !# <objectDestructor name="satelliteTidalStripping_"   />
-       !# <objectDestructor name="virialOrbit_"               />
+       !# <objectDestructor name="darkMatterHaloScale_"      />
+       !# <objectDestructor name="satelliteTidalHeatingRate_"/>
+       !# <objectDestructor name="satelliteTidalStripping_"  />
+       !# <objectDestructor name="virialOrbit_"              />
     end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Thread_Uninitialize
@@ -347,7 +343,6 @@ contains
                   &                                                  +satelliteComponent%boundMass()                    &
                   &                                                  /parentEnclosedMass                                &
                   &                                                )                                                    &
-                  &                                                +satelliteDynamicalFriction_%acceleration (thisNode) &
                   &                                               )
              call satelliteComponent%boundMassRate                (                                                     &
                   &                                                +satelliteTidalStripping_%massLossRate    (thisNode) &

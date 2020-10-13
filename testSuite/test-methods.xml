@@ -858,7 +858,7 @@
       <dimensionless value="true"/>
     </spheroidMassDistribution>
     <treeNodeMethodSpin value="random"/>
-    <nodeOperatorMethod value="null"/>
+    <nodeOperatorMethod value="satelliteDynamicalFriction"/>
     <satelliteDynamicalFrictionMethod value="chandrasekhar1943"/>
     <cosmologyFunctionsMethod value="matterLambda"/>
     <cosmologyParametersMethod value="simple">
@@ -910,7 +910,7 @@
       <mergerTreeEvolveTimestepMethod value="satelliteDestruction" iterable="no"/>
     </mergerTreeEvolveTimestepMethod>
     <darkMatterProfileDMOMethod value="heated">
-      <darkMatterProfileMethod value="NFW"/>
+      <darkMatterProfileDMOMethod value="NFW"/>
     </darkMatterProfileDMOMethod>
     <darkMatterProfileConcentrationMethod value="gao2008"/>
     <darkMatterProfileMinimumConcentration value="4"/>
