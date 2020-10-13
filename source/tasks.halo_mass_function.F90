@@ -323,7 +323,8 @@ contains
          &                                                                             iMass                                                , massCount
     double precision                                                                :: massHaloBinMinimum                                   , massHaloBinMaximum           , &
          &                                                                             massHaloLogarithmicInterval                          , massHalfMode                 , &
-         &                                                                             wavenumberComoving                                   , growthFactor
+         &                                                                             wavenumberComoving                                   , growthFactor                 , &
+         &                                                                             massCritical
     type            (hdf5Object                    )                                :: outputsGroup                                         , outputGroup                  , &
          &                                                                             containerGroup                                       , powerSpectrumGroup           , &
          &                                                                             cosmologyGroup                                       , dataset
@@ -364,18 +365,19 @@ contains
     call allocateArray(velocityMaximum                               ,[massCount,outputCount])
     ! Compute output time properties.
     do iOutput=1,outputCount
-       outputTimes                   (iOutput)=self%outputTimes_%time                                 (                                                                       iOutput )
-       outputExpansionFactors        (iOutput)=self%cosmologyFunctions_   %expansionFactor            (                                                outputTimes           (iOutput))
-       outputRedshifts               (iOutput)=self%cosmologyFunctions_   %redshiftFromExpansionFactor(                                                outputExpansionFactors(iOutput))
-       outputGrowthFactors           (iOutput)=self%linearGrowth_         %value                      (                                                outputTimes           (iOutput))
-       outputCharacteristicMass      (iOutput)=self%criticalOverdensity_  %collapsingMass             (                                                outputTimes           (iOutput))
+       outputTimes                (iOutput)=self%outputTimes_%time                                 (                                                      iOutput )
+       outputExpansionFactors     (iOutput)=self%cosmologyFunctions_   %expansionFactor            (                               outputTimes           (iOutput))
+       outputRedshifts            (iOutput)=self%cosmologyFunctions_   %redshiftFromExpansionFactor(                               outputExpansionFactors(iOutput))
+       outputGrowthFactors        (iOutput)=self%linearGrowth_         %value                      (                               outputTimes           (iOutput))
+       outputCharacteristicMass   (iOutput)=self%criticalOverdensity_  %collapsingMass             (                               outputTimes           (iOutput))
        if (outputCharacteristicMass(iOutput) > 0.0d0) then
-          outputCriticalOverdensities(iOutput)=self%criticalOverdensity_  %value                      (mass=outputCharacteristicMass    (iOutput),time=outputTimes           (iOutput))
+          massCritical=outputCharacteristicMass(iOutput)
        else
-          outputCriticalOverdensities(iOutput)=0.0d0
+          massCritical=self%haloMassMinimum
        end if
-       outputVirialDensityContrast   (iOutput)=self%virialDensityContrast_%densityContrast            (mass=self%haloMassMinimum                 ,time=outputTimes           (iOutput))
-       outputTurnaroundRadius        (iOutput)=self%virialDensityContrast_%turnAroundOverVirialRadii  (mass=self%haloMassMinimum                 ,time=outputTimes           (iOutput))
+       outputCriticalOverdensities(iOutput)=self%criticalOverdensity_  %value                      (mass=     massCritical   ,time=outputTimes           (iOutput))
+       outputVirialDensityContrast(iOutput)=self%virialDensityContrast_%densityContrast            (mass=self%haloMassMinimum,time=outputTimes           (iOutput))
+       outputTurnaroundRadius     (iOutput)=self%virialDensityContrast_%turnAroundOverVirialRadii  (mass=self%haloMassMinimum,time=outputTimes           (iOutput))
     end do
     ! Create a node object, assume zero environmental overdensity.
     tree%baseNode          => treeNode()
