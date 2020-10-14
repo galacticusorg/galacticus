@@ -22,12 +22,11 @@
 !% Contains a module of satellite orbit tree node methods.
 module Node_Component_Satellite_Orbiting
   !% Implements the orbiting satellite component.
-  use :: Dark_Matter_Halo_Scales  , only : darkMatterHaloScaleClass
-  use :: Kepler_Orbits            , only : keplerOrbit
-  use :: Satellite_Tidal_Heating  , only : satelliteTidalHeatingRateClass
-  use :: Satellite_Tidal_Stripping, only : satelliteTidalStrippingClass
-  use :: Tensors                  , only : tensorRank2Dimension3Symmetric
-  use :: Virial_Orbits            , only : virialOrbit                    , virialOrbitClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Kepler_Orbits          , only : keplerOrbit
+  use :: Satellite_Tidal_Heating, only : satelliteTidalHeatingRateClass
+  use :: Tensors                , only : tensorRank2Dimension3Symmetric
+  use :: Virial_Orbits          , only : virialOrbit                    , virialOrbitClass
   implicit none
   private
   public :: Node_Component_Satellite_Orbiting_Scale_Set        , Node_Component_Satellite_Orbiting_Create             , &
@@ -121,9 +120,8 @@ module Node_Component_Satellite_Orbiting
   ! Objects used by this module.
   class(darkMatterHaloScaleClass      ), pointer :: darkMatterHaloScale_
   class(satelliteTidalHeatingRateClass), pointer :: satelliteTidalHeatingRate_
-  class(satelliteTidalStrippingClass  ), pointer :: satelliteTidalStripping_
   class(virialOrbitClass              ), pointer :: virialOrbit_
-  !$omp threadprivate(darkMatterHaloScale_,satelliteTidalHeatingRate_,satelliteTidalStripping_,virialOrbit_)
+  !$omp threadprivate(darkMatterHaloScale_,satelliteTidalHeatingRate_,virialOrbit_)
 
   ! Option controlling whether or not unbound virial orbits are acceptable.
   logical         , parameter :: acceptUnboundOrbits=.false.
@@ -219,7 +217,6 @@ contains
     if (defaultSatelliteComponent%orbitingIsActive()) then
        !# <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters_"/>
        !# <objectBuilder class="satelliteTidalHeatingRate" name="satelliteTidalHeatingRate_" source="parameters_"/>
-       !# <objectBuilder class="satelliteTidalStripping"   name="satelliteTidalStripping_"   source="parameters_"/>
        !# <objectBuilder class="virialOrbit"               name="virialOrbit_"               source="parameters_"/>
     end if
     return
@@ -236,7 +233,6 @@ contains
     if (defaultSatelliteComponent%orbitingIsActive()) then
        !# <objectDestructor name="darkMatterHaloScale_"      />
        !# <objectDestructor name="satelliteTidalHeatingRate_"/>
-       !# <objectDestructor name="satelliteTidalStripping_"  />
        !# <objectDestructor name="virialOrbit_"              />
     end if
     return
@@ -319,10 +315,7 @@ contains
              ! Find the orbital period. We use the larger of the angular and radial frequencies to avoid numerical problems for purely
              ! radial or purely circular orbits.
              orbitalPeriod     = 2.0d0*Pi/max(angularFrequency,radialFrequency)
-             ! Calculate mass loss, integrated tidal tensor, and heating rates.
-             call satelliteComponent%boundMassRate                (                                                     &
-                  &                                                +satelliteTidalStripping_%massLossRate    (thisNode) &
-                  &                                               )
+             ! Calculate integrated tidal tensor, and heating rates.
              call satelliteComponent%tidalTensorPathIntegratedRate(                                                     &
                   &                                                +tidalTensor                                         &
                   &                                                -tidalTensorPathIntegrated                           &

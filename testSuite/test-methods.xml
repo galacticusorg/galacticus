@@ -859,8 +859,9 @@
     </spheroidMassDistribution>
     <treeNodeMethodSpin value="random"/>
     <nodeOperatorMethod value="multi" >
-      <nodeOperatorMethod value="satelliteOrbit"/>
+      <nodeOperatorMethod value="satelliteOrbit"            />
       <nodeOperatorMethod value="satelliteDynamicalFriction"/>
+      <nodeOperatorMethod value="satelliteTidalMassLoss"    />
     </nodeOperatorMethod>
     <satelliteDynamicalFrictionMethod value="chandrasekhar1943"/>
     <cosmologyFunctionsMethod value="matterLambda"/>
