@@ -859,12 +859,16 @@
     </spheroidMassDistribution>
     <treeNodeMethodSpin value="random"/>
     <nodeOperatorMethod value="multi" >
-      <nodeOperatorMethod value="satelliteOrbit"               />
-      <nodeOperatorMethod value="satelliteDynamicalFriction"   />
-      <nodeOperatorMethod value="satelliteTidalMassLoss"       />
-      <nodeOperatorMethod value="satelliteTidalHeating"        />
-      <nodeOperatorMethod value="satelliteMergingRadiusTrigger" >
-	<radiusVirialFraction value="0.01"/>
+      <nodeOperatorMethod value="satelliteOrbit"                   />
+      <nodeOperatorMethod value="satelliteDynamicalFriction"       />
+      <nodeOperatorMethod value="satelliteTidalMassLoss"           />
+      <nodeOperatorMethod value="satelliteTidalHeating"            />
+      <nodeOperatorMethod value="satelliteMergingRadiusTrigger"     >
+	<radiusVirialFraction      value="0.01"/>
+      </nodeOperatorMethod>
+      <nodeOperatorMethod value="satelliteDestructionMassThreshold" >
+	<massDestruction           value="0.00"/>
+	<massDestructionFractional value="0.01"/>
       </nodeOperatorMethod>
     </nodeOperatorMethod>
     <satelliteDynamicalFrictionMethod value="chandrasekhar1943"/>

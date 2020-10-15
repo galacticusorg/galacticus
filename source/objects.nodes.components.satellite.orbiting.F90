@@ -29,9 +29,9 @@ module Node_Component_Satellite_Orbiting
   implicit none
   private
   public :: Node_Component_Satellite_Orbiting_Scale_Set        , Node_Component_Satellite_Orbiting_Create             , &
-       &    Node_Component_Satellite_Orbiting_Rate_Compute     , Node_Component_Satellite_Orbiting_Tree_Initialize    , &
        &    Node_Component_Satellite_Orbiting_Pre_Host_Change  , Node_Component_Satellite_Orbiting_Initialize         , &
-       &    Node_Component_Satellite_Orbiting_Thread_Initialize, Node_Component_Satellite_Orbiting_Thread_Uninitialize
+       &    Node_Component_Satellite_Orbiting_Thread_Initialize, Node_Component_Satellite_Orbiting_Thread_Uninitialize, &
+       &    Node_Component_Satellite_Orbiting_Tree_Initialize
   
   !# <component>
   !#  <class>satellite</class>
@@ -124,9 +124,6 @@ module Node_Component_Satellite_Orbiting
   ! Option controlling whether or not unbound virial orbits are acceptable.
   logical         , parameter :: acceptUnboundOrbits=.false.
 
-  ! Option controlling minimum mass of satellite halos before a merger/destruction is triggered.
-  double precision            :: satelliteOrbitingDestructionMass
-  logical                     :: satelliteOrbitingDestructionMassIsFractional
   ! Option controlling how to initialize the bound mass of satellite halos.
   integer                     :: satelliteBoundMassInitializeType
   double precision            :: satelliteMaximumRadiusOverVirialRadius      , satelliteDensityContrast
@@ -150,18 +147,6 @@ contains
     ! Initialize the module if necessary.
     if (defaultSatelliteComponent%orbitingIsActive()) then
        ! Create the spheroid mass distribution.
-       !# <inputParameter>
-       !#   <name>satelliteOrbitingDestructionMassIsFractional</name>
-       !#   <defaultValue>.true.</defaultValue>
-       !#   <source>parameters_</source>
-       !#   <description>If true, then {\normalfont \ttfamily [satelliteOrbitingDestructionMass]} specifies the fractional mass a halo must reach before it is tidally destroyed. Otherwise, {\normalfont \ttfamily [satelliteOrbitingDestructionMass]} specifies an absolute mass.</description>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>satelliteOrbitingDestructionMass</name>
-       !#   <defaultValue>0.01d0</defaultValue>
-       !#   <description>The mass (possibly fractional---see {\normalfont \ttfamily [satelliteOrbitingDestructionMassIsFractional]}) below which the satellite is considered to be tidally destroyed and merged with the central halo.</description>
-       !#   <source>parameters_</source>
-       !# </inputParameter>
        !# <inputParameter>
        !#   <name>satelliteBoundMassInitializeType</name>
        !#   <defaultValue>var_str('basicMass')</defaultValue>
@@ -249,49 +234,6 @@ contains
     return
   end subroutine Node_Component_Satellite_Orbiting_Tree_Initialize
 
-  !# <rateComputeTask>
-  !#  <unitName>Node_Component_Satellite_Orbiting_Rate_Compute</unitName>
-  !# </rateComputeTask>
-  subroutine Node_Component_Satellite_Orbiting_Rate_Compute(thisNode,interrupt,interruptProcedure,propertyType)
-    !% Compute rate of change for satellite properties.
-    use :: Galacticus_Nodes, only : defaultSatelliteComponent     , interruptTask       , nodeComponentBasic, nodeComponentSatellite, &
-          &                         nodeComponentSatelliteOrbiting, propertyTypeInactive, treeNode
-    implicit none
-    type            (treeNode                      ), pointer     , intent(inout) :: thisNode
-    logical                                                       , intent(inout) :: interrupt
-    procedure       (interruptTask                 ), pointer     , intent(inout) :: interruptProcedure
-    integer                                                       , intent(in   ) :: propertyType
-    class           (nodeComponentSatellite        ), pointer                     :: satelliteComponent
-    double precision                                                              :: satelliteMass
-
-    ! Return immediately if inactive variables are requested.
-    if (propertyType == propertyTypeInactive) return
-    ! Return immediately if this class is not in use.
-    if (.not.defaultSatelliteComponent%orbitingIsActive()) return
-    ! Get the satellite component.
-    satelliteComponent => thisNode%satellite()
-    ! Ensure that it is of the orbiting class.
-    select type (satelliteComponent)
-    class is (nodeComponentSatelliteOrbiting)
-       ! Proceed only for satellites.
-       if (thisNode%isSatellite()) then
-          ! Test for destruction.
-          satelliteMass=satelliteComponent%boundMass()
-          if     (                                           &
-               &   satelliteMass > 0.0d0                     &
-               &  .and.                                      &
-               &   satelliteMass < massDestruction(thisNode) &
-               & ) then
-             ! Destruction criterion met - trigger an interrupt.
-             interrupt          =  .true.
-             interruptProcedure => Node_Component_Satellite_Orbiting_Trigger_Destruction
-             return
-          end if
-       end if
-    end select
-    return
-  end subroutine Node_Component_Satellite_Orbiting_Rate_Compute
-
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Satellite_Orbiting_Scale_Set</unitName>
   !# </scaleSetTask>
@@ -319,13 +261,7 @@ contains
     ! Ensure that it is of the orbiting class.
     select type (satellite)
     class is (nodeComponentSatelliteOrbiting)
-       ! Get characteristic scales.
-       if (satelliteOrbitingDestructionMassIsFractional) then
-          basic         =>                                  node %basic()
-          satelliteMass =  satelliteOrbitingDestructionMass*basic%mass ()
-       else
-          satelliteMass =  satelliteOrbitingDestructionMass
-       end if
+       satelliteMass               =basic               %mass          (    )
        virialRadius                =darkMatterHaloScale_%virialRadius  (node)
        virialVelocity              =darkMatterHaloScale_%virialVelocity(node)
        virialIntegratedTidalTensor = virialVelocity/virialRadius*megaParsec/kilo/gigaYear
@@ -442,37 +378,6 @@ contains
     call satellite%velocitySet(velocitySatellite)
     return
   end subroutine Node_Component_Satellite_Orbiting_Pre_Host_Change
-  
-  subroutine Node_Component_Satellite_Orbiting_Trigger_Destruction(node)
-    !% Trigger destruction of the satellite by setting the time until destruction to zero.
-    use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
-    implicit none
-    type (treeNode              ), intent(inout), target  :: node
-    class(nodeComponentSatellite)               , pointer :: satellite
-
-    ! Test the destruction criterion.
-    satellite => node%satellite()
-    if (satellite%boundMass() < massDestruction(node)) &
-         & call satellite%destructionTimeSet(0.0d0)
-    return
-  end subroutine Node_Component_Satellite_Orbiting_Trigger_Destruction
-
-  double precision function massDestruction(node)
-    !% Compute the destruction mass for a node.
-    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
-    implicit none
-    type (treeNode          ), intent(inout) :: node
-    class(nodeComponentBasic), pointer       :: basic
- 
-    if (satelliteOrbitingDestructionMassIsFractional) then
-       basic           =>  node %basic()
-       massDestruction =  +basic%mass ()                    &
-            &             *satelliteOrbitingDestructionMass
-    else
-       massDestruction =  +satelliteOrbitingDestructionMass
-    end if
-    return
-  end function massDestruction
   
   function Node_Component_Satellite_Orbiting_Virial_Orbit(self) result(orbit)
     !% Return the orbit of the satellite at the virial radius.
