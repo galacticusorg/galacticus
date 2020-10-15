@@ -99,7 +99,7 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     use :: Vectors         , only : Vector_Magnitude
     implicit none
-    class           (nodeOperatorSatelliteMergingRadiusTrigger), intent(inout)          :: self
+    class           (nodeOperatorSatelliteMergingRadiusTrigger), intent(inout), target  :: self
     type            (treeNode                                 ), intent(inout)          :: node
     logical                                                    , intent(inout)          :: interrupt
     procedure       (interruptTask                            ), intent(inout), pointer :: functionInterrupt

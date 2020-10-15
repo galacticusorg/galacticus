@@ -79,7 +79,7 @@ contains
     !% Perform mass loss from a satellite due to tidal stripping.
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
-    class    (nodeOperatorSatelliteTidalMassLoss), intent(inout)          :: self
+    class    (nodeOperatorSatelliteTidalMassLoss), intent(inout), target  :: self
     type     (treeNode                          ), intent(inout)          :: node
     logical                                      , intent(inout)          :: interrupt
     procedure(interruptTask                     ), intent(inout), pointer :: functionInterrupt

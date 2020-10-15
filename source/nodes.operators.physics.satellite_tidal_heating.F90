@@ -85,7 +85,7 @@ contains
     use :: Tensors                         , only : assignment(=)                  , operator(*)   , tensorRank2Dimension3Symmetric
     use :: Vectors                         , only : Vector_Magnitude               , Vector_Product
     implicit none
-    class           (nodeOperatorSatelliteTidalHeating), intent(inout)          :: self
+    class           (nodeOperatorSatelliteTidalHeating), intent(inout), target  :: self
     type            (treeNode                         ), intent(inout)          :: node
     logical                                            , intent(inout)          :: interrupt
     procedure       (interruptTask                    ), intent(inout), pointer :: functionInterrupt

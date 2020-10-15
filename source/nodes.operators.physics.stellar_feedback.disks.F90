@@ -96,7 +96,7 @@ contains
     use :: Histories                     , only : history
     use :: Stellar_Luminosities_Structure, only : stellarLuminosities
     implicit none
-    class           (nodeOperatorStellarFeedbackDisks), intent(inout)          :: self
+    class           (nodeOperatorStellarFeedbackDisks), intent(inout), target  :: self
     type            (treeNode                        ), intent(inout)          :: node
     logical                                           , intent(inout)          :: interrupt
     procedure       (interruptTask                   ), intent(inout), pointer :: functionInterrupt

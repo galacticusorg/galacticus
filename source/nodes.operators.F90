@@ -60,6 +60,7 @@ module Nodes_Operators
   !#   <description>Operate on a node during differential evolution.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
+  !#   <selfTarget>yes</selfTarget>
   !#   <argument>type     (treeNode     ), intent(inout)          :: node             </argument>
   !#   <argument>logical                 , intent(inout)          :: interrupt        </argument>
   !#   <argument>procedure(interruptTask), intent(inout), pointer :: functionInterrupt</argument>

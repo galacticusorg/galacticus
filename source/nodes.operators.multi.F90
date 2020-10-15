@@ -158,7 +158,7 @@ contains
   subroutine multiDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !% Act on a node during differential evolution.
     implicit none
-    class    (nodeOperatorMulti), intent(inout)          :: self
+    class    (nodeOperatorMulti), intent(inout), target  :: self
     type     (treeNode         ), intent(inout)          :: node
     logical                     , intent(inout)          :: interrupt
     procedure(interruptTask    ), intent(inout), pointer :: functionInterrupt

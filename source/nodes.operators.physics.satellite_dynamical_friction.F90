@@ -79,7 +79,7 @@ contains
     !% Perform deceleration of a satellite due to dynamical friction.
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
-    class    (nodeOperatorSatelliteDynamicalFriction), intent(inout)          :: self
+    class    (nodeOperatorSatelliteDynamicalFriction), intent(inout), target  :: self
     type     (treeNode                              ), intent(inout)          :: node
     logical                                          , intent(inout)          :: interrupt
     procedure(interruptTask                         ), intent(inout), pointer :: functionInterrupt

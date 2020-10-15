@@ -79,7 +79,7 @@ contains
     !% Perform deceleration of a satellite due to dark matter self-interactions.
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
-    class    (nodeOperatorSatelliteDecelerationSIDM), intent(inout)          :: self
+    class    (nodeOperatorSatelliteDecelerationSIDM), intent(inout), target  :: self
     type     (treeNode                             ), intent(inout)          :: node
     logical                                         , intent(inout)          :: interrupt
     procedure(interruptTask                        ), intent(inout), pointer :: functionInterrupt

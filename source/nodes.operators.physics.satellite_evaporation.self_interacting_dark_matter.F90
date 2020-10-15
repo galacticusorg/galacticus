@@ -79,7 +79,7 @@ contains
     !% Perform evaporation of a satellite due to dark matter self-interactions.
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
-    class    (nodeOperatorSatelliteEvaporationSIDM), intent(inout)          :: self
+    class    (nodeOperatorSatelliteEvaporationSIDM), intent(inout), target  :: self
     type     (treeNode                            ), intent(inout)          :: node
     logical                                        , intent(inout)          :: interrupt
     procedure(interruptTask                       ), intent(inout), pointer :: functionInterrupt

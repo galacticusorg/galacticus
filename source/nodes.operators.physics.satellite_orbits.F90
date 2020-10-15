@@ -58,7 +58,7 @@ contains
     use :: Numerical_Constants_Prefixes      , only : kilo
     use :: Vectors                           , only : Vector_Magnitude
     implicit none
-    class           (nodeOperatorSatelliteOrbit), intent(inout)          :: self
+    class           (nodeOperatorSatelliteOrbit), intent(inout), target  :: self
     type            (treeNode                  ), intent(inout)          :: node
     logical                                     , intent(inout)          :: interrupt
     procedure       (interruptTask             ), intent(inout), pointer :: functionInterrupt

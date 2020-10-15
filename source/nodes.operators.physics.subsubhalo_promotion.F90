@@ -78,7 +78,7 @@ contains
     !% Determine if sub-sub-halos should be promoted.
     use :: Galacticus_Nodes, only : propertyTypeInactive, nodeComponentSatellite
     implicit none
-    class           (nodeOperatorSubsubhaloPromotion), intent(inout)          :: self
+    class           (nodeOperatorSubsubhaloPromotion), intent(inout), target  :: self
     type            (treeNode                       ), intent(inout)          :: node
     logical                                          , intent(inout)          :: interrupt
     procedure       (interruptTask                  ), intent(inout), pointer :: functionInterrupt
