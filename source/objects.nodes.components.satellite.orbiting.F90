@@ -256,15 +256,13 @@ contains
     !% Compute rate of change for satellite properties.
     use :: Galacticus_Nodes, only : defaultSatelliteComponent     , interruptTask       , nodeComponentBasic, nodeComponentSatellite, &
           &                         nodeComponentSatelliteOrbiting, propertyTypeInactive, treeNode
-    use :: Vectors         , only : Vector_Magnitude
     implicit none
     type            (treeNode                      ), pointer     , intent(inout) :: thisNode
     logical                                                       , intent(inout) :: interrupt
     procedure       (interruptTask                 ), pointer     , intent(inout) :: interruptProcedure
     integer                                                       , intent(in   ) :: propertyType
     class           (nodeComponentSatellite        ), pointer                     :: satelliteComponent
-    double precision                                , dimension(3)                :: position
-    double precision                                                              :: radius            , satelliteMass
+    double precision                                                              :: satelliteMass
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -274,23 +272,9 @@ contains
     satelliteComponent => thisNode%satellite()
     ! Ensure that it is of the orbiting class.
     select type (satelliteComponent)
-       class is (nodeComponentSatelliteOrbiting)
-          ! Proceed only for satellites.
+    class is (nodeComponentSatelliteOrbiting)
+       ! Proceed only for satellites.
        if (thisNode%isSatellite()) then
-          ! Get all required quantities.
-          position=satelliteComponent%position(        )
-          radius  =Vector_Magnitude           (position)
-          ! Test for merging.
-          if     (                                &
-               &   radius > 0.0d0                 &
-               &  .and.                           &
-               &   radius < radiusMerge(thisNode) &
-               & ) then
-             ! Merging criterion met - trigger an interrupt.
-             interrupt          =  .true.
-             interruptProcedure => Node_Component_Satellite_Orbiting_Trigger_Merger
-             return
-          end if
           ! Test for destruction.
           satelliteMass=satelliteComponent%boundMass()
           if     (                                           &
@@ -302,7 +286,7 @@ contains
              interrupt          =  .true.
              interruptProcedure => Node_Component_Satellite_Orbiting_Trigger_Destruction
              return
-          end if          
+          end if
        end if
     end select
     return
@@ -458,67 +442,6 @@ contains
     call satellite%velocitySet(velocitySatellite)
     return
   end subroutine Node_Component_Satellite_Orbiting_Pre_Host_Change
-
-  subroutine Node_Component_Satellite_Orbiting_Trigger_Merger(node)
-    !% Trigger a merger of the satellite by setting the time until merging to zero.
-    use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
-    implicit none
-    type (treeNode              ), intent(inout), target  :: node
-    class(nodeComponentSatellite)               , pointer :: satelliteComponent
-
-    satelliteComponent => node%satellite()
-    call satelliteComponent%mergeTimeSet(0.0d0)
-    return
-  end subroutine Node_Component_Satellite_Orbiting_Trigger_Merger
-
-  double precision function radiusMerge(node)
-    !% Compute the merging radius for a node.
-    use :: Galacticus_Nodes                  , only : treeNode
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
-    use :: Galactic_Structure_Options        , only : massTypeGalactic                , radiusLarge
-    implicit none
-    type            (treeNode), intent(inout) :: node
-    type            (treeNode), pointer       :: nodeHost
-    double precision          , parameter     :: radiusVirialFraction =1.0d-2
-    double precision                          :: halfMassRadiusCentral       , halfMassRadiusSatellite, &
-         &                                       radiusVirial
-
-    ! Find the host node.
-    nodeHost => node%mergesWith()
-    ! Get half-mass radii of central and satellite galaxies. We first check that the total mass in the galactic component
-    ! (found by setting the radius to "radiusLarge") is non-zero as we do not want to attempt to find the half-mass radius
-    ! of the galactic component, if no galactic component exists. To correctly handle the case that numerical errors lead
-    ! to a zero-size galactic component (the enclosed mass within zero radius is non-zero and equals to the total mass of
-    ! this component), we do a further check that the enclosed mass within zero radius is smaller than half of the total
-    ! mass in the galactic component.
-    if     (                                                                                             &
-         &   Galactic_Structure_Enclosed_Mass(nodeHost,massType=massTypeGalactic,radius=radiusLarge)     &
-         &   >                                                                                           &
-         &   max(                                                                                        &
-         &       0.0d0,                                                                                  &
-         &       2.0d0*Galactic_Structure_Enclosed_Mass(nodeHost,massType=massTypeGalactic,radius=0.0d0) &
-         &      )                                                                                        &
-         & ) then
-       halfMassRadiusCentral  =Galactic_Structure_Radius_Enclosing_Mass(nodeHost,fractionalMass=0.5d0,massType=massTypeGalactic)
-    else
-       halfMassRadiusCentral  =0.0d0
-    end if
-    if     (                                                                                             &
-         &   Galactic_Structure_Enclosed_Mass(node    ,massType=massTypeGalactic,radius=radiusLarge)     &
-         &   >                                                                                           &
-         &   max(                                                                                        &
-         &       0.0d0,                                                                                  &
-         &       2.0d0*Galactic_Structure_Enclosed_Mass(node    ,massType=massTypeGalactic,radius=0.0d0) &
-         &      )                                                                                        &
-         & ) then
-       halfMassRadiusSatellite=Galactic_Structure_Radius_Enclosing_Mass(node    ,fractionalMass=0.5d0,massType=massTypeGalactic)
-    else
-       halfMassRadiusSatellite=0.0d0
-    end if    
-    radiusVirial=darkMatterHaloScale_%virialRadius(nodeHost)
-    radiusMerge =max(halfMassRadiusSatellite+halfMassRadiusCentral,radiusVirialFraction*radiusVirial)
-    return
-  end function radiusMerge
   
   subroutine Node_Component_Satellite_Orbiting_Trigger_Destruction(node)
     !% Trigger destruction of the satellite by setting the time until destruction to zero.
