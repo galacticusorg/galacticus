@@ -26,16 +26,32 @@
 
   !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepHistory">
   !#  <description>
-  !#   A merger tree evolution timestepping class enforces that
+  !#   A merger tree evolution timestepping class which records and outputs volume averaged properties of the model universe as a
+  !#   function of time. Timesteps are enforced such that:
   !#   \begin{equation}
   !#    \Delta t \le t_{\mathrm{history},i} - t
   !#   \end{equation}
-  !#   where $t$ is the current time, $t_{\mathrm{history},i}$ is the $i^\mathrm{th}$ time at which the global history (see
-  !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Usage.pdf\#sec.globalHistory}{here})
-  !#   of galaxies is to be output and $i$ is chosen to be the smallest $i$ such that
-  !#   $t_{\mathrm{history},i} > t$. If there is no $i$ for which $t_{\mathrm{history},i} > t$ this criterion is not applied. If this
-  !#   criterion is the limiting criterion for $\Delta t$ then the properties of the galaxy will be accumulated to the global history
-  !#   arrays at the end of the timestep.
+  !#   where $t$ is the current time, $t_{\mathrm{history},i}$ is the $i^\mathrm{th}$ time at which the global history of galaxies
+  !#   is to be output and $i$ is chosen to be the smallest $i$ such that $t_{\mathrm{history},i} > t$. If there is no $i$ for
+  !#   which $t_{\mathrm{history},i} > t$ this criterion is not applied. If this criterion is the limiting criterion for $\Delta
+  !#   t$ then the properties of the galaxy will be accumulated to the global history arrays at the end of the timestep.
+  !#
+  !#   Volume-averaged properties are stored to the {\normalfont \ttfamily globalHistory} group of the output file. Currently, the
+  !#   properties stored are:
+  !#   \begin{description}
+  !#    \item[{\normalfont \ttfamily historyTime}] Cosmic time (in Gyr);
+  !#    \item[{\normalfont \ttfamily historyExpansion}] Expansion factor;
+  !#    \item[{\normalfont \ttfamily historyStarFormationRate}] Volume averaged star formation rate (in $M_\odot/$Gyr/Mpc$^3$).
+  !#    \item[{\normalfont \ttfamily historyDiskStarFormationRate}] Volume averaged star formation rate in disks (in $M_\odot/$Gyr/Mpc$^3$).
+  !#    \item[{\normalfont \ttfamily historySpheroidStarFormationRate}] Volume averaged star formation rate in spheroids (in $M_\odot/$Gyr/Mpc$^3$).
+  !#    \item[{\normalfont \ttfamily historyStellarDensity}] Volume averaged stellar mass density (in $M_\odot/$Mpc$^3$).
+  !#    \item[{\normalfont \ttfamily historyDiskStellarDensity}] Volume averaged stellar mass density in disks (in $M_\odot/$Mpc$^3$).
+  !#    \item[{\normalfont \ttfamily historySpheroidStellarDensity}] Volume averaged stellar mass density in spheroids (in $M_\odot/$Mpc$^3$).
+  !#    \item[{\normalfont \ttfamily historyGasDensity}] Volume averaged cooled gas density (in $M_\odot/$Mpc$^3$).
+  !#    \item[{\normalfont \ttfamily historyNodeDensity}] Volume averaged resolved node density (in $M_\odot/$Mpc$^3$).
+  !#   \end{description}
+  !#   Dimensionful datasets have a {\normalfont \ttfamily unitsInSI} attribute which gives their units\index{units} in the SI
+  !#   system.
   !#  </description>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepHistory
