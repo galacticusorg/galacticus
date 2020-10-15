@@ -24,7 +24,6 @@ module Node_Component_Satellite_Orbiting
   !% Implements the orbiting satellite component.
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   use :: Kepler_Orbits          , only : keplerOrbit
-  use :: Satellite_Tidal_Heating, only : satelliteTidalHeatingRateClass
   use :: Tensors                , only : tensorRank2Dimension3Symmetric
   use :: Virial_Orbits          , only : virialOrbit                    , virialOrbitClass
   implicit none
@@ -119,9 +118,8 @@ module Node_Component_Satellite_Orbiting
 
   ! Objects used by this module.
   class(darkMatterHaloScaleClass      ), pointer :: darkMatterHaloScale_
-  class(satelliteTidalHeatingRateClass), pointer :: satelliteTidalHeatingRate_
   class(virialOrbitClass              ), pointer :: virialOrbit_
-  !$omp threadprivate(darkMatterHaloScale_,satelliteTidalHeatingRate_,virialOrbit_)
+  !$omp threadprivate(darkMatterHaloScale_,virialOrbit_)
 
   ! Option controlling whether or not unbound virial orbits are acceptable.
   logical         , parameter :: acceptUnboundOrbits=.false.
@@ -215,9 +213,8 @@ contains
     type(inputParameters), intent(inout) :: parameters_
 
     if (defaultSatelliteComponent%orbitingIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters_"/>
-       !# <objectBuilder class="satelliteTidalHeatingRate" name="satelliteTidalHeatingRate_" source="parameters_"/>
-       !# <objectBuilder class="virialOrbit"               name="virialOrbit_"               source="parameters_"/>
+       !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
+       !# <objectBuilder class="virialOrbit"         name="virialOrbit_"         source="parameters_"/>
     end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Thread_Initialize
@@ -231,9 +228,8 @@ contains
     implicit none
 
     if (defaultSatelliteComponent%orbitingIsActive()) then
-       !# <objectDestructor name="darkMatterHaloScale_"      />
-       !# <objectDestructor name="satelliteTidalHeatingRate_"/>
-       !# <objectDestructor name="virialOrbit_"              />
+       !# <objectDestructor name="darkMatterHaloScale_"/>
+       !# <objectDestructor name="virialOrbit_"        />
     end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Thread_Uninitialize
@@ -258,26 +254,17 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Satellite_Orbiting_Rate_Compute(thisNode,interrupt,interruptProcedure,propertyType)
     !% Compute rate of change for satellite properties.
-    use :: Galactic_Structure_Tidal_Tensors, only : Galactic_Structure_Tidal_Tensor
-    use :: Galacticus_Nodes                , only : defaultSatelliteComponent       , interruptTask       , nodeComponentBasic   , nodeComponentSatellite, &
-          &                                         nodeComponentSatelliteOrbiting  , propertyTypeInactive, treeNode
-    use :: Numerical_Constants_Astronomical, only : gigaYear                        , megaParsec
-    use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Prefixes    , only : kilo
-    use :: Tensors                         , only : assignment(=)                   , operator(*)
-    use :: Vectors                         , only : Vector_Magnitude                , Vector_Product
+    use :: Galacticus_Nodes, only : defaultSatelliteComponent     , interruptTask       , nodeComponentBasic, nodeComponentSatellite, &
+          &                         nodeComponentSatelliteOrbiting, propertyTypeInactive, treeNode
+    use :: Vectors         , only : Vector_Magnitude
     implicit none
     type            (treeNode                      ), pointer     , intent(inout) :: thisNode
     logical                                                       , intent(inout) :: interrupt
     procedure       (interruptTask                 ), pointer     , intent(inout) :: interruptProcedure
     integer                                                       , intent(in   ) :: propertyType
     class           (nodeComponentSatellite        ), pointer                     :: satelliteComponent
-    type            (treeNode                      ), pointer                     :: hostNode
-    double precision                                , dimension(3)                :: position          , velocity
-    double precision                                                              :: radius            , orbitalPeriod            , &
-         &                                                                           satelliteMass     , radialFrequency          , &
-         &                                                                           angularFrequency  , tidalHeatingNormalized
-    type            (tensorRank2Dimension3Symmetric)                              :: tidalTensor       , tidalTensorPathIntegrated
+    double precision                                , dimension(3)                :: position
+    double precision                                                              :: radius            , satelliteMass
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -291,40 +278,8 @@ contains
           ! Proceed only for satellites.
        if (thisNode%isSatellite()) then
           ! Get all required quantities.
-          hostNode                 => thisNode          %mergesWith               (        )
-          position                 =  satelliteComponent%position                 (        )
-          velocity                 =  satelliteComponent%velocity                 (        )
-          tidalTensorPathIntegrated=  satelliteComponent%tidalTensorPathIntegrated(        )
-          tidalHeatingNormalized   =  satelliteComponent%tidalHeatingNormalized   (        )
-          radius                   =  Vector_Magnitude                            (position)
-          ! Rates are only non-zero if the satellite is at non-zero radius.
-          if (radius > 0.0d0) then
-             ! Calcluate tidal tensor and rate of change of integrated tidal tensor.
-             tidalTensor       =Galactic_Structure_Tidal_Tensor (hostNode,position)             
-             ! Compute the orbital period.
-             angularFrequency  =  Vector_Magnitude(Vector_Product(position,velocity)) &
-                  &              /radius**2                                           &
-                  &              *kilo                                                &
-                  &              *gigaYear                                            &
-                  &              /megaParsec
-             radialFrequency   =  abs             (   Dot_Product(position,velocity)) &
-                  &              /radius**2                                           &
-                  &              *kilo                                                &
-                  &              *gigaYear                                            &
-                  &              /megaParsec
-             ! Find the orbital period. We use the larger of the angular and radial frequencies to avoid numerical problems for purely
-             ! radial or purely circular orbits.
-             orbitalPeriod     = 2.0d0*Pi/max(angularFrequency,radialFrequency)
-             ! Calculate integrated tidal tensor, and heating rates.
-             call satelliteComponent%tidalTensorPathIntegratedRate(                                                     &
-                  &                                                +tidalTensor                                         &
-                  &                                                -tidalTensorPathIntegrated                           &
-                  &                                                /orbitalPeriod                                       &
-                  &                                               )
-             call satelliteComponent%tidalHeatingNormalizedRate   (                                                     &
-                  &                                                +satelliteTidalHeatingRate_%heatingRate   (thisNode) &
-                  &                                               )
-          end if
+          position=satelliteComponent%position(        )
+          radius  =Vector_Magnitude           (position)
           ! Test for merging.
           if     (                                &
                &   radius > 0.0d0                 &
