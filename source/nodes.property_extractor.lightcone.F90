@@ -22,7 +22,31 @@
   use, intrinsic :: ISO_C_Binding      , only : c_size_t
 
   !# <nodePropertyExtractor name="nodePropertyExtractorLightcone">
-  !#  <description>A lightcone output extractor property extractor class.</description>
+  !#  <description>
+  !#   A lightcone output extractor property extractor class. The position (and velocity and redshift) of a galaxy within a
+  !#   lightcone will be extracted. Specifically, these properties are extracted as:
+  !#   \begin{description}
+  !#    \item [{\normalfont \ttfamily lightconePositionX}] Position of the galaxy (in comoving Mpc) along the radial direction of
+  !#    the lightcone;
+  !#    \item [{\normalfont \ttfamily lightconePositionY}] Position of the galaxy (in comoving Mpc) along the 1$^\mathrm{st}$
+  !#    angular direction of the lightcone;
+  !#    \item [{\normalfont \ttfamily lightconePositionZ}] Position of the galaxy (in comoving Mpc) along the 2$^\mathrm{nd}$
+  !#    angular direction of the lightcone;
+  !#    \item [{\normalfont \ttfamily lightconeVelocityX}] Velocity of the galaxy (in km/s) along the radial direction of the
+  !#    lightcone;
+  !#    \item [{\normalfont \ttfamily lightconeVelocityY}] Velocity of the galaxy (in km/s) along the 1$^\mathrm{st}$ angular
+  !#    direction of the lightcone;
+  !#    \item [{\normalfont \ttfamily lightconeVelocityZ}] Velocity of the galaxy (in km/s) along the 2$^\mathrm{nd}$ angular
+  !#    direction of the lightcone;
+  !#    \item [{\normalfont \ttfamily lightconeRedshift}] Redshift of the galaxy in the lightcone\footnote{Note that this will
+  !#    not, in general, be precisely the same as the redshift corresponding to the output time.};
+  !#    \item [{\normalfont \ttfamily angularWeight}] The mean number density of this galaxy per unit area on the sky (in
+  !#    degrees$^{-2}$).
+  !#   \end{description}
+  !#   In order to allow this output a
+  !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.geometryLightcone}{lightcone
+  !#   geometry} must be specified.
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorLightcone
      !% A property extractor which extracts lightcone properties.

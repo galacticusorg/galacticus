@@ -20,7 +20,16 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorVirialProperties">
-  !#  <description>A property extractor class for virial radius and velocity.</description>
+  !#  <description>
+  !#   A node property extractor which extracts the following quantities related to the virialized region of each node:
+  !#   \begin{description}
+  !#    \item [{\normalfont \ttfamily nodeVirialRadius}] The virial radius (following whatever definition of virial overdensity is
+  !#    specified by the
+  !#    \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.virialDensityContrast}{virialDensityContrast})
+  !#    in units of Mpc;
+  !#    \item [{\normalfont \ttfamily nodeVirialVelocity}] The circular velocity at the virial radius (in km/s).
+  !#   \end{description}
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorVirialProperties
      !% A property extractor which extracts virialProperties properties.

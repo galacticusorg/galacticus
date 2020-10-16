@@ -34,6 +34,15 @@
   !#   is to be output and $i$ is chosen to be the smallest $i$ such that $t_{\mathrm{record},i} > t$. If there is no $i$ for which
   !#   $t_{\mathrm{record},i} > t$ this criterion is not applied. If this criterion is the limiting criterion for $\Delta t$ then the
   !#   properties of the galaxy will be recorded at the end of the timestep.
+  !#
+  !#   Timesteps are logarithmically in cosmic time between {\normalfont \ttfamily [timeBegin]} and \newline {\normalfont
+  !#   \ttfamily [timeEnd]}, with the total number of timesteps specified by {\normalfont \ttfamily [countSteps]}.
+  !#
+  !#   This recorded evolution will be written to the group {\normalfont \ttfamily mainProgenitorEvolution} in the \glc\ output
+  !#   file. Within that group two datasets, {\normalfont \ttfamily time} and {\normalfont \ttfamily expansionFactor}, give the
+  !#   times and expansion factors at which evolution was recorded. Then for each merger tree two datasets, {\normalfont \ttfamily
+  !#   stellarMass<N>} and {\normalfont \ttfamily totalMass<N>} (where {\normalfont \ttfamily <N>} is the merger tree index), give
+  !#   the stellar and total baryonic mass of the main branch progenitor at each timestep.
   !#  </description>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepRecordEvolution

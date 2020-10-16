@@ -25,7 +25,16 @@
   use :: Galacticus_Nodes       , only : nodeComponentBasic , treeNode
 
   !# <nodePropertyExtractor name="nodePropertyExtractorDensityContrasts">
-  !#  <description>A property extractor class for the mass and radii of spheres are specified density contrast.</description>
+  !#  <description>
+  !#   A property extractor class for the mass and radii of spheres of specified density contrast. A list of density contrasts,
+  !#   $\Delta$ (defined in units of the mean density of the Universe), is specified via the {\normalfont \ttfamily
+  !#   [densityContrasts]} parameter. For each specified density contrast, two properties are output for each node: {\normalfont
+  !#   \ttfamily nodeRadius}$\Delta$ and {\normalfont \ttfamily nodeMass}$\Delta$ which give the radius enclosing a mean density
+  !#   contrast of $\Delta$ and the mass enclosed within that radius. The parameter {\normalfont \ttfamily [darkMatterOnly]}
+  !#   controls whether density contrasts are measured for total mass ({\normalfont \ttfamily false}) or dark matter mass only
+  !#   ({\normalfont \ttfamily true}). In the latter case, density contrasts are defined relative to the mean dark matter density
+  !#   of the Universe.
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorDensityContrasts
      !% A property extractor class for the mass and radii of spheres are specified density contrast..

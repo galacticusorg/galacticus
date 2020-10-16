@@ -58,3 +58,20 @@ Gravitational potentials are measured in velocity units (i.e. km$^2$/s$^2$), and
 \item this choice is consistent with the potential at the virial radius of the halo considered as a point mass as is used in Keplerian orbit calculations.
 \end{enumerate}
 Note that the choice of constant offset for the potential of any mass distribution or galactic component is irrelevant---the galactic structure function which computes potential will ensure that the potential is always offset to match the definition given above.
+
+\section{Radius Specifiers}\label{sec:radiusSpecifiers}\index{radii!specifiers}\hyperdef{sec}{radiusSpecifiers}{}
+
+Several \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.nodePropertyExtractor}{\normalfont \ttfamily nodePropertyExtractor}s extract properties at one or more radii in a node. \glc\ provides a flexible way of specifying such radii as fractions of physical quantities such as the virial radius, disk half-mass radius, etc.
+
+Each radius specifier should take the form:
+\begin{verbatim}
+  radiusType:componentType:massType:radius
+\end{verbatim}
+The elements of this colon-separated specifier determine the radius at which a property is computed, which components/mass types should be counted, and whether baryonic loading of the halo should be accounted for. The elements have the following meaning:
+\begin{description}
+ \item [{\normalfont \ttfamily radius}] the numerical value of the radius at which to compute the property (with units specified by the {\normalfont \ttfamily radiusType} element);
+ \item [{\normalfont \ttfamily radiusType}] specifies the units of the {\normalfont \ttfamily radius} element---valid options are {\normalfont \ttfamily diskRadius}, {\normalfont \ttfamily diskHalfMassRadius}, {\normalfont \ttfamily spheroidRadius}, {\normalfont \ttfamily spheroidHalfMassRadius}, {\normalfont \ttfamily darkMatterScaleRadius}, {\normalfont \ttfamily virialRadius}, just {\normalfont \ttfamily radius} (which implies radii are given in units of Mpc), {\normalfont \ttfamily galacticMassFraction\{\textless fraction\textgreater\}}, or \newline {\normalfont \ttfamily galacticLightFraction\{\textless fraction\textgreater\}\{\textless luminosity\textgreater\}}, where the final two form specify a radius containing a fixed {\normalfont \ttfamily \textless fraction\textgreater} of the galactic mass or light respectively (for the case of galactic light, {\normalfont \ttfamily \textless luminosity\textgreater} specifies the band, e.g. {\normalfont \ttfamily SDSS\_r:rest:z0.0000});
+ \item [{\normalfont \ttfamily componentType}] specifies which components of the node should be counted---allowed values are {\normalfont \ttfamily all}, {\normalfont \ttfamily disk}, {\normalfont \ttfamily spheroid}, {\normalfont \ttfamily hotHalo}, {\normalfont \ttfamily darkHalo}, and {\normalfont \ttfamily blackHole};
+ \item [{\normalfont \ttfamily massType}] specifies which types of mass should be counted---allowed values are {\normalfont \ttfamily all}, {\normalfont \ttfamily dark}, {\normalfont \ttfamily baryonic}, {\normalfont \ttfamily galactic}, {\normalfont \ttfamily gaseous}, {\normalfont \ttfamily stellar}, and {\normalfont \ttfamily blackHole}.
+\end{description}
+

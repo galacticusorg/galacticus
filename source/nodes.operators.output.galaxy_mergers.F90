@@ -23,7 +23,23 @@
   use :: Galactic_Filters, only : galacticFilterClass
   
   !# <nodeOperator name="nodeOperatorGalaxyMergersOutput">
-  !#  <description>A node operator class that outputs data on mergers between galaxies.</description>
+  !#  <description>
+  !#   A node operator class that outputs data on mergers between galaxies. Data is stored to datasets in a group specified via
+  !#   the {\normalfont \ttfamily mergersGroupName} parameter (defaulting to {\normalfont \ttfamily galaxyMergers}). Datasets
+  !#   output are:
+  !#   \begin{description}
+  !#    \item{\normalfont \ttfamily [indexHost]} the index of the host halo in the merger;
+  !#    \item{\normalfont \ttfamily [indexSatellite]} the index of the satellite halo in the merger;
+  !#    \item{\normalfont \ttfamily [indexTree]} the index of the merger tree in which the merger occurred;
+  !#    \item{\normalfont \ttfamily [massHost]} the mass of the host halo;
+  !#    \item{\normalfont \ttfamily [massSatellite]} the mass of the satellite halo;
+  !#    \item{\normalfont \ttfamily [time]} the time at which the merger occurred.
+  !#   \end{description}
+  !#   Two
+  !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.galacticFilter}{\normalfont
+  !#   \ttfamily galacticFilter}s are accepted, via parameters {\normalfont \ttfamily [galacticFilterSatellite]} and {\normalfont
+  !#   \ttfamily [galacticFilterCentral]} which can be used to control which galaxies are included in the output.
+  !#  </description>
   !# </nodeOperator>
   type, extends(nodeOperatorClass) :: nodeOperatorGalaxyMergersOutput
      !% A node operator class that shifts node indices at node promotion.

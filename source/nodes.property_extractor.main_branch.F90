@@ -17,10 +17,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an ISM mass output analysis property extractor class.
+  !% Contains a module which implements a node property extractor which reports if a node is on the main branch of its merger
+  !% tree.
 
   !# <nodePropertyExtractor name="nodePropertyExtractorMainBranchStatus">
-  !#  <description>An ISM mass output analysis property extractor class.</description>
+  !#  <description>
+  !#   A node property extractor class which extracts the status of each node with respect to the main branch of its merger
+  !#   tree. The status will be extracted as {\normalfont \ttfamily nodeIsOnMainBranch}, with a value of 1 indicating that the
+  !#   node is a primary progenitor of the final halo (i.e. is on the main branch of the tree) and a value of 0 indicating that it
+  !#   is not.
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorMainBranchStatus
      !% A stelalr mass output analysis class.

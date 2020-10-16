@@ -17,10 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an ISM mass output analysis property extractor class.
+!% Contains a module which implements a node property extractor for the most massive progenitor.
 
   !# <nodePropertyExtractor name="nodePropertyExtractorMostMassiveProgenitor">
-  !#  <description>An ISM mass output analysis property extractor class.</description>
+  !#  <description>
+  !#   A node property extractor class which extracts a value of $1$ for the most massive progenitor node in a tree at each output
+  !#   time and $0$ for all other nodes.
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorMostMassiveProgenitor
      !% A node property extractor for most massive progenitor status.

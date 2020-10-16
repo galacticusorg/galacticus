@@ -22,7 +22,9 @@
   use :: Cooling_Radii, only : coolingRadius, coolingRadiusClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorRadiusCooling">
-  !#  <description>A cooling radius property extractor class.</description>
+  !#  <description>
+  !#   A cooling radius property extractor class. Extracts the characteristic cooling radius in the halo in Mpc.
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusCooling
      !% A cooling radius property extractor class.

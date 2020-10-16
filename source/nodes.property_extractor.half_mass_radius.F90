@@ -20,7 +20,10 @@
 !% Contains a module which implements a radiusHalfMass property extractor class.
 
   !# <nodePropertyExtractor name="nodePropertyExtractorRadiusHalfMass">
-  !#  <description>A radiusHalfMass property extractor class.</description>
+  !#  <description>
+  !#   A node property extractor which extracts the half-mass radius of the galaxy. The half-mass radius is output as {\normalfont
+  !#   \ttfamily [halfMassRadius]} (in Mpc).
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusHalfMass
      !% A half-mass radius property extractor class.

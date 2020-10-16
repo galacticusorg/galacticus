@@ -22,7 +22,10 @@
   use :: Cooling_Rates, only : coolingRate, coolingRateClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorRateCooling">
-  !#  <description>A cooling rate property extractor class.</description>
+  !#  <description>
+  !#  A cooling rate property extractor class. Extracts the rate at which gas is cooling from the halo (assuming no sources of
+  !#  heating) in $M_\odot$ Gyr$^{-1}$.
+  !# </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRateCooling
      !% A rateCooling property extractor class.

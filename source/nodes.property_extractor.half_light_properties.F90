@@ -20,7 +20,12 @@
 !% Contains a module which implements a half-light radii property extractor class.
 
   !# <nodePropertyExtractor name="nodePropertyExtractorRadiiHalfLightProperties">
-  !#  <description>A half-light radii property extractor class.</description>
+  !#  <description>
+  !#   A node property extractor which extracts half-light radii and the masses enclosed within them. The half-light radius in
+  !#   each specified luminosity band is extracted as {\normalfont \ttfamily [halfLightRadius\{luminosityID\}]} (in Mpc), where
+  !#   {\normalfont \ttfamily\{luminosityID\}} is the usual luminosity identifier suffix, and the total (dark + baryonic) mass
+  !#   within that radius is extracted as {\normalfont \ttfamily [halfLightMass\{luminosityID\}]} (in $M_\odot$).
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorRadiiHalfLightProperties
      !% A half-light radii property extractor class.

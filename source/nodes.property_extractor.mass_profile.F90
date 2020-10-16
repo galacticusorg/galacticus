@@ -20,10 +20,14 @@
 !% Contains a module which implements a property extractor class for the mass enclosed by a set of radii.
 
   !# <nodePropertyExtractor name="nodePropertyExtractorMassProfile">
-  !#  <description>A property extractor class for the mass enclosed by a set of radii.</description>
+  !#  <description>
+  !#   A node property extractor class which extracts the mass enclosed within specified radii. A list of radii, $r$ (in Mpc),
+  !#   must be specified via the {\normalfont \ttfamily [radii]} parameter. For each specified radius, the total (dark + baryonic)
+  !#   mass will be extracted as {\normalfont \ttfamily massProfile}$r$.
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorMassProfile
-     !% A property extractor class for the mass and radii of spheres are specified density contrast..
+     !% A property extractor class for the mass enclosed within a specified list of radii.
      private
      integer                                     :: elementCount_
      double precision, allocatable, dimension(:) :: radii

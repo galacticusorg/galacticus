@@ -23,7 +23,12 @@
   use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorStarFormationRate">
-  !#  <description>A star formation rate property extractor class.</description>
+  !#  <description>
+  !#   A node property extractor which extracts the star formation rate in a galaxy. The type of star formation rate is controlled
+  !#   by the {\normalfont \ttfamily [component]} parameter, which can be either ``{\normalfont \ttfamily disk}'', ``{\normalfont
+  !#   \ttfamily spheroid}'', or ``{\normalfont \ttfamily total}''. The corresponding star formation rate is extracted as
+  !#   {\normalfont \ttfamily \textless\ component\textgreater\ StarFormationRate} in units of $M_\odot$/Gyr.
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorStarFormationRate
      !% A star formation rate property extractor class.

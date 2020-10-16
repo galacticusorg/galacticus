@@ -22,7 +22,13 @@
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
 
   !# <nodePropertyExtractor name="nodePropertyExtractorRotationCurve">
-  !#  <description>A property extractor class for the rotation curve at a set of radii.</description>
+  !#  <description>
+  !#   A property extractor class for the rotation curve at a set of radii. The radii and types of rotation curve to output
+  !#   are specified by the {\normalfont \ttfamily radiusSpecifiers} parameter. This parameter's value can contain multiple
+  !#   entries, each of which should be a valid
+  !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
+  !#   specifier}.
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorRotationCurve
      !% A property extractor class for the rotation curve at a set of radii.

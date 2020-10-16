@@ -20,7 +20,10 @@
 !% Contains a module which implements satellite orbital extrema property extractor class.
 
   !# <nodePropertyExtractor name="nodePropertyExtractorSatelliteOrbitalExtrema">
-  !#  <description>A satellite orbital extrema luminosity property extractor class.</description>
+  !#  <description>
+  !#   A node property extractor which extracts the radii of a satellite's orbital extrema (i.e. pericenter and apocenter) as
+  !#   {\normalfont \ttfamily satellitePericenterRadius} and {\normalfont \ttfamily satellitePericenterVelocity}.
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorSatelliteOrbitalExtrema
      !% A satellite orbital extrema property extractor class.

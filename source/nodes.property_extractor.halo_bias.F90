@@ -22,7 +22,10 @@
   use :: Dark_Matter_Halo_Biases, only : darkMatterHaloBias, darkMatterHaloBiasClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorHaloBias">
-  !#  <description>A node property extractor class for halo bias.</description>
+  !#  <description>
+  !#   A node property extractor which extracts the large scale, lineary theory bias for each node. For satellite nodes, this
+  !#   corresponds to the bias of their host halo.
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorHaloBias
      !% A node property extractor for halo bias.

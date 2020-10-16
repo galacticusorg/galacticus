@@ -20,7 +20,10 @@
 !% Contains a module which implements a host index output analysis property extractor class.
 
   !# <nodePropertyExtractor name="nodePropertyExtractorIndicesHost">
-  !#  <description>A host index output analysis property extractor class.</description>
+  !#  <description>
+  !#   A node property extractor which extracts the index of the node which hosts a given node. For unhosted nodes (i.e. nodes
+  !#   which are not subhalos), a value of $-1$ is extracted instead.
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorIndicesHost
      !% A host index output analysis class.

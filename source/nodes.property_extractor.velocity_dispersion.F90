@@ -22,7 +22,22 @@
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
 
   !# <nodePropertyExtractor name="nodePropertyExtractorVelocityDispersion">
-  !#  <description>A property extractor class for the velocity dispersion at a set of radii.</description>
+  !#  <description>
+  !#   A property extractor class for the velocity dispersion at a set of radii. The radii and types of projected density to output
+  !#   is specified by the {\normalfont \ttfamily radiusSpecifiers} parameter. This parameter's value can contain multiple
+  !#   entries, each of which should be a valid
+  !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
+  !#   specifier}, but with an additional, colon-separated, value at the end indicating the direction in which the velocity
+  !#   dispersion should be computed. This direction should be one of {\normalfont \ttfamily radial} (computes the radial
+  !#   component of velocity dispersion), {\normalfont \ttfamily lineOfSight\{\textless luminosity\textgreater\}} (computes the
+  !#   line-of-sight velocity dispersion), {\normalfont \ttfamily lineOfSightInteriorAverage\{\textless luminosity\textgreater\}}
+  !#   (computes the line-of-sight velocity dispersion averaged interior to the given radius), or {\normalfont \ttfamily
+  !#   lambdaR\{\textless luminosity\textgreater\}} (computes the $\lambda_\mathrm{R}$ statistic of
+  !#   \citealt{cappellari_sauron_2007})---in the latter three cases {\normalfont \ttfamily \{\textless luminosity\textgreater\}}
+  !#   specifies which band should be used to weight the velocity dispersion, alternatively setting {\normalfont \ttfamily
+  !#   \{\textless luminosity\textgreater\}}$=${\normalfont \ttfamily mass} (or just leaving off this specifier entirely) will use
+  !#   mass weighting instead.
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorVelocityDispersion
      !% A property extractor class for the velocity dispersion at a set of radii.
