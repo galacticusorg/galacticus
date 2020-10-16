@@ -261,11 +261,12 @@ contains
     ! Ensure that it is of the orbiting class.
     select type (satellite)
     class is (nodeComponentSatelliteOrbiting)
-       satelliteMass               =basic               %mass          (    )
-       virialRadius                =darkMatterHaloScale_%virialRadius  (node)
-       virialVelocity              =darkMatterHaloScale_%virialVelocity(node)
-       virialIntegratedTidalTensor = virialVelocity/virialRadius*megaParsec/kilo/gigaYear
-       virialTidalHeatingNormalized=(virialVelocity/virialRadius)**2
+       basic                       => node                %basic         (    )
+       satelliteMass               =  basic               %mass          (    )
+       virialRadius                =  darkMatterHaloScale_%virialRadius  (node)
+       virialVelocity              =  darkMatterHaloScale_%virialVelocity(node)
+       virialIntegratedTidalTensor =   virialVelocity/virialRadius*megaParsec/kilo/gigaYear
+       virialTidalHeatingNormalized=  (virialVelocity/virialRadius)**2
        call satellite%positionScale                 (                                          &
             &                                        +[1.0d0,1.0d0,1.0d0]                      &
             &                                        *virialRadius                             &
