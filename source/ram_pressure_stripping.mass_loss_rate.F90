@@ -17,24 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements tidal stripping in spheroids.
+!% Contains a module which provides a class that implements ram pressure stripping.
 
-module Tidal_Stripping_Mass_Loss_Rate_Spheroids
-  !% Provides a class that implements calculations of tidal stripping in spheroids.
-  use :: Galacticus_Nodes, only : treeNode
+module Ram_Pressure_Stripping_Mass_Loss_Rate
+  !% Provides a class that implements calculations of ram pressure stripping.
+  use :: Galacticus_Nodes, only : nodeComponent
   private
 
   !# <functionClass>
-  !#  <name>tidalStrippingSpheroids</name>
-  !#  <descriptiveName>Tidal stripping in spheroids</descriptiveName>
-  !#  <description>Class providing models of tidal stripping in spheroids.</description>
-  !#  <default>null</default>
+  !#  <name>ramPressureStripping</name>
+  !#  <descriptiveName>Ram pressure stripping</descriptiveName>
+  !#  <description>Class providing models of ram pressure stripping.</description>
+  !#  <default>simpleCylindrical</default>
   !#  <method name="rateMassLoss" >
-  !#   <description>Returns the rate of mass loss (in $M_\odot$~Gyr$^{-1}$) due to tidal stripping of the spheroid component of {\normalfont \ttfamily node}.</description>
+  !#   <description>Returns the rate of mass loss (in $M_\odot$~Gyr$^{-1}$) due to ram pressure stripping of the given {\normalfont \ttfamily component}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#   <argument>class(nodeComponent), intent(inout) :: component</argument>
   !#  </method>
   !# </functionClass>
 
-end module Tidal_Stripping_Mass_Loss_Rate_Spheroids
+end module Ram_Pressure_Stripping_Mass_Loss_Rate

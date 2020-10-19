@@ -21,15 +21,13 @@
 
 module Node_Component_Spheroid_Standard
   !% Implements the standard spheroid component.
-  use :: Dark_Matter_Halo_Scales                        , only : darkMatterHaloScaleClass
-  use :: Histories                                      , only : history
-  use :: Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids, only : ramPressureStrippingSpheroidsClass
-  use :: Satellite_Merging_Mass_Movements               , only : mergerMassMovementsClass
-  use :: Satellite_Merging_Remnant_Sizes                , only : mergerRemnantSizeClass
-  use :: Satellites_Tidal_Fields                        , only : satelliteTidalFieldClass
-  use :: Star_Formation_Histories                       , only : starFormationHistory                        , starFormationHistoryClass
-  use :: Stellar_Population_Properties                  , only : stellarPopulationPropertiesClass
-  use :: Tidal_Stripping_Mass_Loss_Rate_Spheroids       , only : tidalStrippingSpheroidsClass
+  use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
+  use :: Histories                       , only : history
+  use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
+  use :: Satellite_Merging_Remnant_Sizes , only : mergerRemnantSizeClass
+  use :: Satellites_Tidal_Fields         , only : satelliteTidalFieldClass
+  use :: Star_Formation_Histories        , only : starFormationHistory            , starFormationHistoryClass
+  use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
   implicit none
   private
   public :: Node_Component_Spheroid_Standard_Rate_Compute       , Node_Component_Spheroid_Standard_Scale_Set                    , &
@@ -160,15 +158,13 @@ module Node_Component_Spheroid_Standard
   !# </component>
 
   ! Objects used by this component.
-  class(stellarPopulationPropertiesClass            ), pointer :: stellarPopulationProperties_
-  class(ramPressureStrippingSpheroidsClass          ), pointer :: ramPressureStrippingSpheroids_
-  class(tidalStrippingSpheroidsClass                ), pointer :: tidalStrippingSpheroids_
-  class(darkMatterHaloScaleClass                    ), pointer :: darkMatterHaloScale_
-  class(satelliteTidalFieldClass                    ), pointer :: satelliteTidalField_
-  class(starFormationHistoryClass                   ), pointer :: starFormationHistory_
-  class(mergerMassMovementsClass                    ), pointer :: mergerMassMovements_
-  class(mergerRemnantSizeClass                      ), pointer :: mergerRemnantSize_
-  !$omp threadprivate(stellarPopulationProperties_,ramPressureStrippingSpheroids_,tidalStrippingSpheroids_,darkMatterHaloScale_,satelliteTidalField_,starFormationHistory_,mergerMassMovements_,mergerRemnantSize_)
+  class(stellarPopulationPropertiesClass), pointer :: stellarPopulationProperties_
+  class(darkMatterHaloScaleClass        ), pointer :: darkMatterHaloScale_
+  class(satelliteTidalFieldClass        ), pointer :: satelliteTidalField_
+  class(starFormationHistoryClass       ), pointer :: starFormationHistory_
+  class(mergerMassMovementsClass        ), pointer :: mergerMassMovements_
+  class(mergerRemnantSizeClass          ), pointer :: mergerRemnantSize_
+  !$omp threadprivate(stellarPopulationProperties_,darkMatterHaloScale_,satelliteTidalField_,starFormationHistory_,mergerMassMovements_,mergerRemnantSize_)
 
   ! Internal count of abundances.
   integer                                     :: abundancesCount
@@ -264,15 +260,13 @@ contains
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        dependencies(2)=dependencyRegEx(dependencyDirectionAfter,'^nodeComponentDisk')
        call satelliteMergerEvent%attach(defaultSpheroidComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard',dependencies=dependencies)
-       !# <objectBuilder class="stellarPopulationProperties"                                            name="stellarPopulationProperties_"   source="parameters_"                    />
-       !# <objectBuilder class="ramPressureStrippingSpheroids"                                          name="ramPressureStrippingSpheroids_" source="parameters_"                    />
-       !# <objectBuilder class="tidalStrippingSpheroids"                                                name="tidalStrippingSpheroids_"       source="parameters_"                    />
-       !# <objectBuilder class="darkMatterHaloScale"                                                    name="darkMatterHaloScale_"           source="parameters_"                    />
-       !# <objectBuilder class="satelliteTidalField"                                                    name="satelliteTidalField_"           source="parameters_"                    />
-       !# <objectBuilder class="starFormationHistory"                                                   name="starFormationHistory_"          source="parameters_"                    />
-       !# <objectBuilder class="mergerMassMovements"                                                    name="mergerMassMovements_"           source="parameters_"                    />
-       !# <objectBuilder class="mergerRemnantSize"                                                      name="mergerRemnantSize_"             source="parameters_"                    />
-       !# <objectBuilder class="massDistribution"              parameterName="spheroidMassDistribution" name="spheroidMassDistribution"       source="parameters_" threadPrivate="yes" >
+       !# <objectBuilder class="stellarPopulationProperties"                                          name="stellarPopulationProperties_" source="parameters_"                    />
+       !# <objectBuilder class="darkMatterHaloScale"                                                  name="darkMatterHaloScale_"         source="parameters_"                    />
+       !# <objectBuilder class="satelliteTidalField"                                                  name="satelliteTidalField_"         source="parameters_"                    />
+       !# <objectBuilder class="starFormationHistory"                                                 name="starFormationHistory_"        source="parameters_"                    />
+       !# <objectBuilder class="mergerMassMovements"                                                  name="mergerMassMovements_"         source="parameters_"                    />
+       !# <objectBuilder class="mergerRemnantSize"                                                    name="mergerRemnantSize_"           source="parameters_"                    />
+       !# <objectBuilder class="massDistribution"            parameterName="spheroidMassDistribution" name="spheroidMassDistribution"     source="parameters_" threadPrivate="yes" >
        !#  <default>
        !#   <spheroidMassDistribution value="hernquist">
        !#    <dimensionless value="true"/>
@@ -323,15 +317,13 @@ contains
     if (defaultSpheroidComponent%standardIsActive()) then
        call postEvolveEvent     %detach(defaultSpheroidComponent,postEvolve     )
        call satelliteMergerEvent%detach(defaultSpheroidComponent,satelliteMerger)
-       !# <objectDestructor name="stellarPopulationProperties_"  />
-       !# <objectDestructor name="ramPressureStrippingSpheroids_"/>
-       !# <objectDestructor name="tidalStrippingSpheroids_"      />
-       !# <objectDestructor name="darkMatterHaloScale_"          />
-       !# <objectDestructor name="satelliteTidalField_"          />
-       !# <objectDestructor name="starFormationHistory_"         />
-       !# <objectDestructor name="mergerMassMovements_"          />
-       !# <objectDestructor name="mergerRemnantSize_"            />
-       !# <objectDestructor name="spheroidMassDistribution"      />
+       !# <objectDestructor name="stellarPopulationProperties_"/>
+       !# <objectDestructor name="darkMatterHaloScale_"        />
+       !# <objectDestructor name="satelliteTidalField_"        />
+       !# <objectDestructor name="starFormationHistory_"       />
+       !# <objectDestructor name="mergerMassMovements_"        />
+       !# <objectDestructor name="mergerRemnantSize_"          />
+       !# <objectDestructor name="spheroidMassDistribution"    />
     end if
     return
   end subroutine Node_Component_Spheroid_Standard_Thread_Uninitialize
@@ -623,10 +615,7 @@ contains
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                , only : defaultSpheroidComponent, nodeComponentHotHalo, nodeComponentSpheroid, nodeComponentSpheroidStandard, &
          &                                          propertyTypeActive      , propertyTypeAll     , propertyTypeInactive , treeNode
-    use :: Histories                       , only : history                 , operator(*)
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
-    use :: Stellar_Luminosities_Structure  , only : abs                     , max                 , operator(*)          , stellarLuminosities          , &
-         &                                          zeroStellarLuminosities
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
     logical                                , intent(inout)          :: interrupt
@@ -634,12 +623,8 @@ contains
     integer                                , intent(in   )          :: propertyType
     class           (nodeComponentSpheroid)               , pointer :: spheroid
     class           (nodeComponentHotHalo )               , pointer :: hotHalo
-    double precision                                                :: fractionGas             , fractionStellar, &
-         &                                                             tidalField              , tidalTorque    , &
+    double precision                                                :: tidalField              , tidalTorque    , &
          &                                                             massLossRate
-    type            (history              )                         :: historyTransferRate
-    type            (stellarLuminosities  ), save                   :: luminositiesStellarRates
-    !$omp threadprivate(luminositiesStellarRates)
     !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Return immediately if this class is not in use or only inactive properties are to be computed.
@@ -653,58 +638,6 @@ contains
             & .or. spheroid%radius         () <          radiusMinimum &
             & .or. spheroid%massGas        () <            massMinimum &
             & ) return
-       ! Apply mass loss rate due to ram pressure stripping.
-       if (spheroid%massGas() > 0.0d0) then
-          massLossRate=ramPressureStrippingSpheroids_%rateMassLoss(node)
-          if (massLossRate > 0.0d0) then
-             hotHalo => node%hotHalo()
-             call spheroid%                  massGasRate(-massLossRate                                                                       )
-             call spheroid%          angularMomentumRate(-massLossRate*spheroid%angularMomentum()/(spheroid%massGas()+spheroid%massStellar()))
-             call spheroid%            abundancesGasRate(-massLossRate*spheroid%abundancesGas  ()/ spheroid%massGas()                        )
-             call hotHalo %           outflowingMassRate(+massLossRate                                                                       )
-             call hotHalo %outflowingAngularMomentumRate(+massLossRate*spheroid%angularMomentum()/(spheroid%massGas()+spheroid%massStellar()))
-             call hotHalo %     outflowingAbundancesRate(+massLossRate*spheroid%abundancesGas  ()/ spheroid%massGas()                        )
-          end if
-       end if
-       ! Apply mass loss rate due to tidal stripping.
-       if (spheroid%massGas()+spheroid%massStellar() > 0.0d0) then
-          massLossRate=tidalStrippingSpheroids_%rateMassLoss(node)
-          if (massLossRate > 0.0d0) then
-             hotHalo    => node%hotHalo()
-             fractionGas    =  min(1.0d0,max(0.0d0,spheroid%massGas()/(spheroid%massGas()+spheroid%massStellar())))
-             fractionStellar=  1.0d0-fractionGas
-             if (fractionGas    > 0.0d0 .and. spheroid%massGas    () > 0.0d0) then
-                call spheroid%                  massGasRate  (-fractionGas    *massLossRate                                                                         )
-                call spheroid%            abundancesGasRate  (-fractionGas    *massLossRate*spheroid%abundancesGas    ()/ spheroid%massGas()                        )
-                call hotHalo %           outflowingMassRate  (+fractionGas    *massLossRate                                                                         )
-                call hotHalo %     outflowingAbundancesRate  (+fractionGas    *massLossRate*spheroid%abundancesGas    ()/ spheroid%massGas()                        )
-                call hotHalo %outflowingAngularMomentumRate  (+fractionGas    *massLossRate*spheroid%angularMomentum  ()/(spheroid%massGas()+spheroid%massStellar()))
-             end if
-             if (fractionStellar > 0.0d0 .and. spheroid%massStellar() > 0.0d0) then
-                ! If luminosities are being treated as inactive properties this is an error - they appear on the right-hand side
-                ! of the following ODE terms so are not inactive. (An approach similar to what is used for transfer of
-                ! luminosities to the spheroid by bar instabilities in the standard disk component could work here.)
-                if (propertyType == propertyTypeActive .and. spheroidLuminositiesStellarInactive) call Galacticus_Error_Report('tidal mass loss not supported for inactive luminosity calculation'//{introspection:location})
-                call spheroid%              massStellarRate  (-fractionStellar*massLossRate                                                                         )
-                call spheroid%        abundancesStellarRate  (-fractionStellar*massLossRate*spheroid%abundancesStellar()/                    spheroid%massStellar() )
-                luminositiesStellarRates=max(zeroStellarLuminosities,spheroid%luminositiesStellar())
-                call spheroid%      luminositiesStellarRate(-fractionStellar*massLossRate*luminositiesStellarRates      /                    spheroid%massStellar() )
-                ! Stellar properties history.
-                historyTransferRate=spheroid%stellarPropertiesHistory()
-                if (historyTransferRate%exists()) then
-                   call spheroid%stellarPropertiesHistoryRate(-fractionStellar*massLossRate*historyTransferRate         /                    spheroid%massStellar() )
-                end if
-                call historyTransferRate%destroy()
-                ! Star formation history.
-                historyTransferRate=spheroid%starFormationHistory()
-                if (historyTransferRate%exists()) then
-                   call spheroid%starFormationHistoryRate     (-fractionStellar*massLossRate*historyTransferRate        /                    spheroid%massStellar() )
-                end if
-                call historyTransferRate%destroy()
-             end if
-             call       spheroid%          angularMomentumRate(-                massLossRate*spheroid%angularMomentum ()/(spheroid%massGas()+spheroid%massStellar()))
-          end if
-       end if
 
        ! Apply tidal heating.
        if (node%isSatellite() .and. spheroid%angularMomentum() < (spheroid%massGas()+spheroid%massStellar())*darkMatterHaloScale_%virialRadius(node)*darkMatterHaloScale_%virialVelocity(node) .and. spheroid%radius() < darkMatterHaloScale_%virialRadius(node)) then

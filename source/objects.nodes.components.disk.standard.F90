@@ -21,13 +21,11 @@
 
 module Node_Component_Disk_Standard
   !% Implements the standard disk node component.
-  use :: Dark_Matter_Halo_Scales                    , only : darkMatterHaloScaleClass
-  use :: Galactic_Dynamics_Bar_Instabilities        , only : galacticDynamicsBarInstabilityClass
-  use :: Ram_Pressure_Stripping_Mass_Loss_Rate_Disks, only : ramPressureStrippingDisksClass
-  use :: Satellite_Merging_Mass_Movements           , only : mergerMassMovementsClass
-  use :: Star_Formation_Histories                   , only : starFormationHistory                    , starFormationHistoryClass
-  use :: Stellar_Population_Properties              , only : stellarPopulationPropertiesClass
-  use :: Tidal_Stripping_Mass_Loss_Rate_Disks       , only : tidalStrippingDisksClass
+  use :: Dark_Matter_Halo_Scales            , only : darkMatterHaloScaleClass
+  use :: Galactic_Dynamics_Bar_Instabilities, only : galacticDynamicsBarInstabilityClass
+  use :: Satellite_Merging_Mass_Movements   , only : mergerMassMovementsClass
+  use :: Star_Formation_Histories           , only : starFormationHistory               , starFormationHistoryClass
+  use :: Stellar_Population_Properties      , only : stellarPopulationPropertiesClass
   implicit none
   private
   public :: Node_Component_Disk_Standard_Scale_Set                    , Node_Component_Disk_Standard_Pre_Evolve         , &
@@ -156,11 +154,9 @@ module Node_Component_Disk_Standard
   class(darkMatterHaloScaleClass           ), pointer :: darkMatterHaloScale_
   class(stellarPopulationPropertiesClass   ), pointer :: stellarPopulationProperties_
   class(galacticDynamicsBarInstabilityClass), pointer :: galacticDynamicsBarInstability_
-  class(ramPressureStrippingDisksClass     ), pointer :: ramPressureStrippingDisks_
-  class(tidalStrippingDisksClass           ), pointer :: tidalStrippingDisks_
   class(starFormationHistoryClass          ), pointer :: starFormationHistory_
   class(mergerMassMovementsClass           ), pointer :: mergerMassMovements_
-  !$omp threadprivate(darkMatterHaloScale_,stellarPopulationProperties_,galacticDynamicsBarInstability_,ramPressureStrippingDisks_,tidalStrippingDisks_,starFormationHistory_,mergerMassMovements_)
+  !$omp threadprivate(darkMatterHaloScale_,stellarPopulationProperties_,galacticDynamicsBarInstability_,starFormationHistory_,mergerMassMovements_)
 
   ! Internal count of abundances.
   integer                                     :: abundancesCount
@@ -269,8 +265,6 @@ contains
        !# <objectBuilder class="darkMatterHaloScale"                                                 name="darkMatterHaloScale_"            source="parameters_"                    />
        !# <objectBuilder class="stellarPopulationProperties"                                         name="stellarPopulationProperties_"    source="parameters_"                    />
        !# <objectBuilder class="galacticDynamicsBarInstability"                                      name="galacticDynamicsBarInstability_" source="parameters_"                    />
-       !# <objectBuilder class="ramPressureStrippingDisks"                                           name="ramPressureStrippingDisks_"      source="parameters_"                    />
-       !# <objectBuilder class="tidalStrippingDisks"                                                 name="tidalStrippingDisks_"            source="parameters_"                    />
        !# <objectBuilder class="starFormationHistory"                                                name="starFormationHistory_"           source="parameters_"                    />
        !# <objectBuilder class="mergerMassMovements"                                                 name="mergerMassMovements_"            source="parameters_"                    />
        !# <objectBuilder class="massDistribution"               parameterName="diskMassDistribution" name="diskMassDistribution"            source="parameters_" threadPrivate="yes" >
@@ -335,8 +329,6 @@ contains
        !# <objectDestructor name="darkMatterHaloScale_"           />
        !# <objectDestructor name="stellarPopulationProperties_"   />
        !# <objectDestructor name="galacticDynamicsBarInstability_"/>
-       !# <objectDestructor name="ramPressureStrippingDisks_"     />
-       !# <objectDestructor name="tidalStrippingDisks_"           />
        !# <objectDestructor name="starFormationHistory_"          />
        !# <objectDestructor name="mergerMassMovements_"           />
        !# <objectDestructor name="diskMassDistribution"           />
@@ -672,7 +664,6 @@ contains
     type            (abundances           ), save                   :: fuelAbundancesRates         , stellarAbundancesRates
     !$omp threadprivate(stellarAbundancesRates,fuelAbundancesRates)
     double precision                                                :: barInstabilitySpecificTorque, barInstabilityTimescale, &
-         &                                                             fractionGas                 , fractionStellar        , &
          &                                                             massLossRate                , transferRate
     type            (history              )                         :: historyTransferRate
     type            (stellarLuminosities  ), save                   :: luminositiesTransferRate
@@ -762,61 +753,6 @@ contains
                &   spheroid%radius         () <                                             darkMatterHaloScale_%virialRadius(node)                                           &
                & ) then
              call spheroid%angularMomentumRate(+barInstabilitySpecificTorque*(spheroid%massGas()+spheroid%massStellar()),interrupt,interruptProcedure)
-          end if
-       end if
-
-       ! Apply mass loss rate due to ram pressure stripping.
-       if (disk%massGas() > 0.0d0) then
-          massLossRate=ramPressureStrippingDisks_%rateMassLoss(node)
-          if (massLossRate > 0.0d0) then
-             hotHalo => node%hotHalo()
-             call    disk%                  massGasRate(-massLossRate                                                           )
-             call    disk%          angularMomentumRate(-massLossRate*disk%angularMomentum()/(disk%massGas()+disk%massStellar()))
-             call    disk%            abundancesGasRate(-massLossRate*disk%abundancesGas  ()/ disk%massGas()                    )
-             call hotHalo%           outflowingMassRate(+massLossRate                                                           )
-             call hotHalo%outflowingAngularMomentumRate(+massLossRate*disk%angularMomentum()/(disk%massGas()+disk%massStellar()))
-             call hotHalo%outflowingAbundancesRate     (+massLossRate*disk%abundancesGas  ()/ disk%massGas()                    )
-          end if
-       end if
-
-       ! Apply mass loss rate due to tidal stripping.
-       if (disk%massGas()+disk%massStellar() > 0.0d0) then
-          massLossRate=tidalStrippingDisks_%rateMassLoss(node)
-          if (massLossRate > 0.0d0) then
-             hotHalo    => node%hotHalo()
-             fractionGas    =  min(1.0d0,max(0.0d0,disk%massGas()/(disk%massGas()+disk%massStellar())))
-             fractionStellar=  1.0d0-fractionGas
-             if (fractionGas     > 0.0d0 .and. disk%massGas    () > 0.0d0) then
-                call    disk%                  massGasRate(-fractionGas    *massLossRate                                                             )
-                call    disk%            abundancesGasRate(-fractionGas    *massLossRate*disk%abundancesGas    ()/ disk%massGas()                    )
-                call hotHalo%           outflowingMassRate(+fractionGas    *massLossRate                                                             )
-                call hotHalo%outflowingAbundancesRate     (+fractionGas    *massLossRate*disk%abundancesGas    ()/ disk%massGas()                    )
-                call hotHalo%outflowingAngularMomentumRate(+fractionGas    *massLossRate*disk%angularMomentum  ()/(disk%massGas()+disk%massStellar()))
-             end if
-             if (fractionStellar > 0.0d0 .and. disk%massStellar() > 0.0d0) then
-                ! If luminosities are being treated as inactive properties this is an error - they appear on the right-hand side
-                ! of the following ODE terms so are not inactive. (An approach similar to what is used for transfer of
-                ! luminosities to the spheroid by bar instabilities could work here.)
-                if (propertyType == propertyTypeActive .and. diskLuminositiesStellarInactive) call Galacticus_Error_Report('tidal mass loss not supported for inactive luminosity calculation'//{introspection:location})
-                ! Stellar mass and metals.
-                call    disk%              massStellarRate(-fractionStellar*massLossRate                                                             )
-                call    disk%        abundancesStellarRate(-fractionStellar*massLossRate*disk%abundancesStellar()/                disk%massStellar() )
-                ! Stellar luminosities.
-                luminositiesTransferRate=max(zeroStellarLuminosities,disk%luminositiesStellar())
-                call    disk%      luminositiesStellarRate(-fractionStellar*massLossRate*luminositiesTransferRate/                disk%massStellar() )
-                ! Stellar properties history.
-                historyTransferRate=disk%stellarPropertiesHistory()
-                if (historyTransferRate%exists()) then
-                   call disk%stellarPropertiesHistoryRate (-fractionStellar*massLossRate*historyTransferRate     /                disk%massStellar() )
-                end if
-                call historyTransferRate%destroy()
-                ! Star formation history.
-                historyTransferRate=disk%starFormationHistory()
-                if (historyTransferRate%exists()) then
-                   call disk    %starFormationHistoryRate (-fractionStellar*massLossRate*historyTransferRate     /                disk%massStellar() )
-                end if
-             end if
-             call       disk%          angularMomentumRate(-                massLossRate*disk%angularMomentum  ()/(disk%massGas()+disk%massStellar()))
           end if
        end if
     end select

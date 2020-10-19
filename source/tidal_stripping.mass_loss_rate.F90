@@ -17,24 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements ram pressure stripping in disks.
+!% Contains a module which provides a class that implements tidal stripping.
 
-module Ram_Pressure_Stripping_Mass_Loss_Rate_Disks
-  !% Provides a class that implements calculations of ram pressure stripping in disks.
-  use :: Galacticus_Nodes, only : treeNode
+module Tidal_Stripping_Mass_Loss_Rate
+  !% Provides a class that implements calculations of tidal stripping.
+  use :: Galacticus_Nodes, only : nodeComponent
   private
 
   !# <functionClass>
-  !#  <name>ramPressureStrippingDisks</name>
-  !#  <descriptiveName>Ram pressure stripping in disks</descriptiveName>
-  !#  <description>Class providing models of ram pressure stripping in disks.</description>
-  !#  <default>null</default>
+  !#  <name>tidalStripping</name>
+  !#  <descriptiveName>Tidal stripping</descriptiveName>
+  !#  <description>Class providing models of tidal stripping.</description>
+  !#  <default>simple</default>
   !#  <method name="rateMassLoss" >
-  !#   <description>Returns the rate of mass loss (in $M_\odot$~Gyr$^{-1}$) due to ram pressure stripping of the disk component of {\normalfont \ttfamily node}.</description>
+  !#   <description>Returns the rate of mass loss (in $M_\odot$~Gyr$^{-1}$) due to tidal stripping of {\normalfont \ttfamily component}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#   <argument>class(nodeCOmponent), intent(inout) :: component</argument>
   !#  </method>
   !# </functionClass>
 
-end module Ram_Pressure_Stripping_Mass_Loss_Rate_Disks
+end module Tidal_Stripping_Mass_Loss_Rate

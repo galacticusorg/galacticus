@@ -182,15 +182,6 @@
     <hotHaloTrackStrippedGas value="true"/>
     <ramPressureStrippingFormFactor value="2"/>
 
-    <!-- Galaxy ram pressure stripping options -->
-    <ramPressureStrippingDisksMethod value="null"/>
-    <ramPressureStrippingSpheroidsMethod value="null"/>
-
-    <!-- Galaxy tidal stripping options -->
-    <tidalStrippingDisksMethod value="null"/>
-    <tidalStrippingSpheroidsMethod value="null"/>
-    <satelliteTidalFieldMethod value="null"/>
-
     <!-- Galactic structure solver options -->
     <galacticStructureSolverMethod value="equilibrium"/>
     <darkMatterProfileMethod value="adiabaticGnedin2004">

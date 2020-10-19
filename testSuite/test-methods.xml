@@ -707,28 +707,122 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <ramPressureStrippingDisksMethod value="simple"/>
-    <ramPressureStrippingDisksMethod value="null"/>
+    <nodeOperatorMethod value="multi">
+      <nodeOperatorMethod value="starFormationDisks"/>
+      <nodeOperatorMethod value="starFormationSpheroids"/>
+      <!--Stellar feedback outflows-->
+      <nodeOperatorMethod value="stellarFeedbackDisks">
+	<stellarFeedbackOutflowsMethod value="rateLimit">
+          <timescaleOutflowFractionalMinimum value="0.001"/>
+          <stellarFeedbackOutflowsMethod value="powerLaw">
+            <velocityCharacteristic value="250.0"/>
+            <exponent value="3.5"/>
+          </stellarFeedbackOutflowsMethod>
+	</stellarFeedbackOutflowsMethod>
+      </nodeOperatorMethod>
+      <nodeOperatorMethod value="stellarFeedbackSpheroids">
+	<stellarFeedbackOutflowsMethod value="rateLimit">
+          <timescaleOutflowFractionalMinimum value="0.001"/>
+          <stellarFeedbackOutflowsMethod value="powerLaw">
+            <velocityCharacteristic value="250.0"/>
+            <exponent value="3.5"/>
+          </stellarFeedbackOutflowsMethod>
+	</stellarFeedbackOutflowsMethod>
+      </nodeOperatorMethod>
+      <nodeOperatorMethod value="ramPressureMassLossDisks"/>
+    </nodeOperatorMethod>
+    <ramPressureStrippingMethod value="simpleCylindrical"/>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <ramPressureStrippingSpheroidsMethod value="simple"/>
-    <ramPressureStrippingSpheroidsMethod value="null"/>
+    <nodeOperatorMethod value="multi">
+      <nodeOperatorMethod value="starFormationDisks"/>
+      <nodeOperatorMethod value="starFormationSpheroids"/>
+      <!--Stellar feedback outflows-->
+      <nodeOperatorMethod value="stellarFeedbackDisks">
+	<stellarFeedbackOutflowsMethod value="rateLimit">
+          <timescaleOutflowFractionalMinimum value="0.001"/>
+          <stellarFeedbackOutflowsMethod value="powerLaw">
+            <velocityCharacteristic value="250.0"/>
+            <exponent value="3.5"/>
+          </stellarFeedbackOutflowsMethod>
+	</stellarFeedbackOutflowsMethod>
+      </nodeOperatorMethod>
+      <nodeOperatorMethod value="stellarFeedbackSpheroids">
+	<stellarFeedbackOutflowsMethod value="rateLimit">
+          <timescaleOutflowFractionalMinimum value="0.001"/>
+          <stellarFeedbackOutflowsMethod value="powerLaw">
+            <velocityCharacteristic value="250.0"/>
+            <exponent value="3.5"/>
+          </stellarFeedbackOutflowsMethod>
+	</stellarFeedbackOutflowsMethod>
+      </nodeOperatorMethod>
+      <nodeOperatorMethod value="ramPressureMassLossSpheroids"/>
+    </nodeOperatorMethod>
+    <ramPressureStrippingMethod value="simpleSpherical"/>
   </parameters>
 
   <!-- Disk and spheroid tidal mass loss rates -->
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <tidalStrippingDisksMethod value="simple"/>
-    <tidalStrippingDisksMethod value="null"/>
+    <nodeOperatorMethod value="multi">
+      <nodeOperatorMethod value="starFormationDisks"/>
+      <nodeOperatorMethod value="starFormationSpheroids"/>
+      <!--Stellar feedback outflows-->
+      <nodeOperatorMethod value="stellarFeedbackDisks">
+	<stellarFeedbackOutflowsMethod value="rateLimit">
+          <timescaleOutflowFractionalMinimum value="0.001"/>
+          <stellarFeedbackOutflowsMethod value="powerLaw">
+            <velocityCharacteristic value="250.0"/>
+            <exponent value="3.5"/>
+          </stellarFeedbackOutflowsMethod>
+	</stellarFeedbackOutflowsMethod>
+      </nodeOperatorMethod>
+      <nodeOperatorMethod value="stellarFeedbackSpheroids">
+	<stellarFeedbackOutflowsMethod value="rateLimit">
+          <timescaleOutflowFractionalMinimum value="0.001"/>
+          <stellarFeedbackOutflowsMethod value="powerLaw">
+            <velocityCharacteristic value="250.0"/>
+            <exponent value="3.5"/>
+          </stellarFeedbackOutflowsMethod>
+	</stellarFeedbackOutflowsMethod>
+      </nodeOperatorMethod>
+      <nodeOperatorMethod value="tidalMassLossDisks"/>
+    </nodeOperatorMethod>
+    <tidalStrippingMethod value="simple"/>
+    <satelliteTidalFieldMethod value="sphericalSymmetry"/>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <tidalStrippingSpheroidsMethod value="simple"/>
-    <tidalStrippingSpheroidsMethod value="null"/>
+    <nodeOperatorMethod value="multi">
+      <nodeOperatorMethod value="starFormationDisks"/>
+      <nodeOperatorMethod value="starFormationSpheroids"/>
+      <!--Stellar feedback outflows-->
+      <nodeOperatorMethod value="stellarFeedbackDisks">
+	<stellarFeedbackOutflowsMethod value="rateLimit">
+          <timescaleOutflowFractionalMinimum value="0.001"/>
+          <stellarFeedbackOutflowsMethod value="powerLaw">
+            <velocityCharacteristic value="250.0"/>
+            <exponent value="3.5"/>
+          </stellarFeedbackOutflowsMethod>
+	</stellarFeedbackOutflowsMethod>
+      </nodeOperatorMethod>
+      <nodeOperatorMethod value="stellarFeedbackSpheroids">
+	<stellarFeedbackOutflowsMethod value="rateLimit">
+          <timescaleOutflowFractionalMinimum value="0.001"/>
+          <stellarFeedbackOutflowsMethod value="powerLaw">
+            <velocityCharacteristic value="250.0"/>
+            <exponent value="3.5"/>
+          </stellarFeedbackOutflowsMethod>
+	</stellarFeedbackOutflowsMethod>
+      </nodeOperatorMethod>
+      <nodeOperatorMethod value="tidalMassLossSpheroids"/>
+    </nodeOperatorMethod>
+    <tidalStrippingMethod value="simple"/>
+    <satelliteTidalFieldMethod value="sphericalSymmetry"/>
   </parameters>
   
   <!-- Power spectrum window function methods -->
