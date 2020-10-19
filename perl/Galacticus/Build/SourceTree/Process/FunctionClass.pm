@@ -2344,10 +2344,10 @@ CODE
 			    my @attributes = &Fortran::Utils::Extract_Variables($attributeList, keepQualifiers => 1, removeSpaces => 1);
 			    my @variables     = split(/\s*,\s*/,$matches[$declarator->{'variables' }]);
 			    foreach my $variable ( @variables ) {
-				$argumentList .= $separator."\\textcolor{red}{\\textless ".$intrinsicName;
-				$argumentList .= "(".$type.")"
+				$argumentList .= $separator."\\textcolor{red}{\\textless ".latex_encode($intrinsicName);
+				$argumentList .= latex_encode($type)
 				    if ( defined($type) );
-				$argumentList .= "\\textgreater} ".$variable;
+				$argumentList .= "\\textgreater} ".latex_encode($variable);
 				foreach my $attribute ( @attributes ) {
 				    $argumentList .= "\\argin"
 					if ( $attribute eq "intent(in)" );
@@ -2364,7 +2364,7 @@ CODE
 		$modulePreContains->{'content'} .= "    !@   <objectMethod>\n";
 		$modulePreContains->{'content'} .= "    !@     <method>".$methodName."</method>\n";
 		$modulePreContains->{'content'} .= "    !@     <type>".latex_encode($method->{'type'})."</type>\n";
-		$modulePreContains->{'content'} .= "    !@     <arguments>".latex_encode($argumentList)."</arguments>\n";
+		$modulePreContains->{'content'} .= "    !@     <arguments>".$argumentList."</arguments>\n";
 		$modulePreContains->{'content'} .= "    !@     <description>".$method->{'description'}."</description>\n";
 		$modulePreContains->{'content'} .= "    !@   </objectMethod>\n";
 		if ( exists($directive->{'generic'}) ) {
@@ -2373,7 +2373,7 @@ CODE
 			    # This method is part of a generic method, store relevant information.
 			    $generics->{$generic->{'name'}}->{'type'} = $method->{'type'};
 			    push(@{ $generics->{$generic->{'name'}}->{'description'}},$method->{'description'});
-			    push(@{ $generics->{$generic->{'name'}}->{'argumentList'}},latex_encode($argumentList));
+			    push(@{ $generics->{$generic->{'name'}}->{'argumentList'}},$argumentList);
 			}
 		    }
 		}
