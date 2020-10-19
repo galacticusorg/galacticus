@@ -22,7 +22,67 @@
   use :: Tables, only : table1D, table1DLogarithmicLinear
 
   !# <conditionalMassFunction name="conditionalMassFunctionBehroozi2010">
-  !#  <description>A class which implements the conditional mass function using the fiting functions of \cite{behroozi_comprehensive_2010}.</description>
+  !#  <description>
+  !#   A conditional mass function class which implements the fiting functions of \cite{behroozi_comprehensive_2010}:
+  !#   \begin{equation}
+  !#    \langle N_\mathrm{c}(M_\star|M)\rangle \equiv \int_{M_\star}^\infty \phi_\mathrm{c}(M_\star^\prime) \d \ln M_\star^\prime
+  !#    = {1 \over 2} \left[ 1 - \hbox{erf}\left( {\log_{10}M_\star - \log_{10} f_\mathrm{SHMR}(M) \over \sqrt{2}\sigma_{\log
+  !#    M_\star}} \right) \right].
+  !#   \end{equation}
+  !#   Here, the function $f_\mathrm{SHMR}(M)$ is the solution of
+  !#   \begin{equation}
+  !#    \log_{10}M = \log_{10}M_1 + \beta \log_{10}\left({M_\star \over M_{\star,0}}\right) + {(M_\star/M_{\star,0})^\delta \over
+  !#    1 + (M_\star/M_{\star,0})^{-\gamma}} - {1/2}.
+  !#   \end{equation}
+  !#   For satellites,
+  !#   \begin{equation}
+  !#    \langle N_\mathrm{s}(M_\star|M)\rangle \equiv \int_{M_\star}^\infty \phi_\mathrm{s}(M_\star^\prime) \d \ln M_\star^\prime
+  !#    = \langle N_\mathrm{c}(M_\star|M)\rangle \left({f^{-1}_\mathrm{SHMR}(M_\star) \over
+  !#    M_\mathrm{sat}}\right)^{\alpha_\mathrm{sat}} \exp\left(- {M_\mathrm{cut} \over f^{-1}_\mathrm{SHMR}(M_\star)} \right),
+  !#   \end{equation}
+  !#   where
+  !#   \begin{equation}
+  !#    {M_\mathrm{sat} \over 10^{12} M_\odot} = B_\mathrm{sat} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12}
+  !#    M_\odot}\right)^{\beta_\mathrm{sat}},
+  !#   \end{equation}
+  !#   and
+  !#   \begin{equation}
+  !#    {M_\mathrm{cut} \over 10^{12} M_\odot} = B_\mathrm{cut} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12}
+  !#    M_\odot}\right)^{\beta_\mathrm{cut}}.
+  !#   \end{equation}
+  !#   By default, parameter values are taken from the fit of \cite{leauthaud_new_2011}, specifically their {\normalfont \ttfamily
+  !#   SIG\_MOD1} method for their $z_1$ sample. These default values, and the \glc\ input parameters which can be used to adjust
+  !#   them are shown in Table~\ref{table:Behroozi2010FitParameters}. This method assumes that $P_\mathrm{s}(N|M_\star,M;\delta
+  !#   \ln M_\star)$ is a Poisson distribution while $P_\mathrm{c}(N|M_\star,M;\delta \ln M_\star)$ has a Bernoulli distribution,
+  !#   with each distribution's free parameter fixed by requiring
+  !#   \begin{equation}
+  !#    \phi(M_\star;M) \delta \ln M_\star = \sum_{N=0}^\infty N P(N|M_\star,M;\delta \ln M_\star)
+  !#   \end{equation}
+  !#   \begin{table}
+  !#   \caption{Parameters of the \cite{behroozi_comprehensive_2010} conditional stellar mass function model, along with their
+  !#   default values and the corresponding \glc\ input parameters.}
+  !#   \label{table:Behroozi2010FitParameters}
+  !#   \begin{center}
+  !#   \begin{tabular}{lr@{.}ll}
+  !#   \hline
+  !#   {\normalfont \bfseries Parameter} &amp; \multicolumn{2}{c}{{\normalfont \bfseries Default}} &amp; {\normalfont \bfseries \glc\ name} \\
+  !#   \hline
+  !#   $\alpha_\mathrm{sat}$&amp; 1&amp;0&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziAlphaSatellite]} \\
+  !#   $\log_{10} M_1$&amp; 12&amp;520&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziLog10M1]} \\
+  !#   $\log_{10} M_{\star,0}$&amp; 10&amp;916&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziLog10Mstar0]} \\
+  !#   $\beta$&amp; 0&amp;457&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziBeta]} \\
+  !#   $\delta$&amp; 0&amp;5666&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziDelta]} \\
+  !#   $\gamma$&amp; 1&amp;53&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziGamma]} \\
+  !#   $\sigma_{\log M_\star}$&amp; 0&amp;206&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziSigmaLogMstar]} \\
+  !#   $B_\mathrm{cut}$&amp; 1&amp;47&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziBCut]} \\
+  !#   $B_\mathrm{sat}$&amp; 10&amp;62&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziBSatellite]} \\
+  !#   $\beta_\mathrm{cut}$&amp; $-$0&amp;13&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziBetaCut]} \\
+  !#   $\beta_\mathrm{sat}$&amp; 0&amp;859&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziBetaCut]} \\
+  !#   \hline
+  !#   \end{tabular}
+  !#   \end{center}
+  !#   \end{table}
+  !#  </description>
   !# </conditionalMassFunction>
   type, extends(conditionalMassFunctionClass) :: conditionalMassFunctionBehroozi2010
      !% Implements the conditional mass function using the fiting functions of \cite{behroozi_comprehensive_2010}.
