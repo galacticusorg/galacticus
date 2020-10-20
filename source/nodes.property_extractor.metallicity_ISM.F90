@@ -46,6 +46,7 @@ contains
     !% Constructor for the ``metallicityISM'' output analysis property extractor class which takes a parameter set as input.
     use :: Abundances_Structure, only : Abundances_Index_From_Name
     use :: Input_Parameters    , only : inputParameter            , inputParameters
+    use :: Galacticus_Error    , only : Galacticus_Error_Report
     implicit none
     type     (nodePropertyExtractorMetallicityISM)                :: self
     type     (inputParameters                    ), intent(inout) :: parameters
@@ -58,6 +59,7 @@ contains
     !#   <description>The atomic symbol for the element to use to define metallicity.</description>
     !# </inputParameter>
     indexElement=Abundances_Index_From_Name(element)
+    if (indexElement < 0) call Galacticus_Error_Report('element "'//trim(element)//'" is not being tracked'//{introspection:location})
     self=nodePropertyExtractorMetallicityISM(indexElement)
     !# <inputParametersValidate source="parameters"/>
     return
