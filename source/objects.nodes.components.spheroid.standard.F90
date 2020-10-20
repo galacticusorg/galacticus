@@ -622,9 +622,7 @@ contains
     procedure       (                     ), intent(inout), pointer :: interruptProcedure
     integer                                , intent(in   )          :: propertyType
     class           (nodeComponentSpheroid)               , pointer :: spheroid
-    class           (nodeComponentHotHalo )               , pointer :: hotHalo
-    double precision                                                :: tidalField              , tidalTorque    , &
-         &                                                             massLossRate
+    double precision                                                :: tidalField        , tidalTorque
     !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Return immediately if this class is not in use or only inactive properties are to be computed.

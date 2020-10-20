@@ -656,7 +656,6 @@ contains
     type            (treeNode             ), intent(inout), pointer :: node
     class           (nodeComponentDisk    )               , pointer :: disk
     class           (nodeComponentSpheroid)               , pointer :: spheroid
-    class           (nodeComponentHotHalo )               , pointer :: hotHalo
     logical                                , intent(inout)          :: interrupt
     procedure       (interruptTask        ), intent(inout), pointer :: interruptProcedureReturn
     integer                                , intent(in   )          :: propertyType
@@ -664,7 +663,7 @@ contains
     type            (abundances           ), save                   :: fuelAbundancesRates         , stellarAbundancesRates
     !$omp threadprivate(stellarAbundancesRates,fuelAbundancesRates)
     double precision                                                :: barInstabilitySpecificTorque, barInstabilityTimescale, &
-         &                                                             massLossRate                , transferRate
+         &                                                             transferRate
     type            (history              )                         :: historyTransferRate
     type            (stellarLuminosities  ), save                   :: luminositiesTransferRate
     !$omp threadprivate(luminositiesTransferRate)
