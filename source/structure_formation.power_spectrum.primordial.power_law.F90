@@ -21,11 +21,18 @@
 
   !# <powerSpectrumPrimordial name="powerSpectrumPrimordialPowerLaw">
   !#  <description>
-  !#   Implements a power-law primordial power spectrum, possibly with a running index. It is defined by
+  !#   Implements a power-law primordial power spectrum, possibly with a running index. The primordial power spectrum has the
+  !#   form:
   !#   \begin{equation}
-  !#    P(k)\propto k^{n_\mathrm{s} + \ln(k/k_\mathrm{ref}) [\d n /\d\ln k]},
+  !#    P(k) \propto k^{n_\mathrm{eff}(k)},
   !#   \end{equation}
-  !#   where the parameters are specified by input parameters $n_\mathrm{s}\equiv${\normalfont \ttfamily [index]}, $k_\mathrm{ref}\equiv${\normalfont \ttfamily [wavenumberReference]} and $\d n / \d \ln k \equiv${\normalfont \ttfamily [running]}.
+  !#   where
+  !#   \begin{equation}
+  !#    n_\mathrm{eff}(k) = n_\mathrm{s} + {1\over 2}{\d n \over \d \ln k} \ln \left( {k \over k_\mathrm{ref}} \right),
+  !#   \end{equation}
+  !#   where $n_\mathrm{s}=${\normalfont \ttfamily [index]} is the power spectrum index at wavenumber
+  !#   $k_\mathrm{ref}=${\normalfont \ttfamily [wavenumberReference]} and $\d n / \d \ln k=${\normalfont \ttfamily [running]}
+  !#   describes the running of this index with wavenumber.
   !#  </description>
   !# </powerSpectrumPrimordial>
   type, extends(powerSpectrumPrimordialClass) :: powerSpectrumPrimordialPowerLaw

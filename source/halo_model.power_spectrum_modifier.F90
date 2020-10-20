@@ -26,7 +26,9 @@ module Halo_Model_Power_Spectrum_Modifiers
   !# <functionClass>
   !#  <name>haloModelPowerSpectrumModifier</name>
   !#  <descriptiveName>Halo Model Power Spectrum Modifier</descriptiveName>
-  !#  <description>Class providing modifiers to the power spectra in the halo model.</description>
+  !#  <description>
+  !#   Class providing modifiers to the power spectra in halo model clustering calculations.
+  !#  </description>
   !#  <default>identity</default>
   !#  <method name="modify" >
   !#   <description>Modify the power spectra in the halo model of clustering.</description>

@@ -27,7 +27,9 @@ module Halo_Spin_Distributions
   !# <functionClass>
   !#  <name>haloSpinDistribution</name>
   !#  <descriptiveName>Dark Matter Halo Spin Parameter Distributions</descriptiveName>
-  !#  <description>Class providing dark matter halo spin parameter distributions.</description>
+  !#  <description>
+  !#   Class providing dark matter halo spin parameter distributions.
+  !#  </description>
   !#  <default>bett2007</default>
   !#  <method name="sample" >
   !#   <description>Samples a spin parameter from the distribution for the given {\normalfont \ttfamily node}.</description>

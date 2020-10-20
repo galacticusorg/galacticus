@@ -30,7 +30,9 @@ module Cooling_Times
   !# <functionClass>
   !#  <name>coolingTime</name>
   !#  <descriptiveName>Cooling times.</descriptiveName>
-  !#  <description>Class providing models of the cooling time for gas in the hot atmosphere surrounding a galaxy.</description>
+  !#  <description>
+  !#   Class providing models of the cooling time for gas in the hot atmosphere surrounding a galaxy.
+  !#  </description>
   !#  <default>simple</default>
   !#  <method name="time" >
   !#   <description>Returns the cooling time for gas in the hot atmosphere surrounding the galaxy in units of Gyr.</description>

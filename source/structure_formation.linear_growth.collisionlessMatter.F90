@@ -21,7 +21,10 @@
   !% pressure terms for the growth of baryons and has no wavenumber dependence. Also assumes no growth of radiation perturbations.
 
   !# <linearGrowth name="linearGrowthCollisionlessMatter">
-  !#  <description>Linear growth of cosmological structure in models consisting of only collisionless matter. Ignores pressure terms for the growth of baryons and has no wavenumber dependence. Also assumes no growth of radiation perturbations.
+  !#  <description>
+  !#   A linear growth of cosmological structure class for models consisting of only collisionless matter. Pressure terms for the
+  !#   growth of baryons are ignored, and there is no wavenumber dependence. It further assumes no growth of radiation
+  !#   perturbations.
   !#  </description>
   !# </linearGrowth>
   use :: Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass

@@ -33,7 +33,11 @@
   !$omp threadprivate(matterDarkEnergyDominateFactorCurrent)
 
   !# <cosmologyFunctions name="cosmologyFunctionsMatterDarkEnergy">
-  !#  <description>Cosmological relations are computed assuming a universe that contains only matter and dark energy with an equation of state $w(a)=w_0+w_1a(1-a)$.</description>
+  !#  <description>
+  !#   Cosmological relations are computed assuming a universe that contains only collisionless matter and dark energy with an
+  !#   equation of state $w(a)=w_0+w_1a(1-a)$ \citep{jassal_wmap_2005}, with $w_0=${\normalfont \ttfamily
+  !#   [darkEnergyEquationOfStateW0]}, and $w_1=${\normalfont \ttfamily [darkEnergyEquationOfStateW1]}.
+  !#  </description>
   !# </cosmologyFunctions>
   type, extends(cosmologyFunctionsMatterLambda) :: cosmologyFunctionsMatterDarkEnergy
      !% A cosmological functions class for cosmologies consisting of matter plus dark energy with equation of state $w(a)=w_0+a(1-a)w_1$.

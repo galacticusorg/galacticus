@@ -674,6 +674,22 @@ where {\normalfont \ttfamily thisNode} is the node about to be promoted.
 
 Tasks are any processing which must be performed on a node as a result of some specific event (such as a merger).
 
+\section{Analytic Solvers}
+
+\glc\ typically solves the system of \glspl{ode} which describe the evolution of a galaxy using a numerical solver. However, in some situations analytic solutions may be available. \glc\ allows for the use of analytic solvers in such cases. Currently available analytic solvers are described below.
+
+\subsection{Simple Disk Satellites}
+
+This solver, which can be activated by setting {\normalfont \ttfamily [diskVerySimpleUseAnalyticSolver]}$=${\normalfont \ttfamily true} is applicable to satellite systems in the very simple disk component. In particular, the following conditions must be met for it to be valid:
+\begin{itemize}
+\item The hot halo component must be of type {\normalfont \ttfamily verySimple} or {\normalfont \ttfamily verySimpleDelayed};
+\item The satellite component must be of type {\normalfont \ttfamily verySimple};
+\item The disk component must be of type {\normalfont \ttfamily verySimple};
+\item Properties of all other components must not change for satellite galaxies (with the exception of the {\normalfont \ttfamily time} property of the basic component), or else the component must be {\normalfont \ttfamily null};
+  \item Disk star formation and outflow rates must scale as $M_\mathrm{gas}/\tau$ where $M_\mathrm{gas}$ is the instantaneous mass of gas in the galaxy disk, and $\tau$ is a fixed timescale for any given satellite galaxy.
+\end{itemize}
+Under these conditions, the flow of mass between gas, stellar, and outflowed phases is analytically solvable.
+
 \subsubsection{Calculation Reset Tasks}\label{sec:CalculationResetTask}
 
 Additional methods for calculation reset tasks (i.e. flagging that the properties of a node may have changed so that any calculations must be performed anew) can be added using the {\normalfont \ttfamily calculationResetTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to perform the task. For example, the standard hot halo component adds a task as follows:

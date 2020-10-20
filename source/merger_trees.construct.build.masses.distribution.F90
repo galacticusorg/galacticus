@@ -26,7 +26,9 @@ module Merger_Trees_Build_Masses_Distributions
   !# <functionClass>
   !#  <name>mergerTreeBuildMassDistribution</name>
   !#  <descriptiveName>Merger Tree Mass Distributions</descriptiveName>
-  !#  <description>Class providing mass distributions for merger trees to be built.</description>
+  !#  <description>
+  !#   Class providing distribution functions for the masses of merger trees to be built.
+  !#  </description>
   !#  <default>haloMassFunction</default>
   !#  <method name="sample" >
   !#   <description>Returns the sampling rate for merger trees of the given {\normalfont \ttfamily mass}, per decade of halo mass.</description>

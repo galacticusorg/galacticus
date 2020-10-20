@@ -20,7 +20,39 @@
   !% Implementation of a switched (ADAF/thin) accretion disk.
 
   !# <accretionDisks name="accretionDisksSwitched">
-  !#  <description>An accretion disk class in which accretion switches between thin-disk and ADAF modes.</description>
+  !#  <description>
+  !#   A circumnuclear accretion disk class in which accretion switches between radiatively efficient (Shakura-Sunyaev) and
+  !#   inefficient (\gls{adaf}) modes. This is intended to crudely model the fact that accretion disks are expected to be
+  !#   radiatively inefficient at both high accretion rates (i.e. as they approach the Eddington luminosity the radiation pressure
+  !#   from a radiatively efficient flow would begin to disrupt the flow itself by definition), while accretion flows at low
+  !#   accretion rates ($\dot{M}_\mathrm{acc} < \alpha^2 \dot{M}_\mathrm{Edd}$, where $\alpha\sim 0.1$ is the usual parameter
+  !#   controlling the rate of angular momentum transport in a \cite{shakura_black_1973} accretion disk) are also radiatively
+  !#   inefficient as radiative processes are too inefficient at the associated low densities to radiate energy at the rate it is
+  !#   being liberated. A more thorough discussion is given by \cite{begelman_accreting_2014}.
+  !#
+  !#   The properties of the switched disk (e.g. radiative efficiency, jet power), are a linear combination of those of the
+  !#   Shakura-Sunyaev and \gls{adaf} modes, with the \gls{adaf} fraction being given by:
+  !#   \begin{equation}
+  !#   f_\mathrm{ADAF} = [1+\exp(y_\mathrm{min})]^{-1} + [1+\exp(y_\mathrm{max})]^{-1},
+  !#   \label{eq:SwitchedDiskADAFFraction}
+  !#   \end{equation}
+  !#   where
+  !#   \begin{eqnarray}
+  !#   y_\mathrm{min} &amp;=&amp; +\log(x/x_\mathrm{min})/\Delta_{x}, \\
+  !#   y_\mathrm{max} &amp;=&amp; -\log(x/x_\mathrm{max})/\Delta_{x},
+  !#   \end{eqnarray}
+  !#   and,
+  !#   \begin{equation}
+  !#   x = \dot{M} / \dot{M}_\mathrm{Eddington}.
+  !#   \end{equation}
+  !#   Here, $x_\mathrm{min}=${\normalfont \ttfamily [accretionRateThinDiskMinimum]}, $x_\mathrm{max}=${\normalfont \ttfamily
+  !#   [accretionRateThinDiskMaximum]}, and $\Delta_{x}$={\normalfont \ttfamily [accretionRateTransitionWidth]}. If either
+  !#   {\normalfont \ttfamily [accretionRateThinDiskMinimum]} or {\normalfont \ttfamily [accretionRateThinDiskMaximum]} is set to
+  !#   ``{\normalfont \ttfamily none}'' then the corresponding term in eqn.~(\ref{eq:SwitchedDiskADAFFraction}) is excluded.
+  !#
+  !#   Additionally, if {\normalfont \ttfamily [scaleADAFRadiativeEfficiency]} is set to {\normalfont \ttfamily true} then the
+  !#   radiative efficiency of the \gls{adaf} component is reduced by a factor $x/x_\mathrm{min}$ when $x<x_\mathrm{min}$.
+  !#  </description>
   !# </accretionDisks>
   type, extends(accretionDisksClass) :: accretionDisksSwitched
      !% Implementation of an accretion disk class in which accretion switches between thin-disk and ADAF modes.

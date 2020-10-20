@@ -23,7 +23,14 @@
   use :: Star_Formation_Rate_Surface_Density_Disks, only : starFormationRateSurfaceDensityDisksClass
   
   !# <starFormationRateDisks name="starFormationRateDisksIntgrtdSurfaceDensity">
-  !#  <description>A star formation rate in galactic disks which computes the rate by integrating a star formation rate over the disk.</description>
+  !#  <description>
+  !#   A star formation rate in galactic disks which computes the rate by integrating a star formation rate over the
+  !#   disk. Specifically, the star formation rate is given by
+  !#   \begin{equation}
+  !#    \dot{M}_\star = \int_0^\infty 2 \pi r \dot{\Sigma}_\star(r) \mathrm{d}r,
+  !#   \end{equation}
+  !#   where $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate.
+  !#  </description>
   !# </starFormationRateDisks>
   type, extends(starFormationRateDisksClass) :: starFormationRateDisksIntgrtdSurfaceDensity
      !% Implementation of a rate for star formation in galactic disks which computes the rate by integrating a star formation rate

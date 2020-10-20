@@ -1,344 +1,29 @@
 \chapter{Physical Implementations}
 
-\section{Analytic Solvers}
-
-\glc\ typically solves the system of \glspl{ode} which describe the evolution of a galaxy using a numerical solver. However, in some situations analytic solutions may be available. \glc\ allows for the use of analytic solvers in such cases. Currently available analytic solvers are described below.
-
-\subsection{Simple Disk Satellites}
-
-This solver, which can be activated by setting {\normalfont \ttfamily [diskVerySimpleUseAnalyticSolver]}$=${\normalfont \ttfamily true} is applicable to satellite systems in the very simple disk component. In particular, the following conditions must be met for it to be valid:
-\begin{itemize}
-\item The hot halo component must be of type {\normalfont \ttfamily verySimple} or {\normalfont \ttfamily verySimpleDelayed};
-\item The satellite component must be of type {\normalfont \ttfamily verySimple};
-\item The disk component must be of type {\normalfont \ttfamily verySimple};
-\item Properties of all other components must not change for satellite galaxies (with the exception of the {\normalfont \ttfamily time} property of the basic component), or else the component must be {\normalfont \ttfamily null};
-  \item Disk star formation and outflow rates must scale as $M_\mathrm{gas}/\tau$ where $M_\mathrm{gas}$ is the instantaneous mass of gas in the galaxy disk, and $\tau$ is a fixed timescale for any given satellite galaxy.
-\end{itemize}
-Under these conditions, the flow of mass between gas, stellar, and outflowed phases is analytically solvable.
-
-\section{Accretion of Gas into Halos}\label{sec:AccretionBaryonic}\index{accretion!baryonic}
-
-The accretion rate of gas from the \gls{igm} into a dark matter halo is expected to depend on (at least) the rate at which that halo mass is growing, the depth of its potential well and the thermodynamical properties of the accreting gas. \glc\ implements the following calculations of gas accretion from the \gls{igm}, which can be selected via the {\normalfont \ttfamily accretionHaloMethod} input parameter.
-
-\subsection{Simple}\label{phys:accretionHalo:accretionHaloSimple}
-
-Selected using {\normalfont \ttfamily accretionHaloMethod}$=${\normalfont \ttfamily simple}, this method sets the accretion rate of baryons into a halo to be:
-\begin{equation}
- \dot{M}_\mathrm{accretion} = \left\{ \begin{array}{ll} (\Omega_\mathrm{b}/\Omega_\mathrm{M}) \dot{M}_\mathrm{halo} & \hbox{ if } V_\mathrm{virial} > V_\mathrm{reionization} \hbox{ or } z > z_\mathrm{reionization} \\ 0 & \hbox{ otherwise,}\end{array} \right.
-\label{eq:accretionHalo:truncation}
-\end{equation}
-where $z_\mathrm{reionization}=${\normalfont \ttfamily [reionizationSuppressionRedshift]} is the redshift at which the Universe is reionized and $V_\mathrm{reionization}=${\normalfont \ttfamily [reionizationSuppressionVelocity]} is the virial velocity below which accretion is suppressed after reionization. Setting $V_\mathrm{reionization}$ to zero will effectively switch off the effects of reionization on the accretion of baryonics. This algorithm attempts to offer a simple prescription for the effects of reionization and has been explored by multiple authors (e.g. \citealt{benson_effects_2002}). In particular, \cite{font_modelingmilky_2010} show that it produces results in good agreement with more elaborate treatments of reionization. For halos below the accretion threshold, any accretion rate that would have otherwise occurred is instead placed into the ``failed'' accretion rate. For halos which can accrete, and which have some mass in their ``failed'' reservoir, that mass will be added to the regular accretion rate at a rate equal to the mass of the 
-``failed'' reservoir times the specific growth rate of the halo. The gas accreted is assumed to be from a pristine \gls{igm} and so has zero abundances. Chemical abundances are computed from the chemical state functions (see \S\ref{sec:ChemicalStateMethod}).
-
-Note that, if $\dot{M}_\mathrm{halo} < 0$ then negative accretion rates of gas into the node can result. This ccan be prevented by setting {\normalfont \ttfamily [accretionHalosSimpleNegativeAccretionAllowed]}$=${\normalfont \ttfamily false}.
-
-By default, gas is accreted whenever the halo is growing in total mass. However, setting {\normalfont \ttfamily [accretionHalosSimpleAccreteNewGrowthOnly]}$=${\normalfont \ttfamily true} causes accretion to occur only if the node mass is growing and exceeds the previous maximum node mass achieved along this branch of the merger tree. This requires use of a basic component which tracks the maximum mass along the branch (i.e. the {\normalfont \ttfamily massMaximum} property).
-
-\subsection{Null}\label{phys:accretionHalo:accretionHaloNull}
-
-Selected using {\normalfont \ttfamily accretionHaloMethod}$=${\normalfont \ttfamily null}, this method sets the accretion rate of baryons into a halo to be zero always.
-
-\subsection{Cold Mode}\label{phys:accretionHalo:accretionHaloColdMode}
-
-Selected using {\normalfont \ttfamily accretionHaloMethod}$=${\normalfont \ttfamily coldMode}, this class extends the {\normalfont \ttfamily simple} class by dividing the accretion into hot and cold mode components. The cold mode fraction follows the approximation introduced by \cite{benson_cold_2010}, namely:
-\begin{equation}
-f_\mathrm{cold}=(1+r^{1/\delta})^{-1},
-\end{equation}
-where $\delta=${\normalfont \ttfamily [accretionColdModeShockStabilityTransitionWidth]}, $r = \epsilon_\mathrm{crit}/\epsilon$, and
-\begin{equation}
-\epsilon = r_\mathrm{s} \Lambda / \rho_\mathrm{s} v_\mathrm{s}^3,
-\end{equation}
-where $r_\mathrm{s}$ is the accretion shock radius, $\Lambda$ is the post-shock cooling function, $\rho_\mathrm{s}$ is the pre-shock density, $v_\mathrm{s}$ is the pre-shock velocity, and $\epsilon_\mathrm{crit}=${\normalfont \ttfamily [accretionColdModeShockStabilityThreshold]}. The pre-shock radius is set equal to the halo virial radius, the pre-shock velocity is set equal to the halo virial velocity, while the pre-shock density is given by
-\begin{equation}
-\rho_\mathrm{s} = {\gamma - 1 \over \gamma + 1} { 3 \over 4 \pi } { \Omega_\mathrm{b} \over \Omega_\mathrm{m} } {M \over r_\mathrm{s}^3} \left[ 1 + {(\alpha + 3) (10 + 9 \pi) \over 4} \right]^{-1},
-\end{equation}
-where $M$ is the total halo mass, $\gamma(=5/3)$ is the adiabatic index of the gas, and $\alpha$ is the exponent of the initial power-law density perturbation ($\alpha=0$ is assumed). The post-shock density and temperature are found assuming the strong-shock limit.
-
-\subsection{Naoz \& Barkana (2007)}\label{phys:accretionHalo:accretionHaloNaozBarkana2007}\hyperdef{phys}{accretionHalo:accretionHaloNaozBarkana2007}{}
-
-Selected using {\normalfont \ttfamily accretionHaloMethod}$=${\normalfont \ttfamily naozBarkana2007} this method uses the filtering mass prescription of \cite{naoz_formation_2007} to compute the accreted rate of baryonic material. Specifically, \cite{naoz_formation_2007} assume that the gas mass content of halos is given by $M_\mathrm{g}(M_\mathrm{200b},M_\mathrm{F}) = (\Omega_\mathrm{b} / \Omega_\mathrm{M}) f(M_\mathrm{200b}/M_\mathrm{F}) M_\mathrm{200b}$ where $M_\mathrm{F}$ is the filtering mass, as first introduced by \cite{gnedin_effect_2000} but defined following \cite{naoz_formation_2007}, $M_\mathrm{200b}$ is the halo mass defined by a density threshold of 200 times the mean background, and
-\begin{equation}
-  f(x) = [1-(2^{1/3}-1) x^{-1}]^{-3}.
-\end{equation}
-The accretion rate onto the halo is therefore assumed to be
-\begin{equation}
-  \dot{M}_\mathrm{g} = {\Omega_\mathrm{b} \over \Omega_\mathrm{M}} {\mathrm{d} \over \mathrm{d} M_\mathrm{200b}} \left[ f(M_\mathrm{200b}/M_\mathrm{F}) M_\mathrm{200b} \right]  \dot{M}_\mathrm{total}.
-\end{equation}
-This would result in a precise match to the \cite{naoz_formation_2007} assumption if:
-\begin{enumerate}
-\item The filtering mass is constant in time;
-\item $M_\mathrm{total}$ corresponds to $M_\mathrm{200b}$; and
-\item The growth of halos occurs through smooth accretion, not through merging of smaller halos.
-\end{enumerate}
-In practice all three assumptions are violated. As such, the mass fraction in the halo will differ from $f(M_\mathrm{200b}/M_\mathrm{F})$. To address this issue, mass is additionally assumed to flow from the hot halo reservoir to the unaccreted mass reservoir at a rate:
-\begin{equation}
-\dot{M}_\mathrm{hot} = - {\alpha_\mathrm{adjust} \over \tau_\mathrm{dyn}} [M_\mathrm{hot}+M_\mathrm{unaccreted}] [f_\mathrm{accreted}-f(M_\mathrm{200b}/M_\mathrm{F})],
-\end{equation}
-where $\alpha_\mathrm{adjust} = $[{\normalfont \ttfamily accretionHaloNaozBarkana2007RateAdjust}].
-
-\section{Accretion of Total Mass into Halos}\label{sec:AccretionTotal}\index{accretion!total}
-
-The accretion rate of total mass (i.e. the mass which would be accreted in a dark matter-only universe) can be computed by the following options, which can be selected via the {\normalfont \ttfamily accretionHaloTotalMethod} input parameter.
-
-\subsection{Simple}\label{phys:accretionHaloTotal:accretionHaloTotalSimple}
-
-Selected using {\normalfont \ttfamily accretionHaloTotalMethod}$=${\normalfont \ttfamily simple}, this class assumes that the accretion rate is equal to the growth rate of the basic component mass property.
-
-\subsection{Bertschinger}\label{phys:accretionHaloTotal:accretionHaloTotalBertschinger}
-
-Selected using {\normalfont \ttfamily accretionHaloTotalMethod}$=${\normalfont \ttfamily bertschinger}, this class assumes that the accretion rate is equal to the growth rate of the basic component Bertschinger mass property.
-
-\section{Cosmology Functions}\index{cosmology}
-
-The background cosmology describes the evolution of an isotropic, homoegeneous Universe within which our calculations are carried out. For the purposes of \glc, the background cosmology is used to relate expansion factor/redshift to cosmic time and to compute the density of various components (e.g. dark matter, dark energy, etc.) at different epochs. Background cosmological models are specified via the {\normalfont \ttfamily cosmologyMethod}, and the physics that must be implemented for each cosmological model is describe in more detail \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.cosmologyFunctions}{here}. Currently implemented cosmological models are as follows.
-
-\subsection{Matter + Lambda}\label{phys:cosmologyFunctions:cosmologyFunctionsMatterLambda}
-
-Selected with {\normalfont \ttfamily cosmologyMethod}$=${\normalfont \ttfamily matter-lambda}, in this implementation cosmological relations are computed assuming a universe that contains only collisionless matter and a cosmological constant.
-
-\subsection{Matter + Dark Energy}\label{phys:cosmologyFunctions:cosmologyFunctionsMatterDarkEnergy}\index{dark energy}
-
-Selected with {\normalfont \ttfamily cosmologyMethod}$=${\normalfont \ttfamily matter-darkEnergy}, in this implementation cosmological relations are computed assuming a universe that contains only collisionless matter and dark energy with an equation of state $w(a)=w_0+w_1a(1-a)$ \citep{jassal_wmap_2005}, with $w_0=${\normalfont \ttfamily [darkEnergyEquationOfStateW0]}, and $w_1=${\normalfont \ttfamily [darkEnergyEquationOfStateW1]}.
-
-\section{Circumnuclear Accretion Disks}\label{sec:CircumnuclearDisks}\index{accretion disks}\index{accretion!disk}
-
-Circumnuclear accretion disks surrounding supermassive black holes at the centers of galaxies influence the evolution of both the black hole (via accretion rates of mass and angular momentum and possibly by extracting rotational energy from the black hole) and the surrounding galaxy if they lead to energetic outflows (e.g. jets) from the nuclear region. Accretion disk type is specified via the {\normalfont \ttfamily accretionDisksMethod}, and the physics that must be implemented for each accretion disk type is describe in more detail \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf#sec.AccretionDisks}{here}. Current implementations of accretion disks are as follows.
-
-\subsection{Shakura-Sunyaev Geometrically Thin, Radiatively Efficient Disks}
-
-Selected with {\normalfont \ttfamily accretionDisksMethod}$=${\normalfont \ttfamily Shakura-Sunyaev}, this implementation assumes that accretion disks are always described by a radiatively efficient, geometrically thin accretion disk as described by \cite{shakura_black_1973}. The radiative efficiency of the flow is computed assuming that material falls into the black hole without further energy loss from the \gls{isco}, while the spin-up rate of the black hole is computed assuming that the material enters the black hole with the specific angular momentum of the \gls{isco} (i.e. there are no torques on the material once it begins to fall in from the \gls{isco}; \citealt{bardeen_kerr_1970}). For these thin disks, jet power is computed, using the expressions from \citeauthor{meier_association_2001}~(\citeyear{meier_association_2001}; his equations 4 and 5).
-
-\subsection{Advection Dominated, Geometrically Thick, Radiatively Inefficient Flows (ADAFs)}
-
-Selected with {\normalfont \ttfamily accretionDisksMethod}$=${\normalfont \ttfamily ADAF}, this implementation assumes that accretion is via an \gls{adaf} \citep{narayan_advection-dominated_1994} which is radiatively inefficient and geometrically thick. The radiative efficiency of the flow, which will be zero for a pure \gls{adaf}, is controlled by {\normalfont \ttfamily [adafRadiativeEfficiencyType]}. If set to {\normalfont \ttfamily fixed}, then the radiative efficiency is set to the value of the input parameter {\normalfont \ttfamily [adafRadiativeEfficiency]}. Alternatively, if set to {\normalfont \ttfamily thinDisk} the radiative efficiency will be set to that of a Shakura-Sunyaev thin disk. The spin up rate of the black hole and the jet power produced as material accretes into the black hole are computed using the method of \cite{benson_maximum_2009}. The maximum efficiency of the jet (in units of the accretion power $\dot{M} \mathrm{c}^2$) is set by {\normalfont \ttfamily [adafJetEfficiencyMaximum]}---in the model of \cite{benson_maximum_2009} the jet efficiency diverges as $j\rightarrow 1$, setting a maximum 
-is important to avoid numerical instabilities. The energy of the accreted material can be set equal to the energy at infinity (as expected for a pure \gls{adaf}) or the energy at the \gls{isco} by use of the {\normalfont \ttfamily [adafEnergyOption]} parameter (set to {\normalfont \ttfamily pureADAF} or {\normalfont \ttfamily ISCO} respectively). The \gls{adaf} structure is controlled by the adiabatic index, $\gamma$, and viscosity parameter, $\alpha$, which are specified via the {\normalfont \ttfamily [adafAdiabaticIndex]} and {\normalfont \ttfamily [adafViscosityOption]} input parameters respectively. The field-enhancing shear, $g$, is computed using $g=\exp(\omega \tau)$ if {\normalfont \ttfamily [adafFieldEnhanceType]} is set to ``exponential'' where $\omega$ is the frame-dragging frequency and $\tau$ is the smaller of the radial inflow and azimuthal velocity timescales. If  {\normalfont \ttfamily [adafFieldEnhanceType]} is set to ``linear'' then the alternative version, $g=1+\omega \tau$ is used instead. {\normalfont \ttfamily [adafViscosityOption]} may be set to ``{\normalfont \ttfamily fit}'', in which case the fitting function for $\alpha$ as a function of black hole 
-spin is used:
-\begin{eqnarray}
-\alpha(j)=0.015+0.02 j^4 & \hbox{ if  }& g=\exp(\omega\tau) \hbox{ and } E=E_\mathrm{ISCO}, \\
-\alpha(j)=0.025+0.08 j^4 & \hbox{ if } & g=1+\omega\tau \hbox{ and } E=E_\mathrm{ISCO}, \\
-\alpha(j)=0.010+0.00 j^4 & \hbox{ if } & g=\exp(\omega\tau) \hbox{ and } E=1, \\
-\alpha(j)=0.025+0.02 j^4 & \hbox{ if } & g=1+\omega\tau \hbox{ and } E=1.  
-\end{eqnarray}
-
-\subsection{``Switched'' Disks}
-
-Selected with {\normalfont \ttfamily accretionDisksMethod}$=${\normalfont \ttfamily switched}, this method allows for accretion disks to switched between radiatively efficient (Shakura-Sunyaev) and inefficient (\gls{adaf}) modes. This is intended to crudely model the fact that accretion disks are expected to be radiatively inefficient at both high accretion rates (i.e. as they approach the Eddington luminosity the radiation pressure from a radiatively efficient flow would begin to disrupt the flow itself by definition), while accretion flows at low accretion rates ($\dot{M}_\mathrm{acc} < \alpha^2 \dot{M}_\mathrm{Edd}$, where $\alpha\sim 0.1$ is the usual parameter controlling the rate of angular momentum transport in a \cite{shakura_black_1973} accretion disk) are also radiatively inefficient as radiative processes are too inefficient at the associated low densities to radiate energy at the rate it is being liberated. A more thorough discussion is given by \cite{begelman_accreting_2014}.
-
-The properties of the switched disk (e.g. radiative efficiency, jet power), are a linear combination of those of the Shakura-Sunyaev and \gls{adaf} modes, with the \gls{adaf} fraction being given by:
-\begin{equation}
-f_\mathrm{ADAF} = [1+\exp(y_\mathrm{min})]^{-1} + [1+\exp(y_\mathrm{max})]^{-1},
-\label{eq:SwitchedDiskADAFFraction}
-\end{equation}
-where
-\begin{eqnarray}
-y_\mathrm{min} &=& +\log(x/x_\mathrm{min})/\Delta_{x}, \\
-y_\mathrm{max} &=& -\log(x/x_\mathrm{max})/\Delta_{x},
-\end{eqnarray}
-and,
-\begin{equation}
-x = \dot{M} / \dot{M}_\mathrm{Eddington}.
-\end{equation}
-Here, $x_\mathrm{min}=${\normalfont \ttfamily [accretionRateThinDiskMinimum]}, $x_\mathrm{max}=${\normalfont \ttfamily [accretionRateThinDiskMaximum]}, and $\Delta_{x}$={\normalfont \ttfamily [accretionRateTransitionWidth]}. If either {\normalfont \ttfamily [accretionRateThinDiskMinimum]} or {\normalfont \ttfamily [accretionRateThinDiskMaximum]} is set to ``{\normalfont \ttfamily none}'' then the corresponding term in eqn.~(\ref{eq:SwitchedDiskADAFFraction}) is excluded.
-
-Additionally, if {\normalfont \ttfamily [accretionDiskSwitchedScaleAdafRadiativeEfficiency]} is set to {\normalfont \ttfamily true} then the radiative efficiency of the \gls{adaf} component is reduced by a factor $x/x_\mathrm{min}$ when $x<x_\mathrm{min}$.
-
-\subsection{Eddington-limited Disks}
-
-Selected with {\normalfont \ttfamily accretionDisksMethod}$=${\normalfont \ttfamily eddingtonLimited}, this method does not assume any physical model for the accretion disk, but merely assumes that jets are powered at a fixed fraction {\normalfont \ttfamily [accretionDiskJetPowerEddington]} of the Eddington luminosity. The radiative efficiency is similarly set at a fixed value of {\normalfont \ttfamily [accretionDiskRadiativeEfficiencyEddington]}. Since no physical model for the disk is assumed, the black hole spin up rate is always set to zero.
-
-\section{Dark Matter Structure Formation}\index{structure formation}\index{dark matter}
-
-A variety of functions are used to describe structure formation in dark matter dominated universes. These are described below.
-
-\subsection{Primordial Power Spectrum}\label{sec:PrimordialPowerSpectrum}\index{power spectrum!primordial}
-
-The functional form of the primordial dark matter power spectrum is selected via the {\normalfont \ttfamily powerSpectrumMethod} parameter. The power spectrum is computed from the specified primordial power spectrum and the \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.transferFunction}{transfer function} and normalized to a value of $\sigma_8$ specified by {\normalfont \ttfamily [sigma\_8]}.
-
-\subsubsection{(Running) Power Law Spectrum}
-
-Selected via {\normalfont \ttfamily powerSpectrumMethod}$=${\normalfont \ttfamily powerLaw}, this method implements a primordial power spectrum of the form:
-\begin{equation}
- P(k) \propto k^{n_\mathrm{eff}(k)},
-\end{equation}
-where
-\begin{equation}
- n_\mathrm{eff}(k) = n_\mathrm{s} + {1\over 2}{\d n \over \d \ln k} \ln \left( {k \over k_\mathrm{ref}} \right),
-\end{equation}
-where $n_\mathrm{s}=${\normalfont \ttfamily [index]} is the power spectrum index at wavenumber $k_\mathrm{ref}=${\normalfont \ttfamily [wavenumberReference]} and $\d n / \d \ln k=${\normalfont \ttfamily [running]} describes the running of this index with wavenumber.
-
-\subsection{Cosmological Mass Root Variance}
-
-The method used to compute the root variance of the cosmological mass field, $\sigma(M)$, is selected via the {\normalfont \ttfamily cosmologicalMassVarianceMethod} parameter.
-\subsubsection{Filtered Power Spectrum}
-
-Selected via {\normalfont \ttfamily cosmologicalMassVarianceMethod}$=${\normalfont \ttfamily filteredPowerSpectrum}, this method computes the mass root variance using:
-\begin{equation}
- \sigma^2(M) = {1 \over 2 \pi^2} \int_0^\infty P(k) T^2(k) W^2(k) k^2 \mathrm{d}k
-\end{equation}
-where $P(k)$ is the primordial power spectrum (see \S\ref{sec:PrimordialPowerSpectrum}), $T(k)$ is the transfer function (see \S\ref{sec:TransferFunction}), and $W(k)$ is the power spectrum variance window function (see \S\ref{sec:PowerSpectrumWindowFunctionPhysics}).
-
-\subsection{Power Spectrum Variance Window Function}\label{sec:PowerSpectrumWindowFunctionPhysics}\index{power spectrum!variance}\index{power spectrum!window function}
-
-The functional form of the window function used in computing the variance of the power spectrum is selected via the {\normalfont \ttfamily powerSpectrumWindowFunctionMethod} parameter. Note that when computing the normalization of the power spectrum to match the specified value of $\sigma_8$ a top-hat real-space window function is \emph{always} used (as per the definition of $\sigma_8$).
-
-\subsubsection{Top-hat}
-
-Selected via {\normalfont \ttfamily powerSpectrumWindowFunctionMethod}$=${\normalfont \ttfamily topHat}, this method implements a top-hat window function in real-space:
-\begin{equation}
- W(k) = {3 (\sin(x)-x \cos(x)) \over x^3},
-\end{equation}
-where $x = k R$ and $R=(3M/4\pi\bar{\rho})^{1/3}$ for a smoothing scale $M$ and mean matter density $\bar{\rho}$.
-
-\subsubsection{Sharp in $k$-space}
-
-Selected via {\normalfont \ttfamily powerSpectrumWindowFunctionMethod}$=${\normalfont \ttfamily kSpaceSharp}, this method implements a top-hat window function in $k$-space:
-\begin{equation}
- W(k) = \left\{ \begin{array}{ll} 1 & \hbox{if } k < k_\mathrm{s} \\ 0 & \hbox{if } k > k_\mathrm{s}, \end{array} \right.
-\end{equation}
-where if {\normalfont \ttfamily [powerSpectrumWindowFunctionSharpKSpaceNormalization]}$=${\normalfont \ttfamily natural} then $k_\mathrm{s} = (6 \Pi^2 \bar{\rho} / M)^{1/3}$ for a smoothing scale $M$ and mean matter density $\bar{\rho}$. Otherwise, {\normalfont \ttfamily [powerSpectrumWindowFunctionSharpKSpaceNormalization]} must be set to a numerical value, $\alpha$, in which case $k_\mathrm{s} = \alpha / R_\mathrm{th}$ with $R_\mathrm{th}=3M/4\pi\bar{\rho}$ for a smoothing scale $M$ and mean matter density $\bar{\rho}$.
-
-\subsubsection{Hybrid of Top-hat and Sharp in $k$-space}
-
-Selected via {\normalfont \ttfamily powerSpectrumWindowFunctionMethod}$=${\normalfont \ttfamily topHatKSpaceSharpHybrid}, this method implements a convolution of a top-hat window function and sharp $k$-space window function in $k$-space:
-\begin{equation}
- W(k) = W_\mathrm{th}(k) W_\mathrm{s}(k),
-\end{equation}
-where
-\begin{equation}
- W(k) = {3 (\sin(x)-x \cos(x)) \over x^3},
-\end{equation}
-where $x = k R_\mathrm{th}$, and
-\begin{equation}
- W_\mathrm{s}(k) = \left\{ \begin{array}{ll} 1 & \hbox{if } k < k_\mathrm{s} \\ 0 & \hbox{if } k > k_\mathrm{s}, \end{array} \right.
-\end{equation}
-where $k\mathrm{s} = \alpha / R_\mathrm{s}$ if {\normalfont \ttfamily [powerSpectrumWindowFunctionSharpKSpaceNormalization]} is assigned a numerical value. Alternatively, if {\normalfont \ttfamily [powerSpectrumWindowFunctionSharpKSpaceNormalization]}$=${\normalfont \ttfamily natural} then the value of $\alpha$ is chosen such that $k_\mathrm{s} = (6 \Pi^2 \bar{\rho}/M)^{1/3}$ if $R_\mathrm{s}=3M/4\pi\bar{\rho}$.
-
-The radii, $R_\mathrm{th}$ and $R_\mathrm{s}$, are chosen such that:
-\begin{eqnarray}
-R_\mathrm{th}^2 + R_\mathrm{s}^2 &=& (3M/4\pi\bar{\rho})^{2/3} \\
-R_\mathrm{s} &=& \beta R_\mathrm{th},
-\end{eqnarray}
-where $\beta=${\normalfont \ttfamily [powerSpectrumWindowFunctionSharpKSpaceTopHatRadiiRatio]}.
-
-\subsection{Non-linear Matter Power Spectrum}\index{power spectrum!non-linear}
-
-The non-linear matter power spectrum method is selected via the {\normalfont \ttfamily powerSpectrumNonlinearMethod} parameter.
-
-\subsubsection{Linear}\label{phys:powerSpectrumNonlinear:powerSpectrumNonlinearLinear}
-
-Selected via {\normalfont \ttfamily powerSpectrumNonlinearMethod}$=${\normalfont \ttfamily linear}, this method simply returns the linear matter power spectrum. It is intended primarily for testing purposes.
-
-\subsubsection{Peacock \& Dodds (1996)}\label{phys:powerSpectrumNonlinear:powerSpectrumNonlinearPeacockDodds1996}
-
-Selected via {\normalfont \ttfamily powerSpectrumNonlinearMethod}$=${\normalfont \ttfamily peacockDodds1996}, this method usese the fitting function of \cite{peacock_non-linear_1996} to compute the non-linear matter power spectrum.
-
-\subsubsection{CosmicEmu}\label{phys:powerSpectrumNonlinear:powerSpectrumNonlinearCosmicEmu}
-
-Selected via {\normalfont \ttfamily powerSpectrumNonlinearMethod}$=${\normalfont \ttfamily cosmicEmu}, this method usese the cosmic emulator (``CosmicEmu'') code of \cite{lawrence_coyote_2010} to evaluate the non-linear matter power spectrum. The CosmicEmu code will be downloaded, compiled and run as necessary if this option is utilized.
-
-\subsection{Transfer Function}\label{sec:TransferFunction}\index{transfer function}
-
-The functional form of the cold dark matter transfer function is selected via the {\normalfont \ttfamily transferFunctionMethod} parameter. The power spectrum is computed from the specified transfer function and the primordial power spectrum (see \S\ref{sec:PrimordialPowerSpectrum}) and normalized to a value of $\sigma_8$ specified by {\normalfont \ttfamily [sigma\_8]}.
-
-\subsubsection{Null}
-
-Selected with {\normalfont \ttfamily transferFunctionMethod}$=${\normalfont \ttfamily null}, this method assumes $T(k)=1$ for all $k$.
-
-\subsubsection{BBKS}
-
-Selected with {\normalfont \ttfamily transferFunctionMethod}$=${\normalfont \ttfamily BBKS}, this method uses the fitting function of \cite{bardeen_statistics_1986} to compute the \gls{cdm} transfer function. The BBKS warm dark matter transfer function\index{transfer function!warm dark matter}\index{warm dark matter!transfer function} can be used by specifying the appropriate streaming length (in Mpc) via the {\normalfont \ttfamily [transferFunctionWDMFreeStreamingLength]} parameter.
-
-\subsubsection{Eisenstein \& Hu}
-
-Selected with {\normalfont \ttfamily transferFunctionMethod}$=${\normalfont \ttfamily Eisenstein-Hu1999}, this method uses the fitting function of \cite{eisenstein_power_1999} to compute the \gls{cdm} transfer function. It requires that the effective number of neutrino species be specified via the {\normalfont \ttfamily effectiveNumberNeutrinos} parameter and summed mass of all neutrino species (in eV) be specified via the {\normalfont \ttfamily summedNeutrinoMasses} parameter. Additionally, the transfer function can be modified to model warm dark matter using the fitting function given by \cite{barkana_constraints_2001}:
-\begin{equation}
-T(k) \rightarrow T(k) (1+[\epsilon k R_\mathrm{c}^0]^{2\nu})^{-\eta/\nu},
-\end{equation}
-where $R_\mathrm{c}^0=${\normalfont \ttfamily [transferFunctionWdmCutOffScale]}, $\epsilon=${\normalfont \ttfamily [transferFunctionWdmEpsilon]}, $\eta=${\normalfont \ttfamily [transferFunctionWdmEta]}, $\nu=${\normalfont \ttfamily [transferFunctionWdmNu]}.
-
-\subsubsection{{\normalfont \scshape CAMB}}\label{sec:TransferFunction:CAMB}\hyperdef{phys}{TransferFunction:CAMB}{}
-
-Selected with {\normalfont \ttfamily transferFunctionMethod}$=${\normalfont \ttfamily CAMB}, this method uses the \href{http://camb.info/}{\normalfont \scshape CAMB} code to compute the \gls{cdm} transfer function. It requires that the mass fraction of helium in the early Universe be specified via the {\normalfont \ttfamily Y\_He} parameter. {\normalfont \scshape CAMB} will be downloaded and run if the transfer function needs to be computed. It will then be stored in a file for future reference.
-
-\subsubsection{File}
-
-Selected with {\normalfont \ttfamily transferFunctionMethod}$=${\normalfont \ttfamily file}, this method reads a tabulated transfer function from an XML file (specified via the {\normalfont \ttfamily transferFunctionFile} parameter), interpolating between tabulated points. The structure of the transfer function file is described \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.transferFunction}{here}.
-
-\subsection{Linear Growth Function}\index{linear growth}
-
-The function describing the amplitude of linear perturbations is selected via the {\normalfont \ttfamily linearGrowthMethod} parameter.
-
-\subsubsection{Simple}
-
-Selected with {\normalfont \ttfamily linearGrowthMethod}$=${\normalfont \ttfamily simple}, this method calculates the growth of linear perturbations using standard perturbation theory in a Universe consisting of matter and a cosmological constant. Perturbations in the baryons are treated just as for dark matter (i.e. pressure forces are ignored), while perturbations in the radiation are assumed not to grow.
-
-\subsection{Critical Overdensity}\label{sec:criticalOverdensityMethod}\index{density!critical}
-
-The method used to compute the critical linear overdensity at which overdense regions virialize is selected via the {\normalfont \ttfamily criticalOverdensityMethod} parameter.
-
-\subsubsection{Spherical Collapse (Matter + Cosmological Constant)}
-
-Selected with {\normalfont \ttfamily criticalOverdensityMethod}$=${\normalfont \ttfamily sphericalTopHat} this method calculates critical overdensity using a spherical top-hat collapse model assuming a Universe which contains matter and a cosmological constant (see, for example, \citealt{percival_cosmological_2005}).
-
-\subsubsection{Kitayama \& Suto (1996)}
-
-Selected with {\normalfont \ttfamily criticalOverdensityMethod}$=${\normalfont \ttfamily Kitayama-Suto1996} this method calculates critical overdensity using the fitting formula of \cite{kitayama_semianalytic_1996}, and so is valid only in flat cosmological models (an error will be reported in non-flat models). Specifically,
-\begin{equation}
- \delta_\mathrm{crit} (t) = {3 (12 \pi)^{2/3} \over 20} [1 + 0.0123 \log_{10}\left\{\Omega_\mathrm{matter}(t)\right\}]/D(t).
-\end{equation}
-
-\subsubsection{Fixed}
-
-Selected with {\normalfont \ttfamily criticalOverdensityMethod}$=${\normalfont \ttfamily fixed} this method sets the critical overdensity equal to a fixed value (set via the parameter {\normalfont \ttfamily [criticalOverdensityFixed]}) divided by the linear growth factor.
-
-\subsection{Critical Overdensity Mass Scaling}\index{critical density!mass scaling}
-
-The method used to compute the scaling with mass of the critical linear overdensity at which overdense regions virialize is selected via the {\normalfont \ttfamily criticalOverdensityMassScalingMethod} parameter.
-
-\subsubsection{Null}
-
-Selected with {\normalfont \ttfamily criticalOverdensityMassScalingMethod}$=${\normalfont \ttfamily null} this method assumes that the critical overdensity is independent of mass.
-
-\subsubsection{Warm Dark Matter}
-
-Selected with {\normalfont \ttfamily criticalOverdensityMassScalingMethod}$=${\normalfont \ttfamily warmDarkMatter} this method assumes that the critical overdensity scales with mass as expected for warm dark matter using the results of \cite{barkana_constraints_2001}. Specifically, the critical overdensity is multiplied by a factor
-\begin{equation}
- \exp\left[ \left({M_\mathrm{J} \over 8 M}\right)^{1.40}+\left({M_\mathrm{J} \over 8 M}\right)^{0.45} \right],
-\end{equation}
-where $M$ is the mass in question, $M_\mathrm{J}$ is the effective Jeans mass of the warm dark matter as defined by \citeauthor{barkana_constraints_2001}~[\citeyear{barkana_constraints_2001}; their eqn.~10]:
-\begin{equation}
-M_\mathrm{J} =  3.06 \times 10^8 \left( {1+z_\mathrm{eq} \over 3000}\right)^{1.5} \left({\Omega_\mathrm{M} h_0^2 \over 0.15}\right)^{1/2} \left({g_\mathrm{X} \over 1.5} \right)^{-1} \left({m_\mathrm{X}/1.0\hbox{keV}}\right)^{-4},
-\end{equation}
-the redshift of matter-radiation equality is given by
-\begin{equation}
-z_\mathrm{eq} = 3600 \left({\Omega_\mathrm{M} h_0^2 \over 0.15}\right)-1,
-\end{equation}
-and $g_\mathrm{X}$ and $m_\mathrm{X}$ are the effective number of degrees of freedom and the mass of the warm dark matter particle respectively. This fitting function has been found the fit the numerical results of \cite{barkana_constraints_2001} well.
-
-\subsection{Virial Density Contrast}\label{sec:VirialDensityConstrast}\index{density!virial}
+\section{Virial Density Contrast}\label{sec:VirialDensityConstrast}\index{density!virial}
 
 The method used to compute the mean density contrast of virialized dark matter halos is selected via the {\normalfont \ttfamily virialDensityContrastMethod} parameter.
 
-\subsubsection{Bryan \& Norman (1998) Fitting Function}
+\subsection{Bryan \& Norman (1998) Fitting Function}
 
 Selected with {\normalfont \ttfamily virialDensityContrastMethod}$=${\normalfont \ttfamily Bryan-Norman1998} this method calculates virial density contrast using the fitting functions given by \cite{bryan_statistical_1998}. As such, it is valid only for $\Omega_\Lambda=0$ or $\Omega_\mathrm{M}+\Omega_\Lambda=1$ cosmologies and will abort on other cosmologies.
 
-\subsubsection{Fixed}
+\subsection{Fixed}
 
 Selected with {\normalfont \ttfamily virialDensityContrastMethod}$=${\normalfont \ttfamily fixed} this method uses a fixed virial density contrast of {\normalfont \ttfamily [virialDensityConstrastFixed]}, defined relative to {\normalfont \ttfamily criticalDensity} and {\normalfont \ttfamily meanDensity} as specified by {\normalfont \ttfamily [virialDensityConstrastFixedType]}.
 
-\subsubsection{Spherical Collapse (Matter + Cosmological Constant)}
+\subsection{Spherical Collapse (Matter + Cosmological Constant)}
 
 Selected with {\normalfont \ttfamily virialDensityContrastMethod}$=${\normalfont \ttfamily sphericalTopHat} this method calculates virial density contrast using a spherical top-hat collapse model assuming a Universe which contains matter and a cosmological constant (see, for example, \citealt{percival_cosmological_2005}).
 
-\subsubsection{Kitayama \& Suto (1996)}
+\subsection{Kitayama \& Suto (1996)}
 
 Selected with {\normalfont \ttfamily virialDensityContrastMethod}$=${\normalfont \ttfamily Kitayama-Suto1996} this method calculates virial density contrast using the fitting formula of \cite{kitayama_semianalytic_1996}, and so is valid only in flat cosmological models (an error will be reported in non-flat models). Specifically,
 \begin{equation}
  \Delta_\mathrm{virial}(t) = 18 \pi^2 [1+0.4093 \left\{{1\over \Omega_\mathrm{matter}(t)}-1\right\}(t)^{0.9052}].
 \end{equation}
 
-\subsubsection{Friends-of-Friends}
+\subsection{Friends-of-Friends}
 
 Selected with {\normalfont \ttfamily virialDensityContrastMethod}$=${\normalfont \ttfamily friendsOfFriends} this method computes the virial density contrast consistent with a given friends-of-friends algorithm linking length. According to \cite{lacey_merger_1994}, the friends-of-friends algorithm selects objects bounded by an isodensity contour of density contrast
 \begin{equation}
@@ -350,31 +35,31 @@ where $b=${\normalfont \ttfamily [virialDensityContrastFoFLinkingLength]} is the
 \end{equation}
 where $\bar{\rho}_\mathrm{vir}$ is the mean density inside the virial radius and $\rho(r_\mathrm{vir})$ is the density at the virial radius. The ratio $\bar{\rho}_\mathrm{vir} / \rho(r_\mathrm{vir})$ is specified via the parameter {\normalfont \ttfamily [virialDensityContrastFoFDensityRatio]}. Its default value of $4.688$ is appropriate for an \gls{nfw} halo of concentration $c=6.88$ which is the concentration found by \cite{prada_halo_2011} for halos with $\sigma=1.686$ which is the approximate critical overdensity for collapse).
 
-\subsubsection{Percolation}
+\subsection{Percolation}
 
 Selected with {\normalfont \ttfamily virialDensityContrastMethod}$=${\normalfont \ttfamily percolation} this method computes the virial density contrast consistent with a given friends-of-friends algorithm linking length using the percolation-theory-motivated calibration of \cite{more_overdensity_2011}. Specifically, the friends-of-friends algorithm is assumed to link together particles forming an isodensity surface of density $\rho = \bar{\rho} n_\mathrm{c}/b^3$, where $\bar{\rho}$ is the mean density of the universe, $n_\mathrm{c}=0.652960$ is a critical density for percolation as given by \cite{more_overdensity_2011}, and $b$ is the linking length. Given this bounding density, the virial density contrast is found by requiring that the halo contain the required mass within such a bounding density, given the halo density profile. 
 
-\subsection{Halo Bias}\index{halo bias}\index{dark matter halos!bias}\index{bias!halo}
+\section{Halo Bias}\index{halo bias}\index{dark matter halos!bias}\index{bias!halo}
 
 The dark matter halo linear bias method is selected via the {\normalfont \ttfamily darkMatterHaloBiasMethod} parameter.
 
-\subsubsection{Press-Schechter}
+\subsection{Press-Schechter}
 
 Selected with {\normalfont \ttfamily darkMatterHaloBiasMethod}$=${\normalfont \ttfamily Press-Schechter} this method uses a bias consistent with the halo mass function of \cite{press_formation_1974} (see \citep{mo_analytic_1996}).
 
-\subsubsection{Sheth-Tormen}
+\subsection{Sheth-Tormen}
 
 Selected with {\normalfont \ttfamily darkMatterHaloBiasMethod}$=${\normalfont \ttfamily SMT} this method uses a bias consistent with the halo mass function of \cite{sheth_ellipsoidal_2001}.
 
-\subsubsection{Tinker}
+\subsection{Tinker}
 
 Selected with {\normalfont \ttfamily darkMatterHaloBiasMethod}$=${\normalfont \ttfamily Tinker2010} this method uses the functional form proposed by \cite{tinker_large_2010} to compute the halo bias. The bias is computed at the appropriate virial overdensity (see \S\ref{sec:VirialDensityConstrast}).
 
-\subsection{Halo Mass Function}\index{halo mass function}\index{dark matter halos!mass function}
+\section{Halo Mass Function}\index{halo mass function}\index{dark matter halos!mass function}
 
 The dark matter halo mass function (i.e. the number of halos per unit volume per unit mass interval) is selected via the {\normalfont \ttfamily haloMassFunctionMethod} parameter.
 
-\subsubsection{Press-Schechter}\label{phys:haloMassFunction:haloMassFunctionPressSchechter}
+\subsection{Press-Schechter}\label{phys:haloMassFunction:haloMassFunctionPressSchechter}
 
 Selected with {\normalfont \ttfamily haloMassFunctionMethod}$=${\normalfont \ttfamily pressSchechter} this method uses the functional form proposed by \cite{press_formation_1974} to compute the halo mass function. Specifically,
 \begin{equation}
@@ -382,19 +67,19 @@ n(M,t) = 2 {\Omega_\mathrm{M} \rho_\mathrm{crit} \over M^2} \alpha \sigma^2(M) f
 \end{equation}
 where $\alpha = \mathrm{d}\ln\sigma/\mathrm{d}\ln M$ and $f[S]$ is the excursion set barrier first crossing distribution for variance $S(M)=\sigma^2(M)$, computed using the selected \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.excursionSetFirstCrossing}{\normalfont \ttfamily excursionSetFirstCrossingMethod}.
 
-\subsubsection{Sheth-Tormen}\label{phys:haloMassFunction:haloMassFunctionShethTormen}
+\subsection{Sheth-Tormen}\label{phys:haloMassFunction:haloMassFunctionShethTormen}
 
 Selected with {\normalfont \ttfamily haloMassFunctionMethod}$=${\normalfont \ttfamily shethTormen} this method uses the functional form proposed by \cite{sheth_ellipsoidal_2001} to compute the halo mass function.
 
-\subsubsection{Despali et al. (2015)}\label{phys:haloMassFunction:haloMassFunctionDespali2015}
+\subsection{Despali et al. (2015)}\label{phys:haloMassFunction:haloMassFunctionDespali2015}
 
 Selected with {\normalfont \ttfamily haloMassFunctionMethod}$=${\normalfont \ttfamily despali2015} this method uses the functional form proposed by \cite[][see \protect\S\ref{phys:haloMassFunction:haloMassFunctionShethTormen}]{sheth_ellipsoidal_2001} but with parameters $a$, $p$, and $A$ set using eqn.~(12) of \cite{despali_universality_2015}.
 
-\subsubsection{Tinker et al. (2008)}\label{phys:haloMassFunction:haloMassFunctionTinker2008}
+\subsection{Tinker et al. (2008)}\label{phys:haloMassFunction:haloMassFunctionTinker2008}
 
 Selected with {\normalfont \ttfamily haloMassFunctionMethod}$=${\normalfont \ttfamily tinker2008} this method uses the functional form proposed by \cite{tinker_towardhalo_2008} to compute the halo mass function. The mass function is computed at the appropriate virial overdensity (see \S\ref{sec:VirialDensityConstrast}).
 
-\subsubsection{Simple Systematic}\label{phys:haloMassFunction:haloMassFunctionSimpleSystematic}                                               
+\subsection{Simple Systematic}\label{phys:haloMassFunction:haloMassFunctionSimpleSystematic}                                               
                                                                                                                                               
 Selected with {\normalfont \ttfamily haloMassFunctionMethod}$=${\normalfont \ttfamily simpleSystematic} this method modifies another mass function (specified as a subparameter) as follows:
 \begin{equation}
@@ -402,7 +87,7 @@ Selected with {\normalfont \ttfamily haloMassFunctionMethod}$=${\normalfont \ttf
 \end{equation}
 where $\alpha=${\normalfont \ttfamily [alpha]}, and $\beta=${\normalfont \ttfamily [beta]}.
 
-\section{Cold Mode Infall Ratres}\index{cold mode!infall rate}
+\section{Cold Mode Infall Rates}\index{cold mode!infall rate}
 
 The method to be used for computing the rate of infall of gas from the cold mode is specified by the {\normalfont \ttfamily coldModeInfallRateMethod} parameter.
 
@@ -466,23 +151,19 @@ $\beta_\mathrm{sat}$ & {\normalfont \ttfamily conditionalMassFunctionBehrooziBet
  \end{center}
 \end{table}
 
-\section{Cooling of Gas Inside Halos}\index{cooling}
-
-The cooling of gas within dark matter halos is controlled by a number of different algorithms which will be decribed below.
-
-\subsection{Cooling Function}\index{cooling function}\index{cooling!cooling function}
+\section{Cooling Function}\index{cooling function}\index{cooling!cooling function}
 
 The cooling function of gas, $\Lambda(\rho,T,\mathbf{Z})$, is implemented by the algorithm(s) selected using the {\normalfont \ttfamily coolingFunctionMethods} parameter. If more than one cooling function is specified, then the net cooling function is a sum over all of those selected.
 
-\subsubsection{Atomic Collisional Ionization Equilibrium Using {\normalfont \scshape Cloudy}}
+\subsection{Atomic Collisional Ionization Equilibrium Using {\normalfont \scshape Cloudy}}
 
 Selected using {\normalfont \ttfamily coolingFunctionMethods}$=${\normalfont \ttfamily atomic\_CIE\_Cloudy}, this method computes the cooling function using the {\normalfont \scshape Cloudy} code and under the assumption of collisional ionization equilibrium with no molecular contribution. Abundances are Solar, except for zero metallicity calculations which use {\normalfont \scshape Cloudy}'s ``primordial'' metallicity. The helium abundance for non-zero metallicity is scaled between primordial and Solar values linearly with metallicity. The {\normalfont \scshape Cloudy} code will be downloaded and run to compute the cooling function as needed, which will then be stored for future use. As this process is slow, a precomputed table is provided with \glc. If metallicities outside the range tabulated in this file are required it will be regenerated with an appropriate range.
 
-\subsubsection{Collisional Ionization Eqiulibrium From File}
+\subsection{Collisional Ionization Eqiulibrium From File}
 
 Selected using {\normalfont \ttfamily coolingFunctionMethods}$=${\normalfont \ttfamily CIE\_from\_file}, in this method the cooling function is read from a file specified by the {\normalfont \ttfamily coolingFunctionFile} parameter. The format of this file is specified \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.coolingFunction}{here}. The cooling function is assumed to be computed under conditions of collisional ionization equilibrium and therefore to scale as $\rho^2$.
 
-\subsubsection{CMB Compton Cooling}
+\subsection{CMB Compton Cooling}
 
 Selected using {\normalfont \ttfamily coolingFunctionMethods}$=${\normalfont \ttfamily CMB\_Compton}, this method computes the cooling function due to Compton scattering off of \gls{cmb} photons:
 \begin{equation}
@@ -490,7 +171,7 @@ Selected using {\normalfont \ttfamily coolingFunctionMethods}$=${\normalfont \tt
 \end{equation}
 where $\sigma_\mathrm{T}$ is the Thompson cross-section, $a$ is the radiation constant, $\mathrm{k}_\mathrm{B}$ is Boltzmann's constant, $n_\mathrm{e}$ is the number density of electrons, $m_\mathrm{e}$ is the electron mass, $\clight$ is the speed of light, $T_\mathrm{CMB}$ is the \gls{cmb} temperature at the current cosmic epoch and $T$ is the temperature of the gas. The electron density is computed from the selected chemical state method (see \S\ref{sec:ChemicalStateMethod}).
 
-\subsubsection{Molecular Hydrogen (Galli-Palla)}
+\subsection{Molecular Hydrogen (Galli-Palla)}
 
 Selected using {\normalfont \ttfamily coolingFunctionMethods}$=${\normalfont \ttfamily molecularHydrogenGalliPalla}, this method computes the cooling function due to molecular hydrogen using the results of \cite{galli_chemistry_1998}. For the H--H$_2$ cooling function, the fitting functions from \cite{galli_chemistry_1998} are used. For the H$_2^+$--e$^-$ and H--H$_2^+$ cooling functions fitting functions to the results plotted in  \cite{suchkov_cooling_1978} are used:
 \begin{equation}
@@ -516,11 +197,11 @@ where the coefficients $C_{0-2}$ are given in Table~\ref{tb:H2CoolingFunctionCoe
 \end{table}
 
 
-\subsection{Cooling Rate}\label{sec:CoolingRate}\index{cooling!rate}
+\section{Cooling Rate}\label{sec:CoolingRate}\index{cooling!rate}
 
 The algorithm used to compute the rate at which gas drops out of the hot halo due to cooling is selected with the {\normalfont \ttfamily coolingRateMethod} parameter.
 
-\subsubsection{Cole et al. (2000)}
+\subsection{Cole et al. (2000)}
 
 Selected with {\normalfont \ttfamily coolingRateMethod}$=${\normalfont \ttfamily Cole2000}, this method computes the cooling rate using the algorithm of \cite{cole_hierarchical_2000}. The cooling rate is given by
 \begin{equation}
@@ -528,7 +209,7 @@ Selected with {\normalfont \ttfamily coolingRateMethod}$=${\normalfont \ttfamily
 \end{equation}
 where $\rho(r)$ is the density profile of the hot halo, and $r_\mathrm{infall}$ is the infall radius (see \S\ref{sec:CoolingInfallRadius}). The cooling rate is also set to zero in halos with virial velocities below {\normalfont \ttfamily [coolingCutOffVelocity]} at redshifts below {\normalfont \ttfamily [coolingCutOffRedshift]}.
 
-\subsubsection{Simple}
+\subsection{Simple}
 
 Selected with {\normalfont \ttfamily coolingRateMethod}$=${\normalfont \ttfamily simple}, this method computes the cooling rate using
 \begin{equation}
@@ -536,7 +217,7 @@ Selected with {\normalfont \ttfamily coolingRateMethod}$=${\normalfont \ttfamily
 \end{equation}
 where $\tau_\mathrm{cool}=${\normalfont \ttfamily [coolingRateSimpleTimescale]}.
 
-\subsubsection{Simple Scaling}
+\subsection{Simple Scaling}
 
 Selected with {\normalfont \ttfamily coolingRateMethod}$=${\normalfont \ttfamily simpleScaling}, this method computes the cooling rate using
 \begin{equation}
@@ -548,7 +229,7 @@ where
 \end{equation}
 $\tau_\mathrm{cool,0}=${\normalfont \ttfamily [coolingRateSimpleScalingTimescale]}, $\beta_\mathrm{cool}=${\normalfont \ttfamily [coolingRateSimpleScalingTimescaleExponent]}, $M_\mathrm{transition}=${\normalfont \ttfamily [coolingRateSimpleScalingTransitionMass]}, and $\gamma_\mathrm{cool}=${\normalfont \ttfamily [coolingRateSimpleScalingCutoffExponent]}.
 
-\subsubsection{Velocity Maximum Scaling}
+\subsection{Velocity Maximum Scaling}
 
 Selected with {\normalfont \ttfamily coolingRateMethod}$=${\normalfont \ttfamily velocityMaximumScaling}, this method computes the cooling rate using
 \begin{equation}
@@ -560,7 +241,7 @@ where
 \end{equation}
 with $\tau_\mathrm{infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingTimescale]}, $\tau_\mathrm{infall,min}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingTimescaleMinimum]}, $\alpha_\mathrm{infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingTimescaleExponent]}, $\beta_\mathrm{infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingCutOffExponent]}, $\gamma_\mathrm{infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingVelocityExponent]}, $\delta_\mathrm{infall}=${\normalfont \ttfamily []coolingRateVelocityMaximumScalingCutOffVelocityRedshiftExponent}, $\mathcal{V}_\mathrm{infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingCutOffVelocity]}, and $\Delta \log_{10} \mathcal{V}_\mathrm{infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingCutOffWidth]}.
 
-\subsubsection{White \& Frenk}
+\subsection{White \& Frenk}
 
 Selected with {\normalfont \ttfamily coolingRateMethod}$=${\normalfont \ttfamily White-Frenk1991}, this method computes the cooling rate using the expression given by \cite{white_galaxy_1991}, namely
 \begin{equation}
@@ -568,23 +249,19 @@ Selected with {\normalfont \ttfamily coolingRateMethod}$=${\normalfont \ttfamily
 \end{equation}
 where $r_\mathrm{infall}$ is the infall radius (see \S\ref{sec:CoolingInfallRadius}) in the hot halo and $\rho(r)$ is the density profile of the hot halo.
 
-\subsection{Cooling Rate Modifier}\label{sec:CoolingRateModifier}\index{cooling!rate modifier}
-
-Algorithms that modify the rate of cooling of gas are specified via the {\normalfont \ttfamily coolingRateModifierMethod} directive.
-
-\subsubsection{Cut-Off}
+\subsection{Cut-Off}
 
 This method sets the cooling rate to zero in halos with virial velocities below {\normalfont \ttfamily [coolingCutOffVelocity]} at redshifts below/above {\normalfont \ttfamily [coolingCutOffRedshift]} for {\normalfont \ttfamily [coolingCutOffWhen]}$=${\normalfont \ttfamily after/before}. In other halos the cooling rate is not modified.
 
-\subsection{Cooling Radius}\label{sec:CoolingRadius}\index{cooling radius}\index{cooling!radius}
+\section{Cooling Radius}\label{sec:CoolingRadius}\index{cooling radius}\index{cooling!radius}
 
 The algorithm used to compute the cooling radius is selected via the {\normalfont \ttfamily coolingRadiusMethod} parameter.
 
-\subsubsection{Simple}
+\subsection{Simple}
 
 Selcted with {\normalfont \ttfamily coolingRadiusMethod}$=${\normalfont \ttfamily simple}, this method computes the cooling radius by seeking the radius at which the time available for cooling (see \S\ref{sec:TimeAvailableCooling}) equals the cooling time (see \S\ref{sec:CoolingTime}). The growth rate is determined consistently based on the slope of the density profile, the density dependence of the cooling function and the rate at which the time available for cooling is increasing. This method assumes that the cooling time is a monotonic function of radius.
 
-\subsubsection{Isothermal}
+\subsection{Isothermal}
 
 Selected with {\normalfont \ttfamily coolingRadiusMethod}$=${\normalfont \ttfamily isothermal}, this method computes the cooling radius by assuming an isothermal density profile, and a cooling rate proportional to density squared. This implies a cooling time:
 \begin{equation}
@@ -600,35 +277,31 @@ which implies
 \end{equation}
 where $t_\mathrm{cool,virial}$ is the cooling time at the virial radius.
 
-\subsection{Cooling: Freefall Radius}\label{sec:CoolingFreefallRadius}\index{freefall radius}\index{cooling!freefall radius}
+\section{Cooling: Freefall Radius}\label{sec:CoolingFreefallRadius}\index{freefall radius}\index{cooling!freefall radius}
 
 The algorithm used to compute the freefall radius for cooling is selected via the {\normalfont \ttfamily freefallRadiusMethod} parameter.
 
-\subsubsection{Dark Matter Halo}
+\subsection{Dark Matter Halo}
 
 Selected with {\normalfont \ttfamily freefallRadiusMethod}$=${\normalfont \ttfamily darkMatterHalo}, this method assumes that the freefall radius corresponds to the radius at which the freefall time in the dark matter halo equals the time available for freefall (see \S\ref{sec:TimeAvailableFreefall}).
 
-\subsection{Cooling: Infall Radius}\label{sec:CoolingInfallRadius}\index{infall radius}\index{cooling!infall radius}
+\section{Cooling: Infall Radius}\label{sec:CoolingInfallRadius}\index{infall radius}\index{cooling!infall radius}
 
 The algorithm used to compute the infall radius for cooling is selected via the {\normalfont \ttfamily infallRadiusMethod} parameter.
 
-\subsubsection{Cooling Radius}
+\subsection{Cooling Radius}
 
 Selected with {\normalfont \ttfamily infallRadiusMethod}$=${\normalfont \ttfamily coolingRadius}, this method assumes that the infall radius equals the cooling radius (see \S\ref{sec:CoolingRadius}).
 
-\subsubsection{Cooling and Freefall Radii}
+\subsection{Cooling and Freefall Radii}
 
 Selected with {\normalfont \ttfamily infallRadiusMethod}$=${\normalfont \ttfamily cooling and freefall}, this method assumes that the infall radius is equal to the smaller of the cooling and freefall radii (see \S\ref{sec:CoolingRadius} and \S\ref{sec:CoolingFreefallRadius}).
 
-\subsubsection{Dark Matter Halo}
-
-Selected with {\normalfont \ttfamily freefallRadiusMethod}$=${\normalfont \ttfamily darkMatterHalo}, this method computes the freefall radius by finding the radius in the dark matter halo profile from which a test particle could have free-fallen to zero radius (assuming it began at rest) in the time available for freefall (see \S\ref{sec:TimeAvailableFreefall}).
-
-\subsection{Cooling Specific Angular Momentum}\index{cooling!specific angular momentum}
+\section{Cooling Specific Angular Momentum}\index{cooling!specific angular momentum}
 
 The algorithm used to compute the specific angular momentum of cooling gas is selected via the {\normalfont \ttfamily coolingSpecificAngularMomentumMethod} parameter.
 
-\subsubsection{Constant Rotation}
+\subsection{Constant Rotation}
 
 Selected with {\normalfont \ttfamily coolingSpecificAngularMomentumMethod}$=${\normalfont \ttfamily constantRotation}, this implementation assumes that the specific angular momentum of cooling gas is given either by
 \begin{equation}
@@ -642,7 +315,7 @@ where $I_n(r)$ is the $n^\mathrm{th}$ radial moment of the hot gas density profi
 
 If {\normalfont \ttfamily [coolingMeanAngularMomentumFrom]}$=${\normalfont \ttfamily darkMatter} then $\langle j \rangle$ is the mean specific angular momentum of the dark matter halo, computed from its spin parameter, while if {\normalfont \ttfamily [coolingMeanAngularMomentumFrom]}$=${\normalfont \ttfamily hotGas} then $\langle j \rangle$ is equal to the mean specific angular momentum of gas currently in the hot gas reservoir. If {\normalfont \ttfamily [coolingRotationVelocityFrom]}$=${\normalfont \ttfamily darkMatter} then the rotation normalization $A$ is computed using the dark matter density profile, while if {\normalfont \ttfamily [coolingRotationVelocityFrom]}$=${\normalfont \ttfamily hotGas} it is computed using the density profile of the hot gas reservoir.
 
-\subsubsection{Mean}
+\subsection{Mean}
 
 Selcted with {\normalfont \ttfamily coolingSpecificAngularMomentumMethod}$=${\normalfont \ttfamily mean}, this assumes that the specific angular momentum of cooling gas is given by
 \begin{equation}
@@ -650,11 +323,11 @@ Selcted with {\normalfont \ttfamily coolingSpecificAngularMomentumMethod}$=${\no
 \end{equation}
 where $J_\mathrm{hot}$ and $M_\mathrm{hot}$ are the total angular momentum and mass of the hot halo respectively.
 
-\subsection{Cooling Time}\label{sec:CoolingTime}\index{cooling time}\index{cooling!time}
+\section{Cooling Time}\label{sec:CoolingTime}\index{cooling time}\index{cooling!time}
 
 The algorithm used to compute the time taken for gas to cool (i.e. the cooling time) is selected via the {\normalfont \ttfamily coolingTimeMethod} parameter.
 
-\subsubsection{Simple}\label{phys:coolingTime:coolingTimeSimple}
+\subsection{Simple}\label{phys:coolingTime:coolingTimeSimple}
 
 Selcted with {\normalfont \ttfamily coolingTimeMethod}$=${\normalfont \ttfamily simple}, this method assumes that the cooling time is simply
 \begin{equation}
@@ -662,11 +335,11 @@ Selcted with {\normalfont \ttfamily coolingTimeMethod}$=${\normalfont \ttfamily 
 \end{equation}
 where $N=${\normalfont \ttfamily degreesOfFreedom} is the number of degrees of freedom in the cooling gas which has temperature $T$ and total particle number density (including electrons) $n_\mathrm{tot}$ and $\Lambda$ is the cooling function.
 
-\subsection{Time Available for Cooling}\label{sec:TimeAvailableCooling}\index{cooling!time available}
+\section{Time Available for Cooling}\label{sec:TimeAvailableCooling}\index{cooling!time available}
 
 The method used to determine the time available for cooling (i.e. the time for which gas in a halo has been able to cool) is selected by the {\normalfont \ttfamily coolingTimeAvailableMethod} parameter.
 
-\subsubsection{Halo Formation}
+\subsection{Halo Formation}
 
 Selected with {\normalfont \ttfamily coolingTimeAvailableMethod}$=${\normalfont \ttfamily haloFormation}, this methods assumes that the time available for cooling is equal to
 \begin{equation}
@@ -674,7 +347,7 @@ Selected with {\normalfont \ttfamily coolingTimeAvailableMethod}$=${\normalfont 
 \end{equation}
 where $t_\mathrm{form}$ is the time at which the halo formed (see \S\ref{sec:ComponentFormationTimes}).
 
-\subsubsection{White \& Frenk (1991)}
+\subsection{White \& Frenk (1991)}
 
 Selected with {\normalfont \ttfamily coolingTimeAvailableMethod}$=${\normalfont \ttfamily White-Frenk1991}, this methods assumes that the time available for cooling is equal to
 \begin{equation}
@@ -683,11 +356,11 @@ Selected with {\normalfont \ttfamily coolingTimeAvailableMethod}$=${\normalfont 
 where $f=${\normalfont \ttfamily coolingTimeAvailableAgeFactor} is an interpolating factor, $t_\mathrm{Universe}$ is the age of the Universe and $t_\mathrm{dynamical}$ is the dynamical time in the halo. The original \cite{white_galaxy_1991} algorithm corresponds to $f=1$.
 
 
-\subsection{Time Available for Freefall During Cooling}\label{sec:TimeAvailableFreefall}\index{cooling!time available for freefall}
+\section{Time Available for Freefall During Cooling}\label{sec:TimeAvailableFreefall}\index{cooling!time available for freefall}
 
 The method used to determine the time available for freefall during cooling calculations (i.e. the time for which gas in a halo has been able to freefall) is selected by the {\normalfont \ttfamily freefallTimeAvailableMethod} parameter.
 
-\subsubsection{Halo Formation}
+\subsection{Halo Formation}
 
 Selected with {\normalfont \ttfamily freefallTimeAvailableMethod}$=${\normalfont \ttfamily haloFormation}, this methods assumes that the time available for freefall is equal to
 \begin{equation}
@@ -695,23 +368,11 @@ Selected with {\normalfont \ttfamily freefallTimeAvailableMethod}$=${\normalfont
 \end{equation}
 where $t_\mathrm{form}$ is the time at which the halo formed (see \S\ref{sec:ComponentFormationTimes}).
 
-\section{Cosmology}
-
-The method used to compute cosmological relations (e.g. expansion factor as a function of time) is selected by the {\normalfont \ttfamily cosmologyMethod} parameter.
-
-\subsection{Matter + Cosmological Constant Universes}
-
-Selected with {\normalfont \ttfamily cosmologyMethod}$=${\normalfont \ttfamily matter-lambda}, this method assumes a universe which contains only matter and a cosmological constant
-
-\section{Dark Matter Halos}
-
-Several algorithms are used to implement dark matter halos.
-
-\subsection{Mass Accretion History}\index{mass accretion history!dark matter halo}\index{dark matter halo!mass accretion history}
+\section{Dark Matter Halos Mass Accretion History}\index{mass accretion history!dark matter halo}\index{dark matter halo!mass accretion history}
 
 The method used to compute mass accretion histories of dark matter halos is selected via the {\normalfont \ttfamily darkMatterHaloMassAccretionHistoryMethod} parameter.
 
-\subsubsection{Wechsler et al. (2002)}
+\subsection{Wechsler et al. (2002)}
 
 Selected with {\normalfont \ttfamily darkMatterHaloMassAccretionHistoryMethod}$=${\normalfont \ttfamily wechsler2002}, under this method the mass accretion history is given by \citep{wechsler_concentrations_2002}:
 \begin{equation}
@@ -719,7 +380,7 @@ M(t) = M(t_0) \exp \left( - 2 a_\mathrm{c} \left[ {a(t_0)\over a(t)}-1 \right] \
 \end{equation}
 where $t_0$ is some reference time and $a_\mathrm{c}$ is a characteristic expansion factor defined by \cite{wechsler_concentrations_2002} to correspond to the formation time of the halo (using the formation time definition of \citealt{bullock_profiles_2001}).
 
-\subsubsection{Zhao et al. (2009)}
+\subsection{Zhao et al. (2009)}
 
 Selected with {\normalfont \ttfamily darkMatterHaloMassAccretionHistoryMethod}$=${\normalfont \ttfamily zhao2009}, under this method the algorithm given by \cite{zhao_accurate_2009} to compute mass accretion histories. In particular, \cite{zhao_accurate_2009} give a fitting function for the quantity $\mathrm{d} \ln \sigma(M)/\mathrm{d} \ln  \delta_\mathrm{c}(t)$ for the dimensionless growth rate in a mass accretion history at time $t$ and halo mass $M$. This is converted to a dimensionful growth rate using
 \begin{equation}
@@ -727,11 +388,11 @@ Selected with {\normalfont \ttfamily darkMatterHaloMassAccretionHistoryMethod}$=
 \end{equation}
 This differential equation is then solved numerically to find the mass accretion history.
 
-\subsection{Density Profile}\label{phys:darkMatterProfile}
+\section{Dark Matter Halos Density Profile}\label{phys:darkMatterProfile}
 
 The method uses to compute density profiles of dark matter halos is selected via the {\normalfont \ttfamily darkMatterProfileMethod} parameter.
 
-\subsubsection{Isothermal}\label{phys:darkMatterProfile:darkMatterProfileIsothermal}
+\subsection{Isothermal}\label{phys:darkMatterProfile:darkMatterProfileIsothermal}
 
 Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \ttfamily isothermal}, under this method the density profile is given by:
 \begin{equation}
@@ -739,7 +400,7 @@ Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \tt
 \end{equation}
 normalized such that the total mass of the \gls{node} is enclosed with the virial radius.
 
-\subsubsection{NFW}\index{Navarro-Frenk-White profile}\index{density profile!Navarro-Frenk-White}\label{phys:darkMatterProfile:darkMatterProfileNFW}
+\subsection{NFW}\index{Navarro-Frenk-White profile}\index{density profile!Navarro-Frenk-White}\label{phys:darkMatterProfile:darkMatterProfileNFW}
 
 Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \ttfamily NFW}, under this method the \gls{nfw} density profile \citep{navarro_universal_1997} is used
 \begin{equation}
@@ -747,7 +408,7 @@ Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \tt
 \end{equation}
 normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the scale length $r_\mathrm{s} = r_\mathrm{virial}/c$ where $c$ is the halo concentration (see \S\ref{sec:DarkMatterProfileConcentration}).
 
-\subsubsection{Einasto}\index{Einasto profile}\index{density profile!Einasto}\label{phys:darkMatterProfile:darkMatterProfileEinasto}
+\subsection{Einasto}\index{Einasto profile}\index{density profile!Einasto}\label{phys:darkMatterProfile:darkMatterProfileEinasto}
 
 Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \ttfamily Einasto}, under this method the Einasto density profile (e.g. \citealt{cardone_spherical_2005}) is used
 \begin{equation}
@@ -755,7 +416,7 @@ Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \tt
 \end{equation}
 normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the characteristic length $r_{-2} = r_\mathrm{virial}/c$ where $c$ is the halo concentration (see \S\ref{sec:DarkMatterProfileConcentration}). The shape parameter, $\alpha$, is set using the density profile shape method (see \S\ref{sec:DarkMatterProfileShape}).
 
-\subsubsection{Burkert}\index{Burkert profile}\index{density profile!Burkert}\label{phys:darkMatterProfile:darkMatterProfileBurkert}
+\subsection{Burkert}\index{Burkert profile}\index{density profile!Burkert}\label{phys:darkMatterProfile:darkMatterProfileBurkert}
 
 Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \ttfamily Burkert}, under this method the \gls{nfw} density profile \citep{burkert_structure_1995} is used
 \begin{equation}
@@ -776,7 +437,7 @@ The peak of the rotation curve occurs at $R=3.2446257246042642$ (found by numeri
     & & \left. \left. - (1 + i) \exp(-i k) \mathrm{S}_\mathrm{i}(k[1 + c])\right]\right\}/\left[k \left\{-2 \tan^{-1}(c) + 2 \log(1 + c) + \log(1 + c^2)\right\}\right].
 \end{eqnarray}
 
-\subsubsection{Tidally-heated}\index{tidally-heated dark matter density profile}\index{dark matter density profile!tidally-heated}\label{phys:darkMatterProfile:darkMatterProfileTidallyHeated}
+\subsection{Tidally-heated}\index{tidally-heated dark matter density profile}\index{dark matter density profile!tidally-heated}\label{phys:darkMatterProfile:darkMatterProfileTidallyHeated}
 
 Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \ttfamily tidallyHeated}, this method assumes that dark matter halos start out with a density profile defined by another {\normalfont \ttfamily darkMatterProfileMethod} (specified via {\normalfont \ttfamily [darkMatterProfileTidallyHeatedUnheatedProfile]}). For subhalos, this profile is modified by tidal heating, under the assumption that the energy of a shell of mass before and after heating are related by
 \begin{equation}
@@ -786,11 +447,11 @@ where $M(r)$ is the mass enclosed within a radius $r$, and $Q$ represents a norm
 
 Not all methods are implemented for this profile. If {\normalfont \ttfamily [darkMatterProfileTidallyHeatedUnimplementedIsFatal]}$=${\normalfont \ttfamily true} then attempts to call these methods in heated profiles aborts, otherwise, a warning is issued and the result for the unheated profile is used instead.
 
-\subsection{Dark Matter Halo Profile Concentration}\label{sec:DarkMatterProfileConcentration}\hyperdef{sec}{DarkMatterProfileConcentration}{}\index{dark matter profile!concentration}
+\section{Dark Matter Halo Profile Concentration}\label{sec:DarkMatterProfileConcentration}\hyperdef{sec}{DarkMatterProfileConcentration}{}\index{dark matter profile!concentration}
 
 The method uses to compute the concentrations of dark matter profiles is selected via the {\normalfont \ttfamily darkMatterProfileConcentrationMethod} parameter.
 
-\subsubsection{Navarro, Frenk \& White (1996)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationNFW1996}
+\subsection{NFW}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationNFW1996}
 
 Selected with {\normalfont \ttfamily darkMatterProfileConcentrationMethod}$=${\normalfont \ttfamily NFW1996}, under this method the concentration is computed using the algorithm from \cite{navarro_structure_1996}. In this algoritm, for a given halo of mass $M$ at time $t_0$, a formation time is defined as the epoch at which there is a 50\% probability (according to extended Press-Schechter theory) for a progenitor halo to have a mass greater than $fM$, where $f=${\normalfont \ttfamily [nfw96ConcentrationF]} is a parameter of the algorithm. This implies formation when the critical overdensity for collapse is
 \begin{equation}
@@ -805,7 +466,7 @@ where $C=${\normalfont \ttfamily [nfw96ConcentrationC]} is a parameter of the al
  {\Delta(t_\mathrm{form}) \over \Delta_\mathrm{virial}(t_0)} = {c^3 \over 3 [\ln(1+c)-c/(1+c)]}.
 \end{equation}
 
-\subsubsection{Gao (2008)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationGao2008}
+\subsection{Gao (2008)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationGao2008}
 
 Selected with {\normalfont \ttfamily darkMatterProfileConcentrationMethod}$=${\normalfont \ttfamily gao2008}, under this method the concentration is computed using a fitting function from \cite{gao_redshift_2008}:
 \begin{equation}
@@ -817,7 +478,7 @@ A &=& -0.140 \exp\left[-\left(\left\{\log_{10}a+0.05\right\}/0.35\right)^2\right
 B &=&  2.646 \exp\left[-\left(\log_{10}a/0.50\right)^2\right].
 \end{eqnarray}
 
-\subsubsection{Zhao (2009)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationZhao2009}
+\subsection{Zhao (2009)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationZhao2009}
 
 Selected with {\normalfont \ttfamily darkMatterProfileConcentrationMethod}$=${\normalfont \ttfamily zhao2009}, under this method the concentration is computed using a fitting function from \cite{zhao_accurate_2009}:
 \begin{equation}
@@ -825,7 +486,7 @@ Selected with {\normalfont \ttfamily darkMatterProfileConcentrationMethod}$=${\n
 \end{equation}
 where $t$ is the time for the halo and $t_\mathrm{form}$ is a formation time defined by \cite{zhao_accurate_2009} as the time at which the main branch progenitor of the halo had a mass equal to $0.04$ of the current halo mass. This formation time is computed directly from the merger tree branch associated with each halo. If the no branch exists or does not extend to the formation time then the formation time is computed by extrapolating the mass of the earliest resolved main branch progenitor to earlier times using the selected \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.darkMatterHaloMassAccretionHistory}{mass accretion history} method.
 
-\subsubsection{Mu\~noz-Cuartas (2011)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationMunozCuartas2011}
+\subsection{Mu\~noz-Cuartas (2011)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationMunozCuartas2011}
 
 Selected with {\normalfont \ttfamily darkMatterProfileConcentrationMethod}$=${\normalfont \ttfamily munozCuartas2011}, under this method the concentration is computed using a fitting function from \cite{munoz-cuartas_redshift_2011}:
 \begin{equation}
@@ -838,7 +499,7 @@ b &=& {\alpha \over (z+\gamma)} + {\beta \over (z+\gamma)^2},
 \end{eqnarray}
 where $w=0.029$, $m=0.097$, $\alpha=-110.001$, $\beta=2469.720$, $\gamma=16.885$.
 
-\subsubsection{Prada et al. (2011)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationPrada2011}
+\subsection{Prada et al. (2011)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationPrada2011}
 
 Selected with {\normalfont \ttfamily darkMatterProfileConcentrationMethod}$=${\normalfont \ttfamily prada2011}, under this method the concentration is computed using a fitting function from \cite{prada_halo_2011}:
 \begin{equation}
@@ -856,7 +517,7 @@ x &=& (\Omega_\Lambda/\Omega_\mathrm{M})^{1/3} a(t),
 \end{eqnarray}
 with the following parameters (default values taken from \cite{prada_halo_2011} given in []): $A=${\normalfont \ttfamily [prada2011ConcentrationA]}$=2.881$, $b=${\normalfont \ttfamily [prada2011ConcentrationB]}$=1.257$, $c=${\normalfont \ttfamily [prada2011ConcentrationC]}$=1.022$, $d=${\normalfont \ttfamily [prada2011ConcentrationD]}$=0.060$, $c_0=${\normalfont \ttfamily [prada2011ConcentrationC0]}$=3.681$, $c_1=${\normalfont \ttfamily [prada2011ConcentrationC1]}$=5.033$, $x_0=${\normalfont \ttfamily [prada2011ConcentrationX0]}$=0.424$, $x_1=${\normalfont \ttfamily [prada2011ConcentrationX1]}$=0.526$, $\sigma^{-1}_0=${\normalfont \ttfamily [prada2011ConcentrationInverseSigma0]}$=1.047$, $\sigma^{-1}_1=${\normalfont \ttfamily [prada2011ConcentrationInverseSigma1]}$=1.646$, $\alpha=${\normalfont \ttfamily [prada2011ConcentrationAlpha]}$=6.948$, and $\beta=${\normalfont \ttfamily [prada2011ConcentrationBeta]}$=7.386$.
 
-\subsubsection{Dutton \& Macci\`o (2014)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationDuttonMaccio2014}
+\subsection{Dutton \& Macci\`o (2014)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationDuttonMaccio2014}
 
 Selected with {\normalfont \ttfamily darkMatterProfileConcentrationMethod}$=${\normalfont \ttfamily duttonMaccio2014}, under this method the concentration is computed using a fitting function from \cite{dutton_cold_2014}:
 \begin{equation}
@@ -885,7 +546,7 @@ The coefficients are chosen from one of the three sets given by \cite{dutton_col
 \label{tb:DuttonMaccioConcentrationCoefficients}
 \end{table}
 
-\subsubsection{Diemer \& Kravtsov (2014)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationDiemerKravtsov2014}
+\subsection{Diemer \& Kravtsov (2014)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationDiemerKravtsov2014}
 
 Selected with {\normalfont \ttfamily darkMatterProfileConcentrationMethod}$=${\normalfont \ttfamily diemerKravtsov2014}, under this method the concentration is computed using a fitting function from \cite{diemer_universal_2014}:
 \begin{equation}
@@ -893,7 +554,7 @@ c = {c_\mathrm{min} \over 2} \left[ \left({\nu\over\nu_\mathrm{min}}\right)^{-\a
 \end{equation}
 where $c_\mathrm{min}=\phi_0+\phi_1 n$, $\nu_\mathrm{min}=\eta_0+\eta_1 n$, $n$ is the logarithmic slope of the linear power spectrum at wavenumber $k = \kappa 2 \pi / R$, $R$ is the comoving Lagrangian radius of the halo, $R=[3 M / 4 \pi \rho_\mathrm{M}(z=0)]^{1/3}$, and $\nu=\delta_\mathrm{crit}(t)/\sigma(M)$ is the peak height parameter. The numerical parameters $(\kappa,\phi_0,\phi_1,\eta_0,\eta_1,\alpha,\beta)$ are set by the parameters {\normalfont \ttfamily [darkMatterProfileConcentrationDiemerKravtsov2014Kappa]},  {\normalfont \ttfamily [darkMatterProfileConcentrationDiemerKravtsov2014Phi0]},  {\normalfont \ttfamily [darkMatterProfileConcentrationDiemerKravtsov2014Phi1]},  {\normalfont \ttfamily [darkMatterProfileConcentrationDiemerKravtsov2014Eta0]},  {\normalfont \ttfamily [darkMatterProfileConcentrationDiemerKravtsov2014Eta1]},  {\normalfont \ttfamily [darkMatterProfileConcentrationDiemerKravtsov2014Alpha]},  {\normalfont \ttfamily [darkMatterProfileConcentrationDiemerKravtsov2014Beta]}, respectively, and default to the values given in Table 3 of \cite{diemer_universal_2014} for the median relation, namely $(0.69,6.58,1.37,6.82,1.42,1.12,1.69)$.
 
-\subsubsection{Schneider (2015)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationSchneider2015}\hyperdef{phys}{darkMatterProfileConcentration:darkMatterProfileConcentrationSchneider2015}{}
+\subsection{Schneider (2015)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationSchneider2015}\hyperdef{phys}{darkMatterProfileConcentration:darkMatterProfileConcentrationSchneider2015}{}
 
 Selected with {\normalfont \ttfamily darkMatterProfileConcentrationMethod}$=${\normalfont \ttfamily schneider2015}, under this method the concentration using the algorithm of \cite{schneider_structure_2015}. Specifically, a reference model for concentrations in defined in a specific cosmological model. The concentration for a halo of given mass, $M$, and redshift, $z_0$, is then found by finding the redshift of collapse, $z_\mathrm{c}$ for the halo by solving:
 \begin{equation}
@@ -901,7 +562,7 @@ Selected with {\normalfont \ttfamily darkMatterProfileConcentrationMethod}$=${\n
 \end{equation}
 where $\delta_\mathrm{c}(z)$ is the critical overdensity for collapse at redshift $z$, and $f$ is the fraction of a halo's mass assembled at formation time (given by the {\normalfont \ttfamily [massFractionFormation]} parameter. From this, the mass of a halo in the reference model with the same redshift of collapse is found, and the reference model is used to compute the concentration of a halo of that mass. 
 
-\subsubsection{WDM}
+\subsection{WDM}
 
 Selected with {\normalfont \ttfamily darkMatterProfileConcentrationMethod}$=${\normalfont \ttfamily WDM}, under this method the concentration is computed by applying the correction factor of \cite{schneider_non-linear_2012}:
 \begin{equation}
@@ -909,11 +570,11 @@ c_\mathrm{WDM} = c_\mathrm{CDM} \left[ 1 + \gamma_1 \left( {M_\mathrm{1/2} \over
 \end{equation}
 where $\gamma_1=15$, $\gamma_2=0.3$, $M_\mathrm{1/2}$ is the mass corresponding to the wavenumber at which the WDM transfer function is suppressed below the CDM transfer function by a factor of 2, and $M_\mathrm{halo}$ is the mass of the dark matter halo, to a CDM concentration algorithm as specified by {\normalfont \ttfamily [darkMatterProfileConcentrationCDMMethod]}.
 
-\subsection{Density Profile Shape}\label{sec:DarkMatterProfileShape}\index{dark matter profile!shape}
+\section{Density Profile Shape}\label{sec:DarkMatterProfileShape}\index{dark matter profile!shape}
 
 The method used to compute any shape parameter of dark matter profiles is selected via the {\normalfont \ttfamily darkMatterShapeMethod} parameter.
 
-\subsubsection{Gao (2008)}
+\subsection{Gao (2008)}
 
 Selected with {\normalfont \ttfamily darkMatterShapeMethod}$=${\normalfont \ttfamily Gao2008}, under this method the shape parameter for Einasto density profiles\index{Einasto profile}\index{density profile!Einasto} is computed using a fitting function from \cite{gao_redshift_2008}:
 \begin{equation}
@@ -921,15 +582,15 @@ Selected with {\normalfont \ttfamily darkMatterShapeMethod}$=${\normalfont \ttfa
 \end{equation}
 where $\nu=\delta_\mathrm{c}(t)/\sigma(M)$ is the peak height of the halo. The truncation at $\alpha = 0.3$ is included since \cite{gao_redshift_2008}'s fits do not probe this region and extremely large values of $\alpha$ are numerically troublesome.
 
-\subsection{Mass Loss Rates}\index{dark matter halo!mass loss}\index{mass loss!dark matter halo}
+\section{Mass Loss Rates}\index{dark matter halo!mass loss}\index{mass loss!dark matter halo}
 
 The method used to compute the rate of mass loss from dark matter (sub)halos is selected via the {\normalfont \ttfamily darkMatterHaloMassLossRateMethod} parameter.
 
-\subsubsection{Null}
+\subsection{Zero}
 
 Selected with {\normalfont \ttfamily darkMatterHaloMassLossRateMethod}$=${\normalfont \ttfamily null}, this method assumes a zero rate of mass loss from dark matter halos.
 
-\subsubsection{van den Bosch et al. (2005)}
+\subsection{van den Bosch et al. (2005)}
 
 Selected with {\normalfont \ttfamily darkMatterHaloMassLossRateMethod}$=${\normalfont \ttfamily vanDenBosch2005}, this method uses the algorithm of \cite{van_den_bosch_mass_2005} to compute the rate of mass loss. Specifically:
 \begin{equation}
@@ -941,11 +602,11 @@ where $M_\mathrm{node,parent}$ is the mass of the parent \gls{node} in which the
 \end{equation}
 where $\Delta_\mathrm{vir}(t)$ is the virial overdensity of halos at time $t$ and $a$ is the expansion factor. The fitting parameters, $\tau_0$ and $\zeta$ have values of 0.13~Gyr and 0.36 respectively as determined by \cite{van_den_bosch_mass_2005}. Note that  \cite{van_den_bosch_mass_2005} write this expression in a slightly different form since their $\Delta_\mathrm{vir}$ is defined relative to the critical density rather than the mean density as it is in \glc. In both cases, the timescale $\tau$ simply scales as $\langle \rho_\mathrm{vir} \rangle ^{-1/2}$ where $\langle \rho_\mathrm{vir} \rangle$ is the mean virial overdensity of halos.
 
-\subsection{Mass Sampling Density Function}\label{sec:MassSamplingDensityFunction}
+\section{Mass Sampling Density Function}\label{sec:MassSamplingDensityFunction}
 
 The method used to compute the halo mass density function is selected via the {\normalfont \ttfamily haloMassFunctionSamplingMethod} parameter.
 
-\subsubsection{Power Law}
+\subsection{Power Law}
 
 Selected with {\normalfont \ttfamily haloMassFunctionSamplingMethod}$=${\normalfont \ttfamily powerLaw}, under this method the sampling density function is given by
 \begin{equation}
@@ -957,7 +618,7 @@ The resulting distribution of halo masses is such that the mass of the $i^\mathr
 \end{equation}
 Here, $x_i$ is a number between 0 and 1 and $\alpha=${\normalfont \ttfamily mergerTreeBuildTreesHaloMassExponent} is an input parameter that controls the relative number of low and high mass tree produced.
 
-\subsubsection{Halo Mass Function}
+\subsection{Halo Mass Function}
 
 Selected with {\normalfont \ttfamily haloMassFunctionSamplingMethod}$=${\normalfont \ttfamily haloMassFunction}, this method sets the sampling density function equal to the halo mass function,
 \begin{equation}
@@ -969,7 +630,7 @@ Selected with {\normalfont \ttfamily haloMassFunctionSamplingMethod}$=${\normalf
 \end{equation}
 resulting in a sample of halos representative of a volume of space.
 
-\subsubsection{Stellar Mass Function}
+\subsection{Stellar Mass Function}
 
 Selected with {\normalfont \ttfamily haloMassFunctionSamplingMethod}$=${\normalfont \ttfamily stellarMassFunction}, in this case the sampling density is chosen to give optimally minimal errors on the model stellar mass function (see \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.mergerTreeBuildMassDistribution}{here} for full details). This calculation requires the observational errors on the stellar mass function to be known. A simple model of the form
 \begin{equation}
@@ -977,19 +638,19 @@ Selected with {\normalfont \ttfamily haloMassFunctionSamplingMethod}$=${\normalf
 \end{equation}
 is used to model the error, $\sigma(M)$, on the observed stellar mass function as a function of stellar mass, $M$, where $\phi_0=${\normalfont \ttfamily [haloMassFunctionSamplingStellarMassFunctionErrorPhi0]},$M_*=${\normalfont \ttfamily [haloMassFunctionSamplingStellarMassFunctionErrorMstar]},$\alpha=${\normalfont \ttfamily [haloMassFunctionSamplingStellarMassFunctionErrorAlpha]},$\beta=${\normalfont \ttfamily [haloMassFunctionSamplingStellarMassFunctionErrorBeta]}, and $\sigma_0=${\normalfont \ttfamily [haloMassFunctionSamplingStellarMassFunctionErrorConstant]}.
 
-\subsection{Spin Parameter Distribution}\label{sec:SpinParameterDistribution}\hyperdef{sec}{SpinParameterDistribution}{}\index{dark matter halo!spin!distribution}\index{spin!dark matter halo}
+\section{Spin Parameter Distribution}\label{sec:SpinParameterDistribution}\hyperdef{sec}{SpinParameterDistribution}{}\index{dark matter halo!spin!distribution}\index{spin!dark matter halo}
 
 The method used to compute the distribution of dark matter halo spin parameters is selected via the {\normalfont \ttfamily haloSpinDistributionMethod} parameter.
 
-\subsubsection{Lognormal}\label{phys:haloSpinDistribution:haloSpinDistributionLogNormal}
+\subsection{Lognormal}\label{phys:haloSpinDistribution:haloSpinDistributionLogNormal}
 
 Selected with {\normalfont \ttfamily haloSpinDistributionMethod}$=${\normalfont \ttfamily lognormal}, under this method the spin is drawn from a lognormal distribution with median {\normalfont \ttfamily [lognormalSpinDistributionMedian]} and width {\normalfont \ttfamily [lognormalSpinDistributionSigma]}.
 
-\subsubsection{Bett et al. (2007)}\label{phys:haloSpinDistribution:haloSpinDistributionBett2007}
+\subsection{Bett et al. (2007)}\label{phys:haloSpinDistribution:haloSpinDistributionBett2007}
 
 Selected with {\normalfont \ttfamily haloSpinDistributionMethod}$=${\normalfont \ttfamily Bett2007}, under this method the spin is drawn from the distribution found by \cite{bett_spin_2007}. The $\lambda_0$ and $\alpha$ parameter of Bett et al.'s distribution are set by the {\normalfont \ttfamily [spinDistributionBett2007Lambda0]} and {\normalfont \ttfamily [spinDistributionBett2007Alpha]} input parameters.
 
-\subsubsection{Delta Function}\label{phys:haloSpinDistribution:haloSpinDistributionDeltaFunction}
+\subsection{Delta Function}\label{phys:haloSpinDistribution:haloSpinDistributionDeltaFunction}
 
 Selected with {\normalfont \ttfamily haloSpinDistributionMethod}$=${\normalfont \ttfamily deltaFunction}, under this method the spin is drawn from a delta function distribution, $P(\lambda) = \delta(\lambda-\lambda_0)$, where $\lambda_0=${\normalfont \ttfamily [deltaFunctionSpinDistributionSpin]}, i.e. a fixed value of spin equal to $\lambda_0$ is returned.
 
@@ -997,7 +658,7 @@ Selected with {\normalfont \ttfamily haloSpinDistributionMethod}$=${\normalfont 
 
 The method uses to compute the bar instability timescale for galactic disks is selected via the {\normalfont \ttfamily barInstabilityMethod} parameter.
 
-\subsection{Null}
+\subsection{Stable}
 
 Selected with {\normalfont \ttfamily barInstabilityMethod}$=${\normalfont \ttfamily null}, this method assumes no instability and so returns an infinite timescale, and no external driving torque.
 
@@ -1224,10 +885,6 @@ where $f^{(6)}(\xi)$ is the absolute maximum of the sixth derivative in the doma
 
 Remappins of the excursion set barrier are selected via the {\normalfont \ttfamily excursionSetBarrierRemapMethods} (for calculations of first crossing distributions) and {\normalfont \ttfamily excursionSetBarrierRatesRemapMethods} (for calculations of first crossing rate distributions) parameters. The parameters may specify multiple remappings---these will be applied to the barrier in order.
 
-\subsection{Null Remapping}
-
-Selected with {\normalfont \ttfamily excursionSetBarrier(Rates)RemapMethods}$=${\normalfont \ttfamily null} this method leaves the barrier unmodified.
-
 \subsection{Scale Remapping}
 
 Selected with {\normalfont \ttfamily excursionSetBarrier(Rates)RemapMethods}$=${\normalfont \ttfamily scale} this method multiplies the barrier by {\normalfont \ttfamily [excursionSetBarrierRemapScalingFactor]}.
@@ -1268,58 +925,15 @@ Selected with {\normalfont \ttfamily galacticStructureRadiusSolverMethod}$=${\no
 \end{equation}
 where $j$ is the specific angular momentum of the \gls{component} (at whatever point in the profile is to be solved for), $r$ is radius and $M(r)$ is the mass of dark matter within radius $r$. The parameter {\normalfont \ttfamily [adiabaticContractionUseFormationHalo]} controls whether the structure of the galaxy will be solved for using the properties of its present \gls{node} or those of its \gls{node} at the time of \gls{node} formation (which requires that ``node formation'' has been suitably defined and implemented by a component).
 
-\subsection{Adiabatic}
-
-Selected with {\normalfont \ttfamily galacticStructureRadiusSolverMethod}$=${\normalfont \ttfamily adiabatic}, this method takes into account the baryonic self-gravity of all galactic components when solving for structure and additionally accounts for backreaction of the baryons on the dark matter density profile.  Solution proceeds via an iterative procedure to find equilibrium radii for all galaxies in a consistently contracted halo. To account for adiabatic contraction the mass of dark matter within a given radius $r_\mathrm{f}$ is taken to be equal to that originally within radius $r_\mathrm{i}$ in the uncontracted halo. This initial radius is computed using the selected galactic structure solver initial radius algorithm (see \S\ref{sec:GalacticStructureInitialRadius}). The parameter {\normalfont \ttfamily [adiabaticContractionUseFormationHalo]} controls whether the structure of the galaxy will be solved for using the properties of its present \gls{node} or those of its \gls{node} at the time of \gls{node} formation (which requires that ``node formation'' has been suitably defined and implemented by a component).
-
-\section{Galactic Structure Initial Radii}\label{sec:GalacticStructureInitialRadius}\index{galactic structure!initial radii}
-
-The algorithm to be used when solving for the initial radius in the dark matter halo when computing galactic structure is selected via the {\normalfont \ttfamily galacticStructureRadiusSolverInitialRadiusMethod} parameter.
-
-\subsection{Static}
-
-Selected with {\normalfont \ttfamily galacticStructureRadiusSolverInitialRadiusMethod}$=${\normalfont \ttfamily static} this method assumes that the dark matter halo is static and so sets the initial radius equal to the final radius. 
-
-\subsection{Adiabatic}
-
-Selected with {\normalfont \ttfamily galacticStructureRadiusSolverInitialRadiusMethod}$=${\normalfont \ttfamily adiabatic} this method assumes that adiabatic contraction follows the algorithm of \cite{gnedin_response_2004}. The parameters $A$ and $\omega$ of that model are specified via input parameters {\normalfont \ttfamily adiabaticContractionGnedinA} and {\normalfont \ttfamily adiabaticContractionGnedinOmega} respectively.
-
-Given the final radius, $r_\mathrm{f}$, the corresponding initial radius, $r_\mathrm{i}$, is found by solving:
-\begin{equation}
-f_\mathrm{i} M_\mathrm{total,0}(\bar{r}_\mathrm{i}) r_\mathrm{i} = f_\mathrm{f} M_\mathrm{total,0}(\bar{r}_\mathrm{i}) r_\mathrm{f} + V^2_\mathrm{b}(\bar{r}_\mathrm{f}) \bar{r}_\mathrm{f} r_\mathrm{f}/ \mathrm{G},
- \label{eq:adiabaticContractionGnedinSolution}
-\end{equation}
-where $M_\mathrm{total,0}(r)$ is the initial total matter profile, $V_\mathrm{b}(r)$ is the baryonic contribution to the rotation curve, $f_\mathrm{i}$, is the fraction of mass within the virial radius compared to the node mass\footnote{In \protect\glc\ the ``node mass'' refers to the total mass of the node, assuming it has the universal complement of baryons. Since some halos may contain less than the complete complement of baryons it is possible that $f_\mathrm{i}<1$.}, $f_\mathrm{f}=(\Omega_\mathrm{M}-\Omega_\mathrm{b})/\Omega_\mathrm{M}+M_\mathrm{satellite, baryonic}/M_\mathrm{total}$, $M_\mathrm{satellite, baryonic}$ is the baryonic mass in any satellite halos, $M_\mathrm{total}$ is the node mass, and
-\begin{equation}
-{\bar{r} \over r_\mathrm{vir}} = A \left({r \over r_\mathrm{vir}}\right)^\omega,
-\end{equation}
-where $r_\mathrm{vir}$ is the virial radius. Note that we explicitly assume that the initial, uncontracted total density profile has the same shape as the initial dark matter density profile, that contraction of the halo occurs with no shell crossing, and that satellite halos trace the dark matter profile of their host halo.
-
-The derivative, $\mathrm{d} r_\mathrm{f}/\mathrm{d}d_\mathrm{i}\equiv r^\prime_\mathrm{i}$ is found by taking the derivative of eqn.~(\ref{eq:adiabaticContractionGnedinSolution}) to give:
-\begin{eqnarray}
- &   & f_\mathrm{i} M_\mathrm{total,0}(\bar{r}_\mathrm{i}) r^\prime_\mathrm{i} + f_\mathrm{i} 4 \pi \bar{r}_\mathrm{i}^2 \rho_\mathrm{total,0}(\bar{r}_\mathrm{i}) {\mathrm{d} \bar{r}_\mathrm{i}\over\mathrm{d} r_\mathrm{i}} r_\mathrm{i} r^\prime_\mathrm{i} \nonumber \\
- & = & f_\mathrm{f} M_\mathrm{total,0}(\bar{r}_\mathrm{i}) +  f_\mathrm{i} 4 \pi \bar{r}_\mathrm{i}^2 \rho_\mathrm{total,0}(\bar{r}_\mathrm{i}) {\mathrm{d} \bar{r}_\mathrm{i}\over\mathrm{d} r_\mathrm{i}} r_\mathrm{f} r^\prime_\mathrm{i} \nonumber \\
- & + & V^2_\mathrm{b}(\bar{r}_\mathrm{f}) \bar{r}_\mathrm{f} / \mathrm{G} +  V^2_\mathrm{b}(\bar{r}_\mathrm{f}) {\mathrm{d}\bar{r}_\mathrm{f}\over \mathrm{d} r_\mathrm{f}} r_\mathrm{f}/ \mathrm{G} +  {\mathrm{d}V^2_\mathrm{b}\over\mathrm{d} \bar{r}_\mathrm{f}}(\bar{r}_\mathrm{f}) {\mathrm{d}\bar{r}_\mathrm{f}\over \mathrm{d} r_\mathrm{f}} \bar{r}_\mathrm{f} r_\mathrm{f}/ \mathrm{G},
-\end{eqnarray}
-where
-\begin{equation}
- {\mathrm{d}\bar{r} \over \mathrm{d} r} = A \left({r \over r_\mathrm{vir}}\right)^{\omega-1},
-\end{equation}
-and which can then be solved numerically for $r^\prime_\mathrm{i}$.
-
-\section{Galaxy Merging}\index{galaxy!merging}\index{merging!galaxy}
-
-The process of merging two galaxies currently involves two algorithms: one which decides how the merger causes mass components from both galaxies to move and one which determines the size of the remnant galaxy spheroid.
-
-\subsection{Mass Movements}\label{sec:MergingMassMovements}
+\section{Mass Movements}\label{sec:MergingMassMovements}
 
 The movement of mass elements in the merging galaxies is determined by the {\normalfont \ttfamily satelliteMergingMassMovementsMethod} parameter. 
 
-\subsubsection{Very Simple}
+\subsection{Very Simple}
 
 Selected with {\normalfont \ttfamily satelliteMergingMassMovementsMethod}$=${\normalfont \ttfamily verySimple}, this method assumes that the satellite material is always added to the disk of the host, while the host mass is not moved.
 
-\subsubsection{Simple}
+\subsection{Simple}
 
 Selected with {\normalfont \ttfamily satelliteMergingMassMovementsMethod}$=${\normalfont \ttfamily simple}, this method implements mass movements according to:
 \begin{itemize}
@@ -1328,7 +942,7 @@ Selected with {\normalfont \ttfamily satelliteMergingMassMovementsMethod}$=${\no
 \end{itemize}
 Here, $f_\mathrm{major}=${\normalfont \ttfamily [majorMergerMassRatio]} is the mass ratio above which a merger is considered to be ``major''.
 
-\subsubsection{Baugh et al. (2005)}
+\subsection{Baugh et al. (2005)}
 
 Selected with {\normalfont \ttfamily satelliteMergingMassMovementsMethod}$=${\normalfont \ttfamily Baugh2005}, this method implements mass movements according to:
 \begin{itemize}
@@ -1341,15 +955,15 @@ Selected with {\normalfont \ttfamily satelliteMergingMassMovementsMethod}$=${\no
 \end{itemize}
 Here, $f_\mathrm{major}=${\normalfont \ttfamily [majorMergerMassRatio]} is the mass ratio above which a merger is considered to be ``major'', while $f_\mathrm{burst}=${\normalfont \ttfamily [burstMassRatio]} and $f_\mathrm{gas,crit}=${\normalfont \ttfamily [burstCriticalGasFraction]}.
 
-\subsection{Remnant Sizes}\index{merging!remnant size}
+\section{Remnant Sizes}\index{merging!remnant size}
 
 The method used to calculate the sizes of merger remnant spheroids is selected by the {\normalfont \ttfamily satelliteMergingRemnantSizeMethod} parameter.
 
-\subsubsection{Null}
+\subsection{Null}
 
 Selected using {\normalfont \ttfamily satelliteMergingRemnantSizeMethod}$=${\normalfont \ttfamily null}, this is a null method which does nothing at all. It is useful, for example, when running \glc\ to study dark matter only (i.e. when no galaxy properties are computed).
 
-\subsubsection{Cole et al. (2000)}\label{sec:MergerRemnantSizeCole2000}
+\subsection{Cole et al. (2000)}\label{sec:MergerRemnantSizeCole2000}
 
 Selected using {\normalfont \ttfamily satelliteMergingRemnantSizeMethod}$=${\normalfont \ttfamily Cole2000}, this method uses the algorithm of \cite{cole_hierarchical_2000} to compute merger remnant spheroid sizes. Specifically
 \begin{equation}
@@ -1373,7 +987,7 @@ where
  V_\mathrm{new}^2 = {\mathrm{G} (M_1+M_2)\over r_\mathrm{new}}.
 \end{equation}
 
-\subsubsection{Covington et al. (2008)}
+\subsection{Covington et al. (2008)}
 
 Selected using {\normalfont \ttfamily satelliteMergingRemnantSizeMethod}$=${\normalfont \ttfamily Covington2008}, this method uses the algorithm of \cite{covington_predicting_2008} to compute merger remnant spheroid sizes. Specifically
 \begin{equation}
@@ -1389,11 +1003,11 @@ and $r_2$ are their half mass radii, $r_\mathrm{new}$ is the half mass radius of
 \end{equation}
 begin the gas fraction of the progenitor galaxies. By default, $C_\mathrm{rad}=2.75$ \citep{covington_effects_2011}. To account for the effects of dark matter and non-spheroid baryonic matter the same approach is used as in the \cite{cole_hierarchical_2000} algorithm (see \S\ref{sec:MergerRemnantSizeCole2000}). 
 
-\subsection{Progenitor Properties}\index{merging!progenitor properties}
+\section{Progenitor Properties}\index{merging!progenitor properties}
 
 The method used to calculate the properties of merger progenitor galaxies is selected by the {\normalfont \ttfamily satelliteMergingRemnantProgenitorPropertiesMethod} parameter.
 
-\subsubsection{Cole et al. (2000)}
+\subsection{Cole et al. (2000)}
 
 Selected using {\normalfont \ttfamily satelliteMergingRemnantProgenitorPropertiesMethod}$=${\normalfont \ttfamily Cole2000}, this method uses the algorithms of \cite{cole_hierarchical_2000} to compute progenitor properties. Masses of progenitors are set to
 \begin{equation}
@@ -1413,7 +1027,7 @@ such that the radii are the half-mass radii of the material that will end up in 
 \end{equation}
 where $J_{i,j}$ is the angular momentum or pseudo-angular momentum of mass type $j$ in \gls{component} $i$\footnote{This is technically not quite what \protect\cite{cole_hierarchical_2000} do. Instead, when computing the masses of the material which ends up in the spheroid they include twice the mass of dark matter (accounting for the effects of adiabatic contraction) within the half-mass radius of each galaxy (as calculated above). The final angular momentum is then $j=\sqrt{\mathrm{G} M_\mathrm{remnant} r_\mathrm{remnant}/2}$ (where $M_\mathrm{remnant}$ includes the contribution from dark matter and the factor of $2$ appears to make this the half-mass). This approach is currently not used in \protect\glc\ since there is no way to get the mass of dark matter enclosed accounting for adiabatic contraction in the general case. This is a solvable problem, and so this algorithm is expected to be modified to match that of \protect\cite{cole_hierarchical_2000} precisely in a future version of \protect\glc.}.
 
-\subsubsection{Standard}
+\subsection{Standard}
 
 Selected using {\normalfont \ttfamily satelliteMergingRemnantProgenitorPropertiesMethod}$=${\normalfont \ttfamily standard}, this is the standard method to compute progenitor properties. Masses of progenitors are set to
 \begin{equation}
@@ -1453,11 +1067,11 @@ where $\alpha=${\normalfont \ttfamily [gravitationalLensingBaryonicModifierAlpha
 
 The method to be used for modifying power spectra in halo model clustering calculations is specified by the {\normalfont \ttfamily haloModelPowerSpectrumModifierMethod} parameter.
 
-\subsection{Null}\label{phys:haloModelPowerSpectrumModifier:haloModelPowerSpectrumModifierNull}
+\subsection{Identity}\label{phys:haloModelPowerSpectrumModifier:haloModelPowerSpectrumModifierNull}
 
 Selected with {\normalfont \ttfamily haloModelPowerSpectrumModifierMethod}$=${\normalfont \ttfamily null}, this method provides no modification.
 
-\subsection{Traxiality}\label{phys:haloModelPowerSpectrumModifier:haloModelPowerSpectrumModifierTriaxiality}
+\subsection{Triaxiality}\label{phys:haloModelPowerSpectrumModifier:haloModelPowerSpectrumModifierTriaxiality}
 
 Selected with {\normalfont \ttfamily haloModelPowerSpectrumModifierMethod}$=${\normalfont \ttfamily triaxiality}, this method provides attempts to modify power spectra to approximately account for the effects of halo triaxiality using the results of \cite{smith_triaxial_2005}. Specifically, the one- and two-halo power spectra are multiplied by a correction factor, $\Delta^2_\mathrm{triax}/\Delta^2_\mathrm{sphere}$, derived from the lower panels of Figures 3 and 2 of \cite{smith_triaxial_2005} respectively for their ``JS02'' profile model. Given the uncertainty in this correction, the power spectrum covariance (if provided) is incremented by $\epsilon^2 ( [\Delta^2_\mathrm{triax}/\Delta^2_\mathrm{sphere}-1] \otimes [\Delta^2_\mathrm{triax}/\Delta^2_\mathrm{sphere}-1)$ where $\epsilon=0.4$ is chosen to approximate the difference between ``continuity'' and ``JS02'' profiles in \cite{smith_triaxial_2005}.
 
@@ -1509,7 +1123,7 @@ Selected with {\normalfont \ttfamily hotHaloMassDistributionCoreRadiusMethod}$=$
 
 The algorithm to be used when determining the ram pressure force due to the hot halo is selected via the {\normalfont \ttfamily hotHaloRamPressureForceMethod} parameter.
 
-\subsection{Null}
+\subsection{Zero}
 
 Selected with {\normalfont \ttfamily hotHaloRamPressureForceMethod}$=${\normalfont \ttfamily null} this method assumes a zero ram pressure force due to the hot halo.
 
@@ -1588,27 +1202,23 @@ Selected with {\normalfont \ttfamily hotHaloTemperatureMethod}$=${\normalfont \t
 \end{equation}
 where $M(<r)$ is the total mass enclosed within radius $r$, $\mu$ is the primordial mean atomic mass, and $T_\mathrm{min}=${\normalfont \ttfamily [enzoHydrostaticTemperatureMinimum]} is a temperature floor introduced so as to avoid the temperature reaching abitrarily low masses. 
 
-\section{Initial Mass Functions}\index{initial mass function}
-
-The stellar \gls{imf} subsystem supports multiple IMFs and extensible algorithms to select which \gls{imf} to use based on the physical conditions of star formation.
-
-\subsection{Initial Mass Function Selection}\index{initial mass function!selection}
+\section{Initial Mass Function Selection}\index{initial mass function!selection}
 
 The method to use for selecting which \gls{imf} to use is specified by the {\normalfont \ttfamily imfSelectionMethod} parameter.
 
-\subsubsection{Fixed}
+\subsection{Fixed}
 
 Selected by {\normalfont \ttfamily imfSelectionMethod}$=${\normalfont \ttfamily fixed}, this method uses a fixed \gls{imf} irrespective of physical conditions. The \gls{imf} to use is specified by the {\normalfont \ttfamily imfSelectionFixed} parameter (e.g. setting this parameter to {\normalfont \ttfamily Salpeter} selects the Salpeter \gls{imf}).
 
-\subsubsection{Disk and Spheroid}
+\subsection{Disk and Spheroid}
 
 Selected by {\normalfont \ttfamily imfSelectionMethod}$=${\normalfont \ttfamily diskSpheroid}, this method uses different {\gls{imf}}s for star formation in disks and spheroids irrespective of other physical conditions. The {\gls{imf}}s to use are specified by the {\normalfont \ttfamily imfSelectionDisk} and {\normalfont \ttfamily imfSelectionSpheroid} parameters (e.g. setting one of these parameters to {\normalfont \ttfamily Salpeter} selects the Salpeter \gls{imf}).
 
-\subsection{Initial Mass Functions}\label{sec:physicsIMF}\index{initial mass function}
+\section{Initial Mass Functions}\label{sec:physicsIMF}\index{initial mass function}
 
 A variety of different \gls{imf} s are available. Each \gls{imf} registers itself with the \glc\ \gls{imf} subsystem and can then be looked-up by name or internal index. All IMFs are assumed to be continuous in $M$, unless otherwise noted and normalized to unit mass. Each \gls{imf} supplies a recycled fraction and metal yield for use in the instantaneous recycling approximation. These can be set via the parameters {\normalfont \ttfamily imf[imfName]RecycledInstantaneous} and {\normalfont \ttfamily imf[imfName]YieldInstantaneous} where {\normalfont \ttfamily [imfName]} is the name of the \gls{imf}. Their default values were computed using \glc 's internal stellar astrophysics modules for a Solar metallicity population with age of $13.8$ Gyr.
 
-\subsubsection{Baugh et al. (2005) Top-Heavy}
+\subsection{Baugh et al. (2005) Top-Heavy}
 
 The {\normalfont \ttfamily Baugh2005TopHeavy} \gls{imf} is defined by \citep{baugh_can_2005}:
 \begin{equation}
@@ -1616,7 +1226,7 @@ The {\normalfont \ttfamily Baugh2005TopHeavy} \gls{imf} is defined by \citep{bau
  M^{-1} \hbox{ for } 0.15M_\odot < M < 125M_\odot
 \end{equation}
 
-\subsubsection{BPASS}
+\subsection{BPASS}
 
 The \href{http://www.bpass.org.uk/}{\normalfont \ttfamily BPASS} \gls{imf} is defined by:
 \begin{equation}
@@ -1626,7 +1236,7 @@ The \href{http://www.bpass.org.uk/}{\normalfont \ttfamily BPASS} \gls{imf} is de
 0 & \hbox {otherwise.} \end{array} \right.
 \end{equation}
 
-\subsubsection{Chabrier}
+\subsection{Chabrier}
 
 The {\normalfont \ttfamily Chabrier} \gls{imf} is defined by \citep{chabrier_galactic_2001}:
 \begin{equation}
@@ -1637,7 +1247,7 @@ The {\normalfont \ttfamily Chabrier} \gls{imf} is defined by \citep{chabrier_gal
 \end{equation}
 where $\sigma_\mathrm{c}=${\normalfont \ttfamily [imfChabrierSigma]}, $M_\mathrm{c}=${\normalfont \ttfamily [imfChabrierMass]}$M_\odot$, $\alpha=${\normalfont \ttfamily [imfChabrierExponent]}, $M_\mathrm{t}=${\normalfont \ttfamily [imfChabrierMassTransition]}$M_\odot$, $M_\mathrm{l}=${\normalfont \ttfamily [imfChabrierMassLower]}$M_\odot$, and $M_\mathrm{u}=${\normalfont \ttfamily [imfChabrierMassUpper]}$M_\odot$.
 
-\subsubsection{Kennicutt}
+\subsection{Kennicutt}
 
 The {\normalfont \ttfamily Kennicutt} \gls{imf} is defined by \citep{kennicutt_rate_1983}:
 \begin{equation}
@@ -1648,7 +1258,7 @@ The {\normalfont \ttfamily Kennicutt} \gls{imf} is defined by \citep{kennicutt_r
  0 & \hbox {otherwise.} \end{array} \right.
 \end{equation}
 
-\subsubsection{Kroupa}
+\subsection{Kroupa}
 
 The {\normalfont \ttfamily Kroupa} \gls{imf} is defined by \citep{kroupa_variation_2001}:
 \begin{equation}
@@ -1660,7 +1270,7 @@ The {\normalfont \ttfamily Kroupa} \gls{imf} is defined by \citep{kroupa_variati
 0 & \hbox {otherwise.} \end{array} \right.
 \end{equation}
 
-\subsubsection{Miller-Scalo}
+\subsection{Miller-Scalo}
 
 The {\normalfont \ttfamily Miller-Scalo} \gls{imf} is defined by \citep{miller_initial_1979}:
 \begin{equation}
@@ -1672,7 +1282,7 @@ The {\normalfont \ttfamily Miller-Scalo} \gls{imf} is defined by \citep{miller_i
  0 & \hbox {otherwise.} \end{array} \right.
 \end{equation}
 
-\subsubsection{Piecewise Power-law}
+\subsection{Piecewise Power-law}
 
 Arbitrary piecewise power-law {\gls{imf}}s can be defined using the {\normalfont \ttfamily PiecewisePowerLaw} method. The \gls{imf} will be constructed such that:
 \begin{equation}
@@ -1680,14 +1290,14 @@ Arbitrary piecewise power-law {\gls{imf}}s can be defined using the {\normalfont
 \end{equation}
 where $i=1$\ldots$N$, the $M_i$ are given by {\normalfont \ttfamily [imfPiecewisePowerLawMassPoints]} and the $\alpha_i$ are given by {\normalfont \ttfamily [imfPiecewisePowerLawExponents]}. (Note that {\normalfont \ttfamily [imfPiecewisePowerLawMassPoints]} must contain $N+1$ elements, while {\normalfont \ttfamily [imfPiecewisePowerLawExponents]} contains only $N$ elements.) The normalization of each power-law piece is chosen to ensure a continuous \gls{imf} that is normalized to unit mass overall.
 
-\subsubsection{Salpeter}
+\subsection{Salpeter}
 
 The {\normalfont \ttfamily Salpeter} \gls{imf} is defined by \citep{salpeter_luminosity_1955}:
 \begin{equation}
  \phi(M) \propto \left\{ \begin{array}{ll} M^{-2.35} & \hbox{ for } 0.1M_\odot < M < 125M_\odot \\ 0 & \hbox {otherwise.} \end{array} \right.
 \end{equation}
 
-\subsubsection{Scalo}
+\subsection{Scalo}
 
 The {\normalfont \ttfamily Scalo} \gls{imf} is defined by \citep{scalo_stellar_1986}:
 \begin{equation}
@@ -2031,7 +1641,7 @@ where $\sigma_\mathrm{max}$ is the peak value of $\sigma(M)$ (for the lowest mas
 
 The method to be used for modifying branching probabilities in merger trees is specified by the {\normalfont \ttfamily treeBranchingModifierMethod} parameter.
 
-\subsection{Null}
+\subsection{Identity}
 
 Selected with {\normalfont \ttfamily treeBranchingModifierMethod}$=${\normalfont \ttfamily null}, this method makes no change to the branching probability.
 
@@ -2047,7 +1657,7 @@ where $\delta_\mathrm{p}$ is the current critical overdensity for collapse for t
 
 The method to be used for building merger trees is specified by the {\normalfont \ttfamily mergerTreeBuildMethod} parameter.
 
-\subsection{Cole et al. (2000) Algorithm}
+\subsection{Cole2000}
 
 Selected with {\normalfont \ttfamily mergerTreeBuildMethod}$=${\normalfont \ttfamily Cole2000}, this method uses the algorithm described by \cite{cole_hierarchical_2000} (with minor modifications described below), with a branching probability method selected via the {\normalfont \ttfamily treeBranchingMethod} parameter. This action of this algorithm is controlled by the following parameters:
 \begin{description}
@@ -2058,8 +1668,6 @@ Selected with {\normalfont \ttfamily mergerTreeBuildMethod}$=${\normalfont \ttfa
  \item [{\normalfont \ttfamily mmergerTreeBuildCole2000BranchIntervalStep}] If {\normalfont \ttfamily true}, instead of limiting each time step such that the probability of branching is less than {\normalfont \ttfamily mergerTreeBuildCole2000MergeProbability}, the interval to the next branching event will be drawn from a negative exponential with the appropriate rate. If this exceeds the maximum allowed timestep based on other considerations (e.g. the accretion limit), no branching occurs, and the timestep proceeds\footnote{Note that we do not have to concern ourselves in the subsequent timestep with the fact that no branching occurred in the previous timestep because of the memorylessness nature of the negative exponential distribution. That is, the distribution of branching intervals conditioned on the fact that no branching occurred in the previous timestep, is just the same negative exponential distribution.}. If the interval is less than the maximum allowed timestep, branching occurs at that point. In the regime of high branching rates (which occur when the branch being grown is far above the mass resolution), this approach allows for larger timesteps to be taken.
 \end{description}
 The minimum halo mass that the algorithm will follow is determined by the selection merger tree building mass resolution method (see \S\ref{sec:MergerTreeBuildingMassResolution}). Mass accretion below this scale is treated as smooth accretion and branches are truncated once they fall below this mass.
-
-\subsubsection{Modifications}
 
 In the original \cite{cole_hierarchical_2000}, when a branch split occurred masses, $M_2$ and $M_3$, of the two new halos were selected by first drawing the mass $M_2$ from the branching distribution function in the range $M_\mathrm{res}$ to $M_1/2$ (where $M_1$ is the mass of the parent halo, and $M_\mathrm{res}$ is the mass resolution being used for the tree), and then setting
 \begin{equation}
@@ -2173,7 +1781,7 @@ This task allows for branches of merger trees to be pruned to leave only the bra
 
 Methods for computing chemical reaction rates are selected via the {\normalfont \ttfamily [chemicalReactionRatesMethods]} parameter. Multiple methods can be selected---their rates are cumulated.
 
-\subsection{Null}
+\subsection{Zero}
 
 Selected with {\normalfont \ttfamily chemicalReactionRatesMethods}$=${\normalfont \ttfamily null} this is a null method which does not set any rates.
 
@@ -2205,18 +1813,9 @@ F_\mathrm{gravity} = {4\over 3} \rho_\mathrm{gas}(r_{1/2}) {\mathrm{G} M_\mathrm
 \end{equation}
 is the gravitational restoring force in the spheroid at the half-mass radius, $r_\mathrm{1/2}$ \citep{takeda_ram_1984}.
 
-
-\subsection{Null}
-
-Selected with {\normalfont \ttfamily ramPressureStrippingMassLossRate(Disks|Spheroids)Method}$=${\normalfont \ttfamily null} this method assumes zero mass loss rate always.
-
 \section{Satellite Dynamical Friction}\label{sec:satelliteDynamicalFrictionMethod}\index{dynamical friction!satellites}
 
 The method to be used for computing the satellite vector acceleration due to dynamical friction is specified by the {\normalfont \ttfamily satelliteDynamicalFrictionMethod} parameter.
-
-\subsection{Null}
-
-Selected with {\normalfont \ttfamily satelliteDynamicalFrictionMethod}$=${\normalfont \ttfamily null}, this method assumes that there is no dynamical friction in the system.
 
 \subsection{Chandrasekhar (1943)}
 
@@ -2246,10 +1845,6 @@ where $r_\mathrm{p}$ is the pericentric radius. $M_\mathrm{host}(<r)$ is the mas
 
 The method to be used for computing the satellite mass loss rate due to tidal stripping is specified by the {\normalfont \ttfamily satelliteTidalStrippingMethod} parameter.
 
-\subsection{Null}
-
-Selected with {\normalfont \ttfamily satelliteTidalStrippingMethod}$=${\normalfont \ttfamily null}, this method assumes that there is no tidal stripping in the system.
-
 \subsection{Zentner (2005)}
 
 Selected by default with {\normalfont \ttfamily satelliteTidalStrippingMethod}$=${\normalfont \ttfamily Zentner2005}, this method uses the formalism of \cite{zentner_physics_2005} to compute the mass loss rate $\dot{M}_\mathrm{sat}$:
@@ -2269,10 +1864,6 @@ where $\omega$ is the orbital angular velocity of the satellite, and $\Phi(r)$ i
 \section{Satellite Tidal Heating} \label{sec:satelliteTidalHeatingMethod}\index{tidal heating!satellites}
 
 The method to be used for computing the integrated, normalized (i.e. the energy divided by radius squared) tidal heating energy, $Q_\mathrm{tidal}$, for subhalos is specified by the {\normalfont \ttfamily satelliteTidalHeatingMethod} parameter.
-
-\subsection{Null}
-
-Selected with {\normalfont \ttfamily satelliteTidalHeatingMethod}$=${\normalfont \ttfamily null}, this method assumes that there is no tidal heating.
 
 \subsection{Gnedin (1999)}
 
@@ -2385,14 +1976,6 @@ Selected with {\normalfont \ttfamily starFormationTimescale[Disks|Spheroids]Meth
 \end{equation}
 where $\epsilon_\star=${\normalfont \ttfamily starFormation[Disks|Spheroids]Efficiency} and $\alpha_\star=${\normalfont \ttfamily starFormation[Disks|Spheroids]VelocityExponent} are input parameters, $\tau_\mathrm{dynamical}\equiv r/V$ is the dynamical timescale of the \gls{component} and $r$ and $V$ are the characteristic radius and velocity respectively of the component. The timescale is not allowed to fall below a minimum value specified by {\normalfont \ttfamily starFormation[Disks|Spheroids]MinimumTimescale} (in Gyr).
 
-\subsection{Integrated Surface Density}
-
-Selected with {\normalfont \ttfamily starFormationTimescaleDisksMethod}$=${\normalfont \ttfamily integratedSurfaceDensity} this method computes the star formation timescale to be:
-\begin{equation}
- \tau_\star =  {M_\mathrm{cold} \over \int_0^\infty 2 \pi r \dot{\Sigma}_\star(r) \mathrm{d}r},
-\end{equation}
-where $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate (see \S\ref{sec:StarFormationRateSurfaceDensity}).
-
 \subsection{Baugh et al. (2005)}
 
 Selected with {\normalfont \ttfamily starFormationTimescaleDisksMethod}$=${\normalfont \ttfamily Baugh2005} this method assumes that the star formation rate is given by a modified version of the \cite{baugh_can_2005} prescription:
@@ -2428,7 +2011,7 @@ where $\dot{R}(t;Z)$ and $\dot{p}(t;Z)$ are the recycling and metal yield rates 
 
 Stellar population spectra are used to construct intgrated spectra of galaxies. The method used to compute such spectra is specified by the {\normalfont \ttfamily stellarPopulationSpectraMethod} parameter.
 
-\subsection{Conroy, White \& Gunn (2009)}
+\subsection{FSPS}
 
 Selected with {\normalfont \ttfamily stellarPopulationSpectraMethod}$=${\normalfont \ttfamily Conroy-White-Gunn2009} this method uses v2.2 of the \href{http://www.cfa.harvard.edu/~cconroy/FSPS.html}{{\normalfont \ttfamily FSPS}} code of \cite{conroy_propagation_2009} to compute stellar spectra. If necessary, the {\normalfont \ttfamily FSPS} code will be downloaded, patched and compiled and run to generate spectra. These tabulations are then stored to file for later retrieval. The file name used is {\normalfont \ttfamily datasets/dynamic/stellarPopulations/simpleStellarPopulationsFSPS:v2.5\_$<$descriptor$>$.hdf5} where $<${\normalfont \ttfamily descriptor}$>$ is an MD5 hash descriptor of the selected stellar population.
 
@@ -2468,13 +2051,9 @@ Selected with {\normalfont \ttfamily stellarPopulationSpectraPostprocess\textles
 
 \section{Stellar Astrophysics}
 
-Various properties related to stellar astrophysics are required by \glc. The following documents their implementation.
-
-\subsection{Basics}
-
 This subset of properties include recycled mass, metal yield and lifetime.  The method used to compute such properties is specified by the {\normalfont \ttfamily stellarAstrophysicsMethod} parameter.
 
-\subsubsection{File}\label{sec:StellarAstrophysicsFile}
+\subsection{File}\label{sec:StellarAstrophysicsFile}
 
 Selected with {\normalfont \ttfamily stellarAstrophysicsMethod}$=${\normalfont \ttfamily file} this method uses reads properties of individual stars of different initial mass and metallicity from an XML file and interpolates in them. The stars can be irregularly spaced in the plane of initial mass and metallicity. The XML file should have the following structure:
 \begin{verbatim}
@@ -2501,19 +2080,19 @@ Selected with {\normalfont \ttfamily stellarAstrophysicsMethod}$=${\normalfont \
 \end{verbatim}
 Each {\normalfont \ttfamily star} element must contain the {\normalfont \ttfamily initialMass} (given in $M_\odot$) and {\normalfont \ttfamily metallicity} tags. Other tags are optional. {\normalfont \ttfamily lifetime} gives the lifetime of such a star (in Gyr), {\normalfont \ttfamily ejectedMass} gives the total mass (in $M_\odot$) ejected by such a star during its lifetime, {\normalfont \ttfamily metalYieldMass} gives the total mass of metals yielded by the star during its lifetime while {\normalfont \ttfamily elementYieldMassX} gives the mass of element {\normalfont \ttfamily X} yielded by the star during its lifetime. The {\normalfont \ttfamily source} and {\normalfont \ttfamily url} tags are not used, but are strongly recommended to provide a reference to the origin of the stellar data.
 
-\subsection{Stellar Winds}
+\section{Stellar Winds}
 
 Energy input to the \gls{ism} from stellar winds is used in calculations of feedback efficiency. The method used to compute stellar wind properties is specified by the {\normalfont \ttfamily stellarWindsMethod} parameter.
 
-\subsubsection{Leitherer et al. (1992)}
+\subsection{Leitherer et al. (1992)}
 
 Selected with {\normalfont \ttfamily stellarWindsMethod}$=${\normalfont \ttfamily Leitherer1992} this method uses the fitting formulae of \cite{leitherer_deposition_1992} to compute stellar wind energy input from the luminosity and effective temperature of a star.
 
-\subsection{Stellar Tracks}
+\section{Stellar Tracks}
 
 The method used to compute stellar tracks is specified by the {\normalfont \ttfamily stellarTracksMethod} parameter.
 
-\subsubsection{File}\label{sec:StellarTracksFile}
+\subsection{File}\label{sec:StellarTracksFile}
 
 Selected with {\normalfont \ttfamily stellarTracksMethod}$=${\normalfont \ttfamily file} in this method luminosities and effective temperatures of stars are computed from a tabulated set of stellar tracks. The file containing the tracks to use is specified via the {\normalfont \ttfamily stellarTracksFile} parameter. The file specified must be an HDF5 file with the following structure:
 \begin{verbatim}
@@ -2539,43 +2118,39 @@ Selected with {\normalfont \ttfamily stellarTracksMethod}$=${\normalfont \ttfami
 \end{verbatim}
 Each {\normalfont \ttfamily metallicityN} group tabulates tracks for a given metallicity (the value of which is stored in the {\normalfont \ttfamily metallicity} dataset within each group), and may contain an arbitrary number of {\normalfont \ttfamily massN} groups. Each {\normalfont \ttfamily massN} group should contain a track for a star of some mass (the value of which is given in the {\normalfont \ttfamily mass} dataset). Within each track three datasets specify the {\normalfont \ttfamily age} (in Gyr), {\normalfont \ttfamily luminosity} (in $L_\odot$) and {\normalfont \ttfamily effectiveTemperature} (in Kelvin) along the track.
 
-\subsection{Supernovae Type Ia}\index{supernovae!Type Ia}
+\section{Supernovae Type Ia}\index{supernovae!Type Ia}
 
 Properties of Type Ia supernovae, including the cumulative number occuring and metal yield, are handled by the method selected using the {\normalfont \ttfamily supernovaeIaMethod} parameter.
 
-\subsubsection{Nagashima et al. (2005) Prescription}
+\subsection{Nagashima et al. (2005) Prescription}
 
 Selected with {\normalfont \ttfamily supernovaeIaMethod}$=${\normalfont \ttfamily Nagashima} this method uses the prescriptions from \cite{nagashima_metal_2005} to compute the numbers and yields of Type Ia supernovae.
 
-\subsection{Population III Supernovae}\index{supernovae!Population III}\index{Population III!supernovae}
+\section{Population III Supernovae}\index{supernovae!Population III}\index{Population III!supernovae}
 
 Properties of Population III specific supernovae are handled by the method selected with the {\normalfont \ttfamily supernovaePopIIIMethod} parameter.
 
-\subsubsection{Heger \& Woosley (2002)}
+\subsection{Heger \& Woosley (2002)}
 
 Selected with {\normalfont \ttfamily supernovaePopIIIMethod}$=${\normalfont \ttfamily Heger-Woosley2002} this method computes the energies of pair instability supernovae from the results of \cite{heger_nucleosynthetic_2002}.
 
-\subsection{Stellar Feedback}
+\section{Stellar Feedback}
 
 Aspects of stellar feedback are computed by the method selected with the {\normalfont \ttfamily stellarFeedbackMethod} parameter.
 
-\subsubsection{Standard}
+\subsection{Standard}
 
 Selected with {\normalfont \ttfamily stellarFeedbackMethod}$=${\normalfont \ttfamily standard}, the method assumes that the cumulative energy input from a stellar population is equal to the total number of (Type II and Type Ia) supernovae multiplied by {\normalfont \ttfamily supernovaEnergy} (specified in ergs) plus any Population III-specific supernovae energy plus the integrated energy input from stellar winds. The minimum mass of a star required to form a Type II supernova is specified (in $M_\odot$) via the {\normalfont \ttfamily initialMassForSupernovaeTypeII} parameter.
 
-\section{Substructure and Merging}\index{merging!substructure}\index{substructure}
-
-Substructures and merging of nodes/substructures is controlled by several algorithms which are described below:
-
-\subsection{Merging Timescales}\label{sec:SatelliteMergingTimescales}\hyperdef{sec}{SatelliteMergingTimescales}{}\index{merging!timescale}
+\section{Merging Timescales}\label{sec:SatelliteMergingTimescales}\hyperdef{sec}{SatelliteMergingTimescales}{}\index{merging!timescale}
 
 The method used to compute merging timescales of substructures is specified by the {\normalfont \ttfamily satelliteMergingTimescalesMethod} parameter.
 
-\subsubsection{Lacey \& Cole (1993)}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesLaceyCole1993}
+\subsection{Lacey \& Cole (1993)}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesLaceyCole1993}
 
 Selected with {\normalfont \ttfamily satelliteMergingTimescalesMethod}$=${\normalfont \ttfamily laceyCole1993}, this method computes merging timescales using the dynamical friction calculation of \cite{lacey_merger_1993}. Timescales are multiplied by the value of the {\normalfont \ttfamily mergingTimescaleMultiplier} input parameter.
 
-\subsubsection{Lacey \& Cole (1993) $+$ Tormen}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesLaceyCole1993Tormen}
+\subsection{Lacey \& Cole (1993) $+$ Tormen}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesLaceyCole1993Tormen}
 
 Selected with {\normalfont \ttfamily satelliteMergingTimescalesMethod}$=${\normalfont \ttfamily laceyCole1993Tormen}, this method computes merging timescales using the dynamical friction calculation of \cite{lacey_merger_1993} with a parameterization of orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000}. Timescales are multiplied by the value of the {\normalfont \ttfamily mergingTimescaleMultiplier} input parameter. Specifically, the merging time is taken to be:
 \begin{equation}
@@ -2583,20 +2158,20 @@ Selected with {\normalfont \ttfamily satelliteMergingTimescalesMethod}$=${\norma
 \end{equation}
 where $f_\tau=${\normalfont \ttfamily mergingTimescaleMultiplier}, $\tau_\mathrm{dynamical}$ is the dynamical time of the host halo and $B(x)=\hbox{erf}(x)-2 x \exp(x)/\sqrt{\Pi}$. The orbital factor $\Phi \equiv \epsilon^{0.78} (R_\mathrm{c}/R_\mathrm{virial})^2$ is drawn at random from a log-normal distribution with median $-0.14$ and dispersion $0.26$ as found by \cite{cole_hierarchical_2000}.
 
-\subsubsection{Jiang (2008)}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesJiang2008}
+\subsection{Jiang (2008)}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesJiang2008}
 
 Selected with {\normalfont \ttfamily satelliteMergingTimescalesMethod}$=${\normalfont \ttfamily jiang2008}, this method computes merging timescales using the dynamical friction calibration of \cite{jiang_fitting_2008}. \cite{jiang_fitting_2008} find that their fitting formula does not perfectly capture the results of N-body simulations, instead showing a scatter in the ratio $T_\mathrm{fit}/T_\mathrm{sim}$ where $T_\mathrm{fit}$ is the merging time from their fitting formula and $T_\mathrm{sim}$ is that measured from their N-body simulation. Furthermore, they show that the distribution of $T_\mathrm{fit}/T_\mathrm{sim}$ is well described by a log-normal with dispersion (in $\log[T_\mathrm{fit}/T_\mathrm{sim}]$) of $\sigma=0.4$. Random perturbations can be applied to the merger times returned by this implementation by setting $\sigma=${\normalfont \ttfamily [satelliteMergingJiang2008Scatter]}$>0$ which will cause the merger time to be drawn from a log-normal distribution of width $\sigma$ with median equal to $T_\mathrm{fit}$.
 
 
-\subsubsection{Boylan-Kolchin (2008)}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesBoylanKolchin2008}\hyperdef{phys}{satelliteMergingTimescales:satelliteMergingTimescalesBoylanKolchin2008}{}
+\subsection{Boylan-Kolchin (2008)}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesBoylanKolchin2008}\hyperdef{phys}{satelliteMergingTimescales:satelliteMergingTimescalesBoylanKolchin2008}{}
 
 Selected with {\normalfont \ttfamily satelliteMergingTimescalesMethod}$=${\normalfont \ttfamily boylanKolchin2008}, this method computes merging timescales using the dynamical friction calibration of \cite{boylan-kolchin_dynamical_2008}.
 
-\subsubsection{Wetzel \& White (2010)}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesWetzelWhite2010}
+\subsection{Wetzel \& White (2010)}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesWetzelWhite2010}
 
 Selected with {\normalfont \ttfamily satelliteMergingTimescalesMethod}$=${\normalfont \ttfamily wetzelWhite2010}, this method computes merging timescales using the dynamical friction calibration of \cite{wetzel_what_2010}.
 
-\subsubsection{Villalobos et al. (2013)}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesVillalobos2013}
+\subsection{Villalobos et al. (2013)}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesVillalobos2013}
 
 Selected with {\normalfont \ttfamily satelliteMergingTimescalesMethod}$=${\normalfont \ttfamily villalobos2013}, this method computes merging timescales using the modifier of \cite{villalobos_improved_2013} as
 \begin{equation}
@@ -2604,43 +2179,43 @@ Selected with {\normalfont \ttfamily satelliteMergingTimescalesMethod}$=${\norma
 \end{equation}
 where $\alpha=${\normalfont \ttfamily [satelliteMergingTimescaleVillalobos2013Exponent]} and $\tau^\prime_\mathrm{merge}$ is the merging timescale computed by another satellite merging timescale method as specified via {\normalfont \ttfamily [satelliteMergingTimescaleVillalobos2013BaseMethod]}.
 
-\subsubsection{Preset}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesPreset}
+\subsection{Preset}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesPreset}
 
 Selected with {\normalfont \ttfamily satelliteMergingTimescalesMethod}$=${\normalfont \ttfamily preset}, this method returns a precomputed merging timescale stored by the satellite component.
 
-\subsubsection{Null}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesNull}
+\subsection{Zero}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesNull}
 
 Selected with {\normalfont \ttfamily satelliteMergingTimescalesMethod}$=${\normalfont \ttfamily null}, this method returns zero merging timescale.
 
-\subsubsection{Infinite}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesInfinite}
+\subsection{Infinite}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesInfinite}
 
 Selected with {\normalfont \ttfamily satelliteMergingTimescalesMethod}$=${\normalfont \ttfamily infinite}, this method returns an infinite merging timescale (technically, it returns $10^{30}$~Gyr which should be sufficiently close to infinity for practical purposes).
 
-\subsection{Virial Orbits}\label{sec:SatelliteVirialOrbits}\hyperdef{sec}{SatelliteVirialOrbits}{}
+\section{Virial Orbits}\label{sec:SatelliteVirialOrbits}\hyperdef{sec}{SatelliteVirialOrbits}{}
 
 The algorithm to be used to determine orbital parameters of substructures when they first enter the virial radius of their host is specified via the {\normalfont \ttfamily virialOrbitMethod} parameter.
 
-\subsubsection{Benson (2005)}\label{phys:virialOrbit:virialOrbitBenson2005}
+\subsection{Benson (2005)}\label{phys:virialOrbit:virialOrbitBenson2005}
 
 Selected with {\normalfont \ttfamily virialOrbitMethod}$=${\normalfont \ttfamily benson2005}, this method selects orbital parameters randomly from the distribution given by \cite{benson_orbital_2005}. If the virial density contrast definition differs from that used by \cite{benson_orbital_2005} then the orbit is assigned based on \cite{benson_orbital_2005}'s definition and then propagated to the virial radius relevant to the current definition of density contrast.
 
-\subsubsection{Fixed}\label{phys:virialOrbit:virialOrbitFixed}
+\subsection{Fixed}\label{phys:virialOrbit:virialOrbitFixed}
 
 Selected with {\normalfont \ttfamily virialOrbitMethod}$=${\normalfont \ttfamily fixed}, this method sets all orbital parameters to fixed values, with $v_\mathrm{r}=${\normalfont \ttfamily [virialOrbitsFixedRadialVelocity]}$V_\mathrm{virial}$ and  $v_\phi=${\normalfont \ttfamily [virialOrbitsFixedTangentialVelocity]}$V_\mathrm{virial}$.
 
-\subsubsection{Wetzel (2010)}\label{phys:virialOrbit:virialOrbitWetzel2010}
+\subsection{Wetzel (2010)}\label{phys:virialOrbit:virialOrbitWetzel2010}
 
 Selected with {\normalfont \ttfamily virialOrbitMethod}$=${\normalfont \ttfamily wetzel2010}, this method selects orbital parameters randomly from the distribution given by \cite{wetzel_orbits_2010}, including the redshift and mass dependence of the distributions. Note that the parameter $R_1$ can become negative (which is unphysical) for certain regimes of mass and redshift according to the fitting function for $R_1$ given by \cite{wetzel_orbits_2010}. Therefore, we enforce $R_1>0.05$. Similarly, the parameter $C_1$ can become very large in some regimes which is probably an artifact of the fitting function used rather than physically meaningful (and which causes numerical difficulties in evaluating the distribution). We therefore prevent $C_1$ from exceeding $9.999999$\footnote{We use this value rather than $10$ since the GSL $_2F_1$ hypergeomtric function fails in some cases when $C_1\ge 10$.} If the virial density contrast definition differs from that used by \cite{wetzel_orbits_2010} then the orbit is assigned based on \cite{wetzel_orbits_2010}'s definition and then propagated to the virial radius relevant to the current definition of density contrast.
 
-\subsubsection{Jiang et al. (2014)}\label{phys:virialOrbit:virialOrbitJiang2014}
+\subsection{Jiang et al. (2014)}\label{phys:virialOrbit:virialOrbitJiang2014}
 
 Selected with {\normalfont \ttfamily virialOrbitMethod}$=${\normalfont \ttfamily jiang2014}, this method selects orbital parameters randomly from the distribution given by \cite{jiang_orbital_2014}, including the mass and mass-ratio dependence of the distributions. If the virial density contrast definition differs from that used by \cite{jiang_orbital_2014} then the orbit is assigned based on \cite{jiang_orbital_2014}'s definition and then propagated to the virial radius relevant to the current definition of density contrast.
 
-\subsection{Node Merging}
+\section{Node Merging}
 
 The algorithm to be used to process nodes when they become substructures is specified by the {\normalfont \ttfamily nodeMergersMethod} parameter.
 
-\subsubsection{Single Level Hierarchy}
+\subsection{Single Level Hierarchy}
 
 Selcted with {\normalfont \ttfamily nodeMergersMethod}$=${\normalfont \ttfamily singleLevelHierarchy}, this method maintains a single level hierarchy of substructure, i.e. it tracks only substructures, not sub-substructures or deeper levels. When a \gls{node} first becomes a satellite it is appended to the list of satellites associated with its host halo. If the \gls{node} contains its own satellites they will be detached from the \gls{node} and appended to the list of satellites of the new host (and assigned new merging times).
 
@@ -2671,14 +2246,6 @@ Selected with {\normalfont \ttfamily starFormationFeedbackDisksMethod}$=${\norma
 \dot{M}_\mathrm{outflow} = {\dot{E}_\mathrm{SN} \over E_\mathrm{SN} \dot{M}_\star} \int_0^\infty \beta_0 \Sigma_{g,1}^{-\mu}(r) f_\mathrm{g}^\nu(r) \dot{\Sigma}_\star(r) 2 \pi r \mathrm{d}r,
 \end{equation}
 where $\Sigma_{g,1}(r)$ is the surface density of gas in units of $M_\odot$ pc$^{-2}$, $f_\mathrm{g}(r)$ is the gas fraction, $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate, $\dot{M}_\star$ is the total star formation rate in the disk, $\dot{E}_\mathrm{SN}$ is the current energy input rate from supernovae, $E_\mathrm{SN}$ is the total energy input per unit mass from a stellar population after infinite time, $\beta_0=${\normalfont \ttfamily [starFormationFeedbackDisksCreasy2012Beta0]}, $\mu=${\normalfont \ttfamily [starFormationFeedbackDisksCreasy2012Mu]}, and $\nu=${\normalfont \ttfamily [starFormationFeedbackDisksCreasy2012Nu]}.
-
-\section{Supernovae Expulsive Feedback Models}\label{sec:sneExpulsiveFeedback}\index{supernovae!feedback}\index{feedback!expulsive}
-
-The expulsive supernovae feedback driven outflow rate is computed using the method specified by the {\normalfont \ttfamily starFormationExpulsiveFeedback[Disks|Spheroids]Method} for disks and spheroids respectively.
-
-\subsection{Null}
-
-Selected with {\normalfont \ttfamily starFormationExpulsiveFeedback[Disks|Spheroids]Method}$=${\normalfont \ttfamily null}, this method assumes a zero outflow rate.
 
 \subsection{Superwind}
 
@@ -2720,7 +2287,7 @@ Where $M_\mathrm{sat}$ is the mass of the satellite galaxy, $r_\mathrm{sat,1/2}$
 
 The method to be used for computing the separation growth rate of black hole binaries is specified by the {\normalfont \ttfamily blackHoleBinarySeparationGrowthRateMethod} parameter.
 
-\subsection{Null}
+\subsection{Zero}
 
 Selected by default and with {\normalfont \ttfamily blackHoleBinarySeparationGrowthRateMethod}$=${\normalfont \ttfamily null}, this method assumes that the initial separation of the binaries is final.
 
@@ -2760,7 +2327,7 @@ if {\normalfont \ttfamily [stellarDensityChangeBinaryMotion]}$=${\normalfont \tt
 
 The method to be used for computing the recoil velocity due to gravitaional waves ejection during a binary merger specified by the {\normalfont \ttfamily blackHoleBinaryRecoilVelocityMethod} parameter.
 
-\subsection{Null}
+\subsection{Zero}
 
 Selected by default and with {\normalfont \ttfamily blackHoleBinaryRecoilVelocityMethod}$=${\normalfont \ttfamily null}, this method assumes that there is no recoil velocity.
 
@@ -2809,10 +2376,6 @@ $F_\mathrm{tidal}=\mathcal{F}_\mathrm{tidal} r_{1/2}$, $\mathcal{F}_\mathrm{tida
 F_\mathrm{gravity} = V_{1/2}^2(r_{1/2})/r_{1/2}
 \end{equation}
 is the gravitational restoring force in the disk/spheroid at the half-mass radius, $r_\mathrm{1/2}$, and $R_\mathrm{maximum}=${\normalfont \ttfamily [tidalStrippingMassLossRate(Disk|Spheroid)SimpleFractionalRateMaximum]}.
-
-\subsection{Null}
-
-Selected with {\normalfont \ttfamily tidalStrippingMassLossRate(Disks|Spheroids)Method}$=${\normalfont \ttfamily null} this method assumes zero mass loss rate always.
 
 \section{Survey Geometry}\label{phys:surveyGeometry}\index{surveys!geometry}
 

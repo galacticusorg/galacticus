@@ -27,7 +27,9 @@ module Hot_Halo_Temperature_Profiles
   !# <functionClass>
   !#  <name>hotHaloTemperatureProfile</name>
   !#  <descriptiveName>Hot halo temperature profiles</descriptiveName>
-  !#  <description>Class implementing hot halo temperarture profiles.</description>
+  !#  <description>
+  !#   Class implementing hot halo temperarture profiles.
+  !#  </description>
   !#  <default>virial</default>
   !#  <method name="temperature" >
   !#   <description>Return the temperature of the hot halo at the given {\normalfont \ttfamily radius}.</description>

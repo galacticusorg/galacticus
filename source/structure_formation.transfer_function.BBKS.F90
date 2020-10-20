@@ -25,7 +25,10 @@
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !# <transferFunction name="transferFunctionBBKS">
-  !#  <description>Provides the \cite{bardeen_statistics_1986} fitting function for the transfer function.</description>
+  !#  <description>
+  !#   A transfer function class implementing the \cite{bardeen_statistics_1986} fitting function to compute the \gls{cdm}
+  !#   transfer function.
+  !#  </description>
   !# </transferFunction>
   type, extends(transferFunctionClass) :: transferFunctionBBKS
      !% A bbks transfer function class.

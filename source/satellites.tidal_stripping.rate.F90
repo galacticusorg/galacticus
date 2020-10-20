@@ -29,7 +29,9 @@ module Satellite_Tidal_Stripping
   !# <functionClass>
   !#  <name>satelliteTidalStripping</name>
   !#  <descriptiveName>Tidal stripping models for satellites.</descriptiveName>
-  !#  <description>Class providing models of tidal stripping for satellites.</description>
+  !#  <description>
+  !#   Class providing models of tidal stripping for satellites.
+  !#  </description>
   !#  <default>zentner2005</default>
   !#  <calculationReset>yes</calculationReset>
   !#  <method name="massLossRate" >

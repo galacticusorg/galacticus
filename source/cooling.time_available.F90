@@ -27,7 +27,10 @@ module Cooling_Times_Available
   !# <functionClass>
   !#  <name>coolingTimeAvailable</name>
   !#  <descriptiveName>Time available for cooling</descriptiveName>
-  !#  <description>Class providing models of the time available for cooling in the hot atmosphere surrounding a galaxy.</description>
+  !#  <description>
+  !#   Class providing models of the time available (i.e. the time for which gas in a halo has been able to cool) for cooling in
+  !#   the hot atmosphere surrounding a galaxy.
+  !#  </description>
   !#  <default>whiteFrenk1991</default>
   !#  <method name="timeAvailable" >
   !#   <description>Return the time available for cooling in {\normalfont \ttfamily node} in units of Gyr.</description>

@@ -27,7 +27,9 @@ module Hot_Halo_Mass_Distributions_Core_Radii
   !# <functionClass>
   !#  <name>hotHaloMassDistributionCoreRadius</name>
   !#  <descriptiveName>Hot Halo Mass Distributions Core Radii</descriptiveName>
-  !#  <description>Object implementing core radii for hot halo mass distributions.</description>
+  !#  <description>
+  !#   Object implementing core radii for hot halo mass distributions.
+  !#  </description>
   !#  <default>virialFraction</default>
   !#  <method name="radius" >
   !#   <description>Return the core radius of the hot halo mass distribution.</description>

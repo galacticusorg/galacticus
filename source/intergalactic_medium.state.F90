@@ -29,7 +29,9 @@ module Intergalactic_Medium_State
   !# <functionClass>
   !#  <name>intergalacticMediumState</name>
   !#  <descriptiveName>Intergalactic Medium State</descriptiveName>
-  !#  <description>Class providing intergalactic medium state.</description>
+  !#  <description>
+  !#   Class providing the thermal and ionization state of the intergalactic medium.
+  !#  </description>
   !#  <default>recFast</default>
   !#  <method name="electronFraction" >
   !#   <description>Return the electron fraction (relative to hydrogen) in the \gls{igm} at the given time.</description>

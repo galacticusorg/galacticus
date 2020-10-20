@@ -28,7 +28,9 @@ module Cooling_Specific_Angular_Momenta
   !# <functionClass>
   !#  <name>coolingSpecificAngularMomentum</name>
   !#  <descriptiveName>Specific angular momentua of cooling gas.</descriptiveName>
-  !#  <description>Class providing models of the specific angular momentum of gas in the hot atmosphere surrounding a galaxy.</description>
+  !#  <description>
+  !#   Class providing models of the specific angular momentum of gas in the hot atmosphere surrounding a galaxy.
+  !#  </description>
   !#  <default>constantRotation</default>
   !#  <calculationReset>yes</calculationReset>
   !#  <method name="angularMomentumSpecific" >

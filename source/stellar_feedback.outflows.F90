@@ -27,7 +27,9 @@ module Stellar_Feedback_Outflows
   !# <functionClass>
   !#  <name>stellarFeedbackOutflows</name>
   !#  <descriptiveName>Stellar feedback.</descriptiveName>
-  !#  <description>Class providing models of outflows due to stellar feedback.</description>
+  !#  <description>
+  !#   Class providing models of outflows due to stellar feedback.
+  !#  </description>
   !#  <default>powerLaw</default>
   !#  <method name="outflowRate" >
   !#   <description>Returns the outflow rates (both ejective and expulsive) due to stellar feedback in the given {\normalfont \ttfamily component} in units of $M_\odot/$Gyr.</description>

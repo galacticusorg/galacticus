@@ -29,7 +29,9 @@ module Cooling_Functions
   !# <functionClass>
   !#  <name>coolingFunction</name>
   !#  <descriptiveName>Cooling Function</descriptiveName>
-  !#  <description>Class providing cooling functions.</description>
+  !#  <description>
+  !#   Class providing cooling functions of gas, $\Lambda(\rho,T,\mathbf{Z})$.
+  !#  </description>
   !#  <default>atomicCIECloudy</default>
   !#  <method name="coolingFunction" >
   !#   <description>Return the cooling function at the given temperature and hydrogen density for the specified set of abundances and radiation field. Units of the returned cooling function are the traditional ergs cm$^-3$ s$^{-1}$.</description>

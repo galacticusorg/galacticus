@@ -30,7 +30,9 @@ module Dark_Matter_Profiles_Concentration
   !# <functionClass>
   !#  <name>darkMatterProfileConcentration</name>
   !#  <descriptiveName>Dark Matter Profile Concentrations</descriptiveName>
-  !#  <description>Object providing dark matter profile concentrations.</description>
+  !#  <description>
+  !#   Class providing dark matter profile concentrations.
+  !#  </description>
   !#  <default>gao2008</default>
   !#  <method name="concentration" >
   !#   <description>Returns the concentration parameter for the given {\normalfont \ttfamily node}.</description>

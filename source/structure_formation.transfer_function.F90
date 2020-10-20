@@ -26,7 +26,7 @@ module Transfer_Functions
   !# <functionClass>
   !#  <name>transferFunction</name>
   !#  <descriptiveName>Transfer Function</descriptiveName>
-  !#  <description>Object providing transfer functions.</description>
+  !#  <description>Class providing transfer functions for power spectra.</description>
   !#  <default>eisensteinHu1999</default>
   !#  <method name="value" >
   !#   <description>Return the transfer function for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].</description>

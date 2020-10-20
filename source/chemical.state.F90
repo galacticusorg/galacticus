@@ -29,7 +29,9 @@ module Chemical_States
   !# <functionClass>
   !#  <name>chemicalState</name>
   !#  <descriptiveName>Chemical State</descriptiveName>
-  !#  <description>Class providing chemical state.</description>
+  !#  <description>
+  !#   Class providing chemical state of gas.
+  !#  </description>
   !#  <default>atomicCIECloudy</default>
   !#  <method name="electronDensity" >
   !#   <description>Return the electron density at the given temperature and hydrogen density for the specified set of abundances and radiation field. Units of the returned electron density are cm$^-3$.</description>

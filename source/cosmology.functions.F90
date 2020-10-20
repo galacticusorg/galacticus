@@ -26,7 +26,12 @@ module Cosmology_Functions
   !# <functionClass>
   !#  <name>cosmologyFunctions</name>
   !#  <descriptiveName>Cosmology Functions</descriptiveName>
-  !#  <description>Object providing various cosmological functions.</description>
+  !#  <description>
+  !#   A class that provides various cosmological functions. The background cosmology describes the evolution of an isotropic,
+  !#   homogeneous Universe within which our calculations are carried out. For the purposes of \glc, the background cosmology is
+  !#   used to relate expansion factor/redshift to cosmic time and to compute the density of various components (e.g. dark matter,
+  !#   dark energy, etc.) at different epochs.
+  !#  </description>
   !#  <default>matterLambda</default>
   !#  <method name="epochValidate" >
   !#   <description>Check the given cosmic epoch is valid (aborting otherwise) and, optionally, return time or expansion factor associated with the epoch.</description>

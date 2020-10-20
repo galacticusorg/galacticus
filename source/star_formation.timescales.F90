@@ -27,7 +27,9 @@ module Star_Formation_Timescales
   !# <functionClass>
   !#  <name>starFormationTimescale</name>
   !#  <descriptiveName>Timescales for star formation</descriptiveName>
-  !#  <description>Class providing models of timescales for star formation.</description>
+  !#  <description>
+  !#   Class providing models of timescales for star formation.
+  !#  </description>
   !#  <default>dynamicalTime</default>
   !#  <method name="timescale" >
   !#   <description>Returns the timescale (in Gyr) for star formation in the provided {\normalfont \ttfamily component}.</description>

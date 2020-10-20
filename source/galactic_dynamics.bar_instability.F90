@@ -27,7 +27,9 @@ module Galactic_Dynamics_Bar_Instabilities
   !# <functionClass>
   !#  <name>galacticDynamicsBarInstability</name>
   !#  <descriptiveName>Bar instabilities in galactic disks</descriptiveName>
-  !#  <description>Class providing models of bar instabilities in galactic disks.</description>
+  !#  <description>
+  !#   Class providing models of bar instabilities in galactic disks.
+  !#  </description>
   !#  <default>efstathiou1982</default>
   !#  <method name="timescale" >
   !#   <description>Returns a timescale on which the bar instability depletes material from a disk into a pseudo-bulge. A negative value indicates no instability. Also returns the net torque due to any external force causing this instability.</description>

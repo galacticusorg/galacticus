@@ -29,7 +29,9 @@ module Merger_Tree_Branching
   !# <functionClass>
   !#  <name>mergerTreeBranchingProbability</name>
   !#  <descriptiveName>Merger Tree Branching Probabilities</descriptiveName>
-  !#  <description>Class providing merger tree branching probabilities.</description>
+  !#  <description>
+  !#   Class providing merger tree branching probabilities.
+  !#  </description>
   !#  <default>parkinsonColeHelly</default>
   !#  <method name="rate" >
   !#   <description>Computes the probability per unit ``time'' of branching at the given mass.</description>

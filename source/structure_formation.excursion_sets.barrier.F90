@@ -27,7 +27,9 @@ module Excursion_Sets_Barriers
   !# <functionClass>
   !#  <name>excursionSetBarrier</name>
   !#  <descriptiveName>Excursion Set Barrier</descriptiveName>
-  !#  <description>Class providing barriers for the excursion set problem.</description>
+  !#  <description>
+  !#   Class providing barriers for the excursion set problem.
+  !#  </description>
   !#  <default>criticalOverdensity</default>
   !#  <method name="barrier" >
   !#   <description>Return the barrier height at the given variance and time. The {\normalfont \ttfamily rateCompute} should be set to {\normalfont \ttfamily true} if the barrier is being used in a calculation of barrier crossing rates, and to {\normalfont \ttfamily false} otherwise.</description>

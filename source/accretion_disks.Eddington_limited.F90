@@ -20,7 +20,13 @@
   !% Implementation of an Eddington-limited accretion disk.
 
   !# <accretionDisks name="accretionDisksEddingtonLimited">
-  !#  <description>An accretion disk class in which accretion is always Eddington-limited.</description>
+  !#  <description>
+  !#   A circumnuclear accretion disk class in which accretion is always Eddington-limited. This class does not assume any
+  !#   physical model for the accretion disk, but merely assumes that jets are powered at a fixed fraction {\normalfont \ttfamily
+  !#   [efficiencyJet]} of the Eddington luminosity. The radiative efficiency is similarly set at a fixed value of {\normalfont
+  !#   \ttfamily [efficiencyRadiation]}. Since no physical model for the disk is assumed, the black hole spin up rate is always
+  !#   set to zero.
+  !#  </description>
   !# </accretionDisks>
   type, extends(accretionDisksClass) :: accretionDisksEddingtonLimited
      !% Implementation of an accretion disk class in which accretion is always Eddington-limited.

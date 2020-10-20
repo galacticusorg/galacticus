@@ -20,7 +20,7 @@
 !% Contains a module which implements an identity transfer function class.
 
   !# <transferFunction name="transferFunctionIdentity">
-  !#  <description>Provides an identity transfer function.</description>
+  !#  <description>Provides an identity transfer function, i.e. $T(k)=1$ for all $k$.</description>
   !# </transferFunction>
   type, extends(transferFunctionClass) :: transferFunctionIdentity
      !% A identity transfer function class.

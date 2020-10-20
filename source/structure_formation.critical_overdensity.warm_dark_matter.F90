@@ -23,7 +23,27 @@
   use :: Numerical_Interpolation, only : interpolator
 
   !# <criticalOverdensity name="criticalOverdensityBarkana2001WDM" defaultThreaedPrivate="yes">
-  !#  <description>Provides a critical overdensity for collapse based on the \gls{wdm} modifier of \cite{barkana_constraints_2001} applied to some other critical overdensity class.</description>
+  !#  <description>
+
+  !#   A critical overdensity for collapse class based on the \gls{wdm} modifier of \cite{barkana_constraints_2001} applied to
+  !#   some other, \gls{cdm} critical overdensity class. Specifically, the critical overdensity is multiplied by a factor
+  !#   \begin{equation}
+  !#    \exp\left[ \left({M_\mathrm{J} \over 8 M}\right)^{1.40}+\left({M_\mathrm{J} \over 8 M}\right)^{0.45} \right],
+  !#   \end{equation}
+  !#   where $M$ is the mass in question, $M_\mathrm{J}$ is the effective Jeans mass of the warm dark matter as defined by
+  !#   \citeauthor{barkana_constraints_2001}~[\citeyear{barkana_constraints_2001}; their eqn.~10]:
+  !#   \begin{equation}
+  !#   M_\mathrm{J} = 3.06 \times 10^8 \left( {1+z_\mathrm{eq} \over 3000}\right)^{1.5} \left({\Omega_\mathrm{M} h_0^2 \over
+  !#   0.15}\right)^{1/2} \left({g_\mathrm{X} \over 1.5} \right)^{-1} \left({m_\mathrm{X}/1.0\hbox{keV}}\right)^{-4},
+  !#   \end{equation}
+  !#   the redshift of matter-radiation equality is given by
+  !#   \begin{equation}
+  !#   z_\mathrm{eq} = 3600 \left({\Omega_\mathrm{M} h_0^2 \over 0.15}\right)-1,
+  !#   \end{equation}
+  !#   and $g_\mathrm{X}$ and $m_\mathrm{X}$ are the effective number of degrees of freedom and the mass of the warm dark matter
+  !#   particle respectively. This fitting function has been found the fit the numerical results of
+  !#   \cite{barkana_constraints_2001} well.
+  !#  </description>
   !# </criticalOverdensity>
   type, extends(criticalOverdensityClass) :: criticalOverdensityBarkana2001WDM
      !% A critical overdensity for collapse class which modifies another transfer function using the \gls{wdm} modifier of \cite{barkana_constraints_2001}.

@@ -27,7 +27,9 @@ module Merger_Tree_Branching_Modifiers
   !# <functionClass>
   !#  <name>mergerTreeBranchingProbabilityModifier</name>
   !#  <descriptiveName>Modifiers for merger tree branching probabilities</descriptiveName>
-  !#  <description>Class implementing modifiers for merger tree branching probabilities.</description>
+  !#  <description>
+  !#   Class implementing modifiers for merger tree branching probabilities.
+  !#  </description>
   !#  <default>identity</default>
   !#  <method name="rateModifier" >
   !#   <description>Return the multiplicative modifier to the tree branch probability rate.</description>

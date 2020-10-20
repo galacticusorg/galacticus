@@ -27,7 +27,9 @@ module Tidal_Stripping_Mass_Loss_Rate
   !# <functionClass>
   !#  <name>tidalStripping</name>
   !#  <descriptiveName>Tidal stripping</descriptiveName>
-  !#  <description>Class providing models of tidal stripping.</description>
+  !#  <description>
+  !#   Class providing models of tidal stripping.
+  !#  </description>
   !#  <default>simple</default>
   !#  <method name="rateMassLoss" >
   !#   <description>Returns the rate of mass loss (in $M_\odot$~Gyr$^{-1}$) due to tidal stripping of {\normalfont \ttfamily component}.</description>
