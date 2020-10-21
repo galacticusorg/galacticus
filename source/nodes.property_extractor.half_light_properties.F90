@@ -50,8 +50,8 @@ contains
     !% Constructor for the {\normalfont \ttfamily radiiHalfLightProperties} property extractor class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type (nodePropertyExtractorRadiiHalfLightProperties)                :: self
-    type (inputParameters                              ), intent(inout) :: parameters
+    type(nodePropertyExtractorRadiiHalfLightProperties)                :: self
+    type(inputParameters                              ), intent(inout) :: parameters
     !$GLC attributes unused :: parameters
 
     self=nodePropertyExtractorRadiiHalfLightProperties()
@@ -105,15 +105,17 @@ contains
     type            (varying_string                               ), dimension(:) , allocatable :: radiiHalfLightPropertiesNames
     class           (nodePropertyExtractorRadiiHalfLightProperties), intent(inout)              :: self
     double precision                                               , intent(in   )              :: time
-    integer                                                                                     :: i
+    integer                                                                                     :: i                            , j
     !$GLC attributes unused :: self
 
     allocate(radiiHalfLightPropertiesNames(2*unitStellarLuminosities%luminosityOutputCount(time)))
-    do i=0,unitStellarLuminosities%luminosityOutputCount(time)-1
-       radiiHalfLightPropertiesNames(2*i+1:2*i+2)=[                                                               &
-            &                                      var_str('halfLightRadius')//unitStellarLuminosities%name(i+1), &
-            &                                      var_str('halfLightMass'  )//unitStellarLuminosities%name(i+1)  &
-            &                                     ]
+    j=-1
+    do i=1,unitStellarLuminosities%luminosityCount()
+       if (unitStellarLuminosities%isOutput(i,time))                                                                   &
+            & radiiHalfLightPropertiesNames(2*j+1:2*j+2)=[                                                             &
+            &                                             var_str('halfLightRadius')//unitStellarLuminosities%name(i), &
+            &                                             var_str('halfLightMass'  )//unitStellarLuminosities%name(i)  &
+            &                                            ]
     end do
     return
   end function radiiHalfLightPropertiesNames
