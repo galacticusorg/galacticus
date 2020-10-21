@@ -111,11 +111,13 @@ contains
     allocate(radiiHalfLightPropertiesNames(2*unitStellarLuminosities%luminosityOutputCount(time)))
     j=-1
     do i=1,unitStellarLuminosities%luminosityCount()
-       if (unitStellarLuminosities%isOutput(i,time))                                                                   &
-            & radiiHalfLightPropertiesNames(2*j+1:2*j+2)=[                                                             &
-            &                                             var_str('halfLightRadius')//unitStellarLuminosities%name(i), &
-            &                                             var_str('halfLightMass'  )//unitStellarLuminosities%name(i)  &
-            &                                            ]
+       if (unitStellarLuminosities%isOutput(i,time)) then
+          j=j+1
+          radiiHalfLightPropertiesNames(2*j+1:2*j+2)=[                                                             &
+               &                                      var_str('halfLightRadius')//unitStellarLuminosities%name(i), &
+               &                                      var_str('halfLightMass'  )//unitStellarLuminosities%name(i)  &
+               &                                     ]
+       end if
     end do
     return
   end function radiiHalfLightPropertiesNames
