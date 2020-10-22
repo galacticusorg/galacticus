@@ -224,7 +224,7 @@ For each broadband filter used in the \glc\ model run an entry is added to the d
 
 \subsection{Parameters}
 
-The {\normalfont \ttfamily Parameters} group contains a record of all parameter values (either input or default) that were used for this \glc\ run. The group contains a long list of attributes, each attribute named for the corresponding parameter and with a single entry giving the value of that parameter. If a parameter has subparameters, a group is created having the same name as the parameter, which will contain attributes corresponding to each subparameter.
+The {\normalfont \ttfamily Parameters} group contains a record of all parameter values (either input or default) that were used for this \glc\ run. The group contains a long list of attributes, each attribute named for the corresponding parameter and with a single entry giving the value of that parameter. If a parameter has subparameters, a group is created having the same name as the parameter, which will contain attributes corresponding to each subparameter. In cases where a parameter appears more than once in a given node of the parameter tree,it will be output with ``{\normalfont \ttfamily [N]}'' appended to its name, where ``{\normalfont \ttfamily N}'' is an integer indicating the instance of the parameter.
 
 \subsection{Version}
 
