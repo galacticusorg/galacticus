@@ -22,7 +22,30 @@
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
 
   !# <mergerProgenitorProperties name="mergerProgenitorPropertiesStandard">
-  !#  <description>A merger progenitor properties class which uses a standard calculation.</description>
+  !#  <description>
+  !#   A merger progenitor properties class which implements a standard method to compute progenitor properties. Masses of
+  !#   progenitors are set to
+  !#   \begin{equation}
+  !#    M_\mathrm{host|satellite} = \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j},
+  !#   \end{equation}
+  !#   where $M_{i,j}$ is the mass of mass type $j$ in \gls{component} $i$. Masses of progenitors that will end up in the remnant
+  !#   spheroid are set to
+  !#   \begin{equation}
+  !#    M_\mathrm{spheroid\,\,host|satellite} = \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j} \delta_{i,j},
+  !#   \end{equation}
+  !#   where $\delta_{i,j}=0$ of mass type $j$ in \gls{component} $i$ will end up in the remnant spheroid and $0$ otherwise. Radii
+  !#   of material that will end up in the spheroid are set to
+  !#   \begin{equation}
+  !#    r_\mathrm{host|satellite} = {1 \over M_\mathrm{spheroid\,\,host|satellite}} \sum_{i=\mathrm{disk|spheroid}}
+  !#    \sum_{j=\mathrm{stars|gas}} M_{i,j} r_{1/2\,\,i,j} \delta_{i,j}.
+  !#   \end{equation}
+  !#   Finally, the angular momentum factor is set to
+  !#   \begin{equation}
+  !#    f_\mathrm{AM\,\,host|satellite} = {1 \over M_\mathrm{spheroid\,\,host|satellite}} \sum_{i=\mathrm{disk|spheroid}}
+  !#    \sum_{j=\mathrm{stars|gas}} M_{i,j} {J_{i,j} \over \mathrm{G} M^{3/2}_{i,j} r_{1/2\,\,i,j}} \delta_{i,j},
+  !#   \end{equation}
+  !#   where $J_{i,j}$ is the angular momentum or pseudo-angular momentum of mass type $j$ in \gls{component} $i$.
+  !#  </description>
   !# </mergerProgenitorProperties>
   type, extends(mergerProgenitorPropertiesClass) :: mergerProgenitorPropertiesStandard
      !% A merger progenitor properties class which uses a standard calculation.

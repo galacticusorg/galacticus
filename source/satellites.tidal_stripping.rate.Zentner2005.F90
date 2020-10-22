@@ -25,7 +25,24 @@
   use :: Kind_Numbers           , only : kind_int8
 
   !# <satelliteTidalStripping name="satelliteTidalStrippingZentner2005">
-  !#  <description>A satellite tidal stripping class which follows the model of \cite{zentner_physics_2005}.</description>
+  !#  <description>
+  !#   A satellite tidal stripping class which uses the formalism of \cite{zentner_physics_2005} to compute the mass loss rate
+  !#   $\dot{M}_\mathrm{sat}$:
+  !#   \begin{equation}
+  !#   \dot{M}_\mathrm{sat}=-\alpha \frac{M_\mathrm{sat}(>r_\mathrm{tidal})}{T_\mathrm{orb}},
+  !#   \end{equation}
+  !#   where $\alpha=${\normalfont \ttfamily [efficiency]},
+  !#   \begin{equation}
+  !#   T_\mathrm{orb} = {1 \over \hbox{max}(\omega/2\pi,v_\mathrm{r}/r)},
+  !#   \end{equation}
+  !#   where $\omega$ is the angular velocity of the satellite, $v_\mathrm{r}$ is the radial velocity, $r$ is the orbital radius,
+  !#   and $r_\mathrm{tidal}$ is the tidal radius of the satellite, given by the \cite{king_structure_1962} formula:
+  !#   \begin{equation}
+  !#   r_\mathrm{tidal}=\left(\frac{GM_\mathrm{sat}}{\omega^2-d^2\Phi/dr^2}\right)^{1/3},
+  !#   \end{equation}
+  !#   where $\omega$ is the orbital angular velocity of the satellite, and $\Phi(r)$ is the gravitational potential due to the
+  !#   host.
+  !#  </description>
   !# </satelliteTidalStripping>
   type, extends(satelliteTidalStrippingClass) :: satelliteTidalStrippingZentner2005
      !% Implementation of a satellite tidal stripping class which follows the model of \cite{zentner_physics_2005}.

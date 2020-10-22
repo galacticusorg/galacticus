@@ -26,7 +26,25 @@
   use :: Virial_Density_Contrast   , only : virialDensityContrast        , virialDensityContrastClass, virialDensityContrastFixed
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationNFW1996">
-  !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{navarro_structure_1996}.</description>
+  !#  <description>
+  !#   A dark matter profile concentration class in which the concentration is computed using the algorithm from
+  !#   \cite{navarro_structure_1996}. In this algoritm, for a given halo of mass $M$ at time $t_0$, a formation time is defined as
+  !#   the epoch at which there is a 50\% probability (according to extended Press-Schechter theory) for a progenitor halo to have
+  !#   a mass greater than $fM$, where $f=${\normalfont \ttfamily [f]} is a parameter of the algorithm. This implies formation
+  !#   when the critical overdensity for collapse is
+  !#   \begin{equation}
+  !#    \delta_\mathrm{crit}(t_\mathrm{form}) = \left[ 2 \nu_{1/2}^2 \left\{\sigma(fM)^22-\sigma(M)^2\right\}
+  !#    \right]^{1/2}+\delta_\mathrm{crit}(t_0),
+  !#   \end{equation}
+  !#   where $\nu_{1/2} = [\hbox{erfc}^{-1}(1/2)]^{1/2}$. \cite{navarro_structure_1996} then assume an overdensity at collapse of
+  !#   \begin{equation}
+  !#    \Delta(t_\mathrm{form}) = C  \left[ {a(t_0) \over a(t_\mathrm{form})} \right]^3
+  !#   \end{equation}
+  !#   where $C=${\normalfont \ttfamily [C]} is a parameter of the algorithm. The concentration is then determined by solving
+  !#   \begin{equation}
+  !#    {\Delta(t_\mathrm{form}) \over \Delta_\mathrm{virial}(t_0)} = {c^3 \over 3 [\ln(1+c)-c/(1+c)]}.
+  !#   \end{equation}
+  !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
   !#  </deepCopy>

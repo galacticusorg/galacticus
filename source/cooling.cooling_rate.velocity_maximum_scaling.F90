@@ -24,7 +24,26 @@
   use :: Math_Exponentiation     , only : fastExponentiator
 
   !# <coolingRate name="coolingRateVelocityMaximumScaling">
-  !#  <description>A cooling rate class in which the cooling rate scales with the peak circular velocity in the halo.</description>
+  !#  <description>
+  !#   A cooling rate class in which the cooling rate scales with the peak circular velocity in the halo. Specifically, the
+  !#   cooling rate is given by
+  !#   \begin{equation}
+  !#   \dot{M}_\mathrm{cool} = M_\mathrm{hot}/\tau_\mathrm{cool}(V_\mathrm{max,halo},z) ,
+  !#   \end{equation}
+  !#   where 
+  !#   \begin{equation}
+  !#   \tau_\mathrm{cool}=\hbox{max}\left[ \tau_\mathrm{infall} \left({V_\mathrm{max} \over 200
+  !#   \hbox{km/s}}\right)^{-\gamma_\mathrm{infall}} (1+z)^{\alpha_\mathrm{infall}} \left( 1 + \exp\left[
+  !#   {\log_{10}(V_\mathrm{max}/(1+z)^{\delta_\mathrm{infall}}\mathcal{V}_\mathrm{infall})] \over \Delta \log_{10}
+  !#   \mathcal{V}_\mathrm{infall}}\right]\right)^{\beta_\mathrm{infall}}, \tau_\mathrm{infall,min} \right],
+  !#   \end{equation}
+  !#   with $\tau_\mathrm{infall}=${\normalfont \ttfamily [timescale]}, $\tau_\mathrm{infall,min}=${\normalfont \ttfamily
+  !#   [timescaleMinimum]}, $\alpha_\mathrm{infall}=${\normalfont \ttfamily [exponentRedshift]},
+  !#   $\beta_\mathrm{infall}=${\normalfont \ttfamily [exponentCutOff]}, $\gamma_\mathrm{infall}=${\normalfont \ttfamily
+  !#   [exponentVelocity]}, $\delta_\mathrm{infall}=${\normalfont \ttfamily [velocityCutOffExponentRedshift},
+  !#   $\mathcal{V}_\mathrm{infall}=${\normalfont \ttfamily [velocityCutOff]}, and $\Delta \log_{10}
+  !#   \mathcal{V}_\mathrm{infall}=${\normalfont \ttfamily [widthCutOff]}.
+  !#  </description>
   !# </coolingRate>
   type, extends(coolingRateClass) :: coolingRateVelocityMaximumScaling
      !% Implementation of cooling rate class in which the cooling rate scales with the peak circular velocity in the halo.

@@ -20,7 +20,27 @@
   !% Implementation of the \cite{efstathiou_stability_1982} model for galactic disk bar instability.
 
   !# <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityEfstathiou1982">
-  !#  <description>The \cite{efstathiou_stability_1982} model for galactic disk bar instability.</description>
+  !#  <description>
+  !#   A galactic dynamics bar instability class that uses the stability criterion of \cite{efstathiou_stability_1982} to estimate
+  !#   when disks are unstable to bar formation:
+  !#   \begin{equation}
+  !#    \epsilon \left( \equiv {V_\mathrm{peak} \over \sqrt{\G M_\mathrm{disk}/r_\mathrm{disk}}} \right) < \epsilon_\mathrm{c},
+  !#   \end{equation}
+  !#   for stability, where $V_\mathrm{peak}$ is the peak velocity in the rotation curve (computed here assuming an isolated
+  !#   exponential disk), $M_\mathrm{disk}$ is the mass of the disk and $r_\mathrm{disk}$ is its scale length (assuming an
+  !#   exponential disk). The value of $\epsilon_\mathrm{c}$ is linearly interpolated in the disk gas fraction between values for
+  !#   purely gaseous and stellar disks as specified by {\normalfont \ttfamily [stabilityThresholdStellar]} and {\normalfont
+  !#   \ttfamily [stabilityThresholdGaseous]} respectively. For disks which are judged to be unstable, the timescale for bar
+  !#   formation is estimated to be
+  !#   \begin{equation}
+  !#    t_\mathrm{bar} = t_\mathrm{disk} \left( {\epsilon_\mathrm{c} - \epsilon_\mathrm{iso} \over \epsilon_\mathrm{c} - \epsilon}
+  !#    \right)^2,
+  !#   \end{equation}
+  !#   where $\epsilon_\mathrm{iso}$ is the value of $\epsilon$ for an isolated disk and $t_\mathrm{disk}$ is the disk dynamical
+  !#   time, defined as $r/V$, at one scale length. This form gives an infinite timescale at the stability threshold, reducing to
+  !#   a dynamical time for highly unstable disks, while also ensuring that the slope of $t_\mathrm{bar}$ is continuous at the
+  !#   instability threshold. This method returns zero external driving torque.
+  !#  </description>
   !# </galacticDynamicsBarInstability>
   type, extends(galacticDynamicsBarInstabilityClass) :: galacticDynamicsBarInstabilityEfstathiou1982
      !% Implementation of the \cite{efstathiou_stability_1982} model for galactic disk bar instability.

@@ -22,7 +22,10 @@
   use :: Stellar_Astrophysics, only : stellarAstrophysicsClass
 
   !# <supernovaeTypeIa name="supernovaeTypeIaNagashima2005">
-  !#  <description>A supernovae type Ia class based on \cite{nagashima_metal_2005}.</description>
+  !#  <description>
+  !#   A supernovae type Ia class which uses the prescriptions from \cite{nagashima_metal_2005} to compute the numbers and yields
+  !#   of Type Ia supernovae.
+  !#  </description>
   !# </supernovaeTypeIa>
   type, extends(supernovaeTypeIaClass) :: supernovaeTypeIaNagashima2005
      !% A supernovae type Ia class based on \cite{nagashima_metal_2005}.

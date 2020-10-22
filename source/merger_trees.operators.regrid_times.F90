@@ -24,7 +24,30 @@
   use :: Linear_Growth             , only : linearGrowthClass
 
   !# <mergerTreeOperator name="mergerTreeOperatorRegridTimes">
-  !#  <description>Provides a merger tree operator which restructures the tree onto a fixed grid of timesteps.</description>
+  !#  <description>
+  !#   A merger tree operator class which will interpolate the merger tree structure onto a new array of timesteps. The timestep
+  !#   array is specified via the parameters:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily [snapshotSpacing]}] The spacing of the timesteps. Five options are available: {\normalfont
+  !#   \ttfamily linear} will space timesteps uniformly in expansion factor, {\normalfont \ttfamily logarithmic} will space
+  !#   timesteps uniformly in the logarithm of expansion factor, {\normalfont \ttfamily logCriticalDensity} will space timesteps
+  !#   uniformly in the logarithm of critical density, $\delta_\mathrm{c}$, {\normalfont \ttfamily millennium} will use times
+  !#   corresponding to the redshifts of snapshots in the Millennium Simulation database, while {\normalfont \ttfamily read} will
+  !#   use times corresponding to the redshifts specified in the {\normalfont \ttfamily mergerTreeRegridRedshifts} parameter;
+  !#   \item[{\normalfont \ttfamily [expansionFactorStart]}] The smallest expansion factor in the array (ignored for {\normalfont
+  !#   \ttfamily millennium} and {\normalfont \ttfamily read} spacings);
+  !#   \item[{\normalfont \ttfamily [expansionFactorEnd]}] The largest expansion factor in the array (ignored for {\normalfont
+  !#   \ttfamily millennium} and {\normalfont \ttfamily read} spacings);
+  !#   \item[{\normalfont \ttfamily [regridCount]}] The number of timesteps in the array;
+  !#   \end{description}
+  !#   Along each branch of the tree, new halos are inserted at times corresponding to the times in the resulting array. The
+  !#   masses of these nodes are linearly interpolated between the existing nodes on the branch. Once these new nodes have been
+  !#   added, all other nodes are removed from the tree\footnote{The base node of the tree is never removed, even if it does not
+  !#   lie on one of the times in the constructed array.} The processing is useful to construct representations of trees as they
+  !#   would be if only sparse time sampling were available. As such, it is useful for exploring how the number of snapshots in
+  !#   merger trees extracted from N-body simulations\index{merger tree!N-body} affects the properties of galaxies that form in
+  !#   them.
+  !#  </description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorRegridTimes
      !% A merger tree operator class which restructures the tree onto a fixed grid of timesteps.

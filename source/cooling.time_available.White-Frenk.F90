@@ -22,7 +22,16 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <coolingTimeAvailable name="coolingTimeAvailableWhiteFrenk1991">
-  !#  <description>A time available for cooling class which implements the algorithm of \cite{white_galaxy_1991}. The time available is set to a value between the age of the Universe and the dynamical time of the halo, depending on the interpolating parameter {\normalfont \ttfamily [ageFactor]}.</description>
+  !#  <description>
+  !#   A time available for cooling class which implements the algorithm of \cite{white_galaxy_1991}. The time available for
+  !#   cooling is equal to
+  !#   \begin{equation}
+  !#    t_\mathrm{available} = \exp\left[ f \ln t_\mathrm{Universe} + (1-f)\ln t_\mathrm{dynamical} \right],
+  !#   \end{equation}
+  !#   where $f=${\normalfont \ttfamily [ageFactor]} is an interpolating factor, $t_\mathrm{Universe}$ is the age of the Universe
+  !#   and $t_\mathrm{dynamical}$ is the dynamical time in the halo. The original \cite{white_galaxy_1991} algorithm corresponds
+  !#   to $f=1$.
+  !#  </description>
   !# </coolingTimeAvailable>
   type, extends(coolingTimeAvailableClass) :: coolingTimeAvailableWhiteFrenk1991
      !% Implementation of a time available for cooling class which implements the algorithm of \cite{white_galaxy_1991}.

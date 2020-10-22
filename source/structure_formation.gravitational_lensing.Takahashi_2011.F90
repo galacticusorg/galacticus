@@ -26,7 +26,14 @@
   use :: Tables                 , only : table1DGeneric             , table1DLogarithmicLinear
 
   !# <gravitationalLensing name="gravitationalLensingTakahashi2011">
-  !#  <description>Implements the gravitational lensing distributions of \cite{takahashi_probability_2011}.</description>
+  !#  <description>
+  !#   A gravitational lensing distribution class utilizing the fitting functions of \cite{takahashi_probability_2011} to compute
+  !#   the effects of gravitational lensing. Specifically, eqn.~11 of \cite{takahashi_probability_2011} is used. The parameters
+  !#   $\kappa_\mathrm{empty}$ and $\langle \kappa^2 \rangle$ are computed from the assumed cosmology and non-linear power
+  !#   spectrum as described by \cite[][eqns.~5 and 2 respectively]{takahashi_probability_2011}. The parameters, $N_\kappa$,
+  !#   $A_\kappa$, and $\omega_\kappa$ of the lensing convergence distribution are determined using the conditions given by
+  !#   \cite[][eqn.~9]{takahashi_probability_2011}.
+  !#  </description>
   !# </gravitationalLensing>
   type, extends(gravitationalLensingClass) :: gravitationalLensingTakahashi2011
      private

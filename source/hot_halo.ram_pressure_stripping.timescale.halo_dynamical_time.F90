@@ -23,7 +23,9 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <hotHaloRamPressureTimescale name="hotHaloRamPressureTimescaleHaloDynamicalTime">
-  !#  <description>A hot halo ram pressure timescale class in which the timescale is equal to the halo dynamical time.</description>
+  !#  <description>
+  !#   A hot halo ram pressure timescale class in which the timescale is equal to the halo dynamical time of the associated halo.
+  !#  </description>
   !# </hotHaloRamPressureTimescale>
   type, extends(hotHaloRamPressureTimescaleClass) :: hotHaloRamPressureTimescaleHaloDynamicalTime
      !% Implementation of a hot halo ram pressure timescale class in which the timescale is equal to the halo dynamical time.

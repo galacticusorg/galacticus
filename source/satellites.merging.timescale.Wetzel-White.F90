@@ -17,14 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by:  Martin White.
+  !+    Contributions to this file made by:  Martin White.
 
   !% Implements a satellite merging timescale class which uses the \cite{wetzel_what_2010} method.
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesWetzelWhite2010">
-  !#  <description>Computes the merging timescale using the method of \cite{wetzel_what_2010}.</description>
+  !#  <description>
+  !#   A satellite merging timescale class which computes merging timescales using the dynamical friction calibration of
+  !#   \cite{wetzel_what_2010}.
+  !#  </description>
   !# </satelliteMergingTimescales>
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesWetzelWhite2010
      !% A class implementing the \cite{wetzel_what_2010} method for satellite merging timescales.

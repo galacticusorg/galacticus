@@ -21,7 +21,7 @@
 
   !# <darkMatterHaloMassLossRate name="darkMatterHaloMassLossRateZero">
   !#  <description>
-  !#   A dark matter halo mass loss rate class which assumes a zero rate of mass loss.
+  !#   A dark matter halo mass loss rate class which assumes a zero rate of mass loss from dark matter halos.
   !#  </description>
   !# </darkMatterHaloMassLossRate>
   type, extends(darkMatterHaloMassLossRateClass) :: darkMatterHaloMassLossRateZero

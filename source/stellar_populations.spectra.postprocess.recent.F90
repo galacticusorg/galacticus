@@ -20,7 +20,10 @@
   !% An implementation of a spectrum postprocessor that keeps only recent populations.
 
   !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorRecent">
-  !#  <description>Retains only recent stellar populations.</description>
+  !#  <description>
+  !#   A stellar population postprocessor class which suppresses all emission from populations older than {\normalfont \ttfamily
+  !#   [timeLimit]} (in Gyr).
+  !#  </description>
   !# </stellarPopulationSpectraPostprocessor>
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorRecent
      !% An recent spectrum postprocessor.

@@ -22,8 +22,10 @@
 
   !# <mergerTreeOperator name="mergerTreeOperatorMonotonizeMassGrowth">
   !#  <description>
-  !#   A merger tree operator which makes mass growth along merger tree branches monotonic.
-  !# </description>
+  !#   A merger tree operator class which enforces monotonic growth a halo mass along each branch of each merger tree. It does
+  !#   this by searching the tree for nodes which are less massive than the sum of the masses of their immediate progenitors, and
+  !#   increasing the mass of such nodes to equal the sum of the masses of their immediate progenitors.
+  !#  </description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorMonotonizeMassGrowth
      !% A merger tree operator class makes mass growth along branch monotonically increasing.

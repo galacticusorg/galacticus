@@ -25,7 +25,18 @@
   use :: Virial_Density_Contrast , only : virialDensityContrastFixed
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationGao2008">
-  !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{gao_redshift_2008}.</description>
+  !#  <description>
+  !#   A dark matter profile concentration class in which the concentration is computed using a fitting function from
+  !#   \cite{gao_redshift_2008}:
+  !#   \begin{equation}
+  !#   \log_{10} c = A \log_{10} M_\mathrm{halo} + B.
+  !#   \end{equation}
+  !#   The parameters are a functon of expansion factor, $a$. We use the following fits to the \cite{gao_redshift_2008} results:
+  !#   \begin{eqnarray}
+  !#   A &amp;=&amp; -0.140 \exp\left[-\left(\left\{\log_{10}a+0.05\right\}/0.35\right)^2\right], \\
+  !#   B &amp;=&amp;  2.646 \exp\left[-\left(\log_{10}a/0.50\right)^2\right].
+  !#   \end{eqnarray}
+  !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
   !#  </deepCopy>

@@ -24,7 +24,10 @@
   use            :: Stellar_Astrophysics   , only : stellarAstrophysics, stellarAstrophysicsClass
 
   !# <supernovaePopulationIII name="supernovaePopulationIIIHegerWoosley2002">
-  !#  <description>A Population III supernovae class based on \cite{heger_nucleosynthetic_2002}.</description>
+  !#  <description>
+  !#   A Population III supernovae class that computes the energies of pair instability supernovae from the results of
+  !#   \cite{heger_nucleosynthetic_2002}.
+  !#  </description>
   !# </supernovaePopulationIII>
   type, extends(supernovaePopulationIIIClass) :: supernovaePopulationIIIHegerWoosley2002
      !% A Population III supernovae class based on \cite{heger_nucleosynthetic_2002}

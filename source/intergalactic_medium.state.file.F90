@@ -27,7 +27,109 @@
   integer, parameter :: fileFormatVersionCurrent=1
 
   !# <intergalacticMediumState name="intergalacticMediumStateFile">
-  !#  <description>The intergalactic medium state is read from file.</description>
+  !#  <description>
+  !#   An intergalactic medium state class which reads the state of the intergalactic medium from a file and interpolates in the
+  !#   tabulated results. The HDF5 file containing the table should have the following form:
+  !#   \begin{verbatim}
+  !#   HDF5 "igmState.hdf5" {
+  !#   GROUP "/" {
+  !#      ATTRIBUTE "fileFormat" {
+  !#         DATATYPE  H5T_IEEE_F64LE
+  !#         DATASPACE  SCALAR
+  !#         DATA {
+  !#         (0): 1
+  !#         }
+  !#      }
+  !#      GROUP "Parameters" {
+  !#         ATTRIBUTE "HubbleConstant" {
+  !#            DATATYPE  H5T_IEEE_F64LE
+  !#            DATASPACE  SCALAR
+  !#            DATA {
+  !#            (0): 67.8
+  !#            }
+  !#         }
+  !#         ATTRIBUTE "OmegaBaryon" {
+  !#            DATATYPE  H5T_IEEE_F64LE
+  !#            DATASPACE  SCALAR
+  !#            DATA {
+  !#            (0): 0.0484
+  !#            }
+  !#         }
+  !#         ATTRIBUTE "OmegaDarkEnergy" {
+  !#            DATATYPE  H5T_IEEE_F64LE
+  !#            DATASPACE  SCALAR
+  !#            DATA {
+  !#            (0): 0.692
+  !#            }
+  !#         }
+  !#         ATTRIBUTE "OmegaMatter" {
+  !#            DATATYPE  H5T_IEEE_F64LE
+  !#            DATASPACE  SCALAR
+  !#            DATA {
+  !#            (0): 0.308
+  !#            }
+  !#         }
+  !#         ATTRIBUTE "Y_He" {
+  !#            DATATYPE  H5T_IEEE_F64LE
+  !#            DATASPACE  SCALAR
+  !#            DATA {
+  !#            (0): 0.22
+  !#            }
+  !#         }
+  !#         ATTRIBUTE "temperatureCMB" {
+  !#            DATATYPE  H5T_IEEE_F64LE
+  !#            DATASPACE  SCALAR
+  !#            DATA {
+  !#            (0): 2.725
+  !#            }
+  !#         }
+  !#      }
+  !#      DATASET "electronFraction" {
+  !#         DATATYPE  H5T_IEEE_F64LE
+  !#         DATASPACE  SIMPLE { ( 10000 ) / ( 10000 ) }
+  !#      }
+  !#      DATASET "hIonizedFraction" {
+  !#         DATATYPE  H5T_IEEE_F64LE
+  !#         DATASPACE  SIMPLE { ( 10000 ) / ( 10000 ) }
+  !#      }
+  !#      DATASET "heIonizedFraction" {
+  !#         DATATYPE  H5T_IEEE_F64LE
+  !#         DATASPACE  SIMPLE { ( 10000 ) / ( 10000 ) }
+  !#      }
+  !#      DATASET "matterTemperature" {
+  !#         DATATYPE  H5T_IEEE_F64LE
+  !#         DATASPACE  SIMPLE { ( 10000 ) / ( 10000 ) }
+  !#         ATTRIBUTE "units" {
+  !#            DATATYPE  H5T_STRING {
+  !#               STRSIZE 6;
+  !#               STRPAD H5T_STR_NULLTERM;
+  !#               CSET H5T_CSET_ASCII;
+  !#               CTYPE H5T_C_S1;
+  !#            }
+  !#            DATASPACE  SCALAR
+  !#            DATA {
+  !#            (0): "Kelvin"
+  !#            }
+  !#         }
+  !#         ATTRIBUTE "unitsInSI" {
+  !#            DATATYPE  H5T_IEEE_F64LE
+  !#            DATASPACE  SCALAR
+  !#            DATA {
+  !#            (0): 1
+  !#            }
+  !#         }
+  !#      }
+  !#      DATASET "redshift" {
+  !#         DATATYPE  H5T_IEEE_F64LE
+  !#         DATASPACE  SIMPLE { ( 10000 ) / ( 10000 ) }
+  !#      }
+  !#   }
+  !#   }
+  !#   \end{verbatim}
+  !#    The {\normalfont \ttfamily electronFraction}, {\normalfont \ttfamily hIonizedFraction}, {\normalfont \ttfamily
+  !#   heIonizedFraction}, and {\normalfont \ttfamily matterTemperature} datasets contain the relevaqnt quantity for each redshift
+  !#   in the {\normalfont \ttfamily redshift} dataset.
+  !#  </description>
   !# </intergalacticMediumState>
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateFile
      !% An \gls{igm} state class which reads state from file.

@@ -22,7 +22,40 @@
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <surveyGeometry name="surveyGeometryMoustakas2013PRIMUS">
-  !#  <description>Implements the geometry of the PRIMUS survey of \cite{moustakas_primus:_2013}.</description>
+  !#  <description>
+  !#   A survey geometry class that describes the survey geometry of \cite{moustakas_primus:_2013}. 
+  !#   
+  !#   For the angular mask, we make use of \gls{mangle} polygon files provided by J.~Moustakas (private communication)
+  !#   corresponding to the give PRIMUS fields. The solid angle of each mask is computed using the \gls{mangle} {\normalfont
+  !#   \ttfamily harmonize} command.
+  !#   
+  !#   To determine the depth as a function of stellar mass, we make use of completeness limits for ``All'' galaxies given in
+  !#   Table~2 of \cite{moustakas_primus:_2013}. These are fit, for each field with a second order polynomial to give the limiting
+  !#   redshift as a function of stellar mass. Figure~\ref{fig:MoustakasPRIMUSDepthFit} shows the resulting relation between
+  !#   stellar mass and the maximum redshift at which such a galaxy would be included in the sample. Points indicate results from
+  !#   \cite{moustakas_primus:_2013}, while the line shows a polynomial fits:
+  !#   \begin{eqnarray}
+  !#   z_\mathrm{max}(M_\star) = +3.51+m(-0.941+m(+0.0651)) & & \hbox{COSMOS} \\
+  !#   z_\mathrm{max}(M_\star) = +2.46+m(-0.730+m(+0.0542)) & & \hbox{XMM-SXDS} \\
+  !#   z_\mathrm{max}(M_\star) = -3.60+m(+0.500+m(-0.0078)) & & \hbox{XMM-CFHTLS} \\
+  !#   z_\mathrm{max}(M_\star) = +5.87+m(-1.528+m(+0.0982)) & & \hbox{CDFS} \\
+  !#   z_\mathrm{max}(M_\star) = +6.87+m(-1.656+m(+0.1003)) & & \hbox{ELAIS-S1}
+  !#    \label{eq:MoustakasDepthPolynomial}
+  !#   \end{eqnarray}
+  !#   where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
+  !#   stellar mass.
+  !#   
+  !#   \begin{figure}
+  !#    \begin{center}
+  !#    \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/MoustakasPRIMUSMassRedshiftRelation.pdf}
+  !#    \end{center}
+  !#    \caption{The maximum distance at which a galaxy of given stellar mass can be detected in the sample of
+  !#    \protect\cite{moustakas_primus:_2013}. Points show the results obtained from completeness limit data taken from Table~2 of
+  !#    \protect\cite{moustakas_primus:_2013}, while the lines shows a polynomial fit to these results (given in
+  !#    eqn.~\ref{eq:MoustakasDepthPolynomial}).}
+  !#    \label{fig:MoustakasPRIMUSDepthFit}
+  !#   \end{figure}
+  !#  </description>
   !# </surveyGeometry>
   type, extends(surveyGeometryMangle) :: surveyGeometryMoustakas2013PRIMUS
      private

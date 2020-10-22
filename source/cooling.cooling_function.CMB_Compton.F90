@@ -22,7 +22,17 @@
   use :: Chemical_States, only : chemicalState, chemicalStateClass
 
   !# <coolingFunction name="coolingFunctionCMBCompton">
-  !#  <description>Class providing a cooling function due to Compton scattering off of \gls{cmb} photons.</description>
+  !#  <description>
+  !#   A cooling function class that computes the cooling function due to Compton scattering off of \gls{cmb} photons:
+  !#   \begin{equation}
+  !#   \Lambda = {4 \sigma_\mathrm{T} \mathrm{a} \mathrm{k}_\mathrm{B} n_\mathrm{e } \over m_\mathrm{e} \clight} T_\mathrm{CMB}^4
+  !#   \left( T - T_\mathrm{CMB} \right),
+  !#   \end{equation}
+  !#   where $\sigma_\mathrm{T}$ is the Thompson cross-section, $a$ is the radiation constant, $\mathrm{k}_\mathrm{B}$ is
+  !#   Boltzmann's constant, $n_\mathrm{e}$ is the number density of electrons, $m_\mathrm{e}$ is the electron mass, $\clight$ is
+  !#   the speed of light, $T_\mathrm{CMB}$ is the \gls{cmb} temperature at the current cosmic epoch and $T$ is the temperature of
+  !#   the gas. The electron density is computed from the selected chemical state method (see \S\ref{sec:ChemicalStateMethod}).
+  !#  </description>
   !# </coolingFunction>
   type, extends(coolingFunctionClass) :: coolingFunctionCMBCompton
      !% A cooling function class which implements cooling due to Compton scattering off of \gls{cmb} photons.

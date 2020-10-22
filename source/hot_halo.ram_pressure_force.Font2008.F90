@@ -22,7 +22,15 @@
   use :: Hot_Halo_Mass_Distributions, only : hotHaloMassDistributionClass
 
   !# <hotHaloRamPressureForce name="hotHaloRamPressureForceFont2008">
-  !#  <description>A hot halo ram pressure force class which follows the model of \cite{font_colours_2008}.</description>
+  !#  <description>
+  !#   A hot halo ram pressure force class which follows the model of \cite{font_colours_2008}. Specifically, the ram pressure
+  !#   force is
+  !#   \begin{equation}
+  !#   \mathcal{F}_\mathrm{ram, hot, host} = \rho_\mathrm{hot, host}(r_\mathrm{peri}) v^2(r_\mathrm{peri}),
+  !#   \end{equation}
+  !#   where $\rho_\mathrm{hot, host}(r)$ is the hot halo density profile of the node's host halo, $v(r)$ is the orbital velocity
+  !#   of the node in that host, and $r_\mathrm{peri}$ is the pericentric radius of the node's orbit.
+  !#  </description>
   !# </hotHaloRamPressureForce>
   type, extends(hotHaloRamPressureForceClass) :: hotHaloRamPressureForceFont2008
      !% Implementation of a hot halo ram pressure force class which follows the model of \cite{font_colours_2008}.

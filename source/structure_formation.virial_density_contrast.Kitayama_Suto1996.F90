@@ -22,7 +22,14 @@
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <virialDensityContrast name="virialDensityContrastKitayamaSuto1996">
-  !#  <description>\cite{kitayama_semianalytic_1996} dark matter halo virial density contrasts.</description>
+  !#  <description>
+
+  !#   A virial density contrast class using the fitting formula of \cite{kitayama_semianalytic_1996}, and so is valid only in
+  !#   flat cosmological models (an error will be reported in non-flat models). Specifically,
+  !#   \begin{equation}
+  !#    \Delta_\mathrm{virial}(t) = 18 \pi^2 [1+0.4093 \left\{{1\over \Omega_\mathrm{matter}(t)}-1\right\}(t)^{0.9052}].
+  !#   \end{equation}
+  !#  </description>
   !# </virialDensityContrast>
   type, extends(virialDensityContrastClass) :: virialDensityContrastKitayamaSuto1996
      !% A dark matter halo virial density contrast class using the fitting functions of \cite{kitayama_semianalytic_1996}.

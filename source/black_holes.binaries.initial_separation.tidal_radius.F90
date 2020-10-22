@@ -22,7 +22,17 @@
   !% Implements a class for black hole binary initial separation based on tidal disruption of the satellite galaxy.
 
   !# <blackHoleBinaryInitialSeparation name="blackHoleBinaryInitialSeparationTidalRadius">
-  !#  <description>A black hole binary initial separation class in which the radius is based on tidal disruption of the satellite galaxy.</description>
+  !#  <description>
+  !#   A black hole binary initial separation class that assumes an initial separation that corresponds to the distance at which
+  !#   the satellite galaxy is tidally stripped to its half-mass radius, thus only leaving the central massive black
+  !#   hole. Specifically, the initial radius is given by:
+  !#   \begin{equation}
+  !#   {M_\mathrm{sat} \over 2 r_\mathrm{sat,1/2}^3 } = - {\mathrm{d} \over \mathrm{d} r} {M_\mathrm{host}(r_\mathrm{initial})
+  !#   \over r_\mathrm{initial}^2},
+  !#   \end{equation}
+  !#   where $M_\mathrm{sat}$ is the mass of the satellite galaxy, $r_\mathrm{sat,1/2}$ is its half mass radius,
+  !#   $M_\mathrm{host}(r)$ is the mass of the host galaxy within radius $r$ and $r_\mathrm{initial}$ is the initial radius.
+  !#  </description>
   !# </blackHoleBinaryInitialSeparation>
   type, extends(blackHoleBinaryInitialSeparationClass) :: blackHoleBinaryInitialSeparationTidalRadius
      !% A black hole binary initial separation class in which the radius is based on tidal disruption of the satellite galaxy.

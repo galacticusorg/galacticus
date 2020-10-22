@@ -22,7 +22,10 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <hotHaloTemperatureProfile name="hotHaloTemperatureProfileVirial">
-  !#  <description>Provides an implementation of the hot halo temperature profile class which uses an isothermal virial temperature.</description>
+  !#  <description>
+  !#   A hot halo temperture profile class which assumes an isothermal halo with a temperature equal to the virial temperature of
+  !#   the halo.
+  !#  </description>
   !# </hotHaloTemperatureProfile>
   type, extends(hotHaloTemperatureProfileClass) :: hotHaloTemperatureProfileVirial
      !% An implementation of the hot halo temperature profile class which uses an isothermal virial temperature.

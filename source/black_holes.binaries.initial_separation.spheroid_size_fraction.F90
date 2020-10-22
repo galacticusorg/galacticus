@@ -21,7 +21,11 @@
 !% larger of the host and satellite spheroids.
 
   !# <blackHoleBinaryInitialSeparation name="blackHoleBinaryInitialSeparationSpheroidRadiusFraction">
-  !#  <description>A black hole binary initial separation class in which the radius is a fixed fraction of the scale radius of the larger of the host and satellite spheroids.</description>
+  !#  <description>
+  !#   A black hole binary initial separation class that assumes that the initial separation of the binary is equal to a fixed
+  !#   fraction {\normalfont \ttfamily [spheroidRadiusFraction]} of the larger of the spheroid scale radii of the two merging
+  !#   galaxies.
+  !#  </description>
   !# </blackHoleBinaryInitialSeparation>
   type, extends(blackHoleBinaryInitialSeparationClass) :: blackHoleBinaryInitialSeparationSpheroidRadiusFraction
      !% A black hole binary initial separation class in which the radius is a fixed fraction of the scale radius of the larger of the host and satellite spheroids.

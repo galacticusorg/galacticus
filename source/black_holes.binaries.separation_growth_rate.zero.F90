@@ -22,7 +22,9 @@
   !% Implements a black hole binary separation growth class in which the separation does not grow.
 
   !# <blackHoleBinarySeparationGrowthRate name="blackHoleBinarySeparationGrowthRateZero">
-  !#  <description>A black hole binary separation growth class in which the separation does not grow.</description>
+  !#  <description>
+  !#   A black hole binary separation growth class in which the separation does not grow.
+  !#  </description>
   !# </blackHoleBinarySeparationGrowthRate>
   type, extends(blackHoleBinarySeparationGrowthRateClass) :: blackHoleBinarySeparationGrowthRateZero
      !% A black hole binary separation growth class in which the separation does not grow.

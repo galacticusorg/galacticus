@@ -25,7 +25,12 @@
   use :: Atomic_Rates_Recombination_Radiative  , only : atomicRecombinationRateRadiativeClass
 
   !# <chemicalReactionRate name="chemicalReactionRateHydrogenNetwork">
-  !#  <description>A chemical reaction rates for hydrogen using the fits from \cite{abel_modeling_1997} and \cite{tegmark_small_1997}.</description>
+  !#  <description>
+  !#   A chemical reaction rate classs that computes rates using the network of reactions and fitting functions from
+  !#   \cite{abel_modeling_1997} and \cite{tegmark_small_1997}. The parameter {\normalfont \ttfamily [hydrogenNetworkFast]}
+  !#   controls the approximations made. If set {\normalfont \ttfamily true} then H$^-$ is assumed to be at equilibrium abundance,
+  !#   H$_2^+$ reactions are ignored and other slow reactions are ignored (see \citealt{abel_modeling_1997}).
+  !#  </description>
   !# </chemicalReactionRate>
   type, extends(chemicalReactionRateClass) :: chemicalReactionRateHydrogenNetwork
      !% A chemical reaction rates for hydrogen using the fits from \cite{abel_modeling_1997} and \cite{tegmark_small_1997}.

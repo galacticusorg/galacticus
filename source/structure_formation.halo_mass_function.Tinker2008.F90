@@ -33,7 +33,10 @@
   !# </enumeration>
 
   !# <haloMassFunction name="haloMassFunctionTinker2008">
-  !#  <description>The halo mass function is computed from the function given by \cite{tinker_towardhalo_2008}, and using their fits for the parameter values.</description>
+  !#  <description>
+  !#   A dark matter halo mass function class using the function given by \cite{tinker_towardhalo_2008}, and using their fits for
+  !#   the parameter values at the appropriate virial density contrast.
+  !#  </description>
   !#  <stateStorable>
   !#   <exclude variables="densityContrast"/>
   !#  </stateStorable>

@@ -20,7 +20,10 @@
   !% An implementation of a spectrum postprocessor that applies the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.
 
   !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorMeiksin2006">
-  !#  <description>Multiplier the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.</description>
+  !#  <description>
+  !#   A stellar population postprocessor class that postprocesses spectra through absorption by the \gls{igm} using the results
+  !#   of \cite{meiksin_colour_2006}.
+  !#  </description>
   !# </stellarPopulationSpectraPostprocessor>
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorMeiksin2006
      !% An spectrum postprocessor multipliering the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.

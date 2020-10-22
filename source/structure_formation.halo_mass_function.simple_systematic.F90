@@ -20,12 +20,21 @@
 !% Contains a module which implements a dark matter halo mass function class which modifies another mass function using a simple model for systematics.
 
   !# <haloMassFunction name="haloMassFunctionSimpleSystematic">
-  !#  <description>The halo mass function is computed by modifying another halo mass function using a simple model for systematic errors.</description>
+  !#  <description>
+
+  !#   A halo mass function class in which the mass function is computed by modifying another halo mass function (specified as a
+  !#   subparameter) using a simple model for systematic errors as follows:
+  !#   \begin{equation}
+  !#     {\mathrm{d} n\over \mathrm{d}M}(M) \rightarrow {\mathrm{d} n\over \mathrm{d}M}(M) \left( 1 + \alpha + \beta
+  !#     \log_{10}\left[ {M \over 10^{12}M_\odot} \right] \right)
+  !#   \end{equation}
+  !#   where $\alpha=${\normalfont \ttfamily [alpha]}, and $\beta=${\normalfont \ttfamily [beta]}.
+  !#  </description>
   !# </haloMassFunction>
   type, extends(haloMassFunctionClass) :: haloMassFunctionSimpleSystematic
      !% A halo mass function class which modifies another mass function using a simple model for systematics.
      private
-     double precision                                 :: alpha                , beta
+     double precision                                 :: alpha                          , beta
      class           (haloMassFunctionClass), pointer :: referenceMassFunction => null()
     contains
      final     ::                 simpleSystematicDestructor

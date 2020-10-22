@@ -20,7 +20,10 @@
 !% A null implementation of the hot halo mass distribution class.
 
   !# <hotHaloMassDistribution name="hotHaloMassDistributionNull">
-  !#  <description>Provides a null implementation of the hot halo mass distribution class.</description>
+  !#  <description>
+  !#   A hot halo mass distribution class that assumes no hot halo mass distribution. It is useful, for example, when performing
+  !#   dark matter-only calculations.
+  !#  </description>
   !# </hotHaloMassDistribution>
   type, extends(hotHaloMassDistributionClass) :: hotHaloMassDistributionNull
      !% A null implementation of the hot halo mass distribution class.

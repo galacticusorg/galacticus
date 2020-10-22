@@ -22,7 +22,15 @@
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !# <hotHaloTemperatureProfile name="hotHaloTemperatureProfileEnzoHydrostatic">
-  !#  <description>Provides an implementation of the hot halo temperature profile class which uses the ``hydrostatic'' solution from the Enzo code.</description>
+  !#  <description>
+  !#   A hot halo temperature profile class wjocj implements the ``hydrostatic'' temperature profile available in the \gls{enzo}
+  !#   code. Specifically,
+  !#   \begin{equation}
+  !#     T(r) = \hbox{max}\left( {\mathrm{G} M(<r) \mu m_\mathrm{H} \over 3 \mathrm{k_B} r} , T_\mathrm{min} \right),
+  !#   \end{equation}
+  !#   where $M(<r)$ is the total mass enclosed within radius $r$, $\mu$ is the primordial mean atomic mass, and
+  !#   $T_\mathrm{min}=100$~K is a temperature floor introduced so as to avoid the temperature reaching abitrarily low masses.
+  !#  </description>
   !# </hotHaloTemperatureProfile>
   type, extends(hotHaloTemperatureProfileClass) :: hotHaloTemperatureProfileEnzoHydrostatic
      !% An implementation of the hot halo temperature profile class which uses the ``hydrostatic'' solution from the Enzo code.

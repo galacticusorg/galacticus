@@ -21,7 +21,35 @@
   !% \cite{galli_chemistry_1998}.
 
   !# <coolingFunction name="coolingFunctionMolecularHydrogenGalliPalla">
-  !#  <description>Cooling function class which implements cooling from molecular hydrogen using the cooling function of \cite{galli_chemistry_1998}.</description>
+  !#  <description>
+  !#   A cooling function class that computes the cooling function due to molecular hydrogen using the results of
+  !#   \cite{galli_chemistry_1998}. For the H--H$_2$ cooling function, the fitting functions from \cite{galli_chemistry_1998} are
+  !#   used. For the H$_2^+$--e$^-$ and H--H$_2^+$ cooling functions fitting functions to the results plotted in
+  !#   \cite{suchkov_cooling_1978} are used:
+  !#   \begin{equation}
+  !#   \log_{10}\left({\Lambda(T) \over \hbox{erg s}^{-1} \hbox{cm}^3}\right) = C_0 + C_1 \log_{10} \left({T\over\hbox{K}}\right)
+  !#   + C_2 \left[\log_{10} \left({T\over\hbox{K}}\right)\right]^2,
+  !#   \label{eq:H2CoolingFunction}
+  !#   \end{equation}
+  !#   where the coefficients $C_{0-2}$ are given in Table~\ref{tb:H2CoolingFunctionCoefficients}.
+  !#   
+  !#   \begin{table}
+  !#    \begin{center}
+  !#     \caption{Coefficients of H$_2^+$ cooling functions as appearing in the fitting function,
+  !#     eq.~\protect\ref{eq:H2CoolingFunction}.}
+  !#     \label{tb:H2CoolingFunctionCoefficients}
+  !#     \begin{tabular}{lrrr}
+  !#      \hline
+  !#      &amp; \multicolumn{3}{c}{{\normalfont \bfseries Coefficient}} \\
+  !#      {\normalfont \bfseries Interaction} &amp; \boldmath{$C_0$} &amp; \boldmath{$C_1$} &amp; \boldmath{$C_2$} \\
+  !#      \hline
+  !#      H$_2^+$--e$^-$ &amp; -33.33 &amp; 5.565 &amp; -0.4675 \\
+  !#      H--H$_2^+$ &amp; -35.28 &amp; 5.862 &amp; -0.5124 \\
+  !#      \hline
+  !#     \end{tabular}
+  !#    \end{center}
+  !#   \end{table}
+  !#  </description>
   !# </coolingFunction>
   type, extends(coolingFunctionClass) :: coolingFunctionMolecularHydrogenGalliPalla
      !% A cooling function class which implements cooling from molecular hydrogen using the cooling function of \cite{galli_chemistry_1998}.

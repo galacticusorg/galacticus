@@ -20,7 +20,18 @@
   !% Implementation of a ``superwind'' stellar feedback model.
 
   !# <stellarFeedbackOutflows name="stellarFeedbackOutflowsSuperWind">
-  !#  <description>A ``superwind'' stellar feedback model.</description>
+  !#  <description>
+  !#   A stellar feedback outflow class which implements a ``superwind''. The outflow rate is given by:
+  !#   \begin{equation}
+  !#    \dot{M}_\mathrm{outflow} = \beta_\mathrm{superwind} {\dot{E} \over E_\mathrm{canonical}} \left\{ \begin{array}{ll} \left(
+  !#    V_\mathrm{superwind}/V\right)^2 &amp; \hbox{ if } V > V_\mathrm{superwind} \\ 1 &amp; \hbox{ otherwise,} \end{array}
+  !#    \right.
+  !#   \end{equation}
+  !#   where $V_\mathrm{superwind}=${\normalfont \ttfamily [velocityCharacteristic]} (in km/s) and
+  !#   $\beta_\mathrm{superwind}=${\normalfont \ttfamily [massLoading]} are input parameters, $V$ is the characteristic velocity
+  !#   of the component, $\dot{E}$ is the rate of energy input from stellar populations and $E_\mathrm{canonical}$ is the total
+  !#   energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
+  !#  </description>
   !# </stellarFeedbackOutflows>
   type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsSuperWind
      !% Implementation of a ``superwind'' stellar feedback model.

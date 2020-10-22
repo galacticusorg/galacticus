@@ -20,7 +20,14 @@
   !% Implements a stellar initial mass function class for the \cite{salpeter_luminosity_1955} \gls{imf}.
 
   !# <initialMassFunction name="initialMassFunctionSalpeter1955">
-  !#  <description>A stellar initial mass function class for the \cite{salpeter_luminosity_1955} \gls{imf}.</description>
+  !#  <description>
+
+  !#   A stellar initial mass function class for the \cite{salpeter_luminosity_1955} \gls{imf} defined as:
+  !#   \begin{equation}
+  !#    \phi(M) \propto \left\{ \begin{array}{ll} M^{-2.35} &amp; \hbox{ for } 0.1M_\odot < M < 125M_\odot \\ 0 &amp; \hbox
+  !#    {otherwise.} \end{array} \right.
+  !#   \end{equation}
+  !#  </description>
   !# </initialMassFunction>
   type, extends(initialMassFunctionPiecewisePowerLaw) :: initialMassFunctionSalpeter1955
      !% A stellar initial mass function class for the \cite{salpeter_luminosity_1955} \gls{imf}.

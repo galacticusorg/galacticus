@@ -23,7 +23,18 @@
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !# <hotHaloMassDistribution name="hotHaloMassDistributionRicotti2000">
-  !#  <description>Provides an implementation of the hot halo mass distribution class which uses the model of \cite{ricotti_feedback_2000}.</description>
+  !#  <description>
+  !#   A hot halo mass distribution class which adopts a spherically symmetric $\beta$-profile density profile for the hot halo
+  !#   with parameters selected using the fitting function of \cite{ricotti_feedback_2000} who found these by solving for
+  !#   hydrostatic equilibrium in an \gls{nfw} density profile. Specifically, $\beta = 0.9 b$ where
+  !#   \begin{equation}
+  !#    b = {2 c \over 9 \Gamma} \left[ \log(1+c) - {c\over 1+c}\right]^{-1},
+  !#   \end{equation}
+  !#   $c$ is the concentration parameter of the dark matter halo, and $\Gamma$ is the ratio of virial and gas temperatures, which
+  !#   is assumed to be unity. The core radius is $r_\mathrm{core} = 0.22 r_\mathrm{s}$ where $r_\mathrm{s}$ is the scale radius
+  !#   of the dark matter profile. The profile is normalized such that the current mass in the hot gas profile is contained within
+  !#   the outer radius of the hot halo, $r_\mathrm{hot, outer}$.
+  !#  </description>
   !# </hotHaloMassDistribution>
   type, extends(hotHaloMassDistributionBetaProfile) :: hotHaloMassDistributionRicotti2000
      !% An implementation of the hot halo mass distribution class which uses the model of \cite{ricotti_feedback_2000}.

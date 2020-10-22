@@ -20,7 +20,13 @@
   !% Implements calculations of incompleteness assuming a normal distribution of surface brightnesses.
 
   !# <massFunctionIncompleteness name="massFunctionIncompletenessSurfaceBrightness">
-  !#  <description>Computes incompleteness assuming a normal distribution of surface brightnesses.</description>
+  !#  <description>
+  !#   A mass function incompleteness class which models the surface brightness distribution of galaxies as a normal distribution
+  !#   with mean $\langle \mu \rangle (M) = \alpha \log_{10}(M/M_0)+\beta$, with root-variance $\sigma$, where
+  !#   $\alpha=${\normalfont \ttfamily [slope]}, $\beta=${\normalfont \ttfamily [zeroPoint]}, and $\sigma=${\normalfont \ttfamily
+  !#   [scatter]}. The completeness is the fraction of this distribution above the surface brightness limit given by {\normalfont
+  !#   \ttfamily [limit]}.
+  !#  </description>
   !# </massFunctionIncompleteness>
   type, extends(massFunctionIncompletenessClass) :: massFunctionIncompletenessSurfaceBrightness
      !% A class implementing incompleteness calculations assuming a normal distribution of surface brightnesses.

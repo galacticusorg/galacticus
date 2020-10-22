@@ -22,7 +22,10 @@
   use :: Cooling_Radii, only : coolingRadius, coolingRadiusClass
 
   !# <coolingInfallRadius name="coolingInfallRadiusCoolingRadius">
-  !#  <description>A simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.</description>
+  !#  <description>
+  !#   A cooling infall radius class that assumes that the infall radius equals the cooling radius (see
+  !#   \S\ref{sec:CoolingRadius}).
+  !#  </description>
   !# </coolingInfallRadius>
   type, extends(coolingInfallRadiusClass) :: coolingInfallRadiusCoolingRadius
      !% Implementation of a simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.

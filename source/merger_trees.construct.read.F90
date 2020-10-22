@@ -37,7 +37,7 @@
 
   !# <mergerTreeConstructor name="mergerTreeConstructorRead">
   !#  <description>
-  !#   This class constructs merger trees from data imported from a file and processed into a form suitable for \glc\ to evolve. Merger
+  !#   A merger tree constructor class from data imported from a file and processed into a form suitable for \glc\ to evolve. Merger
   !#   trees are inherently complex structures, particularly when the possibility of subhalos are considered. \glc\ is currently designed
   !#   to work with single descendent merger trees, i.e. ones in which the tree structure is entirely defined by specifying which
   !#   \gls{node} a given \gls{node} is physically associated with at a later time. Additionally, \glc\ expects the merger tree file to
@@ -169,6 +169,7 @@
   !#   \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group}{here}) then the spin parameters
   !#   of nodes will be computed and set. This requires a dark matter halo spin component which supports setting of the spin (see
   !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.DarkMatterHaloSpinComponent}{here}).
+
   !#  </description>
   !# </mergerTreeConstructor>
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorRead

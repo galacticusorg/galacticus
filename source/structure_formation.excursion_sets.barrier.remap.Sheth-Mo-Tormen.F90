@@ -20,7 +20,14 @@
   !% Contains a module which implements an excursion set barrier class which remaps another class using the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse parameterization.
 
   !# <excursionSetBarrier name="excursionSetBarrierRemapShethMoTormen">
-  !#  <description>An excursion set barrier class which remaps another class using the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse parameterization.</description>
+  !#  <description>
+  !#   An excursion set barrier class which remaps another class using the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse
+  !#   parameterization:
+  !#   \begin{equation}
+  !#    B(S) \rightarrow \sqrt{A} B(S) \left(1 + b \left[ {S \over A B^2(S)}\right]^c\right),
+  !#   \end{equation}
+  !#   where $A=0.707$, $b=0.5$, and $c=0.6$.
+  !#  </description>
   !# </excursionSetBarrier>
   type, extends(excursionSetBarrierClass) :: excursionSetBarrierRemapShethMoTormen
      !% An excursion set barrier class which remaps another class using the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse parameterization.

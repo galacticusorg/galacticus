@@ -24,7 +24,18 @@
   use :: Linear_Growth             , only : linearGrowth                 , linearGrowthClass
 
   !# <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryZhao2009">
-  !#  <description>Dark matter halo mass accretion histories using the \cite{zhao_accurate_2009} algorithm.</description>
+  !#  <description>
+  !#   A dark matter halo mass accretion history class which uses the algorithm given by \cite{zhao_accurate_2009} to compute mass
+  !#   accretion histories. In particular, \cite{zhao_accurate_2009} give a fitting function for the quantity $\mathrm{d} \ln
+  !#   \sigma(M)/\mathrm{d} \ln \delta_\mathrm{c}(t)$ for the dimensionless growth rate in a mass accretion history at time $t$
+  !#   and halo mass $M$. This is converted to a dimensionful growth rate using
+  !#   \begin{equation}
+  !#    {\mathrm{d} M \over \mathrm{d} t} = \left({\mathrm{d} \ln \sigma(M) \over \mathrm{d} \ln M}\right)^{-1} \left({\mathrm{d}
+  !#    \delta_c(t) \over \mathrm{d} t}\right) \left( {M \over \delta_\mathrm{c}(t)} \right) \left({\mathrm{d} \ln \sigma(M) \over
+  !#    \mathrm{d} \ln \delta_\mathrm{c}(t)}\right).
+  !#   \end{equation}
+  !#   This differential equation is then solved numerically to find the mass accretion history.
+  !#  </description>
   !# </darkMatterHaloMassAccretionHistory>
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryZhao2009
      !% A dark matter halo mass accretion historiy class using the \cite{zhao_accurate_2009} algorithm.

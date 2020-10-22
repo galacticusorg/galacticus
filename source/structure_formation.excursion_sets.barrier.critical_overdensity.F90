@@ -22,7 +22,9 @@
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
   !# <excursionSetBarrier name="excursionSetBarrierCriticalOverdensity">
-  !#  <description>A critical overdensity excursion set barrier class.</description>
+  !#  <description>
+  !#   A excursion set barrier class that adopts a barrier equal to the critical linear theory overdensity for halo collpase.
+  !#  </description>
   !# </excursionSetBarrier>
   type, extends(excursionSetBarrierClass) :: excursionSetBarrierCriticalOverdensity
      !% A critical overdensity excursion set barrier class.

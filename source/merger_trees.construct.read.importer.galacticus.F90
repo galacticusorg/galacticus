@@ -33,7 +33,7 @@
 
   !# <mergerTreeImporter name="mergerTreeImporterGalacticus">
   !#  <description>
-  !#   This class imports merger trees from an HDF5 file. HDF5 file should follow the general purpose format described
+  !#  A merger tree importer class which imports trees from an HDF5 file. HDF5 file should follow the general purpose format described
   !#  \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here}. An example of how to construct such a file
   !#  can be found in the {\normalfont \ttfamily tests/nBodyMergerTrees} folder. In that folder, the {\normalfont \ttfamily
   !#    getMillenniumTrees.pl} script will retrieve a sample of merger trees from the
@@ -66,7 +66,7 @@
   !#  
   !#  The optional {\normalfont \ttfamily treePath} element gives the location where merger trees from the Millennium Simulation can be
   !#  stored. Some scripts will make use of this location so that Millennium Simulation merger trees can be shared between multiple
-  !#    scripts.
+  !#  scripts.
   !#  </description>
   !# </mergerTreeImporter>
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterGalacticus

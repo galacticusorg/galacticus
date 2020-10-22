@@ -23,7 +23,16 @@
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
 
   !# <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryWechsler2002">
-  !#  <description>Dark matter halo mass accretion histories using the \cite{wechsler_concentrations_2002} algorithm.</description>
+  !#  <description>
+  !#   A dark matter halo mass accretion history class in which the mass accretion history is given by
+  !#   \citep{wechsler_concentrations_2002}:
+  !#   \begin{equation}
+  !#   M(t) = M(t_0) \exp \left( - 2 a_\mathrm{c} \left[ {a(t_0)\over a(t)}-1 \right] \right),
+  !#   \end{equation}
+  !#   where $t_0$ is some reference time and $a_\mathrm{c}$ is a characteristic expansion factor defined by
+  !#   \cite{wechsler_concentrations_2002} to correspond to the formation time of the halo (using the formation time definition of
+  !#   \citealt{bullock_profiles_2001}).
+  !#  </description>
   !# </darkMatterHaloMassAccretionHistory>
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryWechsler2002
      !% A dark matter halo mass accretion historiy class using the \cite{wechsler_concentrations_2002} algorithm.

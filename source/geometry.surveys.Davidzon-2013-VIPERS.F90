@@ -22,7 +22,41 @@
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <surveyGeometry name="surveyGeometryDavidzon2013VIPERS">
-  !#  <description>Implements the geometry of the VIPERS survey of \cite{davidzon_vimos_2013}.</description>
+  !#  <description>
+  !#   A survey geometry class that describes the survey geometry of \cite{davidzon_vimos_2013}. 
+  !#   
+  !#   For the angular mask, we make use of {\normalfont \ttfamily mangle} polygon files provided by I.~Davidzon (private
+  !#   communication) corresponding to the VIPERS fields. The solid angle of each mask is computed using the {\normalfont
+  !#   \ttfamily mangle} {\normalfont \ttfamily harmonize} command.
+  !#   
+  !#   To determine the depth as a function of stellar mass, we make use of the tabulated mass function, $\phi$, and number of
+  !#   galaxies per bin, $N$, supplied by I.~Davidzon (private communication). The effective volume of each bin is found as $V_i =
+  !#   N_i/f_\mathrm{complete}\phi_i\Delta\log_{10}M_\star$, where $\Delta\log_{10}M_\star$ is the width of the bin, and
+  !#   $f_\mathrm{complete}$ is the completeness of the survey, estimated to be approximately 40\% \citep{guzzo_vimos_2013}. These
+  !#   volumes are converted to maximum distances in each field using the survey solid angle. The resulting mass vs. distance
+  !#   relation in each field is fit with a $1^\mathrm{st}$-order polynomial in log-log space over the range where the maximum
+  !#   volume is limited by the survey depth and not by the imposed upper limit to redshift. Figure~\ref{fig:Davidzon2013DepthFit}
+  !#   shows the resulting relation between stellar mass and the maximum distance at which such a galaxy would be included in the
+  !#   sample. Points indicate results from VIPERS, while the lines show polynomial fits:
+  !#   \begin{equation}
+  !#    \log_{10} \left[ {D_\mathrm{max}(M_\star) \over \hbox{Mpc}}\right] = \left\{ \begin{array}{ll} 3.207 + 0.0124m & 0.5 < z <
+  !#    0.6 \\ 3.148 + 0.0268m & 0.6 < z < 0.8 \\ 3.207 + 0.0273m & 0.8 < z < 1.0 \end{array} \right.
+  !#    \label{eq:DavidzonDepthPolynomial}
+  !#   \end{equation}
+  !#   where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
+  !#   stellar mass.
+  !#   
+  !#   \begin{figure}
+  !#    \begin{center}
+  !#    \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/DavidzonVIPERSMassDistanceRelation.pdf}
+  !#    \end{center}
+  !#    \caption{The maximum distance at which a galaxy of given stellar mass can be detected in the sample of
+  !#    \protect\cite{davidzon_vimos_2013}. Points show the results obtained from data provided by Davidzon, while the lines shows
+  !#    a polynomial fit to these results (given in eqn.~\ref{eq:DavidzonDepthPolynomial}). Note that at high masses the distance
+  !#    is limited by the imposed upper limit---the polynomial fit does not consider these points.}
+  !#    \label{fig:Davidzon2013DepthFit}
+  !#   \end{figure}
+  !#  </description>
   !# </surveyGeometry>
   type, extends(surveyGeometryMangle) :: surveyGeometryDavidzon2013VIPERS
      private

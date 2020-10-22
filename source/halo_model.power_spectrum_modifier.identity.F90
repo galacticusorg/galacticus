@@ -20,7 +20,9 @@
 !% Implements a identity modifier for power spectra in the halo model of clustering.
 
   !# <haloModelPowerSpectrumModifier name="haloModelPowerSpectrumModifierIdentity">
-  !#  <description>A identity modifier for power spectra in the halo model of clustering.</description>
+  !#  <description>
+  !#   A halo model power spectrum modifier class which applies an identity modifier.
+  !#  </description>
   !# </haloModelPowerSpectrumModifier>
   type, extends(haloModelPowerSpectrumModifierClass) :: haloModelPowerSpectrumModifierIdentity
      private

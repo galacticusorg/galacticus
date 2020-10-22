@@ -24,7 +24,10 @@
   use :: Tables                    , only : table1D
 
   !# <virialDensityContrast name="virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt">
-  !#  <description>Dark matter halo virial density contrasts based on the spherical collapse in a matter plus cosmological constant universe.</description>
+  !#  <description>
+  !#   A class implementing dark matter halo virial density contrasts based on the spherical collapse model in a universe which
+  !#   contains collisionless matter and a cosmological constant (see, for example, \citealt{percival_cosmological_2005}).
+  !#  </description>
   !# </virialDensityContrast>
   type, extends(virialDensityContrastClass) :: virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
      !% A dark matter halo virial density contrast class based on spherical collapse in a matter plus cosmological constant universe.

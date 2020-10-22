@@ -25,7 +25,38 @@
   use :: Tables              , only : table1DLinearLinear
 
   !# <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksKrumholz2009">
-  !#  <description>The \cite{krumholz_star_2009} star formation rate surface density law for galactic disks.</description>
+  !#  <description>
+  !#   A star formation rate surface density class implementing the model of \citep{krumholz_star_2009}:
+  !#   \begin{equation}
+  !#    \dot{\Sigma}_\star(R) = \nu_\mathrm{SF} f_\mathrm{H_2}(R)\Sigma_\mathrm{HI, disk}(R) \left\{ \begin{array}{ll}
+  !#    (\Sigma_\mathrm{HI}/\Sigma_0)^{-1/3}, &amp; \hbox{ if } \Sigma_\mathrm{HI}/\Sigma_0 \le 1 \\
+  !#    (\Sigma_\mathrm{HI}/\Sigma_0)^{1/3}, &amp; \hbox{ if } \Sigma_\mathrm{HI}/\Sigma_0 > 1 \end{array} \right. ,
+  !#   \end{equation}
+  !#   where $\nu_\mathrm{SF}=${\normalfont \ttfamily [frequencyStarFormation]} is a frequency and $\Sigma_0=85 M_\odot
+  !#   \hbox{pc}^{-2}$. The molecular fraction is given by
+  !#   \begin{equation}
+  !#    f_\mathrm{H_2} = 1 - \left( 1 + \left[ { 3 s \over 4 (1+\delta)} \right]^{-5} \right)^{-1/5},
+  !#   \end{equation}
+  !#   where
+  !#   \begin{equation}
+  !#    \delta = 0.0712 \left[ 0.1 s^{-1} + 0.675 \right]^{-2.8},
+  !#   \end{equation}
+  !#   and
+  !#   \begin{equation}
+  !#    s = {\ln(1+0.6\chi+0.01\chi^2) \over 0.04 \Sigma_\mathrm{comp,0} Z^\prime},
+  !#   \end{equation}
+  !#   with
+  !#   \begin{equation}
+  !#    \chi = 0.77 \left[ 1 + 3.1 Z^{\prime 0.365} \right],
+  !#   \end{equation}
+  !#   and $\Sigma_\mathrm{comp,0}=c \Sigma_\mathrm{HI}/M_\odot \hbox{pc}^{-2}$ where $c=${\normalfont \ttfamily
+  !#   [clumpingFactorMolecularComplex]} is a density enhancement factor relating the surface density of molecular complexes to
+  !#   the gas density on larger scales. Alternatively, if {\normalfont \ttfamily [molecularFractionFast]} is set to true, the
+  !#   molecular fraction will be computed using the faster (but less acccurate at low molecular fraction) formula
+  !#   \begin{equation}
+  !#    f_\mathrm{H_2} = 1 - { 3s/4 \over (1 + s/4)}.
+  !#   \end{equation}
+  !#  </description>
   !# </starFormationRateSurfaceDensityDisks>
   type, extends(starFormationRateSurfaceDensityDisksClass) :: starFormationRateSurfaceDensityDisksKrumholz2009
      !% Implementation of the \cite{krumholz_star_2009} star formation rate surface density law for galactic disks.

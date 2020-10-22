@@ -23,7 +23,28 @@
   use :: Tables                    , only : table1DLogarithmicLinear
 
   !# <mergerTreeBranchingProbability name="mergerTreeBranchingProbabilityParkinsonColeHelly">
-  !#  <description>Merger tree branching probabilities using the algorithm of \cite{parkinson_generating_2008}.</description>
+  !#  <description>
+  !#   A merger tree branching probability class using the algorithm of \cite{parkinson_generating_2008}. The parameters $G_0$,
+  !#   $\gamma_1$ and $\gamma_2$ of their algorithm are specified by the input parameters {\normalfont \ttfamily [G0]},
+  !#   {\normalfont \ttfamily [gamma]} and {\normalfont \ttfamily [gamma2]} respectively. Additionally, the parameter {\normalfont
+  !#   \ttfamily modifiedPressSchechterFirstOrderAccuracy} limits the step in $\delta_\mathrm{crit}$ so that it never exceeds
+  !#   {\normalfont \ttfamily modifiedPressSchechterFirstOrderAccuracy}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$, which ensures
+  !#   the the first order expansion of the merging rate that is assumed is accurate. To find bounds on the branching probability,
+  !#   we make use of the fact that eqn.~(4) of \cite{parkinson_generating_2008} can be written as
+  !#   \begin{equation}
+  !#    {\d f \over \d t} = {\mathrm{d} t \over \mathrm{d}\omega} \int_{M_\mathrm{min}}^{M/2} {M \over M^\prime} {\d f \over \d t}
+  !#    {\d S \over \d M^\prime} \left| {\d t \over \d \omega}\right| G[\omega,\sigma(M),\sigma(M^\prime)] \d M^\prime.
+  !#   \end{equation}
+  !#   By holding the $M^\prime$ in the denominator of the first term in the integrand fixed, we obtain an analytic solution to
+  !#   the integral in terms of hypergeometric functions. If we fix this $M^\prime$ at $M_\mathrm{min}$ we obtain an upper limit
+  !#   on the branching probability, while if we fix it to $M/2$ a lower limit is obtained.
+  !#
+  !#   Calculation of branching probabilities involves computation of several hypergeometric functions which are numerically
+  !#   slow. Two parameters control the accuracy and application of these functions. First, {\normalfont \ttfamily
+  !#   [precisionHypergeometric]}($=10^{-6}$) specifies the fractional tolerance to which these functions should be
+  !#   computed. Second, if {\normalfont \ttfamily [hypergeometricTabulate]}$=${\normalfont \ttfamily true} then these functions
+  !#   will be tabulated for rapid lookup (at some loss of precision).
+  !#  </description>
   !# </mergerTreeBranchingProbability>
   type, extends(mergerTreeBranchingProbabilityClass) :: mergerTreeBranchingProbabilityParkinsonColeHelly
      !% A merger tree branching probability class using the algorithm of \cite{parkinson_generating_2008}.

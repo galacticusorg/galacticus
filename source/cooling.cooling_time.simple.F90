@@ -23,7 +23,16 @@
   use :: Cooling_Functions, only : coolingFunction, coolingFunctionClass
 
   !# <coolingTime name="coolingTimeSimple">
-  !#  <description>A simple cooling time calculation (based on the ratio of the thermal energy density to the volume cooling rate).</description>
+  !#  <description>
+
+  !#   A cooling time class in which the cooling time is simply
+  !#   \begin{equation}
+  !#    t_\mathrm{cool} = {N \over 2} {\mathrm{k}_\mathrm{B} T n_\mathrm{tot} \over \Lambda},
+  !#   \end{equation}
+  !#   where $N=${\normalfont \ttfamily [degreesOfFreedom]} is the number of degrees of freedom in the cooling gas which has
+  !#   temperature $T$ and total particle number density (including electrons) $n_\mathrm{tot}$ and $\Lambda$ is the cooling
+  !#   function.
+  !#  </description>
   !# </coolingTime>
   type, extends(coolingTimeClass) :: coolingTimeSimple
      !% Implementation of cooling time calculation (based on the ratio of the thermal energy density to the volume cooling rate).

@@ -23,7 +23,10 @@
   use :: Numerical_Interpolation, only : interpolator
 
   !# <excursionSetFirstCrossing name="excursionSetFirstCrossingZhangHui">
-  !#  <description>An excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}.</description>
+  !#  <description>
+  !#   An excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}. First crossing (and
+  !#   non-crossing) rates are not supported by this method.
+  !#  </description>
   !# </excursionSetFirstCrossing>
   type, extends(excursionSetFirstCrossingClass) :: excursionSetFirstCrossingZhangHui
      !% An excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}.

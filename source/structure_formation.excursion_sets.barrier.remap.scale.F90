@@ -20,7 +20,10 @@
 !% Contains a module which implements an excursion set barrier class which remaps another class by multiplying by a constant.
 
   !# <excursionSetBarrier name="excursionSetBarrierRemapScale">
-  !#  <description>An excursion set barrier class which remaps another class by multiplying by a constant.</description>
+  !#  <description>
+  !#   An excursion set barrier class which remaps another class by multiplying by a constant given by {\normalfont \ttfamily
+  !#   [factor]}.
+  !#  </description>
   !# </excursionSetBarrier>
   type, extends(excursionSetBarrierClass) :: excursionSetBarrierRemapScale
      !% An excursion set barrier class which remaps another class by multiplying by a constant.

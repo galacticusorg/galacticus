@@ -22,7 +22,13 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <coldModeInfallRate name="coldModeInfallRateDynamicalTime">
-  !#  <description>A dynamicalTime cooling time calculation (based on the ratio of the thermal energy density to the volume cooling rate).</description>
+  !#  <description>
+  !#   A cold mode infall rate class in which the infall rate from the cold mode is given by
+  !#   \begin{equation}
+  !#   \dot{M}_\mathrm{infall, cold mode} = f_\mathrm{infall, cold mode}{M_\mathrm{cold mode} \over \tau_\mathrm{dyn}},
+  !#   \end{equation}
+  !#   where $f_\mathrm{infall, cold mode}=${\normalfont \ttfamily [dynamicalRateFraction]}.
+  !#  </description>
   !# </coldModeInfallRate>
   type, extends(coldModeInfallRateClass) :: coldModeInfallRateDynamicalTime
      !% Implementation of a calculation of cold mode infall rates assuming infall on a dynamical timescale.

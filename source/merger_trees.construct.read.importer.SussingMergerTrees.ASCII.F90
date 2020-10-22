@@ -20,7 +20,70 @@
   !% An implementation of the merger tree importer class for ``Sussing Merger Trees'' format merger tree files.
 
   !# <mergerTreeImporter name="mergerTreeImporterSussingASCII">
-  !#  <description>Importer for ``Sussing Merger Trees'' ASCII format merger tree files \citep{srisawat_sussing_2013}.</description>
+  !#  <description>
+
+  !#   A merger tree importer class for ``Sussing Merger Trees'' ASCII format merger tree files \citep{srisawat_sussing_2013},
+  !#   along with \gls{ahf} format halo catalogs. A descriptor file must be specified via the {\normalfont \ttfamily
+  !#   [mergerTreeReadFileName]} parameter. This descriptor file should have the following format:
+  !#   \begin{verbatim}
+  !#   simulation.txt
+  !#   MergerTree+AHF.txt
+  !#   snapidzred.txt
+  !#   AHF/62.5_dm_000.z50.000.AHF_halos
+  !#   AHF/62.5_dm_001.z30.000.AHF_halos
+  !#   AHF/62.5_dm_002.z19.916.AHF_halos
+  !#   .
+  !#   .
+  !#   .
+  !#   AHF/62.5_dm_061.z0.000.AHF_halos
+  !#   \end{verbatim}
+  !#   in which each line specifies a file to be read (by default path names are relative to the location of the descriptor
+  !#   file---fully-qualified path names can also be given).
+  !#
+  !#   The first line identifies a file which specifies properties of the simulation. This file should look like:
+  !#   \begin{verbatim}
+  !#   WMAP7 cosmology:
+  !#   ----------------
+  !#   Omega0          =       0.272
+  !#   OmegaLambda0    =       0.728
+  !#   h               =       0.704
+  !#   
+  !#   simulation:
+  !#   -----------
+  !#   B               =       62.5 Mpc/h
+  !#   N               =       270^3 particles
+  !#   \end{verbatim}
+  !#   Currently only the cosmological parameter and box length are read from this file.
+  !#   
+  !#   The second line identifies the merger tree file which must be in the format specified by \cite{srisawat_sussing_2013}.
+  !#   
+  !#   The third line of the descriptor file specifies a snapshot file which should have the following format:
+  !#   \begin{verbatim}
+  !#   #    snapnum       a             z           t(t0)      t(year)
+  !#              0    0.0196080      49.9996   0.00354284  4.87485e+07
+  !#              1    0.0322580      30.0001   0.00747572  1.02864e+08
+  !#              2    0.0478110      19.9157    0.0134888  1.85602e+08
+  !#              3    0.0519650      18.2437    0.0152842  2.10306e+08
+  !#              4    0.0564190      16.7245    0.0172905  2.37912e+08
+  !#              5    0.0611880      15.3431    0.0195280  2.68700e+08
+  !#              6    0.0662870      14.0859    0.0220186  3.02969e+08
+  !#                .
+  !#                .
+  !#                .
+  !#   \end{verbatim}
+  !#   This file must contain one line for each snapshot of the simulation, giving the snapshot number, expansion factor,
+  !#   redshift, fractional time (relative to present day), and age of the universe (in years).
+  !#   
+  !#   Subsequent lines identify the \gls{ahf} halo files for each snapshot (files can be listed in any order).
+  !#   
+  !#   Merger tree files of this type can be split into subvolumes before processing. This is useful if the file is too large to
+  !#   read into memory in one go. The number of subvolumes to use (in each of the three dimensions of the simulation cube) is
+  !#   specified by the {\normalfont \ttfamily [subvolumeCount]} parameter. The specific subvolume to process is specified by the
+  !#   {\normalfont \ttfamily [subvolumeIndex]} parameter, which should give the index (running from $0$ to {\normalfont \ttfamily
+  !#   [subvolumeCount]}$-1$) in each dimension (whitespace separated). To ensure that no halos are missed from trees near the
+  !#   edge of the subvolume, a buffer region around the subvolume is also read. The width of this buffer (in units of Mpc$/h$ to
+  !#   follow the format convention) is specified via the {\normalfont \ttfamily [subvolumeBuffer]} parameter.
+  !#  </description>
   !# </mergerTreeImporter>
   type, extends(mergerTreeImporterSussing) :: mergerTreeImporterSussingASCII
      !% A merger tree importer class for ``Sussing Merger Trees'' ASCII format merger tree files \citep{srisawat_sussing_2013}.

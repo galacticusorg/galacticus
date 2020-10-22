@@ -24,7 +24,83 @@
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !# <mergerTreeConstructor name="mergerTreeConstructorFullySpecified">
-  !#  <description>Merger tree constructor class which constructs a merger tree given a full specification in XML.</description>
+  !#  <description>
+  !#   A merger tree constructor class which constructs a merger tree given a full specification in XML. This class will construct
+  !#   a merger tree, and set properties of components in each node, using a description read from an XML document. The document
+  !#   is specified via the {\normalfont \ttfamily [fileName]} input parameter.
+  !#   
+  !#   The tree specification document looks as follows:
+  !#   \begin{verbatim}
+  !#   <!-- Simple initial conditions test case -->
+  !#   <initialConditions>
+  !#   
+  !#     <node>
+  !#       <index>2</index>
+  !#       <parent>1</parent>
+  !#       <firstChild>-1</firstChild>
+  !#       <sibling>-1</sibling>
+  !#       <basic>
+  !#         <time>1.0</time>
+  !#         <timeLastIsolated>1.0</timeLastIsolated>
+  !#         <mass>1.0e12</mass>
+  !#         <accretionRate>7.9365079e9</accretionRate>
+  !#       </basic>
+  !#       <spin>
+  !#         <spin>0.1</spin>
+  !#       </spin>
+  !#       <disk>
+  !#         <massGas>1.0e10</massGas>
+  !#         <angularMomentum>1.0e10</angularMomentum>
+  !#         <abundancesGas>
+  !#   	<metals>1.0e9</metals>
+  !#   	<Fe>1.0e9</Fe>
+  !#         </abundancesGas>
+  !#       </disk>
+  !#     </node>
+  !#   
+  !#     <node>
+  !#       <index>1</index>
+  !#       <parent>-1</parent>
+  !#       <firstChild>2</firstChild>
+  !#       <sibling>-1</sibling>
+  !#       <basic>
+  !#         <time>13.8</time>
+  !#         <timeLastIsolated>13.8</timeLastIsolated>
+  !#         <mass>1.1e12</mass>
+  !#         <accretionRate>7.8125e9</accretionRate>
+  !#       </basic>
+  !#       <position>
+  !#         <position>1.23</position>
+  !#         <position>6.31</position>
+  !#         <position>3.59</position>
+  !#       </position>
+  !#     </node>
+  !#   
+  !#   </initialConditions>
+  !#   \end{verbatim}
+  !#   The document consists of a set of {\normalfont \ttfamily node} elements, each of which defines a single node in the merger
+  !#   tree. Each {\normalfont \ttfamily node} element must specify the {\normalfont \ttfamily index} of the node, along with the
+  !#   index of the node's {\normalfont \ttfamily parent}, {\normalfont \ttfamily firstChild}, and {\normalfont \ttfamily
+  !#   sibling}.
+  !#   
+  !#   Each {\normalfont \ttfamily node} element may contain elements which specify the properties of a component in the node. For
+  !#   example, a {\normalfont \ttfamily basic} element will specify properties of the ``basic'' component. If multiple elements
+  !#   for a given component type are present, then multiple instances of that component will be created in the node.
+  !#   
+  !#   Within a component definition element scalar properties are set using an element with the same name as that property
+  !#   (e.g. {\normalfont \ttfamily mass} in the {\normalfont \ttfamily basic} components in the above example). Rank-1 properties
+  !#   are set using a list of elements with the same name as the property (e.g. {\normalfont \ttfamily position} in the
+  !#   {\normalfont \ttfamily position} component in the above example).
+  !#   
+  !#   For composite properties (e.g. abundances), the specification element should contain sub-elements that specify each
+  !#   property of the composite. Currently only the {\normalfont \ttfamily abundances} object supports specification in this way,
+  !#   as detailed below:
+  !#   \begin{description}
+  !#    \item [{\normalfont \ttfamily abundances}] (See {\normalfont \ttfamily abundancesGas} in the above example.) The total
+  !#    metal content is specified via a {\normalfont \ttfamily metals} element. If other elements are being tracked, their
+  !#    content is specified via an element with the short-name of the element (e.g. {\normalfont \ttfamily Fe} for iron).
+  !#   \end{description}
+  !#  </description>
   !#  <deepCopy>
   !#    <increment variables="document%copyCount" atomic="yes"/>
   !#  </deepCopy>

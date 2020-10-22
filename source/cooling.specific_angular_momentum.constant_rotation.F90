@@ -26,7 +26,28 @@
 
   !# <coolingSpecificAngularMomentum name="coolingSpecificAngularMomentumConstantRotation">
   !#  <description>
-  !#   A specific angular momentum of cooling gas class which assumes a constant rotation velocity as a function of radius.
+  !#   A cooling specific angular momentum class which assumes a constant rotation velocity as a function of radius. The specific
+  !#   angular momentum of cooling gas is given either by
+  !#   \begin{equation}
+  !#    j_\mathrm{cool} = \langle j \rangle r_\mathrm{cool} A,
+  !#   \end{equation}
+  !#   where $r_\mathrm{cool}$ is the cooling radius, $A$ is the rotation normalization and $\langle j \rangle$ is the mean
+  !#   specific angular momentum of the cooling gas, if {\normalfont \ttfamily [useInteriorMean]}$=${\normalfont \ttfamily false},
+  !#   or by
+  !#   \begin{equation}
+  !#    j_\mathrm{cool} = \langle j \rangle {I_3(r_\mathrm{cool})/I_2(r_\mathrm{cool})} A,
+  !#   \end{equation}
+  !#   where $I_n(r)$ is the $n^\mathrm{th}$ radial moment of the hot gas density profile from $0$ to $r$ (this therefore gives
+  !#   the mean specific angular momentum interior to radius $r$), if {\normalfont \ttfamily [useInteriorMean]}$=${\normalfont
+  !#   \ttfamily true}.
+  !#
+  !#   If {\normalfont \ttfamily [sourceAngularMomentumSpecificMean]}$=${\normalfont \ttfamily darkMatter} then $\langle j
+  !#   \rangle$ is the mean specific angular momentum of the dark matter halo, computed from its spin parameter, while if
+  !#   {\normalfont \ttfamily [sourceAngularMomentumSpecificMean]}$=${\normalfont \ttfamily hotGas} then $\langle j \rangle$ is
+  !#   equal to the mean specific angular momentum of gas currently in the hot gas reservoir. If {\normalfont \ttfamily
+  !#   [sourceNormalizationRotation]}$=${\normalfont \ttfamily darkMatter} then the rotation normalization $A$ is computed using
+  !#   the dark matter density profile, while if {\normalfont \ttfamily [sourceNormalizationRotation]}$=${\normalfont \ttfamily
+  !#   hotGas} it is computed using the density profile of the hot gas reservoir.
   !#  </description>
   !# </coolingSpecificAngularMomentum>
   type, extends(coolingSpecificAngularMomentumClass) :: coolingSpecificAngularMomentumConstantRotation

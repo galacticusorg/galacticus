@@ -23,7 +23,27 @@
   use :: Satellites_Tidal_Fields, only : satelliteTidalFieldClass
 
   !# <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityEfstathiou1982Tidal">
-  !#  <description>The \cite{efstathiou_stability_1982} model for galactic disk bar instability, but include the effects of tidal forces.</description>
+  !#  <description>
+  !#   A galactic dynamics bar instability class that uses the stability criterion of \cite{efstathiou_stability_1982} to estimate
+  !#   when disks are unstable to bar formation, but includes an additional term due to external tidal forces:
+  !#   \begin{equation}
+  !#    \epsilon \left( \equiv {V_\mathrm{peak} \over \sqrt{\G M_\mathrm{disk}/r_\mathrm{disk}} + \hbox{max}(\mathcal{T},0) }
+  !#    \right) < \epsilon_\mathrm{c},
+  !#   \end{equation}
+  !#   for stability, where $V_\mathrm{peak}$ is the peak velocity in the rotation curve (computed here assuming an isolated
+  !#   exponential disk), $M_\mathrm{disk}$ is the mass of the disk, $r_\mathrm{disk}$ is its scale length (assuming an
+  !#   exponential disk), $\mathcal{T} = \mathcal{F} r_\mathrm{disk}^2$ is the external driving specific torque, and $\mathcal{F}$
+  !#   is the external tidal field (evaluated using the selected method; see \S\ref{sec:SatelliteTidalFields}). The value of
+  !#   $\epsilon_\mathrm{c}$ is linearly interpolated in the disk gas fraction between values for purely gaseous and stellar disks
+  !#   as specified by {\normalfont \ttfamily stabilityThresholdStellar} and {\normalfont \ttfamily stabilityThresholdGaseous}
+  !#   respectively. For disks which are judged to be unstable, the timescale for bar formation is estimated to be
+  !#   \begin{equation}
+  !#    t_\mathrm{bar} = t_\mathrm{disk} {\epsilon_\mathrm{c} - \epsilon_\mathrm{iso} \over \epsilon_\mathrm{c} - \epsilon},
+  !#   \end{equation}
+  !#   where $\epsilon_\mathrm{iso}$ is the value of $\epsilon$ for an isolated disk and $t_\mathrm{disk}$ is the disk dynamical
+  !#   time, defined as $r/V$, at one scale length. This form gives an infinite timescale at the stability threshold, reducing to
+  !#   a dynamical time for highly unstable disks.
+  !#  </description>
   !# </galacticDynamicsBarInstability>
   type, extends(galacticDynamicsBarInstabilityEfstathiou1982) :: galacticDynamicsBarInstabilityEfstathiou1982Tidal
      !% Implementation of the \cite{efstathiou_stability_1982} model for galactic disk bar instability, but include the effects of tidal forces.

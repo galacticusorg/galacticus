@@ -24,7 +24,13 @@
   use :: Tables                 , only : table1D                 , table1DLogarithmicLinear
 
   !# <hotHaloMassDistributionCoreRadius name="hotHaloMassDistributionCoreRadiusGrowing">
-  !#  <description>Provides an implementation of the hot halo mass distribution core radius class in which the core grows as the hot halo content is depleted.</description>
+  !#  <description>
+  !#   A hot halo mass distribution core radius class which implements a core radius equal to a fraction {\normalfont \ttfamily
+  !#   [coreRadiusOverScaleRadius]} of the node's dark matter profile scale radius for nodes containing a mass of hot gas equal to
+  !#   the universal baryon fraction times their total mass. For nodes containing less hot gas mass, the core radius is expanded
+  !#   to maintain the same gas density at the virial radius, with a maximum core radius of {\normalfont \ttfamily
+  !#   [coreRadiusOverVirialRadiusMaximum]} times the node's virial radius.
+  !#  </description>
   !# </hotHaloMassDistributionCoreRadius>
   type, extends(hotHaloMassDistributionCoreRadiusClass) :: hotHaloMassDistributionCoreRadiusGrowing
      !% An implementation of the hot halo mass distribution core radius class in which the core grows as the hot halo content is depleted.

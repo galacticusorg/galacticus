@@ -22,7 +22,19 @@
   use :: Cosmological_Density_Field, only : criticalOverdensity, criticalOverdensityClass
 
   !# <mergerTreeBranchingProbabilityModifier name="mergerTreeBranchingProbabilityModifierParkinson2008">
-  !#  <description>Provides a merger tree branching probability rate modifier which uses the model of \cite{parkinson_generating_2008}.</description>
+  !#  <description>
+  !#   A merger tree branching probability modifier class which uses the model of \cite{parkinson_generating_2008}. Specifically,
+  !#   the branching probability is multiplied by:
+  !#   \begin{equation}
+  !#    G(\delta_\mathrm{p},\sigma_\mathrm{c},\sigma_\mathrm{p}) = G_0
+  !#    \left({\sigma_\mathrm{p}\over\sigma_\mathrm{p}}\right)^{\gamma_1}
+  !#    \left({\delta_\mathrm{p}\over\sigma_\mathrm{p}}\right)^{\gamma_2}
+  !#   \end{equation}
+  !#   where $\delta_\mathrm{p}$ is the current critical overdensity for collapse for the parent halo, and $\sigma_\mathrm{c}$ and
+  !#   $\sigma_\mathrm{p}$ are the root-variance of the smooth mass-density field on scales corresponding to the masses of child
+  !#   and parent halos respectively. The parameters of the fit can be adjusted via input parameters: $G_0=${\normalfont \ttfamily
+  !#   [G0]}, $\gamma_1=${\normalfont \ttfamily [gamma1]}, and $\gamma_2=${\normalfont \ttfamily [gamma2]}.
+  !#  </description>
   !# </mergerTreeBranchingProbabilityModifier>
   type, extends(mergerTreeBranchingProbabilityModifierClass) :: mergerTreeBranchingProbabilityModifierParkinson2008
      !% A merger tree branching probability rate modifier which uses the model of \cite{parkinson_generating_2008}.

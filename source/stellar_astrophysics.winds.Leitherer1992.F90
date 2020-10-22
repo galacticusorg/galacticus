@@ -23,7 +23,10 @@
   use :: Stellar_Astrophysics_Tracks     , only : stellarTracksClass
 
   !# <stellarWinds name="stellarWindsLeitherer1992">
-  !#  <description>A stellar winds class based on \cite{leitherer_deposition_1992}.</description>
+  !#  <description>
+  !#   A stellar winds class using the fitting formulae of \cite{leitherer_deposition_1992} to compute stellar wind energy input
+  !#   from the luminosity and effective temperature of a star.
+  !#  </description>
   !# </stellarWinds>
   type, extends(stellarWindsClass) :: stellarWindsLeitherer1992
      !% A stellar winds class based on \cite{leitherer_deposition_1992}.

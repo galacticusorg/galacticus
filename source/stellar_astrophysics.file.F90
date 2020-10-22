@@ -22,7 +22,40 @@
   use :: Numerical_Interpolation_2D_Irregular, only : interp2dIrregularObject
 
   !# <stellarAstrophysics name="stellarAstrophysicsFile">
-  !#  <description>A stellar astrophysics class in which the stellar properties are read from file and interpolated.</description>
+  !#  <description>
+  !#   A stellar astrophysics class which reads properties of individual stars of different initial mass and metallicity from an
+  !#   XML file and interpolates in them. The stars can be irregularly spaced in the plane of initial mass and metallicity. The
+  !#   XML file should have the following structure:
+  !#   \begin{verbatim}
+  !#    <stars>
+  !#     <star>
+  !#       <initialMass>0.6</initialMass>
+  !#       <lifetime>28.19</lifetime>
+  !#       <metallicity>0.0000</metallicity>
+  !#       <ejectedMass>7.65</ejectedMass>
+  !#       <metalYieldMass>0.44435954</metalYieldMass>
+  !#       <elementYieldMassFe>2.2017e-13</elementYieldMassFe>
+  !#       <source>Table 2 of Tumlinson, Shull &amp; Venkatesan (2003, ApJ, 584, 608)</source>
+  !#       <url>http://adsabs.harvard.edu/abs/2003ApJ...584..608T</url>
+  !#     </star>
+  !#     <star>
+  !#       .
+  !#       .
+  !#       .
+  !#     </star>
+  !#     .
+  !#     .
+  !#     .
+  !#    </stars
+  !#   \end{verbatim}
+  !#   Each {\normalfont \ttfamily star} element must contain the {\normalfont \ttfamily initialMass} (given in $M_\odot$) and
+  !#   {\normalfont \ttfamily metallicity} tags. Other tags are optional. {\normalfont \ttfamily lifetime} gives the lifetime of
+  !#   such a star (in Gyr), {\normalfont \ttfamily ejectedMass} gives the total mass (in $M_\odot$) ejected by such a star during
+  !#   its lifetime, {\normalfont \ttfamily metalYieldMass} gives the total mass of metals yielded by the star during its lifetime
+  !#   while {\normalfont \ttfamily elementYieldMassX} gives the mass of element {\normalfont \ttfamily X} yielded by the star
+  !#   during its lifetime. The {\normalfont \ttfamily source} and {\normalfont \ttfamily url} tags are not used, but are strongly
+  !#   recommended to provide a reference to the origin of the stellar data.
+  !#  </description>
   !# </stellarAstrophysics>
   type, extends(stellarAstrophysicsClass) :: stellarAstrophysicsFile
      !% A stellar astrophysics class in which the stellar properties are read from file and interpolated.

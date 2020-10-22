@@ -22,7 +22,17 @@
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
   !# <darkMatterProfileShape name="darkMatterProfileShapeGao2008">
-  !#  <description>Dark matter halo shape parameters are computed using the algorithm of \cite{gao_redshift_2008}.</description>
+  !#  <description>
+  !#   A dark matter profile shape class in which the shape parameter for Einasto density profiles\index{Einasto
+  !#   profile}\index{density profile!Einasto} is computed using a fitting function from \cite{gao_redshift_2008}:
+  !#   \begin{equation}
+  !#   \alpha = \left\{ \begin{array}{ll} 0.155 + 0.0095\nu^2 & \hbox{ if } \nu < 3.907 \\ 0.3 & \hbox{ if } \nu \ge 3.907,
+  !#   \end{array} \right.
+  !#   \end{equation}
+  !#   where $\nu=\delta_\mathrm{c}(t)/\sigma(M)$ is the peak height of the halo. The truncation at $\alpha = 0.3$ is included
+  !#   since \cite{gao_redshift_2008}'s fits do not probe this region and extremely large values of $\alpha$ are numerically
+  !#   troublesome.
+  !#  </description>
   !# </darkMatterProfileShape>
   type, extends(darkMatterProfileShapeClass) :: darkMatterProfileShapeGao2008
      !% A dark matter halo profile shape parameter class implementing the algorithm of \cite{gao_redshift_2008}.

@@ -30,10 +30,21 @@
 
   !# <coolingRadius name="coolingRadiusIsothermal">
   !#  <description>
-  !#   A cooling radius class for isothermal halos. Computes the cooling radius by assuming that the hot gas density profile is an
-  !#   isothermal profile ($\rho(r) \propto r^{-2}$), and that the cooling rate scales as density squared, $\dot{E}\propto
-  !#   \rho^2$, such that the cooling time scales as inverse density, $t_\mathrm{cool} \propto \rho^{-1}$. Consequently, the
-  !#   cooling radius grows as the square root of the time available for cooling.
+
+  !#   A cooling radius class that computes the cooling radius by assuming an isothermal density profile, and a cooling rate
+  !#   proportional to density squared. This implies a cooling time:
+  !#   \begin{equation}
+  !#    t_\mathrm{cool} \equiv {E\over\dot{E}} \propto \rho(r)^{-1}.
+  !#   \end{equation}
+  !#   The cooling radius is then derived using
+  !#   \begin{equation}
+  !#    \rho(r_\mathrm{cool}) \propto t_\mathrm{available}^{-1}
+  !#   \end{equation}
+  !#   which implies
+  !#   \begin{equation}
+  !#    r_\mathrm{cool} = r_\mathrm{virial} \left( { t_\mathrm{available} \over t_\mathrm{cool,virial}} \right)^{1/2},
+  !#   \end{equation}
+  !#   where $t_\mathrm{cool,virial}$ is the cooling time at the virial radius.
   !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="radiation"/>

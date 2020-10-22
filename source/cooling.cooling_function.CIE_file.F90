@@ -23,7 +23,8 @@
 
   !# <coolingFunction name="coolingFunctionCIEFile">
   !#  <description>
-  !#   Class providing a cooling function interpolated from a table read from file.  The HDF5 file containing the table should have the following form:
+  !#   A cooling function class providing a cooling function interpolated from a table read from file.  The HDF5 file containing
+  !#   the table should have the following form:
   !#   \begin{verbatim}
   !#   HDF5 "coolingFunction.hdf5" {
   !#   GROUP "/" {

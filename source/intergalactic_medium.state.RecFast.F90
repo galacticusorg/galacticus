@@ -24,7 +24,12 @@
   use :: File_Utilities, only : lockDescriptor
 
   !# <intergalacticMediumState name="intergalacticMediumStateRecFast">
-  !#  <description>The intergalactic medium state is computed using {\normalfont \scshape RecFast}.</description>
+  !#  <description>
+  !#   An intergalactic medium state class which computes the state of the intergalactic medium using the
+  !#   \href{https://www.astro.ubc.ca/people/scott/recfast.html}{{\normalfont \scshape RecFast}} code
+  !#   \cite{seager_how_2000,wong_how_2008}. The {\normalfont \scshape RecFast} code will be downloaded and run to compute the
+  !#   intergalactic medium state as needed, which will then be stored for future use.
+  !#  </description>
   !# </intergalacticMediumState>
   type, extends(intergalacticMediumStateFile) :: intergalacticMediumStateRecFast
      !% An \gls{igm} state class which computes state using {\normalfont \scshape RecFast}.

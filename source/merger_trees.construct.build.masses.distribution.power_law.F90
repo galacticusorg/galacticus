@@ -20,7 +20,19 @@
   !% Implementation of a merger tree halo mass function sampling class in which the sampling rate is given by a power-law in halo mass.
 
   !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionPowerLaw">
-  !#  <description>A merger tree halo mass function sampling class in which the sampling rate is given by a power-law in halo mass.</description>
+  !#  <description>
+  !#   A merger tree build mass distribution class in which the sampling rate is given by a power-law in halo mass. Specifically:
+  !#   \begin{equation}
+  !#   \gamma(M) = \log_{10}(M/M_\mathrm{minimum})^{-\alpha/(1+\alpha)},
+  !#   \end{equation}
+  !#   The resulting distribution of halo masses is such that the mass of the $i^\mathrm{th}$ halo is
+  !#   \begin{equation}
+  !#    M_\mathrm{halo,i} = \exp\left[ \ln(M_\mathrm{halo,min}) + \ln\left({M_\mathrm{halo,max}/M_\mathrm{halo,min}}\right)
+  !#    x_i^{1+\alpha} \right].
+  !#   \end{equation}
+  !#   Here, $x_i$ is a number between 0 and 1 and $\alpha=${\normalfont \ttfamily [exponent]} is an
+  !#   input parameter that controls the relative number of low and high mass tree produced.
+  !#  </description>
   !# </mergerTreeBuildMassDistribution>
   type, extends(mergerTreeBuildMassDistributionClass) :: mergerTreeBuildMassDistributionPowerLaw
      !% Implementation of merger tree halo mass function sampling class in which the sampling rate is given by a power-law in halo mass.

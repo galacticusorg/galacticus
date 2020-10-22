@@ -23,7 +23,11 @@
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <virialDensityContrast name="virialDensityContrastBryanNorman1998">
-  !#  <description>\cite{bryan_statistical_1998} dark matter halo virial density contrasts.</description>
+  !#  <description>
+  !#   A dark matter halo virial density contrast class using the fitting functions given by \cite{bryan_statistical_1998}. As
+  !#   such, it is valid only for $\Omega_\Lambda=0$ or $\Omega_\mathrm{M}+\Omega_\Lambda=1$ cosmologies and will abort on other
+  !#   cosmologies.
+  !#  </description>
   !# </virialDensityContrast>
   type, extends(virialDensityContrastClass) :: virialDensityContrastBryanNorman1998
      !% A dark matter halo virial density contrast class using the fitting functions of \cite{bryan_statistical_1998}.

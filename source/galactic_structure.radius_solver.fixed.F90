@@ -24,7 +24,15 @@
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
 
   !# <galacticStructureSolver name="galacticStructureSolverFixed">
-  !#  <description>A ``fixed'' solver for galactic structure (no self-gravity of baryons, and size simply scales in proportion to specific angular momentum).</description>
+  !#  <description>
+  !#   A galactic structure solver that determines the sizes of galactic components by assuming that radius equals
+  !#   \begin{equation}
+  !#    r = f_\mathrm{r} \lambda r_0
+  !#   \end{equation}
+  !#   where $r_0$ is the virial or turnaround radius of the \gls{node} if {\normalfont \ttfamily [radiusFixed]}$=${\normalfont
+  !#   \ttfamily virialRadius} or {\normalfont \ttfamily turnaround} respectively, $\lambda$ is its spin parameter and
+  !#   $f_\mathrm{r}=${\normalfont \ttfamily [radiusFixed]} is a parameter.
+  !#  </description>
   !# </galacticStructureSolver>
   type, extends(galacticStructureSolverClass) :: galacticStructureSolverFixed
      !% Implementation of a ``fixed'' solver for galactic structure (no self-gravity of baryons, and size simply scales in

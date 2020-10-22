@@ -24,7 +24,16 @@
   use :: Hot_Halo_Mass_Distributions, only : hotHaloMassDistributionClass
 
   !# <coolingRate name="coolingRateWhiteFrenk1991">
-  !#  <description>A cooling rate class for the \cite{white_galaxy_1991} cooling rate calculation.</description>
+  !#  <description>
+  !#   A cooling rate class that uses the expression given by \cite{white_galaxy_1991}, namely
+  !#   \begin{equation}
+  !#   \dot{M}_\mathrm{cool} = \left\{ \begin{array}{ll} 4 \pi r_\mathrm{infall}^2 \rho(r_\mathrm{infall})
+  !#   \dot{r}_\mathrm{infall}&amp; \hbox{ if } r_\mathrm{infall} < r_\mathrm{hot, outer} \\ M_\mathrm{hot}/\tau_\mathrm{halo,
+  !#   dynamical} &amp; \hbox{ if } r_\mathrm{infall} \ge r_\mathrm{hot, outer}, \end{array} \right. ,
+  !#   \end{equation}
+  !#   where $r_\mathrm{infall}$ is the infall radius (see \S\ref{sec:CoolingInfallRadius}) in the hot halo and $\rho(r)$ is the
+  !#   density profile of the hot halo.
+  !#  </description>
   !# </coolingRate>
   type, extends(coolingRateClass) :: coolingRateWhiteFrenk1991
      !% Implementation of cooling rate class for the \cite{white_galaxy_1991} cooling rate calculation.

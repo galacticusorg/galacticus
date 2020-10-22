@@ -20,7 +20,10 @@
   !% Implementation of a perfectly stable model for galactic disk bar instability.
 
   !# <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityStable">
-  !#  <description>A perfect stability model for galactic disk bar instability.</description>
+  !#  <description>
+  !#   A galactic dynamics bar instability class which assumes perfect stability for galactic disks and so returns an infinite
+  !#   timescale, and no external driving torque.
+  !#  </description>
   !# </galacticDynamicsBarInstability>
   type, extends(galacticDynamicsBarInstabilityClass) :: galacticDynamicsBarInstabilityStable
      !% Implementation of a perfectly stable model for galactic disk bar instability.

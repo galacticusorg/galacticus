@@ -23,7 +23,15 @@
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesVillalobos2013">
-  !#  <description>Computes the merging timescale using the method of \cite{villalobos_improved_2013} to modify another merging timescale method.</description>
+  !#  <description>
+  !#   A satellite merging timescale class which computes merging timescales using the modifier of \cite{villalobos_improved_2013}
+  !#   as
+  !#   \begin{equation}
+  !#   \tau_\mathrm{merge} = (1+z)^\alpha \tau^\prime_\mathrm{merge},
+  !#   \end{equation}
+  !#   where $\alpha=${\normalfont \ttfamily [exponent]} and $\tau^\prime_\mathrm{merge}$ is the merging timescale computed by
+  !#   another satellite merging timescale.
+  !#  </description>
   !# </satelliteMergingTimescales>
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesVillalobos2013
      !% A class implementing calculations of satellite merging times by applying the \cite{villalobos_improved_2013} modifier to

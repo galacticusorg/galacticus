@@ -20,7 +20,9 @@
 !% Implements a merger tree branching probability rate modifier which always returns the identity modifier.
 
   !# <mergerTreeBranchingProbabilityModifier name="mergerTreeBranchingProbabilityModifierIdentity">
-  !#  <description>Provides a merger tree branching probability rate modifier which always returns the identity modifier.</description>
+  !#  <description>
+  !#   A merger tree branching probability modifier class which always applies the identity modifier.
+  !#  </description>
   !# </mergerTreeBranchingProbabilityModifier>
   type, extends(mergerTreeBranchingProbabilityModifierClass) :: mergerTreeBranchingProbabilityModifierIdentity
      !% A merger tree branching probability rate modifier which always returns the identity modifier.

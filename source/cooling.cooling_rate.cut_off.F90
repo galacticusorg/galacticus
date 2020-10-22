@@ -23,7 +23,11 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
   !# <coolingRate name="coolingRateCutOff">
-  !#  <description>A cooling rate class which modifies another cooling rate by cutting off cooling above some virial velocity.</description>
+  !#  <description>
+  !#   A cooling rate class which sets the cooling rate to zero in halos with virial velocities below {\normalfont \ttfamily
+  !#   [velocityCutOff]} at redshifts below/above {\normalfont \ttfamily [redshiftCutOff]} for {\normalfont \ttfamily
+  !#   [whenCutOff]}$=${\normalfont \ttfamily after/before}. In other halos the cooling rate is not modified.
+  !#  </description>
   !# </coolingRate>
   type, extends(coolingRateClass) :: coolingRateCutOff
      !% Implementation of cooling rate class which modifies another cooling rate by cutting off cooling above some virial velocity.

@@ -21,7 +21,11 @@
   !% approximations of \cite{rezzolla_final_2008}.
 
   !# <blackHoleBinaryMerger name="blackHoleBinaryMergerRezzolla2008">
-  !#  <description>A black hole binary merger class in which the black hole mass and spin resulting from binary mergers utilizing the approximations of \cite{rezzolla_final_2008}.</description>
+  !#  <description>
+  !#   A black hole binary merger class that uses the fitting function of \cite{rezzolla_final_2008} to compute the spin of the
+  !#   black hole resulting from a binary merger. The mass of the resulting black hole is assumed to equal the sum of the mass of
+  !#   the initial black holes (i.e. there is negligible energy loss through gravitational waves).
+  !#  </description>
   !# </blackHoleBinaryMerger>
   type, extends(blackHoleBinaryMergerClass) :: blackHoleBinaryMergerRezzolla2008
      !% A black hole binary merger class in which the black hole mass and spin resulting from binary mergers utilizing the approximations of \cite{rezzolla_final_2008}.

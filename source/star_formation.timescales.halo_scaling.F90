@@ -23,7 +23,14 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <starFormationTimescale name="starFormationTimescaleHaloScaling">
-  !#  <description>A haloScaling timescale for star formation.</description>
+  !#  <description>
+  !#   A star formation timescale class in which the timescale scales with halo properties. Specifically,
+  !#   \begin{equation}
+  !#    \tau_\star = \tau_\mathrm{\star,0} \left( {V_\mathrm{vir} \over 200\hbox{km/s}} \right)^{\alpha_\star} (1+z)^{\beta_\star},
+  !#   \end{equation}
+  !#   where $\tau_\mathrm{\star,0}=${\normalfont \ttfamily [timescale]}, $\alpha_\star=${\normalfont \ttfamily
+  !#   [exponentVelocityVirial]}, and $\beta_\star=${\normalfont \ttfamily [exponentRedshift]}.
+  !#  </description>
   !# </starFormationTimescale>
   type, extends(starFormationTimescaleClass) :: starFormationTimescaleHaloScaling
      !% Implementation of a haloScaling timescale for star formation.

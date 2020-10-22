@@ -23,8 +23,8 @@
 
   !# <chemicalState name="chemicalStateCIEFile">
   !#  <description>
-  !#   Class providing chemical state via interpolation of tabulated values read from file. The HDF5 file containing the table
-  !#   should have the following form:
+  !#   A chemical state class providing chemical state via interpolation of tabulated values read from file. The HDF5 file
+  !#   containing the table should have the following form:
   !#   \begin{verbatim}
   !#   HDF5 "chemicalState.hdf5" {
   !#   GROUP "/" {

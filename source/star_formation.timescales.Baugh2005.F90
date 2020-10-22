@@ -22,7 +22,15 @@
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <starFormationTimescale name="starFormationTimescaleBaugh2005">
-  !#  <description>The \cite{baugh_can_2005} timescale for star formation.</description>
+  !#  <description>
+  !#   A star formation timescale class which adopts the star formation rate given by a modified version of the
+  !#   \cite{baugh_can_2005} prescription:
+  !#   \begin{equation}
+  !#   \tau_\star = \tau_0 (V_\mathrm{disk}/200\hbox{km/s})^\alpha a^\beta
+  !#   \end{equation}
+  !#   where $\tau_0=${\normalfont \ttfamily [timescale]}, $\alpha=${\normalfont \ttfamily [exponentVelocity]} and
+  !#   $\beta=${\normalfont \ttfamily [exponentExpansionFactor]}.
+  !#  </description>
   !# </starFormationTimescale>
   type, extends(starFormationTimescaleClass) :: starFormationTimescaleBaugh2005
      !% Implementation of the \cite{baugh_can_2005} timescale for star formation.
@@ -51,10 +59,10 @@ contains
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (starFormationTimescaleBaugh2005)                :: self
-    type            (inputParameters                     ), intent(inout) :: parameters
-    class           (cosmologyFunctionsClass             ), pointer       :: cosmologyFunctions_
-    double precision                                                      :: timescale              , exponentVelocity, &
-         &                                                                   exponentExpansionFactor
+    type            (inputParameters                ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass        ), pointer       :: cosmologyFunctions_
+    double precision                                                 :: timescale              , exponentVelocity, &
+         &                                                              exponentExpansionFactor
 
     !# <inputParameter>
     !#   <name>timescale</name>

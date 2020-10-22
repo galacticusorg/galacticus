@@ -20,7 +20,26 @@
   !% Implementation of a merger tree masses class which reads masses from an HDF5 file.
 
   !# <mergerTreeBuildMasses name="mergerTreeBuildMassesReadHDF5">
-  !#  <description>A merger tree masses class which reads masses from an HDF5 file.</description>
+  !#  <description>
+  !#   A merger tree build masses class which reads masses from an HDF5 file. The HDF5 file should have the following structure:
+  !#   \begin{verbatim}
+  !#   HDF5 {
+  !#   GROUP '/' {
+  !#      DATASET 'treeRootMass' {
+  !#         DATATYPE  H5T_IEEE_F64BE
+  !#         DATASPACE  SIMPLE { ( * ) / ( * ) }
+  !#      }
+  !#      DATASET 'treeWeight' {
+  !#         DATATYPE  H5T_IEEE_F64BE
+  !#         DATASPACE  SIMPLE { ( * ) / ( * ) }
+  !#      }
+  !#   }
+  !#   }
+  !#   \end{verbatim}
+  !#   where the {\normalfont \ttfamily treeRootMass} dataset contains the mass (in Solar masses) of the root halo of a tree to
+  !#   generate, and the (optional) {\normalfont \ttfamily treeWeight} dataset contains the weight (in units of Mpc$^{-3}$) to
+  !#   assign to each tree.
+  !#  </description>
   !# </mergerTreeBuildMasses>
   type, extends(mergerTreeBuildMassesRead) :: mergerTreeBuildMassesReadHDF5
      !% Implementation of a merger tree masses class which reads masses from an HDF5 file.

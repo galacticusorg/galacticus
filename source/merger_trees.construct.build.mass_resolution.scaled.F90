@@ -20,7 +20,11 @@
   !% An implementation of a merger tree builder mass resolution which assumes a resolution which scales with tree mass.
 
   !# <mergerTreeMassResolution name="mergerTreeMassResolutionScaled">
-  !#  <description>Provides a mass resolution for merger tree building which scales with tree mass.</description>
+  !#  <description>
+  !#   A merger tree mass resolution class which computes the mass resolution to be min({\normalfont \ttfamily
+  !#   [massResolutionMaximum]},max({\normalfont \ttfamily [massResolutionMinimum]},{\normalfont \ttfamily
+  !#   [massResolutionFractional]}$\times M_\mathrm{base}$)), where $M_\mathrm{base}$ is the base mass of the merger tree.
+  !#  </description>
   !# </mergerTreeMassResolution>
   type, extends(mergerTreeMassResolutionClass) :: mergerTreeMassResolutionScaled
      !% A merger tree mass resolution class which assumes a mass resolution that scales with tree mass.

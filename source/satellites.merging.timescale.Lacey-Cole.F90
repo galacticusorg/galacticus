@@ -22,7 +22,11 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesLaceyCole1993">
-  !#  <description>Computes the merging timescale using the method of \cite{lacey_merger_1993}.</description>
+  !#  <description>
+  !#   A satellite merging timescale class which computes merging timescales using the dynamical friction calculation of
+  !#   \cite{lacey_merger_1993}. Timescales are multiplied by the value of the {\normalfont \ttfamily [timescaleMultiplier]} input
+  !#   parameter.
+  !#  </description>
   !# </satelliteMergingTimescales>
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesLaceyCole1993
      !% A class implementing the \cite{lacey_merger_1993} method for satellite merging timescales.

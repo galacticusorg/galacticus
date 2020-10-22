@@ -23,7 +23,11 @@
   use :: Virial_Density_Contrast, only : virialDensityContrastClass, virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
 
   !# <haloMassFunction name="haloMassFunctionDespali2015">
-  !#  <description>The halo mass function is computed from the function given by \cite{despali_universality_2015}.</description>
+  !#  <description>
+  !#   A dark matter halo mass function class using the function given by \cite{despali_universality_2015}. This uses the
+  !#   functional form proposed by \cite{sheth_ellipsoidal_2001} but with parameters $a$, $p$, and $A$ set using eqn.~(12) of
+  !#   \cite{despali_universality_2015}.
+  !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="referenceDensityContrast"/>
   !#  </deepCopy>
@@ -34,8 +38,8 @@
   type, extends(haloMassFunctionShethTormen) :: haloMassFunctionDespali2015
      !% A halo mass function class using the fitting function of \cite{despali_universality_2015}.
      private
-     class(cosmologyFunctionsClass                                        ), pointer :: cosmologyFunctions_      => null()
-     class(virialDensityContrastClass                                     ), pointer :: virialDensityContrast_   => null()
+     class(cosmologyFunctionsClass                                       ), pointer :: cosmologyFunctions_      => null()
+     class(virialDensityContrastClass                                    ), pointer :: virialDensityContrast_   => null()
      type (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer :: referenceDensityContrast => null()
     contains
      !@ <objectMethods>

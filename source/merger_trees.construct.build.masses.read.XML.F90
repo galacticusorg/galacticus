@@ -20,7 +20,28 @@
   !% Implementation of a merger tree masses class which reads masses from an XML file.
 
   !# <mergerTreeBuildMasses name="mergerTreeBuildMassesReadXML">
-  !#  <description>A merger tree masses class which reads masses from an XML file.</description>
+  !#  <description>
+  !#   A merger tree build masses class which reads masses from an XML file. The XML file should have the following form:
+  !# \begin{verbatim}
+  !#    <mergerTrees>
+  !#     <treeRootMass>13522377303.5998</treeRootMass>
+  !#     <treeRootMass>19579530191.8709</treeRootMass>
+  !#     <treeRootMass>21061025282.9613</treeRootMass>
+  !#     .
+  !#     .
+  !#     .
+  !#     <treeWeight>13522377303.5998</treeWeight>
+  !#     <treeWeight>19579530191.8709</treeWeight>
+  !#     <treeWeight>21061025282.9613</treeWeight>
+  !#     .
+  !#     .
+  !#     .
+  !#    </mergerTrees>
+  !#   \end{verbatim}
+  !#   where each {\normalfont \ttfamily treeRootMass} element gives the mass (in Solar masses) of the root halo of a tree to
+  !#   generate, and the (optional) {\normalfont \ttfamily treeWeight} elements give the corresponding weight (in units of
+  !#   Mpc$^{-3}$) to assign to each tree.
+  !#  </description>
   !# </mergerTreeBuildMasses>
   type, extends(mergerTreeBuildMassesRead) :: mergerTreeBuildMassesReadXML
      !% Implementation of a merger tree masses class which reads masses from an XML file.

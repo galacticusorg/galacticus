@@ -21,7 +21,10 @@
   !% log-normal distribution.
 
   !# <haloSpinDistribution name="haloSpinDistributionLogNormal">
-  !#  <description>A log-normal halo spin distribution.</description>
+  !#  <description>
+  !#   A halo spin distribution class in which the spin is drawn from a lognormal distribution with median {\normalfont \ttfamily
+  !#   [median]} and width {\normalfont \ttfamily [sigma]}.
+  !#  </description>
   !# </haloSpinDistribution>
   type, extends(haloSpinDistributionClass) :: haloSpinDistributionLogNormal
      !% A dark matter halo spin distribution concentration class which assumes a

@@ -22,7 +22,37 @@
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <surveyGeometry name="surveyGeometryTomczak2014ZFOURGE">
-  !#  <description>Implements the geometry of the ZFOURGE survey of \cite{tomczak_galaxy_2014}.</description>
+  !#  <description>
+  !#   A survey geometry class that describes the survey geometry of \cite{tomczak_galaxy_2014}. 
+  !#   
+  !#   For the angular mask, we make use of {\normalfont \ttfamily mangle} polygon files constructed by hand using vertices
+  !#   matched approximately to the distribution of galaxies in the survey (positions of which were provided by R.~Quadri; private
+  !#   communication). The solid angle of each mask is computed using the {\normalfont \ttfamily mangle} {\normalfont \ttfamily
+  !#   harmonize} command.
+  !#   
+  !#   To determine the depth as a function of stellar mass, we make use of the tabulated mass completeness limits as a function
+  !#   of redshift for ZFOURGE and NMBS fields provided by R.~Quadri (private communication). These are fit with fourth-order
+  !#   polynomials. Figure~\ref{fig:Tomczak2014DepthFit} shows the resulting relation between stellar mass and the maximum
+  !#   redshift at which such a galaxy would be included in the sample. Dotted lines indicate the tabulated result from ZFOURGE,
+  !#   while the lines show polynomial fits:
+  !#   \begin{equation}
+  !#    z_\mathrm{max}(M_\star) = \left\{ \begin{array}{ll} -114.66+m*(45.901+m*(-6.1617+m*(0.27822))) &amp; \hbox{ZFOURGE fields} \\
+  !#    -58.483+m*(20.250+m*(-2.3563+m*(0.092705))) &amp; \hbox{NMBS fields} \end{array} \right.
+  !#    \label{eq:TomczakDepthPolynomial}
+  !#   \end{equation}
+  !#   where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
+  !#   stellar mass.
+  !#   
+  !#   \begin{figure}
+  !#    \begin{center}
+  !#    \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/TomczakZFOURGEMassRedshiftRelation.pdf}
+  !#    \end{center}
+  !#    \caption{The maximum redshift at which a galaxy of given stellar mass can be detected in the sample of
+  !#    \protect\cite{tomczak_galaxy_2014}. Points show the results obtained from data provided by Davidzon, while the lines shows
+  !#    a polynomial fit to these results (given in eqn.~\ref{eq:TomczakDepthPolynomial}).}
+  !#    \label{fig:Tomczak2014DepthFit}
+  !#   \end{figure}
+  !#  </description>
   !# </surveyGeometry>
   type, extends(surveyGeometryMangle) :: surveyGeometryTomczak2014ZFOURGE
      private

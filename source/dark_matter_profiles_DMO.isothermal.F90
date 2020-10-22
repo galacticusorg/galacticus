@@ -20,7 +20,13 @@
   !% An implementation of isothermal dark matter halo profiles.
 
   !# <darkMatterProfileDMO name="darkMatterProfileDMOIsothermal">
-  !#  <description>Isothermal dark matter halo profiles</description>
+  !#  <description>
+  !#   A dark matter profile DMO class in which the density profile is given by:
+  !#   \begin{equation}
+  !#    \rho_\mathrm{dark matter}(r) \propto r^{-2},
+  !#   \end{equation}
+  !#   normalized such that the total mass of the \gls{node} is enclosed with the virial radius.
+  !#  </description>
   !# </darkMatterProfileDMO>
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOIsothermal
      !% A dark matter halo profile class implementing isothermal dark matter halos.

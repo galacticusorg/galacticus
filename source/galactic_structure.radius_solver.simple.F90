@@ -22,7 +22,19 @@
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
 
   !# <galacticStructureSolver name="galacticStructureSolverSimple">
-  !#  <description>A simple solver for galactic structure (self-gravity of baryons is ignored).</description>
+  !#  <description>
+  !#   A galactic structure solver class that determines the sizes of galactic components by assuming that their self-gravity is
+  !#   negligible (i.e. that the gravitational potential well is dominated by dark matter) and that, therefore, baryons do not
+  !#   modify the dark matter density profile. The radius of a given \gls{component} is then found by solving
+  !#   \begin{equation}
+  !#    j = \sqrt{\G M_\mathrm{DM}(r) r},
+  !#   \end{equation}
+  !#   where $j$ is the specific angular momentum of the \gls{component} (at whatever point in the profile is to be solved for),
+  !#   $r$ is radius and $M(r)$ is the mass of dark matter within radius $r$. The parameter {\normalfont \ttfamily
+  !#   [useFormationHalo]} controls whether the structure of the galaxy will be solved for using the properties of its present
+  !#   \gls{node} or those of its \gls{node} at the time of \gls{node} formation (which requires that ``node formation'' has been
+  !#   suitably defined and implemented by a component).
+  !#  </description>
   !# </galacticStructureSolver>
   type, extends(galacticStructureSolverClass) :: galacticStructureSolverSimple
      !% Implementation of a simple solver for galactic structure (self-gravity of baryons is ignored).

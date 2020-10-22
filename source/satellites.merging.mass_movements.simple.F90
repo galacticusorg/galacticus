@@ -22,7 +22,18 @@
   use :: Kind_Numbers, only : kind_int8
 
   !# <mergerMassMovements name="mergerMassMovementsSimple">
-  !#  <description>A merger mass movements class which uses a simple calculation.</description>
+  !#  <description>
+  !#   A merger mass movements class which implements mass movements according to:
+  !#   \begin{itemize}
+  !#    \item If $M_\mathrm{satellite} > f_\mathrm{major} M_\mathrm{central}$ then all mass from both satellite and central
+  !#    galaxies moves to the spheroid \gls{component} of the central galaxy;
+  !#    \item Otherwise: Gas from the satellite moves to the \gls{component} of the central specified by the {\normalfont
+  !#    \ttfamily [minorMergerGasMovesTo]} parameter (either ``{\normalfont \ttfamily disk}'' or ``{\normalfont \ttfamily
+  !#    spheroid}''), stars from the satellite moves to the spheroid of the central and mass in the central does not move.
+  !#   \end{itemize}
+  !#   Here, $f_\mathrm{major}=${\normalfont \ttfamily [majorMergerMassRatio]} is the mass ratio above which a merger is
+  !#   considered to be ``major''.
+  !#  </description>
   !# </mergerMassMovements>
   type, extends(mergerMassMovementsClass) :: mergerMassMovementsSimple
      !% A merger mass movements class which uses a simple calculation.

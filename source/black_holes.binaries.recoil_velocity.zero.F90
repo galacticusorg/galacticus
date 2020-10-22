@@ -22,7 +22,9 @@
   !% Implements a black hole binary recoil velocity class in which the recoil velocity is zero.
 
   !# <blackHoleBinaryRecoil name="blackHoleBinaryRecoilZero">
-  !#  <description>A black hole binary recoil class in which the recoil velocity is always zero.</description>
+  !#  <description>
+  !#   A black hole binary recoil class in which the recoil velocity is always zero.
+  !#  </description>
   !# </blackHoleBinaryRecoil>
   type, extends(blackHoleBinaryRecoilClass) :: blackHoleBinaryRecoilZero
      !% A black hole binary recoil class in which the recoil velocity is always zero.
