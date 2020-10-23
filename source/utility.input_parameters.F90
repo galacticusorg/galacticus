@@ -1400,8 +1400,8 @@ contains
     integer                                     , intent(  out), optional    :: errorStatus
     logical                                     , intent(in   ), optional    :: writeOutput
     type            (node                      )               , pointer     :: valueElement
-    type            (inputParameters           )               , pointer     :: rootParameters
-    type            (inputParameters           )                             :: subParameters
+    type            (inputParameters           )               , pointer     :: rootParameters     , subParameters  , &
+         &                                                                      subParametersNext
     character       (len=parameterLengthMaximum), dimension(:) , allocatable :: parameterNames
     type            (DOMException              )                             :: exception
     integer                                                                  :: status             , i              , &
@@ -1474,15 +1474,20 @@ contains
                    end do
                    do i=1,countNames-1
                       if (i == 1) then
-                         subParameters=rootParameters%subParameters(trim(parameterNames(i)),requireValue=.false.)
+                         allocate(subParameters)
+                         subParameters    =rootParameters%subParameters(trim(parameterNames(i)),requireValue=.false.)
                       else
-                         subParameters=subParameters%subParameters(trim(parameterNames(i)),requireValue=.false.)
+                         allocate(subParametersNext)
+                         subParametersNext=subParameters %subParameters(trim(parameterNames(i)),requireValue=.false.)
+                         deallocate(subParameters)
+                         subParameters => subParametersNext
                       end if
                    end do
                    if (countNames == 1) then
                       call rootParameters%value(trim(parameterNames(countNames)),workValue)
                    else
-                      call subParameters%value(trim(parameterNames(countNames)),workValue)
+                      call subParameters %value(trim(parameterNames(countNames)),workValue)
+                      deallocate(subParameters)
                    end if
                    write (workText,'(e24.16)') workValue
                    deallocate(parameterNames)
