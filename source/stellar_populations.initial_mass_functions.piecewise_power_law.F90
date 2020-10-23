@@ -24,7 +24,7 @@
   !#   A stellar initial mass function class for piecewise power-law \gls{imf}s. Arbitrary piecewise power-law {\gls{imf}}s can be
   !#   defined using the {\normalfont \ttfamily PiecewisePowerLaw} method. The \gls{imf} will be constructed such that:
   !#   \begin{equation}
-  !#    \phi(M) \propto M^{\alpha_i} \hbox{ if } M_i \le M < M_{i+1},
+  !#    \phi(M) \propto M^{\alpha_i} \hbox{ if } M_i \le M &lt; M_{i+1},
   !#   \end{equation}
   !#   where $i=1$\ldots$N$, the $M_i$ are given by {\normalfont \ttfamily [mass]} and the $\alpha_i$ are given by {\normalfont
   !#   \ttfamily [exponent]}. (Note that {\normalfont \ttfamily [mass]} must contain $N+1$ elements, while {\normalfont \ttfamily

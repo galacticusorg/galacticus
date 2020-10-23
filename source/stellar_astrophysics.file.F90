@@ -46,7 +46,7 @@
   !#     .
   !#     .
   !#     .
-  !#    </stars
+  !#    </stars>
   !#   \end{verbatim}
   !#   Each {\normalfont \ttfamily star} element must contain the {\normalfont \ttfamily initialMass} (given in $M_\odot$) and
   !#   {\normalfont \ttfamily metallicity} tags. Other tags are optional. {\normalfont \ttfamily lifetime} gives the lifetime of

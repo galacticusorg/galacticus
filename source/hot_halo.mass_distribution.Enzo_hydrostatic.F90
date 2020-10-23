@@ -27,8 +27,8 @@
   !#   A hot halo mass distribution class which adopts a spherically symmetric density profile for the hot halo motivated by the
   !#   ``hydrostatic'' profile available in the \gls{enzo} code. Specifically,
   !#   \begin{equation}
-  !#    \rho_\mathrm{hot halo}(r) \propto \left\{ \begin{array}{ll} T^{-1} r^{-1} & \hbox{ if } r > r_\mathrm{core} \\ T^{-1}
-  !#    r_\mathrm{core}^{-1} & \hbox{ if } r \le r_\mathrm{core}, \end{array} \right.
+  !#    \rho_\mathrm{hot halo}(r) \propto \left\{ \begin{array}{ll} T^{-1} r^{-1} &amp; \hbox{ if } r &gt; r_\mathrm{core} \\ T^{-1}
+  !#    r_\mathrm{core}^{-1} &amp; \hbox{ if } r \le r_\mathrm{core}, \end{array} \right.
   !#   \end{equation}
   !#   where the core radius, $r_\mathrm{core}$, is set using the selected cored profile core radius method (see
   !#   \S\ref{sec:hotHaloDensityProfileCoredIsothermalCoreRadius}). The profile is normalized such that the current mass in the

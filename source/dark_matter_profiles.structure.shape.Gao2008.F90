@@ -26,7 +26,7 @@
   !#   A dark matter profile shape class in which the shape parameter for Einasto density profiles\index{Einasto
   !#   profile}\index{density profile!Einasto} is computed using a fitting function from \cite{gao_redshift_2008}:
   !#   \begin{equation}
-  !#   \alpha = \left\{ \begin{array}{ll} 0.155 + 0.0095\nu^2 & \hbox{ if } \nu < 3.907 \\ 0.3 & \hbox{ if } \nu \ge 3.907,
+  !#   \alpha = \left\{ \begin{array}{ll} 0.155 + 0.0095\nu^2 &amp; \hbox{ if } \nu &lt; 3.907 \\ 0.3 &amp; \hbox{ if } \nu \ge 3.907,
   !#   \end{array} \right.
   !#   \end{equation}
   !#   where $\nu=\delta_\mathrm{c}(t)/\sigma(M)$ is the peak height of the halo. The truncation at $\alpha = 0.3$ is included

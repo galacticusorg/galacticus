@@ -24,12 +24,12 @@
   !#   A stellar initial mass function class for the \cite{scalo_stellar_1986} \gls{imf}:
   !#   \begin{equation}
   !#    \phi(M) \propto \left\{ \begin{array}{ll}
-  !#    M^{+1.60} &amp; \hbox{ for } 0.10M_\odot < M < 0.18M_\odot \\
-  !#    M^{-1.01} &amp; \hbox{ for } 0.18M_\odot < M < 0.42M_\odot \\
-  !#    M^{-2.75} &amp; \hbox{ for } 0.42M_\odot < M < 0.62M_\odot \\
-  !#    M^{-2.08} &amp; \hbox{ for } 0.62M_\odot < M < 1.18M_\odot \\
-  !#    M^{-3.50} &amp; \hbox{ for } 1.18M_\odot < M < 3.50M_\odot \\
-  !#    M^{-2.63} &amp; \hbox{ for } 3.50M_\odot < M < 125M_\odot \\
+  !#    M^{+1.60} &amp; \hbox{ for } 0.10M_\odot &lt; M &lt; 0.18M_\odot \\
+  !#    M^{-1.01} &amp; \hbox{ for } 0.18M_\odot &lt; M &lt; 0.42M_\odot \\
+  !#    M^{-2.75} &amp; \hbox{ for } 0.42M_\odot &lt; M &lt; 0.62M_\odot \\
+  !#    M^{-2.08} &amp; \hbox{ for } 0.62M_\odot &lt; M &lt; 1.18M_\odot \\
+  !#    M^{-3.50} &amp; \hbox{ for } 1.18M_\odot &lt; M &lt; 3.50M_\odot \\
+  !#    M^{-2.63} &amp; \hbox{ for } 3.50M_\odot &lt; M &lt; 125M_\odot \\
   !#    0 &amp; \hbox {otherwise.} \end{array} \right.
   !#   \end{equation}
   !#  </description>

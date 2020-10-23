@@ -28,7 +28,7 @@
   !#   when disks are unstable to bar formation, but includes an additional term due to external tidal forces:
   !#   \begin{equation}
   !#    \epsilon \left( \equiv {V_\mathrm{peak} \over \sqrt{\G M_\mathrm{disk}/r_\mathrm{disk}} + \hbox{max}(\mathcal{T},0) }
-  !#    \right) < \epsilon_\mathrm{c},
+  !#    \right) &lt; \epsilon_\mathrm{c},
   !#   \end{equation}
   !#   for stability, where $V_\mathrm{peak}$ is the peak velocity in the rotation curve (computed here assuming an isolated
   !#   exponential disk), $M_\mathrm{disk}$ is the mass of the disk, $r_\mathrm{disk}$ is its scale length (assuming an

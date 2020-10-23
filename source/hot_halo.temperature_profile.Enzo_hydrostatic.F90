@@ -26,9 +26,9 @@
   !#   A hot halo temperature profile class wjocj implements the ``hydrostatic'' temperature profile available in the \gls{enzo}
   !#   code. Specifically,
   !#   \begin{equation}
-  !#     T(r) = \hbox{max}\left( {\mathrm{G} M(<r) \mu m_\mathrm{H} \over 3 \mathrm{k_B} r} , T_\mathrm{min} \right),
+  !#     T(r) = \hbox{max}\left( {\mathrm{G} M(&lt;r) \mu m_\mathrm{H} \over 3 \mathrm{k_B} r} , T_\mathrm{min} \right),
   !#   \end{equation}
-  !#   where $M(<r)$ is the total mass enclosed within radius $r$, $\mu$ is the primordial mean atomic mass, and
+  !#   where $M(&lt;r)$ is the total mass enclosed within radius $r$, $\mu$ is the primordial mean atomic mass, and
   !#   $T_\mathrm{min}=100$~K is a temperature floor introduced so as to avoid the temperature reaching abitrarily low masses.
   !#  </description>
   !# </hotHaloTemperatureProfile>

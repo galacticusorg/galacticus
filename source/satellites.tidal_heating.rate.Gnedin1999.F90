@@ -36,7 +36,7 @@
   !#   the tidal tensor, and $G_{ij}$ is the integral with respect to time of $g_{ij}$ along the orbit of the satellite.  Upon
   !#   tidal heating, a mass element at radius $r_\mathrm{i}$ expands to radius $r_\mathrm{f}$, according to the equation
   !#   \begin{equation}
-  !#   \frac{1}{r_\mathrm{f}}=\frac{1}{r_\mathrm{i}}-\frac{2r_\mathrm{i}^3Q_\mathrm{tidal}}{\mathrm{G}M_\mathrm{sat}(<r_\mathrm{i})}.
+  !#   \frac{1}{r_\mathrm{f}}=\frac{1}{r_\mathrm{i}}-\frac{2r_\mathrm{i}^3Q_\mathrm{tidal}}{\mathrm{G}M_\mathrm{sat}(&lt;r_\mathrm{i})}.
   !#   \end{equation}
   !#  </description>
   !# </satelliteTidalHeatingRate>

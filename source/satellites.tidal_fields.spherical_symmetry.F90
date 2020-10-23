@@ -24,10 +24,10 @@
   !#   A satellite tidal field class which assumes a spherically-symmetric host halo, and computes the tidal field accordingly
   !#   using:
   !#   \begin{equation}
-  !#    \mathcal{F} = {\mathrm{G} M_\mathrm{host}(<r_\mathrm{p}) \over r_\mathrm{p}^3} - 4 \pi \mathrm{G}
+  !#    \mathcal{F} = {\mathrm{G} M_\mathrm{host}(&lt;r_\mathrm{p}) \over r_\mathrm{p}^3} - 4 \pi \mathrm{G}
   !#    \rho_\mathrm{host}(r_\mathrm{p}) + \omega_\mathrm{p}^2,
   !#   \end{equation}
-  !#   where $r_\mathrm{p}$ is the pericentric radius. $M_\mathrm{host}(<r)$ is the mass of the host halo enclosed within a sphere
+  !#   where $r_\mathrm{p}$ is the pericentric radius. $M_\mathrm{host}(&lt;r)$ is the mass of the host halo enclosed within a sphere
   !#   of radius $r$, $\rho_\mathrm{host}(r)$ is the host density at radius $r$, and $\omega_\mathrm{p}$ is the orbital angular
   !#   velocity at pericenter.
   !#  </description>

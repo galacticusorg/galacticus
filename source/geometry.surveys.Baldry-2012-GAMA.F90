@@ -39,8 +39,8 @@
   !#   between stellar mass and the maximum distance at which such a galaxy would be included in the sample. Points indicate
   !#   results from GAMA, while the line shows a polynomial fit:
   !#   \begin{equation}
-  !#    \log_{10} \left[ {D_\mathrm{max}(M_\star) \over \hbox{Mpc}}\right] = \left\{ \begin{array}{ll} -0.521 + 0.319m &
-  !#    \hbox{fields G09/G15} \\ -0.361 + 0.319m & \hbox{field G12} \end{array} \right.
+  !#    \log_{10} \left[ {D_\mathrm{max}(M_\star) \over \hbox{Mpc}}\right] = \left\{ \begin{array}{ll} -0.521 + 0.319m &amp;
+  !#    \hbox{fields G09/G15} \\ -0.361 + 0.319m &amp; \hbox{field G12} \end{array} \right.
   !#    \label{eq:BaldryDepthPolynomial}
   !#   \end{equation}
   !#   where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of

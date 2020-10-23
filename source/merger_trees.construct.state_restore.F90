@@ -34,7 +34,7 @@
   !#     .
   !#     .
   !#     .
-  !#     if (<conditions are met>) then
+  !#     if (&lt;conditions are met&gt;) then
   !#        call mergerTreeStateStore(thisTree,'storedTree.dat')
   !#        stop 'tree internal state was stored'
   !#     end if

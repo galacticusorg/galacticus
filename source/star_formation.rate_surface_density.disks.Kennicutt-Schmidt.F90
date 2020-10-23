@@ -33,7 +33,7 @@
   !#   surface dexponentensity such that
   !#   \begin{equation}
   !#   \dot{\Sigma}_\star = \left\{ \begin{array}{ll} A \left({\Sigma_\mathrm{H} \over M_\odot \hbox{pc}^{-2}} \right)^N &amp;
-  !#   \hbox{ if } \Sigma_\mathrm{gas,disk} > \Sigma_\mathrm{crit} \\ A \left({\Sigma_\mathrm{H} \over M_\odot \hbox{pc}^{-2}}
+  !#   \hbox{ if } \Sigma_\mathrm{gas,disk} &gt; \Sigma_\mathrm{crit} \\ A \left({\Sigma_\mathrm{H} \over M_\odot \hbox{pc}^{-2}}
   !#   \right)^N \left(\Sigma_\mathrm{gas,disk}/\Sigma_\mathrm{crit}\right)^\alpha &amp; \hbox{ otherwise.} \end{array} \right.
   !#   \end{equation}
   !#   Here, $\alpha=${\normalfont \ttfamily [exponentTruncated]} and $\Sigma_\mathrm{crit}$ is a critical surface density for

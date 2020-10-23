@@ -25,11 +25,11 @@
   !#  <description>
   !#   A merger mass movements class which implements mass movements according to:
   !#   \begin{itemize}
-  !#    \item If $M_\mathrm{satellite} > f_\mathrm{major} M_\mathrm{central}$ then all mass from both satellite and central
+  !#    \item If $M_\mathrm{satellite} &gt; f_\mathrm{major} M_\mathrm{central}$ then all mass from both satellite and central
   !#    galaxies moves to the spheroid \gls{component} of the central galaxy;
   !#    \item Otherwise:
   !#    \begin{itemize}
-  !#     \item If $M_\mathrm{central, spheroid} < f_\mathrm{burst} M_\mathrm{central}$ and the gas fraction in the host equals or
+  !#     \item If $M_\mathrm{central, spheroid} &lt; f_\mathrm{burst} M_\mathrm{central}$ and the gas fraction in the host equals or
   !#     exceeds $f_\mathrm{gas,crit}$ then all gas is moved to the host spheroid, while the host stellar disk remains in place.
   !#     \item Otherwise, gas from the satellite moves to the \gls{component} of the central specified by the {\normalfont
   !#     \ttfamily [destinationGasMinorMerger]} parameter (either ``{\normalfont \ttfamily disk}'' or ``{\normalfont \ttfamily

@@ -34,7 +34,7 @@
   !#   $r_\mathrm{s} = r_\mathrm{virial}/c$ where $c$ is the halo concentration (see
   !#   \S\ref{sec:DarkMatterProfileConcentration}). The mass enclosed within radius $r$ is given by
   !#   \begin{equation}
-  !#   M(<r) = M_\mathrm{virial} {2 \log(1 + R) + \log(1 + R^2) -2 \tan^{-1}(R) \over 2 \log(1 + c) + \log(1 + c^2) -2 \tan^{-1}(c)},
+  !#   M(&lt;r) = M_\mathrm{virial} {2 \log(1 + R) + \log(1 + R^2) -2 \tan^{-1}(R) \over 2 \log(1 + c) + \log(1 + c^2) -2 \tan^{-1}(c)},
   !#   \end{equation}
   !#   where $R=r/r_\mathrm{s}$. The associated gravitational potential is
   !#   \begin{equation}

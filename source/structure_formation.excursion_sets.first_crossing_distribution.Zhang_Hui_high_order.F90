@@ -85,7 +85,7 @@
   !#         \bar{g}_2(S_1) &amp;=&amp; \frac{1}{\Delta S} \int_{0}^{S_1} g_2(S,S^\prime)\mathrm{d}S^\prime     \hbox{ if } i = 1 \\
   !#         \bar{g}_2(S_2) &amp;=&amp; \frac{1}{2 \Delta S} \int_{0}^{S_2} g_2(S,S^\prime)\mathrm{d}S^\prime     \hbox{ if } i = 0 \\
   !#         \bar{g}_2(S_3) &amp;=&amp; \frac{1}{3 \Delta S} \int_{0}^{S_3} g_2(S,S^\prime)\mathrm{d}S^\prime     \hbox{ if } i = 0 \\
-  !#         \bar{g}_2(S_i) &amp;=&amp; \frac{1}{4 \Delta S} \int_{S_i - 4 \Delta S}^{S_i} g_2(S,S^\prime)\mathrm{d}S^\prime      \hbox{ if } i > 3.
+  !#         \bar{g}_2(S_i) &amp;=&amp; \frac{1}{4 \Delta S} \int_{S_i - 4 \Delta S}^{S_i} g_2(S,S^\prime)\mathrm{d}S^\prime      \hbox{ if } i &gt; 3.
   !#   \end{eqnarray}
   !#   The error term for this method of discretization is:
   !#   \begin{equation}

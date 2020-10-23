@@ -25,7 +25,7 @@
   !#   The {\normalfont \ttfamily Baugh2005TopHeavy} \gls{imf} is defined by \citep{baugh_can_2005}:
   !#   \begin{equation}
   !#    \phi(M) \propto 
-  !#    M^{-1} \hbox{ for } 0.15M_\odot < M < 125M_\odot
+  !#    M^{-1} \hbox{ for } 0.15M_\odot &lt; M &lt; 125M_\odot
   !#   \end{equation}
   !#  </description>
   !# </initialMassFunction>

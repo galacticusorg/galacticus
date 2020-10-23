@@ -39,8 +39,8 @@
   !#   shows the resulting relation between stellar mass and the maximum distance at which such a galaxy would be included in the
   !#   sample. Points indicate results from VIPERS, while the lines show polynomial fits:
   !#   \begin{equation}
-  !#    \log_{10} \left[ {D_\mathrm{max}(M_\star) \over \hbox{Mpc}}\right] = \left\{ \begin{array}{ll} 3.207 + 0.0124m & 0.5 < z <
-  !#    0.6 \\ 3.148 + 0.0268m & 0.6 < z < 0.8 \\ 3.207 + 0.0273m & 0.8 < z < 1.0 \end{array} \right.
+  !#    \log_{10} \left[ {D_\mathrm{max}(M_\star) \over \hbox{Mpc}}\right] = \left\{ \begin{array}{ll} 3.207 + 0.0124m &amp; 0.5 &lt; z &lt;
+  !#    0.6 \\ 3.148 + 0.0268m &amp; 0.6 &lt; z &lt; 0.8 \\ 3.207 + 0.0273m &amp; 0.8 &lt; z &lt; 1.0 \end{array} \right.
   !#    \label{eq:DavidzonDepthPolynomial}
   !#   \end{equation}
   !#   where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of

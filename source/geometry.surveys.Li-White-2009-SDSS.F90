@@ -30,8 +30,8 @@
   !#   \href{http://sdss.physics.nyu.edu/lss/dr72/random/lss_random-0.dr72.dat}{http://sdss.physics.nyu.edu/lss/dr72/random/lss\_random-0.dr72.dat}.}
   !#   (\citealt{blanton_new_2005}; see also
   !#   \citealt{adelman-mccarthy_sixth_2008,padmanabhan_improved_2008}). \cite{li_distribution_2009} consider only the main,
-  !#   contiguous region and so we keep only those points which satisfy RA$>100^\circ$, RA$<300^\circ$, and RA$<247^\circ$ or
-  !#   $\delta< 51^\circ$. When the survey window function is needed, these points are used to determine which elements of a 3D
+  !#   contiguous region and so we keep only those points which satisfy RA$>100^\circ$, RA$&lt;300^\circ$, and RA$&lt;247^\circ$ or
+  !#   $\delta&lt; 51^\circ$. When the survey window function is needed, these points are used to determine which elements of a 3D
   !#   grid fall within the window function.
   !#   
   !#   To estimate the depth of the \cite{li_distribution_2009} sample as a function of galaxy stellar mass we make use of
@@ -49,8 +49,8 @@
   !#   maximum redshift at which such a galaxy would be included in the sample. Points indicate measurements from the \gls{sam},
   !#   while the line shows a polynomial fit:
   !#   \begin{eqnarray}
-  !#    z(M_\star) &=& -5.950 + 2.638 m - 0.4211 m^2 \nonumber \\ 
-  !#               & & + 2.852\times 10^{-2} m^3 - 6.783 \times 10^{-4} m^4,
+  !#    z(M_\star) &amp;=&amp; -5.950 + 2.638 m - 0.4211 m^2 \nonumber \\ 
+  !#               &amp; &amp; + 2.852\times 10^{-2} m^3 - 6.783 \times 10^{-4} m^4,
   !#    \label{eq:DepthPolynomial}
   !#   \end{eqnarray}
   !#   where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of

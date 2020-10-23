@@ -33,8 +33,8 @@
   !#   \end{equation}
   !#   The parameters are a functon of redshift, $z$, given by
   !#   \begin{eqnarray}
-  !#   a &=& wz-m, \\
-  !#   b &=& {\alpha \over (z+\gamma)} + {\beta \over (z+\gamma)^2},
+  !#   a &amp;=&amp; wz-m, \\
+  !#   b &amp;=&amp; {\alpha \over (z+\gamma)} + {\beta \over (z+\gamma)^2},
   !#   \end{eqnarray}
   !#   where $w=0.029$, $m=0.097$, $\alpha=-110.001$, $\beta=2469.720$, $\gamma=16.885$.
   !#  </description>

@@ -33,44 +33,44 @@ module Merger_Tree_Timesteps
   !#  <default>standard</default>
   !#  <method name="timeEvolveTo">
   !#   <description>
-  !#   Return the time to which the node can be evolved. Optionally, the procedure pointer {\normalfont \ttfamily task} can be set
-  !#   to point to a subroutine which will be called after the node is evolved to the end of the timestep. It is acceptable for
-  !#   this pointer to be null. The {\normalfont \ttfamily taskSelf} pointer may be set to point to the timestep object and will
-  !#   be made available to the timestep task subroutine. Note that the {\normalfont \ttfamily task} will only be called for the
-  !#   task which provided the shortest timestep---other tasks can always request to be called again when the next timestep is
-  !#   determined. The subroutine to be called at the end of the timestep must have the form:
-  !#   \begin{verbatim}
-  !#     subroutine timestepTask(self,tree,node,deadlockStatus)
-  !#       implicit none
-  !#       class  (*         ), intent(inout)          :: self
-  !#       type   (mergerTree), intent(inout)          :: tree
-  !#       type   (treeNode  ), intent(inout), pointer :: node
-  !#       integer            , intent(inout)          :: deadlockStatus
-  !#       .
-  !#       .
-  !#       .
-  !#       return
-  !#     end subroutine timestepTask
-  !#   \end{verbatim}
+  !#    Return the time to which the node can be evolved. Optionally, the procedure pointer {\normalfont \ttfamily task} can be set
+  !#    to point to a subroutine which will be called after the node is evolved to the end of the timestep. It is acceptable for
+  !#    this pointer to be null. The {\normalfont \ttfamily taskSelf} pointer may be set to point to the timestep object and will
+  !#    be made available to the timestep task subroutine. Note that the {\normalfont \ttfamily task} will only be called for the
+  !#    task which provided the shortest timestep---other tasks can always request to be called again when the next timestep is
+  !#    determined. The subroutine to be called at the end of the timestep must have the form:
+  !#    \begin{verbatim}
+  !#      subroutine timestepTask(self,tree,node,deadlockStatus)
+  !#        implicit none
+  !#        class  (*         ), intent(inout)          :: self
+  !#        type   (mergerTree), intent(inout)          :: tree
+  !#        type   (treeNode  ), intent(inout), pointer :: node
+  !#        integer            , intent(inout)          :: deadlockStatus
+  !#        .
+  !#        .
+  !#        .
+  !#        return
+  !#      end subroutine timestepTask
+  !#    \end{verbatim}
   !#
-  !#   The {\normalfont \ttfamily deadlockStatus} argument should be set to {\normalfont \ttfamily isNotDeadlocked} (provided by
-  !#   the
-  !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Source.pdf#source.merger_trees_evolve_deadlock_options_F90:merger_trees_evolve_deadlock_status}{\normalfont
-  !#   \ttfamily Merger\_Trees\_Evolve\_Deadlock\_Status} module) if, and only if, the end of timestep task makes some change to
-  !#   the state of the tree (e.g. merging a node), to indicate that the tree was not deadlocked in this pass (i.e. something
-  !#   actually changed in the tree).
+  !#    The {\normalfont \ttfamily deadlockStatus} argument should be set to {\normalfont \ttfamily isNotDeadlocked} (provided by
+  !#    the
+  !#    \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Source.pdf#source.merger_trees_evolve_deadlock_options_F90:merger_trees_evolve_deadlock_status}{\normalfont
+  !#    \ttfamily Merger\_Trees\_Evolve\_Deadlock\_Status} module) if, and only if, the end of timestep task makes some change to
+  !#    the state of the tree (e.g. merging a node), to indicate that the tree was not deadlocked in this pass (i.e. something
+  !#    actually changed in the tree).
   !#
-  !#   If the {\normalfont \ttfamily report} argument is {\normalfont \ttfamily true} then the function should report the value of
-  !#   {\normalfont \ttfamily timestep} prior to exiting. (This is used in reporting on timestepping criteri in deadlocked trees.)
-  !#   It is recommended that the report be made using the
-  !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Source.pdf#source.merger_trees_evolve_timesteps_report_F90:evolve_to_time_reports:evolve_to_time_report}{\normalfont
-  !#   \ttfamily Evolve\_To\_Time\_Report()} function. Additionally, if the optional {\normalfont \ttfamily lockNode} and
-  !#   {\normalfont \ttfamily lockType} arguments are present then additional information can be supplied to aid in diagnosing
-  !#   deadlock conditions. If the current task is limiting the timestep then the {\normalfont \ttfamily lockNode} pointer should
-  !#   be set to point to whichever node is causing the limit (which may be {\normalfont \ttfamily thisNode} or some other node,
-  !#   e.g. a satellite of {\normalfont \ttfamily thisNode}, etc.), and {\normalfont \ttfamily lockType} should be set to a short
-  !#   description label identifying the type of limit.
-  !#  </description>
+  !#    If the {\normalfont \ttfamily report} argument is {\normalfont \ttfamily true} then the function should report the value of
+  !#    {\normalfont \ttfamily timestep} prior to exiting. (This is used in reporting on timestepping criteri in deadlocked trees.)
+  !#    It is recommended that the report be made using the
+  !#    \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Source.pdf#source.merger_trees_evolve_timesteps_report_F90:evolve_to_time_reports:evolve_to_time_report}{\normalfont
+  !#    \ttfamily Evolve\_To\_Time\_Report()} function. Additionally, if the optional {\normalfont \ttfamily lockNode} and
+  !#    {\normalfont \ttfamily lockType} arguments are present then additional information can be supplied to aid in diagnosing
+  !#    deadlock conditions. If the current task is limiting the timestep then the {\normalfont \ttfamily lockNode} pointer should
+  !#    be set to point to whichever node is causing the limit (which may be {\normalfont \ttfamily thisNode} or some other node,
+  !#    e.g. a satellite of {\normalfont \ttfamily thisNode}, etc.), and {\normalfont \ttfamily lockType} should be set to a short
+  !#    description label identifying the type of limit.
+  !#   </description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <selfTarget>yes</selfTarget>

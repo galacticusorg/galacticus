@@ -24,7 +24,7 @@
   !#   A stellar feedback outflow class which implements a ``superwind''. The outflow rate is given by:
   !#   \begin{equation}
   !#    \dot{M}_\mathrm{outflow} = \beta_\mathrm{superwind} {\dot{E} \over E_\mathrm{canonical}} \left\{ \begin{array}{ll} \left(
-  !#    V_\mathrm{superwind}/V\right)^2 &amp; \hbox{ if } V > V_\mathrm{superwind} \\ 1 &amp; \hbox{ otherwise,} \end{array}
+  !#    V_\mathrm{superwind}/V\right)^2 &amp; \hbox{ if } V &gt; V_\mathrm{superwind} \\ 1 &amp; \hbox{ otherwise,} \end{array}
   !#    \right.
   !#   \end{equation}
   !#   where $V_\mathrm{superwind}=${\normalfont \ttfamily [velocityCharacteristic]} (in km/s) and

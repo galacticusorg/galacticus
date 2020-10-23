@@ -34,7 +34,7 @@
   !#   \end{equation}
   !#   where $x = k R_\mathrm{th}$, and
   !#   \begin{equation}
-  !#    W_\mathrm{s}(k) = \left\{ \begin{array}{ll} 1 &amp; \hbox{if } k < k_\mathrm{s} \\ 0 &amp; \hbox{if } k > k_\mathrm{s}, \end{array} \right.
+  !#    W_\mathrm{s}(k) = \left\{ \begin{array}{ll} 1 &amp; \hbox{if } k &lt; k_\mathrm{s} \\ 0 &amp; \hbox{if } k &gt; k_\mathrm{s}, \end{array} \right.
   !#   \end{equation}
   !#   where $k\mathrm{s} = \alpha / R_\mathrm{s}$ if {\normalfont \ttfamily
   !#   [normalization]} is assigned a numerical value. Alternatively, if {\normalfont

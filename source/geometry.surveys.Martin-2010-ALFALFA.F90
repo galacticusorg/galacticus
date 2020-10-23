@@ -25,9 +25,9 @@
   !#  <description>
   !#   A survey geometry class that describes the survey geometry of \cite{martin_arecibo_2010}. 
   !#   
-  !#   For the angular mask we use the three disjoint regions defined by 07$^\mathrm{h}$30$^\mathrm{m}$ $<$ R.A. $<$
-  !#   16$^\mathrm{h}$30$^\mathrm{m}$, +04$^\circ$ $<$ decl. $<$ +16$^\circ$, and +24$^\circ$ $<$ decl. $<$ +28$^\circ$ and
-  !#   22$^\mathrm{h}$ $<$ R.A. $<$ 03$^\mathrm{h}$, +14$^\circ$ $<$ decl. $<$ +16$^\circ$, and +24$^\circ$ $<$ decl. $<$
+  !#   For the angular mask we use the three disjoint regions defined by 07$^\mathrm{h}$30$^\mathrm{m}$ $&lt;$ R.A. $&lt;$
+  !#   16$^\mathrm{h}$30$^\mathrm{m}$, +04$^\circ$ $&lt;$ decl. $&lt;$ +16$^\circ$, and +24$^\circ$ $&lt;$ decl. $&lt;$ +28$^\circ$ and
+  !#   22$^\mathrm{h}$ $&lt;$ R.A. $&lt;$ 03$^\mathrm{h}$, +14$^\circ$ $&lt;$ decl. $&lt;$ +16$^\circ$, and +24$^\circ$ $&lt;$ decl. $&lt;$
   !#   +32$^\circ$ corresponding to the sample of \cite{martin_arecibo_2010}. When the survey window function is needed we
   !#   generate randomly distributed points within this angular mask and out to the survey depth. These points are used to
   !#   determine which elements of a 3D grid fall within the window function.

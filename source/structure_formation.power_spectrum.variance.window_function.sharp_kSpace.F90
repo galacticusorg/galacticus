@@ -24,7 +24,7 @@
   !#  <description>
   !#   A sharp $k$-space window function for filtering of power spectra. The window function is given by:
   !#   \begin{equation}
-  !#    W(k) = \left\{ \begin{array}{ll} 1 & \hbox{if } k < k_\mathrm{s} \\ 0 & \hbox{if } k > k_\mathrm{s}, \end{array} \right.
+  !#    W(k) = \left\{ \begin{array}{ll} 1 &amp; \hbox{if } k &lt; k_\mathrm{s} \\ 0 &amp; \hbox{if } k &gt; k_\mathrm{s}, \end{array} \right.
   !#   \end{equation}
   !#   where if {\normalfont \ttfamily [normalization]}$=${\normalfont \ttfamily natural} then $k_\mathrm{s} = (6 \Pi^2 \bar{\rho}
   !#   / M)^{1/3}$ for a smoothing scale $M$ and mean matter density $\bar{\rho}$. Otherwise, {\normalfont \ttfamily

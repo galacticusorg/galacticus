@@ -34,7 +34,7 @@
   !#   halo is given by:
   !#   \begin{equation}
   !#    \dot{M}_\mathrm{accretion} = \left\{ \begin{array}{ll} (\Omega_\mathrm{b}/\Omega_\mathrm{M}) \dot{M}_\mathrm{halo} &amp;
-  !#    \hbox{ if } V_\mathrm{virial} > V_\mathrm{reionization} \hbox{ or } z > z_\mathrm{reionization} \\ 0 &amp; \hbox{
+  !#    \hbox{ if } V_\mathrm{virial} &gt; V_\mathrm{reionization} \hbox{ or } z &gt; z_\mathrm{reionization} \\ 0 &amp; \hbox{
   !#    otherwise,}\end{array} \right.
   !#   \label{eq:accretionHalo:truncation}
   !#   \end{equation}
@@ -52,7 +52,7 @@
   !#   accreted is assumed to be from a pristine \gls{igm} and so has zero abundances. Chemical abundances are computed from the
   !#   chemical state functions (see \S\ref{sec:ChemicalStateMethod}).
   !#
-  !#   Note that, if $\dot{M}_\mathrm{halo} < 0$ then negative accretion rates of gas into the node can result. This ccan be
+  !#   Note that, if $\dot{M}_\mathrm{halo} &lt; 0$ then negative accretion rates of gas into the node can result. This ccan be
   !#   prevented by setting {\normalfont \ttfamily [accretionNegativeAllowed]}$=${\normalfont \ttfamily false}.
   !#
   !#   By default, gas is accreted whenever the halo is growing in total mass. However, setting {\normalfont \ttfamily

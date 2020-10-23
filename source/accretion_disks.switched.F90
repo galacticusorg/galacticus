@@ -25,7 +25,7 @@
   !#   inefficient (\gls{adaf}) modes. This is intended to crudely model the fact that accretion disks are expected to be
   !#   radiatively inefficient at both high accretion rates (i.e. as they approach the Eddington luminosity the radiation pressure
   !#   from a radiatively efficient flow would begin to disrupt the flow itself by definition), while accretion flows at low
-  !#   accretion rates ($\dot{M}_\mathrm{acc} < \alpha^2 \dot{M}_\mathrm{Edd}$, where $\alpha\sim 0.1$ is the usual parameter
+  !#   accretion rates ($\dot{M}_\mathrm{acc} &lt; \alpha^2 \dot{M}_\mathrm{Edd}$, where $\alpha\sim 0.1$ is the usual parameter
   !#   controlling the rate of angular momentum transport in a \cite{shakura_black_1973} accretion disk) are also radiatively
   !#   inefficient as radiative processes are too inefficient at the associated low densities to radiate energy at the rate it is
   !#   being liberated. A more thorough discussion is given by \cite{begelman_accreting_2014}.
@@ -51,7 +51,7 @@
   !#   ``{\normalfont \ttfamily none}'' then the corresponding term in eqn.~(\ref{eq:SwitchedDiskADAFFraction}) is excluded.
   !#
   !#   Additionally, if {\normalfont \ttfamily [scaleADAFRadiativeEfficiency]} is set to {\normalfont \ttfamily true} then the
-  !#   radiative efficiency of the \gls{adaf} component is reduced by a factor $x/x_\mathrm{min}$ when $x<x_\mathrm{min}$.
+  !#   radiative efficiency of the \gls{adaf} component is reduced by a factor $x/x_\mathrm{min}$ when $x&lt;x_\mathrm{min}$.
   !#  </description>
   !# </accretionDisks>
   type, extends(accretionDisksClass) :: accretionDisksSwitched

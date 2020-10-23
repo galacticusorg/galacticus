@@ -20,10 +20,10 @@
   !% An implementation of dark matter halo virial density contrasts based on spherical collapse in a matter plus dark energy universe.
 
   !# <virialDensityContrast name="virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy">
-  !#  <description>Dark matter halo virial density contrasts based on the spherical collapse in a matter plus dark eneryg universe.</description>
+  !#  <description>Dark matter halo virial density contrasts based on the spherical collapse in a matter plus dark energy universe.</description>
   !# </virialDensityContrast>
   type, extends(virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt) :: virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy
-     !% A dark matter halo virial density contrast class based on spherical collapse in a matter plus dark eneryg universe.
+     !% A dark matter halo virial density contrast class based on spherical collapse in a matter plus dark energy universe.
      private
      integer :: energyFixedAt
    contains

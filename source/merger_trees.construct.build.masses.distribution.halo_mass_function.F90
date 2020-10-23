@@ -32,8 +32,8 @@
   !#    where $\phi_\mathrm{min}=${\normalfont \ttfamily [abundanceMinimum]}, $\phi_\mathrm{max}=${\normalfont \ttfamily
   !#    [abundanceMaximum]}, $p_1=${\normalfont \ttfamily [modifier1]}, $p_2=${\normalfont \ttfamily [modifier2]}, and
   !#   \begin{equation}
-  !#    \hbox{minmax}(a,b,x) = \left\{\begin{array}{ll}a & \hbox{ if } x < a \\ x & \hbox{ if } a \leq x \leq b\\ b & \hbox{ if }
-  !#    x > b,\end{array}\right.
+  !#    \hbox{minmax}(a,b,x) = \left\{\begin{array}{ll}a &amp; \hbox{ if } x &lt; a \\ x &amp; \hbox{ if } a \leq x \leq b\\ b &amp; \hbox{ if }
+  !#    x &gt; b,\end{array}\right.
   !#   \end{equation}
   !#   resulting in a sample of halos representative of a volume of space.
   !#  </description>

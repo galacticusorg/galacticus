@@ -50,7 +50,7 @@
   !#   \end{equation}
   !#   In the second term on the right hand side of eqn.~(\ref{eq:Displaced}) represents the $P_0[\delta - B(S^\prime),S -
   !#   S^\prime]$ term represents the distribution of random trajectories orginating from the point $(S,B(S))$. The integral
-  !#   therefore gives the fraction of trajectories which crossed the barrier at $S<S^\prime$ and which can now be found at
+  !#   therefore gives the fraction of trajectories which crossed the barrier at $S&lt;S^\prime$ and which can now be found at
   !#   $(S,\delta)$.
   !#   
   !#   Using this result, we can rewrite eqn.~(\ref{eq:OldExcursionMethod}):
@@ -75,7 +75,7 @@
   !#   \begin{equation}
   !#     S_i = \left\{ \begin{array}{ll}
   !#                    0 &amp; \hbox{if } i=0 \\
-  !#                    \sum_0^{i-1} \Delta S_i &amp; \hbox{if } i > 1.
+  !#                    \sum_0^{i-1} \Delta S_i &amp; \hbox{if } i &gt; 1.
   !#                   \end{array}
   !#           \right.
   !#   \end{equation}
@@ -135,7 +135,7 @@
   !#   
   !#   In either case (i.e. eqns.~\ref{eq:DesFinal2a} and \ref{eq:DesFinal3}) solution proceeds recursively: $f(S_0)=0$ by
   !#   definition, $f(S_1)$ depends only on the known barrier and $f(S_0)$, $f(S_j)$ depends only on the known barrier and
-  !#   $f(S_{<j})$.
+  !#   $f(S_{&lt;j})$.
   !#   
   !#   The first crossing rate is computed using the same method but with an effective barrier which is offset by the position of
   !#   the progenitor in the $(\delta,S)$ plane, plus a small shift in time. The non-crossing rate is computed directly by

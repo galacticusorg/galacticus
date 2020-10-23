@@ -48,7 +48,7 @@
   !#   where $M_\mathrm{total,0}(r)$ is the initial total matter profile, $V_\mathrm{b}(r)$ is the baryonic contribution to the
   !#   rotation curve, $f_\mathrm{i}$, is the fraction of mass within the virial radius compared to the node mass\footnote{In
   !#   \protect\glc\ the ``node mass'' refers to the total mass of the node, assuming it has the universal complement of
-  !#   baryons. Since some halos may contain less than the complete complement of baryons it is possible that $f_\mathrm{i}<1$.},
+  !#   baryons. Since some halos may contain less than the complete complement of baryons it is possible that $f_\mathrm{i}&lt;1$.},
   !#   $f_\mathrm{f}=(\Omega_\mathrm{M}-\Omega_\mathrm{b})/\Omega_\mathrm{M}+M_\mathrm{satellite, baryonic}/M_\mathrm{total}$,
   !#   $M_\mathrm{satellite, baryonic}$ is the baryonic mass in any satellite halos, $M_\mathrm{total}$ is the node mass, and
   !#   \begin{equation}

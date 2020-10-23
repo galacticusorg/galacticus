@@ -65,8 +65,8 @@
   !#   progenitor mass functions close to $M_1/2$. Therefore, we instead set the progenitor masses by first drawing a mass
   !#   $M_2^\prime$ from the mass branching distribution function and then setting
   !#   \begin{eqnarray}
-  !#     M_2 &=& M_2^\prime (1-F), \nonumber \\
-  !#     M_3 &=& (M_1 - M_2^\prime) (1-F),
+  !#     M_2 &amp;=&amp; M_2^\prime (1-F), \nonumber \\
+  !#     M_3 &amp;=&amp; (M_1 - M_2^\prime) (1-F),
   !#   \end{eqnarray}
   !#   which ensures a symmetric treatment of subresolution accretion close to $M_1/2$.
   !#   
