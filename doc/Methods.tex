@@ -317,11 +317,15 @@ An interrupt procedure should have the form:
 
 \section{Existing Method Types}
 
-\subsection{Functions}
+\subsection{Function Classes}
 
-Functions implement basic calculations (e.g. computing the power spectrum).
-
-\IfFileExists{./autoMethods.tex}{\input{autoMethods}}{}
+Functions implement basic calculations (e.g. computing the power spectrum). Additional implementations of a {\normalfont \ttfamily functionClass} are added using the a directive with the name of that {\normalfont \ttfamily functionClass}. The implementation should be placed in a file containing the directive. For example, for the {\normalfont \ttfamily mergerTreeTimestep} {\normalfont \ttfamily functionClass} the file must containg a directive of the form
+\begin{verbatim}
+!# <mergerTreeTimestep name="mergerTreeTimestepMyImplementation">
+!# <description>A short description of the implementation.</description>
+!# </mergerTreeTimestep>
+\end{verbatim}
+where {\normalfont \ttfamily MyImplementation} is an appropriate name for the implemention. This file should be treated as a regular Fortran submodule, but without the initial {\normalfont \ttfamily submodule} and final {\normalfont \ttfamily end submodule} lines. That is, it may contain {\normalfont \ttfamily use} statements and variable declarations prior to the {\normalfont \ttfamily contains} line, and should contain all functions required by the implementation after that line. It is standard, but not required, that function names should be prefixed with the name of the implementation (e.g. ``{\normalfont \ttfamily MyImplementation}'' in the above example). The file \emph{must} define a type that extends the named {\normalfont \ttfamily functionClass} class (or extends another type which is itself an extension of the named {\normalfont \ttfamily functionClass} class), containing any data needed by the implementation along with type-bound functions required by the implementation.
 
 \subsection{Events}
 
