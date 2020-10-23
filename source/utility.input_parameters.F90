@@ -1403,13 +1403,6 @@ contains
     type            (inputParameters           )               , pointer     :: rootParameters
     type            (inputParameters           )                             :: subParameters
     character       (len=parameterLengthMaximum), dimension(:) , allocatable :: parameterNames
-#ifdef MATHEVALAVAIL
-    integer         (kind_int8                 )                             :: evaluator
-    ! Declarations of GNU libmatheval procedures used.
-    integer         (kind_int8                 ), external                   :: Evaluator_Create_
-    double precision                            , external                   :: Evaluator_Evaluate_
-    external                                                                 :: Evaluator_Destroy_
-#endif
     type            (DOMException              )                             :: exception
     integer                                                                  :: status             , i              , &
          &                                                                      countNames
@@ -1417,6 +1410,13 @@ contains
     character       (len=parameterLengthMaximum)                             :: expression         , parameterName  , &
          &                                                                      workText
     double precision                                                         :: workValue
+#ifdef MATHEVALAVAIL
+    integer         (kind_int8                 )                             :: evaluator
+    ! Declarations of GNU libmatheval procedures used.
+    integer         (kind_int8                 ), external                   :: Evaluator_Create_
+    double precision                            , external                   :: Evaluator_Evaluate_
+    external                                                                 :: Evaluator_Destroy_
+#endif
 
     {Type¦match¦^Long.*¦character(len=parameterLengthMaximum) :: parameterText¦}
     {Type¦match¦^(Character|VarStr)Rank1$¦type(varying_string) :: parameterText¦}
