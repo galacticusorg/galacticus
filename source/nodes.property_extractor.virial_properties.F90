@@ -24,9 +24,7 @@
   !#   A node property extractor which extracts the following quantities related to the virialized region of each node:
   !#   \begin{description}
   !#    \item [{\normalfont \ttfamily nodeVirialRadius}] The virial radius (following whatever definition of virial overdensity is
-  !#    specified by the
-  !#    \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.virialDensityContrast}{virialDensityContrast})
-  !#    in units of Mpc;
+  !#    specified by the virial density contrast (see \refPhysics{virialDensityContrast}) in units of Mpc;
   !#    \item [{\normalfont \ttfamily nodeVirialVelocity}] The circular velocity at the virial radius (in km/s).
   !#   \end{description}
   !#  </description>

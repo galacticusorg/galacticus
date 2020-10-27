@@ -25,7 +25,13 @@
   use :: Supernovae_Type_Ia        , only : supernovaeTypeIaClass
 
   !# <stellarFeedback name="stellarFeedbackStandard">
-  !#  <description>A stellar feedback class which performs a simple calculation of energy feedback from stellar populations.</description>
+  !#  <description>
+  !#   A stellar feedback class which assumes that the cumulative energy input from a stellar population is equal to the total
+  !#   number of (Type II and Type Ia) supernovae multiplied by {\normalfont \ttfamily [supernovaEnergy]} (specified in ergs) plus
+  !#   any Population III-specific supernovae energy plus the integrated energy input from stellar winds. The minimum mass of a
+  !#   star required to form a Type II supernova is specified (in $M_\odot$) via the {\normalfont \ttfamily
+  !#   [initialMassForSupernovaeTypeII]} parameter.
+  !#  </description>
   !# </stellarFeedback>
   type, extends(stellarFeedbackClass) :: stellarFeedbackStandard
      !% A stellar feedback class which performs a simple calculation of energy feedback from stellar populations.

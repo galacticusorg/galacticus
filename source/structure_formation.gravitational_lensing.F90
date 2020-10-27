@@ -26,7 +26,9 @@ module Gravitational_Lensing
   !# <functionClass>
   !# <name>gravitationalLensing</name>
   !#  <descriptiveName>Gravitational Lensing</descriptiveName>
-  !#  <description>Object providing gravitational lensing probabilities due to large scale structure.</description>
+  !#  <description>
+  !#   Class providing gravitational lensing probabilities due to large scale structure.
+  !#  </description>
   !#  <default>takahashi2011</default>
   !#  <method name="magnificationPDF" >
   !#   <description>Returns the differential probability function for magnification.</description>

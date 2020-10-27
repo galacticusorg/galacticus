@@ -20,7 +20,10 @@
   !% Implements a merger remnant size class which takes no action.
 
   !# <mergerRemnantSize name="mergerRemnantSizeNull">
-  !#  <description>A merger remnant size class which takes no action.</description>
+  !#  <description>
+  !#   A merger remnant size class which does nothing at all. It is useful, for example, when running \glc\ to study dark matter
+  !#   only (i.e. when no galaxy properties are computed).
+  !#  </description>
   !# </mergerRemnantSize>
   type, extends(mergerRemnantSizeClass) :: mergerRemnantSizeNull
      !% A merger remnant size class which uses takes no action.

@@ -27,7 +27,9 @@ module Dark_Matter_Halo_Mass_Accretion_Histories
   !# <functionClass>
   !#  <name>darkMatterHaloMassAccretionHistory</name>
   !#  <descriptiveName>Dark Matter Halo Mass Accretion Histories</descriptiveName>
-  !#  <description>Object providing dark matter halo mass accretion histories.</description>
+  !#  <description>
+  !#   Class providing dark matter halo mass accretion histories.
+  !#  </description>
   !#  <default>wechsler2002</default>
   !#  <method name="time">
   !#   <description>Returns the time at which the given halo mass was reached.</description>

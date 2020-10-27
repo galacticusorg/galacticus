@@ -27,7 +27,9 @@ module Stellar_Astrophysics_Winds
   !# <functionClass>
   !#  <name>stellarWinds</name>
   !#  <descriptiveName>Stellar Winds</descriptiveName>
-  !#  <description>Class providing models of stellar winds.</description>
+  !#  <description>
+  !#   Class providing models of stellar winds.
+  !#  </description>
   !#  <default>leitherer1992</default>
   !#  <method name="rateMassLoss" >
   !#   <description>Return the mass loss rate (in $M_\odot$/Gyr) from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.</description>

@@ -20,7 +20,10 @@
   !% An implementation of a spectrum postprocessor that applies the \cite{madau_radiative_1995} calculation of the attenuation of spectra by the intergalactic medium.
 
   !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorMadau1995">
-  !#  <description>Multiplier the \cite{madau_radiative_1995} calculation of the attenuation of spectra by the intergalactic medium.</description>
+  !#  <description>
+  !#   A stellar population postprocessor class that postprocesses spectra through absorption by the \gls{igm} using the results
+  !#   of \cite{madau_radiative_1995}.
+  !#  </description>
   !# </stellarPopulationSpectraPostprocessor>
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorMadau1995
      !% An spectrum postprocessor multipliering the \cite{madau_radiative_1995} calculation of the attenuation of spectra by the intergalactic medium.

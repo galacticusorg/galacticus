@@ -23,7 +23,10 @@
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesBoylanKolchin2008">
-  !#  <description>Computes the merging timescale using the method of \cite{boylan-kolchin_dynamical_2008}.</description>
+  !#  <description>
+  !#   A satellite merging timescale class which computes merging timescales using the dynamical friction calibration of
+  !#   \cite{boylan-kolchin_dynamical_2008}.
+  !#  </description>
   !# </satelliteMergingTimescales>
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesBoylanKolchin2008
      !% A class implementing the \cite{boylan-kolchin_dynamical_2008} method for satellite merging timescales.

@@ -25,7 +25,19 @@
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !# <satelliteDynamicalFriction name="satelliteDynamicalFrictionChandrasekhar1943">
-  !#  <description>A satellite dynamical friction class which uses the model of \cite{chandrasekhar_dynamical_1943}.</description>
+  !#  <description>
+  !#   A satellite dynamical friction class which uses the \cite{chandrasekhar_dynamical_1943} formula to compute the acceleration
+  !#   of a satellite at radius $r$ from the center of the host due to dynamical friction:
+  !#   \begin{equation}
+  !#   \mathbf{a}_{DF} = -\frac{4\pi \mathrm{G}^2M_\mathrm{sat}\rho_\mathrm{host}(r)}{v_\mathrm{sat}^3}\ln
+  !#   \Lambda\left[\mathrm{erf}(x)-\frac{2x}{\sqrt{\pi}}\exp(-x^2)\right]\mathbf{v}_\mathrm{sat},
+  !#   \end{equation}
+  !#   where $M_\mathrm{sat}$ and $\mathbf{v}_\mathrm{sat}$ are the satellite's mass and velocity, respectively,
+  !#   $v_\mathrm{sat}=|\mathbf{v}_\mathrm{sat}|$, $\rho_\mathrm{host}(r)$ is the host's density profile,
+  !#   $\ln\Lambda=${\normalfont \ttfamily [logarithmCoulomb]} is the Coulomb logarithm, and $x\equiv
+  !#   v_\mathrm{sat}/\sqrt{2}\sigma(r)$, where $\sigma(r)$ is the velocity dispersion of the host halo at radius $r$,
+  !#   approximated to be equal to the host virial velocity, $v_\mathrm{vir}$.
+  !#  </description>
   !# </satelliteDynamicalFriction>
   type, extends(satelliteDynamicalFrictionClass) :: satelliteDynamicalFrictionChandrasekhar1943
      !% Implementation of a satellite dynamical friction class which uses the model of \cite{chandrasekhar_dynamical_1943}.

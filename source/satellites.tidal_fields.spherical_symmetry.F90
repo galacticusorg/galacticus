@@ -20,7 +20,17 @@
   !% Contains a module which implements a model of the tidal field acting on a satellite assuming spherical symmetry in the host.
 
   !# <satelliteTidalField name="satelliteTidalFieldSphericalSymmetry">
-  !#  <description>A satellite tidal field class which computes the tidal field assuming spherical symmetry.</description>
+  !#  <description>
+  !#   A satellite tidal field class which assumes a spherically-symmetric host halo, and computes the tidal field accordingly
+  !#   using:
+  !#   \begin{equation}
+  !#    \mathcal{F} = {\mathrm{G} M_\mathrm{host}(&lt;r_\mathrm{p}) \over r_\mathrm{p}^3} - 4 \pi \mathrm{G}
+  !#    \rho_\mathrm{host}(r_\mathrm{p}) + \omega_\mathrm{p}^2,
+  !#   \end{equation}
+  !#   where $r_\mathrm{p}$ is the pericentric radius. $M_\mathrm{host}(&lt;r)$ is the mass of the host halo enclosed within a sphere
+  !#   of radius $r$, $\rho_\mathrm{host}(r)$ is the host density at radius $r$, and $\omega_\mathrm{p}$ is the orbital angular
+  !#   velocity at pericenter.
+  !#  </description>
   !# </satelliteTidalField>
   type, extends(satelliteTidalFieldClass) :: satelliteTidalFieldSphericalSymmetry
      !% Implementation of a satellite tidal friction class which assumes spherical symmetry.

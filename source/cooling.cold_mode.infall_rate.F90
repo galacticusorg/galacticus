@@ -28,7 +28,9 @@ module Cooling_Cold_Mode_Infall_Rates
   !# <functionClass>
   !#  <name>coldModeInfallRate</name>
   !#  <descriptiveName>Infall rates in cold mode accretion.</descriptiveName>
-  !#  <description>Class providing models of the infall rate of gas in the cold mode.</description>
+  !#  <description>
+  !#   Class providing models of the infall rate of gas in the cold mode.
+  !#  </description>
   !#  <default>dynamicalTime</default>
   !#  <method name="infallRate" >
   !#   <description>Returns the cold mode infall rate for {\normalfont \ttfamily thisNode} (in units of $M_\odot$ Gyr$^{-1}$).</description>

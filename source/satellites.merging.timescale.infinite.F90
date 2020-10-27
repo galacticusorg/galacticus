@@ -22,7 +22,11 @@
   !% Implements a satellite merging timescale class in which merging timescales are always infinite.
 
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesInfinite">
-  !#  <description>Returns an infinite timescale for merging.</description>
+  !#  <description>
+  !#   A satellite merging timescale class which always gives an infinite timescale for merging (technically, it returns a value
+  !#   close to the largest representable double precision floating point number which should be sufficiently close to infinity
+  !#   for practical purposes).
+  !#  </description>
   !# </satelliteMergingTimescales>
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesInfinite
      !% A class implementing satellite merging timescales that are always infinite.

@@ -28,7 +28,21 @@
   use :: Virial_Density_Contrast   , only : virialDensityContrastFixed
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationDiemerKravtsov2014">
-  !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{diemer_universal_2014}.</description>
+  !#  <description>
+  !#   A dark matter profile concentration class in which the concentration is computed using a fitting function from
+  !#   \cite{diemer_universal_2014}:
+  !#   \begin{equation}
+  !#   c = {c_\mathrm{min} \over 2} \left[ \left({\nu\over\nu_\mathrm{min}}\right)^{-\alpha} +
+  !#   \left({\nu\over\nu_\mathrm{min}}\right)^{\beta} \right],
+  !#   \end{equation}
+  !#   where $c_\mathrm{min}=\phi_0+\phi_1 n$, $\nu_\mathrm{min}=\eta_0+\eta_1 n$, $n$ is the logarithmic slope of the linear
+  !#   power spectrum at wavenumber $k = \kappa 2 \pi / R$, $R$ is the comoving Lagrangian radius of the halo, $R=[3 M / 4 \pi
+  !#   \rho_\mathrm{M}(z=0)]^{1/3}$, and $\nu=\delta_\mathrm{crit}(t)/\sigma(M)$ is the peak height parameter. The numerical
+  !#   parameters $(\kappa,\phi_0,\phi_1,\eta_0,\eta_1,\alpha,\beta)$ are set by the parameters {\normalfont \ttfamily [kappa]},
+  !#   {\normalfont \ttfamily [phi0]}, {\normalfont \ttfamily [phi1]}, {\normalfont \ttfamily [eta0]}, {\normalfont \ttfamily
+  !#   [eta1]}, {\normalfont \ttfamily [alpha]}, {\normalfont \ttfamily [beta]}, respectively, and default to the values given in
+  !#   Table 3 of \cite{diemer_universal_2014} for the median relation, namely $(0.69,6.58,1.37,6.82,1.42,1.12,1.69)$.
+  !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
   !#  </deepCopy>

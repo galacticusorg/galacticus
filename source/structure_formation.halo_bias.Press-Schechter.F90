@@ -23,7 +23,8 @@
 
   !# <darkMatterHaloBias name="darkMatterHaloBiasPressSchechter">
   !#  <description>
-  !#   A dark matter halo mass bias class utilizing the Press-Schechter algorithm \citep{cole_biased_1989}.
+  !#   A dark matter halo mass bias class consistent with the halo mass function of \cite{press_formation_1974} (see
+  !#   \citep{mo_analytic_1996}).
   !#  </description>
   !# </darkMatterHaloBias>
   type, extends(darkMatterHaloBiasClass) :: darkMatterHaloBiasPressSchechter

@@ -17,11 +17,36 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a hybrid top-hat/sharp $k$-space power spectrum window function class.
+  !% Contains a module which implements a hybrid top-hat/sharp $k$-space power spectrum window function class.
+  
   use :: Cosmology_Parameters, only : cosmologyParametersClass
-
+  
   !# <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionTopHatSharpKHybrid">
-  !#  <description>A hybrid top-hat/sharp $k$-space window function for filtering of power spectra.</description>
+  !#  <description>
+  !#   A hybrid top-hat/sharp $k$-space window function for filtering of power spectra. This class implements a convolution of a
+  !#   top-hat window function and sharp $k$-space window function in $k$-space:
+  !#   \begin{equation}
+  !#    W(k) = W_\mathrm{th}(k) W_\mathrm{s}(k),
+  !#   \end{equation}
+  !#   where
+  !#   \begin{equation}
+  !#    W(k) = {3 (\sin(x)-x \cos(x)) \over x^3},
+  !#   \end{equation}
+  !#   where $x = k R_\mathrm{th}$, and
+  !#   \begin{equation}
+  !#    W_\mathrm{s}(k) = \left\{ \begin{array}{ll} 1 &amp; \hbox{if } k &lt; k_\mathrm{s} \\ 0 &amp; \hbox{if } k &gt; k_\mathrm{s}, \end{array} \right.
+  !#   \end{equation}
+  !#   where $k\mathrm{s} = \alpha / R_\mathrm{s}$ if {\normalfont \ttfamily
+  !#   [normalization]} is assigned a numerical value. Alternatively, if {\normalfont
+  !#   \ttfamily [normalization]}$=${\normalfont \ttfamily natural} then the value of
+  !#   $\alpha$ is chosen such that $k_\mathrm{s} = (6 \Pi^2 \bar{\rho}/M)^{1/3}$ if $R_\mathrm{s}=3M/4\pi\bar{\rho}$.
+  !#   The radii, $R_\mathrm{th}$ and $R_\mathrm{s}$, are chosen such that:
+  !#   \begin{eqnarray}
+  !#   R_\mathrm{th}^2 + R_\mathrm{s}^2 &amp;=&amp; (3M/4\pi\bar{\rho})^{2/3} \\
+  !#   R_\mathrm{s} &amp;=&amp; \beta R_\mathrm{th},
+  !#   \end{eqnarray}
+  !#   where $\beta=${\normalfont \ttfamily [radiiRatio]}.
+  !#  </description>
   !# </powerSpectrumWindowFunction>
   type, extends(powerSpectrumWindowFunctionClass) :: powerSpectrumWindowFunctionTopHatSharpKHybrid
      !% A hybrid top-hat/sharp $k$-space power spectrum window function class.

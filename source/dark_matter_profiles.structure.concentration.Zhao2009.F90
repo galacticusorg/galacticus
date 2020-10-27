@@ -27,7 +27,18 @@
   use :: Virial_Density_Contrast                  , only : virialDensityContrastBryanNorman1998
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationZhao2009">
-  !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{zhao_accurate_2009}.</description>
+  !#  <description>
+  !#   A dark matter profile concentration class in which the concentration is computed using a fitting function from
+  !#   \cite{zhao_accurate_2009}:
+  !#   \begin{equation}
+  !#    c = 4 \left(1 + \left[ {t  \over 3.75 t_\mathrm{form}}\right]^{8.4}\right)^{1/8},
+  !#   \end{equation}
+  !#   where $t$ is the time for the halo and $t_\mathrm{form}$ is a formation time defined by \cite{zhao_accurate_2009} as the
+  !#   time at which the main branch progenitor of the halo had a mass equal to $0.04$ of the current halo mass. This formation
+  !#   time is computed directly from the merger tree branch associated with each halo. If the no branch exists or does not extend
+  !#   to the formation time then the formation time is computed by extrapolating the mass of the earliest resolved main branch
+  !#   progenitor to earlier times using the selected \refClass{darkMatterHaloMassAccretionHistoryClass}.
+  !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
   !#  </deepCopy>

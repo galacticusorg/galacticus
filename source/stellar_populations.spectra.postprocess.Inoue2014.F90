@@ -20,7 +20,10 @@
   !% An implementation of a spectrum postprocessor that applies the \cite{inoue_updated_2014} calculation of the attenuation of spectra by the intergalactic medium.
 
   !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorInoue2014">
-  !#  <description>Apply the \cite{inoue_updated_2014} calculation of the attenuation of spectra by the intergalactic medium.</description>
+  !#  <description>
+  !#   A stellar population postprocesing class that postprocesses spectra through absorption by the \gls{igm} using the results
+  !#   of \cite{inoue_updated_2014}.
+  !#  </description>
   !# </stellarPopulationSpectraPostprocessor>
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorInoue2014
      !% A spectrum postprocessor applying the \cite{inoue_updated_2014} calculation of the attenuation of spectra by the intergalactic medium.

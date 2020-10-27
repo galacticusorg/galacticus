@@ -29,7 +29,9 @@ module Virial_Orbits
   !# <functionClass>
   !#  <name>virialOrbit</name>
   !#  <descriptiveName>Virial Orbits</descriptiveName>
-  !#  <description>Class providing orbital parameters of satellite halos at the time of merging.</description>
+  !#  <description>
+  !#   Class providing orbital parameters of satellite halos at the time when they first enter the virial radius of their host.
+  !#  </description>
   !#  <default>benson2005</default>
   !#  <method name="orbit" >
   !#   <description>Returns an orbit object.</description>

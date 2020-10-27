@@ -28,7 +28,10 @@ module Merger_Tree_Construction
   !# <functionClass>
   !#  <name>mergerTreeConstructor</name>
   !#  <descriptiveName>Merger Tree Constructors</descriptiveName>
-  !#  <description>Class providing merger tree constructors.</description>
+  !#  <description>
+  !#   Class providing merger tree constructors. Here, ``construct'' means any process of creating a representation of a merger
+  !#   tree within \glc.
+  !#  </description>
   !#  <default>build</default>
   !#  <method name="construct" >
   !#   <description>Construct the merger tree corresponding to the given {\normalfont \ttfamily treeNumber}.</description>

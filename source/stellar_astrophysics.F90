@@ -26,7 +26,10 @@ module Stellar_Astrophysics
   !# <functionClass>
   !#  <name>stellarAstrophysics</name>
   !#  <descriptiveName>Stellar Astrophysics</descriptiveName>
-  !#  <description>Class providing models of stellar astrophysics.</description>
+  !#  <description>
+  !#   Class providing models of stellar astrophysics including recycled mass, metal yield, and lifetime as a function of intial
+  !#   properties.
+  !#  </description>
   !#  <default>file</default>
   !#  <method name="massInitial" >
   !#   <description>Returns the initial mass of a star of given {\normalfont \ttfamily lifetime} and {\normalfont \ttfamily metallicity}.</description>

@@ -28,7 +28,9 @@ module Galactic_Structure_Solvers
   !# <functionClass>
   !#  <name>galacticStructureSolver</name>
   !#  <descriptiveName>Solvers for galactic structure</descriptiveName>
-  !#  <description>Class providing solvers for galactic structure.</description>
+  !#  <description>
+  !#   Class providing solvers for galactic structure---specifically, finding radii of galactic components.
+  !#  </description>
   !#  <default>equilibrium</default>
   !#  <method name="solve" >
   !#   <description>Solves for the structure of components in the given {\normalfont \ttfamily node}.</description>

@@ -23,7 +23,33 @@
   use    :: Tables , only : table1DLogarithmicLinear
 
   !# <accretionDisks name="accretionDisksADAF">
-  !#  <description>An ADAF accretion disk class.</description>
+  !#  <description>
+  !#   A circumnuclear accretion disk class, in which accretion is via an \gls{adaf} \citep{narayan_advection-dominated_1994}
+  !#   which is radiatively inefficient and geometrically thick. The radiative efficiency of the flow, which will be zero for a
+  !#   pure \gls{adaf}, is controlled by {\normalfont \ttfamily [efficiencyRadiationType]}. If set to {\normalfont \ttfamily
+  !#   fixed}, then the radiative efficiency is set to the value of the input parameter {\normalfont \ttfamily
+  !#   [efficiencyRadiation]}. Alternatively, if set to {\normalfont \ttfamily thinDisk} the radiative efficiency will be set to
+  !#   that of a Shakura-Sunyaev thin disk. The spin up rate of the black hole and the jet power produced as material accretes
+  !#   into the black hole are computed using the method of \cite{benson_maximum_2009}. The maximum efficiency of the jet (in
+  !#   units of the accretion power $\dot{M} \mathrm{c}^2$) is set by {\normalfont \ttfamily [efficiencyJetMaximum]}---in the
+  !#   model of \cite{benson_maximum_2009} the jet efficiency diverges as $j\rightarrow 1$, setting a maximum is important to
+  !#   avoid numerical instabilities. The energy of the accreted material can be set equal to the energy at infinity (as expected
+  !#   for a pure \gls{adaf}) or the energy at the \gls{isco} by use of the {\normalfont \ttfamily [energyOption]} parameter (set
+  !#   to {\normalfont \ttfamily pureADAF} or {\normalfont \ttfamily ISCO} respectively). The \gls{adaf} structure is controlled
+  !#   by the adiabatic index, $\gamma$, and viscosity parameter, $\alpha$, which are specified via the {\normalfont \ttfamily
+  !#   [adiabaticIndex]} and {\normalfont \ttfamily [viscosityOption]} input parameters respectively. The field-enhancing shear,
+  !#   $g$, is computed using $g=\exp(\omega \tau)$ if {\normalfont \ttfamily [fieldEnhancementOption]} is set to ``exponential''
+  !#   where $\omega$ is the frame-dragging frequency and $\tau$ is the smaller of the radial inflow and azimuthal velocity
+  !#   timescales. If {\normalfont \ttfamily [fieldEnhancementOption]} is set to ``linear'' then the alternative version,
+  !#   $g=1+\omega \tau$ is used instead. {\normalfont \ttfamily [viscosityOption]} may be set to ``{\normalfont \ttfamily fit}'',
+  !#   in which case the fitting function for $\alpha$ as a function of black hole spin is used:
+  !#   \begin{eqnarray}
+  !#    \alpha(j)=0.015+0.02 j^4 &amp; \hbox{ if  }&amp; g=\exp(\omega\tau) \hbox{ and } E=E_\mathrm{ISCO}, \\
+  !#    \alpha(j)=0.025+0.08 j^4 &amp; \hbox{ if } &amp; g=1+\omega\tau \hbox{ and } E=E_\mathrm{ISCO}, \\
+  !#    \alpha(j)=0.010+0.00 j^4 &amp; \hbox{ if } &amp; g=\exp(\omega\tau) \hbox{ and } E=1, \\
+  !#    \alpha(j)=0.025+0.02 j^4 &amp; \hbox{ if } &amp; g=1+\omega\tau \hbox{ and } E=1.  
+  !#   \end{eqnarray}
+  !#  </description>
   !# </accretionDisks>
   type, extends(accretionDisksClass) :: accretionDisksADAF
      !% Implementation of an ADAF accretion disk class.

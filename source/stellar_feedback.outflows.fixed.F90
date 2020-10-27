@@ -20,7 +20,16 @@
   !% Implementation of a fixed fraction stellar feedback model.
 
   !# <stellarFeedbackOutflows name="stellarFeedbackOutflowsFixed">
-  !#  <description>A fixed fraction stellar feedback model.</description>
+  !#  <description>
+
+  !#   A stellar feedback outflow class in which the outflow rate is fixed. Specifically,
+  !#   \begin{equation}
+  !#    \dot{M}_\mathrm{outflow} = f_\mathrm{outflow} {\dot{E} \over E_\mathrm{canonical}},
+  !#   \end{equation}
+  !#   where $f_\mathrm{outflow}=${\normalfont \ttfamily [fraction]} is the fraction of the star formation rate that goes into
+  !#   outflow, $\dot{E}$ is the rate of energy input from stellar populations and $E_\mathrm{canonical}$ is the total energy
+  !#   input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
+  !#  </description>
   !# </stellarFeedbackOutflows>
   type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsFixed
      !% Implementation of a fixed fraction stellar feedback model.

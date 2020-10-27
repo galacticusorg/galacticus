@@ -23,7 +23,11 @@
   use :: Tables, only : table1D, table1DLogarithmicLinear
 
   !# <haloSpinDistribution name="haloSpinDistributionBett2007">
-  !#  <description>A halo spin distribution using the fitting formula of \cite{bett_spin_2007}.</description>
+  !#  <description>
+  !#   A halo spin distribution in which the spin is drawn from the distribution found by \cite{bett_spin_2007}. The $\lambda_0$
+  !#   and $\alpha$ parameter of Bett et al.'s distribution are set by the {\normalfont \ttfamily [lambda0]} and {\normalfont
+  !#   \ttfamily [alpha]} input parameters.
+  !#  </description>
   !# </haloSpinDistribution>
   type, extends(haloSpinDistributionClass) :: haloSpinDistributionBett2007
      !% A dark matter halo spin distribution class which assumes a \cite{bett_spin_2007} distribution.

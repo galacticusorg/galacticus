@@ -28,7 +28,9 @@ module Black_Hole_Binary_Initial_Separation
   !# <functionClass>
   !#  <name>blackHoleBinaryInitialSeparation</name>
   !#  <descriptiveName>Black Hole Binaries Initial Separation</descriptiveName>
-  !#  <description>Class providing models of black hole binary initial separations.</description>
+  !#  <description>
+  !#   Class providing models of black hole binary initial separations after galaxy mergers.
+  !#  </description>
   !#  <default>spheroidRadiusFraction</default>
   !#  <method name="separationInitial" >
   !#   <description>Computes the initial separation of a newly formed black hole binary black holes.</description>

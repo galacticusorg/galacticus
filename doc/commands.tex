@@ -23,3 +23,9 @@
 \def\argin{\textcolor{blue}{$\rightarrow$}}
 \def\arginout{\textcolor{blue}{$\leftrightarrow$}}
 \def\argout{\textcolor{blue}{$\leftarrow$}}
+
+% Macros for linking to sections either through internal LaTeX label/ref or externally through hyperdef/hyperref.
+%% Link to a class by class name.
+\newcommand{\refClass}[1]{\ifthenelse{\equal{\docname}{Development}}{{\normalfont \ttfamily #1} (see \S\ref{class:#1})}{\href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#class.#1}{\normalfont \ttfamily #1}}}
+%% Link to a physics description by class name.
+\newcommand{\refPhysics}[1]{\ifthenelse{\equal{\docname}{Physics}}{{\normalfont \ttfamily #1} (see \S\ref{phys:#1})}{\href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#physics.#1}{\normalfont \ttfamily #1}}}

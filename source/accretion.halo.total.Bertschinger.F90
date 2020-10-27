@@ -20,7 +20,10 @@
   !% An implementation of the intergalactic medium state class for a simplistic model of instantaneous and full reionization.
 
   !# <accretionHaloTotal name="accretionHaloTotalBertschinger">
-  !#  <description>A halo total accretion class which assumes the accretion corresponds to the basic mass.</description>
+  !#  <description>
+  !#   A halo total accretion class that assumes that the accretion rate is equal to the growth rate of the basic component
+  !#   Bertschinger mass property.
+  !#  </description>
   !# </accretionHaloTotal>
   type, extends(accretionHaloTotalClass) :: accretionHaloTotalBertschinger
      !% A halo total accretion class which assumes the accretion corresponds to the Bertschinger mass.

@@ -30,7 +30,9 @@ module Dark_Matter_Profiles_DMO
   !#  <name>darkMatterProfileDMO</name>
   !#  <extends>darkMatterProfileGeneric</extends>
   !#  <descriptiveName>Dark Matter Halo Profiles</descriptiveName>
-  !#  <description>Object providing dark matter halo profiles.</description>
+  !#  <description>
+  !#   Class providing dark matter-only halo profiles.
+  !#  </description>
   !#  <default>NFW</default>
   !#  <calculationReset>yes</calculationReset>
   !#  <method name="density" >
@@ -193,7 +195,9 @@ module Dark_Matter_Profiles_DMO
   !# <functionClass>
   !#  <name>darkMatterProfileHeating</name>
   !#  <descriptiveName>Dark Matter Profile Heating</descriptiveName>
-  !#  <description>Class providing models of heating of dark matter profiles.</description>
+  !#  <description>
+  !#   Class providing models of heating of dark matter profiles.
+  !#  </description>
   !#  <default>null</default>
   !#  <calculationReset>yes</calculationReset>
   !#  <method name="specificEnergy" >

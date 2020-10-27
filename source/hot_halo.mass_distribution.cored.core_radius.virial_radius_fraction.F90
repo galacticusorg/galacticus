@@ -22,7 +22,10 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <hotHaloMassDistributionCoreRadius name="hotHaloMassDistributionCoreRadiusVirialFraction">
-  !#  <description>Provides an implementation of the hot halo mass distribution core radius class which sets the core radius to a fraction of the virial radius.</description>
+  !#  <description>
+  !#   A hot halo mass distribution core radius class which sets the core radius equal to a fraction {\normalfont \ttfamily
+  !#   [coreRadiusOverVirialRadius]} of the node's virial radius.
+  !#  </description>
   !# </hotHaloMassDistributionCoreRadius>
   type, extends(hotHaloMassDistributionCoreRadiusClass) :: hotHaloMassDistributionCoreRadiusVirialFraction
      !% An implementation of the hot halo mass distribution core radius class which sets the core radius to a fraction of the virial radius.

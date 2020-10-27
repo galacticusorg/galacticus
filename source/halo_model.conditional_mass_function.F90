@@ -26,7 +26,9 @@ module Conditional_Mass_Functions
   !# <functionClass>
   !#  <name>conditionalMassFunction</name>
   !#  <descriptiveName>Conditional Mass Function</descriptiveName>
-  !#  <description>Object providing empirical models of conditional mass functions.</description>
+  !#  <description>
+  !#   Class providing empirical models of conditional mass functions.
+  !#  </description>
   !#  <default>behroozi2010</default>
   !#  <method name="massFunction" >
   !#   <description>Return the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})$.</description>

@@ -20,7 +20,17 @@
   !% Implementation of a timescale for star formation which scales with the component dynamical time.
 
   !# <starFormationTimescale name="starFormationTimescaleDynamicalTime">
-  !#  <description>A timescale for star formation which scales with the component dynamical time.</description>
+  !#  <description>
+  !#   A star formation timescale class in which the star formation timescale scales with the component dynamical
+  !#   time. Specifically:
+  !#   \begin{equation}
+  !#    \tau_\star = \epsilon_\star^{-1} \tau_\mathrm{dynamical} \left( {V \over 200\hbox{km/s}} \right)^{\alpha_\star},
+  !#   \end{equation}
+  !#   where $\epsilon_\star=${\normalfont \ttfamily [efficiency]} and $\alpha_\star=${\normalfont \ttfamily [exponentVelocity]}
+  !#   are input parameters, $\tau_\mathrm{dynamical}\equiv r/V$ is the dynamical timescale of the \gls{component} and $r$ and $V$
+  !#   are the characteristic radius and velocity respectively of the component. The timescale is not allowed to fall below a
+  !#   minimum value specified by {\normalfont \ttfamily [timescaleMinimum]} (in Gyr).
+  !#  </description>
   !# </starFormationTimescale>
   type, extends(starFormationTimescaleClass) :: starFormationTimescaleDynamicalTime
      !% Implementation of a timescale for star formation which scales with the dynamical time.

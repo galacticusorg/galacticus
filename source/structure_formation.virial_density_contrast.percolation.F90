@@ -25,7 +25,15 @@
   use    :: Tables             , only : table2DLogLogLin
 
   !# <virialDensityContrast name="virialDensityContrastPercolation" recursive="yes">
-  !#  <description>Dark matter halo virial density contrasts based on the percolation analysis of \cite{more_overdensity_2011}.</description>
+  !#  <description>
+  !#   A dark matter halo virial density contrast class based on the percolation analysis of \cite{more_overdensity_2011}. The
+  !#   virial density contrast is computed to be consistent with a given friends-of-friends algorithm linking length using the
+  !#   percolation-theory-motivated calibration of \cite{more_overdensity_2011}. Specifically, the friends-of-friends algorithm is
+  !#   assumed to link together particles forming an isodensity surface of density $\rho = \bar{\rho} n_\mathrm{c}/b^3$, where
+  !#   $\bar{\rho}$ is the mean density of the universe, $n_\mathrm{c}=0.652960$ is a critical density for percolation as given by
+  !#   \cite{more_overdensity_2011}, and $b$ is the linking length. Given this bounding density, the virial density contrast is
+  !#   found by requiring that the halo contain the required mass within such a bounding density, given the halo density profile.
+  !#  </description>
   !#  <deepCopy>
   !#   <ignore   variables="recursiveSelf"                                                                       />
   !#   <deepCopy variables="percolationObjects_" function="percolationObjectsDeepCopy_" module="Functions_Global"/>

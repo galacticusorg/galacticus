@@ -28,7 +28,10 @@ module Stellar_Populations_Initial_Mass_Functions
   !# <functionClass>
   !#  <name>initialMassFunction</name>
   !#  <descriptiveName>Initial Mass Functions</descriptiveName>
-  !#  <description>Class providing stellar initial mass functions.</description>
+  !#  <description>
+  !#   Class providing stellar initial mass functions. All IMFs are assumed to be continuous in $M$, unless otherwise noted and
+  !#   normalized to unit mass.
+  !#  </description>
   !#  <default>chabrier2001</default>
   !#  <method name="massMinimum" >
   !#   <description>Return the minimum mass in the initial mass function.</description>

@@ -22,7 +22,37 @@
   public :: mergerTreeStateStore, mergerTreeStateFromFile
 
   !# <mergerTreeConstructor name="mergerTreeConstructorStateRestored">
-  !#  <description>Merger tree constructor class which constructs a merger tree by restoring state from file.</description>
+  !#  <description>
+  !#   A merger tree constructor class which will restore a merger tree whose complete internal state was written to file. It is
+  !#   intended primarily for debugging purposes to allow a tree to begin processing just prior to the point of failure. To use
+  !#   this method, the following procedure should be followed:
+  !#   \begin{enumerate}
+  !#    \item Identify a point in the evolution of the tree suitably close to, but before, the point of failure;
+  !#    \item Insert approrpiate code into \glc\ to have it call the function to store the state of the file and then stop, e.g.:
+  !#    \begin{verbatim}
+  !#     use :: Merger_Tree_Construction, only : mergerTreeStateStore
+  !#     .
+  !#     .
+  !#     .
+  !#     if (&lt;conditions are met&gt;) then
+  !#        call mergerTreeStateStore(thisTree,'storedTree.dat')
+  !#        stop 'tree internal state was stored'
+  !#     end if
+  !#    \end{verbatim}
+  !#    \item Run the model ensuring that {\normalfont \ttfamily [stateFileRoot]} is set to a suitable file root name to allow the
+  !#    internal state of \glc\ to be stored;
+  !#    \item Remove the code inserted above and recompile;
+  !#    \item Run \glc\ with an input parameter file identical to the one used previously except with {\normalfont \ttfamily
+  !#    [mergerTreeConstructMethod]}$=${\normalfont \ttfamily stateRestore}, {\normalfont \ttfamily [stateFileRoot]} removed,
+  !#    {\normalfont \ttfamily [stateRetrieveFileRoot]} set to the value previously used for {\normalfont \ttfamily
+  !#    [stateFileRoot]} and {\normalfont \ttfamily [fileName]}$=${\normalfont \ttfamily storedTree.dat}.
+  !#   \end{enumerate}
+  !#   This should restore the tree and the internal state of \glc\ precisely from the point where they were saved and produce the
+  !#   same subsequent evolution.
+  !#   
+  !#   Note that currently this method does not support storing and restoring of trees which contain components that have more
+  !#   than one instance.
+  !#  </description>
   !# </mergerTreeConstructor>
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorStateRestored
      !% A class implementing merger tree construction via restoring state from file.

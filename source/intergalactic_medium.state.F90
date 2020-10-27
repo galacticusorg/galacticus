@@ -29,7 +29,9 @@ module Intergalactic_Medium_State
   !# <functionClass>
   !#  <name>intergalacticMediumState</name>
   !#  <descriptiveName>Intergalactic Medium State</descriptiveName>
-  !#  <description>Class providing intergalactic medium state.</description>
+  !#  <description>
+  !#   Class providing the thermal and ionization state of the intergalactic medium.
+  !#  </description>
   !#  <default>recFast</default>
   !#  <method name="electronFraction" >
   !#   <description>Return the electron fraction (relative to hydrogen) in the \gls{igm} at the given time.</description>
@@ -120,7 +122,7 @@ module Intergalactic_Medium_State
   !#    ! Ensure that the table is initialized.
   !#    call intergalacticMediumStateElectronScatteringTabulate(self,time)
   !#    ! Check for invalid input.
-  !#    if (time > self%electronScatteringTableTimeMaximum)                                &amp;
+  !#    if (time &gt; self%electronScatteringTableTimeMaximum)                                &amp;
   !#       &amp; call Galacticus_Error_Report(                                             &amp;
   !#       &amp;                              'time exceeds present age of the universe'// &amp;
   !#       &amp;                              {introspection:location}                     &amp;
@@ -152,10 +154,10 @@ module Intergalactic_Medium_State
   !#    ! Ensure that the table is initialized.
   !#    time=self%cosmologyFunctions_%cosmicTime(1.0d0)
   !#    call intergalacticMediumStateElectronScatteringTabulate(self,time)
-  !#    do while (                                                                                                    &amp;
-  !#         &amp;     (.not.assumeFullyIonizedActual .and. self%electronScattering            %y(1) > -opticalDepth) &amp;
-  !#         &amp;    .or.                                                                                            &amp;
-  !#         &amp;     (     assumeFullyIonizedActual .and. self%electronScatteringFullyIonized%y(1) > -opticalDepth) &amp;
+  !#    do while (                                                                                                       &amp;
+  !#         &amp;     (.not.assumeFullyIonizedActual .and. self%electronScattering            %y(1) &gt; -opticalDepth) &amp;
+  !#         &amp;    .or.                                                                                               &amp;
+  !#         &amp;     (     assumeFullyIonizedActual .and. self%electronScatteringFullyIonized%y(1) &gt; -opticalDepth) &amp;
   !#         &amp;   )
   !#       time=time/2.0d0
   !#       call intergalacticMediumStateElectronScatteringTabulate(self,time)

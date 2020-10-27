@@ -20,7 +20,22 @@
   !% An implementation of heated dark matter halo profiles.
 
   !# <darkMatterProfileDMO name="darkMatterProfileDMOHeated">
-  !#  <description>Heated dark matter halo profiles.</description>
+  !#  <description>
+  !#   A dark matter profile DMO class in which dark matter halos start out with a density profile defined by another {\normalfont
+  !#   \ttfamily darkMatterProfileMethod}. For subhalos, this profile is modified by tidal heating, under the assumption that the
+  !#   energy of a shell of mass before and after heating are related by
+  !#   \begin{equation}
+  !#   { \mathrm{G} M^\prime(r^\prime) \over r^\prime } = { \mathrm{G} M(r) \over r } + Q r^2,
+  !#   \end{equation}
+  !#   where $M(r)$ is the mass enclosed within a radius $r$, and $Q$ represents a normalized tidal heating (see
+  !#   \S\ref{sec:ComponentSatelliteOrbiting} for example). Primes indicate values after heating, while unprimed variables
+  !#   indicate quantities prior to heating. With the assumption of no shell crossing, $M^\prime(r^\prime)=M(r)$ and this equation
+  !#   can be solved for $r$ given $r^\prime$.
+  !#   
+  !#   Not all methods have anakytic solutions for this profile. If {\normalfont \ttfamily [nonAnalyticSolver]}$=${\normalfont
+  !#   \ttfamily fallThrough} then attempts to call these methods in heated profiles will simply return the result from the
+  !#   unheated profile, otherwise a numerical calculation is performed.
+  !#  </description>
   !# </darkMatterProfileDMO>
 
   use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough

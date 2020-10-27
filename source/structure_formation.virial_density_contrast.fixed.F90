@@ -23,7 +23,11 @@
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <virialDensityContrast name="virialDensityContrastFixed">
-  !#  <description>Fixed dark matter halo virial density contrasts.</description>
+  !#  <description>
+  !#   A dark matter halo virial density contrast class which uses a fixed virial density contrast of {\normalfont \ttfamily
+  !#   [densityContrastValue]}, defined relative to {\normalfont \ttfamily critical} or {\normalfont \ttfamily mean} density as
+  !#   specified by {\normalfont \ttfamily [densityType]}.
+  !#  </description>
   !# </virialDensityContrast>
   type, extends(virialDensityContrastClass) :: virialDensityContrastFixed
      !% A dark matter halo virial density contrast class assuming fixed contrast.

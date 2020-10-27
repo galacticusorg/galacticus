@@ -30,7 +30,9 @@ module Black_Hole_Binary_Recoil_Velocities
   !# <functionClass>
   !#  <name>blackHoleBinaryRecoil</name>
   !#  <descriptiveName>Black Hole Binaries Recoil</descriptiveName>
-  !#  <description>Class providing models of black hole binary recoild.</description>
+  !#  <description>
+  !#   Class providing models of black hole binary recoil.
+  !#  </description>
   !#  <default>zero</default>
   !#  <method name="velocity" >
   !#   <description>Computes the recoil velocity of the given pair of merging black holes.</description>

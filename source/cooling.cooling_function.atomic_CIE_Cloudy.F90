@@ -22,13 +22,13 @@
 
   !# <coolingFunction name="coolingFunctionAtomicCIECloudy">
   !#  <description>
-  !#   Class providing cooling function by utilizing the {\normalfont \scshape Cloudy} code to
-  !#   compute cooling in collisional ionization equilibrium. {\normalfont \scshape Cloudy} will
-  !#   be downloaded, compiled and run automatically if necessary\footnote{{\normalfont \scshape
-  !#   Cloudy} is used to generate a file which contains a tabulation of the cooling function
-  !#   suitable for reading by the {\normalfont \ttfamily CIE from file} method. Generation of
-  !#   the tabulation typically takes several hours, but only needs to be done once as the
-  !#   stored table is simply read back in on later runs.}.
+  !#   A cooling function class that computes the cooling function using the {\normalfont \scshape Cloudy} code and under the
+  !#   assumption of collisional ionization equilibrium with no molecular contribution. Abundances are Solar, except for zero
+  !#   metallicity calculations which use {\normalfont \scshape Cloudy}'s ``primordial'' metallicity. The helium abundance for
+  !#   non-zero metallicity is scaled between primordial and Solar values linearly with metallicity. The {\normalfont \scshape
+  !#   Cloudy} code will be downloaded and run to compute the cooling function as needed, which will then be stored for future
+  !#   use. As this process is slow, a precomputed table is provided with \glc. If metallicities outside the range tabulated in
+  !#   this file are required it will be regenerated with an appropriate range.
   !#  </description>
   !# </coolingFunction>
   type, extends(coolingFunctionCIEFile) :: coolingFunctionAtomicCIECloudy

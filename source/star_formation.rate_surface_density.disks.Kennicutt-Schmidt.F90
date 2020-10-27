@@ -22,7 +22,30 @@
   use :: Kind_Numbers, only : kind_int8
 
   !# <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksKennicuttSchmidt">
-  !#  <description>A Kennicutt-Schmidt star formation rate surface density for galactic disks.</description>
+  !#  <description>
+  !#   A star formation rate surface density class which assumes that the Kennicutt-Schmidt law holds
+  !#   \citep{schmidt_rate_1959,kennicutt_global_1998}:
+  !#   \begin{equation}
+  !#   \dot{\Sigma}_\star = A \left({\Sigma_\mathrm{H} \over M_\odot \hbox{pc}^{-2}} \right)^N,
+  !#   \end{equation}
+  !#   where $A=${\normalfont \ttfamily [normalization]} and $N=${\normalfont \ttfamily [exponent]} are parameters. Optionally, if
+  !#   the {\normalfont \ttfamily [truncate]} parameter is set to true, then the star formation rate is truncated below a critical
+  !#   surface dexponentensity such that
+  !#   \begin{equation}
+  !#   \dot{\Sigma}_\star = \left\{ \begin{array}{ll} A \left({\Sigma_\mathrm{H} \over M_\odot \hbox{pc}^{-2}} \right)^N &amp;
+  !#   \hbox{ if } \Sigma_\mathrm{gas,disk} &gt; \Sigma_\mathrm{crit} \\ A \left({\Sigma_\mathrm{H} \over M_\odot \hbox{pc}^{-2}}
+  !#   \right)^N \left(\Sigma_\mathrm{gas,disk}/\Sigma_\mathrm{crit}\right)^\alpha &amp; \hbox{ otherwise.} \end{array} \right.
+  !#   \end{equation}
+  !#   Here, $\alpha=${\normalfont \ttfamily [exponentTruncated]} and $\Sigma_\mathrm{crit}$ is a critical surface density for
+  !#   star formation which we specify as
+  !#   \begin{equation}
+  !#   \Sigma_\mathrm{crit} = {q_\mathrm{crit} \kappa \sigma_\mathrm{gas} \over \pi \G},
+  !#   \end{equation}
+  !#   where $\kappa$ is the epicyclic frequency in the disk, $\sigma_\mathrm{gas}$ is the velocity dispersion of gas in the disk
+  !#   and $q_\mathrm{crit}=${\normalfont \ttfamily [toomreParameterCritical]} is a dimensionless constant of order unity which
+  !#   controls where the critical density occurs. We assume that $\sigma_\mathrm{gas}$ is a constant equal to {\normalfont
+  !#   \ttfamily [velocityDispersionDiskGas]} and that the disk has a flat rotation curve such that $\kappa = \sqrt{2} V/R$.
+  !#  </description>
   !# </starFormationRateSurfaceDensityDisks>
   type, extends(starFormationRateSurfaceDensityDisksClass) :: starFormationRateSurfaceDensityDisksKennicuttSchmidt
      !% Implementation of a Kennicutt-Schmidt star formation rate surface density for galactic disks.

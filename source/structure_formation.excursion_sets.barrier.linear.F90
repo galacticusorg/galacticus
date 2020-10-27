@@ -20,7 +20,13 @@
 !% Contains a module which implements a linear excursion set barrier class.
 
   !# <excursionSetBarrier name="excursionSetBarrierLinear">
-  !#  <description>A linear excursion set barrier class.</description>
+  !#  <description>
+  !#   A linear excursion set barrier class. The barrier is given by:
+  !#   \begin{equation}
+  !#   B(S) = B_0 + B_1 S,
+  !#   \end{equation}
+  !#   where $B_0=${\normalfont \ttfamily [coefficientConstant]}, and $B_0=${\normalfont \ttfamily [coefficientLinear]}.
+  !#  </description>
   !# </excursionSetBarrier>
   type, extends(excursionSetBarrierClass) :: excursionSetBarrierLinear
      !% A linear excursion set barrier class.

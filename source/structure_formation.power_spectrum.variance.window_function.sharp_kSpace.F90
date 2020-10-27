@@ -21,7 +21,16 @@
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionSharpKSpace">
-  !#  <description>A sharp $k$-space window function for filtering of power spectra.</description>
+  !#  <description>
+  !#   A sharp $k$-space window function for filtering of power spectra. The window function is given by:
+  !#   \begin{equation}
+  !#    W(k) = \left\{ \begin{array}{ll} 1 &amp; \hbox{if } k &lt; k_\mathrm{s} \\ 0 &amp; \hbox{if } k &gt; k_\mathrm{s}, \end{array} \right.
+  !#   \end{equation}
+  !#   where if {\normalfont \ttfamily [normalization]}$=${\normalfont \ttfamily natural} then $k_\mathrm{s} = (6 \Pi^2 \bar{\rho}
+  !#   / M)^{1/3}$ for a smoothing scale $M$ and mean matter density $\bar{\rho}$. Otherwise, {\normalfont \ttfamily
+  !#   [normalization]} must be set to a numerical value, $\alpha$, in which case $k_\mathrm{s} = \alpha / R_\mathrm{th}$ with
+  !#   $R_\mathrm{th}=3M/4\pi\bar{\rho}$ for a smoothing scale $M$ and mean matter density $\bar{\rho}$.
+  !#  </description>
   !# </powerSpectrumWindowFunction>
   type, extends(powerSpectrumWindowFunctionClass) :: powerSpectrumWindowFunctionSharpKSpace
      !% A sharp $k$-space power spectrum window function class.

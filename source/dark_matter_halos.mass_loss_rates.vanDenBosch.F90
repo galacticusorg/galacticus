@@ -24,7 +24,21 @@
 
   !# <darkMatterHaloMassLossRate name="darkMatterHaloMassLossRateVanDenBosch">
   !#  <description>
-  !#   A dark matter halo mass loss rate class which uses the prescription of \cite{van_den_bosch_mass_2005}.
+  !#   A dark matter halo mass loss rate class which uses the algorithm of \cite{van_den_bosch_mass_2005} to compute the rate of
+  !#   mass loss. Specifically:
+  !#   \begin{equation}
+  !#   \dot{M}_\mathrm{node,bound} = -{M_\mathrm{node,bound}\over \tau} \left({M_\mathrm{node,bound} / M_\mathrm{node,parent}}\right)^\zeta,
+  !#   \end{equation}
+  !#   where $M_\mathrm{node,parent}$ is the mass of the parent \gls{node} in which the halo lives and
+  !#   \begin{equation}
+  !#   \tau = \tau_0 \left({\Delta_\mathrm{vir}(t) \over \Delta(t_0)}\right)^{-1/2} a^{3/2},
+  !#   \end{equation}
+  !#   where $\Delta_\mathrm{vir}(t)$ is the virial overdensity of halos at time $t$ and $a$ is the expansion factor. The fitting
+  !#   parameters, $\tau_0$ and $\zeta$ have values of 0.13~Gyr and 0.36 respectively as determined by
+  !#   \cite{van_den_bosch_mass_2005}. Note that \cite{van_den_bosch_mass_2005} write this expression in a slightly different form
+  !#   since their $\Delta_\mathrm{vir}$ is defined relative to the critical density rather than the mean density as it is in
+  !#   \glc. In both cases, the timescale $\tau$ simply scales as $\langle \rho_\mathrm{vir} \rangle ^{-1/2}$ where $\langle
+  !#   \rho_\mathrm{vir} \rangle$ is the mean virial overdensity of halos.
   !#  </description>
   !# </darkMatterHaloMassLossRate>
   type, extends(darkMatterHaloMassLossRateClass) :: darkMatterHaloMassLossRateVanDenBosch

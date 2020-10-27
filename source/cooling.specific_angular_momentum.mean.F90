@@ -22,7 +22,11 @@
 
   !# <coolingSpecificAngularMomentum name="coolingSpecificAngularMomentumMean">
   !#  <description>
-  !#   A specific angular momentum of cooling gas class in which all gas has the mean specific angular momentum of the hot gas halo.
+  !#   A cooling specific angular momentum class in which the specific angular momentum of cooling gas is given by
+  !# \begin{equation}
+  !#    j_\mathrm{cool} = J_\mathrm{hot}/M_\mathrm{hot},
+  !#   \end{equation}
+  !#   where $J_\mathrm{hot}$ and $M_\mathrm{hot}$ are the total angular momentum and mass of the hot halo respectively.
   !#  </description>
   !# </coolingSpecificAngularMomentum>
   type, extends(coolingSpecificAngularMomentumClass) :: coolingSpecificAngularMomentumMean

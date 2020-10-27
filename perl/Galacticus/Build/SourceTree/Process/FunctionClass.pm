@@ -2365,7 +2365,9 @@ CODE
 		$modulePreContains->{'content'} .= "    !@     <method>".$methodName."</method>\n";
 		$modulePreContains->{'content'} .= "    !@     <type>".latex_encode($method->{'type'})."</type>\n";
 		$modulePreContains->{'content'} .= "    !@     <arguments>".$argumentList."</arguments>\n";
-		$modulePreContains->{'content'} .= "    !@     <description>".$method->{'description'}."</description>\n";
+		$modulePreContains->{'content'} .= "    !@     <description>\n";
+                $modulePreContains->{'content'} .= join("\n",map {"    !@      ".$_} split("\n",$method->{'description'}))."\n";
+                $modulePreContains->{'content'} .= "    !@     </description>\n";
 		$modulePreContains->{'content'} .= "    !@   </objectMethod>\n";
 		if ( exists($directive->{'generic'}) ) {
 		    foreach my $generic ( &List::ExtraUtils::as_array($directive->{'generic'}) ) {
@@ -3232,7 +3234,7 @@ CODE
 		$modulePostContains->{'content'} .= ",".$argumentList
 		    unless ( $argumentList eq "" );
 		$modulePostContains->{'content'} .= ")\n";
-		$modulePostContains->{'content'} .= "      !% ".$method->{'description'}."\n";
+                $modulePostContains->{'content'} .= "      !% Default implementation of the {\\normalfont \\ttfamily ".$methodName."} method for the {\\normalfont \\ttfamily ".$directive->{'name'}."} class.\n";
 		if ( exists($method->{'code'}) ) {
 		    if ( exists($method->{'modules'}) ) {
 			if ( reftype($method->{'modules'}) ) {
@@ -3288,97 +3290,16 @@ CODE
 		$modulePostContains->{'content'} .= "   end ".$category." ".$directive->{'name'}.ucfirst($methodName).$extension."\n\n";
 	    }
 
-	    # Generate documentation.
-	    my $documentation = "\\subsubsection{".$directive->{'descriptiveName'}."}\\label{sec:methods".ucfirst($directive->{'name'})."}\\hyperdef{methods}{".$directive->{'name'}."}{}\n\n";
-	    $documentation   .= "Additional implementations for ".lc($directive->{'descriptiveName'})." are added using the {\\normalfont \\ttfamily ".$directive->{'name'}."} class.\n";
-	    $documentation   .= "The implementation should be placed in a file containing the directive:\n";
-	    $documentation   .= "\\begin{verbatim}\n";
-	    $documentation   .= "!# <".$directive->{'name'}." name=\"".$directive->{'name'}."MyImplementation\">\n";
-	    $documentation   .= "!# <description>A short description of the implementation.</description>\n";
-	    $documentation   .= "!# </".$directive->{'name'}.">\n";
-	    $documentation   .= "\\end{verbatim}\n";
-	    $documentation   .= "where {\\normalfont \\ttfamily MyImplementation} is an appropriate name for the implemention. This file should be treated as a regular Fortran module, but without the initial {\\normalfont \\ttfamily module} and final {\\normalfont \\ttfamily end module} lines. That is, it may contain {\\normalfont \\ttfamily use} statements and variable declarations prior to the {\\normalfont \\ttfamily contains} line, and should contain all functions required by the implementation after that line. Function names should begin with {\\normalfont \\ttfamily ".&LaTeX_Breakable($directive->{'name'}."MyImplementation")."}. The file \\emph{must} define a type that extends the {\\normalfont \\ttfamily ".$directive->{'name'}."Class} class (or extends another type which is itself an extension of the {\\normalfont \\ttfamily ".$directive->{'name'}."Class} class), containing any data needed by the implementation along with type-bound functions required by the implementation. The following type-bound functions are required (unless inherited from the parent type):\n";
-	    $documentation   .= "\\begin{description}\n";
-	    # Create functions.
-	    foreach my $methodName ( keys(%methods) ) {
-		my $method = $methods{$methodName};
-		$documentation   .= "\\item[{\\normalfont \\ttfamily ".$methodName."}] ".$method->{'description'};
-		if ( exists($method->{'function'}) || exists($method->{'code'}) ) {
-		    $documentation .= " A default implementation exists. If overridden the following interface must be used:\n";
-		} else {
-		    $documentation .= " Must have the following interface:\n";
-		}
-		$documentation   .= "\\begin{lstlisting}[language=Fortran,basicstyle=\\small\\ttfamily,escapechar=@,breaklines,prebreak=\\&,postbreak=\\&\\space\\space,columns=flexible,keepspaces=true,breakautoindent=true,breakindent=10pt]\n";
-		# Insert arguments.
-		my @arguments;
-		if ( exists($method->{'argument'}) ) {
-		    if ( UNIVERSAL::isa($method->{'argument'},"ARRAY") ) {
-			push(@arguments,@{$method->{'argument'}});
-		    } else {
-			push(@arguments,  $method->{'argument'} );
-		    }
-		}
-		unshift(@arguments,"class(".$directive->{'name'}."Class), intent(inout) :: self");
-		my $argumentList = "";
-		my $separator    = "";
-		my @argumentDefinitions;
-		foreach my $argument ( @arguments ) {
-		    if ( $argument =~ $Fortran::Utils::variableDeclarationRegEx ) {
-			my $openMP        = defined($1);
-			my $intrinsic     = $2;
-			my $type          = $3;
-			my $attributeList = $4;
-			my $variableList  = $5;
-			my @variables  = &Fortran::Utils::Extract_Variables($variableList,keepQualifiers => 1,lowerCase => 0);
-			my $declaration =
-			{
-			    openMP     => $openMP,
-			    intrinsic  => $intrinsic,
-			    attributes => $attributeList,
-			    variables  => \@variables
-			};
-			if ( defined($type) ) {
-			    $type =~ s/\((.*)\)/$1/;
-			    $declaration->{'type'} = $type;
-			}
-			if ( defined($attributeList) ) {
-			    $attributeList =~ s/^\s*,\s*//;
-			    my @attributes = &Fortran::Utils::Extract_Variables($attributeList,keepQualifiers => 1);
-			    $declaration->{'attributes'} = \@attributes;
-			}
-			push(@argumentDefinitions,$declaration);
-		    } else {
-			print "Argument does not match expected pattern:\n\t".$argument."\n";
-			die("Functions_Generate_Output: argument parse error");
-		    }
-		    (my $variables = $argument) =~ s/^.*::\s*(.*?)\s*$/$1/;
-		    $argumentList .= $separator.$variables;
-		    $separator     = ",";
-		}
-		my $type;
-		my $category;
-		if ( $method->{'type'} eq "void" ) {
-		    $category = "subroutine";
-		    $type     = "";
-		} else {
-		    $category = "function";
-		    $type     = $method->{'type'}." ";
-		}
-		$documentation .= "   ".$type.$category." myImplementation".ucfirst($methodName)."(";
-		$documentation .= $argumentList
-		    unless ( $argumentList eq "" );
-		$documentation .= ")\n";
-		$documentation .= &Fortran::Utils::Format_Variable_Definitions(\@argumentDefinitions);
-		$documentation .= "   end ".$type.$category." myImplementation".ucfirst($methodName)."\n";
-		$documentation .= "\\end{lstlisting}\n\n";
-	    }
-	    $documentation   .= "\\end{description}\n\n";
-	    $documentation   .= "Existing implementations are:\n";
-	    $documentation   .= "\\begin{description}\n";
-	    foreach my $className ( keys(%classes) ) {
+	    # Generate documentation. We construct two sets of documentation, one describing the physics models, and one describing the code implementation.
+            my $documentationPhysics = "\\section{"      .$directive->{'descriptiveName'}."}\\label{phys:".$directive->{'name'}."}\\hyperdef{physics}{".$directive->{'name'}."}{}\n\n"; 
+	    foreach my $className ( sort {lc($a) cmp lc($b)} keys(%classes) ) {
 		my $class = $classes{$className};
-		$documentation   .= "\\item[{\\normalfont \\ttfamily ".$class->{'name'}."}] ".$class->{'description'};
-		$documentation   .= " \\iflabelexists{phys:".$directive->{'name'}.":".$class->{'name'}."}{See \\S\\ref{phys:".$directive->{'name'}.":".$class->{'name'}."}.}{}\n";
+                (my $suffix = $class->{'name'}) =~ s/^$directive->{'name'}//;
+                $suffix = lcfirst($suffix)
+                    unless ( $suffix =~ m/^[A-Z]{2}/ );
+                $documentationPhysics .= "\\subsection{\\normalfont \\ttfamily ".$suffix."}\\label{phys:".$class->{'name'}."}\\hyperdef{physics}{".$class->{'name'}."}{}\n\n";
+                $documentationPhysics .= $class->{'description'}."\n";
+                $documentationPhysics .= "\\noindent \\emph{Implemented by} \\refClass{".$class->{'name'}."}\n";
 		# Search the tree for this class to find the interface to the parameters constructor.
 		my $node = $classes{$className}->{'tree'}->{'firstChild'};
 		$node = $node->{'sibling'}
@@ -3565,16 +3486,25 @@ CODE
 		    }
 		    $node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 		}
-		$documentation .= "\n\\textbf{Parameters:}\n\\begin{description}\n".join("\n",@parameters)."\\end{description}\n"
+		$documentationPhysics .= "\n\n\\noindent\\emph{Parameters}\n\\begin{description}\n".join("\n",@parameters)."\n\\end{description}\n"
 		    if ( @parameters );
-		$documentation .= "\n\\textbf{Objects:}\n\\begin{itemize}\n".join("\n",map {"\\item {\\normalfont \\ttfamily ".latex_encode($_)."}"} sort(@objects))."\\end{itemize}\n"
-		    if ( @objects );
-	    }
-	    $documentation   .= "\\end{description}\n\n";
-	    system("mkdir -p doc/methods");
-	    open(my $docHndl,">doc/methods/".$directive->{'name'}.".tex");
-	    print $docHndl $documentation;
-	    close($docHndl);
+                if ( @objects ) {
+		    my @sortedObjects = sort(@objects);
+		    $documentationPhysics .= "\n\\noindent\\emph{Classes used}\n\n\\begin{tabular}{ll}\n";
+		    for(my $i=0;$i<scalar(@sortedObjects);$i+=2) {
+			$documentationPhysics .=    "\\refPhysics{".$sortedObjects[$i  ]."}";
+			$documentationPhysics .= " & \\refPhysics{".$sortedObjects[$i+1]."}"
+			    if ( $i+1 < scalar(@sortedObjects) );
+			$documentationPhysics .= "\\\\\n";
+		    }
+		    $documentationPhysics .= "\\end{tabular}\n\n";
+                }
+            }
+            (my $descriptiveName = lc($directive->{'descriptiveName'})) =~ s/\s/_/g;
+	    system("mkdir -p doc/physics");
+	    open(my $docPhysics,">doc/physics/".$descriptiveName.".tex");
+	    print $docPhysics $documentationPhysics;
+	    close($docPhysics);
 	    # Insert into tree.	  
             ## To allow processing of directives by our preprocessor, we parse and process our generated code here, before
             ## serializing it back into the original node.

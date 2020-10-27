@@ -22,7 +22,15 @@
   !% Implementation of the extended Schmidt star formation rate surface density law of \cite{shi_extended_2011} for galactic disks.
 
   !# <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksExtendedSchmidt">
-  !#  <description>The extended Schmidt star formation rate surface density law of \cite{shi_extended_2011} for galactic disks.</description>
+  !#  <description>
+  !#   A star formation rate surface density class implementing the extended Schmidt law \citep{shi_extended_2011}:
+  !#   \begin{equation}
+  !#   \dot{\Sigma}_\star = A \left(x_\mathrm{H} {\Sigma_\mathrm{gas}\over M_\odot \hbox{pc}^{-2}}\right)^{N_1}
+  !#   \left({\Sigma_{\star}\over M_\odot \hbox{pc}^{-2}}\right)^{N_2}
+  !#   \end{equation}
+  !#   where $A=${\normalfont \ttfamily [normalization]}, $N_1=${\normalfont \ttfamily [exponentGas]} and $N_2=${\normalfont
+  !#   \ttfamily [exponentStars]} are parameters.
+  !#  </description>
   !# </starFormationRateSurfaceDensityDisks>
   type, extends(starFormationRateSurfaceDensityDisksClass) :: starFormationRateSurfaceDensityDisksExtendedSchmidt
      !% Implementation of the extended Schmidt star formation rate surface density law of \cite{shi_extended_2011} for galactic disks.

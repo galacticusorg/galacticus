@@ -236,7 +236,9 @@ module Cosmological_Density_Field
   !# <functionClass>
   !#  <name>cosmologicalMassVariance</name>
   !#  <descriptiveName>Mass Variance of Cosmological Density Field</descriptiveName>
-  !#  <description>Object providing mass variance of the cosmological density field.</description>
+  !#  <description>
+  !#   A class providing the mass variance, $\sigma(M)$, of the cosmological density field.
+  !#  </description>
   !#  <default>filteredPower</default>
   !#  <method name="powerNormalization" >
   !#   <description>Return the normalization of the power spectrum.</description>

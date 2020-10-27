@@ -28,7 +28,9 @@ module Dark_Matter_Halo_Biases
   !# <functionClass>
   !#  <name>darkMatterHaloBias</name>
   !#  <descriptiveName>Dark matter halo biases.</descriptiveName>
-  !#  <description>Class providing models of the bias of dark matter halos.</description>
+  !#  <description>
+  !#   Class providing models of the bias of dark matter halos.
+  !#  </description>
   !#  <default>tinker2010</default>
   !#  <method name="biasByMass" >
   !#   <description>Returns the bias of a halo specified by a mass (in $M_\odot$) and time (in Gyr).</description>

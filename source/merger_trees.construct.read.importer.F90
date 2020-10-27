@@ -113,7 +113,11 @@ module Merger_Tree_Read_Importers
 
   !# <functionClass>
   !#  <name>mergerTreeImporter</name>
-  !#  <description>Object providing functions for importing merger trees.</description>
+  !#  <description>
+  !#   Class providing functions for importing merger trees. When merger trees are to be read from file, a number of different
+  !#   file formats are supported. This ``importer'' class is used to read these files and place the contents into internal data
+  !#   structures that \glc\ can then manipulate.
+  !#  </description>
   !#  <descriptiveName>Merger Tree Importer</descriptiveName>
   !#  <default>galacticus</default>
   !#  <method name="open" >

@@ -20,7 +20,9 @@
   !% Implements a class for intergalactic background light.
 
   !# <radiationField name="radiationFieldIntergalacticBackground" abstract="yes">
-  !#  <description>A radiation field class for intergalactic background light with properties read from file.</description>
+  !#  <description>
+  !#   An abstract radiation field class for intergalactic background light.
+  !#  </description>
   !# </radiationField>
   type, extends(radiationFieldClass), abstract :: radiationFieldIntergalacticBackground
      !% A radiation field class for intergalactic background light.

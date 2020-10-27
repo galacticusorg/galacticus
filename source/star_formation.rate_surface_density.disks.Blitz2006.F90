@@ -22,7 +22,32 @@
   use :: Kind_Numbers, only : kind_int8
 
   !# <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksBlitz2006">
-  !#  <description>The \cite{blitz_role_2006} star formation rate surface density law for galactic disks.</description>
+  !#  <description>
+  !#   A star formation rate surface density class which assumes that the star formation rate is given by \citep{blitz_role_2006}:
+  !#   \begin{equation}
+  !#    \dot{\Sigma}_\star(R) = \nu_\mathrm{SF}(R) \Sigma_\mathrm{H_2, disk}(R),
+  !#   \end{equation}
+  !#   where $\nu_\mathrm{SF}$ is a frequency given by
+  !#   \begin{equation}
+  !#    \nu_\mathrm{SF}(R) = \nu_\mathrm{SF,0} \left[ 1 + \left({\Sigma_\mathrm{HI}\over \Sigma_0}\right)^q \right],
+  !#   \end{equation}
+  !#   where $q=${\normalfont \ttfamily [surfaceDensityExponent]} and $\Sigma_0=${\normalfont \ttfamily [surfaceDensityCritical]}
+  !#   are parameters and the surface density of molecular gas $\Sigma_\mathrm{H_2} = (P_\mathrm{ext}/P_0)^\alpha
+  !#   \Sigma_\mathrm{HI}$, where $\alpha=${\normalfont \ttfamily [pressureExponent]} and $P_0=${\normalfont \ttfamily
+  !#   [pressureCharacteristic]} are parameters and the hydrostatic pressure in the disk plane assuming location isothermal gas
+  !#   and stellar components is given by
+  !#   \begin{equation}
+  !#    P_\mathrm{ext} \approx {\pi\over 2} \G \Sigma_\mathrm{gas} \left[ \Sigma_\mathrm{gas} + \left({\sigma_\mathrm{gas}\over
+  !#    \sigma_\star}\right)\Sigma_\star\right]
+  !#   \end{equation}
+  !#   where we assume that the velocity dispersion in the gas is fixed at $\sigma_\mathrm{gas}=${\normalfont \ttfamily
+  !#   [velocityDispersionDiskGas]} and, assuming $\Sigma_\star \gg \Sigma_\mathrm{gas}$, we can write the stellar velocity
+  !#   dispersion in terms of the disk scale height, $h_\star$, as
+  !#   \begin{equation}
+  !#    \sigma_\star = \sqrt{\pi \G h_\star \Sigma_\star}
+  !#   \end{equation}
+  !#   where we assume $h_\star/R_\mathrm{disk}=${\normalfont \ttfamily [heightToRadialScaleDiskBlitzRosolowsky]}.
+  !#  </description>
   !# </starFormationRateSurfaceDensityDisks>
   type, extends(starFormationRateSurfaceDensityDisksClass) :: starFormationRateSurfaceDensityDisksBlitz2006
      !% Implementation of the \cite{blitz_role_2006} star formation rate surface density law for galactic disks.

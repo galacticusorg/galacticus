@@ -26,7 +26,9 @@ module Atomic_Rates_Recombination_Radiative_Cooling
   !# <functionClass>
   !#  <name>atomicRecombinationRateRadiativeCooling</name>
   !#  <descriptiveName>Atomic Recombination Cooling</descriptiveName>
-  !#  <description>Class providing atomic recombination cooling rates.</description>
+  !#  <description>
+  !#   Class providing atomic recombination cooling rates.
+  !#  </description>
   !#  <default>hummer</default>
   !#  <method name="rate" >
   !#   <description>Returns the recombination cooling rate coefficient in units of cm$^3$ s$^{-1}$.</description>

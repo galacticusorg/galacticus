@@ -20,7 +20,12 @@
   !% An implementation of the intergalactic medium state class for a simplistic model of instantaneous and full reionization.
 
   !# <intergalacticMediumState name="intergalacticMediumStateSimple">
-  !#  <description>The intergalactic medium is assumed to be instantaneously and fully reionized at a fixed redshift, and heated to a fixed temperature.</description>
+  !#  <description>
+  !#   An intergalactic medium state class which implements a simple model of reionization in which the universe is assumed to be
+  !#   fully neutral prior to the redshift given by {\normalfont \ttfamily [reionizationRedshift]} and fully ionized
+  !#   thereafter. The temperature is given by {\normalfont \ttfamily [preReionizationTemperature]} before reionization, and
+  !#   {\normalfont \ttfamily [reionizationTemperature]} thereafter.
+  !#  </description>
   !# </intergalacticMediumState>
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateSimple
      !% An \gls{igm} state class for a simple model in which the \gls{igm} is assumed to be instantaneously and fully reionized at

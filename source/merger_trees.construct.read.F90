@@ -37,7 +37,7 @@
 
   !# <mergerTreeConstructor name="mergerTreeConstructorRead">
   !#  <description>
-  !#   This class constructs merger trees from data imported from a file and processed into a form suitable for \glc\ to evolve. Merger
+  !#   A merger tree constructor class from data imported from a file and processed into a form suitable for \glc\ to evolve. Merger
   !#   trees are inherently complex structures, particularly when the possibility of subhalos are considered. \glc\ is currently designed
   !#   to work with single descendent merger trees, i.e. ones in which the tree structure is entirely defined by specifying which
   !#   \gls{node} a given \gls{node} is physically associated with at a later time. Additionally, \glc\ expects the merger tree file to
@@ -87,7 +87,7 @@
   !#     progenitors descend into subhalos in the isolated node. In such cases, \glc\ will create a clone of the isolated node at a very
   !#     slightly earlier time to act as the primary progenitor. This is necessary to allow the tree to be processed correctly, but does
   !#     not affect the evolution of the tree.
-  !#   \item \hyperdef{methods}{mergerTreeConstructRead.missingHosts}{} Normally, cases where a node's host node cannot be found in
+  !#   \item \hyperdef{physics}{mergerTreeConstructRead.missingHosts}{} Normally, cases where a node's host node cannot be found in
   !#     the \gls{forest} will cause \glc\ to exit with an error. Setting {\normalfont \ttfamily
   !#     [mergerTreeReadMissingHostsAreFatal]}$=${\normalfont \ttfamily false} will instead circumvent this issue by making any such
   !#     nodes self-hosting (i.e. they become isolated nodes rather than subhalos). Note that this behavior is not a physically
@@ -169,6 +169,7 @@
   !#   \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group}{here}) then the spin parameters
   !#   of nodes will be computed and set. This requires a dark matter halo spin component which supports setting of the spin (see
   !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.DarkMatterHaloSpinComponent}{here}).
+
   !#  </description>
   !# </mergerTreeConstructor>
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorRead
@@ -697,7 +698,7 @@ contains
     !# <inputParameter>
     !#   <name>missingHostsAreFatal</name>
     !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether nodes with missing host nodes should be considered to be fatal---see \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.mergerTreeConstructRead.missingHosts}{here}.</description>
+    !#   <description>Specifies whether nodes with missing host nodes should be considered to be fatal---see \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#physics.mergerTreeConstructRead.missingHosts}{here}.</description>
     !#   <source>parameters</source>
     !# </inputParameter>
     !# <inputParameter>

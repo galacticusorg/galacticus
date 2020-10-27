@@ -23,7 +23,8 @@
 
   !# <darkMatterHaloBias name="darkMatterHaloBiasTinker2005">
   !#  <description>
-  !#   A dark matter halo bias class which applies the radial dependence fitting function of \citep{tinker_mass--light_2005} to another bias class.
+  !#  A dark matter halo bias class which applies the radial dependence fitting function of \citep{tinker_mass--light_2005} to
+  !#  another bias class.
   !#  </description>
   !# </darkMatterHaloBias>
   type, extends(darkMatterHaloBiasClass) :: darkMatterHaloBiasTinker2005

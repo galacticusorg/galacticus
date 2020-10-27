@@ -25,7 +25,18 @@
   use :: Kind_Numbers                , only : kind_int8
 
   !# <hotHaloRamPressureStripping name="hotHaloRamPressureStrippingFont2008">
-  !#  <description>A hot halo ram pressure stripping class based on the methods of \cite{font_colours_2008}.</description>
+  !#  <description>
+  !#   A hot halo ram pressure stripping class based on the methods of \cite{font_colours_2008}. Specifically, the radius,
+  !#   $r_\mathrm{rp}$, is computed as the solution of
+  !#   \begin{equation}
+  !#   \alpha_\mathrm{rp} {\mathrm{G} M_\mathrm{satellite}(r_\mathrm{rp}) \rho_\mathrm{hot, satellite}(r_\mathrm{rp}) \over
+  !#   r_\mathrm{rp} } = \mathcal{F}_\mathrm{ram, hot, host},
+  !#   \end{equation}
+  !#   where $M_\mathrm{satellite}(r)$ is the total mass of the satellite within radius $r$, $\mathcal{F}_\mathrm{ram, hot, host}$
+  !#   is the ram pressure force due to the hot halo (computed using the selected hot halo ram pressure force method; see
+  !#   \S\ref{sec:HotHaloRamPressureForce}). The parameter $\alpha_\mathrm{rp}=${\normalfont \ttfamily
+  !#   [formFactor]} is a geometric factor of order unity.
+  !#  </description>
   !# </hotHaloRamPressureStripping>
   type, extends(hotHaloRamPressureStrippingClass) :: hotHaloRamPressureStrippingFont2008
      !% Implementation of a hot halo ram pressure stripping class based on the methods of \cite{font_colours_2008}.

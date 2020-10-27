@@ -23,7 +23,7 @@
   !# <posteriorSampleDffrntlEvltnRandomJump name="posteriorSampleDffrntlEvltnRandomJumpSimple">
   !#  <description>
   !#   In this class, the random jumps are drawn directly from the distributions specified in the {\normalfont \ttfamily random} object
-  !#   of each \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.modelParameter}{modelParameter} object.
+  !#   of each \refClass{modelParameterClass} object.
   !#  </description>
   !# </posteriorSampleDffrntlEvltnRandomJump>
   type, extends(posteriorSampleDffrntlEvltnRandomJumpClass) :: posteriorSampleDffrntlEvltnRandomJumpSimple

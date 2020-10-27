@@ -23,7 +23,17 @@
   use :: Mass_Distributions                    , only : massDistributionBetaProfile
 
   !# <hotHaloMassDistribution name="hotHaloMassDistributionBetaProfile">
-  !#  <description>Provides a $\beta$-profile implementation of the hot halo mass distribution class.</description>
+  !#  <description>
+  !#   A hot halo mass distribution class which adopts a spherically symmetric $\beta$-profile density profile for the hot
+  !#   halo. Specifically,
+  !#   \begin{equation}
+  !#    \rho_\mathrm{hot halo}(r) \propto \left[ r^2 + r_\mathrm{core}^2 \right]^{3\beta/2},
+  !#   \end{equation}
+  !#   where the core radius, $r_\mathrm{core}$, is set using the selected cored profile core radius method (see
+  !#   \S\ref{sec:hotHaloDensityProfileCoredIsothermalCoreRadius}). The value of $\beta$ is specified by the {\normalfont
+  !#   \ttfamily [beta]} parameter. The profile is normalized such that the current mass in the hot gas profile is contained
+  !#   within the outer radius of the hot halo, $r_\mathrm{hot, outer}$.
+  !#  </description>
   !# </hotHaloMassDistribution>
   type, extends(hotHaloMassDistributionClass) :: hotHaloMassDistributionBetaProfile
      !% A $\beta$-profile implementation of the hot halo mass distribution class.

@@ -22,7 +22,11 @@
 
   !# <freefallTimeAvailable name="freefallTimeAvailableHaloFormation">
   !#  <description>
-  !#   A freefall time available class which computes the freefall time available based on the freefall time in the dark matter halo.
+  !#   A freefall time available class in which the time available for freefall is equal to
+  !#   \begin{equation}
+  !#    t_\mathrm{available} = t - t_\mathrm{form},
+  !#   \end{equation}
+  !#   where $t_\mathrm{form}$ is the time at which the halo formed (see \S\ref{sec:ComponentFormationTimes}).
   !#  </description>
   !# </freefallTimeAvailable>
   type, extends(freefallTimeAvailableClass) :: freefallTimeAvailableHaloFormation

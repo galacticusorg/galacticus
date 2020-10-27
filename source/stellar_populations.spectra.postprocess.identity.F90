@@ -20,7 +20,9 @@
   !% An implementation of a spectrum postprocessor that does nothing.
 
   !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorIdentity">
-  !#  <description>Performs an indentity postprocessing of spectra.</description>
+  !#  <description>
+  !#   A stellar population postprocessing class which leaves the spectrum unchanged.
+  !#  </description>
   !# </stellarPopulationSpectraPostprocessor>
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorIdentity
      !% An identity spectrum postprocessor.

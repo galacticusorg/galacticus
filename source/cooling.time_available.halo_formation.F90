@@ -20,7 +20,14 @@
   !% Implementation of the \cite{cole_hierarchical_2000} time available for cooling class.
 
   !# <coolingTimeAvailable name="coolingTimeAvailableFormationTime">
-  !#  <description>A time available for cooling class which implements the algorithm of \cite{cole_hierarchical_2000}, that is, the time available is the time since the halo ``formed''.</description>
+  !#  <description>
+  !#   A time available for cooling class which implements the algorithm of \cite{cole_hierarchical_2000}, that is, the time
+  !#   available is equal to
+  !#   \begin{equation}
+  !#    t_\mathrm{available} = t - t_\mathrm{form},
+  !#   \end{equation}
+  !#   where $t_\mathrm{form}$ is the time at which the halo formed (see \S\ref{sec:ComponentFormationTimes}).
+  !#  </description>
   !# </coolingTimeAvailable>
   type, extends(coolingTimeAvailableClass) :: coolingTimeAvailableFormationTime
      !% Implementation of a time available for cooling class which implements the algorithm of \cite{cole_hierarchical_2000}.

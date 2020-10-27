@@ -22,7 +22,43 @@
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <surveyGeometry name="surveyGeometryMartin2010ALFALFA">
-  !#  <description>Implements the survey geometry of the SDSS sample used by \cite{martin_arecibo_2010}.</description>
+  !#  <description>
+  !#   A survey geometry class that describes the survey geometry of \cite{martin_arecibo_2010}. 
+  !#   
+  !#   For the angular mask we use the three disjoint regions defined by 07$^\mathrm{h}$30$^\mathrm{m}$ $&lt;$ R.A. $&lt;$
+  !#   16$^\mathrm{h}$30$^\mathrm{m}$, +04$^\circ$ $&lt;$ decl. $&lt;$ +16$^\circ$, and +24$^\circ$ $&lt;$ decl. $&lt;$ +28$^\circ$ and
+  !#   22$^\mathrm{h}$ $&lt;$ R.A. $&lt;$ 03$^\mathrm{h}$, +14$^\circ$ $&lt;$ decl. $&lt;$ +16$^\circ$, and +24$^\circ$ $&lt;$ decl. $&lt;$
+  !#   +32$^\circ$ corresponding to the sample of \cite{martin_arecibo_2010}. When the survey window function is needed we
+  !#   generate randomly distributed points within this angular mask and out to the survey depth. These points are used to
+  !#   determine which elements of a 3D grid fall within the window function.
+  !#   
+  !#   To estimate the depth of the \cite{martin_arecibo_2010} sample as a function of galaxy HI mass we first infer the median
+  !#   line width corresponding to that mass. To do so, we have fit the median line width-mass relation from the $\alpha.40$
+  !#   sample with power-law function as shown in Fig.~\ref{fig:ALFALFALineWidthMassRelation}. We find that the median line width
+  !#   can be approximated by
+  !#   \begin{equation}
+  !#    \log_{10} (W_\mathrm{50}/\hbox{km s}^{-1}) = c_0 + c_1 \log_10(M_\mathrm{HI}/M_\odot),
+  !#    \label{eq:ALFALFALineWidthMassRelation}
+  !#   \end{equation}
+  !#   with $c_0=-0.770$ and $c_1=0.315$. Given the line width, the corresponding integrated flux limit, $S_\mathrm{int}$, for a
+  !#   signal-to-noise of $6.5$ is inferred using equation~(A1) of \cite{haynes_arecibo_2011}. Finally, this integrated flux limit
+  !#   is converted to maximum distance at which the source could be detected using the expression given in the text of
+  !#   section~2.2 of \cite{martin_arecibo_2010}:
+  !#   \begin{equation}
+  !#    M_\mathrm{HI} = 2.356\times10^5 \left({D\over \hbox{Mpc}}\right)^2 \left({S_\mathrm{int}\over\hbox{Jy km s}^{-1}}\right).
+  !#   \end{equation}
+  !#   
+  !#   \begin{figure}
+  !#    \begin{center}
+  !#     \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/alfalfaHILineWidthMassRelation.pdf}
+  !#    \end{center}
+  !#    \caption{HI line width vs. HI mass as measured from the $\alpha.40$ survey of \protect\cite{martin_arecibo_2010}. Red
+  !#    points with error bars show individual measurements, while the larger circles indicate the running median of these
+  !#    data. The green line is a power-law fit to the running median as described in
+  !#    eqn.~(\protect\ref{eq:ALFALFALineWidthMassRelation}).}
+  !#    \label{fig:ALFALFALineWidthMassRelation}
+  !#   \end{figure}
+  !#  </description>
   !# </surveyGeometry>
   type, extends(surveyGeometryRandomPoints) :: surveyGeometryMartin2010ALFALFA
      private

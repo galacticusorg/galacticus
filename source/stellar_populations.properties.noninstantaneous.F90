@@ -23,7 +23,22 @@
   use :: Stellar_Population_Selectors, only : stellarPopulationSelectorClass
 
   !# <stellarPopulationProperties name="stellarPopulationPropertiesNoninstantaneous">
-  !#  <description>A stellar population properties class based on the noninstantaneous recycling approximation.</description>
+  !#  <description>
+
+  !#   A stellar population properties class based on the noninstantaneous recycling approximation---fully non-instantaneous
+  !#   recycling and metal enrichment are used. Recycling and metal production rates from simple stellar populations are computed,
+  !#   for any given \gls{imf}, from stellar evolution models. The rates of change are then:
+  !#   \begin{eqnarray}
+  !#    \dot{M}_\star &amp;=&amp; \phi - \int_0^t \phi(t^\prime) \dot{R}(t-t^\prime;Z_\mathrm{fuel}[t^\prime]) \d t^\prime, \\
+  !#    \dot{M}_\mathrm{fuel} &amp;=&amp; -\phi + \int_0^t \phi(t^\prime) \dot{R}(t-t^\prime;Z_\mathrm{fuel}[t]) \d t^\prime, \\
+  !#    \dot{M}_{\star,Z} &amp;=&amp; Z_\mathrm{fuel} \phi - \int_0^t \phi(t^\prime) Z_\mathrm{fuel}(t^\prime)
+  !#    \dot{R}(t-t^\prime;Z_\mathrm{fuel}[t^\prime]) \d t^\prime, \\
+  !#    \dot{M}_{\mathrm{fuel},Z} &amp;=&amp; -Z_\mathrm{fuel} \phi + \int_0^t \phi(t^\prime) \{ Z_\mathrm{fuel}(t^\prime)
+  !#    \dot{R}(t-t^\prime;Z_\mathrm{fuel}[t^\prime]) + \dot{p}(t-t^\prime;Z_\mathrm{fuel}[t^\prime]) \} \d t^\prime, \\
+  !#   \end{eqnarray}
+  !#   where $\dot{R}(t;Z)$ and $\dot{p}(t;Z)$ are the recycling and metal yield rates respectively from a stellar population of
+  !#   age $t$ and metallicity $Z$. The energy input rate is computed self-consistently from the star formation history.
+  !#  </description>
   !# </stellarPopulationProperties>
   type, extends(stellarPopulationPropertiesClass) :: stellarPopulationPropertiesNoninstantaneous
      !% A stellar population properties class based on the noninstantaneous recycling approximation.

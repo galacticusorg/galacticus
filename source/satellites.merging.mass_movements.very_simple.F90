@@ -22,7 +22,10 @@
   use :: Kind_Numbers, only : kind_int8
 
   !# <mergerMassMovements name="mergerMassMovementsVerySimple">
-  !#  <description>A merger mass movements class which uses a simple calculation.</description>
+  !#  <description>
+  !#   A merger mass movements class which assumes that the satellite material is always added to the disk of the host, while the
+  !#   host mass is not moved.
+  !#  </description>
   !# </mergerMassMovements>
   type, extends(mergerMassMovementsClass) :: mergerMassMovementsVerySimple
      !% A merger mass movements class which uses a simple calculation.

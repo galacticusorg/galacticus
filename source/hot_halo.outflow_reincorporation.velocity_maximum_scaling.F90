@@ -26,7 +26,20 @@
   use :: Math_Exponentiation     , only : fastExponentiator
 
   !# <hotHaloOutflowReincorporation name="hotHaloOutflowReincorporationVelocityMaximumScaling">
-  !#  <description>An implementation of the hot halo outflow reincorporation class which uses simple scalings based on the halo maximum circular velocity.</description>
+  !#  <description>
+  !#   A hot halo outflow reincorporation class which uses simple scalings based on the halo maximum circular
+  !#   velocity. Specifically,
+  !#   \begin{equation}
+  !#    \dot{M}_\mathrm{reincorporation} = M_\mathrm{outflowed} / t_\mathrm{reincorporation},
+  !#   \end{equation}
+  !#   where
+  !#   \begin{equation}
+  !#    t_\mathrm{reincorporation} = \tau_\mathrm{reincorporation} \left( { V_\mathrm{max} \over 200 \hbox{km/s}}
+  !#    \right)^{\alpha_\mathrm{reincorporation}} (1+z)^{\beta_\mathrm{reincorporation}},
+  !#   \end{equation}
+  !#   where $\tau_\mathrm{reincorporation}=${\normalfont \ttfamily [timeScale]}, $\alpha_\mathrm{reincorporation}=${\normalfont
+  !#   \ttfamily [velocityExponent]}, and $\beta_\mathrm{reincorporation}=${\normalfont \ttfamily [redshiftExponent]}.
+  !#  </description>
   !# </hotHaloOutflowReincorporation>
   type, extends(hotHaloOutflowReincorporationClass) :: hotHaloOutflowReincorporationVelocityMaximumScaling
      !% An implementation of the hot halo outflow reincorporation class which uses simple scalings based on the halo maximum circular velocity.

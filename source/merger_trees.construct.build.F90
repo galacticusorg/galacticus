@@ -28,7 +28,10 @@
   use :: Output_Times             , only : outputTimesClass
 
   !# <mergerTreeConstructor name="mergerTreeConstructorBuild">
-  !#  <description>Merger tree constructor class which builds merger trees.</description>
+  !#  <description>
+  !#   A merger tree constructor class which builds merger trees. This class first creates a distribution of tree root halo masses
+  !#   and then builds a merger tree from each root halo.
+  !#  </description>
   !# </mergerTreeConstructor>
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorBuild
      !% A class implementing merger tree construction by building trees.

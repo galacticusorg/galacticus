@@ -22,7 +22,10 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <virialOrbit name="virialOrbitFixed">
-  !#  <description>Virial orbits assuming fixed orbital parameters.</description>
+  !#  <description>
+  !#   A virial orbit class which sets all orbital parameters to fixed values, with $v_\mathrm{r}=${\normalfont \ttfamily
+  !#   [velocityRadial]}$V_\mathrm{virial}$ and $v_\phi=${\normalfont \ttfamily [velocityTangential]}$V_\mathrm{virial}$.
+  !#  </description>
   !# </virialOrbit>
   type, extends(virialOrbitClass) :: virialOrbitFixed
      !% A virial orbit class that assumes fixed orbital parameters.

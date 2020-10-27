@@ -21,7 +21,9 @@
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
   !# <haloMassFunction name="haloMassFunctionShethTormen">
-  !#  <description>The halo mass function is computed from the function given by \cite{sheth_ellipsoidal_2001}.</description>
+  !#  <description>
+  !#   A dark matter halo mass function class using the function given by \cite{sheth_ellipsoidal_2001}.
+  !#  </description>
   !# </haloMassFunction>
   type, extends(haloMassFunctionClass) :: haloMassFunctionShethTormen
      !% A halo mass function class using the fitting function of \cite{sheth_ellipsoidal_2001}.

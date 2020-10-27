@@ -23,7 +23,14 @@
   use :: Excursion_Sets_Barriers   , only : excursionSetBarrierClass
 
   !# <excursionSetFirstCrossing name="excursionSetFirstCrossingLinearBarrier">
-  !#  <description>An excursion set first crossing statistics class for linear barriers.</description>
+  !#  <description>
+  !#   An excursion set first crossing statistics class for linear barriers. Specifically, the first crossing distribution is
+  !#   \begin{equation}
+  !#    f(S,t) = B(0,t) \exp(- B(S,t)^2/2S)/S/\sqrt{2 pi S},
+  !#   \end{equation}
+  !#   where $B(S,t)$ is the (assumed-to-be-linear-in-$S$) barrier at time $t$ and variance $S$. The first crossing rate is
+  !#   computed using a finite difference approximation between two closely-spaced times. The non-crossing rate is zero.
+  !#  </description>
   !# </excursionSetFirstCrossing>
   type, extends(excursionSetFirstCrossingClass) :: excursionSetFirstCrossingLinearBarrier
      !% A linearBarrier excursion set barrier class.

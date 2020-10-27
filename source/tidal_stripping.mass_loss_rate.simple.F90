@@ -94,7 +94,7 @@ contains
     !% \begin{equation}
     !% \alpha = F_\mathrm{tidal}/F_\mathrm{gravity},
     !% \end{equation}
-    !% $F_\mathrm{tidal}=\mathcal{F}_\mathrm{tidal} r_{1/2}$, $\mathcal{F}_\mathrm{tidal}$ is the tidal field from the host halo (see \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.satelliteTidalField}{here}), and
+    !% $F_\mathrm{tidal}=\mathcal{F}_\mathrm{tidal} r_{1/2}$, $\mathcal{F}_\mathrm{tidal}$ is the tidal field from the host halo (see \refPhysics{satelliteTidalField}), and
     !% \begin{equation}
     !% F_\mathrm{gravity} = V_{1/2}^2(r_{1/2})/r_{1/2}
     !% \end{equation}

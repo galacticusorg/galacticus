@@ -28,7 +28,121 @@
   use :: Excursion_Sets_Barriers   , only : excursionSetBarrierClass
 
   !# <excursionSetFirstCrossing name="excursionSetFirstCrossingFarahi">
-  !#  <description>An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}.</description>
+  !#  <description>
+  !#   An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, which proceeds by finding
+  !#   the solution to the integral equation:
+  !#   \begin{equation}
+  !#     1 =  \int_0^S f(S^\prime)\mathrm{d}S^\prime + \int_{-\infty}^{B(S)} P(\delta,S) \mathrm{d} \delta,
+  !#    \label{eq:OldExcursionMethod}
+  !#   \end{equation}
+  !#   where $P(\delta,S) \mathrm{d} \delta$ is the probability for a trajectory to lie between $\delta$ and $\delta + \mathrm{d}
+  !#   \delta$ at variance $S$. In the absence of a barrier, $P(\delta,S)$ would be equal to $P_0(\delta,S)$ which is simply a
+  !#   Gaussian distribution with variance $S$:
+  !#   \begin{equation}
+  !#     P_0(\delta,S) = \frac{1}{\sqrt{2 \pi S}} \exp\left(-{\delta^2 \over 2 S}\right).
+  !#     \label{eq:Gaussian}
+  !#   \end{equation}
+  !#   Since the barrier absorbs any random walks which cross is at smaller $S$, the actual $P(\delta,S)$ must therefore be given
+  !#   by:
+  !#   \begin{equation}
+  !#      P(\delta,S) = P_0(\delta,S) - \int_{0}^{S} f(S^\prime) P_0[\delta - B(S^\prime),S - S^\prime]\mathrm{d}S^\prime .
+  !#    \label{eq:Displaced}
+  !#   \end{equation}
+  !#   In the second term on the right hand side of eqn.~(\ref{eq:Displaced}) represents the $P_0[\delta - B(S^\prime),S -
+  !#   S^\prime]$ term represents the distribution of random trajectories orginating from the point $(S,B(S))$. The integral
+  !#   therefore gives the fraction of trajectories which crossed the barrier at $S&lt;S^\prime$ and which can now be found at
+  !#   $(S,\delta)$.
+  !#   
+  !#   Using this result, we can rewrite eqn.~(\ref{eq:OldExcursionMethod}):
+  !#   \begin{equation}
+  !#     1 = \int_0^S f(S^\prime)\mathrm{d}S^\prime + \int_{-\infty}^{B(S)} \left[ P_0(\delta,S) - \int_{0}^{S} f(S^\prime)
+  !#     P_0(\delta - B(S^\prime),S - S^\prime)\mathrm{d}S^\prime )\right] \mathrm{d} \delta ,
+  !#   \end{equation}
+  !#   in general and, for the Gaussian distribution of eqn.~(\ref{eq:Gaussian}):
+  !#   \begin{equation}
+  !#     1 = \int_0^S f(S^\prime)\mathrm{d}S^\prime + \int_{-\infty}^{B(S)} \left[ \frac{1}{\sqrt{2 \pi S}}
+  !#     \exp\left(-\frac{\delta^2}{2 S}\right) - \int_{0}^{S} f(S^\prime) \frac{1}{\sqrt{2 \pi (S-S^\prime)}}
+  !#     \exp\left(-\frac{[\delta - B(S^\prime)]^2}{2 (S-S^\prime)}\right)\mathrm{d}S^\prime \right] \mathrm{d} \delta .
+  !#   \end{equation}
+  !#   The integral over $\mathrm{d}\delta$ can be carried out analytically to give:
+  !#   \begin{equation}
+  !#    1 = \int_0^S f(S^\prime)\mathrm{d}S^\prime+ \hbox{erf}\left[\frac{B(S)}{\sqrt{2S}}\right] - \int_{0}^{S} f(S^\prime)
+  !#    \hbox{erf}\left[\frac{B(S) - B(S^\prime)}{\sqrt{2 (S-S^\prime)}}\right] \mathrm{d}S^{\prime\prime}.
+  !#   \label{eq:NewExcursionMethod}
+  !#   \end{equation}
+  !#   We now discretize eqn.~(\ref{eq:NewExcursionMethod}). Specifically, we divide the $S$ space into $N$ intervals defined by
+  !#   the points:
+  !#   \begin{equation}
+  !#     S_i = \left\{ \begin{array}{ll}
+  !#                    0 &amp; \hbox{if } i=0 \\
+  !#                    \sum_0^{i-1} \Delta S_i &amp; \hbox{if } i &gt; 1.
+  !#                   \end{array}
+  !#           \right.
+  !#   \end{equation}
+  !#   Note that $f(0)=0$ by definition, so $f(S_0)=0$ always. We choose $\Delta S_i = S_\mathrm{max}/N$ (i.e. uniform spacing in
+  !#   $S$) when computing first crossing distributions, and $\Delta S_i \propto S_i$ (i.e. uniform spacing in $\log(S)$) when
+  !#   computing first crossing rates.
+  !#   
+  !#   Discretizing the integrals in eqn.~(\ref{eq:NewExcursionMethod}) gives:
+  !#   \begin{equation} \label{eq:Des1}
+  !#    \int_0^{S_j} f(S^\prime)\d S^\prime = \sum_{i=0}^{j-1} \frac{f(S_i) + f(S_{i+1})}{2} \Delta S_i
+  !#   \end{equation}
+  !#   and:
+  !#   \begin{equation} \label{eq:Des2}
+  !#    \int_{0}^{S_j} f(S^\prime) \hbox{erf}\left[\frac{B(S) - B(S^\prime)}{\sqrt{2 (S-S^\prime)}}\right] \d S^\prime =
+  !#    \sum_{i=0}^{j-1} \frac{1}{2} \left(f(S_i) \hbox{erf}\left[\frac{B(S_j) - B(S_i)}{\sqrt{2 (S_j-S_i)}}\right] + f(S_{i+1})
+  !#    \hbox{erf}\left[\frac{B(S_j) - B(S_{i+1})}{\sqrt{2 (S_j-S_{i+1})}}\right] \right) \Delta S_i.
+  !#   \end{equation}
+  !#   We can now rewrite eqn.~(\ref{eq:NewExcursionMethod}) in discretized form:
+  !#   \begin{equation} \label{eq:DesFinal1}
+  !#    1 = \sum_{i=0}^{j-1} \frac{f(S_i) + f(S_{i+1})}{2} \Delta S_i + \hbox{erf}\left[\frac{B(S_j)}{\sqrt{2S_j}}\right] -
+  !#    \frac{1}{2} \sum_{i=0}^{j-1} \left( f(S_i) \hbox{erf}\left[\frac{B(S_j) - B(S_i)}{\sqrt{2 (S_j-S_i)}}\right] + f(S_{i+1})
+  !#    \hbox{erf}\left[\frac{B(S_j) - B(S_{i+1})}{\sqrt{2 (S_j-S_{i+1})}}\right] \right) \Delta S_i.
+  !#   \end{equation}
+  !#   Solving eqn.~(\ref{eq:DesFinal1}) for $f(S_j)$:
+  !#   \begin{eqnarray} \label{eq:DesFinal11}
+  !#    \left( \frac{1}{2} - \frac{1}{2} \hbox{erf}\left[\frac{B(S_j) - B(S_j)}{\sqrt{2 (S_j-S_j)}}\right] \right) \Delta S_{j-1}
+  !#    f(S_j) &amp;=&amp; 1 - \sum_{i=0}^{j-2} \frac{f(S_i) + f(S_{i+1})}{2} \Delta S_i - \frac{f(S_{j-1})}{2} \Delta S_{j-1} -
+  !#    \hbox{erf}\left\{\frac{B(S_j)}{\sqrt{2S_j}}\right\} \nonumber\\
+  !#   &amp; &amp; + \frac{1}{2} \sum_{i=0}^{j-2} \left( f(S_i) \hbox{erf}\left\{\frac{[B(S_j) - B(S_i)]}{\sqrt{2 (S_j-S_i)}}\right\} +
+  !#   f(S_{i+1}) \hbox{erf}\left\{\frac{[B(S_j) - B(S_{i+1})]}{\sqrt{2 (S_j-S_{i+1})}}\right\} \right)\Delta S_i \nonumber \\
+  !#    &amp; &amp; + \frac{1}{2} f(S_{j-1}) \hbox{erf}\left\{\frac{[B(S_j) - B(S_{j-1})]}{\sqrt{2 (S_j-S_{j-1})}}\right\} \Delta S_{j-1}.
+  !#   \end{eqnarray}
+  !#   For all barriers that we consider:
+  !#   \begin{equation} 
+  !#   \hbox{erf}\left[\frac{B(S_j) - B(S_j)}{\sqrt{2 (S_j-S_j)}}\right] = 0.
+  !#   \end{equation}
+  !#   We can then simplify eqn.~(\ref{eq:DesFinal11}):
+  !#   \begin{eqnarray} \label{eq:DesFinal2}
+  !#      f(S_j) &amp;=&amp; {2 \over \Delta S_{j-1}}\left[1 - \sum_{i=0}^{j-2} \frac{f(S_i) + f(S_{i+1})}{2} \Delta S_i -
+  !#      \frac{f(S_{j-1})}{2} \Delta S_{j-1} - \hbox{erf}\left\{\frac{B(S_j)}{\sqrt{2S_j}}\right\} \right.  \nonumber\\
+  !#   &amp; &amp; + \frac{1}{2} \sum_{i=0}^{j-2} \left( f(S_i) \hbox{erf}\left\{\frac{[B(S_j) - B(S_i)]}{\sqrt{2 (S_j-S_i)}}\right\} +
+  !#   f(S_{i+1}) \hbox{erf}\left\{\frac{[B(S_j) - B(S_{i+1})]}{\sqrt{2 (S_j-S_{i+1})}}\right\} \right)\Delta S_i \nonumber \\
+  !#    &amp; &amp; \left. + \frac{1}{2} f(S_{j-1}) \hbox{erf}\left\{\frac{[B(S_j) - B(S_{j-1})]}{\sqrt{2 (S_j-S_{j-1})}}\right\} \Delta
+  !#    S_{j-1}\right].
+  !#   \end{eqnarray}
+  !#   Consolidating terms in the summations:
+  !#   \begin{equation} \label{eq:DesFinal2a}
+  !#      f(S_j) = {2 \over \Delta S_{j-1}}\left[1 - \hbox{erf}\left\{\frac{B(S_j)}{\sqrt{2S_j}}\right\} - \sum_{i=0}^{j-1}
+  !#      \left\{ 1-\hbox{erf}\left[\frac{B(S_j) - B(S_i)}{\sqrt{2 (S_j-S_i)}}\right] \right\} f(S_i) {\Delta S_{i-1} + \Delta S_i
+  !#      \over 2} \right].
+  !#   \end{equation}
+  !#   In the case of constant $\Delta S_i(=\Delta S)$ this can be simplified further:
+  !#   \begin{equation} \label{eq:DesFinal3}
+  !#      f(S_j) = {2 \over \Delta S}\left[1 - \hbox{erf}\left\{\frac{B(S_j)}{\sqrt{2S_j}}\right\}\right] - 2 \sum_{i=0}^{j-1}
+  !#      \left\{1- \hbox{erf}\left[\frac{B(S_j) - B(S_i)}{\sqrt{2 (S_j-S_i)}}\right] \right\} f(S_i).
+  !#   \end{equation}
+  !#   
+  !#   In either case (i.e. eqns.~\ref{eq:DesFinal2a} and \ref{eq:DesFinal3}) solution proceeds recursively: $f(S_0)=0$ by
+  !#   definition, $f(S_1)$ depends only on the known barrier and $f(S_0)$, $f(S_j)$ depends only on the known barrier and
+  !#   $f(S_{&lt;j})$.
+  !#   
+  !#   The first crossing rate is computed using the same method but with an effective barrier which is offset by the position of
+  !#   the progenitor in the $(\delta,S)$ plane, plus a small shift in time. The non-crossing rate is computed directly by
+  !#   integrating over the first crossing rate distribution. Note that since the numerical integration occurs only up to a finite
+  !#   maximum $S$, a non-zero non-crossing rate will be computed for CDM-like barriers even though in reality they should have
+  !#   zero non-crossing rate. As such, use of this method for such barriers is not recommended.
+  !#  </description>
   !# </excursionSetFirstCrossing>
   type, extends(excursionSetFirstCrossingClass) :: excursionSetFirstCrossingFarahi
      !% An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}.

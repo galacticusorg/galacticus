@@ -28,7 +28,9 @@ module Cooling_Radii
   !# <functionClass>
   !#  <name>coolingRadius</name>
   !#  <descriptiveName>Cooling radii.</descriptiveName>
-  !#  <description>Class providing models of the cooling radius for gas in the hot atmosphere surrounding a galaxy.</description>
+  !#  <description>
+  !#   Class providing models of the cooling radius for gas in the hot atmosphere surrounding a galaxy.
+  !#  </description>
   !#  <default>simple</default>
   !#  <calculationReset>yes</calculationReset>
   !#  <method name="radius" >

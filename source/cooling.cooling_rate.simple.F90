@@ -20,7 +20,13 @@
   !% Implementation of a simple cooling rate class.
 
   !# <coolingRate name="coolingRateSimple">
-  !#  <description>A cooling rate class in which the cooling rate equals the mass of hot gas divided by a fixed timescale.</description>
+  !#  <description>
+  !#   A cooling rate class in which the cooling rate equals the mass of hot gas divided by a fixed timescale. Specifically,
+  !#   \begin{equation}
+  !#   \dot{M}_\mathrm{cool} = M_\mathrm{hot}/\tau_\mathrm{cool} ,
+  !#   \end{equation}
+  !#   where $\tau_\mathrm{cool}=${\normalfont \ttfamily [timeScale]}.
+  !#  </description>
   !# </coolingRate>
   type, extends(coolingRateClass) :: coolingRateSimple
      !% Implementation of cooling rate class in which the cooling rate equals the mass of hot gas divided by a fixed timescale.

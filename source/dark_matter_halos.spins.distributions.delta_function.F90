@@ -21,7 +21,11 @@
   !% $\delta$-function distribution.
 
   !# <haloSpinDistribution name="haloSpinDistributionDeltaFunction">
-  !#  <description>A $\delta$-function halo spin distribution.</description>
+  !#  <description>
+  !#   A halo spin distribution class in which the spin is drawn from a $\delta$-function distribution, $P(\lambda) =
+  !#   \delta(\lambda-\lambda_0)$, where $\lambda_0=${\normalfont \ttfamily [spin]}, i.e. a fixed value of spin equal to
+  !#   $\lambda_0$ is returned.
+  !#  </description>
   !# </haloSpinDistribution>
   type, extends(haloSpinDistributionClass) :: haloSpinDistributionDeltaFunction
      !% A dark matter halo spin distribution concentration class which assumes a

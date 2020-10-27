@@ -28,7 +28,9 @@ module Excursion_Sets_First_Crossings
   !# <functionClass>
   !#  <name>excursionSetFirstCrossing</name>
   !#  <descriptiveName>Excursion Set First Crossing Statistics</descriptiveName>
-  !#  <description>Class providing first crossing statistics for the excursion set problem.</description>
+  !#  <description>
+  !#   Class providing first crossing statistics for the excursion set problem.
+  !#  </description>
   !#  <default>linearBarrier</default>
   !#  <data>logical :: coordinatedMPI_=.false. </data>
   !#  <method name="probability" >

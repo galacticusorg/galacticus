@@ -36,6 +36,9 @@
 % Useful commands.
 \include{commands}
 
+% Define which document we are building.
+\newcommand{\docname}{Physics}
+
 % Build glossary and index.
 \makeglossary
 \glstoctrue
@@ -55,6 +58,8 @@
 
 \Huge Physics Models \normalsize
 
+\docname
+
 \includegraphics{New_Logo_Galaxy_192_Transparent.png}\\
 A semi-analytic galaxy formation code.\\
 
@@ -70,7 +75,7 @@ A semi-analytic galaxy formation code.\\
 
 \include{Components}
 
-\include{Physics}
+\include{Functions}
 
 \backmatter
 

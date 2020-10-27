@@ -28,7 +28,9 @@ module Satellite_Merging_Progenitor_Properties
   !# <functionClass>
   !#  <name>mergerProgenitorProperties</name>
   !#  <descriptiveName>Merger Progenitor Properties</descriptiveName>
-  !#  <description>Class providing models of the properties of merger progenitors.</description>
+  !#  <description>
+  !#   Class providing models of the properties of merger progenitors.
+  !#  </description>
   !#  <default>standard</default>
   !#  <method name="get" >
   !#   <description>alculates progenitor properties for merger calculations.</description>

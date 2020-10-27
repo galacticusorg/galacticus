@@ -20,7 +20,9 @@
   !% An implementation of a spectrum postprocessor that suppresses the Lyman continuum.
 
   !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorLycSuppress">
-  !#  <description>A stellar population spectrum postprocessor which completely supresses the Lyman continuum.</description>
+  !#  <description>
+  !#   A stellar population spectrum postprocessor class that suppresses all emission in the Lyman continuum.
+  !#  </description>
   !# </stellarPopulationSpectraPostprocessor>
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorLycSuppress
      !% A stellar population spectrum postprocessor which completely supresses the Lyman continuum.

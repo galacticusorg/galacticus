@@ -25,7 +25,36 @@
   use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass, intergalacticMediumFilteringMassClass
 
   !# <accretionHalo name="accretionHaloNaozBarkana2007">
-  !#  <description>Accretion onto halos using filtering mass of the \gls{igm} calculated from an equation from \cite{naoz_formation_2007}.</description>
+  !#  <description>
+  !#   Accretion of baryonic onto halos is compute using the filtering mass prescription of
+  !#   \cite{naoz_formation_2007}. Specifically, \cite{naoz_formation_2007} assume that the gas mass content of halos is given by
+  !#   $M_\mathrm{g}(M_\mathrm{200b},M_\mathrm{F}) = (\Omega_\mathrm{b} / \Omega_\mathrm{M}) f(M_\mathrm{200b}/M_\mathrm{F})
+  !#   M_\mathrm{200b}$ where $M_\mathrm{F}$ is the filtering mass, as first introduced by \cite{gnedin_effect_2000} but defined
+  !#   following \cite{naoz_formation_2007}, $M_\mathrm{200b}$ is the halo mass defined by a density threshold of 200 times the
+  !#   mean background, and
+  !#   \begin{equation}
+  !#     f(x) = [1-(2^{1/3}-1) x^{-1}]^{-3}.
+  !#   \end{equation}
+  !#   The accretion rate onto the halo is therefore assumed to be
+  !#   \begin{equation}
+  !#     \dot{M}_\mathrm{g} = {\Omega_\mathrm{b} \over \Omega_\mathrm{M}} {\mathrm{d} \over \mathrm{d} M_\mathrm{200b}} \left[
+  !#     f(M_\mathrm{200b}/M_\mathrm{F}) M_\mathrm{200b} \right] \dot{M}_\mathrm{total}.
+  !#   \end{equation}
+  !#   This would result in a precise match to the \cite{naoz_formation_2007} assumption if:
+  !#   \begin{enumerate}
+  !#   \item The filtering mass is constant in time;
+  !#   \item $M_\mathrm{total}$ corresponds to $M_\mathrm{200b}$; and
+  !#   \item The growth of halos occurs through smooth accretion, not through merging of smaller halos.
+  !#   \end{enumerate}
+  !#   In practice all three assumptions are violated. As such, the mass fraction in the halo will differ from
+  !#   $f(M_\mathrm{200b}/M_\mathrm{F})$. To address this issue, mass is additionally assumed to flow from the hot halo reservoir
+  !#   to the unaccreted mass reservoir at a rate:
+  !#   \begin{equation}
+  !#   \dot{M}_\mathrm{hot} = - {\alpha_\mathrm{adjust} \over \tau_\mathrm{dyn}} [M_\mathrm{hot}+M_\mathrm{unaccreted}]
+  !#   [f_\mathrm{accreted}-f(M_\mathrm{200b}/M_\mathrm{F})],
+  !#   \end{equation}
+  !#   where $\alpha_\mathrm{adjust} = $[{\normalfont \ttfamily accretionHaloNaozBarkana2007RateAdjust}].
+  !#  </description>
   !# </accretionHalo>
   type, extends(accretionHaloSimple) :: accretionHaloNaozBarkana2007
      !% A halo accretion class using filtering mass of the \gls{igm} calculated from an equation from \cite{naoz_formation_2007}.

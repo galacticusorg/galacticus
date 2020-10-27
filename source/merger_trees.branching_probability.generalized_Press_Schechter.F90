@@ -25,7 +25,30 @@
   use :: Merger_Tree_Branching_Modifiers, only : mergerTreeBranchingProbabilityModifierClass
 
   !# <mergerTreeBranchingProbability name="mergerTreeBranchingProbabilityGnrlzdPrssSchchtr">
-  !#  <description>Merger tree branching probabilities using a generalized Press-Schechter approach.</description>
+  !#  <description>
+  !#   A merger tree branching probability class using a generalized Press-Schechter approach. Branching probabilities are
+  !#   computed from solutions to the excursion set barrier first crossing rate problem. Specifically, the branching probability
+  !#   per unit time is:
+  !#   \begin{equation}
+  !#    {\d f \over \d t} = {\mathrm{d} t \over \mathrm{d}\omega} \int_{M_\mathrm{min}}^{M/2} {M \over M^\prime} {\d f \over \d t}
+  !#    {\d S \over \d M^\prime} \left| {\d t \over \d \omega}\right| G[\omega,\sigma(M),\sigma(M^\prime)] \d M^\prime,
+  !#   \end{equation}
+  !#   where $\omega = \delta_\mathrm{c,0}/D(t)$. The rate of accretion of mass in halos below the resolution limit of the merger
+  !#   tree is
+  !#   \begin{equation}
+  !#    {\d R \over \d t} = {\mathrm{d} t \over \mathrm{d}\omega} \int_0^{M_\mathrm{min}} {\d f \over \d t} {\d S \over \d
+  !#    M^\prime} \left| {\d t \over \d \omega}\right| G[\omega,\sigma(M),\sigma(M^\prime)] \d M^\prime.
+  !#   \end{equation}
+  !#   In the above, $G[\omega,\sigma(M),\sigma(M^\prime)]$ is a modification to the merger rate as computed by the selected
+  !#   \refClass{mergerTreeBranchingProbabilityModifierClass}. If {\normalfont \ttfamily [smoothAccretion]}$=${\normalfont \ttfamily true}
+  !#   then smooth accretion (i.e. accretion of matter not in dark matter halos) is accounted for at the rate:
+  !#   \begin{equation}
+  !#    {\d R_\mathrm{s} \over \d t} = {\mathrm{d} t \over \mathrm{d}\omega} G[\omega,\sigma_\mathrm{max},\sigma(M^\prime)] {\d
+  !#    \stackrel{\sim}{f} \over \d t},
+  !#   \end{equation}
+  !#   where $\sigma_\mathrm{max}$ is the peak value of $\sigma(M)$ (for the lowest mass halos) and $\d \stackrel{\sim}{f}/\d t$
+  !#   is the rate at which excursion set trajectories \emph{fail} to cross the barrier on any mass scale.
+  !#  </description>
   !# </mergerTreeBranchingProbability>
   type, extends(mergerTreeBranchingProbabilityClass) :: mergerTreeBranchingProbabilityGnrlzdPrssSchchtr
      !% A merger tree branching probability class using a generalized Press-Schechter approach.

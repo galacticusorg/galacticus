@@ -20,7 +20,9 @@
   !% An implementation of calculations of chemical reaction rates which assumes zero rates.
 
   !# <chemicalReactionRate name="chemicalReactionRateZero">
-  !#  <description>A chemical reaction rate class in which all rates are zero.</description>
+  !#  <description>
+  !#   A chemical reaction rate class in which all rates are zero.
+  !#  </description>
   !# </chemicalReactionRate>
   type, extends(chemicalReactionRateClass) :: chemicalReactionRateZero
      !% A chemical reaction rate class in which all rates are zero.

@@ -22,7 +22,24 @@
   use :: Kind_Numbers, only : kind_int8
 
   !# <mergerMassMovements name="mergerMassMovementsBaugh2005">
-  !#  <description>A merger mass movements class which uses a simple calculation.</description>
+  !#  <description>
+  !#   A merger mass movements class which implements mass movements according to:
+  !#   \begin{itemize}
+  !#    \item If $M_\mathrm{satellite} &gt; f_\mathrm{major} M_\mathrm{central}$ then all mass from both satellite and central
+  !#    galaxies moves to the spheroid \gls{component} of the central galaxy;
+  !#    \item Otherwise:
+  !#    \begin{itemize}
+  !#     \item If $M_\mathrm{central, spheroid} &lt; f_\mathrm{burst} M_\mathrm{central}$ and the gas fraction in the host equals or
+  !#     exceeds $f_\mathrm{gas,crit}$ then all gas is moved to the host spheroid, while the host stellar disk remains in place.
+  !#     \item Otherwise, gas from the satellite moves to the \gls{component} of the central specified by the {\normalfont
+  !#     \ttfamily [destinationGasMinorMerger]} parameter (either ``{\normalfont \ttfamily disk}'' or ``{\normalfont \ttfamily
+  !#     spheroid}''), stars from the satellite moves to the spheroid of the central and mass in the central does not move.
+  !#    \end{itemize}
+  !#   \end{itemize}
+  !#   Here, $f_\mathrm{major}=${\normalfont \ttfamily [massRatioMajorMerger]} is the mass ratio above which a merger is
+  !#   considered to be ``major'', while $f_\mathrm{burst}=${\normalfont \ttfamily [ratioMassBurst]} and
+  !#   $f_\mathrm{gas,crit}=${\normalfont \ttfamily [fractionGasCriticalBurst]}.
+  !#  </description>
   !# </mergerMassMovements>
   type, extends(mergerMassMovementsClass) :: mergerMassMovementsBaugh2005
      !% A merger mass movements class which uses the \cite{baugh_can_2005} calculation.

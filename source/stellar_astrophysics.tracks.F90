@@ -27,7 +27,10 @@ module Stellar_Astrophysics_Tracks
   !# <functionClass>
   !#  <name>stellarTracks</name>
   !#  <descriptiveName>Stellar Tracks</descriptiveName>
-  !#  <description>Class providing models of stellar tracks.</description>
+  !#  <description>
+  !#   Class providing models of stellar tracks in luminosity and effective temperature as a function of initial mass,
+  !#   metallicity, and age.
+  !#  </description>
   !#  <default>file</default>
   !#  <method name="luminosity" >
   !#   <description>Returns the bolometric luminosity of a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily metallicity} and {\normalfont \ttfamily age}.</description>

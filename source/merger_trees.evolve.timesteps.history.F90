@@ -32,8 +32,8 @@
   !#    \Delta t \le t_{\mathrm{history},i} - t
   !#   \end{equation}
   !#   where $t$ is the current time, $t_{\mathrm{history},i}$ is the $i^\mathrm{th}$ time at which the global history of galaxies
-  !#   is to be output and $i$ is chosen to be the smallest $i$ such that $t_{\mathrm{history},i} > t$. If there is no $i$ for
-  !#   which $t_{\mathrm{history},i} > t$ this criterion is not applied. If this criterion is the limiting criterion for $\Delta
+  !#   is to be output and $i$ is chosen to be the smallest $i$ such that $t_{\mathrm{history},i} &gt; t$. If there is no $i$ for
+  !#   which $t_{\mathrm{history},i} &gt; t$ this criterion is not applied. If this criterion is the limiting criterion for $\Delta
   !#   t$ then the properties of the galaxy will be accumulated to the global history arrays at the end of the timestep.
   !#
   !#   Volume-averaged properties are stored to the {\normalfont \ttfamily globalHistory} group of the output file. Currently, the

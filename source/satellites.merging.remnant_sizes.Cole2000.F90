@@ -23,7 +23,45 @@
   use :: Satellite_Merging_Progenitor_Properties, only : mergerProgenitorPropertiesClass
 
   !# <mergerRemnantSize name="mergerRemnantSizeCole2000">
-  !#  <description>A merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.</description>
+  !#  <description>
+  !#   A merger remnant size class which uses uses the algorithm of \cite{cole_hierarchical_2000} to compute merger remnant
+  !#   spheroid sizes. Specifically
+  !#   \begin{equation}
+  !#   \frac{(M_1+M_2)^2}{ r_\mathrm{new}} =
+  !#   \frac{M_1^2}{r_1} + \frac{M_2^2}{r_2} + \frac{ f_\mathrm{orbit}}{c}
+  !#   \frac{M_1 M_2}{r_1+r_2},
+  !#   \end{equation}
+  !#   where $M_1$ and $M_2$ are the baryonic masses of the components of the merging galaxies that will end up in the spheroid
+  !#   \gls{component} of the remnant\footnote{Depending on the merging rules (see \S\protect\ref{sec:MergingMassMovements}) not
+  !#   all mass may be placed into the spheroid \gls{component} of the remnant.} and $r_1$ and $r_2$ are the half mass radii of
+  !#   those same components of the merging galaxies\footnote{In practice, \glc\ computes a weighted average of the disk and
+  !#   spheroid half-mass radii of each galaxy, with weights equal to the masses of each \gls{component} (disk and spheroid) which
+  !#   will become part of the spheroid \gls{component} of the remnant.}, $r_\mathrm{new}$ is the half mass radius of the
+  !#   spheroidal \gls{component} of the remnant galaxy and $c$ is a constant which depends on the distribution of the mass. For a
+  !#   Hernquist spheroid $c=0.40$ can be found by numerical integration while for a exponential disk $c=0.49$. For simplicity a
+  !#   value of $c=0.5$ is adopted for all components. The parameter $f_\mathrm{orbit}=${\normalfont \ttfamily energyOrbital}
+  !#   depends on the orbital parameters of the galaxy pair. For example, a value of $f_\mathrm{orbit} = 1$ corresponds to point
+  !#   mass galaxies in circular orbits about their center of mass.
+  !#   
+  !#   A subtelty arises because the above expression accounts for only the baryonic mass of material which becomes part of the
+  !#   spheroid \gls{component} of the remnant. In reality, there are additional terms in the energy equation due to the
+  !#   interaction of this material with any dark matter mass in each galaxy and any baryonic mass of each galaxy which does not
+  !#   become part of the spheroid \gls{component} of the remnant. To account for this additional matter, an effective boost
+  !#   factor, $f_\mathrm{boost}$, to the specific angular momentum of each \gls{component} of each merging galaxy is computed:
+  !#   \begin{equation}
+  !#    f_\mathrm{boost} = {j \over \sqrt{\mathrm{G} M r_{1/2}}},
+  !#   \end{equation}
+  !#   where $j$ is the specific angular momentum of the component, $M$ is its total baryonic mass and $r_\mathrm{1/2}$ is its
+  !#   half-mass radius. The mass-weighted mean boost factor is found by combining those of all components which will form part of
+  !#   the spheroid of the remnant. The final specific angular momentum of the remnant spheroid is then given by:
+  !#   \begin{equation}
+  !#    j_\mathrm{new} = \langle f_\mathrm{boost} \rangle r_\mathrm{new} V_\mathrm{new},
+  !#   \end{equation}
+  !#   where
+  !#   \begin{equation}
+  !#    V_\mathrm{new}^2 = {\mathrm{G} (M_1+M_2)\over r_\mathrm{new}}.
+  !#   \end{equation}
+  !#  </description>
   !# </mergerRemnantSize>
   type, extends(mergerRemnantSizeClass) :: mergerRemnantSizeCole2000
      !% A merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.

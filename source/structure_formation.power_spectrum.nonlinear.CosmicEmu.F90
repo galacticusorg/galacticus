@@ -28,7 +28,11 @@
   use :: Power_Spectra_Primordial  , only : powerSpectrumPrimordialClass
 
   !# <powerSpectrumNonlinear name="powerSpectrumNonlinearCosmicEmu">
-  !#  <description>Provides a nonlinear power spectrum class in which the power spectrum is computed using the code of \cite{lawrence_coyote_2010}.</description>
+  !#  <description>
+  !#   Provides a nonlinear power spectrum class in which the power spectrum is computed using the code of
+  !#   \cite{lawrence_coyote_2010}. The CosmicEmu code will be downloaded, compiled and run as necessary if this option is
+  !#   utilized.
+  !#  </description>
   !# </powerSpectrumNonlinear>
   type, extends(powerSpectrumNonlinearClass) :: powerSpectrumNonlinearCosmicEmu
      !% A linear transfer function class.

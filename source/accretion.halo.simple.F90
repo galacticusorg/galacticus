@@ -29,7 +29,37 @@
   use :: Radiation_Fields          , only : radiationFieldCosmicMicrowaveBackground
 
   !# <accretionHalo name="accretionHaloSimple">
-  !#  <description>Accretion onto halos using simple truncation to mimic the effects of reionization.</description>
+  !#  <description>
+  !#   Accretion onto halos using simple truncation to mimic the effects of reionization. The accretion rate of baryons into a
+  !#   halo is given by:
+  !#   \begin{equation}
+  !#    \dot{M}_\mathrm{accretion} = \left\{ \begin{array}{ll} (\Omega_\mathrm{b}/\Omega_\mathrm{M}) \dot{M}_\mathrm{halo} &amp;
+  !#    \hbox{ if } V_\mathrm{virial} &gt; V_\mathrm{reionization} \hbox{ or } z &gt; z_\mathrm{reionization} \\ 0 &amp; \hbox{
+  !#    otherwise,}\end{array} \right.
+  !#   \label{eq:accretionHalo:truncation}
+  !#   \end{equation}
+  !#   where $z_\mathrm{reionization}=${\normalfont \ttfamily [redshiftReionization]} is the redshift at which the Universe is
+  !#   reionized (alternatively, the optical depth to reionization can be specified via {\normalfont \ttfamily
+  !#   [opticalDepthReionization]} and the corresponding redshift will be computed) and $V_\mathrm{reionization}=${\normalfont
+  !#   \ttfamily [velocitySuppressionReionization]} is the virial velocity below which accretion is suppressed after
+  !#   reionization. Setting $V_\mathrm{reionization}$ to zero will effectively switch off the effects of reionization on the
+  !#   accretion of baryonics. This algorithm attempts to offer a simple prescription for the effects of reionization and has been
+  !#   explored by multiple authors (e.g. \citealt{benson_effects_2002}). In particular, \cite{font_modelingmilky_2010} show that
+  !#   it produces results in good agreement with more elaborate treatments of reionization. For halos below the accretion
+  !#   threshold, any accretion rate that would have otherwise occurred is instead placed into the ``failed'' accretion rate. For
+  !#   halos which can accrete, and which have some mass in their ``failed'' reservoir, that mass will be added to the regular
+  !#   accretion rate at a rate equal to the mass of the ``failed'' reservoir times the specific growth rate of the halo. The gas
+  !#   accreted is assumed to be from a pristine \gls{igm} and so has zero abundances. Chemical abundances are computed from the
+  !#   chemical state functions (see \S\ref{sec:ChemicalStateMethod}).
+  !#
+  !#   Note that, if $\dot{M}_\mathrm{halo} &lt; 0$ then negative accretion rates of gas into the node can result. This ccan be
+  !#   prevented by setting {\normalfont \ttfamily [accretionNegativeAllowed]}$=${\normalfont \ttfamily false}.
+  !#
+  !#   By default, gas is accreted whenever the halo is growing in total mass. However, setting {\normalfont \ttfamily
+  !#   [accretionNewGrowthOnly]}$=${\normalfont \ttfamily true} causes accretion to occur only if the node mass is growing and
+  !#   exceeds the previous maximum node mass achieved along this branch of the merger tree. This requires use of a basic
+  !#   component which tracks the maximum mass along the branch (i.e. the {\normalfont \ttfamily massMaximum} property).
+  !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="radiation"/>
   !#  </deepCopy>

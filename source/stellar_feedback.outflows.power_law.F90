@@ -20,7 +20,18 @@
   !% Implementation of a power-law stellar feedback model.
 
   !# <stellarFeedbackOutflows name="stellarFeedbackOutflowsPowerLaw">
-  !#  <description>A power-law stellar feedback model.</description>
+  !#  <description>
+  !#   A stellar feedback outflow class in which the outflow rate is a power-law in circular velocity. Specifically the outflow
+  !#   rate is given by:
+  !#   \begin{equation}
+  !#    \dot{M}_\mathrm{outflow} = \left({V_\mathrm{outflow} \over V}\right)^{\alpha_\mathrm{outflow}} {\dot{E} \over
+  !#    E_\mathrm{canonical}},
+  !#   \end{equation}
+  !#   where $V_\mathrm{outflow}=${\normalfont \ttfamily [velocityCharacteristic]} (in km/s) and
+  !#   $\alpha_\mathrm{outflow}=${\normalfont \ttfamily [exponent]} are input parameters, $V$ is the characteristic velocity of
+  !#   the component, $\dot{E}$ is the rate of energy input from stellar populations and $E_\mathrm{canonical}$ is the total
+  !#   energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
+  !#  </description>
   !# </stellarFeedbackOutflows>
   type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsPowerLaw
      !% Implementation of a power-law stellar feedback model.

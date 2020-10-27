@@ -27,7 +27,18 @@
   use :: Virial_Density_Contrast   , only : virialDensityContrastFriendsOfFriends
 
   !# <virialOrbit name="virialOrbitWetzel2010">
-  !#  <description>Virial orbits using the \cite{wetzel_orbits_2010} orbital parameter distribution.</description>
+  !#  <description>
+  !#   A virial orbits class which selects orbital parameters randomly from the distribution given by \cite{wetzel_orbits_2010},
+  !#   including the redshift and mass dependence of the distributions. Note that the parameter $R_1$ can become negative (which
+  !#   is unphysical) for certain regimes of mass and redshift according to the fitting function for $R_1$ given by
+  !#   \cite{wetzel_orbits_2010}. Therefore, we enforce $R_1>0.05$. Similarly, the parameter $C_1$ can become very large in some
+  !#   regimes which is probably an artifact of the fitting function used rather than physically meaningful (and which causes
+  !#   numerical difficulties in evaluating the distribution). We therefore prevent $C_1$ from exceeding $9.999999$\footnote{We
+  !#   use this value rather than $10$ since the GSL $_2F_1$ hypergeomtric function fails in some cases when $C_1\ge 10$.} If the
+  !#   virial density contrast definition differs from that used by \cite{wetzel_orbits_2010} then the orbit is assigned based on
+  !#   \cite{wetzel_orbits_2010}'s definition and then propagated to the virial radius relevant to the current definition of
+  !#   density contrast.
+  !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrast_"/>
   !#  </deepCopy>

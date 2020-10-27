@@ -32,7 +32,10 @@
   double precision, parameter :: matterLambdaDominateFactor               =100.0d0
 
   !# <cosmologyFunctions name="cosmologyFunctionsMatterLambda">
-  !#  <description>Cosmological relations are computed assuming a universe that contains only matter and a cosmological constant.</description>
+  !#  <description>
+  !#   Cosmological relations are computed assuming a universe that contains only collisionless matter and a cosmological
+  !#   constant.
+  !#  </description>
   !# </cosmologyFunctions>
   type, extends(cosmologyFunctionsClass) :: cosmologyFunctionsMatterLambda
      !% A cosmological functions class for cosmologies consisting of matter plus a cosmological constant.

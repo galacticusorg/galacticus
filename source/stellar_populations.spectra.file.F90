@@ -54,16 +54,19 @@
 
   !# <stellarPopulationSpectra name="stellarPopulationSpectraFile">
   !#  <description>
-  !#   Provides stellar population spectra via interpolation in a tabulation read from file. This should be an HDF5 file with the following structure:
+  !#   A stellar population spectra class which computes spectra via interpolation in a tabulation read from file. This should be
+  !#   an HDF5 file with the following structure:
   !#   \begin{verbatim}
   !#    ages                     Dataset {ageCount}
   !#    metallicities            Dataset {metallicityCount}
   !#    spectra                  Dataset {metallicityCount, ageCount, metallicityCount}
   !#    wavelengths              Dataset {wavelengthCount}
   !#   \end{verbatim}
-  !#   where the datasets contain the tabulated ages (in Gyr), metallicities (logarithmic, relative to Solar), wavelengths (in \AA) and spectra (in $L_\odot$ Hz$^{-1}$).
+  !#   where the datasets contain the tabulated ages (in Gyr), metallicities (logarithmic, relative to Solar), wavelengths (in
+  !#   \AA) and spectra (in $L_\odot$ Hz$^{-1}$).
   !#
-  !#   Scripts to convert the data provided by \cite{maraston_evolutionary_2005} and \cite{bruzual_stellar_2003} into \glc's format are provided in the {\normalfont \ttfamily scripts/ssps} folder.
+  !#   Scripts to convert the data provided by \cite{maraston_evolutionary_2005} and \cite{bruzual_stellar_2003} into \glc's
+  !#   format are provided in the {\normalfont \ttfamily scripts/ssps} folder.
   !#  </description>
   !#  <stateStorable>
   !#   <exclude variables="spectra, forceZeroMetallicity, fileName, fileRead"/>

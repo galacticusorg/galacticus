@@ -23,8 +23,16 @@
   use :: Hot_Halo_Mass_Distributions, only : hotHaloMassDistributionClass
 
   !# <coolingRate name="coolingRateCole2000">
-  !#  <description>Computes the mass cooling rate in a hot gas halo utilizing the \cite{cole_hierarchical_2000} method. This is based on the
-  !# properties of the halo at formation time, and gives a zero cooling rate when the cooling radius exceeds the virial radius.</description>
+  !#  <description>
+  !#   A cooling rate class that uses the algorithm of \cite{cole_hierarchical_2000}. The cooling rate is given by
+  !#   \begin{equation}
+  !#   \dot{M}_\mathrm{cool} = \left\{ \begin{array}{ll} 4 \pi r_\mathrm{infall}^2 \rho(r_\mathrm{infall}) \dot{r}_\mathrm{infall}
+  !#   &amp; \hbox{ if } r_\mathrm{infall} &lt; r_\mathrm{hot, outer} \\ 0 &amp; \hbox{ if } r_\mathrm{infall} \ge r_\mathrm{hot,
+  !#   outer}, \end{array} \right.
+  !#   \end{equation}
+  !#   where $\rho(r)$ is the density profile of the hot halo, and $r_\mathrm{infall}$ is the infall radius (see
+  !#   \S\ref{sec:CoolingInfallRadius}).
+  !#  </description>
   !# </coolingRate>
   type, extends(coolingRateClass) :: coolingRateCole2000
      !% Implementation of cooling rate class for the \cite{cole_hierarchical_2000} cooling rate calculation.

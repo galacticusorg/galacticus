@@ -20,7 +20,9 @@
   !% Implements a stellar population selector class which returns a fixed population.
 
   !# <stellarPopulationSelector name="stellarPopulationSelectorFixed">
-  !#  <description>A fixed stellar population selector class.</description>
+  !#  <description>
+  !#   A stellar population selector class which selects a fixed population irrespective of physical conditions.
+  !#  </description>
   !# </stellarPopulationSelector>
   type, extends(stellarPopulationSelectorClass) :: stellarPopulationSelectorFixed
      !% A fixed stellar population selector class.

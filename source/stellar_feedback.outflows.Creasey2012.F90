@@ -22,7 +22,18 @@
   use :: Star_Formation_Rate_Surface_Density_Disks, only : starFormationRateSurfaceDensityDisksClass
 
   !# <stellarFeedbackOutflows name="stellarFeedbackOutflowsCreasey2012">
-  !#  <description>The \cite{creasey_how_2012} stellar feedback model.</description>
+  !#  <description>
+  !#   A stellar feedback outflow class which implements the model of \cite{creasey_how_2012}. Specifically, the outflow rate is:
+  !#   \begin{equation}
+  !#   \dot{M}_\mathrm{outflow} = {\dot{E}_\mathrm{SN} \over E_\mathrm{SN} \dot{M}_\star} \int_0^\infty \beta_0
+  !#   \Sigma_{g,1}^{-\mu}(r) f_\mathrm{g}^\nu(r) \dot{\Sigma}_\star(r) 2 \pi r \mathrm{d}r,
+  !#   \end{equation}
+  !#   where $\Sigma_{g,1}(r)$ is the surface density of gas in units of $M_\odot$ pc$^{-2}$, $f_\mathrm{g}(r)$ is the gas
+  !#   fraction, $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate, $\dot{M}_\star$ is the total star
+  !#   formation rate in the disk, $\dot{E}_\mathrm{SN}$ is the current energy input rate from supernovae, $E_\mathrm{SN}$ is the
+  !#   total energy input per unit mass from a stellar population after infinite time, $\beta_0=${\normalfont \ttfamily [beta0]},
+  !#   $\mu=${\normalfont \ttfamily [mu]}, and $\nu=${\normalfont \ttfamily [nu]}.
+  !#  </description>
   !# </stellarFeedbackOutflows>
   type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsCreasey2012
      !% Implementation of the \cite{creasey_how_2012} stellar feedback model.

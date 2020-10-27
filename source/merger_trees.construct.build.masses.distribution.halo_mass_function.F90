@@ -23,7 +23,20 @@
   use :: Halo_Mass_Functions       , only : haloMassFunctionClass
 
   !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionHaloMassFunction">
-  !#  <description>A merger tree halo mass function sampling class in which the sampling rate is proportional to the halo mass function.</description>
+  !#  <description>
+  !#   A merger tree build mass distribution class in which the sampling density function equal to the halo mass function,
+  !#   \begin{equation}
+  !#   \gamma(M) = \hbox{minmax}(\phi_\mathrm{min},\phi_\mathrm{max},\mathrm{d} n(M)/\mathrm{d}\log M [1 + p_1
+  !#   \log_{10}(M/10^{13}M_\odot) + p_2 \log_{10}^2(M/10^{13}M_\odot)),
+  !#   \end{equation}
+  !#    where $\phi_\mathrm{min}=${\normalfont \ttfamily [abundanceMinimum]}, $\phi_\mathrm{max}=${\normalfont \ttfamily
+  !#    [abundanceMaximum]}, $p_1=${\normalfont \ttfamily [modifier1]}, $p_2=${\normalfont \ttfamily [modifier2]}, and
+  !#   \begin{equation}
+  !#    \hbox{minmax}(a,b,x) = \left\{\begin{array}{ll}a &amp; \hbox{ if } x &lt; a \\ x &amp; \hbox{ if } a \leq x \leq b\\ b &amp; \hbox{ if }
+  !#    x &gt; b,\end{array}\right.
+  !#   \end{equation}
+  !#   resulting in a sample of halos representative of a volume of space.
+  !#  </description>
   !# </mergerTreeBuildMassDistribution>
   type, extends(mergerTreeBuildMassDistributionClass) :: mergerTreeBuildMassDistributionHaloMassFunction
      !% Implementation of merger tree halo mass function sampling class in which the sampling rate is proportional to the halo mass function.

@@ -24,7 +24,16 @@
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !# <transferFunction name="transferFunctionBode2001">
-  !#  <description>Provides a transfer function based on the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.</description>
+  !#  <description>
+  !#   A transfer function class which applies the thermal \gls{wdm} modifier of \cite{bode_halo_2001} to the provided \gls{cdm}
+  !#   transfer function.  The modifier is given by:
+  !#   \begin{equation}
+  !#   T(k) \rightarrow T(k) (1+[\epsilon k R_\mathrm{c}^0]^{2\nu})^{-\eta/\nu},
+  !#   \end{equation}
+  !#   where $\epsilon=${\normalfont \ttfamily [epsilon]}, $\eta=${\normalfont \ttfamily [eta]}, $\nu=${\normalfont \ttfamily
+  !#   [nu]}. The cut-off scale is computed from the dark matter particle (which must be of the {\normalfont \ttfamily
+  !#   darkMatterParticleWDMThermal} class) properties.
+  !#  </description>
   !# </transferFunction>
   type, extends(transferFunctionClass) :: transferFunctionBode2001
      !% A transfer function class which modifies another transfer function using the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.

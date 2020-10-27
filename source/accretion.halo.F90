@@ -29,7 +29,11 @@ module Accretion_Halos
   !# <functionClass>
   !#  <name>accretionHalo</name>
   !#  <descriptiveName>Accretion Onto Halos</descriptiveName>
-  !#  <description>Class providing rates of accretion of gas from the \gls{igm} onto halos.</description>
+  !#  <description>
+  !#   Class providing rates of accretion of gas from the \gls{igm} onto halos. This is expected to depend on (at least) the rate
+  !#   at which that halo mass is growing, the depth of its potential well and the thermodynamical properties of the accreting
+  !#   gas.
+  !#  </description>
   !#  <default>simple</default>
   !#  <calculationReset>yes</calculationReset>
   !#  <method name="branchHasBaryons" >

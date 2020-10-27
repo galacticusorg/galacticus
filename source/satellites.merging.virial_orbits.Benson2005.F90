@@ -24,7 +24,12 @@
   use :: Virial_Density_Contrast, only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
 
   !# <virialOrbit name="virialOrbitBenson2005">
-  !#  <description>Virial orbits using the \cite{benson_orbital_2005} orbital parameter distribution.</description>
+  !#  <description>
+  !#   A virial orbits class which selects orbital parameters randomly from the distribution given by
+  !#   \cite{benson_orbital_2005}. If the virial density contrast definition differs from that used by \cite{benson_orbital_2005}
+  !#   then the orbit is assigned based on \cite{benson_orbital_2005}'s definition and then propagated to the virial radius
+  !#   relevant to the current definition of density contrast.
+  !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrast_"/>
   !#  </deepCopy>

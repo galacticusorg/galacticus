@@ -20,7 +20,9 @@
   !% An implementation of the intergalactic medium state class for a simplistic model of instantaneous and full reionization.
 
   !# <accretionHaloTotal name="accretionHaloTotalSimple">
-  !#  <description>A halo total accretion class which assumes the accretion corresponds to the basic mass.</description>
+  !#  <description>
+  !#   A halo total accretion class which assumes that the accretion rate equals the growth rate of the basic mass.
+  !#  </description>
   !# </accretionHaloTotal>
   type, extends(accretionHaloTotalClass) :: accretionHaloTotalSimple
      !% A halo total accretion class which assumes the accretion corresponds to the basic mass.

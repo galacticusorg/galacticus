@@ -317,333 +317,15 @@ An interrupt procedure should have the form:
 
 \section{Existing Method Types}
 
-\subsection{Functions}
+\subsection{Function Classes}
 
-Functions implement basic calculations (e.g. computing the power spectrum).
-
-\IfFileExists{./autoMethods.tex}{\input{autoMethods}}{}
-
-\subsubsection{Accretion Disks}\label{sec:AccretionDisks}\hyperdef{sec}{AccretionDisks}{}
-
-Additional methods for accretion disk properties can be added using the {\normalfont \ttfamily accretionDisksMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily Shakura-Sunyae} method is described by a directive:
+Functions implement basic calculations (e.g. computing the power spectrum). Additional implementations of a {\normalfont \ttfamily functionClass} are added using the a directive with the name of that {\normalfont \ttfamily functionClass}. The implementation should be placed in a file containing the directive. For example, for the {\normalfont \ttfamily mergerTreeTimestep} {\normalfont \ttfamily functionClass} the file must containg a directive of the form
 \begin{verbatim}
- !# <accretionDisksMethod>
- !#  <unitName>Accretion_Disks_Shakura_Sunyaev_Initialize</unitName>
- !# </accretionDisksMethod>
+!# <mergerTreeTimestep name="mergerTreeTimestepMyImplementation">
+!# <description>A short description of the implementation.</description>
+!# </mergerTreeTimestep>
 \end{verbatim}
-Here, {\normalfont \ttfamily Accretion\_Disks\_Shakura\_Sunyaev\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(accretionDisksMethod,Accretion_Disk_Radiative_Efficiency_Get,Black_Hole_Spin_Up_Rate_Get,Accretion_Disk_Jet_Power_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: accretionDisksMethod
-    procedure(),          pointer, intent(inout) :: Accretion_Disk_Radiative_Efficiency_Get,Black_Hole_Spin_Up_Rate_Get,Accretion_Disk_Jet_Power_Get
-    
-    if (accretionDisksMethod == 'myMethod') then
-       Accretion_Disk_Radiative_Efficiency_Get => My_Accretion_Disk_Radiative_Efficiency_Get
-       Black_Hole_Spin_Up_Rate_Get             => My_Black_Hole_Spin_Up_Rate_Get
-       Accretion_Disk_Jet_Power_Get            => My_Accretion_Disk_Jet_Power_Get
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily accretionDisksMethod} input parameter. The procedure pointers {\normalfont \ttfamily Accretion\_Disk\_Radiative\_Efficiency\_Get}, {\normalfont \ttfamily Black\_Hole\_Spin\_Up\_Rate\_Get} and {\normalfont \ttfamily Accretion\_Disk\_Jet\_Power\_Get} must be set to point to functions which return the radiative efficiency, black hole spin up rate and jet power for the accretion disk respectively as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The radiative efficiency function must have the form:
-\begin{verbatim}
- double precision function My_Accretion_Disk_Radiative_Efficiency_Get(thisNode,massAccretionRate)
-    implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: massAccretionRate
-    .
-    .
-    .
-    return
- end function My_Accretion_Disk_Radiative_Efficiency_Get
-\end{verbatim}
-The function must return the radiative efficiency for the accretion disk in {\normalfont \ttfamily thisNode}. The black hole spin function must have the form:
-\begin{verbatim}
- double precision function My_Black_Hole_Spin_Up_Rate_Get(thisNode,massAccretionRate)
-    implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: massAccretionRate
-    .
-    .
-    .
-    return
- end function My_Black_Hole_Spin_Up_Rate_Get
-\end{verbatim}
-The function must return the spin-up rate for the black hole in {\normalfont \ttfamily thisNode} given the {\normalfont \ttfamily massAccretionRate}. The jet power function must have the form:
-\begin{verbatim}
- double precision function My_Accretion_Disk_Jet_Power_Get(thisNode,massAccretionRate)
-    implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: massAccretionRate
-    .
-    .
-    .
-    return
- end function My_Accretion_Disk_Jet_Power_Get
-\end{verbatim}
-The function must return (in units of $M_\odot$ (km/s)$^2$ Gyr$^{-1}$) the jet power for the black hole/accretion disk system in {\normalfont \ttfamily thisNode} given the {\normalfont \ttfamily massAccretionRate}.
-
-Currently defined accretion disk methods are:
-\begin{description}
- \item [{\normalfont \ttfamily Shakura-Sunyaev}] Computes the properties of a thin, radiatively efficiency accretion disk.
- \item [{\normalfont \ttfamily ADAF}] Computes the properties of an ADAF using the model of \cite{benson_maximum_2009}.
- \item [{\normalfont \ttfamily switched}] Select either {\normalfont \ttfamily Shakura-Sunyaev} or {\normalfont \ttfamily ADAF} accretion disks based on the accretion rate:
- \begin{eqnarray}
-  \dot{m}_\mathrm{minimum} < \dot{M}_{\bullet, 0}/\dot{M}_\mathrm{Eddington} < \dot{m}_\mathrm{maximum} &\rightarrow& \hbox{ Shakura-Sunyaev} \nonumber \\
-  \hbox{otherwise } &\rightarrow& \hbox{ ADAF},
- \end{eqnarray}
- where $\dot{m}_\mathrm{minimum}$={\normalfont \ttfamily accretionRateThinDiskMinimum} and $\dot{m}_\mathrm{maximum}$={\normalfont \ttfamily accretionRateThinDiskMaximum} are input parameters.
- \item [{\normalfont \ttfamily eddingtonLimited}] Assumes no specific disk structure, instead setting the radiative efficiency to a fixed number and the jet power to a fixed fraction of the Eddington luminosity.
-\end{description}
-
-\subsubsection{Analysis}
-
-Additional methods for on-the-fly analysis of merger trees can be added using the {\normalfont \ttfamily mergerTreeAnalysisTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the mass distributions method is described by a directive:
-\begin{verbatim}
- !# <mergerTreeAnalysisTask>
- !#  <unitName>Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins</unitName>
- !# </mergerTreeAnalysisTask>
-\end{verbatim}
-Here, {\normalfont \ttfamily Galacticus\_Output\_Analysis\_Mass\_Dpndnt\_Sz\_Dstrbtins} is the name of a subroutine which will be called to perform the analysis. The analysis subroutine must have the following form:
-\begin{verbatim}
-  subroutine Tree_Analyze(thisTree,thisNode,iOutput,mergerTreeAnalyses)
-    implicit none
-    type            (mergerTree    ), intent(in   )                 :: thisTree
-    type            (treeNode      ), intent(inout), pointer        :: thisNode
-    integer                         , intent(in   )                 :: iOutput
-    type            (varying_string), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
-    .
-    .
-    .
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-This function will be called once for each node in each tree being output. The function is passed the merger tree object as {\normalfont \ttfamily thisTree}, along with a pointer to the node to be analyzed as {\normalfont \ttfamily thisNode}. Additionally, the current output number is passed as {\normalfont \ttfamily iOutput}. Finally, a list of analyses that were requested (by user input) to be performed is given in the {\normalfont \ttfamily mergerTreeAnalyses} array. The function should check if one or more of the entries in {\normalfont \ttfamily mergerTreeanalyses} correspond to analyses that it performs. (Note that this need only be done on the first call to this function---the values of {\normalfont \ttfamily mergerTreeAnalyses} will not change between calls.) If an analysis is matched in this way it should be performed. Typically, an analysis function might accumulate the results of analysis and then finalize and output them prior to completion of the \glc\ model through the use of a {\normalfont \ttfamily hdfPreCloseTask} (see \S\ref{sec:HDFFileClose}).
-
-Currently defined \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf#methods.outputAnalysis}{\normalfont \ttfamily outputAnalysis} classes are:
-\begin{description}
- \item [mass functions] Constructs mass functions for a variety of different surveys. Currently supported analysis names are: {\normalfont \ttfamily sdssStellarMassFunctionZ0.07}, {\normalfont \ttfamily alfalfaHiMassFunctionZ0.00}, {\normalfont \ttfamily primusStellarMassFunctionZ0.100}, {\normalfont \ttfamily primusStellarMassFunctionZ0.250}, {\normalfont \ttfamily primusStellarMassFunctionZ0.350}, {\normalfont \ttfamily primusStellarMassFunctionZ0.450}, {\normalfont \ttfamily primusStellarMassFunctionZ0.575}, {\normalfont \ttfamily primusStellarMassFunctionZ0.725}, and {\normalfont \ttfamily primusStellarMassFunctionZ0.900}. Each such analysis is defined internally to this module through the appropriate redshift, binning, random and systematic errors, and arbitrary mapping of component masses into observed masses. The covariance matrix of the mass function is also computed.
- \item [mass-dependent size distributions] Constructs a two-dimensional histogram of galaxy sizes in bins of stellar mass. Currently supported analyses are {\normalfont \ttfamily sdssSizeFunctionZ0.07}. Each such analysis is defined internally to this module through the appropriate redshift, binning, random and systematic errors, and arbitrary mapping of component masses/radii into observed masses/radii. The covariance matrix of the size function is also computed.
-\end{description}
-
-\subsubsection{Radiation Components}\index{radiation}\label{sec:radiationComponents}
-
-Radiation components (i.e. types of radiation field that may be added to any radiation object; see \S\ref{sec:RadiationSubsystem}) are defined using a combination of several directives: {\normalfont \ttfamily radiationLabel}, {\normalfont \ttfamily radiationSet}, {\normalfont \ttfamily radiationTemperature} and {\normalfont \ttfamily radiationFlux}. For example, the cosmic microwave background radiation component is defined by the following set of directives:
-\begin{verbatim}
-  !# <radiationLabel>
-  !#  <label>CMB</label>
-  !# </radiationLabel>
-
-  !# <radiationSet>
-  !#  <unitName>Radiation_Set_CMB</unitName>
-  !#  <label>CMB</label>
-  !# </radiationSet>
-
-  !# <radiationTemperature>
-  !#  <unitName>Radiation_Temperature_CMB</unitName>
-  !#  <label>CMB</label>
-  !# </radiationTemperature>
-
-  !# <radiationFlux>
-  !#  <unitName>Radiation_Flux_CMB</unitName>
-  !#  <label>CMB</label>
-  !# </radiationFlux>
-\end{verbatim}
-The first of these, {\normalfont \ttfamily radiationLabel}, should contain a single element, {\normalfont \ttfamily label}, which gives a label that will be used to identify this component, both in other directives and also in the internal parameters used to select this radiation component (e.g. in this case, a parameter {\normalfont \ttfamily radiationTypeCMB} will be available within \glc\ to select the cosmic microwave background component). The other directives must all specify the same {\normalfont \ttfamily label} element and additional give, in a {\normalfont \ttfamily unitName} element, the name of a function/subroutine to be called to perform the relevant calculation.
-
-The {\normalfont \ttfamily radiationSet} directive must specify a subroutine with the following template:
-\begin{verbatim}
-  subroutine Radiation_Set(componentMatched,thisNode,radiationProperties)
-   implicit none
-   logical,          intent(in)                               :: componentMatched
-   type(treeNode),   intent(inout), pointer                   :: thisNode
-   double precision, intent(inout), allocatable, dimension(:) :: radiationProperties
-
-   if (.not.componentMatched) return
-   .
-   .
-   .
-   return
-  end subroutine Radiation_Set
-\end{verbatim}
-If {\normalfont \ttfamily componentMatched} is true, then the subroutine should set the radiation component, otherwise it should exit immediately. If the radiation component is to be set, then the routine can allocate the {\normalfont \ttfamily radiationProperties} array as necessary to store any data needed to specify the radiation field. These data should then be set using, if necessary, any relevant information from {\normalfont \ttfamily thisNode}.
-
-The {\normalfont \ttfamily radiationTemperature} directive should specify a subroutine with the following template:
-\begin{verbatim}
-  subroutine Radiation_Temperature(requestedType,ourType,radiationProperties,radiationTemperature,radiationType)
-   implicit none
-   integer,          intent(in)                            :: requestedType,ourType
-   double precision, intent(in),              dimension(:) :: radiationProperties
-   double precision, intent(inout)                         :: radiationTemperature
-   integer,          intent(in),    optional, dimension(:) :: radiationType
-
-   if (requestedType /= ourType) return
-   if (present(radiationType)) then
-      if (all(radiationType /= ourType)) return
-   end if
-   .
-   .
-   .
-   return
-  end subroutine Radiation_Temperature
-\end{verbatim}
-The tests in the above should always be included so that the subroutine exits immediately if the component type is not active or not requested. Once these tests have been made, the subroutine should set the temperature (in units of Kelvin) of the radiation field (if applicable).
-
-The {\normalfont \ttfamily radiationFlux} directive should specify a subroutine with the following template:
-\begin{verbatim}
-  subroutine Radiation_Flux(requestedType,ourType,radiationProperties,wavelength,radiationFlux,radiationType)
-    implicit none
-    integer,          intent(in)                           :: requestedType,ourType
-    double precision, intent(in)                           :: wavelength
-    double precision, intent(in),             dimension(:) :: radiationProperties
-    double precision, intent(inout)                        :: radiationFlux
-    integer,          intent(in),   optional, dimension(:) :: radiationType
-
-    if (requestedType /= ourType) return
-    if (present(radiationType)) then
-       if (all(radiationType /= ourType)) return
-    end if
-    .
-    .
-    .
-    return
-  end subroutine Radiation_Flux
-\end{verbatim}
-The tests in the above should always be included so that the subroutine exits immediately if the component type is not active or not requested. Once these tests have been made, the subroutine should add the flux (in units of ergs cm$^2$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$) at the specified {\normalfont \ttfamily wavelength} (in units of \AA) of the radiation field to that in {\normalfont \ttfamily radiationFlux}.
-
-Currently defined radiation component types are:
-\begin{description}
- \item [{\normalfont \ttfamily null}] A null component with no radiation.
- \item [{\normalfont \ttfamily CMB}] The cosmic microwave background, assumed to be a perfect blackbody spectrum with a temperature equal to {\normalfont \ttfamily [T\_CMB]}$(1+z)$.
- \item [{\normalfont \ttfamily IGB}] The intergalactic background light, set using the method selected by {\normalfont \ttfamily [radiationIntergalacticBackgroundMethod]; see \S\ref{sec:radiationIGB}}.
-\end{description}
-
-\subsubsection{Radiation Components: Intergalactic Background}\label{sec:radiationIGB}
-
-Additional methods for the intergalactic background radiation component can be added using the {\normalfont \ttfamily radiationIntergalacticBackgroundMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily file} method is described by a directive:
-\begin{verbatim}
- !# <radiationIntergalacticBackgroundMethod>
- !#  <unitName>Radiation_IGB_File_Initialize</unitName>
- !# </radiationIntergalacticBackgroundMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Radiation\_IGB\_File\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(radiationIntergalacticBackgroundMethod,Radiation_Set_Intergalactic_Background_Do,Radiation_Flux_Intergalactic_Background_Do)
-    implicit none
-    type(varying_string),          intent(in)    :: radiationIntergalacticBackgroundMethod
-    procedure(),          pointer, intent(inout) :: Radiation_Set_Intergalactic_Background_Do,Radiation_Flux_Intergalactic_Background_Do
-    
-    if (radiationIntergalacticBackgroundMethod == 'myMethod') then
-      Radiation_Set_Intergalactic_Background_Do  => My_Method_Set
-      Radiation_Flux_Intergalactic_Background_Do => My_Method_Flux
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily radiationIntergalacticBackgroundMethod} input parameter. The procedure pointers {\normalfont \ttfamily Radiation\_Set\_Intergalactic\_Background\_Do} and {\normalfont \ttfamily Radiation\_Flux\_Intergalactic\_Background\_Do} must be set to point to subroutines which set the radiation field and return its flux as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The set subroutine must have the form:
-\begin{verbatim}
-  subroutine My_Method_Set(thisNode,radiationProperties)
-    implicit none
-    type(treeNode),   intent(inout), pointer                   :: thisNode
-    double precision, intent(inout), allocatable, dimension(:) :: radiationProperties
-
-    return
-  end subroutine My_Method_Set
-\end{verbatim}
-and should set the radiation component as described in \S\ref{sec:radiationComponents}. The flux subroutine must have the form:
-\begin{verbatim}
-   subroutine My_Method_Flux(radiationProperties,wavelength,radiationFlux)
-    implicit none
-    double precision, intent(in)                 :: wavelength
-    double precision, intent(in),   dimension(:) :: radiationProperties
-    double precision, intent(inout)              :: radiationFlux
-
-    return
-   end subroutine My_Method_Flux
-\end{verbatim}
-and should increment {\normalfont \ttfamily radiationFlux} as described in \S\ref{sec:radiationComponents}.
-
-Currently defined intergalactic background radiation methods are:
-\begin{description}
- \item [{\normalfont \ttfamily file}] The intergalatic background radiation field, specified as a function of cosmic time, is read from a file. The flux is determined by linearly interpolating to the required time and wavelength. The XML file to read is specified by {\normalfont \ttfamily [radiationIGBFileName]}. An example of the required file structure is:
- \begin{verbatim}
-<spectrum>
-  <URL>http://adsabs.harvard.edu/abs/1996ApJ...461...20H</URL>
-  <description>Cosmic background radiation spectrum from quasars alone.</description>
-  <reference>Haardt, F. &amp; Madau, P. 1996, ApJ, 461, 20</reference>
-  <source>Francesco Haardt on Aug 6 2005, via Cloudy 08.00</source>
-  <wavelengths>
-    <datum>0.0002481</datum>
-    <datum>0.001489</datum>
-    .
-    .
-    .
-    <units>Angstroms</units>
-  </wavelengths>
-  <spectra>
-    <datum>7.039E-49</datum>
-    <datum>8.379E-48</datum>
-    <datum>1.875E-39</datum>
-    <datum>7.583E-38</datum>
-    .
-    .
-    .
-    <redshift>0</redshift>
-    <units>erg cm^-2 s^-1 Hz^-1 sr^-1</units>
-  </spectra>
-</spectrum>
- \end{verbatim}
-\end{description}
-The optional {\normalfont \ttfamily URL}, {\normalfont \ttfamily description}, {\normalfont \ttfamily reference} and {\normalfont \ttfamily source} elements can be used to give the provenance of the data. The {\normalfont \ttfamily wavelengths} element should contain a set of {\normalfont \ttfamily datum} elements each containing a wavelength (in increasing order) at which the spectrum will be tabulated. Wavelengths must be given in Angstroms. Multiple {\normalfont \ttfamily spectra} elements can be given, each specifying the spectrum at a redshift as given in the {\normalfont \ttfamily redshift} element. Each {\normalfont \ttfamily spectra} element must contain an array of {\normalfont \ttfamily datum} elements that gives the spectrum at each wavelength listed in the {\normalfont \ttfamily wavelength} element. Spectra must be in units of erg cm$^{-2}$ s$^{-1}$ Hz$^{-1}$ sr$^{-1}$.
-
-\subsubsection{Tree Timing}
-
-Additional methods for tree timing (i.e. the time taken to process a given merger tree) can be added using the {\normalfont \ttfamily timePerTreeMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily file} method is described by a directive:
-\begin{verbatim}
-  !# <timePerTreeMethod>
-  !#  <unitName>Galacticus_Time_Per_Tree_File_Initialize</unitName>
-  !# </timePerTreeMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Galacticus\_Time\_Per\_Tree\_File\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(timePerTreeMethod,Galacticus_Time_Per_Tree_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: timePerTreeMethod
-    procedure(),          pointer, intent(inout) :: Galacticus_Time_Per_Tree_Get
-    
-    if (timePerTreeMethod == 'myMethod') then
-       Galacticus_Time_Per_Tree_Get => My_Time_Per_Tree_Get
-       .
-       .
-       .
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily timePerTreeMethod} input parameter. The procedure pointer {\normalfont \ttfamily Galacticus\_Time\_Per\_Tree\_Get} must be set to point to a function which returns an estimate of the time taken (in seconds) to process a merger tree. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The function must have the form:
-\begin{verbatim}
-   double precision function Time_Per_Tree(treeRootMass)
-    implicit none
-    double precision, intent(in) :: treeRootMass
-    .
-    .
-    .
-    return
-   end function Time_Per_Tree 
-\end{verbatim}
-The function must return an estimate of the time taken (in seconds) to process a merger tree with the given {\normalfont \ttfamily treeRootMass}.
-
-Currently defined tree timing methods are:
-\begin{description}
- \item [{\normalfont \ttfamily file}] This method reads coefficients of a simple fitting formula for the processing time from a file, specified via the {\normalfont \ttfamily [timePerTreeFitFileName]} parameter.
-\end{description}
+where {\normalfont \ttfamily MyImplementation} is an appropriate name for the implemention. This file should be treated as a regular Fortran submodule, but without the initial {\normalfont \ttfamily submodule} and final {\normalfont \ttfamily end submodule} lines. That is, it may contain {\normalfont \ttfamily use} statements and variable declarations prior to the {\normalfont \ttfamily contains} line, and should contain all functions required by the implementation after that line. It is standard, but not required, that function names should be prefixed with the name of the implementation (e.g. ``{\normalfont \ttfamily MyImplementation}'' in the above example). The file \emph{must} define a type that extends the named {\normalfont \ttfamily functionClass} class (or extends another type which is itself an extension of the named {\normalfont \ttfamily functionClass} class), containing any data needed by the implementation along with type-bound functions required by the implementation.
 
 \subsection{Events}
 
@@ -674,6 +356,22 @@ where {\normalfont \ttfamily thisNode} is the node about to be promoted.
 
 Tasks are any processing which must be performed on a node as a result of some specific event (such as a merger).
 
+\section{Analytic Solvers}
+
+\glc\ typically solves the system of \glspl{ode} which describe the evolution of a galaxy using a numerical solver. However, in some situations analytic solutions may be available. \glc\ allows for the use of analytic solvers in such cases. Currently available analytic solvers are described below.
+
+\subsection{Simple Disk Satellites}
+
+This solver, which can be activated by setting {\normalfont \ttfamily [diskVerySimpleUseAnalyticSolver]}$=${\normalfont \ttfamily true} is applicable to satellite systems in the very simple disk component. In particular, the following conditions must be met for it to be valid:
+\begin{itemize}
+\item The hot halo component must be of type {\normalfont \ttfamily verySimple} or {\normalfont \ttfamily verySimpleDelayed};
+\item The satellite component must be of type {\normalfont \ttfamily verySimple};
+\item The disk component must be of type {\normalfont \ttfamily verySimple};
+\item Properties of all other components must not change for satellite galaxies (with the exception of the {\normalfont \ttfamily time} property of the basic component), or else the component must be {\normalfont \ttfamily null};
+  \item Disk star formation and outflow rates must scale as $M_\mathrm{gas}/\tau$ where $M_\mathrm{gas}$ is the instantaneous mass of gas in the galaxy disk, and $\tau$ is a fixed timescale for any given satellite galaxy.
+\end{itemize}
+Under these conditions, the flow of mass between gas, stellar, and outflowed phases is analytically solvable.
+
 \subsubsection{Calculation Reset Tasks}\label{sec:CalculationResetTask}
 
 Additional methods for calculation reset tasks (i.e. flagging that the properties of a node may have changed so that any calculations must be performed anew) can be added using the {\normalfont \ttfamily calculationResetTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to perform the task. For example, the standard hot halo component adds a task as follows:
@@ -694,70 +392,6 @@ Here, {\normalfont \ttfamily Tree\_Node\_Hot\_Halo\_Reset\_Standard} is the name
   end subroutine Prederivative_Task
 \end{verbatim}
 where {\normalfont \ttfamily thisNode} is the node for which derivatives will be computed. Tasks typically involve precomputing quantities that will be used in finding the derivatives or resetting the state so that stored quantities will be recomputed as needed.
-
-\subsubsection{Decode Property Identifier Tasks}\label{sec:DecodePropertyIndentifierTask}
-
-Additional property identifier decoding tasks (i.e. determining the name of a property from a set of integer identifiers) can be added using the {\normalfont \ttfamily decodePropertyIdentifiersTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to perform the task. For example, the Hernquist spheroid component adds a task as follows:
-\begin{verbatim}
-  !# <decodePropertyIdentifiersTask>
-  !#  <unitName>Hernquist_Spheroid_Property_Identifiers_Decode</unitName>
-  !# </decodePropertyIdentifiersTask>
-\end{verbatim}
-Here, {\normalfont \ttfamily Hernquist\_Spheroid\_Property\_Identifiers\_Decode} is the name of a subroutine which will be called to perform the decoding task. The subroutine must have the following form:
-\begin{verbatim}
-   subroutine Property_Identifier_Decode_Task(propertyComponent,propertyObject,propertyIndex,matchedProperty,propertyName)
-    implicit none
-    integer,              intent(in)    :: propertyComponent,propertyObject,propertyIndex
-    logical,              intent(inout) :: matchedProperty
-    type(varying_string), intent(inout) :: propertyName
-    .
-    .
-    .
-    return
-  end subroutine Property_Identifier_Decode_Task
-\end{verbatim}
-The task should check whether {\normalfont \ttfamily propertyComponent} matches its stored {\normalfont \ttfamily componentIndex} value. If it does, it should set {\normalfont \ttfamily propertyName} to a suitable name (e.g. {\normalfont \ttfamily hernquistSpheroid::stellarMass}) and set {\normalfont \ttfamily matchedProperty}$=${\normalfont \ttfamily true}. The value of {\normalfont \ttfamily propertyObject} will be either {\normalfont \ttfamily objectTypeProperty} indicating that the object in question is a standard property, or {\normalfont \ttfamily objectTypeHistory} indicating that it is a history. The value of {\normalfont \ttfamily propertyIndex} then gives the position of the object in question in the array of properties or histories.
-
-\subsubsection{Evolution Timestep Tasks}
-
-Merger tree nodes are evolved over some fixed timestep before evolution is stopped and other processing is allowed. The timestep is always sufficiently small such that the node does not evolve past the time of its parent node, nor does it evolve past the time of any of its satellite nodes. An arbitrary number of other criteria can be used to adjust the timestep. Such a criterion can be added using the {\normalfont \ttfamily timeStepsTask} directive. For example, the {\normalfont \ttfamily simple} timestep task adds itself using
-\begin{verbatim}
- !# <timeStepsTask>
- !#  <unitName>Merger_Tree_Timestep_Simple</unitName>
- !# </timeStepsTask>
-\end{verbatim}
-Here, {\normalfont \ttfamily unitName} gives the name of the subroutine to be called to (possibly) adjust the timestep. It should have the following form:
-\begin{verbatim}
-  subroutine My_Timestep(thisNode,timeStep,End_Of_Timestep_Task,report,lockNode,lockType)
-    implicit none
-    type     (treeNode      ), intent(inout), pointer           :: thisNode
-    procedure(              ), intent(inout), pointer           :: End_Of_Timestep_Task
-    double precision         , intent(inout)                    :: timeStep
-    logical                  , intent(in   )                    :: report
-    type     (treeNode      ), intent(inout), pointer, optional :: lockNode
-    type     (varying_string), intent(inout),          optional :: lockType
-    .
-    .
-    .
-    return
-  end subroutine My_Timestep
-\end{verbatim}
-This subroutine should compute a suitable timestep for {\normalfont \ttfamily thisNode} and, if it is less than the currently defined value of {\normalfont \ttfamily timeStep} should set {\normalfont \ttfamily timeStep} to that value. Optionally, the procedure pointer {\normalfont \ttfamily End\_Of\_Timestep\_Task} can be set to point to a subroutine which will be called after the node is evolved to the end of the timestep. It is acceptable for this pointer to be null. Note that the {\normalfont \ttfamily End\_Of\_Timestep\_Task} will only be called for the task which provided the shortest timestep---other tasks can always request to be called again when the next timestep is determined. The subroutine to be called at the end of the timestep must have the form:
-\begin{verbatim}
-  subroutine My_End_Of_Timestep_Task(thisTree,thisNode,deadlockStatus)
-    implicit none
-    type(mergerTree), intent(in)             :: thisTree
-    type(treeNode),   intent(inout), pointer :: thisNode
-    integer,          intent(inout)          :: deadlockStatus
-    .
-    .
-    .
-    return
-  end subroutine My_End_Of_Timestep_Task
-\end{verbatim}
-The {\normalfont \ttfamily deadlockStatus} argument should be set to {\normalfont \ttfamily isNotDeadlocked} (provided by the \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Source.pdf#source.merger_trees_evolve_deadlock_options_F90:merger_trees_evolve_deadlock_status}{\normalfont \ttfamily Merger\_Trees\_Evolve\_Deadlock\_Status} module) if, and only if, the end of timestep task makes some change to the state of the tree (e.g. merging a node), to indicate that the tree was not deadlocked in this pass (i.e. something actually changed in the tree).
-
-If the {\normalfont \ttfamily report} argument is {\normalfont \ttfamily true} then the function should report the value of {\normalfont \ttfamily timestep} prior to exiting. (This is used in reporting on timestepping criteri in deadlocked trees.) It is recommended that the report be made using the \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Source.pdf#source.merger_trees_evolve_timesteps_report_F90:evolve_to_time_reports:evolve_to_time_report}{\normalfont \ttfamily Evolve\_To\_Time\_Report()} function. Additionally, if the optional {\normalfont \ttfamily lockNode} and {\normalfont \ttfamily lockType} arguments are present then additional information can be supplied to aid in diagnosing deadlock conditions. If the current task is limiting the timestep then the {\normalfont \ttfamily lockNode} pointer should be set to point to whichever node is causing the limit (which may be {\normalfont \ttfamily thisNode} or some other node, e.g. a satellite of {\normalfont \ttfamily thisNode}, etc.), and {\normalfont \ttfamily lockType} should be set to a short description label identifying the type of limit.
 
 \subsubsection{Galactic Component Density}\label{sec:GalacticComponentDensity}
 
@@ -1001,74 +635,13 @@ Additional outputs for merger trees can be added using three directives: {\norma
 The {\normalfont \ttfamily mergerTreeOutputPropertyCount} subroutine must simply increment {\normalfont \ttfamily integerPropertyCount} and {\normalfont \ttfamily doublePropertyCount} by the number of integer and double precision properties that will be output respectively. The {\normalfont \ttfamily mergerTreeOutputNames} subroutine must store the dataset names, comments and units in the SI system\footnote{For dimensionless quantities, the units may be set to zero. In such cases, the {\normalfont \ttfamily unitsInSI} attribute for the dataset will not be written to the \protect\glc\ output file.} for each integer and double precision property in the supplied arrays. The value of {\normalfont \ttfamily integerProperty} and {\normalfont \ttfamily doubleProperty} should be incremented by 1 before each property name/comment is set---these then supply the position within the input arrays in which to store the name. The {\normalfont \ttfamily mergerTreeOutputTask} subroutine must similarly place the desired property values for {\normalfont \ttfamily thisNode} into the supplied arrays. The value of {\normalfont \ttfamily integerProperty} and {\normalfont \ttfamily doubleProperty} should be incremented by 1 
 before each property value is set. The value can then be stored in, for example, {\normalfont \ttfamily integerBuffer(integerBufferCount,integerProperty)}.
 
-\subsubsection{Merger Tree Pre-Construction Tasks}\label{sec:MergerTreePreConstructionTask}
-
-Additional tasks to be performed prior to the construction of each merger tree can be added using the {\normalfont \ttfamily mergerTreePreTreeConstructionTask} directive. For example, the tree timing task uses this directive as follows:
-\begin{verbatim}
-  !# <mergerTreePreTreeConstructionTask>
-  !#   <unitName>Meta_Tree_Timing_Pre_Construction</unitName>
-  !# </mergerTreePreTreeConstructionTask>
-\end{verbatim}
-Here, {\normalfont \ttfamily Meta\_Tree\_Timing\_Pre\_Construction} is the name of a subroutine which will be called to perform whatever tasks are required. The subroutine must have the following form:
-\begin{verbatim}
-   subroutine Merger_Tree_PreConstruction_Task()
-    implicit none
-    .
-    .
-    .
-    return
-  end subroutine Merger_Tree_PreConstruction_Task
-\end{verbatim}
-The subroutine will be called once for each tree, before the tree has been constructed.
-
-\subsubsection{Merger Tree Post-Evolution Tasks}\label{sec:MergerTreePostEvolveTask}
-
-Additional tasks to be performed after the evolution (and subsequent destruction) of each merger tree can be added using the {\normalfont \ttfamily mergerTreePostEvolveTasker} directive. For example, the tree timing task uses this directive as follows:
-\begin{verbatim}
-  !# <mergerTreePostEvolveTask>
-  !#   <unitName>Meta_Tree_Timing_Post_Evolve</unitName>
-  !# </mergerTreePostEvolveTask>
-\end{verbatim}
-Here, {\normalfont \ttfamily Meta\_Tree\_Timing\_Post\_Evolve} is the name of a subroutine which will be called to perform whatever tasks are required. The subroutine must have the following form:
-\begin{verbatim}
-   subroutine Merger_Tree_PostEvolution_Task()
-    implicit none
-    .
-    .
-    .
-    return
-  end subroutine Merger_Tree_PostEvolution_Task
-\end{verbatim}
-The subroutine will be called once for each tree, after the tree has been evolved and destroyed.
-
-\subsubsection{Merger Tree Pre-Evolution Tasks}\label{sec:MergerTreePreEvolveTask}
-
-Additional tasks to be performed on merger trees prior to their evolution can be added using the {\normalfont \ttfamily mergerTreePreEvolveTask} directive. For example, the mass accretion history task uses this directive as follows:
-\begin{verbatim}
-  !# <mergerTreePreEvolveTask>
-  !#   <unitName>Merger_Tree_Mass_Accretion_History_Output</unitName>
-  !# </mergerTreePreEvolveTask>
-\end{verbatim}
-Here, {\normalfont \ttfamily Merger\_Tree\_Mass\_Accretion\_History\_Output} is the name of a subroutine which will be called to perform whatever tasks are required. The subroutine must have the following form:
-\begin{verbatim}
-   subroutine Merger_Tree_PreEvolution_Task(thisTree)
-    implicit none
-    type(mergerTree), intent(in) :: thisTree
-    .
-    .
-    .
-    return
-  end subroutine Merger_Tree_PreEvolution_Task
-\end{verbatim}
-where {\normalfont \ttfamily thisTree} is the tree to be processed. The function will be called once for each tree, prior to the tree being evolved. Note that {\normalfont \ttfamily thisTree} may link to other trees via its {\normalfont \ttfamily nextTree} pointer. The function may want to process each tree in this linked list.
-
 \subsubsection{Merger Tree Initialization Tasks}
 
 Additional tasks to be performed during merger tree initialization can be added using the {\normalfont \ttfamily mergerTreeInitializeTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily standard} basic component method uses this directive as follows:
 \begin{verbatim}
-  !# <satelliteMergerTask>
+  !# <mergerTreeInitializeTask>
   !#  <unitName>Halo_Mass_Accretion_Rate</unitName>
-  !# </satelliteMergerTask>
+  !# </mergerTreeInitializeTask>
 \end{verbatim}
 Here, {\normalfont \ttfamily Halo\_Mass\_Accretion\_Rate} is the name of a subroutine which will be called to perform whatever tasks are required as a result of the merger. The subroutine must have the following form:
 \begin{verbatim}
@@ -1082,87 +655,6 @@ Here, {\normalfont \ttfamily Halo\_Mass\_Accretion\_Rate} is the name of a subro
   end subroutine Merger_Tree_Initialize_Task
 \end{verbatim}
 where {\normalfont \ttfamily thisNode} is the node to be initialized. The subroutine will be called once for each node in the tree.
-
-\subsubsection{Merger Tree Structure Output Tasks}
-
-Additional outputs for merger tree structure output can be added using the {\normalfont \ttfamily mergerTreeStructureOutputTask}. The directive should give the name of the subroutine to be called to perform the task. The templates for this tasks is:
-\begin{verbatim}
-  !# <mergerTreeStructureOutputTask>
-  !#  <unitName>Structure_Output_Task</unitName>
-  !# </mergerTreeStructureOutputTask>
-  subroutine Structure_Output_Task(baseNode,nodeProperty,treeGroup)
-    implicit none
-    type(treeNode),   intent(in),    pointer      :: baseNode
-    double precision, intent(inout), dimension(:) :: nodeProperty
-    type(hdf5Object), intent(inout)               :: treeGroup
-    .
-    .
-    .
-    return
-  end subroutine Structure_Output_Task
-\end{verbatim}
-The subroutine must walk the merger tree beginning from the given {\normalfont \ttfamily baseNode} and store each property to output in the given {\normalfont \ttfamily nodeProperty} array. Once populated, this array can be written to the appropriate HDF5 group, given by {\normalfont \ttfamily treeGroup}, in the \glc\ output file.
-
-\subsubsection{Node Dump}
-
-The function {\normalfont \ttfamily Node\_Dump(thisNode)} writes out all properties of a node to the display. To have their properties listed, each component must register a task using:
-\begin{verbatim}
- !# <nodeDumpTask>
- !#  <unitName>Node_Dump_Procedure</unitName>
- !# </nodeDumpTask>
-\end{verbatim}
-where {\normalfont \ttfamily Node\_Dump\_Procedure} is the name of a subroutine with the following template
-\begin{verbatim}
- subroutine Node_Dump_Procedure(thisNode)
-    type(treeNode),   intent(inout), pointer :: thisNode
-    .
-    .
-    .
-    return
- end subroutine Node_Dump_Procedure
-\end{verbatim}
-If the node contains an active component, this subroutine should display all relevant properties of the component. If not, it can display a short message indicating that fact.
-
-\subsubsection{Output Group Output Tasks}\index{output groups}\index{tasks!output}
-
-Extra outputs for output groups (i.e. the groups which hold all merger tree data for a given output time) can be added using the directive: {\normalfont \ttfamily outputGroupOutputTask}. The directive should give the name of the subroutine to be called to perform the task. A template for this task is:
-\begin{verbatim}
-  !# <outputGroupOutputTask>
-  !#  <unitName>Galacticus_Output_Group_Output_Example</unitName>
-  !# </outputGroupOutputTask>
-  subroutine Galacticus_Output_Group_Output_Example(outputGroup,time)
-    implicit none
-    type(hdf5Object), intent(inout) :: outputGroup
-    double precision, intent(in)    :: time
-    .
-    .
-    .
-    return
-  end subroutine Galacticus_Output_Group_Output_Example
-\end{verbatim}
-The subroutine will be called for each output group created, and should perform whatever extra output it requires. The {\normalfont \ttfamily outputGroup} object and the corresponding output {\normalfont \ttfamily time} are provided as input parameters.
-
-
-\subsubsection{Post-evolve Tasks}\index{post-evolve task}\index{task, post-evolve}
-
-Additional methods for post-evolve tasks (i.e. things that should be done after each node is evolved differentially to the next output time, interrupt, or event) can be added using the {\normalfont \ttfamily postEvolveTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to perform the task. For example, the standard hot halo component adds a task as follows:
-\begin{verbatim}
-  !# <postEvolveTask>
-  !#  <unitName>Tree_Node_Hot_Halo_Postevolve_Standard</unitName>
-  !# </postEvolveTask>
-\end{verbatim}
-Here, {\normalfont \ttfamily Tree\_Node\_Hot\_Halo\_Postevolve\_Standard} is the name of a subroutine which will be called to perform whatever tasks are required. The subroutine must have the following form:
-\begin{verbatim}
-   subroutine Post_Evolve_Task(node)
-    implicit none
-    type(treeNode), intent(inout) :: node
-    .
-    .
-    .
-    return
-  end subroutine Post_Evolve_Task
-\end{verbatim}
-where {\normalfont \ttfamily node} is the node for which tasks will be performed. Tasks typically involve cleaning up after differential evolution.
 
 \subsubsection{Post-step Tasks}\index{post-step task}\index{task, post-step}
 
@@ -1185,27 +677,6 @@ Here, {\normalfont \ttfamily Tree\_Node\_Hot\_Halo\_Poststep\_Standard} is the n
   end subroutine Post_Step_Task
 \end{verbatim}
 where {\normalfont \ttfamily node} is the node for which tasks should be performed. If any change is made to the state of the node then {\normalfont \ttfamily status} should be set equal to {\normalfont \ttfamily GSL\_Failure}. Tasks typically involve cleaning up after differential evolution.
-
-\subsubsection{Pre-derivative Tasks}\index{pre-derivative task}\index{task, pre-derivative}
-
-Additional methods for pre-derivative tasks (i.e. things that should be done just prior to the computation of derivatives or properties for a node) can be added using the {\normalfont \ttfamily preDerivativeTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to perform the task. For example, the standard hot halo component adds a task as follows:
-\begin{verbatim}
-  !# <preDerivativeTask>
-  !#  <unitName>Tree_Node_Hot_Halo_Prederivative_Standard</unitName>
-  !# </preDerivativeTask>
-\end{verbatim}
-Here, {\normalfont \ttfamily Tree\_Node\_Hot\_Halo\_Prederivative\_Standard} is the name of a subroutine which will be called to perform whatever tasks are required. The subroutine must have the following form:
-\begin{verbatim}
-   subroutine Prederivative_Task(thisNode)
-    implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-    .
-    .
-    .
-    return
-  end subroutine Prederivative_Task
-\end{verbatim}
-where {\normalfont \ttfamily thisNode} is the node for which derivatives will be computed. Tasks typically involve precomputing quantities that will be used in finding the derivatives.
 
 \subsubsection{Radius Solver Tasks}\label{sec:radius_solver}
 
@@ -1278,27 +749,6 @@ Here, {\normalfont \ttfamily Satellite\_Orbit\_New\_Host} is the name of a subro
 \end{verbatim}
 where {\normalfont \ttfamily thisNode} is the node which has changed host (the new host halo is {\normalfont \ttfamily thisNode\%parentNode}).
 
-\subsubsection{Satellite Merger Tasks}
-
-Additional methods for satellite merger tasks can be added using the {\normalfont \ttfamily satelliteMergerTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily simple} satellite orbits components uses this directive as follows:
-\begin{verbatim}
-  !# <satelliteMergerTask>
-  !#  <unitName>Satellite_Merger_Task</unitName>
-  !# </satelliteMergerTask>
-\end{verbatim}
-Here, {\normalfont \ttfamily Satellite\_Merger\_Task} is the name of a subroutine which will be called to perform whatever tasks are required as a result of the merger. The subroutine must have the following form:
-\begin{verbatim}
-   subroutine Satellite_Merger_Task(thisNode)
-    implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-    .
-    .
-    .
-    return
-  end subroutine Satellite_Merger_Task
-\end{verbatim}
-where {\normalfont \ttfamily thisNode} is the node about to merge with {\normalfont \ttfamily thisNode\%parentNode}.
-
 \section{Subsystems}
 
 This section describes some of the subsystems within \glc\ that support various physical entities or processes.
@@ -1365,37 +815,6 @@ Once assigned a chemical, basic properties such as mass and charge (in atomic un
 \subsubsection{Chemical Abundances}
 
 Within \glc\ a set of abundances (or masses, or densities\ldots) for all chemicals being tracked, as specified by the {\normalfont \ttfamily [chemicalsToTrack]} input parameter, is stored within a {\normalfont \ttfamily chemicalAbundancesStructure} type, as provided by the {\normalfont \ttfamily Chemical\_Abundances\_Structure} module. The structure provides interfaces for setting and retrieving the abundance of a given chemical species, to pack/unpack all chemicals to/from an array, to convert from mass-weighted to number-weigted quantities and to multiplty and divide the chemicals abundances by a given amount. Additionally, the {\normalfont \ttfamily Chemical\_Abundances\_Structure} module provides functions which provide a count of the number of chemicals tracked, to look up the index of a chemical array represetation from its name, and to retrieve the name of a given chemical.
-
-\subsection{Radiation}\label{sec:RadiationSubsystem}
-
-This subsystem handles radiation fields, providing convenient means to communicate radiation fields from one part of the \glc\ code to another. A radiation object can hold multiple different types of radiation field (e.g. it could contain both the cosmic microwave background and an interstellar radiation field localized to a specific galaxy).
-
-\subsubsection{Radiation Structure}
-
-Within \glc\ radiation fields are represented by the {\normalfont \ttfamily radiationStructure} type which is provided by the {\normalfont \ttfamily Radiation\_Structures} module. A {\normalfont \ttfamily radiationStructure} object must first be defined using:
-\begin{verbatim}
- call myRadiation%define([radiationType1,radiationType2])
-\end{verbatim}
-where the list of {\normalfont \ttfamily radiationType}s specifies what radiation components will be present in this radiation object. Currently defined radiation types are:
-\begin{description}
- \item[{\normalfont \ttfamily CMB}] The cosmic microwave background;
- \item[{\normalfont \ttfamily Null}] A null (zero radiation) component.
-\end{description}
-For example,
-\begin{verbatim}
- call myRadiation%define([radiationTypeCMB])
-\end{verbatim}
-will define the {\normalfont \ttfamily myRadiation} object to contain just the cosmic microwave background.
-
-Once defined, the specific radiation field can be set using:
-\begin{verbatim}
- call myRadiation%set(thisNode)
-\end{verbatim}
-This will cause all components to set their radiation fields using (if necessary) the properties of {\normalfont \ttfamily thisNode}. Radiation objects can be queried using the following methods:
-\begin{description}
- \item[{\normalfont \ttfamily temperature(radiationTypes)}] Returns the temperature (in Kelvin) of the radiation object. The optional {\normalfont \ttfamily radiationTypes} array specifies which radiation types are to be queried.
- \item[{\normalfont \ttfamily flux(wavelength,radiationTypes)}] Returns the flux (in ergs cm$^2$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$) of the radiation object at the given {\normalfont \ttfamily wavelength} (specified in units of \AA). The optional {\normalfont \ttfamily radiationTypes} array specifies which radiation types are to be queried.
-\end{description}
 
 \subsection{Coordinates}\label{sec:Coordinates}
 

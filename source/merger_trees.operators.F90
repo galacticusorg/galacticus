@@ -25,7 +25,9 @@ module Merger_Tree_Operators
   !# <functionClass>
   !#  <name>mergerTreeOperator</name>
   !#  <descriptiveName>Merger Tree Operators</descriptiveName>
-  !#  <description>Class providing operators acting on merger trees.</description>
+  !#  <description>
+  !#   Class providing operators acting on merger trees.
+  !#  </description>
   !#  <default>null</default>
   !#  <method name="operatePreConstruction" >
   !#   <description>Perform an operation on the merger tree prior to construction.</description>

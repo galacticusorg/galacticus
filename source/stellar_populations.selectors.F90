@@ -30,7 +30,9 @@ module Stellar_Population_Selectors
   !# <functionClass>
   !#  <name>stellarPopulationSelector</name>
   !#  <descriptiveName>Stellar Population Selectors</descriptiveName>
-  !#  <description>Class providing selectors for stellar populations.</description>
+  !#  <description>
+  !#   Class providing selectors for stellar populations.
+  !#  </description>
   !#  <default>fixed</default>
   !#  <method name="select" >
   !#   <description>Return a stellar population.</description>

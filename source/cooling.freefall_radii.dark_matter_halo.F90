@@ -24,7 +24,8 @@
 
   !# <freefallRadius name="freefallRadiusDarkMatterHalo">
   !#  <description>
-  !#   A freefall radius class which computes the freefall radius based on the freefall time in the dark matter halo.
+  !#   A freefall radius class that assumes that the freefall radius corresponds to the radius at which the freefall time in the
+  !#   dark matter halo equals the time available for freefall (see \S\ref{sec:TimeAvailableFreefall}).
   !#  </description>
   !# </freefallRadius>
   type, extends(freefallRadiusClass) :: freefallRadiusDarkMatterHalo

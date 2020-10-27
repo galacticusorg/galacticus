@@ -25,7 +25,7 @@
 
   !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionStllrMssFnctn">
   !#  <description>
-  !#   A merger tree halo mass function sampling class optimized to minimize variance in the model stellar mass function.
+  !#   A merger tree build mass distribution class designed to minimize variance in the model stellar mass function.
   !#
   !#   Suppose we want to fit parameters of the \glc\ model to some dataset. The basic approach is to generate large numbers of
   !#   model realizations for different parameter values and see which ones best match the data. \glc\ models involve simulating
@@ -37,10 +37,12 @@
   !#
   !#   First, some definitions:
   !#   \begin{description}
-  !#    \item [$n(M) \d \ln M$] is the dark matter halo mass function, i.e. the number of halos in the range $M$ to $M+M\d\ln  M$ per unit volume;
+  !#    \item [$n(M) \d \ln M$] is the dark matter halo mass function, i.e. the number of halos in the range $M$ to $M+M\d\ln M$
+  !#    per unit volume;
   !#    \item [$\gamma(M) \d \ln M$] is the number of trees that we will simulate in the range $M$ to $M+M\d \ln M$;
   !#    \item [$\alpha(M_\star)$] is the error on the observed stellar mass function at mass $M_\star$;
-  !#    \item [$P(N|M_\star,M;\delta \ln M_\star)$] is the conditional stellar mass distribution function of galaxies of stellar mass $M_\star$ in a bin of width $\delta \ln M_\star$ per halo of mass $M$;
+  !#    \item [$P(N|M_\star,M;\delta \ln M_\star)$] is the conditional stellar mass distribution function of galaxies of stellar
+  !#    mass $M_\star$ in a bin of width $\delta \ln M_\star$ per halo of mass $M$;
   !#    \item [$t(M)$] is the CPU time it takes to simulate a tree of mass $M$.
   !#   \end{description}
   !#   To clarify, $P(N|M_\star,M;\delta \ln M_\star;\delta \ln M_\star)$ is the probability\footnote{To put it another way,
@@ -88,7 +90,8 @@
   !#  Model variance artificially increases the likelihood of a given model. We would therefore like to minimize the increase in
   !#  the likelihood due to the model variance:
   !#  \begin{equation}
-  !#   \Delta 2 \ln \mathcal{L} = \sum_i {[\phi_{\mathrm{obs},i} - \phi_i]^2 \over \alpha_i^2} - {[\phi_{\mathrm{obs},i} - \phi_i]^2 \over \alpha_i^2 + \sigma_i^2} 
+  !#   \Delta 2 \ln \mathcal{L} = \sum_i {[\phi_{\mathrm{obs},i} - \phi_i]^2 \over \alpha_i^2} - {[\phi_{\mathrm{obs},i} -
+  !#   \phi_i]^2 \over \alpha_i^2 + \sigma_i^2}
   !#  \end{equation}
   !#  Of course, we don't know the model prediction, $\phi_i$, in advance\footnote{Below, we will adopt a simple empirical model
   !#  for $\phi(M_\star)$. However, it should not be used here since we will in actuality be computing the likelihood from the
@@ -111,7 +114,8 @@
   !#  We therefore want to minimize $F[\gamma(M)]$ while keeping $\tau$ equal to some finite value. We can do this using a
   !#  Lagrange multiplier and minimizing the function
   !#  \begin{equation}
-  !#    F[\gamma(M)] = \int_0^\infty {\alpha(M_\star)^2 \over \alpha(M_\star)^2 + \sigma(M_\star)^2} \d \ln M_\star + \int_0^\infty \lambda \gamma(M) t(M) \d \ln M.
+  !#    F[\gamma(M)] = \int_0^\infty {\alpha(M_\star)^2 \over \alpha(M_\star)^2 + \sigma(M_\star)^2} \d \ln M_\star +
+  !#    \int_0^\infty \lambda \gamma(M) t(M) \d \ln M.
   !#  \end{equation}
   !#  Finding the functional derivative and setting it equal to zero gives:
   !#  \begin{equation}
@@ -132,23 +136,30 @@
   !#  integral form of the conditional stellar mass function is convenient here since it allows for easy calcualtion of the number
   !#  of galaxies expected in the finite-width bins of the observed stellar mass function.}:
   !#  \begin{equation}
-  !#   \langle N_\mathrm{c}(M_\star|M)\rangle \equiv \int_{M_\star}^\infty \phi_\mathrm{c}(M_\star^\prime) \d \ln M_\star^\prime = {1 \over 2} \left[ 1 - \hbox{erf}\left( {\log_{10}M_\star - \log_{10} f_\mathrm{SHMR}(M) \over \sqrt{2}\sigma_{\log M_\star}} \right) \right].
+  !#   \langle N_\mathrm{c}(M_\star|M)\rangle \equiv \int_{M_\star}^\infty \phi_\mathrm{c}(M_\star^\prime) \d \ln M_\star^\prime =
+  !#   {1 \over 2} \left[ 1 - \hbox{erf}\left( {\log_{10}M_\star - \log_{10} f_\mathrm{SHMR}(M) \over \sqrt{2}\sigma_{\log
+  !#   M_\star}} \right) \right].
   !#  \end{equation}
   !#  Here, the function $f_\mathrm{SHMR}(M)$ is the solution of
   !#  \begin{equation}
-  !#   \log_{10}M = \log_{10}M_1 + \beta \log_{10}\left({M_\star \over M_{\star,0}}\right) + {(M_\star/M_{\star,0})^\delta \over 1 + (M_\star/M_{\star,0})^{-\gamma}} - {1/2}.
+  !#   \log_{10}M = \log_{10}M_1 + \beta \log_{10}\left({M_\star \over M_{\star,0}}\right) + {(M_\star/M_{\star,0})^\delta \over 1
+  !#   + (M_\star/M_{\star,0})^{-\gamma}} - {1/2}.
   !#  \end{equation}
   !#  For satellites,
   !#  \begin{equation}
-  !#   \langle N_\mathrm{s}(M_\star|M)\rangle \equiv \int_{M_\star}^\infty \phi_\mathrm{s}(M_\star^\prime) \d \ln M_\star^\prime =  \langle N_\mathrm{c}(M_\star|M)\rangle \left({f^{-1}_\mathrm{SHMR}(M_\star) \over M_\mathrm{sat}}\right)^{\alpha_\mathrm{sat}} \exp\left(- {M_\mathrm{cut} \over f^{-1}_\mathrm{SHMR}(M_\star)} \right),
+  !#   \langle N_\mathrm{s}(M_\star|M)\rangle \equiv \int_{M_\star}^\infty \phi_\mathrm{s}(M_\star^\prime) \d \ln M_\star^\prime =
+  !#   \langle N_\mathrm{c}(M_\star|M)\rangle \left({f^{-1}_\mathrm{SHMR}(M_\star) \over
+  !#   M_\mathrm{sat}}\right)^{\alpha_\mathrm{sat}} \exp\left(- {M_\mathrm{cut} \over f^{-1}_\mathrm{SHMR}(M_\star)} \right),
   !#  \end{equation}
   !#  where
   !#  \begin{equation}
-  !#   {M_\mathrm{sat} \over 10^{12} M_\odot} = B_\mathrm{sat} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12} M_\odot}\right)^{\beta_\mathrm{sat}},
+  !#   {M_\mathrm{sat} \over 10^{12} M_\odot} = B_\mathrm{sat} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12}
+  !#   M_\odot}\right)^{\beta_\mathrm{sat}},
   !#  \end{equation}
   !#  and
   !#  \begin{equation}
-  !#   {M_\mathrm{cut} \over 10^{12} M_\odot} = B_\mathrm{cut} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12} M_\odot}\right)^{\beta_\mathrm{cut}}.
+  !#   {M_\mathrm{cut} \over 10^{12} M_\odot} = B_\mathrm{cut} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12}
+  !#   M_\odot}\right)^{\beta_\mathrm{cut}}.
   !#  \end{equation}
   !#
   !#  We use the best fit parameters from the {\normalfont \ttfamily SIG\_MOD1} method of \cite{leauthaud_new_2011} for their
@@ -186,7 +197,8 @@
   !#  The errors in the \cite{li_distribution_2009} observed stellar mass function are well fit by (see
   !#  Fig.~\ref{fig:stellarMassFunctionErrors}):
   !#  \begin{equation}
-  !#   \alpha(M_\star) = 10^{-3} \left({M_\star\over 4.5\times 10^{10}M_\odot}\right)^{-0.3} \exp\left(-{M_\star\over 4.5\times 10^{10}M_\odot}\right) + 10^{-7},
+  !#   \alpha(M_\star) = 10^{-3} \left({M_\star\over 4.5\times 10^{10}M_\odot}\right)^{-0.3} \exp\left(-{M_\star\over 4.5\times
+  !#   10^{10}M_\odot}\right) + 10^{-7},
   !#   \label{eq:stellarMassFunctionErrorsFit}
   !#  \end{equation}
   !#  and the tree processing time in \glc\ can be described by:
@@ -204,7 +216,8 @@
   !#   \begin{center}
   !#   \includegraphics[width=160mm]{../plots/stellarMassFunctionErrors_z01.pdf}
   !#   \end{center}
-  !#   \caption{Errors on the \protect\cite{li_distribution_2009} stellar mass funtion (points) and the fitting function (line) given by eqn.~(\protect\ref{eq:stellarMassFunctionErrorsFit}).}
+  !#   \caption{Errors on the \protect\cite{li_distribution_2009} stellar mass funtion (points) and the fitting function (line)
+  !#   given by eqn.~(\protect\ref{eq:stellarMassFunctionErrorsFit}).}
   !#   \label{fig:stellarMassFunctionErrors}
   !#  \end{figure}
   !#
@@ -212,7 +225,8 @@
   !#   \begin{center}
   !#   \includegraphics[width=160mm]{../plots/optimalSamplingStellarMassFunction.pdf}
   !#   \end{center}
-  !#   \caption{Optimal weighting (yellow line) compared with weighting by the dark matter halo mass function (i.e. sampling halos at random from a representative volume; blue line). Sampling densities have been normalized to unit compute time.}
+  !#   \caption{Optimal weighting (yellow line) compared with weighting by the dark matter halo mass function (i.e. sampling halos
+  !#   at random from a representative volume; blue line). Sampling densities have been normalized to unit compute time.}
   !#   \label{fig:optimalSamplingStellarMassFunction}
   !#  \end{figure}
   !#  </description>

@@ -24,7 +24,19 @@
   use            :: Stellar_Population_Selectors  , only : stellarPopulationSelectorClass
 
   !# <stellarPopulationProperties name="stellarPopulationPropertiesInstantaneous">
-  !#  <description>A stellar population properties class based on the instantaneous recycling approximation.</description>
+  !#  <description>
+  !#   A stellar population properties class based on the instantaneous recycling approximation. Specifically, given a star
+  !#   formation rate $\phi$, this method assumes a rate of increase of stellar mass of $\dot{M}_\star=(1-R)\phi$, a corresponding
+  !#   rate of decrease in fuel mass. The rate of change of the metal content of stars follows from the fuel metallicity, while
+  !#   that of the fuel changes according to
+  !#   \begin{equation}
+  !#    \dot{M}_{fuel,Z} = - (1-R) Z_\mathrm{fuel} \phi + p \phi.
+  !#   \end{equation}
+  !#   In the above $R$ is the instantaneous recycled fraction and $p$ is the yield, both of which are supplied by the \gls{imf}
+  !#   subsystem. The rate of energy input from the stellar population is computed assuming that the canonical amount of energy
+  !#   from a single stellar population (as defined by the {\normalfont \ttfamily feedbackEnergyInputAtInfinityCanonical}) is
+  !#   input instantaneously.
+  !#  </description>
   !# </stellarPopulationProperties>
   type, extends(stellarPopulationPropertiesClass) :: stellarPopulationPropertiesInstantaneous
      !% A stellar population properties class based on the instantaneous recycling approximation.

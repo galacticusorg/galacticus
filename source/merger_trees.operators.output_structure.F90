@@ -25,12 +25,10 @@
   !# <mergerTreeOperator name="mergerTreeOperatorOutputStructure">
   !#  <description>
   !#   A merger tree operator class which dumps pre-evolution tree structure to the output file. The node properties to be
-  !#   included in the dump are controlled by a
-  !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.nodePropertyExtractor}{\normalfont
-  !#   \ttfamily nodePropertyExtractor} object provided to this class.  Structures are written to a new group, {\normalfont
-  !#   \ttfamily mergerTreeStructures}, in the \glc\ output file. This group will contain groups called {\normalfont \ttfamily
-  !#   mergerTreeN} where {\normalfont \ttfamily N} is the merger tree index. Each such group will contain datasets corresponding
-  !#   to all extracted properties.
+  !#   included in the dump are controlled by a \refClass{nodePropertyExtractorClass} object provided to this class.  Structures are
+  !#   written to a new group, {\normalfont \ttfamily mergerTreeStructures}, in the \glc\ output file. This group will contain
+  !#   groups called {\normalfont \ttfamily mergerTreeN} where {\normalfont \ttfamily N} is the merger tree index. Each such group
+  !#   will contain datasets corresponding to all extracted properties.
   !#  </description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorOutputStructure

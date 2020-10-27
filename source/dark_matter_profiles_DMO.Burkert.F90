@@ -24,7 +24,35 @@
   use :: Tables                  , only : table1D  , table1DLogarithmicLinear
 
   !# <darkMatterProfileDMO name="darkMatterProfileDMOBurkert">
-  !#  <description>\cite{burkert_structure_1995} dark matter halo profiles</description>
+  !#  <description>
+  !#   A dark matter profile DMO class which implements the \citep{burkert_structure_1995} density profile is used
+  !#   \begin{equation}
+  !#     \rho_\mathrm{dark matter}(r) \propto \left(1+{r\over r_\mathrm{s}}\right)^{-1} \left(1+[{r\over
+  !#     r_\mathrm{s}}]^2\right)^{-1},
+  !#   \end{equation}
+  !#   normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the scale length
+  !#   $r_\mathrm{s} = r_\mathrm{virial}/c$ where $c$ is the halo concentration (see
+  !#   \S\ref{sec:DarkMatterProfileConcentration}). The mass enclosed within radius $r$ is given by
+  !#   \begin{equation}
+  !#   M(&lt;r) = M_\mathrm{virial} {2 \log(1 + R) + \log(1 + R^2) -2 \tan^{-1}(R) \over 2 \log(1 + c) + \log(1 + c^2) -2 \tan^{-1}(c)},
+  !#   \end{equation}
+  !#   where $R=r/r_\mathrm{s}$. The associated gravitational potential is
+  !#   \begin{equation}
+  !#   \Phi(r) = -\mathrm{G} \left(1+{1 \over R}\right) { 2 \tan^{-1}(R) - 2 \log(1 + R) + \log(1 + R^2) \over -2 \tan^{-1}(c) + 2
+  !#   \log(1 + c) + \log(1 + c^2) }.
+  !#   \end{equation}
+  !#   The peak of the rotation curve occurs at $R=3.2446257246042642$ (found by numerical solution), and the Fourier transform of
+  !#   the profile, $F(k) = \int_0^c 4 \pi r^2 \exp(-i k r) \rho(r) \mathrm{d} r / k r$ (needed in calculations of clustering
+  !#   using the halo model) is given by
+  !#   \begin{eqnarray}
+  !#     F(k) &amp;=&amp; \left\{2 \exp(-i k) \mathrm{C}_\mathrm{i}(k) - 2 \exp(-i k) \mathrm{C}_\mathrm{i}(k[1 + c]) + (1 + i)
+  !#     \left[-i \exp(k) \pi - \exp(k) \mathrm{E}_\mathrm{i}(-k) \right. \right. \nonumber \\
+  !#       &amp; &amp; +i \exp(-k) \mathrm{E}_\mathrm{i}(k) + \exp(k) \mathrm{E}_\mathrm{i}(i [i + c] k) - i \exp(-k)
+  !#       \mathrm{E}_\mathrm{i}(k [1 + i c ]) + (1 + i) \exp(-i k) \mathrm{S}_\mathrm{i}(k) \nonumber \\
+  !#       &amp; &amp; \left. \left. - (1 + i) \exp(-i k) \mathrm{S}_\mathrm{i}(k[1 + c])\right]\right\}/\left[k \left\{-2
+  !#       \tan^{-1}(c) + 2 \log(1 + c) + \log(1 + c^2)\right\}\right].
+  !#   \end{eqnarray}
+  !#  </description>
   !# </darkMatterProfileDMO>
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOBurkert
      !% A dark matter halo profile class implementing \cite{burkert_structure_1995} dark matter halos.

@@ -24,7 +24,13 @@
   use :: Numerical_Random_Numbers                 , only : randomNumberGeneratorClass
 
   !# <mergerTreeConstructor name="mergerTreeConstructorSmoothAccretion">
-  !#  <description>Merger tree constructor class which builds merger trees assuming smooth accretion.</description>
+  !#  <description>
+  !#   A merger tree constructor class which builds a branchless merger tree with a smooth accretion history using the selected
+  !#   \refPhysics{darkMatterHaloMassAccretionHistory} class. The tree has a final mass of {\normalfont \ttfamily massHalo} (in
+  !#   units of $M_\odot$) at redshift {\normalfont \ttfamily redshiftBase} and is continued back in time by decreasing the halo
+  !#   mass by a factor {\normalfont \ttfamily massHaloDeclineFactor} at each new \gls{node} until a specified {\normalfont
+  !#   \ttfamily massHaloResolution} (in units of $M_\odot$) is reached.
+  !#  </description>
   !# </mergerTreeConstructor>
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorSmoothAccretion
      !% A class implementing merger tree construction by building trees assuming smooth accretion.

@@ -27,7 +27,9 @@ module Merger_Trees_Build_Mass_Resolution
   !# <functionClass>
   !#  <name>mergerTreeMassResolution</name>
   !#  <descriptiveName>Merger Tree Building Mass Resolutions</descriptiveName>
-  !#  <description>Class providing mass resolutions to use when building merger trees.</description>
+  !#  <description>
+  !#   Class providing mass resolutions to use when building merger trees.
+  !#  </description>
   !#  <default>fixed</default>
   !#  <method name="resolution" >
   !#   <description>Gives the mass resolution to use for the given tree.</description>

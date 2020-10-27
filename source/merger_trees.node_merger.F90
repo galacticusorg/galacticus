@@ -27,7 +27,9 @@ module Merger_Trees_Merge_Node
   !# <functionClass>
   !#  <name>mergerTreeNodeMerger</name>
   !#  <descriptiveName>Merger Tree Node Merger Processing</descriptiveName>
-  !#  <description>Class providing processing of mergers between nodes in merger trees.</description>
+  !#  <description>
+  !#   Class providing processing of merger tree nodes when they become substructures.
+  !#  </description>
   !#  <default>singleLevelHierarchy</default>
   !#  <method name="process" >
   !#   <description>Process the merger between {\normalfont \ttfamily node} and its parent node, then destroy it.</description>

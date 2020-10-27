@@ -27,7 +27,9 @@ module Dark_Matter_Profiles_Shape
   !# <functionClass>
   !#  <name>darkMatterProfileShape</name>
   !#  <descriptiveName>Dark Matter Profile Shapes</descriptiveName>
-  !#  <description>Object providing dark matter profile shape parameters.</description>
+  !#  <description>
+  !#   Class providing dark matter profile shape parameters.
+  !#  </description>
   !#  <default>gao2008</default>
   !#  <method name="shape" >
   !#   <description>Returns the shape parameter for the given {\normalfont \ttfamily node}.</description>

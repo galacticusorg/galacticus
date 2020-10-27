@@ -27,7 +27,9 @@ module Hot_Halo_Ram_Pressure_Stripping_Timescales
   !# <functionClass>
   !#  <name>hotHaloRamPressureTimescale</name>
   !#  <descriptiveName>Models of ram pressure stripping timescales due to the hot halo.</descriptiveName>
-  !#  <description>Class providing models of ram pressure stripping timescales due to the hot halo.</description>
+  !#  <description>
+  !#   Class providing models of ram pressure stripping timescales due to the hot halo.
+  !#  </description>
   !#  <default>ramPressureAcceleration</default>
   !#  <method name="timescale" >
   !#   <description>Return the ram pressure stripping timescale for {\normalfont \ttfamily node} (in units of Gyr).</description>

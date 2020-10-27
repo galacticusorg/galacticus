@@ -23,7 +23,16 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
   !# <galacticStructureSolver name="galacticStructureSolverLinear">
-  !#  <description>A ``linear'' solver for galactic structure (no self-gravity of baryons, and size simply scales in proportion to specific angular momentum).</description>
+  !#  <description>
+  !#   A galactic structure solver class that determines the sizes of galactic components by assuming that radius scales linearly
+  !#   with specific angular momentum such that
+  !#   \begin{equation}
+  !#    r = r_\mathrm{vir} j/j_\mathrm{vir}
+  !#   \end{equation}
+  !#   where $j$ is the specific angular momentum of the \gls{component} (at whatever point in the profile is to be solved for),
+  !#   $r$ is radius, $r_\mathrm{vir}$ is the virial radius of the \gls{node} and $j_\mathrm{vir}= r_\mathrm{vir} v_\mathrm{vir}$
+  !#   with $v_\mathrm{vir}$ being the virial velocity of the \gls{node}.
+  !#  </description>
   !# </galacticStructureSolver>
   type, extends(galacticStructureSolverClass) :: galacticStructureSolverLinear
      !% Implementation of a ``linear'' solver for galactic structure (no self-gravity of baryons, and size simply scales in

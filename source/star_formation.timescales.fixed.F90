@@ -20,7 +20,9 @@
   !% Implementation of a fixed timescale for star formation.
 
   !# <starFormationTimescale name="starFormationTimescaleFixed">
-  !#  <description>A fixed timescale for star formation.</description>
+  !#  <description>
+  !#   A star formation timescale class which fixed timescale for star formation {\normalfont \ttfamily [timescale]} (in Gyr).
+  !#  </description>
   !# </starFormationTimescale>
   type, extends(starFormationTimescaleClass) :: starFormationTimescaleFixed
      !% Implementation of a fixed timescale for star formation.

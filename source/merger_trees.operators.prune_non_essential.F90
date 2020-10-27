@@ -24,9 +24,11 @@
 
   !# <mergerTreeOperator name="mergerTreeOperatorPruneNonEssential">
   !#  <description>
-  !#   Implements a merger tree operator which prunes branches that do not directly influence an
-  !#   ``essential'' node. Any branch which does not connect to the branch into which the node identified by ID {\normalfont
-  !#   \ttfamily [essentialNodeI]} descends by time {\normalfont \ttfamily essetialNodeTime]} will be pruned.
+  !#   A merger tree operator class which prunes branches that do not directly influence an ``essential'' node. Any branch which
+  !#   does not connect to the branch into which the node identified by ID {\normalfont \ttfamily [essentialNodeID]} descends by
+  !#   time {\normalfont \ttfamily essetialNodeTime]} will be pruned. Specifying the time is important---if the node is a
+  !#   satellite at this time, then the pruning will not remove any progenitors of the parent node in which the essential node
+  !#   lives at the specified time.
   !#  </description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneNonEssential

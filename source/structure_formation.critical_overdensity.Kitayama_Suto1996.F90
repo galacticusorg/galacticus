@@ -23,7 +23,13 @@
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !# <criticalOverdensity name="criticalOverdensityKitayamaSuto1996">
-  !#  <description>Provides a critical overdensity class based on the fitting functions of \cite{kitayama_semianalytic_1996}, and is therefore valid only for flat cosmological models.</description>
+  !#  <description>
+  !#   A critical overdensity class based on the fitting functions of \cite{kitayama_semianalytic_1996}, which is therefore valid
+  !#   only for flat cosmological models (an error will be reported in non-flat models). Specifically,
+  !#   \begin{equation}
+  !#    \delta_\mathrm{crit} (t) = {3 (12 \pi)^{2/3} \over 20} [1 + 0.0123 \log_{10}\left\{\Omega_\mathrm{matter}(t)\right\}]/D(t).
+  !#   \end{equation}
+  !#  </description>
   !# </criticalOverdensity>
   type, extends(criticalOverdensityClass) :: criticalOverdensityKitayamaSuto1996
      !% A critical overdensity class based on the fitting functions of \cite{kitayama_semianalytic_1996}.

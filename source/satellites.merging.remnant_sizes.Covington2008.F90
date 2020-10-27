@@ -24,7 +24,30 @@
   use :: Satellite_Merging_Progenitor_Properties, only : mergerProgenitorPropertiesClass
 
   !# <mergerRemnantSize name="mergerRemnantSizeCovington2008">
-  !#  <description>A merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.</description>
+  !#  <description>
+  !#   A merger remnant size class which uses the algorithm of \cite{covington_predicting_2008} to compute merger remnant spheroid
+  !#   sizes. Specifically
+  !#   \begin{equation}
+  !#   \frac{(M_1+M_2)^2}{ r_\mathrm{new}} =
+  !#   \left[ \frac{M_1^2}{r_1} + \frac{M_2^2}{r_2} + \frac{ f_\mathrm{orbit}}{c}
+  !#   \frac{M_1 M_2}{r_1+r_2}\right] \left( 1 + f_\mathrm{gas} C_\mathrm{rad} \right),
+  !#   \label{eq:Covington2008Radius}
+  !#   \end{equation}
+  !#   where $M_1$ and $M_2$ are the baryonic masses of the merging galaxies and $r_1$ and $r_2$ are their half mass radii,
+  !#   $r_\mathrm{new}$ is the half mass radius of the spheroidal \gls{component} of the remnant galaxy and $c$ is a constant
+  !#   which depends on the distribution of the mass. For a Hernquist spheroid $c=0.40$ can be found by numerical integration
+  !#   while for a exponential disk $c=0.49$. For simplicity a value of $c=0.5$ is adopted for all components. The parameter
+  !#   $f_\mathrm{orbit}=${\normalfont \ttfamily mergerRemnantSizeOrbitalEnergy} depends on the orbital parameters of the galaxy
+  !#   pair. For example, a value of $f_\mathrm{orbit} = 1$ corresponds to point mass galaxies in circular orbits about their
+  !#   center of mass. The final term on the right hand side of eqn.~(\ref{eq:Covington2008Radius}) gives a correction to the
+  !#   final energy of the remnant due to dissipational losses based on the results of \cite{covington_effects_2011}, with
+  !#   \begin{equation}
+  !#    f_\mathrm{gas} = {M_\mathrm{1,gas}+M_\mathrm{2,gas} \over M_1+M_2}
+  !#   \end{equation}
+  !#   begin the gas fraction of the progenitor galaxies. By default, $C_\mathrm{rad}=2.75$ \citep{covington_effects_2011}. To
+  !#   account for the effects of dark matter and non-spheroid baryonic matter the same approach is used as in the
+  !#   \cite{cole_hierarchical_2000} algorithm (see \S\ref{sec:MergerRemnantSizeCole2000}).
+  !#  </description>
   !# </mergerRemnantSize>
   type, extends(mergerRemnantSizeClass) :: mergerRemnantSizeCovington2008
      !% A merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.

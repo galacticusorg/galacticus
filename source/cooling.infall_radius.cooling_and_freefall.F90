@@ -23,7 +23,10 @@
   use :: Freefall_Radii, only : freefallRadius, freefallRadiusClass
 
   !# <coolingInfallRadius name="coolingInfallRadiusCoolingFreefall">
-  !#  <description>An infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.</description>
+  !#  <description>
+  !#   A cooling infall radius class calculation which assumes that the infall radius is equal to the smaller of the cooling and
+  !#   freefall radii (see \S\ref{sec:CoolingRadius} and \S\ref{sec:CoolingFreefallRadius}).
+  !#  </description>
   !# </coolingInfallRadius>
   type, extends(coolingInfallRadiusClass) :: coolingInfallRadiusCoolingFreefall
      !% Implementation of an infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.

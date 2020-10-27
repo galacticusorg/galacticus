@@ -20,7 +20,10 @@
   !% An implementation of a merger tree builder mass resolution which assumes a fixed resolution.
 
   !# <mergerTreeMassResolution name="mergerTreeMassResolutionFixed">
-  !#  <description>Provides a fixed mass resolution for merger tree building.</description>
+  !#  <description>
+  !#   A merger tree mass resolution class which assumes a fixed mass resolution of {\normalfont \ttfamily [massResolution]} for
+  !#   all merger trees.
+  !#  </description>
   !# </mergerTreeMassResolution>
   type, extends(mergerTreeMassResolutionClass) :: mergerTreeMassResolutionFixed
      !% A merger tree mass resolution class which assumes a fixed mass resolution.

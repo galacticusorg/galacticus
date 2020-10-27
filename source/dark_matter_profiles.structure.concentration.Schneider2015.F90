@@ -24,7 +24,20 @@
   use :: Root_Finder               , only : rootFinder
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationSchneider2015">
-  !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{schneider_structure_2015}.</description>
+  !#  <description>
+  !#   A dark matter profile concentration class in which the concentration using the algorithm of
+  !#   \cite{schneider_structure_2015}. Specifically, a reference model for concentrations in defined in a specific cosmological
+  !#   model. The concentration for a halo of given mass, $M$, and redshift, $z_0$, is then found by finding the redshift of
+  !#   collapse, $z_\mathrm{c}$ for the halo by solving:
+  !#   \begin{equation}
+  !#     \delta_\mathrm{c}(z_\mathrm{c}) = \left( {\pi \over 2} \left[ \sigma^2(f M) - \sigma^2(M) \right]
+  !#     \right)^{1/2}+\delta_\mathrm{c})(z_0),
+  !#   \end{equation}
+  !#   where $\delta_\mathrm{c}(z)$ is the critical overdensity for collapse at redshift $z$, and $f$ is the fraction of a halo's
+  !#   mass assembled at formation time (given by the {\normalfont \ttfamily [massFractionFormation]} parameter. From this, the
+  !#   mass of a halo in the reference model with the same redshift of collapse is found, and the reference model is used to
+  !#   compute the concentration of a halo of that mass.\
+  !#  </description>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationSchneider2015
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{schneider_structure_2015}.

@@ -29,7 +29,9 @@ module Satellite_Dynamical_Friction
   !# <functionClass>
   !#  <name>satelliteDynamicalFriction</name>
   !#  <descriptiveName>Dynamical friction models.</descriptiveName>
-  !#  <description>Class providing models of dynamical friction.</description>
+  !#  <description>
+  !#   Class providing models of the satellite vector acceleration due to dynamical friction.
+  !#  </description>
   !#  <default>chandrasekhar1943</default>
   !#  <method name="acceleration" >
   !#   <description>Returns the satellite acceleration due to dynamical friction for {\normalfont \ttfamily node} (in units of km/s/Gyr).</description>

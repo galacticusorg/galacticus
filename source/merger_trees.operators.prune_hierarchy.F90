@@ -22,13 +22,11 @@
 
   !# <mergerTreeOperator name="mergerTreeOperatorPruneHierarchy">
   !#  <description>
-  !#   Contains a module which implements a merger tree operator which prunes branches below a
-  !#   given level in the substructure hierarchy. In any tree, the primary progenitor of the
-  !#   base node has substructure hierarchy depth 0. A branch which connects directly to this
-  !#   primary progenitor branch has substructure hierarchy depth 1, while a branch which
-  !#   connects directly to that branch has substructure hierarchy depth 2, and so on. The tree
-  !#   is pruned of all branches of hierarchy depth equal to or greater than the value provided
-  !#   by the {\normalfont \ttfamily [hierarchyDepth]} parameter.
+  !#   A merger tree operator ckass module which prunes branches below a given level in the substructure hierarchy. In any tree,
+  !#   the primary progenitor of the base node has substructure hierarchy depth 0. A branch which connects directly to this
+  !#   primary progenitor branch has substructure hierarchy depth 1, while a branch which connects directly to that branch has
+  !#   substructure hierarchy depth 2, and so on. The tree is pruned of all branches of hierarchy depth equal to or greater than
+  !#   the value provided by the {\normalfont \ttfamily [hierarchyDepth]} parameter.
   !#  </description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneHierarchy

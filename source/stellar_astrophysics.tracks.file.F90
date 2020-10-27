@@ -22,7 +22,38 @@
   use :: Numerical_Interpolation, only : interpolator
   
   !# <stellarTracks name="stellarTracksFile">
-  !#  <description>A stellar tracks class in which the tracks are read from file and interpolated.</description>
+  !#  <description>
+  !#   A stellar tracks class in which luminosities and effective temperatures of stars are computed from a tabulated set of
+  !#   stellar tracks, read from file and interpolated. The file containing the tracks to use is specified via the {\normalfont
+  !#   \ttfamily stellarTracksFile} parameter. The file specified must be an HDF5 file with the following structure:
+  !#   \begin{verbatim}
+  !#    stellarTracksFile
+  !#     |
+  !#     +-> metallicity1
+  !#     |    |
+  !#     |    +-> metallicity
+  !#     |    |
+  !#     |    +-> mass1
+  !#     |    |    |
+  !#     |    |    +-> mass
+  !#     |    |    |
+  !#     |    |    +-> age
+  !#     |    |    |
+  !#     |    |    +-> luminosity
+  !#     |    |    |
+  !#     |    |    +-> effectiveTemperature
+  !#     |    |
+  !#     |    x-> massN
+  !#     |
+  !#     x-> metallicityN
+  !#   \end{verbatim}
+  !#   Each {\normalfont \ttfamily metallicityN} group tabulates tracks for a given metallicity (the value of which is stored in
+  !#   the {\normalfont \ttfamily metallicity} dataset within each group), and may contain an arbitrary number of {\normalfont
+  !#   \ttfamily massN} groups. Each {\normalfont \ttfamily massN} group should contain a track for a star of some mass (the value
+  !#   of which is given in the {\normalfont \ttfamily mass} dataset). Within each track three datasets specify the {\normalfont
+  !#   \ttfamily age} (in Gyr), {\normalfont \ttfamily luminosity} (in $L_\odot$) and {\normalfont \ttfamily effectiveTemperature}
+  !#   (in Kelvin) along the track.
+  !#  </description>
   !# </stellarTracks>
   type, extends(stellarTracksClass) :: stellarTracksFile
      !% A stellar tracks class in which the tracks are read from file and interpolated.

@@ -34,7 +34,49 @@
   integer, parameter :: adiabaticGnedin2004StoreCount=10
 
   !# <darkMatterProfile name="darkMatterProfileAdiabaticGnedin2004">
-  !#  <description>AdiabaticGnedin2004 dark matter halo profiles.</description>
+  !#  <description>
+  !#   A dark matter profile class which applies adiabatic contraction to the halo as it responds to the presence of
+  !#   baryons. Adiabatic contraction follows the algorithm of \cite{gnedin_response_2004}. The parameters $A$ and $\omega$ of
+  !#   that model are specified via input parameters {\normalfont \ttfamily A} and {\normalfont \ttfamily omega} respectively.
+  !#
+  !#   Given the final radius, $r_\mathrm{f}$, the corresponding initial radius, $r_\mathrm{i}$, is found by solving:
+  !#   \begin{equation}
+  !#   f_\mathrm{i} M_\mathrm{total,0}(\bar{r}_\mathrm{i}) r_\mathrm{i} = f_\mathrm{f} M_\mathrm{total,0}(\bar{r}_\mathrm{i})
+  !#   r_\mathrm{f} + V^2_\mathrm{b}(\bar{r}_\mathrm{f}) \bar{r}_\mathrm{f} r_\mathrm{f}/ \mathrm{G},
+  !#    \label{eq:adiabaticContractionGnedinSolution}
+  !#   \end{equation}
+  !#   where $M_\mathrm{total,0}(r)$ is the initial total matter profile, $V_\mathrm{b}(r)$ is the baryonic contribution to the
+  !#   rotation curve, $f_\mathrm{i}$, is the fraction of mass within the virial radius compared to the node mass\footnote{In
+  !#   \protect\glc\ the ``node mass'' refers to the total mass of the node, assuming it has the universal complement of
+  !#   baryons. Since some halos may contain less than the complete complement of baryons it is possible that $f_\mathrm{i}&lt;1$.},
+  !#   $f_\mathrm{f}=(\Omega_\mathrm{M}-\Omega_\mathrm{b})/\Omega_\mathrm{M}+M_\mathrm{satellite, baryonic}/M_\mathrm{total}$,
+  !#   $M_\mathrm{satellite, baryonic}$ is the baryonic mass in any satellite halos, $M_\mathrm{total}$ is the node mass, and
+  !#   \begin{equation}
+  !#   {\bar{r} \over r_\mathrm{vir}} = A \left({r \over r_\mathrm{vir}}\right)^\omega,
+  !#   \end{equation}
+  !#   where $r_\mathrm{vir}$ is the virial radius. Note that we explicitly assume that the initial, uncontracted total density
+  !#   profile has the same shape as the initial dark matter density profile, that contraction of the halo occurs with no shell
+  !#   crossing, and that satellite halos trace the dark matter profile of their host halo.
+  !#   The derivative, $\mathrm{d} r_\mathrm{f}/\mathrm{d}d_\mathrm{i}\equiv r^\prime_\mathrm{i}$ is found by taking the
+  !#   derivative of eqn.~(\ref{eq:adiabaticContractionGnedinSolution}) to give:
+  !#   \begin{eqnarray}
+  !#    &amp; &amp; f_\mathrm{i} M_\mathrm{total,0}(\bar{r}_\mathrm{i}) r^\prime_\mathrm{i} + f_\mathrm{i} 4 \pi
+  !#    \bar{r}_\mathrm{i}^2 \rho_\mathrm{total,0}(\bar{r}_\mathrm{i}) {\mathrm{d} \bar{r}_\mathrm{i}\over\mathrm{d} r_\mathrm{i}}
+  !#    r_\mathrm{i} r^\prime_\mathrm{i} \nonumber \\
+  !#    &amp; = &amp; f_\mathrm{f} M_\mathrm{total,0}(\bar{r}_\mathrm{i}) + f_\mathrm{i} 4 \pi \bar{r}_\mathrm{i}^2
+  !#    \rho_\mathrm{total,0}(\bar{r}_\mathrm{i}) {\mathrm{d} \bar{r}_\mathrm{i}\over\mathrm{d} r_\mathrm{i}} r_\mathrm{f}
+  !#    r^\prime_\mathrm{i} \nonumber \\
+  !#    &amp; + &amp; V^2_\mathrm{b}(\bar{r}_\mathrm{f}) \bar{r}_\mathrm{f} / \mathrm{G} + V^2_\mathrm{b}(\bar{r}_\mathrm{f})
+  !#    {\mathrm{d}\bar{r}_\mathrm{f}\over \mathrm{d} r_\mathrm{f}} r_\mathrm{f}/ \mathrm{G} +
+  !#    {\mathrm{d}V^2_\mathrm{b}\over\mathrm{d} \bar{r}_\mathrm{f}}(\bar{r}_\mathrm{f}) {\mathrm{d}\bar{r}_\mathrm{f}\over
+  !#    \mathrm{d} r_\mathrm{f}} \bar{r}_\mathrm{f} r_\mathrm{f}/ \mathrm{G},
+  !#   \end{eqnarray}
+  !#   where
+  !#   \begin{equation}
+  !#    {\mathrm{d}\bar{r} \over \mathrm{d} r} = A \left({r \over r_\mathrm{vir}}\right)^{\omega-1},
+  !#   \end{equation}
+  !#   and which can then be solved numerically for $r^\prime_\mathrm{i}$.
+  !#  </description>
   !# </darkMatterProfile>
   type, extends(darkMatterProfileClass) :: darkMatterProfileAdiabaticGnedin2004
      !% A dark matter halo profile class implementing adiabaticGnedin2004 dark matter halos.

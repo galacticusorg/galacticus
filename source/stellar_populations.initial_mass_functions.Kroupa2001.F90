@@ -20,7 +20,17 @@
   !% Implements a stellar initial mass function class for the \cite{kroupa_variation_2001} \gls{imf}.
 
   !# <initialMassFunction name="initialMassFunctionKroupa2001">
-  !#  <description>A stellar initial mass function class for the \cite{kroupa_variation_2001} \gls{imf}.</description>
+  !#  <description>
+  !#   A stellar initial mass function class for the \cite{kroupa_variation_2001} \gls{imf}.
+  !#   \begin{equation}
+  !#    \phi(M) \propto \left\{ \begin{array}{ll}
+  !#    M^{-0.3} &amp; \hbox{ for } 0.01M_\odot &lt; M &lt; 0.08M_\odot \\
+  !#    M^{-1.8} &amp; \hbox{ for } 0.08M_\odot &lt; M &lt; 0.5M_\odot \\
+  !#    M^{-2.7} &amp; \hbox{ for } 0.5M_\odot &lt; M &lt; 1M_\odot \\
+  !#    M^{-2.3} &amp; \hbox{ for } 1M_\odot &lt; M &lt; 125M_\odot \\
+  !#   0 &amp; \hbox {otherwise.} \end{array} \right.
+  !#   \end{equation}
+  !#  </description>
   !# </initialMassFunction>
   type, extends(initialMassFunctionPiecewisePowerLaw) :: initialMassFunctionKroupa2001
      !% A stellar initial mass function class for the \cite{kroupa_variation_2001} \gls{imf}.

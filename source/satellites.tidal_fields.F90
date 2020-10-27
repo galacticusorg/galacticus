@@ -27,7 +27,9 @@ module Satellites_Tidal_Fields
   !# <functionClass>
   !#  <name>satelliteTidalField</name>
   !#  <descriptiveName>Satellite halo tidal field models.</descriptiveName>
-  !#  <description>Class providing models of tidal fields experienced by satellite halos.</description>
+  !#  <description>
+  !#   Class providing models of tidal fields experienced by satellite halos.
+  !#  </description>
   !#  <default>null</default>
   !#  <method name="tidalTensorRadial" >
   !#   <description>Returns the radial component, $\Phi_\mathrm{rr}$, of the tidal tensor, $\Phi_\mathrm{ab}$.</description>

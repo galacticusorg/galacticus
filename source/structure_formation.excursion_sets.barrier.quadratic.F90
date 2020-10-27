@@ -20,7 +20,15 @@
 !% Contains a module which implements a quadratic excursion set barrier class.
 
   !# <excursionSetBarrier name="excursionSetBarrierQuadratic">
-  !#  <description>A quadratic excursion set barrier class.</description>
+  !#  <description>
+
+  !#   A quadratic excursion set barrier class. The barrier is given by:
+  !#   \begin{equation}
+  !#   B(S) = B_0 + B_1 S + B_2 S^2,
+  !#   \end{equation}
+  !#   where $B_0=${\normalfont \ttfamily [coefficientConstant]}, $B_0=${\normalfont \ttfamily
+  !#   [coefficientLinear]}, and $B_2=${\normalfont \ttfamily [coefficientQuadratic]}.
+  !#  </description>
   !# </excursionSetBarrier>
   type, extends(excursionSetBarrierClass) :: excursionSetBarrierQuadratic
      !% A quadratic excursion set barrier class.

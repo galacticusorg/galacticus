@@ -20,7 +20,10 @@
 !% Contains a module which implements an fixed critical overdensity class.
 
   !# <criticalOverdensity name="criticalOverdensityFixed">
-  !#  <description>The critical overdensity is set to a fixed number divided by the linear growth factor.</description>
+  !#  <description>
+  !#   A critical overdensity class in which the critical overdensity is set to a fixed number given by {\normalfont \ttfamily
+  !#   [criticalOverdensity]}.
+  !#  </description>
   !# </criticalOverdensity>
   type, extends(criticalOverdensityClass) :: criticalOverdensityFixed
      !% A fixed critical overdensity class.

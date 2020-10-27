@@ -25,7 +25,29 @@
   use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMONFW
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationPrada2011">
-  !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{prada_halo_2011}.</description>
+  !#  <description>
+  !#   A dark matter profile concentration class in which the concentration is computed using a fitting function from
+  !#   \cite{prada_halo_2011}:
+  !#   \begin{equation}
+  !#   c(M,t) = B_0(x) \mathcal{C}(\sigma^\prime),
+  !#   \end{equation}
+  !#   where
+  !#   \begin{eqnarray}
+  !#   \sigma^\prime(M,t) &amp;=&amp; B_1(x) \sigma(M,t), \\
+  !#   B_0(x) &amp;=&amp; c_\mathrm{min}(x)/c_\mathrm{min}(1.393), \\
+  !#   B_1(x) &amp;=&amp; \sigma^{-1}_\mathrm{min}(x)/\sigma^{-1}_\mathrm{min}(1.393), \\
+  !#   c_\mathrm{min}(x) &amp;=&amp; c_0 + (c_1-c_0) [\tan^{-1}\{\alpha (x-x_0)\}/\Pi+1/2], \\
+  !#   \sigma^{-1}_\mathrm{min}(x) &amp;=&amp; \sigma^{-1}_0 + (\sigma^{-1}_1-\sigma^{-1}_0) [\tan^{-1}\{\beta(x-x_1)\}/\Pi+1/2], \\
+  !#   \mathcal{C}(\sigma^\prime) &amp;=&amp; A [(\sigma^\prime)/b)^c+1] \exp(d/\sigma^{\prime 2}), \\
+  !#   x &amp;=&amp; (\Omega_\Lambda/\Omega_\mathrm{M})^{1/3} a(t),
+  !#   \end{eqnarray}
+  !#   with the following parameters (default values taken from \cite{prada_halo_2011} given in []): $A=${\normalfont \ttfamily
+  !#   [A]}$=2.881$, $b=${\normalfont \ttfamily [B]}$=1.257$, $c=${\normalfont \ttfamily [C]}$=1.022$, $d=${\normalfont \ttfamily
+  !#   [D]}$=0.060$, $c_0=${\normalfont \ttfamily [C0]}$=3.681$, $c_1=${\normalfont \ttfamily [C1]}$=5.033$, $x_0=${\normalfont
+  !#   \ttfamily [X0]}$=0.424$, $x_1=${\normalfont \ttfamily [X1]}$=0.526$, $\sigma^{-1}_0=${\normalfont \ttfamily
+  !#   [sigma0]}$=1.047$, $\sigma^{-1}_1=${\normalfont \ttfamily [sigma1]}$=1.646$, $\alpha=${\normalfont \ttfamily
+  !#   [alpha]}$=6.948$, and $\beta=${\normalfont \ttfamily [beta]}$=7.386$.
+  !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
   !#  </deepCopy>

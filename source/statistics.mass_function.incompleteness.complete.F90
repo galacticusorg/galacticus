@@ -20,7 +20,9 @@
   !% Implements calculations of incompleteness assuming a complete sample.
 
   !# <massFunctionIncompleteness name="massFunctionIncompletenessComplete">
-  !#  <description>Computes incompleteness for a complete survey.</description>
+  !#  <description>
+  !# A mass function incompleteness class which assumes a fully complete mass function.
+  !#  </description>
   !# </massFunctionIncompleteness>
   type, extends(massFunctionIncompletenessClass) :: massFunctionIncompletenessComplete
      !% A class implementing incompleteness calculations for a complete survey.

@@ -31,10 +31,11 @@
 
   !# <coolingRadius name="coolingRadiusSimple">
   !#  <description>
-  !#   A cooling radius class computes the cooling radius by seeking the radius at which the time available for cooling equals the
-  !#   cooling time. The growth rate is determined consistently based on the slope of the density profile, the density dependence
-  !#   of the cooling function and the rate at which the time available for cooling is increasing. This method assumes that the
-  !#   cooling time is a monotonic function of radius.
+  !#   A cooling radius class that computes the cooling radius by seeking the radius at which the time available for cooling (see
+  !#   \S\ref{sec:TimeAvailableCooling}) equals the cooling time (see \S\ref{sec:CoolingTime}). The growth rate is determined
+  !#   consistently based on the slope of the density profile, the density dependence of the cooling function and the rate at
+  !#   which the time available for cooling is increasing. This method assumes that the cooling time is a monotonic function of
+  !#   radius.
   !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="radiation"/>

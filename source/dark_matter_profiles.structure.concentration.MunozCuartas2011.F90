@@ -25,7 +25,19 @@
   use :: Virial_Density_Contrast , only : virialDensityContrastBryanNorman1998
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationMunozCuartas2011">
-  !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{munoz-cuartas_redshift_2011}.</description>
+  !#  <description>
+  !#   A dark matter profile concentration class in which the concentration is computed using a fitting function from
+  !#   \cite{munoz-cuartas_redshift_2011}:
+  !#   \begin{equation}
+  !#   \log_{10} c = a \log_{10} \left( {M_\mathrm{halo} \over h^{-1}M_\odot} \right) + b.
+  !#   \end{equation}
+  !#   The parameters are a functon of redshift, $z$, given by
+  !#   \begin{eqnarray}
+  !#   a &amp;=&amp; wz-m, \\
+  !#   b &amp;=&amp; {\alpha \over (z+\gamma)} + {\beta \over (z+\gamma)^2},
+  !#   \end{eqnarray}
+  !#   where $w=0.029$, $m=0.097$, $\alpha=-110.001$, $\beta=2469.720$, $\gamma=16.885$.
+  !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
   !#  </deepCopy>

@@ -23,7 +23,19 @@
   use :: Hot_Halo_Temperature_Profiles         , only : hotHaloTemperatureProfile             , hotHaloTemperatureProfileClass
 
   !# <hotHaloMassDistribution name="hotHaloMassDistributionEnzoHydrostatic">
-  !#  <description>Provides an implementation of the hot halo mass distribution class which uses the ``hydrostatic'' profile used by the Enzo simulation code.</description>
+  !#  <description>
+  !#   A hot halo mass distribution class which adopts a spherically symmetric density profile for the hot halo motivated by the
+  !#   ``hydrostatic'' profile available in the \gls{enzo} code. Specifically,
+  !#   \begin{equation}
+  !#    \rho_\mathrm{hot halo}(r) \propto \left\{ \begin{array}{ll} T^{-1} r^{-1} &amp; \hbox{ if } r &gt; r_\mathrm{core} \\ T^{-1}
+  !#    r_\mathrm{core}^{-1} &amp; \hbox{ if } r \le r_\mathrm{core}, \end{array} \right.
+  !#   \end{equation}
+  !#   where the core radius, $r_\mathrm{core}$, is set using the selected cored profile core radius method (see
+  !#   \S\ref{sec:hotHaloDensityProfileCoredIsothermalCoreRadius}). The profile is normalized such that the current mass in the
+  !#   hot gas profile is contained within the outer radius of the hot halo, $r_\mathrm{hot, outer}$. Note that the \gls{enzo}
+  !#   hydrostatic profile does not include this core, but without introducing this the profile mass can be divergent at small
+  !#   radii.
+  !#  </description>
   !# </hotHaloMassDistribution>
   type, extends(hotHaloMassDistributionClass) :: hotHaloMassDistributionEnzoHydrostatic
      !% An implementation of the hot halo mass distribution class which uses the ``hydrostatic'' profile used by the Enzo simulation code.

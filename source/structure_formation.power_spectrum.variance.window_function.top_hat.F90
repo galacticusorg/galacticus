@@ -17,11 +17,18 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a top-hat power spectrum window function class.
+  !% Contains a module which implements a top-hat power spectrum window function class.
+
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionTopHat">
-  !#  <description>A top-hat in real space window function for filtering of power spectra.</description>
+  !#  <description>
+  !#   A top-hat in real space window function for filtering of power spectra. The window function is given by:
+  !#   \begin{equation}
+  !#    W(k) = {3 (\sin(x)-x \cos(x)) \over x^3},
+  !#   \end{equation}
+  !#   where $x = k R$ and $R=(3M/4\pi\bar{\rho})^{1/3}$ for a smoothing scale $M$ and mean matter density $\bar{\rho}$.
+  !#  </description>
   !# </powerSpectrumWindowFunction>
   type, extends(powerSpectrumWindowFunctionClass) :: powerSpectrumWindowFunctionTopHat
      !% A top-hat power spectrum window function class.

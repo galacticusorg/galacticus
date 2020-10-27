@@ -23,7 +23,40 @@
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationDuttonMaccio2014">
-  !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{dutton_cold_2014}.</description>
+  !#  <description>
+  !#   A dark matter profile concentration class in which the concentration is computed using a fitting function from
+  !#   \cite{dutton_cold_2014}:
+  !#   \begin{equation}
+  !#   \log_{10} c = A + B \log_{10} M_\mathrm{halo}.
+  !#   \end{equation}
+  !#   The parameters are a functon of redshift, $z$. We use the following fit suggested by \cite{dutton_cold_2014} results:
+  !#   \begin{eqnarray}
+  !#   A &amp;=&amp; A_1+(A_2-A_1)\exp[A_3 z^{A_4}] \nonumber \\
+  !#   B &amp;=&amp; B_1+B_2 z.
+  !#   \end{eqnarray}
+  !#   The coefficients are chosen from one of the three sets given by \cite{dutton_cold_2014}, controlled via the {\normalfont
+  !#   \ttfamily [duttonMaccio2014FitType]} parameter, as described in Table~\ref{tb:DuttonMaccioConcentrationCoefficients}.
+  !#   
+  !#   \begin{table}
+  !#   \begin{center}
+  !#   \begin{tabular}{lccrrrrrr}
+  !#   \hline
+  !#   {\normalfont \bfseries Fit type} &amp; {\normalfont \bfseries Profile} &amp; {\boldmath $\Delta_\mathrm{vir}$ } &amp;
+  !#   {\boldmath $A_1$} &amp; {\boldmath $A_2$} &amp; {\boldmath $A_3$} &amp; {\boldmath $A_4$} &amp; {\boldmath $B_1$} &amp;
+  !#   {\boldmath $B_2$} \\
+  !#   \hline
+  !#   {\normalfont \ttfamily nfwVirial}  &amp; \gls{nfw} &amp; Top-hat &amp; $+0.537$ &amp; $+1.025$ &amp; $-0.718$ &amp; $+1.080$ &amp; $-0.097$ &amp; $+0.024$ \\
+  !#   {\normalfont \ttfamily nfw200}     &amp; \gls{nfw} &amp; 200     &amp; $+0.520$ &amp; $+0.905$ &amp; $-0.617$ &amp; $+1.210$ &amp; $-0.101$ &amp; $+0.026$ \\
+  !#   {\normalfont \ttfamily einasto200} &amp; Einasto   &amp; 200     &amp; $+0.459$ &amp; $+0.977$ &amp; $-0.490$ &amp; $+1.303$ &amp; $-0.130$ &amp; $+0.029$ \\
+  !#   \hline
+  !#   \end{tabular}
+  !#   \end{center}
+  !#   \caption{Coefficients appearing in the dark matter halo profile concentration fitting functions of
+  !#   \protect\cite{dutton_cold_2014}. The ``fit type'' is specified by the {\normalfont \ttfamily [duttonMaccio2014FitType]}
+  !#   parameter.}
+  !#   \label{tb:DuttonMaccioConcentrationCoefficients}
+  !#   \end{table}
+  !#  </description>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationDuttonMaccio2014
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{dutton_cold_2014}.

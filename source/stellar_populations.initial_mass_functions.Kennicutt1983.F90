@@ -20,7 +20,16 @@
   !% Implements a stellar initial mass function class for the \cite{kennicutt_rate_1983} \gls{imf}.
 
   !# <initialMassFunction name="initialMassFunctionKennicutt1983">
-  !#  <description>A stellar initial mass function class for the \cite{kennicutt_rate_1983} \gls{imf}.</description>
+  !#  <description>
+  !#   A stellar initial mass function class for the \cite{kennicutt_rate_1983} \gls{imf}:
+  !#   \begin{equation}
+  !#    \phi(M) \propto \left\{ \begin{array}{ll}
+  !#    M^{-1.25} &amp; \hbox{ for } 0.10M_\odot &lt; M &lt; 1.00M_\odot \\
+  !#    M^{-2.00} &amp; \hbox{ for } 1.00M_\odot &lt; M &lt; 2.00M_\odot \\
+  !#    M^{-2.30} &amp; \hbox{ for } 2.00M_\odot &lt; M &lt; 125M_\odot \\
+  !#    0 &amp; \hbox {otherwise.} \end{array} \right.
+  !#   \end{equation}
+  !#  </description>
   !# </initialMassFunction>
   type, extends(initialMassFunctionPiecewisePowerLaw) :: initialMassFunctionKennicutt1983
      !% A stellar initial mass function class for the \cite{kennicutt_rate_1983} \gls{imf}.

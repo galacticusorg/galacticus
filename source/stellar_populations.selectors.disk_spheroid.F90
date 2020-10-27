@@ -20,7 +20,11 @@
   !% Implements a stellar population selector class which returns a different population for disks and spheroids.
 
   !# <stellarPopulationSelector name="stellarPopulationSelectorDiskSpheroid">
-  !#  <description>A stellar population selector class which returns a different population for disks and spheroids.</description>
+  !#  <description>
+  !#   A stellar population selector class which selects a different population for disks and spheroids, irrespective of other
+  !#   physical conditions. The populationss to use are specified by the {\normalfont \ttfamily [stellarPopulationDisk]} and
+  !#   {\normalfont \ttfamily [stellarPopulationSpheroid]} parameters.
+  !#  </description>
   !# </stellarPopulationSelector>
   type, extends(stellarPopulationSelectorClass) :: stellarPopulationSelectorDiskSpheroid
      !% A stellar population selector class which returns a different population for disks and spheroids.

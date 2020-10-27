@@ -20,7 +20,10 @@
   !% Implements a satellite merging timescale class which uses preset values for the timescale.
 
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesPreset">
-  !#  <description>This class assumes that merging times have been preset for every node (or, at least, every node which becomes a satellite). It therefore simply returns the preset merging time.</description>
+  !#  <description>
+  !#   A satellite merging timescale class assumes that merging times have been preset for every node (or, at least, every node
+  !#   which becomes a satellite). It therefore simply returns the preset merging time.
+  !#  </description>
   !# </satelliteMergingTimescales>
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesPreset
      !% A class implementing preset satellite merging timescales.

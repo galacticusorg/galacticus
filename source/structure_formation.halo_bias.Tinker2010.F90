@@ -24,7 +24,8 @@
 
   !# <darkMatterHaloBias name="darkMatterHaloBiasTinker2010">
   !#  <description>
-  !#   A dark matter halo mass bias class utilizing the algorithm of \cite{tinker_large_2010}.
+  !#   A dark matter halo mass bias class utilizing the algorithm of \cite{tinker_large_2010}. The bias is computed at the
+  !#   appropriate virial overdensity (see \S\ref{sec:VirialDensityConstrast}).
   !#  </description>
   !# </darkMatterHaloBias>
   type, extends(darkMatterHaloBiasClass) :: darkMatterHaloBiasTinker2010

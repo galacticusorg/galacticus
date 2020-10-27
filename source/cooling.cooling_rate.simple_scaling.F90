@@ -22,7 +22,20 @@
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
 
   !# <coolingRate name="coolingRateSimpleScaling">
-  !#  <description>A cooling rate class in which the cooling rate scales with the mass of the halo.</description>
+  !#  <description>
+  !#   A cooling rate class in which the cooling rate scales with the mass of the halo. Specifically, the cooling rate is given by
+  !#   \begin{equation}
+  !#   \dot{M}_\mathrm{cool} = M_\mathrm{hot}/\tau_\mathrm{cool}(M_\mathrm{halo},z) ,
+  !#   \end{equation}
+  !#   where 
+  !#   \begin{equation}
+  !#   \tau_\mathrm{cool}=\tau_\mathrm{cool,0} (1+z)^{\beta_\mathrm{cool}} \exp \left(\left[{M_\mathrm{halo} \over
+  !#   M_\mathrm{transition}}\right]^{\gamma_\mathrm{cool}}\right),
+  !#   \end{equation}
+  !#   $\tau_\mathrm{cool,0}=${\normalfont \ttfamily [timescale]}, $\beta_\mathrm{cool}=${\normalfont \ttfamily
+  !#   [exponentRedshift]}, $M_\mathrm{transition}=${\normalfont \ttfamily [massCutOff]}, and $\gamma_\mathrm{cool}=${\normalfont
+  !#   \ttfamily [exponentCutOff]}.
+  !#  </description>
   !# </coolingRate>
   type, extends(coolingRateClass) :: coolingRateSimpleScaling
      !% Implementation of cooling rate class in which the cooling rate scales with the mass of the halo.

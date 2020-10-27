@@ -20,7 +20,12 @@
   !% Provides a node merger class implementing a single level hierarchy.
 
   !# <mergerTreeNodeMerger name="mergerTreeNodeMergerSingleLevelHierarchy">
-  !#  <description>A node merger class implementing a single level hierarchy.</description>
+  !#  <description>
+  !#   A merger tree node merger class which maintains a single level hierarchy of substructure, i.e. it tracks only
+  !#   substructures, not sub-substructures or deeper levels. When a \gls{node} first becomes a satellite it is appended to the
+  !#   list of satellites associated with its host halo. If the \gls{node} contains its own satellites they will be detached from
+  !#   the \gls{node} and appended to the list of satellites of the new host (and assigned new merging times).
+  !#  </description>
   !# </mergerTreeNodeMerger>
   type, extends(mergerTreeNodeMergerClass) :: mergerTreeNodeMergerSingleLevelHierarchy
      !% Implementation of the standars merger tree evolver.

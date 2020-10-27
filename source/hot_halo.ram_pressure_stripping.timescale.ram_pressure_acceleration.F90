@@ -25,7 +25,19 @@
   use :: Hot_Halo_Ram_Pressure_Forces, only : hotHaloRamPressureForceClass
 
   !# <hotHaloRamPressureTimescale name="hotHaloRamPressureTimescaleRamPressureAcceleration">
-  !#  <description>A hot halo ram pressure timescale class in which the timescale is estimated from the ram pressure acceleration.</description>
+  !#  <description>
+  !#   A hot halo ram pressure timescale class which computes the ram pressure stripping timecale from the acceleration imparted
+  !#   by the ram pressure force. Following \cite{roediger_ram_2007} this is approximated as:
+  !#   \begin{equation}
+  !#    a_\mathrm{ram pressure} = P_\mathrm{ram pressure}/\Sigma,
+  !#   \end{equation}
+  !#   where $P_\mathrm{ram pressure}$ is the ram pressure force per unit area, and $\Sigma$ is the surface density of gas. The
+  !#   associated timescale to accelerate gas over a distance $r_\mathrm{outer}$ (the current outer radius of the hot halo) is
+  !#   then:
+  !#   \begin{equation}
+  !#    \tau_\mathrm{ram pressure} = \sqrt{2 r_\mathrm{outer} \Sigma_\mathrm{outer} / P_\mathrm{ram pressure}}.
+  !#   \end{equation}
+  !#  </description>
   !# </hotHaloRamPressureTimescale>
   type, extends(hotHaloRamPressureTimescaleClass) :: hotHaloRamPressureTimescaleRamPressureAcceleration
      !% Implementation of a hot halo ram pressure timescale class in which the timescale is estimated from the ram pressure

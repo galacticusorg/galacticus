@@ -26,7 +26,12 @@
   use :: Virial_Density_Contrast, only : virialDensityContrastFixed
 
   !# <virialOrbit name="virialOrbitJiang2014">
-  !#  <description>Virial orbits using the \cite{jiang_orbital_2014} orbital parameter distribution.</description>
+  !#  <description>
+  !#   A virial orbits class which selects orbital parameters randomly from the distribution given by \cite{jiang_orbital_2014},
+  !#   including the mass and mass-ratio dependence of the distributions. If the virial density contrast definition differs from
+  !#   that used by \cite{jiang_orbital_2014} then the orbit is assigned based on \cite{jiang_orbital_2014}'s definition and then
+  !#   propagated to the virial radius relevant to the current definition of density contrast.
+  !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrast_"/>
   !#  </deepCopy>

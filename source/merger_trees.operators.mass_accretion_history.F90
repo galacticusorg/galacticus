@@ -25,15 +25,16 @@
 
   !# <mergerTreeOperator name="mergerTreeOperatorMassAccretionHistory">
   !#  <description>
-  !#   A merger tree operator which outputs mass accretion histories. Histories are written into the \glc\ output file in a group
-  !#   with name given by {\normalfont \ttfamily [outputGroupName]}. Within that group, each merger tree has its own group named
-  !#   {\normalfont \ttfamily mergerTree\textless\ N\textgreater} where {\normalfont \ttfamily \textless\ N\textgreater} is the
-  !#   tree index. Within each such merger tree group datasets giving the node index (``{\normalfont \ttfamily nodeIndex}''), time
-  !#   (``{\normalfont \ttfamily nodeTime}''), basic mass (``{\normalfont \ttfamily nodeMass}''), expansion factor (``{\normalfont
-  !#   \ttfamily nodeExpansionFactor}'') are written. Optionally, datasets giving the spin parameter (``{\normalfont \ttfamily
-  !#   nodeSpin}'') and its vector components (``{\normalfont \ttfamily nodeSpinVector}'') are included if {\normalfont \ttfamily
+  !#   A merger tree operator class which outputs mass accretion histories (i.e. the mass of the \gls{node} on the primary branch
+  !#   as a function of time). Histories are written into the \glc\ output file in a group with name given by {\normalfont
+  !#   \ttfamily [outputGroupName]}. Within that group, each merger tree has its own group named {\normalfont \ttfamily
+  !#   mergerTree\textless\ N\textgreater} where {\normalfont \ttfamily \textless\ N\textgreater} is the tree index. Within each
+  !#   such merger tree group datasets giving the node index (``{\normalfont \ttfamily nodeIndex}''), time (``{\normalfont
+  !#   \ttfamily nodeTime}''), basic mass (``{\normalfont \ttfamily nodeMass}''), expansion factor (``{\normalfont \ttfamily
+  !#   nodeExpansionFactor}'') are written. Optionally, datasets giving the spin parameter (``{\normalfont \ttfamily nodeSpin}'')
+  !#   and its vector components (``{\normalfont \ttfamily nodeSpinVector}'') are included if {\normalfont \ttfamily
   !#   [includeSpin]} and {\normalfont \ttfamily [includeSpinVector]} respectively are set to {\normalfont \ttfamily true}.
-  !# </description>
+  !#  </description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorMassAccretionHistory
      !% A merger tree operator class which outputs mass accretion histories.

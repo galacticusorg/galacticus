@@ -27,7 +27,9 @@ module Ram_Pressure_Stripping_Mass_Loss_Rate
   !# <functionClass>
   !#  <name>ramPressureStripping</name>
   !#  <descriptiveName>Ram pressure stripping</descriptiveName>
-  !#  <description>Class providing models of ram pressure stripping.</description>
+  !#  <description>
+  !#   Class providing models of ram pressure stripping-induced rates of mass loss.
+  !#  </description>
   !#  <default>simpleCylindrical</default>
   !#  <method name="rateMassLoss" >
   !#   <description>Returns the rate of mass loss (in $M_\odot$~Gyr$^{-1}$) due to ram pressure stripping of the given {\normalfont \ttfamily component}.</description>
