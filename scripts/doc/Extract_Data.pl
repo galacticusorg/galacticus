@@ -10,6 +10,7 @@ use LaTeX::Encode;
 use Fcntl qw(SEEK_SET);
 use UNIVERSAL;
 use Fortran::Utils;
+use Storable qw(dclone);
 
 # Scan Fortran90 source code and extract various useful data from "!@" lines.
 # Andrew Benson 12-Mar-2010
@@ -209,6 +210,7 @@ foreach my $fileName ( @fileNames ) {
 			if ( exists($contents->{'arguments'}) );
 			$objects{$object}->{'methods'}->{lc($contents->{'method'})}->{'type'       } = $contents->{'type'       }
 			if ( exists($contents->{'type'}) );
+			$objects{$object}->{'methods'}->{lc($contents->{'method'})}->{'inherited'  } = 0;
 		    } elsif ( $dataType eq "objectMethods" ) {
 			my $object = lc($contents->{'object'});
 			my @methods;
@@ -224,6 +226,7 @@ foreach my $fileName ( @fileNames ) {
 			    if ( exists($method->{'arguments'}) );
 			    $objects{$object}->{'methods'}->{lc($method->{'method'})}->{'type'       } = $method->{'type'       }
 			    if ( exists($method->{'type'}) );
+			    $objects{$object}->{'methods'}->{lc($method->{'method'})}->{'inherited'  } = 0;
 			}
 		    }
 		}
@@ -244,6 +247,9 @@ foreach my $fileName ( @fileNames ) {
 }
 
 # Copy any methods inherited from parent classes.
+foreach my $object ( sort(keys(%objects)) ) {
+    $objects{$object}->{'isFunctionClass'} = 0;
+}
 my $foundExtensions = 1;
 while ( $foundExtensions == 1 ) {
     $foundExtensions = 0;
@@ -251,11 +257,16 @@ while ( $foundExtensions == 1 ) {
 	if ( defined($objects{$object}->{'extends'}) ) {
 	    $foundExtensions = 1;
 	    my $parent = $objects{$object}->{'extends'};
+	    $objects{$object}->{'isFunctionClass'} = 1
+		if ( $parent eq "functionclass" || $objects{$parent}->{'isFunctionClass'} );
+	    $objects{$object}->{'parent'} = $objects{$parent}->{'name'};
+	    push(@{$objects{$parent}->{'children'}},$objects{$object}->{'name'});
 	    unless ( defined($objects{$parent}->{'extends'}) ) {
 		foreach my $method ( keys(%{$objects{$parent}->{'methods'}}) ) {
 		    if ( ( ! exists($objects{$object}->{'methods'}->{$method}) ) || $objects{$object}->{'methods'}->{$method}->{'description'} eq "UNDEFINED" ) {
-			$objects{$object}->{'methods'}->{$method} = $objects{$parent}->{'methods'}->{$method};
+			$objects{$object}->{'methods'}->{$method} = dclone($objects{$parent}->{'methods'}->{$method});
 		    }
+		    $objects{$object}->{'methods'}->{$method}->{'inherited'} = 1;
 		}
 		foreach my $procedure ( keys(%{$objects{$parent}->{'procedures'}}) ) {
 		    delete($objects{$object}->{'methods'}->{$procedure})
@@ -275,6 +286,7 @@ while ( $foundExtensions == 1 ) {
 open(methodHndl    ,">".$outputRoot."Methods.tex");
 
 # Write method descriptions.
+my @functionClassExcludes = ( "allowedParameters", "autoHook", "deepCopy", "deepCopyReset", "descriptor", "hashedDescriptor", "objectType", "stateRestore", "stateStore" );
 foreach my $object ( sort(keys(%objects)) ) {
     my $hasEntries = 0;
     foreach my $method ( sort(keys(%{$objects{$object}->{'methods'}})) ) {
@@ -285,19 +297,62 @@ foreach my $object ( sort(keys(%objects)) ) {
 	}
     }
     if ( $hasEntries == 1 ) {
-	print methodHndl "\\subsubsection{\\large {\\normalfont \\ttfamily ".$objects{$object}->{'name'}."}}\\label{sec:AutoMethods".ucfirst($objects{$object}->{'name'})."}\n\n";
-	print methodHndl "\\begin{description}\n";
-	foreach my $method ( sort(keys(%{$objects{$object}->{'methods'}})) ) {
-	    if ( $objects{$object}->{'methods'}->{$method}->{'description'} ne "UNDEFINED" && $objects{$object}->{'methods'}->{$method}->{'description'} ne "GENERIC" ) {
+	print methodHndl "\\subsection{\\large {\\normalfont \\ttfamily ".$objects{$object}->{'name'}."}}\\label{class:".$objects{$object}->{'name'}."}\\hyperdef{class}{".$objects{$object}->{'name'}."}{}\n\n";
+	my @methodNames = 
+	    map 
+	{
+	      $objects{$object}->{'methods'}->{$_}->{'description'} ne "UNDEFINED" 
+	    &&
+	      $objects{$object}->{'methods'}->{$_}->{'description'} ne "GENERIC" 
+	    &&
+	    (
+	     ! exists($objects{$object}->{'methods'}->{$_}->{'inherited'  })
+	     ||
+	     !        $objects{$object}->{'methods'}->{$_}->{'inherited'  }
+	    )
+	    ?
+	    $_
+	    :
+	    ()
+	}
+	sort(keys(%{$objects{$object}->{'methods'}}));
+	if ( $objects{$object}->{'isFunctionClass'} ) {
+	    my @methodNamesUnique;
+	    foreach my $methodName ( @methodNames ) {
+		push(@methodNamesUnique,$methodName)
+		    unless ( grep {lc($_) eq lc($methodName)} @functionClassExcludes );
+	    }
+	    @methodNames = @methodNamesUnique;
+	}
+	print methodHndl "\\emph{Physics model:} \\refPhysics{".$objects{$object}->{'name'}."}\n\n"
+	    if ( $objects{$object}->{'isFunctionClass'} );
+	print methodHndl "\\noindent\\emph{Parent class:} \\refClass{".$objects{$object}->{'parent'}."}\n\n"
+	    if ( exists($objects{$object}->{'parent'}) );
+	if ( exists($objects{$object}->{'children'}) ) {
+	    my @sortedChildren = sort(@{$objects{$object}->{'children'}});
+		    print methodHndl "\\noindent\\emph{Child classes:}\n\n\\begin{tabular}{ll}\n";
+		    for(my $i=0;$i<scalar(@sortedChildren);$i+=2) {
+			print methodHndl    "\\refClass{".$sortedChildren[$i  ]."}";
+			print methodHndl " & \\refClass{".$sortedChildren[$i+1]."}"
+			    if ( $i+1 < scalar(@sortedChildren) );
+			print methodHndl "\\\\\n";
+		    }
+		    print methodHndl "\\end{tabular}\n\n";
+	}
+	if ( scalar(@methodNames) > 0 || $objects{$object}->{'isFunctionClass'} ) {
+	    print methodHndl "\\begin{description}\n";
+	    print methodHndl "\\item[] All standard \\refClass{functionClass} methods (see \\S\\ref{sec:functionClassAll})\n"
+		if ( $objects{$object}->{'isFunctionClass'} );
+	    foreach my $method ( @methodNames ) {
 		print methodHndl "\\item[]{\\normalfont \\ttfamily ";
-		if ( exists($objects{$object}->{'methods'}->{$method}->{'type'}) ) {
+	        if ( exists($objects{$object}->{'methods'}->{$method}->{'type'}) ) {
 		    (my $methodLabel = $objects{$object}->{'methods'}->{$method}->{'type'}) =~ s/([^\\])_/$1\\_/g;
 		    print methodHndl $methodLabel."\\ ";
 		} else {
 		    print "Warning: missing type for method ".$method." of ".$object." object\n";
 		}
-		print methodHndl latex_encode($objects{$object}->{'methods'}->{$method}->{'method'})."(";
-		if ( exists($objects{$object}->{'methods'}->{$method}->{'arguments'}) ) {
+	        print methodHndl latex_encode($objects{$object}->{'methods'}->{$method}->{'method'})."(";
+	        if ( exists($objects{$object}->{'methods'}->{$method}->{'arguments'}) ) {
 		    unless ( UNIVERSAL::isa($objects{$object}->{'methods'}->{$method}->{'arguments'},"HASH") ) {
 			(my $arguments = $objects{$object}->{'methods'}->{$method}->{'arguments'}) =~ s/([^\\])_/$1\\_/g;
 			print methodHndl $arguments;
@@ -305,10 +360,10 @@ foreach my $object ( sort(keys(%objects)) ) {
 		} else {
 		    print "Warning: missing arguments for method ".$method." of ".$object." object\n";
 		}
-		print methodHndl ")} ".$objects{$object}->{'methods'}->{$method}->{'description'}."\n";
-	    }
-	}
-	print methodHndl "\\end{description}\n";
+	        print methodHndl ")} ".$objects{$object}->{'methods'}->{$method}->{'description'}."\n";
+            }
+	    print methodHndl "\\end{description}\n";
+        }
     }
 }
 
@@ -324,7 +379,7 @@ foreach ( @emptyDefaults ) {
 open(oHndl,">".$outputRoot."Enumerations.tex");
 open(sHndl,">".$outputRoot."EnumerationSpecifiers.tex");
 foreach ( sort(keys(%enumerations)) ) {
-    print oHndl "\\subsubsection{\\large {\\normalfont \\ttfamily ".$_."}}\\hypertarget{ht:AutoEnumerations".ucfirst($_)."}{}\\label{sec:AutoEnumerations".ucfirst($_)."}\\index{enumerations!".$_."\@{\\normalfont \\ttfamily ".$_."}}\n\n";
+    print oHndl "\\subsection{\\large {\\normalfont \\ttfamily ".$_."}}\\hypertarget{ht:AutoEnumerations".ucfirst($_)."}{}\\label{sec:AutoEnumerations".ucfirst($_)."}\\index{enumerations!".$_."\@{\\normalfont \\ttfamily ".$_."}}\n\n";
     print oHndl "\\begin{tabular}{rp{130mm}}\n";
     print oHndl "Description: & ".$enumerations{$_}->{'description'}." \\\\\n";
     (my $enumerationFile = $enumerations{$_}->{'file'}) =~ s/^work\/build\/(.*)\.p\.F90/$1.F90/;

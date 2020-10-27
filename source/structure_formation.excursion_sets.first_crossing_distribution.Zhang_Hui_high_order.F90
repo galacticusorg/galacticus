@@ -43,7 +43,7 @@
   !#   when $j = i$. We can rewrite the equation:
   !#   \begin{eqnarray}
   !#          f(S_i)  &amp;=&amp;  g_1(S_i)  +  \frac{ 4 \Delta S}{90}  \sum_{j=0:4}^{i-8}   \left\{ 7 f(S_j) g_2(S_i, S_j) + 32 f(S_{j+1}) g_2(S_i, S_{j+1})  \right.\nonumber\\
-  !#          &amp;&amp;\qquad \left. {}     + 12 f(S_{j+2}) g_2(S_i, S_{j+2}) + 32 f(S_{j+3}) g_2(S_i, S_{j+3}) + 7 f(S_{j+4}) g_2(S_i, S_{j+4})  \right\} \nonumber\\ 
+  !#          &amp;&amp;\qquad \left. {}     + 12 f(S_{j+2}) g_2(S_i, S_{j+2}) + 32 f(S_{j+3}) g_2(S_i, S_{j+3}) + 7 f(S_{j+4}) g_2(S_i, S_{j+4})  \right\} \nonumber\\
   !#          &amp;&amp;\qquad {}     + \frac{ 4  \bar{g}_2(S_i) \Delta S}{90} \Big( 7 f(S_{i-4})  + 32 f(S_{i-3}) + 12 f(S_{i-2}) + 32 f(S_{i-1}) + 7 f(S_i)  \Big).
   !#   \end{eqnarray}
   !#   For $ \bar{g}_2(S_i)$ we have:
@@ -54,7 +54,7 @@
   !#   S$. The above equation can be solved for $f(S_i)$, giving:
   !#   \begin{eqnarray}
   !#          f(S_i)  &amp;=&amp;  \left( g_1(S_i)  +  \frac{ 4 \Delta S}{90}  \sum_{j=0:4}^{i-8}   \left\{ 7 f(S_j) g_2(S_i, S_j)  + 32 f(S_{j+1}) g_2(S_i, S_{j+1})  \right.\right.\nonumber\\
-  !#          &amp;&amp;\qquad \left.\left. {}     + 12 f(S_{j+2}) g_2(S_i, S_{j+2})  + 32 f(S_{j+3}) g_2(S_i, S_{j+3}) + 7 f(S_{j+4}) g_2(S_i, S_{j+4})    \right\} \right. \nonumber\\ 
+  !#          &amp;&amp;\qquad \left.\left. {}     + 12 f(S_{j+2}) g_2(S_i, S_{j+2})  + 32 f(S_{j+3}) g_2(S_i, S_{j+3}) + 7 f(S_{j+4}) g_2(S_i, S_{j+4})    \right\} \right. \nonumber\\
   !#          &amp;&amp;\qquad \left. {}     + \frac{4  \bar{g}_2(S_i) \Delta S }{90} \Big( 7 f(S_{i-4})  + 32 f(S_{i-3}) + 12 f(S_{i-2})  + 32 f(S_{i-1})   \Big) \right) \nonumber\\
   !#          &amp;&amp;\qquad {}     \times \left( 1 -  \frac{ 4  \bar{g}_2(S_i) \Delta S}{90}  \right)^{-1}.
   !#   \end{eqnarray}
@@ -64,7 +64,7 @@
   !#   \begin{eqnarray}
   !#          f(S_i)  &amp;=&amp;  \left( g_1(S_i) + \frac{ \Delta S}{2}  \sum_{j=0}^{m-1}   \Big( f(S_j) g_2(S_i, S_j) + f(S_{j+1}) g_2(S_i, S_{j+1})   \Big) \right.\nonumber\\
   !#          &amp;&amp;\qquad \left. {}     +  \frac{ 4 \Delta S}{90}  \sum_{\frac{j-m}{4}=0}^{i-8}   \left\{ 7 f(S_j) g_2(S_i, S_j)  + 32 f(S_{j+1}) g_2(S_i, S_{j+1})  \right.\right.\nonumber\\
-  !#          &amp;&amp;\qquad \left.\left. {}     + 12 f(S_{j+2}) g_2(S_i, S_{j+2})  + 32 f(S_{j+3}) g_2(S_i, S_{j+3})  + 7 f(S_{j+4}) g_2(S_i, S_{j+4})    \right\} \right. \nonumber\\ 
+  !#          &amp;&amp;\qquad \left.\left. {}     + 12 f(S_{j+2}) g_2(S_i, S_{j+2})  + 32 f(S_{j+3}) g_2(S_i, S_{j+3})  + 7 f(S_{j+4}) g_2(S_i, S_{j+4})    \right\} \right. \nonumber\\
   !#          &amp;&amp;\qquad \left. {}     + \frac{4  \bar{g}_2(S_i) \Delta S}{90} \Big( 7 f(S_{i-4}) + 32 f(S_{i-3}) + 12 f(S_{i-2}) + 32 f(S_{i-1})   \Big) \right) \nonumber\\
   !#          &amp;&amp;\qquad {}     \times \left( 1 -  \frac{ 4  \bar{g}_2(S_i) \Delta S }{90}  \right)^{-1}.
   !#   \end{eqnarray}
@@ -76,7 +76,7 @@
   !#          f(S_3)  &amp;=&amp;  \Big( g_1(S_2) + \frac{ \Delta S}{2} 2 \bar{g}_2(S_3) (f(S_1) + f(S_2)) \Big) \left( 1 -  \frac{ \bar{g}_2(S_3) \Delta S}{2}  \right)^{-1}   \\
   !#          f(S_i)  &amp;=&amp;  \left( g_1(S_i) + \frac{ \Delta S}{2}  \sum_{j=0}^{m-1}   \Big( f(S_j) g_2(S_i, S_j) + f(S_{j+1}) g_2(S_i, S_{j+1})   \Big) \right.\nonumber\\
   !#          &amp;&amp;\qquad \left. {}     +  \frac{ 4 \Delta S}{90}  \sum_{\frac{j-m}{4}=0}^{i-8}   \left\{ 7 f(S_j) g_2(S_i, S_j) + 32 f(S_{j+1}) g_2(S_i, S_{j+1})  \right.\right.\nonumber\\
-  !#          &amp;&amp;\qquad \left.\left. {}     + 12 f(S_{j+2}) g_2(S_i, S_{j+2}) + 32 f(S_{j+3}) g_2(S_i, S_{j+3}) + 7 f(S_{j+4}) g_2(S_i, S_{j+4})    \right\} \right. \nonumber\\ 
+  !#          &amp;&amp;\qquad \left.\left. {}     + 12 f(S_{j+2}) g_2(S_i, S_{j+2}) + 32 f(S_{j+3}) g_2(S_i, S_{j+3}) + 7 f(S_{j+4}) g_2(S_i, S_{j+4})    \right\} \right. \nonumber\\
   !#          &amp;&amp;\qquad \left. {}     + \frac{4  \bar{g}_2(S_i) \Delta S}{90} \Big( 7 f(S_{i-4}) + 32 f(S_{i-3})+ 12 f(S_{i-2}) + 32 f(S_{i-1})  \Big) \right) \nonumber\\
   !#          &amp;&amp;\qquad {}     \times \left( 1 -  \frac{ 4  \bar{g}_2(S_i) \Delta S}{90}  \right)^{-1},
   !#   \end{eqnarray}

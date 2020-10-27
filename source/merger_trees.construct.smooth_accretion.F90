@@ -26,11 +26,10 @@
   !# <mergerTreeConstructor name="mergerTreeConstructorSmoothAccretion">
   !#  <description>
   !#   A merger tree constructor class which builds a branchless merger tree with a smooth accretion history using the selected
-  !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.darkMatterHaloMassAccretionHistory}{mass
-  !#   accretion history} method. The tree has a final mass of {\normalfont \ttfamily massHalo} (in units of $M_\odot$) at
-  !#   redshift {\normalfont \ttfamily redshiftBase} and is continued back in time by decreasing the halo mass by a factor
-  !#   {\normalfont \ttfamily massHaloDeclineFactor} at each new \gls{node} until a specified {\normalfont \ttfamily
-  !#   massHaloResolution} (in units of $M_\odot$) is reached.
+  !#   \refPhysics{darkMatterHaloMassAccretionHistory} class. The tree has a final mass of {\normalfont \ttfamily massHalo} (in
+  !#   units of $M_\odot$) at redshift {\normalfont \ttfamily redshiftBase} and is continued back in time by decreasing the halo
+  !#   mass by a factor {\normalfont \ttfamily massHaloDeclineFactor} at each new \gls{node} until a specified {\normalfont
+  !#   \ttfamily massHaloResolution} (in units of $M_\odot$) is reached.
   !#  </description>
   !# </mergerTreeConstructor>
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorSmoothAccretion

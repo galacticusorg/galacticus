@@ -35,9 +35,7 @@
   !#    \item{\normalfont \ttfamily [massSatellite]} the mass of the satellite halo;
   !#    \item{\normalfont \ttfamily [time]} the time at which the merger occurred.
   !#   \end{description}
-  !#   Two
-  !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.galacticFilter}{\normalfont
-  !#   \ttfamily galacticFilter}s are accepted, via parameters {\normalfont \ttfamily [galacticFilterSatellite]} and {\normalfont
+  !#   Two \refClass{galacticFilterClass}es are accepted, via parameters {\normalfont \ttfamily [galacticFilterSatellite]} and {\normalfont
   !#   \ttfamily [galacticFilterCentral]} which can be used to control which galaxies are included in the output.
   !#  </description>
   !# </nodeOperator>

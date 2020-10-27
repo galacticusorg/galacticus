@@ -3291,7 +3291,7 @@ CODE
 	    }
 
 	    # Generate documentation. We construct two sets of documentation, one describing the physics models, and one describing the code implementation.
-            my $documentationPhysics = "\\section{"      .$directive->{'descriptiveName'}."}\\label{sec:physics".ucfirst($directive->{'name'})."}\\hyperdef{physics}{".$directive->{'name'}."}{}\n\n"; 
+            my $documentationPhysics = "\\section{"      .$directive->{'descriptiveName'}."}\\label{phys:".$directive->{'name'}."}\\hyperdef{physics}{".$directive->{'name'}."}{}\n\n"; 
 	    foreach my $className ( sort {lc($a) cmp lc($b)} keys(%classes) ) {
 		my $class = $classes{$className};
                 (my $suffix = $class->{'name'}) =~ s/^$directive->{'name'}//;
@@ -3299,6 +3299,7 @@ CODE
                     unless ( $suffix =~ m/^[A-Z]{2}/ );
                 $documentationPhysics .= "\\subsection{\\normalfont \\ttfamily ".$suffix."}\\label{phys:".$class->{'name'}."}\\hyperdef{physics}{".$class->{'name'}."}{}\n\n";
                 $documentationPhysics .= $class->{'description'}."\n";
+                $documentationPhysics .= "\\noindent \\emph{Implemented by} \\refClass{".$class->{'name'}."}\n";
 		# Search the tree for this class to find the interface to the parameters constructor.
 		my $node = $classes{$className}->{'tree'}->{'firstChild'};
 		$node = $node->{'sibling'}
@@ -3491,8 +3492,8 @@ CODE
 		    my @sortedObjects = sort(@objects);
 		    $documentationPhysics .= "\n\\noindent\\emph{Classes used}\n\n\\begin{tabular}{ll}\n";
 		    for(my $i=0;$i<scalar(@sortedObjects);$i+=2) {
-			$documentationPhysics .=    "{\\normalfont \\ttfamily ".latex_encode($sortedObjects[$i  ])."}";
-			$documentationPhysics .= " & {\\normalfont \\ttfamily ".latex_encode($sortedObjects[$i+1])."}"
+			$documentationPhysics .=    "\\refPhysics{".$sortedObjects[$i  ]."}";
+			$documentationPhysics .= " & \\refPhysics{".$sortedObjects[$i+1]."}"
 			    if ( $i+1 < scalar(@sortedObjects) );
 			$documentationPhysics .= "\\\\\n";
 		    }

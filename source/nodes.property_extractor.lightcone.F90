@@ -43,9 +43,7 @@
   !#    \item [{\normalfont \ttfamily angularWeight}] The mean number density of this galaxy per unit area on the sky (in
   !#    degrees$^{-2}$).
   !#   \end{description}
-  !#   In order to allow this output a
-  !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.geometryLightcone}{lightcone
-  !#   geometry} must be specified.
+  !#   In order to allow this output a lightcone geometry (see \refPhysics{geometryLightcone}) must be specified.
   !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorLightcone

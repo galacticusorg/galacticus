@@ -28,9 +28,7 @@ module Power_Spectra_Primordial
   !#  <descriptiveName>Primordial Power Spectrum</descriptiveName>
   !#  <description>
   !#   Class providing the primordial power spectrum. The late-time power spectrum is typically computed from the specified
-  !#   primordial power spectrum and the
-  !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.transferFunction}{transfer
-  !#   function} and normalized to a value of $\sigma_8$.
+  !#   primordial power spectrum and the \refPhysics{transferFunction} and normalized to a value of $\sigma_8$.
   !#  </description>
   !#  <default>powerLaw</default>
   !#  <method name="power" >

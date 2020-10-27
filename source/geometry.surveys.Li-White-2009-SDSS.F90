@@ -49,7 +49,7 @@
   !#   maximum redshift at which such a galaxy would be included in the sample. Points indicate measurements from the \gls{sam},
   !#   while the line shows a polynomial fit:
   !#   \begin{eqnarray}
-  !#    z(M_\star) &amp;=&amp; -5.950 + 2.638 m - 0.4211 m^2 \nonumber \\ 
+  !#    z(M_\star) &amp;=&amp; -5.950 + 2.638 m - 0.4211 m^2 \nonumber \\
   !#               &amp; &amp; + 2.852\times 10^{-2} m^3 - 6.783 \times 10^{-4} m^4,
   !#    \label{eq:DepthPolynomial}
   !#   \end{eqnarray}

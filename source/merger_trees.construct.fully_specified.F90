@@ -31,52 +31,52 @@
   !#   
   !#   The tree specification document looks as follows:
   !#   \begin{verbatim}
-  !#   <!-- Simple initial conditions test case -->
-  !#   <initialConditions>
+  !#   &lt;!-- Simple initial conditions test case --&gt;
+  !#   &lt;initialConditions&gt;
   !#   
-  !#     <node>
-  !#       <index>2</index>
-  !#       <parent>1</parent>
-  !#       <firstChild>-1</firstChild>
-  !#       <sibling>-1</sibling>
-  !#       <basic>
-  !#         <time>1.0</time>
-  !#         <timeLastIsolated>1.0</timeLastIsolated>
-  !#         <mass>1.0e12</mass>
-  !#         <accretionRate>7.9365079e9</accretionRate>
-  !#       </basic>
-  !#       <spin>
-  !#         <spin>0.1</spin>
-  !#       </spin>
-  !#       <disk>
-  !#         <massGas>1.0e10</massGas>
-  !#         <angularMomentum>1.0e10</angularMomentum>
-  !#         <abundancesGas>
-  !#   	<metals>1.0e9</metals>
-  !#   	<Fe>1.0e9</Fe>
-  !#         </abundancesGas>
-  !#       </disk>
-  !#     </node>
+  !#     &lt;node&gt;
+  !#       &lt;index&gt;2&lt;/index&gt;
+  !#       &lt;parent&gt;1&lt;/parent&gt;
+  !#       &lt;firstChild&gt;-1&lt;/firstChild&gt;
+  !#       &lt;sibling&gt;-1&lt;/sibling&gt;
+  !#       &lt;basic&gt;
+  !#         &lt;time&gt;1.0&lt;/time&gt;
+  !#         &lt;timeLastIsolated&gt;1.0&lt;/timeLastIsolated&gt;
+  !#         &lt;mass&gt;1.0e12&lt;/mass&gt;
+  !#         &lt;accretionRate&gt;7.9365079e9&lt;/accretionRate&gt;
+  !#       &lt;/basic&gt;
+  !#       &lt;spin&gt;
+  !#         &lt;spin&gt;0.1&lt;/spin&gt;
+  !#       &lt;/spin&gt;
+  !#       &lt;disk&gt;
+  !#         &lt;massGas&gt;1.0e10&lt;/massGas&gt;
+  !#         &lt;angularMomentum&gt;1.0e10&lt;/angularMomentum&gt;
+  !#         &lt;abundancesGas&gt;
+  !#   	&lt;metals&gt;1.0e9&lt;/metals&gt;
+  !#   	&lt;Fe&gt;1.0e9&lt;/Fe&gt;
+  !#         &lt;/abundancesGas&gt;
+  !#       &lt;/disk&gt;
+  !#     &lt;/node&gt;
   !#   
-  !#     <node>
-  !#       <index>1</index>
-  !#       <parent>-1</parent>
-  !#       <firstChild>2</firstChild>
-  !#       <sibling>-1</sibling>
-  !#       <basic>
-  !#         <time>13.8</time>
-  !#         <timeLastIsolated>13.8</timeLastIsolated>
-  !#         <mass>1.1e12</mass>
-  !#         <accretionRate>7.8125e9</accretionRate>
-  !#       </basic>
-  !#       <position>
-  !#         <position>1.23</position>
-  !#         <position>6.31</position>
-  !#         <position>3.59</position>
-  !#       </position>
-  !#     </node>
+  !#     &lt;node&gt;
+  !#       &lt;index&gt;1&lt;/index&gt;
+  !#       &lt;parent&gt;-1&lt;/parent&gt;
+  !#       &lt;firstChild&gt;2&lt;/firstChild&gt;
+  !#       &lt;sibling&gt;-1&lt;/sibling&gt;
+  !#       &lt;basic&gt;
+  !#         &lt;time&gt;13.8&lt;/time&gt;
+  !#         &lt;timeLastIsolated&gt;13.8&lt;/timeLastIsolated&gt;
+  !#         &lt;mass&gt;1.1e12&lt;/mass&gt;
+  !#         &lt;accretionRate&gt;7.8125e9&lt;/accretionRate&gt;
+  !#       &lt;/basic&gt;
+  !#       &lt;position&gt;
+  !#         &lt;position&gt;1.23&lt;/position&gt;
+  !#         &lt;position&gt;6.31&lt;/position&gt;
+  !#         &lt;position&gt;3.59&lt;/position&gt;
+  !#       &lt;/position&gt;
+  !#     &lt;/node&gt;
   !#   
-  !#   </initialConditions>
+  !#   &lt;/initialConditions&gt;
   !#   \end{verbatim}
   !#   The document consists of a set of {\normalfont \ttfamily node} elements, each of which defines a single node in the merger
   !#   tree. Each {\normalfont \ttfamily node} element must specify the {\normalfont \ttfamily index} of the node, along with the

@@ -37,9 +37,7 @@
   !#   time at which the main branch progenitor of the halo had a mass equal to $0.04$ of the current halo mass. This formation
   !#   time is computed directly from the merger tree branch associated with each halo. If the no branch exists or does not extend
   !#   to the formation time then the formation time is computed by extrapolating the mass of the earliest resolved main branch
-  !#   progenitor to earlier times using the selected
-  !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.darkMatterHaloMassAccretionHistory}{mass
-  !#   accretion history} method.
+  !#   progenitor to earlier times using the selected \refClass{darkMatterHaloMassAccretionHistoryClass}.
   !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>

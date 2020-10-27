@@ -55,7 +55,7 @@ Sub-parameters are used in object composition within \glc. For example, the foll
     <cosmologyFunctionsMethod value="matterLambda"/>
   </linearGrowthMethod>
 \end{verbatim}
-The linear growth function object requires knowledge about the cosmological parameters and model. In the above, we specify this explicitly by including a definition of the cosmological parameter object and cosmological functions object that our linear growth function object should use. Note that the cosmological functions object also requires knowledge of the cosmological parameters. When the {\normalfont \ttfamily cosmologyFunctionsMethod} object is built from the above definition it will first check for a cosmological parameters object defined in its own subparameters. Since it does not find one in this instance it will check for a cosmological parameters definition in its parent object (the {\normalfont \ttfamily linearGrowthMethod} element) and, in this case, will use that definition. If no definition were to be found in any parent element, a default set of cosmological parameters would be used instead\footnote{This approach allows a direct connection to be made between the structure of the input parameter XML file and the internal object hierarchy used by \glc, allowing very fine-grained control over the composition of \glc\ functionality. In particular it permits easy construction of objects which work by modifying results from other objects, such as the \protect\href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#phys.darkMatterProfileConcentration:darkMatterProfileConcentrationSchneider2015}{\normalfont \ttfamily schneider2015} model for dark matter halo concentrations.}.
+The linear growth function object requires knowledge about the cosmological parameters and model. In the above, we specify this explicitly by including a definition of the cosmological parameter object and cosmological functions object that our linear growth function object should use. Note that the cosmological functions object also requires knowledge of the cosmological parameters. When the {\normalfont \ttfamily cosmologyFunctionsMethod} object is built from the above definition it will first check for a cosmological parameters object defined in its own subparameters. Since it does not find one in this instance it will check for a cosmological parameters definition in its parent object (the {\normalfont \ttfamily linearGrowthMethod} element) and, in this case, will use that definition. If no definition were to be found in any parent element, a default set of cosmological parameters would be used instead\footnote{This approach allows a direct connection to be made between the structure of the input parameter XML file and the internal object hierarchy used by \glc, allowing very fine-grained control over the composition of \glc\ functionality. In particular it permits easy construction of objects which work by modifying results from other objects, such as the \protect\refPhysics{darkMatterProfileConcentrationSchneider2015} model for dark matter halo concentrations.}.
 
 Parameters can also be defined with an ``{\normalfont \ttfamily id}'' attribute. Such parameters are targets for pointers elsewhere in the file, and as such are inactive (i.e. they will be ignored by \glc\ except as targets for pointers). A pointer to a target is created by specifying an element with the same parameter name and an ``{\normalfont \ttfamily idRef}'' element with a value equal to that of the {\normalfont \ttfamily id} element of the target. The pointer then acts as a regular parameter, adopting the value and subparameters of the target. Targets can be targetted by multiple pointers. This allows for a single object to be shared between multiple other objects.
 
@@ -82,7 +82,7 @@ Some scripts are provided which assist in the generation of parameter files. The
 
 \section{General Structure of Output File}\label{sec:outputFile}
 
-Figure~\ref{fig:glcOutputFileStructure} shows the structure of a typical \glc\ output file. \glc\ can perform many different tasks, and output a wide variety of different data. The following describes the structure of an output file resulting from the ``{\normalfont \ttfamily evolveForests}'' \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.task}{\normalfont \ttfamily task} (i.e. the usal mode of running \glc\ where it is asked to form and evolve a population of galaxies within a set of merger trees) using the ``{\normalfont \ttfamily standard}'' \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.mergerTreeOutputter}{\normalfont \ttfamily mergerTreeOutputter}.
+Figure~\ref{fig:glcOutputFileStructure} shows the structure of a typical \glc\ output file. \glc\ can perform many different tasks, and output a wide variety of different data. The following describes the structure of an output file resulting from the ``{\normalfont \ttfamily evolveForests}'' \refClass{taskClass} (i.e. the usal mode of running \glc\ where it is asked to form and evolve a population of galaxies within a set of merger trees) using the ``{\normalfont \ttfamily standard}'' \refClass{mergerTreeOutputterClass}.
 
 The various groups and subgroups are described below.
 
@@ -244,7 +244,7 @@ Output is controlled by parameters given within the {\normalfont \ttfamily merge
 \begin{description}
 \item[{\normalfont \ttfamily outputMergerTrees}] If {\normalfont \ttfamily true} then each merger tree is output to the relevant sub-group at each output time (see \S\ref{sec:nodeDataGroup}). Otherwise merger trees are not output. [Default: {\normalfont \ttfamily true}.]
 \item[{\normalfont \ttfamily outputReferences}] If {\normalfont \ttfamily true} then an HDF5 reference dataset is written for each merger tree subgroup (see \S\ref{sec:mergerTreeSubgroups}). [Default: {\normalfont \ttfamily false}.]
-\item[{\normalfont \ttfamily galacticFilterMethod}] A \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf#methods.galacticFilter}{\normalfont \ttfamily galacticFilter} which is applied to each node in the tree to determine whether or not it should be output. By combining multiple filters it is possible to construct arbitrarily complex criteria for output. [Default: {\normalfont \ttfamily always}.]
+\item[{\normalfont \ttfamily galacticFilterMethod}] A \refClass{galacticFilterClass} which is applied to each node in the tree to determine whether or not it should be output. By combining multiple filters it is possible to construct arbitrarily complex criteria for output. [Default: {\normalfont \ttfamily always}.]
 \end{description}
 
 \subsubsection{nodeData group}\label{sec:nodeDataGroup}\hyperdef{sec}{nodeDataGroup}{}
@@ -263,11 +263,11 @@ These subgroups will be present if the {\normalfont \ttfamily [mergerTreeOutputR
 
 In addition to simply outputting the properties of every galaxy formed, \glc\ can perform various analyses as it runs, and output the resulting quantities. For example, it can construct a galaxy stellar mass function matched in terms of binning, redshift range, survey geometry, and stellar mass uncertainties to an observed stellar mass function---outputting the resulting model expectation, along with the observed result, and the likelihood of the model given the data. 
 
-To perform such on-the-fly analysis, simply use the ``{\normalfont \ttfamily analyzer}'' \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.mergerTreeOutputter}{\normalfont \ttfamily mergerTreeOutputter}, by including the following in your parameter file:
+To perform such on-the-fly analysis, simply use the ``{\normalfont \ttfamily analyzer}'' \refClass{mergerTreeOutputterClass}, by including the following in your parameter file:
 \begin{verbatim}
  <mergerTreeOutputterMethod value="analyzer"/>
 \end{verbatim}
-If you want to also keep the standard output of all galaxy properties, simply combine the ``{\normalfont \ttfamily standard}'' and ``{\normalfont \ttfamily analyzer}'' \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.mergerTreeOutputter}{\normalfont \ttfamily mergerTreeOutputter}s:
+If you want to also keep the standard output of all galaxy properties, simply combine the ``{\normalfont \ttfamily standard}'' and ``{\normalfont \ttfamily analyzer}'' \refClass{mergerTreeOutputterClass}es:
 \begin{verbatim}
  <mergerTreeOutputterMethod value="multi">
   <mergerTreeOutputterMethod value="standard"/>
@@ -275,7 +275,7 @@ If you want to also keep the standard output of all galaxy properties, simply co
  </mergerTreeOutputterMethod>
 \end{verbatim}
 
-The analysis to be performed is determined by the \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.outputAnalysis}{\normalfont \ttfamily outputAnalysis} class. For example, to compute the GAMA stellar mass function \citep{baldry_galaxy_2012} you would include in your parameter file:
+The analysis to be performed is determined by the \refClass{outputAnalysisClass}. For example, to compute the GAMA stellar mass function \citep{baldry_galaxy_2012} you would include in your parameter file:
 \begin{verbatim}
  <outputAnalysisMethod value="massFunctionStellarBaldry2012GAMA"/>
 \end{verbatim}
@@ -293,7 +293,7 @@ The output group also contains a ``{\normalfont \ttfamily logLikelihood}'' attri
 \end{verbatim}
 (which utilizes \glc's \href{https://github.com/galacticusorg/analysis-perl}{\normalfont \ttfamily analysis-perl} tools).
 
-Multiple on-the-fly analyses can be performed, by simply grouping them inside a ``{\normalfont \ttfamily multi}'' \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.outputAnalysis}{\normalfont \ttfamily outputAnalysis} class, e.g.:
+Multiple on-the-fly analyses can be performed, by simply grouping them inside a ``{\normalfont \ttfamily multi}'' \refClass{outputAnalysisClass}, e.g.:
 \begin{verbatim}
  <outputAnalysisMethod value="multi">
   <outputAnalysisMethod value="massFunctionStellarBaldry2012GAMA"/>

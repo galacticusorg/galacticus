@@ -40,10 +40,8 @@
   !#    M^\prime} \left| {\d t \over \d \omega}\right| G[\omega,\sigma(M),\sigma(M^\prime)] \d M^\prime.
   !#   \end{equation}
   !#   In the above, $G[\omega,\sigma(M),\sigma(M^\prime)]$ is a modification to the merger rate as computed by the selected
-  !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#methods.mergerTreeBranchingProbabilityModifier}{\normalfont
-  !#   \ttfamily treeBranchingModifierMethod}. If {\normalfont \ttfamily
-  !#   [smoothAccretion]}$=${\normalfont \ttfamily true} then smooth accretion (i.e. accretion of matter
-  !#   not in dark matter halos) is accounted for at the rate:
+  !#   \refClass{mergerTreeBranchingProbabilityModifierClass}. If {\normalfont \ttfamily [smoothAccretion]}$=${\normalfont \ttfamily true}
+  !#   then smooth accretion (i.e. accretion of matter not in dark matter halos) is accounted for at the rate:
   !#   \begin{equation}
   !#    {\d R_\mathrm{s} \over \d t} = {\mathrm{d} t \over \mathrm{d}\omega} G[\omega,\sigma_\mathrm{max},\sigma(M^\prime)] {\d
   !#    \stackrel{\sim}{f} \over \d t},
