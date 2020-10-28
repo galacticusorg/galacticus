@@ -114,7 +114,7 @@ contains
   subroutine mergeImport(self,simulations)
     !% Merge data from multiple importers.
     use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, verbosityStandard
-    use :: Hashes            , only : rank1IntegerSizeTHash    , rank1DoubleHash
+    use :: Hashes            , only : rank1IntegerSizeTHash    , rank1DoubleHash            , integerSizeTHash , doubleHash
     implicit none
     class           (nbodyImporterMerge), intent(inout)                            :: self
     type            (nBodyData         ), intent(  out), allocatable, dimension(:) :: simulations
@@ -160,7 +160,21 @@ contains
        end do
        importer_ => importer_%next
     end do
-    ! Extra properties.
+    ! Extra attributes/properties.
+    !! Integer attributes.
+    simulations(1)%attributesInteger=integerSizeTHash     ()
+    if (self%importers%simulations(1)%attributesInteger%size() > 0) then
+       do k=1,self%importers%simulations(1)%attributesInteger%size()
+          call simulations(1)%attributesInteger%set(self%importers%simulations(1)%attributesInteger%key(k),self%importers%simulations(1)%attributesInteger%value(k))
+       end do
+    end if
+    !! Real attributes.
+    simulations(1)%attributesReal   =doubleHash           ()
+    if (self%importers%simulations(1)%attributesReal   %size() > 0) then
+       do k=1,self%importers%simulations(1)%attributesReal   %size()
+          call simulations(1)%attributesReal   %set(self%importers%simulations(1)%attributesReal   %key(k),self%importers%simulations(1)%attributesReal   %value(k))
+       end do
+    end if
     !! Integer properties.
     simulations(1)%propertiesInteger=rank1IntegerSizeTHash()
     if (self%importers%simulations(1)%propertiesInteger%size() > 0) then
