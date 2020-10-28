@@ -69,6 +69,8 @@ contains
     binIndex=searchArray(propertyValueMinimum,propertyValue)
     ! Check if value lies within range.
     if (binIndex <= 0) return
+    ! Capture the final bin.
+    if (binIndex == size(propertyValueMinimum)-1_c_size_t .and. propertyValue > propertyValueMaximum(binIndex)) binIndex=size(propertyValueMinimum)
     ! Add weight to distribution if within the bin.
     if     (                                                 &
          &   propertyValue >= propertyValueMinimum(binIndex) &
