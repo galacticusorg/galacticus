@@ -1407,21 +1407,24 @@ contains
     use :: String_Handling   , only : operator(//)
     implicit none
     class           (inputParameters           ), intent(inout), target      :: self
-    type            (inputParameter            ), intent(inout)              :: parameterNode
+    type            (inputParameter            ), intent(inout), target      :: parameterNode
     {Type¦intrinsic}                            , intent(  out)              :: parameterValue
     integer                                     , intent(  out), optional    :: errorStatus
     logical                                     , intent(in   ), optional    :: writeOutput
-    type            (inputParameter )               , pointer  :: sibling
+    type            (inputParameter            )               , pointer     :: sibling
     type            (node                      )               , pointer     :: valueElement
     type            (inputParameters           )               , pointer     :: rootParameters     , subParameters  , &
          &                                                                      subParametersNext
     character       (len=parameterLengthMaximum), dimension(:) , allocatable :: parameterNames
     type            (DOMException              )                             :: exception
     integer                                                                  :: status             , i              , &
-         &                                                                      countNames
-    logical                                                                  :: hasValueAttribute  , hasValueElement
+         &                                                                      countNames         , copyCount      , &
+         &                                                                      copyInstance
+    logical                                                                  :: hasValueAttribute  , hasValueElement, &
+         &                                                                      isException
     character       (len=parameterLengthMaximum)                             :: expression         , parameterName  , &
-         &                                                                      workText
+         &                                                                      workText           , content
+    type            (varying_string            )                             :: attributeName
     double precision                                                         :: workValue
 #ifdef MATHEVALAVAIL
     integer         (kind_int8                 )                             :: evaluator
@@ -1568,7 +1571,6 @@ contains
                 !$ call hdf5Access%unset()
              end if
           end if
-          !$omp end critical (FoX_DOM_Access)
        end if
     end if
     return
