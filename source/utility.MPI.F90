@@ -121,7 +121,7 @@ module MPI_Utilities
      !@   <objectMethod>
      !@     <method>sum</method>
      !@     <type>\intzero|\intone</type>
-     !@     <arguments>(\intzero|\intone|\doublezero|\doubleone|\doubletwo) array\argin</arguments>
+     !@     <arguments>(\intzero|\intone|\inttwo|\intthree|\doublezero|\doubleone|\doubletwo) array\argin</arguments>
      !@     <description>Return the sum of {\normalfont \ttfamily array} over all processes.</description>
      !@   </objectMethod>
      !@   <objectMethod>
@@ -192,14 +192,14 @@ module MPI_Utilities
      generic   :: median         => mpiMedianArray
      procedure ::                   mpiSumScalarInt            , mpiSumArrayInt
      procedure ::                   mpiSumScalarSizeT          , mpiSumArraySizeT       , &
-          &                         mpiSumArrayTwoSizeT
+          &                         mpiSumArrayTwoSizeT        , mpiSumArrayThreeSizeT
      procedure ::                   mpiSumScalarDouble         , mpiSumArrayDouble      , &
           &                         mpiSumArrayTwoDouble       , mpiSumArrayThreeDouble
      generic   :: sum            => mpiSumScalarInt            , mpiSumArrayInt         , &
           &                         mpiSumScalarDouble         , mpiSumArrayDouble      , &
           &                         mpiSumArrayTwoDouble       , mpiSumArrayThreeDouble , &
           &                         mpiSumScalarSizeT          , mpiSumArraySizeT       , &
-          &                         mpiSumArrayTwoSizeT
+          &                         mpiSumArrayTwoSizeT        , mpiSumArrayThreeSizeT
      procedure ::                   mpiAnyLogicalScalar
      generic   :: any            => mpiAnyLogicalScalar
      procedure ::                   mpiAllLogicalScalar
@@ -1119,6 +1119,40 @@ contains
 #endif
     return
   end function mpiSumArrayTwoSizeT
+
+  function mpiSumArrayThreeSizeT(self,array,mask)
+    !% Sum a rank-3 integer array over all processes, returning it to all processes.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI             , only : MPI_AllReduce          , MPI_Integer8, MPI_Sum, MPI_Comm_World
+#endif
+    implicit none
+    class  (mpiObject), intent(in   )                                                                             :: self
+    integer(c_size_t ), intent(in   ), dimension( :               , :               , :               )           :: array
+    logical           , intent(in   ), dimension(0:                                                   ), optional :: mask
+    integer(c_size_t )               , dimension(size(array,dim=1),size(array,dim=2),size(array,dim=3))           :: mpiSumArrayThreeSizeT
+#ifdef USEMPI
+    integer(c_size_t )               , dimension(size(array,dim=1),size(array,dim=2),size(array,dim=3))           :: maskedArray
+    integer                                                                                                       :: iError               , activeCount
+#endif
+
+#ifdef USEMPI
+    ! Sum the array over all processes.
+    maskedArray=array
+    activeCount=self%count()
+    if (present(mask)) then
+       if (.not.mask(self%rank())) maskedArray=0_c_size_t
+       activeCount=count(mask)
+    end if
+    call MPI_AllReduce(maskedArray,mpiSumArrayThreeSizeT,size(array),MPI_Integer8,MPI_Sum,MPI_Comm_World,iError)
+    if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
+#else
+    !$GLC attributes unused :: self, array, mask
+    mpiSumArrayThreeSizeT=0_c_size_t
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function mpiSumArrayThreeSizeT
   
   integer function mpiSumScalarInt(self,scalar,mask)
     !% Sum an integer scalar over all processes, returning it to all processes.
