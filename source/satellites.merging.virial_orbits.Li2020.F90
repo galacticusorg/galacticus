@@ -50,6 +50,7 @@
           &                                                             a3                                 , aMinimum, &
           &                                                             aMaximum
      type            (interpolator                        )          :: interpolatorA
+     logical                                                         :: propagateOrbits
    contains
      !@ <objectMethods>
      !@   <object>virialOrbitLi2020</object>
@@ -95,7 +96,8 @@ contains
          &                                                            sigma2                   , a0    , &
          &                                                            a1                       , a2    , &
          &                                                            a3 
-
+    logical                                                        :: propagateOrbits
+    
     !# <inputParameter>
     !#   <name>mu</name>
     !#   <defaultValue>1.21d0</defaultValue>
@@ -145,12 +147,18 @@ contains
     !#   <source>parameters</source>
     !#   <description>Values of the $a_3$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>propagateOrbits</name>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <source>parameters</source>
+    !#   <description>If true, orbits will be propagated to the virial radius of the host halo. Otherwise, no propagation is performed and orbital velocities will correspond to precisely those from the \cite{li_orbital_2020} orbital velocity distribution.</description>
+    !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
-    self=virialOrbitLi2020(mu,sigma1,sigma2,a0,a1,a2,a3,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_)
+    self=virialOrbitLi2020(mu,sigma1,sigma2,a0,a1,a2,a3,propagateOrbits,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="darkMatterHaloScale_"     />
     !# <objectDestructor name="cosmologyParameters_"     />
@@ -160,7 +168,7 @@ contains
     return
   end function li2020ConstructorParameters
 
-  function li2020ConstructorInternal(mu,sigma1,sigma2,a0,a1,a2,a3,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
+  function li2020ConstructorInternal(mu,sigma1,sigma2,a0,a1,a2,a3,propagateOrbits,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily li2020} virial orbits class.
     use :: Numerical_Integration, only : integrator
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
@@ -175,6 +183,7 @@ contains
          &                                                                         sigma2                          , a0                               , &
          &                                                                         a1                              , a2                               , &
          &                                                                         a3
+    logical                                        , intent(in   )              :: propagateOrbits
     integer                                        , parameter                  :: countTable               =1000
     double precision                               , parameter                  :: peakHeightMaximum        =10.0d0, massRatioMaximum           =2.0d0, &
          &                                                                         extentVelocity           =10.0d0
@@ -184,7 +193,7 @@ contains
          &                                                                         a                               , velocityTotalMaximum
     integer                                                                     :: i
     
-    !# <constructorAssign variables="mu,sigma1,sigma2,a0,a1,a2,a3, *darkMatterHaloScale_, *cosmologyParameters_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_"/>
+    !# <constructorAssign variables="mu, sigma1, sigma2, a0, a1, a2, a3, propagateOrbits, *darkMatterHaloScale_, *cosmologyParameters_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_"/>
     
     ! Create virial density contrast definition.
     allocate(self%virialDensityContrast_)
@@ -347,12 +356,14 @@ contains
        call li2020Orbit%velocityRadialSet    (velocityRadialInternal    *velocityHost)
        call li2020Orbit%velocityTangentialSet(velocityTangentialInternal*velocityHost)
        ! Propagate the orbit to the virial radius under the default density contrast definition.
-       radiusHost=self%darkMatterHaloScale_%virialRadius(host)
-       foundOrbit=.false.
-       if (li2020Orbit%radiusApocenter() >= radiusHost .and. li2020Orbit%radiusPericenter() <= radiusHost) then
-          foundOrbit=.true.
-          call li2020Orbit%propagate(radiusHost  ,infalling=.true.)
-          call li2020Orbit%massesSet(basic%mass(),hostBasic%mass())
+       if (self%propagateOrbits) then
+          radiusHost=self%darkMatterHaloScale_%virialRadius(host)
+          foundOrbit=.false.
+          if (li2020Orbit%radiusApocenter() >= radiusHost .and. li2020Orbit%radiusPericenter() <= radiusHost) then
+             foundOrbit=.true.
+             call li2020Orbit%propagate(radiusHost  ,infalling=.true.)
+             call li2020Orbit%massesSet(basic%mass(),hostBasic%mass())
+          end if
        end if
     end do
     ! If too many iterations were required to find an orbit, abort.
