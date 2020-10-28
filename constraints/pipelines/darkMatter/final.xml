@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Structure formation options -->
+  <haloMassFunctionMethod value="shethTormen">
+    <a             value="0.0"/>
+    <p             value="0.0"/>
+    <normalization value="0.0"/>
+  </haloMassFunctionMethod>
+
+</parameters>
