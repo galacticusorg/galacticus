@@ -225,7 +225,7 @@ contains
          &                              verbosityStandard
     use :: Memory_Management   , only : allocateArray            , deallocateArray
     use :: File_Utilities      , only : Count_Lines_in_File
-    use :: Hashes              , only : rank1IntegerSizeTHash    , rank1DoubleHash
+    use :: Hashes              , only : rank1IntegerSizeTHash    , rank1DoubleHash            , integerSizeTHash          , doubleHash
     implicit none
     class           (nbodyImporterRockstar), intent(inout)                                 :: self
     type            (nBodyData            ), intent(  out), dimension( :    ), allocatable :: simulations
@@ -242,6 +242,7 @@ contains
     character       (len=1024             )                                                :: line
     character       (len=64               )                                                :: columnName
     logical                                                                                :: isComment
+    double precision                                                                       :: boxSize
 
     call Galacticus_Display_Indent('import simulation from Rockstar file',verbosityStandard)
     allocate(simulations(1))
@@ -304,6 +305,9 @@ contains
           end if
           ! Exit once all halos have been read.
           if (i == countHalos) exit
+       else if (line(1:16) == "#Full box size =") then
+          ! Extract box size.
+          read (line(17:len_trim(line)),*) boxSize
        end if
        call Galacticus_Display_Counter(int(100.0d0*dble(i)/dble(countHalos)),verbosity=verbosityStandard,isNew=i == 1_c_size_t)
     end do
@@ -316,6 +320,13 @@ contains
             &                       /self%cosmologyParameters_%HubbleConstant (  hubbleUnitsLittleH)
     end do
     call deallocateArray(expansionFactor)
+    ! Convert box size to internal units (comoving Mpc).
+    boxSize=+boxSize                                                      &
+         &  /self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
+    ! Store attribues.
+    simulations(1)%attributesInteger=integerSizeTHash()
+    simulations(1)%attributesReal   =doubleHash      ()
+    call simulations(1)%attributesReal%set('boxSize',boxSize)
     ! Add any additional properties.
     simulations(1)%propertiesInteger=rank1IntegerSizeTHash()
     simulations(1)%propertiesReal   =rank1DoubleHash      ()
@@ -327,24 +338,26 @@ contains
           case (columnTypeInteger)
              jInteger=jInteger+1
              select case (self%readColumns(j))
-             case (rockstarColumnId        )
+             case (rockstarColumnId          )
                 columnName='particleID'
-             case (rockstarColumnDesc_id   )
+             case (rockstarColumnDesc_id     )
                 columnName='descendentID'
-             case (rockstarColumnNum_prog  )
+             case (rockstarColumnNum_prog    )
                 columnName='progenitorCount'
-             case (rockstarColumnPid       )
+             case (rockstarColumnPid         )
                 columnName='hostID'
-             case (rockstarColumnUpid      )
+             case (rockstarColumnUpid        )
                 columnName='hostRootID'
-             case (rockstarColumnDesc_pid  )
+             case (rockstarColumnDesc_pid    )
                 columnName='descendentHostID'
-             case (rockstarColumnMmp       )
+             case (rockstarColumnMmp         )
                 columnName='isMostMassiveProgenitor'
-             case (rockstarColumnPhantom   )
+             case (rockstarColumnPhantom     )
                 columnName='isPhantom'
-             case (rockstarColumnSnap_num  )
+             case (rockstarColumnSnap_num    )
                 columnName='snapshotID'
+             case (rockstarColumnTree_root_ID)
+                columnName='treeID'
              end select
              call simulations(1)%propertiesInteger%set(columnName,propertiesInteger(:,jInteger))
           case (columnTypeReal   )
