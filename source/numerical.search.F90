@@ -68,11 +68,11 @@ contains
     
     ! Account for the 0/1 array indexing difference between Fortran and C here.
     searchArrayDouble=+GSL_Interp_BSearch(                                                           &
-         &                                  arrayToSearch                                            , &
-         &                                  valueToFind                                              , &
-         &                                  int(lbound(arrayToSearch,dim=1),kind=c_size_t)-1_c_size_t, &
-         &                                  int(ubound(arrayToSearch,dim=1),kind=c_size_t)-1_c_size_t  &
-         &                                 )                                                           &
+         &                                arrayToSearch                                            , &
+         &                                valueToFind                                              , &
+         &                                int(lbound(arrayToSearch,dim=1),kind=c_size_t)-1_c_size_t, &
+         &                                int(ubound(arrayToSearch,dim=1),kind=c_size_t)-1_c_size_t  &
+         &                               )                                                           &
          &              +1_c_size_t
     return
   end function searchArrayDouble
