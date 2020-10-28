@@ -340,8 +340,10 @@ module IO_HDF5
           &                              IO_HDF5_Write_Attribute_Logical_Scalar
      procedure :: IO_HDF5_Write_Dataset_Integer_1D
      procedure :: IO_HDF5_Write_Dataset_Integer_2D
+     procedure :: IO_HDF5_Write_Dataset_Integer_3D
      procedure :: IO_HDF5_Write_Dataset_Integer8_1D
      procedure :: IO_HDF5_Write_Dataset_Integer8_2D
+     procedure :: IO_HDF5_Write_Dataset_Integer8_3D
      procedure :: IO_HDF5_Write_Dataset_Double_1D
      procedure :: IO_HDF5_Write_Dataset_Double_2D
      procedure :: IO_HDF5_Write_Dataset_Double_3D
@@ -352,8 +354,10 @@ module IO_HDF5
      procedure :: IO_HDF5_Write_Dataset_VarString_1D
      generic   :: writeDataset        => IO_HDF5_Write_Dataset_Integer_1D        , &
           &                              IO_HDF5_Write_Dataset_Integer_2D        , &
+          &                              IO_HDF5_Write_Dataset_Integer_3D        , &
           &                              IO_HDF5_Write_Dataset_Integer8_1D       , &
           &                              IO_HDF5_Write_Dataset_Integer8_2D       , &
+          &                              IO_HDF5_Write_Dataset_Integer8_3D       , &
           &                              IO_HDF5_Write_Dataset_Double_1D         , &
           &                              IO_HDF5_Write_Dataset_Double_2D         , &
           &                              IO_HDF5_Write_Dataset_Double_3D         , &
@@ -4828,6 +4832,175 @@ contains
     return
   end subroutine IO_HDF5_Write_Dataset_Integer_2D
 
+  subroutine IO_HDF5_Write_Dataset_Integer_3D(thisObject,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+    !% Open and write an integer 3-D array dataset in {\normalfont \ttfamily thisObject}.
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: HDF5              , only : H5S_SELECT_SET_F       , H5T_NATIVE_INTEGER         , HID_T                , HSIZE_T   , &
+          &                           h5dget_space_f         , h5dset_extent_f            , h5dwrite_f           , h5sclose_f, &
+          &                           h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
+    implicit none  
+    class    (hdf5Object    )                  , intent(inout)           :: thisObject
+    character(len=*         )                  , intent(in   ), optional :: commentText                , datasetName
+    integer                  , dimension(:,:,:), intent(in   )           :: datasetValue
+    logical                                    , intent(in   ), optional :: appendTo
+    integer  (hsize_t       )                  , intent(in   ), optional :: chunkSize
+    integer                                    , intent(in   ), optional :: compressionLevel
+    type     (hdf5Object    )                  , intent(  out), optional :: datasetReturned
+    integer  (kind=HSIZE_T  ), dimension(3    )                          :: datasetDimensions          , hyperslabCount      , &
+         &                                                                  hyperslabStart             , newDatasetDimensions, &
+         &                                                                  newDatasetDimensionsMaximum
+    integer                                                              :: datasetRank                , errorCode
+    integer  (kind=HID_T    )                                            :: dataspaceID                , newDataspaceID
+    logical                                                              :: appendToActual             , preExisted
+    type     (hdf5Object    )                                            :: datasetObject
+    type     (varying_string)                                            :: datasetNameActual          , message
+
+    ! Check that this module is initialized.
+    call IO_HDF_Assert_Is_Initialized
+
+    ! Get the name of the dataset.
+    if (present(datasetName)) then
+       datasetNameActual=datasetName
+    else
+       datasetNameActual=thisObject%objectName
+    end if
+
+    ! Check that the object is already open.
+    if (.not.thisObject%isOpenValue) then
+       message="attempt to write dataset '"//trim(datasetNameActual)//"' in unopen object '"//thisObject%objectName//"'"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+
+    ! Determine append status.
+    if (present(appendTo)) then
+       appendToActual=appendTo
+    else
+       appendToActual=.false.
+    end if
+    ! Determine dataset dimensions
+    datasetDimensions=shape(datasetValue)
+    ! Check if the object is an dataset, or something else.
+    if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
+       ! If this dataset if not overwritable, report an error.
+       if (.not.(thisObject%isOverwritable.or.appendToActual)) then
+          message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
+          call Galacticus_Error_Report(message//{introspection:location})
+       else
+          ! Check that the object is a 3D integer.
+          call thisObject%assertDatasetType(H5T_NATIVE_INTEGERS,3)
+       end if
+       select type (thisObject)
+       type is (hdf5Object)
+          datasetObject=thisObject
+       end select
+       datasetNameActual=thisObject%objectName
+       preExisted       =.true.
+    else
+       ! Check that an dataset name was supplied.
+       if (.not.present(datasetName)) then
+          message="no name was supplied for dataset in '"//thisObject%objectName//"'"
+          call Galacticus_Error_Report(message//{introspection:location})
+       end if
+       ! Record if dataset already exists.
+       preExisted=thisObject%hasDataset(datasetName)
+       ! Open the dataset.
+       datasetObject=IO_HDF5_Open_Dataset(thisObject,datasetName,commentText,hdf5DataTypeInteger,datasetDimensions,appendTo&
+            &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
+       ! Check that pre-existing object is a 3D integer.
+       if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_INTEGERS,3)
+       ! If this dataset if not overwritable, report an error.
+       if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
+          message="dataset '"//trim(datasetName)//"' is not overwritable"
+          call Galacticus_Error_Report(message//{introspection:location})
+       end if
+    end if
+
+    ! If appending is requested, get the size of the existing dataset.
+    if (appendToActual.and.preExisted) then
+       ! Get size of existing dataset here.
+       call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
+       if (errorCode < 0) then
+          message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
+          call Galacticus_Error_Report(message//{introspection:location})
+       end if
+       call h5sget_simple_extent_dims_f(dataspaceID,newDatasetDimensions,newDatasetDimensionsMaximum,errorCode)
+       if (errorCode < 0) then
+          message="could not get dataspace extent for dataset '"//trim(datasetNameActual)//"'"
+          call Galacticus_Error_Report(message//{introspection:location})
+       end if
+       call h5sclose_f(dataspaceID,errorCode)
+       if (errorCode < 0) then
+          message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
+          call Galacticus_Error_Report(message//{introspection:location})
+       end if
+       hyperslabStart      =newDatasetDimensions
+       hyperslabCount      =dataSetDimensions
+       newDatasetDimensions=newDatasetDimensions+datasetDimensions
+    else
+       newDatasetDimensions=datasetDimensions
+       hyperslabStart      =0
+       hyperslabCount      =datasetDimensions
+    end if
+
+    ! Set extent of the dataset.
+    if (datasetObject%chunkSize /= -1) then
+       call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
+       if (errorCode < 0) then
+          message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
+          call Galacticus_Error_Report(message//{introspection:location})
+       end if
+    end if
+    ! Get the dataspace for the dataset.
+    call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
+    if (errorCode < 0) then
+       message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    ! Select hyperslab to write.
+    call h5sselect_hyperslab_f(dataspaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
+    if (errorCode < 0) then
+       message="could not select hyperslab for dataset '"//trim(datasetNameActual)//"'"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    ! Create a dataspace for the data to be written.
+    datasetRank=3
+    call h5screate_simple_f(datasetRank,datasetDimensions,newDataspaceID,errorCode)
+    if (errorCode < 0) then
+       message="could not create dataspace for data to be written to dataset '"//trim(datasetNameActual)//"'"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+
+    ! Write the dataset.
+    call h5dwrite_f(datasetObject%objectID,H5T_NATIVE_INTEGER,datasetValue,datasetDimensions,errorCode,newDataspaceID,dataspaceID)
+    if (errorCode /= 0) then
+       message="unable to write dataset '"//datasetNameActual//"' in object '"//thisObject%objectName//"'"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+
+    ! Close the dataspaces.
+    call h5sclose_f(dataspaceID,errorCode)
+    if (errorCode < 0) then
+       message="unable to close dataspace for dataset '"//trim(datasetNameActual)//"'"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    call h5sclose_f(newDataspaceID,errorCode)
+    if (errorCode < 0) then
+       message="unable to close new dataspace for dataset '"//trim(datasetNameActual)//"'"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+
+    ! Copy the dataset to return if necessary.
+    if (present(datasetReturned)) then
+       datasetReturned=datasetObject
+    else
+       ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
+       if (thisObject%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
+    end if
+
+    return
+  end subroutine IO_HDF5_Write_Dataset_Integer_3D
+
   subroutine IO_HDF5_Read_Dataset_Integer_1D_Array_Static(thisObject,datasetName,datasetValue,readBegin,readCount)
     !% Open and read an integer scalar dataset in {\normalfont \ttfamily thisObject}.
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
@@ -6357,6 +6530,184 @@ contains
 
     return
   end subroutine IO_HDF5_Write_Dataset_Integer8_2D
+
+  subroutine IO_HDF5_Write_Dataset_Integer8_3D(thisObject,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+    !% Open and write a long integer 3-D array dataset in {\normalfont \ttfamily thisObject}.
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_SELECT_SET_F           , H5T_NATIVE_INTEGER_8 , HID_T     , &
+          &                                      HSIZE_T                , h5dget_space_f             , h5dset_extent_f      , h5sclose_f, &
+          &                                      h5screate_simple_f     , h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
+    use            :: Kind_Numbers      , only : kind_int8
+    use            :: Memory_Management , only : allocateArray          , deallocateArray
+    implicit none
+    class    (hdf5Object    )                               , intent(inout)                   :: thisObject
+    character(len=*         )                               , intent(in   ), optional         :: commentText                , datasetName
+    integer  (kind=kind_int8)             , dimension(:,:,:), intent(in   )                   :: datasetValue
+    logical                                                 , intent(in   ), optional         :: appendTo
+    integer  (hsize_t       )                               , intent(in   ), optional         :: chunkSize
+    integer                                                 , intent(in   ), optional         :: compressionLevel
+    type     (hdf5Object    )                               , intent(  out), optional         :: datasetReturned
+    integer  (kind=kind_int8), allocatable, dimension(:,:,:)                         , target :: datasetValueContiguous
+    integer  (kind=HSIZE_T  )             , dimension(3    )                                  :: datasetDimensions          , hyperslabCount      , &
+         &                                                                                       hyperslabStart             , newDatasetDimensions, &
+         &                                                                                       newDatasetDimensionsMaximum
+    integer                                                                                   :: datasetRank                , errorCode
+    integer  (kind=HID_T    )                                                                 :: dataspaceID                , newDataspaceID
+    logical                                                                                   :: appendToActual             , preExisted
+    type     (hdf5Object    )                                                                 :: datasetObject
+    type     (varying_string)                                                                 :: datasetNameActual          , message
+    type     (c_ptr         )                                                                 :: dataBuffer
+
+    ! Check that this module is initialized.
+    call IO_HDF_Assert_Is_Initialized
+
+    ! Get the name of the dataset.
+    if (present(datasetName)) then
+       datasetNameActual=datasetName
+    else
+       datasetNameActual=thisObject%objectName
+    end if
+
+    ! Check that the object is already open.
+    if (.not.thisObject%isOpenValue) then
+       message="attempt to write dataset '"//trim(datasetNameActual)//"' in unopen object '"//thisObject%objectName//"'"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+
+    ! Determine append status.
+    if (present(appendTo)) then
+       appendToActual=appendTo
+    else
+       appendToActual=.false.
+    end if
+    ! Determine dataset dimensions
+    datasetDimensions=shape(datasetValue)
+    ! Check if the object is an dataset, or something else.
+    if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
+       ! If this dataset if not overwritable, report an error.
+       if (.not.(thisObject%isOverwritable.or.appendToActual)) then
+          message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
+          call Galacticus_Error_Report(message//{introspection:location})
+       else
+          ! Check that the object is a 3D long integer.
+          call thisObject%assertDatasetType(H5T_NATIVE_INTEGER_8S,3)
+       end if
+       select type (thisObject)
+       type is (hdf5Object)
+          datasetObject=thisObject
+       end select
+       datasetNameActual=thisObject%objectName
+       preExisted       =.true.
+    else
+       ! Check that an dataset name was supplied.
+       if (.not.present(datasetName)) then
+          message="no name was supplied for dataset in '"//thisObject%objectName//"'"
+          call Galacticus_Error_Report(message//{introspection:location})
+       end if
+       ! Record if dataset already exists.
+       preExisted=thisObject%hasDataset(datasetName)
+       ! Open the dataset.
+       datasetObject=IO_HDF5_Open_Dataset(thisObject,datasetName,commentText,hdf5DataTypeInteger8,datasetDimensions,appendTo&
+            &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
+       ! Check that pre-existing object is a 3D long integer.
+       if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8S,3)
+       ! If this dataset if not overwritable, report an error.
+       if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
+          message="dataset '"//trim(datasetName)//"' is not overwritable"
+          call Galacticus_Error_Report(message//{introspection:location})
+       end if
+    end if
+
+    ! If appending is requested, get the size of the existing dataset.
+    if (appendToActual.and.preExisted) then
+       ! Get size of existing dataset here.
+       call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
+       if (errorCode < 0) then
+          message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
+          call Galacticus_Error_Report(message//{introspection:location})
+       end if
+       call h5sget_simple_extent_dims_f(dataspaceID,newDatasetDimensions,newDatasetDimensionsMaximum,errorCode)
+       if (errorCode < 0) then
+          message="could not get dataspace extent for dataset '"//trim(datasetNameActual)//"'"
+          call Galacticus_Error_Report(message//{introspection:location})
+       end if
+       call h5sclose_f(dataspaceID,errorCode)
+       if (errorCode < 0) then
+          message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
+          call Galacticus_Error_Report(message//{introspection:location})
+       end if
+       hyperslabStart      =newDatasetDimensions
+       hyperslabCount      =dataSetDimensions
+       newDatasetDimensions=newDatasetDimensions+datasetDimensions
+    else
+       newDatasetDimensions=datasetDimensions
+       hyperslabStart      =0
+       hyperslabCount      =datasetDimensions
+    end if
+
+    ! Set extent of the dataset.
+    if (datasetObject%chunkSize /= -1) then
+       call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
+       if (errorCode < 0) then
+          message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
+          call Galacticus_Error_Report(message//{introspection:location})
+       end if
+    end if
+    ! Get the dataspace for the dataset.
+    call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
+    if (errorCode < 0) then
+       message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    ! Select hyperslab to write.
+    call h5sselect_hyperslab_f(dataspaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
+    if (errorCode < 0) then
+       message="could not select hyperslab for dataset '"//trim(datasetNameActual)//"'"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    ! Create a dataspace for the data to be written.
+    datasetRank=3
+    call h5screate_simple_f(datasetRank,datasetDimensions,newDataspaceID,errorCode)
+    if (errorCode < 0) then
+       message="could not create dataspace for data to be written to dataset '"//trim(datasetNameActual)//"'"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+
+    ! Write the dataset.
+    call allocateArray(datasetValueContiguous,shape(datasetValue))
+    datasetValueContiguous=datasetValue
+    dataBuffer=c_loc(datasetValueContiguous)
+    errorCode=h5dwrite(datasetObject%objectID,H5T_NATIVE_INTEGER_8,newDataspaceID,dataspaceID,H5P_DEFAULT_F,dataBuffer)
+    if (errorCode /= 0) then
+       message="unable to write dataset '"//datasetNameActual//"' in object '"//thisObject%objectName//"'"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    call deallocateArray(datasetValueContiguous)
+
+    ! Close the dataspaces.
+    call h5sclose_f(dataspaceID,errorCode)
+    if (errorCode < 0) then
+       message="unable to close dataspace for dataset '"//trim(datasetNameActual)//"'"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    call h5sclose_f(newDataspaceID,errorCode)
+    if (errorCode < 0) then
+       message="unable to close new dataspace for dataset '"//trim(datasetNameActual)//"'"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+
+    ! Copy the dataset to return if necessary.
+    if (present(datasetReturned)) then
+       datasetReturned=datasetObject
+    else
+       ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
+       if (thisObject%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
+    end if
+
+    return
+  end subroutine IO_HDF5_Write_Dataset_Integer8_3D
 
   subroutine IO_HDF5_Read_Dataset_Integer8_1D_Array_Static(thisObject,datasetName,datasetValue,readBegin,readCount,readSelection)
     !% Open and read a long integer scalar dataset in {\normalfont \ttfamily thisObject}.
