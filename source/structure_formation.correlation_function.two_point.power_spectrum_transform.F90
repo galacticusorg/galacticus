@@ -23,6 +23,8 @@
   use :: Numerical_Interpolation , only : interpolator
   use :: Power_Spectra           , only : powerSpectrumClass
   use :: Power_Spectra_Nonlinear , only : powerSpectrumNonlinearClass
+  use :: Linear_Growth           , only : linearGrowthClass
+  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
 
   !# <correlationFunctionTwoPoint name="correlationFunctionTwoPointPowerSpectrumTransform">
   !#  <description>Provides a two-point correlation function class in which the correlation function is found by Fourier transforming a power spectrum.</description>
@@ -32,10 +34,13 @@
      private
      class           (powerSpectrumClass         ), pointer     :: powerSpectrum_                  => null()
      class           (powerSpectrumNonlinearClass), pointer     :: powerSpectrumNonlinear_         => null()
+     class           (linearGrowthClass          ), pointer     :: linearGrowth_                   => null()
+     class           (cosmologyFunctionsClass    ), pointer     :: cosmologyFunctions_             => null()
      type            (interpolator               ), allocatable :: interpolator_                            , interpolatorVolumeAveraged_ 
      double precision                                           :: separationMinimum                        , separationMaximum              , &
           &                                                        separationMinimumVolumeAveraged          , separationMaximumVolumeAveraged, &
-          &                                                        time                                     , timeVolumeAveraged
+          &                                                        time                                     , timeVolumeAveraged             , &
+          &                                                        timePresent
   contains
      final     ::                              powerSpectrumTransformDestructor
      procedure :: correlation               => powerSpectrumTransformCorrelation
@@ -59,40 +64,54 @@ contains
     type (inputParameters                                  ), intent(inout) :: parameters
     class(powerSpectrumNonlinearClass                      ), pointer       :: powerSpectrumNonlinear_
     class(powerSpectrumClass                               ), pointer       :: powerSpectrum_
+    class(cosmologyFunctionsClass                          ), pointer       :: cosmologyFunctions_
+    class(linearGrowthClass                                ), pointer       :: linearGrowth_
 
     powerSpectrumNonlinear_ => null()
     powerSpectrum_          => null()
+    cosmologyFunctions_     => null()
+    linearGrowth_           => null()
     if (parameters%isPresent('powerSpectrumNonlinearMethod')) then
        !# <objectBuilder class="powerSpectrumNonlinear" name="powerSpectrumNonlinear_" source="parameters"/>
     end if
     if (parameters%isPresent('powerSpectrumMethod'         )) then
        !# <objectBuilder class="powerSpectrum"          name="powerSpectrum_"          source="parameters"/>
+       !# <objectBuilder class="cosmologyFunctions"     name="cosmologyFunctions_"     source="parameters"/>
+       !# <objectBuilder class="linearGrowth"           name="linearGrowth_"           source="parameters"/>
     end if
     !# <conditionalCall>
     !#  <call>self=correlationFunctionTwoPointPowerSpectrumTransform({conditions})</call>
     !#  <argument name="powerSpectrumNonlinear_" value="powerSpectrumNonlinear_" parameterPresent="parameters" parameterName="powerSpectrumNonlinearMethod"/>
     !#  <argument name="powerSpectrum_"          value="powerSpectrum_"          parameterPresent="parameters" parameterName="powerSpectrumMethod"         />
+    !#  <argument name="cosmologyFunctions_"     value="cosmologyFunctions_"     parameterPresent="parameters" parameterName="powerSpectrumMethod"         />
+    !#  <argument name="linearGrowth_"           value="linearGrowth_"           parameterPresent="parameters" parameterName="powerSpectrumMethod"         />
     !# </conditionalCall>
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="powerSpectrumNonlinear_"/>
     !# <objectDestructor name="powerSpectrum_"         />
-    return
+    !# <objectDestructor name="cosmologyFunctions_"    />
+    !# <objectDestructor name="linearGrowth_"          />
+     return
   end function powerSpectrumTransformConstructorParameters
 
-  function powerSpectrumTransformConstructorInternal(powerSpectrumNonlinear_,powerSpectrum_) result(self)
+  function powerSpectrumTransformConstructorInternal(powerSpectrumNonlinear_,powerSpectrum_,cosmologyFunctions_,linearGrowth_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily powerSpectrumTransform} two-point correlation function class.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (correlationFunctionTwoPointPowerSpectrumTransform)                                  :: self
     class(powerSpectrumNonlinearClass                      ), intent(in   ), target, optional :: powerSpectrumNonlinear_
     class(powerSpectrumClass                               ), intent(in   ), target, optional :: powerSpectrum_
-    !# <constructorAssign variables="*powerSpectrumNonlinear_, *powerSpectrum_"/>
+    class(cosmologyFunctionsClass                          ), intent(in   ), target, optional :: cosmologyFunctions_
+    class(linearGrowthClass                                ), intent(in   ), target, optional :: linearGrowth_
+    !# <constructorAssign variables="*powerSpectrumNonlinear_, *powerSpectrum_, *cosmologyFunctions_, *linearGrowth_"/>
     
     if      (      present(powerSpectrumNonlinear_).and.present(powerSpectrum_) ) then
        call Galacticus_Error_Report('provide either a linear or non-linear power spectrum, not both'//{introspection:location})
     else if (.not.(present(powerSpectrumNonlinear_).or. present(powerSpectrum_))) then
        call Galacticus_Error_Report('provide either a linear or non-linear power spectrum'          //{introspection:location})
     end if
+    if (present(powerSpectrum_).and..not.(present(cosmologyFunctions_).and.present(linearGrowth_))) &
+         & call Galacticus_Error_Report('linear power spectrum requires cosmology functions and linear growth objects be supplied also'//{introspection:location})
     ! Initialize correlation range.
     self%time                           =-huge(0.0d0)
     self%timeVolumeAveraged             =-huge(0.0d0)
@@ -100,6 +119,8 @@ contains
     self%separationMaximum              =-huge(0.0d0)
     self%separationMinimumVolumeAveraged=+huge(0.0d0)
     self%separationMaximumVolumeAveraged=-huge(0.0d0)
+    ! Find present day time.
+    if (associated(self%powerSpectrum_)) self%timePresent=self%cosmologyFunctions_%cosmicTime(1.0d0)
     return
   end function powerSpectrumTransformConstructorInternal
 
@@ -110,6 +131,8 @@ contains
 
     !# <objectDestructor name="self%powerSpectrumNonlinear_"/>
     !# <objectDestructor name="self%powerSpectrum_"         />
+    !# <objectDestructor name="self%cosmologyFunctions_"    />
+    !# <objectDestructor name="self%linearGrowth_"          />
     return
   end subroutine powerSpectrumTransformDestructor
 
@@ -125,10 +148,16 @@ contains
          &                                                                                            correlation               , separations
     integer                                                            , parameter                 :: wavenumbersPerDecade=125
     double precision                                                   , parameter                 :: wavenumbersRange    =1.0d4
-    double precision                                                                               :: wavenumberMinimum         , wavenumberMaximum
+    double precision                                                                               :: wavenumberMinimum         , wavenumberMaximum, &
+         &                                                                                            time_
     integer         (c_size_t                                         )                            :: countWavenumbers          , i
 
-    if (time /= self%time .or. separation < self%separationMinimum .or. separation > self%separationMaximum) then
+    if (associated(self%powerSpectrum_)) then
+       time_=self%timePresent
+    else
+       time_=time
+    end if
+    if (time_ /= self%time .or. separation < self%separationMinimum .or. separation > self%separationMaximum) then
        if (self%time < 0.0d0) then
           self%separationMinimum=separation
           self%separationMaximum=separation
@@ -143,9 +172,9 @@ contains
        wavenumbers=Make_Range(wavenumberMinimum,wavenumberMaximum,int(countWavenumbers),rangeTypeLogarithmic)
        do i=1,countWavenumbers
           if (associated(self%powerSpectrum_)) then
-             powerSpectrum(i)=self%powerSpectrum_         %power(wavenumbers(i),time)
+             powerSpectrum(i)=self%powerSpectrum_         %power(wavenumbers(i),time_)
           else
-             powerSpectrum(i)=self%powerSpectrumNonLinear_%value(wavenumbers(i),time)
+             powerSpectrum(i)=self%powerSpectrumNonLinear_%value(wavenumbers(i),time_)
           end if
        end do
        call FFTLogSineTransform(                &
@@ -162,11 +191,13 @@ contains
        if (allocated(self%interpolator_)) deallocate(self%interpolator_)
        allocate(self%interpolator_)
        self%interpolator_    =interpolator(separations,correlation)
-       self%time             =time
+       self%time             =time_
        self%separationMinimum=separations(               1)
        self%separationMaximum=separations(countWavenumbers)
     end if
     powerSpectrumTransformCorrelation=self%interpolator_%interpolate(separation)
+    if (associated(self%powerSpectrum_)) powerSpectrumTransformCorrelation=+powerSpectrumTransformCorrelation &
+         &                                                                 *self%linearGrowth_%value(time)**2
     return
   end function powerSpectrumTransformCorrelation
   
@@ -195,10 +226,16 @@ contains
          &                                                                                            correlation               , separations
     integer                                                            , parameter                 :: wavenumbersPerDecade=125
     double precision                                                   , parameter                 :: wavenumbersRange    =1.0d4
-    double precision                                                                               :: wavenumberMinimum         , wavenumberMaximum
+    double precision                                                                               :: wavenumberMinimum         , wavenumberMaximum, &
+         &                                                                                            time_
     integer         (c_size_t                                         )                            :: countWavenumbers          , i
 
-    if (time /= self%timeVolumeAveraged .or. separation < self%separationMinimumVolumeAveraged .or. separation > self%separationMaximumVolumeAveraged) then
+    if (associated(self%powerSpectrum_)) then
+       time_=self%timePresent
+    else
+       time_=time
+    end if
+    if (time_ /= self%timeVolumeAveraged .or. separation < self%separationMinimumVolumeAveraged .or. separation > self%separationMaximumVolumeAveraged) then
        if (self%timeVolumeAveraged < 0.0d0) then
           self%separationMinimumVolumeAveraged=separation
           self%separationMaximumVolumeAveraged=separation
@@ -213,9 +250,9 @@ contains
        wavenumbers=Make_Range(wavenumberMinimum,wavenumberMaximum,int(countWavenumbers),rangeTypeLogarithmic)
        do i=1,countWavenumbers
           if (associated(self%powerSpectrum_)) then
-             powerSpectrum(i)=self%powerSpectrum_         %power(wavenumbers(i),time)
+             powerSpectrum(i)=self%powerSpectrum_         %power(wavenumbers(i),time_)
           else
-             powerSpectrum(i)=self%powerSpectrumNonLinear_%value(wavenumbers(i),time)
+             powerSpectrum(i)=self%powerSpectrumNonLinear_%value(wavenumbers(i),time_)
           end if
        end do
        ! In FFTLog(), we use μ=3/2 since:
@@ -244,10 +281,12 @@ contains
        if (allocated(self%interpolatorVolumeAveraged_)) deallocate(self%interpolatorVolumeAveraged_)
        allocate(self%interpolatorVolumeAveraged_)
        self%interpolatorVolumeAveraged_    =interpolator(separations,correlation)
-       self%timeVolumeAveraged             =time
+       self%timeVolumeAveraged             =time_
        self%separationMinimumVolumeAveraged=separations(               1)
        self%separationMaximumVolumeAveraged=separations(countWavenumbers)
     end if
     powerSpectrumTransformCorrelationVolumeAveraged=self%interpolatorVolumeAveraged_%interpolate(separation)
+    if (associated(self%powerSpectrum_)) powerSpectrumTransformCorrelationVolumeAveraged=+powerSpectrumTransformCorrelationVolumeAveraged &
+         &                                                                               *self%linearGrowth_%value(time)**2
     return
   end function powerSpectrumTransformCorrelationVolumeAveraged
