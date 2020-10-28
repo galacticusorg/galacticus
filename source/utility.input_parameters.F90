@@ -1314,9 +1314,11 @@ contains
 
   function inputParametersSubParameters(self,parameterName,requireValue,requirePresent,copyInstance)
     !% Return sub-parameters of the specified parameter.
-    use :: FoX_dom         , only : node
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_HDF5         , only : hdf5Access
+    use :: FoX_dom           , only : node
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: IO_HDF5           , only : hdf5Access
+    use :: ISO_Varying_String, only : operator(//)            , char, assignment(=)
+    use :: String_Handling   , only : operator(//)
     implicit none
     type     (inputParameters)                          :: inputParametersSubParameters
     class    (inputParameters), intent(in   ), target   :: self
@@ -1324,6 +1326,9 @@ contains
     logical                   , intent(in   ), optional :: requireValue                , requirePresent
     integer                   , intent(in   ), optional :: copyInstance
     type     (inputParameter ), pointer                 :: parameterNode
+    integer                                             :: copyCount
+    type     (varying_string )                          :: groupName
+
     !# <optionalArgument name="requirePresent" defaultsTo=".true." />
 
     if (.not.self%isPresent(parameterName,requireValue)) then
@@ -1332,15 +1337,21 @@ contains
        else
           inputParametersSubParameters=inputParameters()
        end if
+       copyCount                               =  1
     else
-       parameterNode                           => self%node      (parameterName        ,requireValue=requireValue,copyInstance=copyInstance)
-       inputParametersSubParameters            =  inputParameters(parameterNode%content,noOutput    =.true.      ,noBuild     =.true.      )
+       copyCount                               =  self%copiesCount(parameterName                                                            )
+       parameterNode                           => self%node       (parameterName        ,requireValue=requireValue,copyInstance=copyInstance)
+       inputParametersSubParameters            =  inputParameters (parameterNode%content,noOutput    =.true.      ,noBuild     =.true.      )
        inputParametersSubParameters%parameters => parameterNode
     end if
     inputParametersSubParameters%parent => self
     inputParametersSubParameters%global =  self%global
     !$ call hdf5Access%set()
-    if (self%outputParameters%isOpen()) inputParametersSubParameters%outputParameters=self%outputParameters%openGroup(trim(parameterName))
+    if (self%outputParameters%isOpen()) then
+       groupName=parameterName
+       if (copyCount > 1) groupName=groupName//"["//copyInstance//"]"
+       inputParametersSubParameters%outputParameters=self%outputParameters%openGroup(char(groupName))
+    end if
     !$ call hdf5Access%unset()
     return
   end function inputParametersSubParameters
@@ -1369,7 +1380,7 @@ contains
        ! Write the parameter file to an HDF5 object.
        if (self%outputParameters%isOpen().and.writeOutput_) then
           !$ call hdf5Access%set()
-         if (.not.self%outputParameters%hasAttribute(parameterName)) call self%outputParameters%writeAttribute({Type¦outputConverter¦parameterValue},parameterName)
+          if (.not.self%outputParameters%hasAttribute(parameterName)) call self%outputParameters%writeAttribute({Type¦outputConverter¦parameterValue},parameterName)
           !$ call hdf5Access%unset()
        end if
     else if (present(errorStatus )) then
@@ -1393,12 +1404,14 @@ contains
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists   , getTextContent  => getTextContentTS, extractDataContent => extractDataContentTS
     use :: ISO_Varying_String, only : char                             , trim              , assignment(=)                      , operator(//)                              , &
          &                            operator(==)
+    use :: String_Handling   , only : operator(//)
     implicit none
     class           (inputParameters           ), intent(inout), target      :: self
     type            (inputParameter            ), intent(inout)              :: parameterNode
     {Type¦intrinsic}                            , intent(  out)              :: parameterValue
     integer                                     , intent(  out), optional    :: errorStatus
     logical                                     , intent(in   ), optional    :: writeOutput
+    type            (inputParameter )               , pointer  :: sibling
     type            (node                      )               , pointer     :: valueElement
     type            (inputParameters           )               , pointer     :: rootParameters     , subParameters  , &
          &                                                                      subParametersNext
@@ -1513,16 +1526,22 @@ contains
           {Type¦match¦^(?!(Long|VarStr|Character))¦call extractDataContent(valueElement,parameterValue,iostat=status,ex=exception)¦}
           {Type¦match¦^(Long.*|(Character|VarStr)Rank1)$¦parameterText=getTextContent(valueElement,ex=exception)¦}
           {Type¦match¦^(VarStr|Character)$¦parameterValue=getTextContent(valueElement,ex=exception)¦}
-          if (inException(exception) .or. status /= 0) then
+          isException=inException(exception)
+          !$omp end critical (FoX_DOM_Access)
+          if (isException .or. status /= 0) then
              if (present(errorStatus)) then
                 errorStatus=inputParameterErrorStatusParse
              else
-                call Galacticus_Error_Report(                                         &
-                     &                       'unable to parse parameter ['         // &
-                     &                        getNodeName   (parameterNode%content)// &
-                     &                       ']='                                  // &
-                     &                        getTextContent(valueElement         )// &
-                     &                        {introspection:location}                &
+                !$omp critical (FoX_DOM_Access) 
+                attributeName=getNodeName   (parameterNode%content)
+                content      =getTextContent(valueElement         )
+                !$omp end critical (FoX_DOM_Access) 
+                call Galacticus_Error_Report(                                &
+                     &                       'unable to parse parameter ['// &
+                     &                        attributeName               // &
+                     &                       ']='                         // &
+                     &                        content                     // &
+                     &                        {introspection:location}       &
                      &                      )
              end if
           else
@@ -1531,8 +1550,21 @@ contains
              {Type¦match¦^(Character|VarStr)Rank1$¦call String_Split_Words(parameterValue,char(parameterText))¦}
              ! Write the parameter file to an HDF5 object.
              if (self%outputParameters%isOpen().and.writeOutput_) then
+                !$omp critical (FoX_DOM_Access)
+                attributeName=getNodeName(parameterNode%content)
+                !$omp end critical (FoX_DOM_Access)
+                copyCount    =self%copiesCount(char(attributeName))
+                if (copyCount > 1) then
+                   copyInstance =  copyCount
+                   sibling      => parameterNode
+                   do while (associated(sibling%sibling))
+                      copyInstance =  copyInstance-1
+                      sibling      => sibling%sibling
+                   end do
+                   attributeName=attributeName//"["//copyInstance//"]"                
+                end if
                 !$ call hdf5Access%set()
-                if (.not.self%outputParameters%hasAttribute(getNodeName(parameterNode%content))) call self%outputParameters%writeAttribute({Type¦outputConverter¦parameterValue},getNodeName(parameterNode%content))
+                if (.not.self%outputParameters%hasAttribute(char(attributeName))) call self%outputParameters%writeAttribute({Type¦outputConverter¦parameterValue},char(attributeName))
                 !$ call hdf5Access%unset()
              end if
           end if
