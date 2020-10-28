@@ -45,7 +45,13 @@ module IO_IRATE
      !@     <method>readSimulation</method>
      !@     <type>\void</type>
      !@     <arguments>\doublezero\ [boxSize]\argout</arguments>
-     !@     <description>Read the request properties of the simulation from an \gls{irate} format file.</description>
+     !@     <description>Read the requested properties of the simulation from an \gls{irate} format file.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>writeSimulation</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ [boxSize]\argin</arguments>
+     !@     <description>Write the requested properties of the simulation from an \gls{irate} format file.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>copySimulation</method>
@@ -66,11 +72,12 @@ module IO_IRATE
      !@     <description></description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: readHalos      => irateReadHalos
-     procedure :: readSimulation => irateReadSimulation
-     procedure :: copySimulation => irateCopySimulation
-     procedure :: copyCosmology  => irateCopyCosmology
-     procedure :: writeHalos     => irateWriteHalos
+     procedure :: readHalos       => irateReadHalos
+     procedure :: readSimulation  => irateReadSimulation
+     procedure :: writeSimulation => irateWriteSimulation
+     procedure :: copySimulation  => irateCopySimulation
+     procedure :: copyCosmology   => irateCopyCosmology
+     procedure :: writeHalos      => irateWriteHalos
   end type irate
 
   interface irate
@@ -171,6 +178,23 @@ contains
     call irateFile      %close()
     return
   end subroutine irateReadSimulation
+
+  subroutine irateWriteSimulation(self,boxSize)
+    !% Write requested properties of the simulation from an \gls{irate} file.
+    use :: IO_HDF5           , only : hdf5Object
+    use :: ISO_Varying_String, only : char
+    implicit none
+    class           (irate     ), intent(inout)           :: self
+    double precision            , intent(in   ), optional :: boxSize
+    type            (hdf5Object)                          :: irateFile, simulationGroup
+
+    call irateFile%openFile(char(self%fileName),readOnly=.false.)
+    simulationGroup=irateFile%openGroup('SimulationProperties')
+    if (present(boxSize)) call simulationGroup%writeAttribute(boxSize,'boxSize')
+    call simulationGroup%close()
+    call irateFile      %close()
+    return
+  end subroutine irateWriteSimulation
 
   subroutine irateCopySimulation(self,targetFile)
     !% Copy ``{\normalfont \ttfamily SimulationProperties}'' group from one \gls{irate} file to another.
