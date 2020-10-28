@@ -46,7 +46,7 @@
      type            (vector                       )                              :: means
      type            (matrix                       )                              :: covariance
      integer                                                                      :: errorModel
-     type            (varying_string               )                              :: fileName                           , massFunctionType
+     type            (varying_string               )                              :: fileName
      logical                                                                      :: environmentAveraged
    contains
      final     ::                    haloMassFunctionDestructor
@@ -83,8 +83,7 @@ contains
     type            (posteriorSampleLikelihoodHaloMassFunction)                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
     type            (inputParameters                          )                :: parametersUnconditioned
-    type            (varying_string                           )                :: fileName                 , massFunctionType                      , &
-         &                                                                        errorModel
+    type            (varying_string                           )                :: fileName                 , errorModel
     double precision                                                           :: redshift                 , massRangeMinimum                      , &
          &                                                                        massParticle
     integer                                                                    :: binCountMinimum
@@ -118,11 +117,6 @@ contains
     !#   <source>parameters</source>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>massFunctionType</name>
-    !#   <description>The type of mass function () model to use.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
     !#   <name>errorModel</name>
     !#   <description>The error model to use for the halo mass function.</description>
     !#   <source>parameters</source>
@@ -152,7 +146,7 @@ contains
        cosmologicalMassVarianceUnconditioned_ => null()
        criticalOverdensityUnconditioned_      => null()
     end if
-    self=posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,binCountMinimum,char(massFunctionType),enumerationHaloMassFunctionErrorModelEncode(char(errorModel),includesPrefix=.false.),massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceUnconditioned_,criticalOverdensityUnconditioned_,darkMatterHaloScale_,darkMatterProfileDMO_,haloEnvironment_)
+    self=posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,binCountMinimum,enumerationHaloMassFunctionErrorModelEncode(char(errorModel),includesPrefix=.false.),massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceUnconditioned_,criticalOverdensityUnconditioned_,darkMatterHaloScale_,darkMatterProfileDMO_,haloEnvironment_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"      />
     !# <objectDestructor name="cosmologyParameters_"     />
@@ -168,8 +162,9 @@ contains
     return
   end function haloMassFunctionConstructorParameters
 
-  function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,binCountMinimum,massFunctionType,errorModel,massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceUnconditioned_,criticalOverdensityUnconditioned_,darkMatterHaloScale_,darkMatterProfileDMO_,haloEnvironment_) result(self)
+  function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,binCountMinimum,errorModel,massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceUnconditioned_,criticalOverdensityUnconditioned_,darkMatterHaloScale_,darkMatterProfileDMO_,haloEnvironment_) result(self)
     !% Constructor for ``haloMassFunction'' posterior sampling likelihood class.
+    use :: File_Utilities    , only : File_Name_Expand
     use :: Galacticus_Display, only : Galacticus_Display_Message
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: IO_HDF5           , only : hdf5Access                , hdf5Object
@@ -177,7 +172,7 @@ contains
     use :: Memory_Management , only : allocateArray
     implicit none
     type            (posteriorSampleLikelihoodHaloMassFunction)                                :: self
-    character       (len=*                                    ), intent(in   )                 :: fileName                      , massFunctionType
+    character       (len=*                                    ), intent(in   )                 :: fileName
     double precision                                           , intent(in   )                 :: redshift                      , massRangeMinimum                      , &
          &                                                                                        massParticle
     integer                                                    , intent(in   )                 :: binCountMinimum               , errorModel
@@ -191,17 +186,17 @@ contains
     class           (haloEnvironmentClass                     ), intent(in   ), target         :: haloEnvironment_
     double precision                                           , allocatable  , dimension(:  ) :: eigenValueArray               , massOriginal                          , &
          &                                                                                        massFunctionOriginal
+    integer         (c_size_t                                 ), allocatable  , dimension(:  ) :: massFunctionCountOriginal
     double precision                                           , allocatable  , dimension(:,:) :: massFunctionCovarianceOriginal
-    character       (len=12                                   )                                :: redshiftLabel                 , typeLabel
-    type            (hdf5Object                               )                                :: massFunctionFile              , massFunctionGroup                     , &
-         &                                                                                        analysisGroup
+    character       (len=12                                   )                                :: redshiftLabel
+    type            (hdf5Object                               )                                :: massFunctionFile              , simulationGroup
     integer                                                                                    :: i                             , j                                     , &
          &                                                                                        ii                            , jj                                    , &
          &                                                                                        massCountReduced
     double precision                                                                           :: massIntervalLogarithmic
     type            (matrix                                   )                                :: eigenVectors
     type            (vector                                   )                                :: eigenValues
-    !# <constructorAssign variables="fileName, redshift, massRangeMinimum, massFunctionType, errorModel, massParticle, environmentAveraged, *cosmologyFunctions_, *cosmologyParameters_, *cosmologicalMassVariance_, *criticalOverdensity_, *cosmologicalMassVarianceUnconditioned_, *criticalOverdensityUnconditioned_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *haloEnvironment_"/>
+    !# <constructorAssign variables="fileName, redshift, massRangeMinimum, errorModel, massParticle, environmentAveraged, *cosmologyFunctions_, *cosmologyParameters_, *cosmologicalMassVariance_, *criticalOverdensity_, *cosmologicalMassVarianceUnconditioned_, *criticalOverdensityUnconditioned_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *haloEnvironment_"/>
 
     ! Convert redshift to time.
     self%time=self%cosmologyFunctions_ %cosmicTime                (          &
@@ -211,31 +206,29 @@ contains
          &                                                        )
     ! Read the halo mass function file.
     write (redshiftLabel,'(f6.3)') redshift
-    select case (trim(massFunctionType))
-    case ("regular" )
-       typeLabel="halo"
-    case ("isolated")
-       typeLabel="isolatedHalo"
-    case default
-       call Galacticus_Error_Report('unknown mass function type'//{introspection:location})
-    end select
     !$ call hdf5Access%set()
-    call massFunctionFile %openFile(trim(fileName),readOnly=.true.)
-    analysisGroup    =massFunctionFile%openGroup('analysis'                                               )
-    massFunctionGroup=analysisGroup   %openGroup(trim(typeLabel)//'MassFunctionZ'//trim(adjustl(redshiftLabel)))
-    call massFunctionGroup%readDataset("mass"                  ,massOriginal                  )
-    call massFunctionGroup%readDataset("massFunction"          ,massFunctionOriginal          )
-    call massFunctionGroup%readDataset("massFunctionCovariance",massFunctionCovarianceOriginal)
-    call massFunctionGroup%close()
-    call analysisGroup    %close()
-    call massFunctionFile %close()
+    call massFunctionFile%openFile(char(File_Name_Expand(trim(fileName))),readOnly=.true.)
+    simulationGroup=massFunctionFile%openGroup('simulation0001')
+    call simulationGroup %readDataset("mass"        ,massOriginal             )
+    call simulationGroup %readDataset("massFunction",massFunctionOriginal     )
+    call simulationGroup %readDataset("count"       ,massFunctionCountOriginal)
+    call simulationGroup %close      (                                        )
+    call massFunctionFile%close      (                                        )
     !$ call hdf5Access%unset()
+    ! Construct the covariance matrix.
+    allocate(massFunctionCovarianceOriginal(size(massOriginal),size(massOriginal)))
+    massFunctionCovarianceOriginal=0.0d0
+    do i=1,size(massOriginal)
+       if (massFunctionCountOriginal(i) > 0_c_size_t) &
+            &  massFunctionCovarianceOriginal(i,i)=+     massFunctionOriginal     (i) **2 &
+            &                                      /dble(massFunctionCountOriginal(i))
+    end do
     ! Find a reduced mass function excluding any empty bins.
     massCountReduced=0
     do i=1,size(massOriginal)
-       if (     massFunctionOriginal          (i  )  <= 0.0d0                                              ) cycle
-       if (     massOriginal                  (i  )  <= massRangeMinimum                                   ) cycle
-       if (sqrt(massFunctionCovarianceOriginal(i,i)) >= massFunctionOriginal(i)/sqrt(dble(binCountMinimum))) cycle
+       if (massFunctionOriginal     (i) <= 0.0d0           ) cycle
+       if (massOriginal             (i) <= massRangeMinimum) cycle
+       if (massFunctionCountOriginal(i) <= binCountMinimum ) cycle
        massCountReduced=massCountReduced+1
     end do
     if (massCountReduced == 0) call Galacticus_Error_Report('no usable bins in mass function'//{introspection:location})
