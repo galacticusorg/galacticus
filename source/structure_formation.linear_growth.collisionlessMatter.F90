@@ -135,6 +135,7 @@ contains
     double precision                                 , parameter     :: odeToleranceAbsolute         =   1.0d-10, odeToleranceRelative     =1.0d-10
     integer                                          , parameter     :: growthTablePointsPerDecade   =1000
     double precision                                 , dimension(2)  :: growthFactorODEVariables
+    type            (odeSolver                      ), allocatable   :: solver
     logical                                                          :: remakeTable
     integer                                                          :: i
     double precision                                                 :: expansionFactorMatterDominant           , growthFactorDerivative           , &
@@ -142,7 +143,6 @@ contains
          &                                                              timeMatterDominant                      , timePresent                      , &
          &                                                              timeBigCrunch
     integer                                                          :: growthTableNumberPoints
-    type            (odeSolver                      )                :: solver
 
     ! Check if we need to recompute our table.
     if (self%tableInitialized) then
@@ -193,6 +193,7 @@ contains
                &                                                               )                  &
                &                                                              )                   &
                &                    )
+          allocate(solver)
           solver=odeSolver(2_c_size_t,growthFactorODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
           do i=2,growthTableNumberPoints
              timeNow                    =growthFactor          %x(i-1)
@@ -202,6 +203,7 @@ contains
              call growthFactor%populate(                          growthFactorODEVariables(1),i)
              growthFactorDerivative=growthFactorODEVariables(2)
           end do
+          deallocate(solver)
           ! Normalize to growth factor of unity at present day.
           linearGrowthFactorPresent=growthFactor%interpolate(timePresent)
           call growthFactor%populate(reshape(growthFactor%ys(),[growthTableNumberPoints])/linearGrowthFactorPresent)
