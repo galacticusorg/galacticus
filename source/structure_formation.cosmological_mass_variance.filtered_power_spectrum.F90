@@ -27,9 +27,9 @@
   !#   \begin{equation}
   !#    \sigma^2(M) = {1 \over 2 \pi^2} \int_0^\infty P(k) T^2(k) W^2(k) k^2 \mathrm{d}k
   !#   \end{equation}
-  !#   where $P(k)$ is the primordial power spectrum (see \S\ref{sec:PrimordialPowerSpectrum}), $T(k)$ is the transfer function
-  !#   (see \S\ref{sec:TransferFunction}), and $W(k)$ is the power spectrum variance window function (see
-  !#   \S\ref{sec:PowerSpectrumWindowFunctionPhysics}).
+  !#   where $P(k)$ is the primordial power spectrum (see \refPhysics{powerSpectrumPrimordial}), $T(k)$ is the transfer function
+  !#   (see \refPhysics{transferFunction}), and $W(k)$ is the power spectrum variance window function (see
+  !#   \refPhysics{powerSpectrumWindowFunction}).
   !#
   !#   The normalization of the mass variance is specified via the {\normalfont \ttfamily [sigma\_8]} parameter, which defines the
   !#   linear theory root-variance of the density field in spheres of radii $8h^{-1}$Mpc. Note that when computing the

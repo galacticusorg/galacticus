@@ -26,7 +26,7 @@ module Supernovae_Population_III
 
   !# <functionClass>
   !#  <name>supernovaePopulationIII</name>
-  !#  <descriptiveName>Supernovae Type Ia</descriptiveName>
+  !#  <descriptiveName>Population III Supernovae</descriptiveName>
   !#  <description>
   !#   Class providing models of supernovae from Population III stars.
   !#  </description>

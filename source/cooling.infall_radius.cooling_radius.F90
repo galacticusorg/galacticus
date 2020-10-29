@@ -24,7 +24,7 @@
   !# <coolingInfallRadius name="coolingInfallRadiusCoolingRadius">
   !#  <description>
   !#   A cooling infall radius class that assumes that the infall radius equals the cooling radius (see
-  !#   \S\ref{sec:CoolingRadius}).
+  !#   \refPhysics{coolingRadius}).
   !#  </description>
   !# </coolingInfallRadius>
   type, extends(coolingInfallRadiusClass) :: coolingInfallRadiusCoolingRadius

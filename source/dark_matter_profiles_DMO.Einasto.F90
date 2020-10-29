@@ -29,8 +29,8 @@
   !#     \right] \right),
   !#   \end{equation}
   !#   normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the characteristic length
-  !#   $r_{-2} = r_\mathrm{virial}/c$ where $c$ is the halo concentration (see \S\ref{sec:DarkMatterProfileConcentration}). The
-  !#   shape parameter, $\alpha$, is set using the density profile shape method (see \S\ref{sec:DarkMatterProfileShape}).
+  !#   $r_{-2} = r_\mathrm{virial}/c$ where $c$ is the halo concentration (see \refPhysics{darkMatterProfileConcentration}). The
+  !#   shape parameter, $\alpha$, is set using the density profile shape method (see \refPhysics{darkMatterProfileShape}).
   !#  </description>
   !# </darkMatterProfileDMO>
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOEinasto

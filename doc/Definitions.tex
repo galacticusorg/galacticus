@@ -14,7 +14,7 @@ The {\normalfont \ttfamily basic} component (see \S\ref{sec:ComponentBasicProper
 
 \subsection{Dark Matter Profiles}
 
-The dark matter profile functions (see \S\ref{phys:darkMatterProfile}) return masses and densities etc. which are normalized to match the mass of the {\normalfont \ttfamily basic} component at the virial radius of the halo. As such, their returned values should be considered to represent the case where baryonic matter behaves as dark matter. This is a convention, and is useful for calculations of large scale structure for example.
+The dark matter profile functions (see \refPhysics{darkMatterProfileDMO}) return masses and densities etc. which are normalized to match the mass of the {\normalfont \ttfamily basic} component at the virial radius of the halo. As such, their returned values should be considered to represent the case where baryonic matter behaves as dark matter. This is a convention, and is useful for calculations of large scale structure for example.
 
 \subsection{Galactic Structure Functions}
 
@@ -22,19 +22,19 @@ The various galactic structure functions assume that the masses/densities/etc. r
 
 \subsection{Satellite Virial Orbits}
 
-These functions (see \S\ref{sec:SatelliteVirialOrbits}) typically use the {\normalfont \ttfamily basic} component mass in determining parameters of an orbit, since they are typically calibrated to simulations of collisionless matter only.
+These functions (see \refPhysics{virialOrbit}) typically use the {\normalfont \ttfamily basic} component mass in determining parameters of an orbit, since they are typically calibrated to simulations of collisionless matter only.
 
 \subsection{Satellite Merging Timescales}
 
-These functions (see \S\ref{sec:SatelliteMergingTimescales}) typically use the {\normalfont \ttfamily basic} component mass in determining parameters of an orbit, since they are typically calibrated to simulations of collisionless matter only.
+These functions (see \refPhysics{satelliteMergingTimescales}) typically use the {\normalfont \ttfamily basic} component mass in determining parameters of an orbit, since they are typically calibrated to simulations of collisionless matter only.
 
 \subsection{Dynamical Friction}
 
-These functions (see \S\ref{sec:satelliteDynamicalFrictionMethod}) evaluate densities through the relevant galactic structure function, and so correctly account for the fraction of the {\normalfont \ttfamily basic} component mass which is in the form of dark matter.
+These functions (see \refPhysics{satelliteDynamicalFriction}) evaluate densities through the relevant galactic structure function, and so correctly account for the fraction of the {\normalfont \ttfamily basic} component mass which is in the form of dark matter.
 
 \subsection{Galactic Structure Radius Solvers}
 
-These functions \S\ref{phys:galacticStructureRadiusSolver}) determine the radii of galactic components (such as disk and spheroid), typically by iteratively seeking a solution in which their angular momenta and radii are consistent (assuming rotational support) with the net gravitational potential of the entire system (galaxy plus dark matter halo).
+These functions \refPhysics{galacticStructureSolver}) determine the radii of galactic components (such as disk and spheroid), typically by iteratively seeking a solution in which their angular momenta and radii are consistent (assuming rotational support) with the net gravitational potential of the entire system (galaxy plus dark matter halo).
 
 \section{Luminosity Units}
 

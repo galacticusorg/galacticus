@@ -25,7 +25,7 @@
   !# <coolingInfallRadius name="coolingInfallRadiusCoolingFreefall">
   !#  <description>
   !#   A cooling infall radius class calculation which assumes that the infall radius is equal to the smaller of the cooling and
-  !#   freefall radii (see \S\ref{sec:CoolingRadius} and \S\ref{sec:CoolingFreefallRadius}).
+  !#   freefall radii (see \refPhysics{coolingRadius} and \refPhysics{freefallRadius}).
   !#  </description>
   !# </coolingInfallRadius>
   type, extends(coolingInfallRadiusClass) :: coolingInfallRadiusCoolingFreefall

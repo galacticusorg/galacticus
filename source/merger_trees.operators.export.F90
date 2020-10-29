@@ -32,7 +32,7 @@
   !#   {\normalfont \ttfamily IRATE}-format output is requested then ``snapshot'' numbers will be assigned to nodes based on the time
   !#   at which they exist. This usually only makes sense if the nodes are defined on a time grid (i.e. if merger trees were extracted
   !#   from an N-body simulation, or if trees were re-gridded onto such a time grid; see \refPhysics{mergerTreeOperatorRegridTimes}).
-  !#   Export happens after any merger tree pre-evolution tasks (see \S\ref{sec:MergerTreePreEvolveTask}).
+  !#   Export happens during the merger tree pre-evolution phase.
   !#  </description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorExport

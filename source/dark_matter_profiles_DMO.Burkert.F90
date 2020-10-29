@@ -32,7 +32,7 @@
   !#   \end{equation}
   !#   normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the scale length
   !#   $r_\mathrm{s} = r_\mathrm{virial}/c$ where $c$ is the halo concentration (see
-  !#   \S\ref{sec:DarkMatterProfileConcentration}). The mass enclosed within radius $r$ is given by
+  !#   \refPhysics{darkMatterProfileConcentration}). The mass enclosed within radius $r$ is given by
   !#   \begin{equation}
   !#   M(&lt;r) = M_\mathrm{virial} {2 \log(1 + R) + \log(1 + R^2) -2 \tan^{-1}(R) \over 2 \log(1 + c) + \log(1 + c^2) -2 \tan^{-1}(c)},
   !#   \end{equation}

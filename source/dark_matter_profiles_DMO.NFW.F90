@@ -30,7 +30,7 @@
   !#     \right]^{-2},
   !#   \end{equation}
   !#   normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the scale length
-  !#   $r_\mathrm{s} = r_\mathrm{virial}/c$ where $c$ is the halo concentration (see \S\ref{sec:DarkMatterProfileConcentration}).
+  !#   $r_\mathrm{s} = r_\mathrm{virial}/c$ where $c$ is the halo concentration (see \refPhysics{darkMatterProfileConcentration}).
   !#  </description>
   !# </darkMatterProfileDMO>
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMONFW

@@ -31,7 +31,7 @@
   !#    disk} \over \tau_\mathrm{dyn, disk}},
   !#   \end{equation}
   !#   where $\mathcal{F}_\mathrm{hot, host}$ is the ram pressure force due to the hot halo of the node's host (computed using the
-  !#   selected hot halo ram pressure force method; see \S\ref{sec:HotHaloRamPressureForce}), $\Sigma_\mathrm{gas}(r)$ is the gas
+  !#   selected hot halo ram pressure force method; see \refPhysics{hotHaloRamPressureForce}), $\Sigma_\mathrm{gas}(r)$ is the gas
   !#   surface density in the disk, $\Sigma_\mathrm{total}(r)$ is the total surface density in the disk, $r_\mathrm{half}$ is the
   !#   disk half-mass radius, $M_\mathrm{gas, disk}$ is the total gas mass in the disk, $\tau_\mathrm{dyn, disk} =
   !#   r_\mathrm{disk}/v_\mathrm{disk}$ is the dynamical time in the disk, and $R_\mathrm{maximum}=${\normalfont \ttfamily

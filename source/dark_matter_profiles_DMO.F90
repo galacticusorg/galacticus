@@ -29,7 +29,7 @@ module Dark_Matter_Profiles_DMO
   !# <functionClass>
   !#  <name>darkMatterProfileDMO</name>
   !#  <extends>darkMatterProfileGeneric</extends>
-  !#  <descriptiveName>Dark Matter Halo Profiles</descriptiveName>
+  !#  <descriptiveName>Dark Matter Only Halo Profiles</descriptiveName>
   !#  <description>
   !#   Class providing dark matter-only halo profiles.
   !#  </description>

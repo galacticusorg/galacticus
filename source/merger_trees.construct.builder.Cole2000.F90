@@ -50,7 +50,7 @@
   !#    is far above the mass resolution), this approach allows for larger timesteps to be taken.
   !#   \end{description}
   !#   The minimum halo mass that the algorithm will follow is determined by the selection merger tree building mass resolution
-  !#   method (see \S\ref{sec:MergerTreeBuildingMassResolution}). Mass accretion below this scale is treated as smooth accretion
+  !#   method (see \refPhysics{mergerTreeMassResolution}). Mass accretion below this scale is treated as smooth accretion
   !#   and branches are truncated once they fall below this mass.
   !#   
   !#   In the original \cite{cole_hierarchical_2000}, when a branch split occurred masses, $M_2$ and $M_3$, of the two new halos

@@ -33,7 +33,7 @@
   !#   for stability, where $V_\mathrm{peak}$ is the peak velocity in the rotation curve (computed here assuming an isolated
   !#   exponential disk), $M_\mathrm{disk}$ is the mass of the disk, $r_\mathrm{disk}$ is its scale length (assuming an
   !#   exponential disk), $\mathcal{T} = \mathcal{F} r_\mathrm{disk}^2$ is the external driving specific torque, and $\mathcal{F}$
-  !#   is the external tidal field (evaluated using the selected method; see \S\ref{sec:SatelliteTidalFields}). The value of
+  !#   is the external tidal field (evaluated using the selected method; see \refPhysics{satelliteTidalField}). The value of
   !#   $\epsilon_\mathrm{c}$ is linearly interpolated in the disk gas fraction between values for purely gaseous and stellar disks
   !#   as specified by {\normalfont \ttfamily stabilityThresholdStellar} and {\normalfont \ttfamily stabilityThresholdGaseous}
   !#   respectively. For disks which are judged to be unstable, the timescale for bar formation is estimated to be

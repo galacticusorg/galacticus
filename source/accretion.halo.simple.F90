@@ -50,7 +50,7 @@
   !#   halos which can accrete, and which have some mass in their ``failed'' reservoir, that mass will be added to the regular
   !#   accretion rate at a rate equal to the mass of the ``failed'' reservoir times the specific growth rate of the halo. The gas
   !#   accreted is assumed to be from a pristine \gls{igm} and so has zero abundances. Chemical abundances are computed from the
-  !#   chemical state functions (see \S\ref{sec:ChemicalStateMethod}).
+  !#   chemical state functions (see \refPhysics{chemicalState}).
   !#
   !#   Note that, if $\dot{M}_\mathrm{halo} &lt; 0$ then negative accretion rates of gas into the node can result. This ccan be
   !#   prevented by setting {\normalfont \ttfamily [accretionNegativeAllowed]}$=${\normalfont \ttfamily false}.

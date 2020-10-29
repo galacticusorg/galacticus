@@ -31,7 +31,7 @@
   !#    r_\mathrm{core}^{-1} &amp; \hbox{ if } r \le r_\mathrm{core}, \end{array} \right.
   !#   \end{equation}
   !#   where the core radius, $r_\mathrm{core}$, is set using the selected cored profile core radius method (see
-  !#   \S\ref{sec:hotHaloDensityProfileCoredIsothermalCoreRadius}). The profile is normalized such that the current mass in the
+  !#   \refPhysics{hotHaloMassDistributionCoreRadius}). The profile is normalized such that the current mass in the
   !#   hot gas profile is contained within the outer radius of the hot halo, $r_\mathrm{hot, outer}$. Note that the \gls{enzo}
   !#   hydrostatic profile does not include this core, but without introducing this the profile mass can be divergent at small
   !#   radii.

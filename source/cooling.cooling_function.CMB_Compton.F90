@@ -31,7 +31,7 @@
   !#   where $\sigma_\mathrm{T}$ is the Thompson cross-section, $a$ is the radiation constant, $\mathrm{k}_\mathrm{B}$ is
   !#   Boltzmann's constant, $n_\mathrm{e}$ is the number density of electrons, $m_\mathrm{e}$ is the electron mass, $\clight$ is
   !#   the speed of light, $T_\mathrm{CMB}$ is the \gls{cmb} temperature at the current cosmic epoch and $T$ is the temperature of
-  !#   the gas. The electron density is computed from the selected chemical state method (see \S\ref{sec:ChemicalStateMethod}).
+  !#   the gas. The electron density is computed from the selected chemical state method (see \refPhysics{chemicalState}).
   !#  </description>
   !# </coolingFunction>
   type, extends(coolingFunctionClass) :: coolingFunctionCMBCompton

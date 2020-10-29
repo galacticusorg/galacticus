@@ -46,7 +46,7 @@
   !#   \end{equation}
   !#   begin the gas fraction of the progenitor galaxies. By default, $C_\mathrm{rad}=2.75$ \citep{covington_effects_2011}. To
   !#   account for the effects of dark matter and non-spheroid baryonic matter the same approach is used as in the
-  !#   \cite{cole_hierarchical_2000} algorithm (see \S\ref{sec:MergerRemnantSizeCole2000}).
+  !#   \cite{cole_hierarchical_2000} algorithm (see \refPhysics{mergerRemnantSizeCole2000}).
   !#  </description>
   !# </mergerRemnantSize>
   type, extends(mergerRemnantSizeClass) :: mergerRemnantSizeCovington2008

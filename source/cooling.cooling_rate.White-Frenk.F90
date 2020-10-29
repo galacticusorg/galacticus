@@ -31,7 +31,7 @@
   !#   \dot{r}_\mathrm{infall}&amp; \hbox{ if } r_\mathrm{infall} &lt; r_\mathrm{hot, outer} \\ M_\mathrm{hot}/\tau_\mathrm{halo,
   !#   dynamical} &amp; \hbox{ if } r_\mathrm{infall} \ge r_\mathrm{hot, outer}, \end{array} \right. ,
   !#   \end{equation}
-  !#   where $r_\mathrm{infall}$ is the infall radius (see \S\ref{sec:CoolingInfallRadius}) in the hot halo and $\rho(r)$ is the
+  !#   where $r_\mathrm{infall}$ is the infall radius (see \refPhysics{coolingInfallRadius}) in the hot halo and $\rho(r)$ is the
   !#   density profile of the hot halo.
   !#  </description>
   !# </coolingRate>

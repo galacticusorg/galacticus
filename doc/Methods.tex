@@ -199,7 +199,7 @@ myComponent%<property>Data%value
 
 \subsubsection{Component Initialization}\index{components!initialization}
 
-Initialization of a component module (if necessary, for example, to read parameters or allocate workspace) can occur at a number of different points in the execution of \glc. Providing initialization occurs in advance of any calculations then any point is acceptable. One possibility is simply to call an initialization function at the head of all functions defined in the component module. This initialization function should return immediately if it has already been called (to avoid duplicate initialization). Another option is to use the {\normalfont \ttfamily mergerTreePreTreeConstructionTask} event (see \S\ref{sec:MergerTreePreConstructionTask}) to perform initialization just before merger trees are constructed (the initialization function must again return immediately if it has been previously called).
+Initialization of a component module (if necessary, for example, to read parameters or allocate workspace) can occur at a number of different points in the execution of \glc. Providing initialization occurs in advance of any calculations then any point is acceptable. One possibility is simply to call an initialization function at the head of all functions defined in the component module. This initialization function should return immediately if it has already been called (to avoid duplicate initialization). Another option is to use a \refPhysics{mergerTreeOperator} to perform initialization just before merger trees are constructed (the initialization function must again return immediately if it has been previously called).
 
 Optionally, a component may include a {\normalfont \ttfamily mergerTreeEvolveThreadInitialize} directive, which gives the name of a subroutine in its {\normalfont \ttfamily unitName} element. The routine specified by {\normalfont \ttfamily mergerTreeEvolveThreadInitialize} is called by all threads prior to merger tree evolution, and can therefore be used to perform any ``per thread'' initialization. Note that this routine will be called many times during a given \glc\ run---it is the responsibility of the routine to ensure that it performs any initialization only once.
 
@@ -578,7 +578,7 @@ Extra outputs for merger trees (i.e. those which do not involve output of a fixe
     return
   end subroutine Galacticus_Extra_Output_Example
 \end{verbatim}
-The subroutine will be called for each node in each merger tree at each output, and should perform whatever extra output related to {\normalfont \ttfamily thisNode}. The index of the output and tree are provided as {\normalfont \ttfamily iOutput} and {\normalfont \ttfamily treeIndex} for reference, and may be used in organizing output. The {\normalfont \ttfamily nodePassesFilter} flag will be set to {\normalfont \ttfamily true} if {\normalfont \ttfamily thisNode} passed all active output filters (see \S\ref{sec:methodsGalacticFilter}). If it is {\normalfont \ttfamily false} then typically no output should occur (although other tasks may still be undertaken).
+The subroutine will be called for each node in each merger tree at each output, and should perform whatever extra output related to {\normalfont \ttfamily thisNode}. The index of the output and tree are provided as {\normalfont \ttfamily iOutput} and {\normalfont \ttfamily treeIndex} for reference, and may be used in organizing output. The {\normalfont \ttfamily nodePassesFilter} flag will be set to {\normalfont \ttfamily true} if {\normalfont \ttfamily thisNode} passed all active output filters (see \refPhysics{methodsGalacticFilter}). If it is {\normalfont \ttfamily false} then typically no output should occur (although other tasks may still be undertaken).
 
 \subsubsection{Merger Tree Output Tasks}
 
@@ -680,7 +680,7 @@ where {\normalfont \ttfamily node} is the node for which tasks should be perform
 
 \subsubsection{Radius Solver Tasks}\label{sec:radius_solver}
 
-Galactic radii solver functions (see \S\ref{sec:methodsGalacticStructureSolver}) need to be able to interact with the components of a tree node to
+Galactic radii solver functions (see \refPhysics{methodsGalacticStructureSolver}) need to be able to interact with the components of a tree node to
 \begin{enumerate}
  \item Determine which components want a radius to be solved for;
  \item Get and set the properties of those components.
@@ -818,12 +818,10 @@ Within \glc\ a set of abundances (or masses, or densities\ldots) for all chemica
 
 \subsection{Coordinates}\label{sec:Coordinates}
 
-The {\normalfont \ttfamily coordinate} class, provided by the \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Source.pdf#source.objects_coordinates_F90:coordinates}{\normalfont \ttfamily Coordinates} module provides an object describing a position in three-dimensional space. Each extension of this class (currently, {\normalfont \ttfamily coordinateCartesian}, {\normalfont \ttfamily coordinateCylindrical}, and {\normalfont \ttfamily coordinateSpherical}) supply methods to convert to and from Cartesian coordinates. The assignment operator ({\normalfont \ttfamily =}) is overloaded such that coordinate objects of any class can be assigned to any other class and conversion to the appropriate coordinate system will happen automatically. A function accepting a {\normalfont \ttfamily class(coordinate)} object can therefore convert it to, for example, spherical coordinates simply using
+The \refClass{coordinate} class describes a position in three-dimensional space. Each extension of this class (currently, \refClass{coordinateCartesian}, \refClass{coordinateCylindrical}, and \refClass{coordinateSpherical}) supply methods to convert to and from Cartesian coordinates. The assignment operator ({\normalfont \ttfamily =}) is overloaded such that coordinate objects of any class can be assigned to any other class and conversion to the appropriate coordinate system will happen automatically. A function accepting a \refClass{coordinate} object can therefore convert it to, for example, spherical coordinates simply using
 \begin{verbatim}
  class(coordinate         ), intent(in) :: coordinates
  type (coordinateSpherical)             :: coordinatesSpherical
  coordinatesSpherical=coordinates
 \end{verbatim}
 and thereby allow a position to be passed to it in any coordinate system.
-
-Each extension of the base class also provides methods to get and set the values of each component of the relevant coordinate system (see \S\ref{sec:AutoMethodsCoordinate} for complete details).

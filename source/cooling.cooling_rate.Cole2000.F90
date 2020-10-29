@@ -31,7 +31,7 @@
   !#   outer}, \end{array} \right.
   !#   \end{equation}
   !#   where $\rho(r)$ is the density profile of the hot halo, and $r_\mathrm{infall}$ is the infall radius (see
-  !#   \S\ref{sec:CoolingInfallRadius}).
+  !#   \refPhysics{coolingInfallRadius}).
   !#  </description>
   !# </coolingRate>
   type, extends(coolingRateClass) :: coolingRateCole2000

@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: NBody_Importers, only : nBodyImporter, nBodyImporterClass
-  use :: NBody_Operators, only : nBodyOperator, nBodyOperatorClass
+  use :: NBody_Importers, only : nbodyImporter, nbodyImporterClass
+  use :: NBody_Operators, only : nbodyOperator, nbodyOperatorClass
 
   !# <task name="taskNBodyAnalyze">
   !#  <description>A task which analyzes N-body simulation data.</description>
@@ -26,8 +26,8 @@
   type, extends(taskClass) :: taskNBodyAnalyze
      !% Implementation of a task which analyzes N-body simulation data.
      private
-     class  (nBodyImporterClass), pointer :: nBodyImporter_
-     class  (nBodyOperatorClass), pointer :: nBodyOperator_
+     class  (nbodyImporterClass), pointer :: nbodyImporter_
+     class  (nbodyOperatorClass), pointer :: nbodyOperator_
      logical                              :: storeBackToImported
      ! Pointer to the parameters for this task.
      type   (inputParameters   )          :: parameters
@@ -53,8 +53,8 @@ contains
     implicit none
     type   (taskNBodyAnalyze  )                        :: self
     type   (inputParameters   ), intent(inout), target :: parameters
-    class  (nBodyImporterClass), pointer               :: nBodyImporter_
-    class  (nBodyOperatorClass), pointer               :: nBodyOperator_
+    class  (nbodyImporterClass), pointer               :: nbodyImporter_
+    class  (nbodyOperatorClass), pointer               :: nbodyOperator_
     logical                                            :: storeBackToImported
     type   (inputParameters   ), pointer               :: parametersRoot
 
@@ -77,28 +77,28 @@ contains
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true, computed properties and results will be stored back to the file from which a simulation ws imported (assuming it is of HDF5 type).</description>
     !# </inputParameter>
-    !# <objectBuilder class="nBodyImporter" name="nBodyImporter_" source="parameters"/>
-    !# <objectBuilder class="nBodyOperator" name="nBodyOperator_" source="parameters"/>
-    self=taskNBodyAnalyze(storeBackToImported,nBodyImporter_,nBodyOperator_,parametersRoot)
+    !# <objectBuilder class="nbodyImporter" name="nbodyImporter_" source="parameters"/>
+    !# <objectBuilder class="nbodyOperator" name="nbodyOperator_" source="parameters"/>
+    self=taskNBodyAnalyze(storeBackToImported,nbodyImporter_,nbodyOperator_,parametersRoot)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="nBodyImporter_"/>
-    !# <objectDestructor name="nBodyOperator_"/>
+    !# <objectDestructor name="nbodyImporter_"/>
+    !# <objectDestructor name="nbodyOperator_"/>
     return
   end function nbodyAnalyzeConstructorParameters
 
-  function nbodyAnalyzeConstructorInternal(storeBackToImported,nBodyImporter_,nBodyOperator_,parameters) result(self)
+  function nbodyAnalyzeConstructorInternal(storeBackToImported,nbodyImporter_,nbodyOperator_,parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily nbodyAnalyze} task class which takes a parameter set as input.
     implicit none
     type   (taskNBodyAnalyze  )                        :: self
     logical                    , intent(in   )         :: storeBackToImported
-    class  (nBodyImporterClass), intent(in   ), target :: nBodyImporter_
-    class  (nBodyOperatorClass), intent(in   ), target :: nBodyOperator_
+    class  (nbodyImporterClass), intent(in   ), target :: nbodyImporter_
+    class  (nbodyOperatorClass), intent(in   ), target :: nbodyOperator_
     type   (inputParameters   ), intent(in   ), target :: parameters
-    !# <constructorAssign variables="storeBackToImported, *nBodyImporter_, *nBodyOperator_"/>
+    !# <constructorAssign variables="storeBackToImported, *nbodyImporter_, *nbodyOperator_"/>
 
     self%parameters=inputParameters(parameters)
     call self%parameters%parametersGroupCopy(parameters)
-    if (.not.self%nBodyImporter_%isHDF5()) self%storeBackToImported=.false.
+    if (.not.self%nbodyImporter_%isHDF5()) self%storeBackToImported=.false.
     return
   end function nbodyAnalyzeConstructorInternal
 
@@ -108,8 +108,8 @@ contains
     implicit none
     type(taskNBodyAnalyze), intent(inout) :: self
 
-    !# <objectDestructor name="self%nBodyOperator_"/>
-    !# <objectDestructor name="self%nBodyImporter_"/>
+    !# <objectDestructor name="self%nbodyOperator_"/>
+    !# <objectDestructor name="self%nbodyImporter_"/>
     call Node_Components_Uninitialize()
     return
   end subroutine nbodyAnalyzeDestructor
@@ -133,7 +133,7 @@ contains
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
     call Node_Components_Thread_Initialize(self%parameters)
     ! Import N-body data.
-    call self%nBodyImporter_%import (simulations)
+    call self%nbodyImporter_%import (simulations)
     ! Open analysis groups if necessary.
     !$ call hdf5Access%set()
     do i=1,size(simulations)
@@ -146,7 +146,7 @@ contains
     end do
     !$ call hdf5Access%unset()
     ! Operate on the N-body data.
-    call self%nBodyOperator_%operate(simulations)
+    call self%nbodyOperator_%operate(simulations)
     ! Close the analysis group.
     !$ call hdf5Access%set()
     do i=1,size(simulations)

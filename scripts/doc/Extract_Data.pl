@@ -296,8 +296,8 @@ foreach my $object ( sort(keys(%objects)) ) {
 	    $hasEntries = 1;
 	}
     }
+    print methodHndl "\\subsection{\\large {\\normalfont \\ttfamily ".$objects{$object}->{'name'}."}}\\label{class:".$objects{$object}->{'name'}."}\\hyperdef{class}{".$objects{$object}->{'name'}."}{}\n\n";
     if ( $hasEntries == 1 ) {
-	print methodHndl "\\subsection{\\large {\\normalfont \\ttfamily ".$objects{$object}->{'name'}."}}\\label{class:".$objects{$object}->{'name'}."}\\hyperdef{class}{".$objects{$object}->{'name'}."}{}\n\n";
 	my @methodNames = 
 	    map 
 	{

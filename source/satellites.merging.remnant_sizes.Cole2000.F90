@@ -32,7 +32,7 @@
   !#   \frac{M_1 M_2}{r_1+r_2},
   !#   \end{equation}
   !#   where $M_1$ and $M_2$ are the baryonic masses of the components of the merging galaxies that will end up in the spheroid
-  !#   \gls{component} of the remnant\footnote{Depending on the merging rules (see \S\protect\ref{sec:MergingMassMovements}) not
+  !#   \gls{component} of the remnant\footnote{Depending on the merging rules (see \protect\refPhysics{mergerMassMovements}) not
   !#   all mass may be placed into the spheroid \gls{component} of the remnant.} and $r_1$ and $r_2$ are the half mass radii of
   !#   those same components of the merging galaxies\footnote{In practice, \glc\ computes a weighted average of the disk and
   !#   spheroid half-mass radii of each galaxy, with weights equal to the masses of each \gls{component} (disk and spheroid) which
