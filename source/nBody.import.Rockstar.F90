@@ -53,7 +53,6 @@
   !#  <visibility>public</visibility>
   !#  <encodeFunction>yes</encodeFunction>
   !#  <validator>yes</validator>
-  !#  <entry label="null"            />
   !#  <entry label="scale"           />
   !#  <entry label="id"              />
   !#  <entry label="desc_scale"      />
