@@ -195,8 +195,10 @@ contains
     double precision                                         , allocatable  , dimension(:  ) :: neighborDistanceSquared                      , separationCentralBin                , &
          &                                                                                      separationSquaredMinimumBin                  , separationSquaredMaximumBin         , &
          &                                                                                      velocitiesRadial                             , separations                         , &
-         &                                                                                      velocitiesTangential                         , massVirial                          , &
-         &                                                                                      velocityRadialVirialSquared
+         &                                                                                      velocitiesTangential                         , velocityRadialVirialSquared
+    double precision                                         , pointer      , dimension(:  ) :: massVirial
+    double precision                                         , pointer      , dimension(:,:) :: position1                                    , velocity1                           , &
+         &                                                                                      position2                                    , velocity2
     integer         (c_size_t                               ), allocatable  , dimension(:,:) :: weight1                                      , weight2                             , &
          &                                                                                      weightPair
     logical                                                  , allocatable  , dimension(:  ) :: mask
@@ -250,26 +252,25 @@ contains
 #ifdef USEMPI
        end if
 #endif
-       ! Determine reference simulation.
+       ! Get positions and velocities.
        if (self%crossCount) then
-          jSimulation=1
+          jSimulation=          1
        else
           jSimulation=iSimulation
        end if
+       position1 => simulations(jSimulation)%propertiesRealRank1%value('position')
+       velocity1 => simulations(jSimulation)%propertiesRealRank1%value('velocity')
+       position2 => simulations(iSimulation)%propertiesRealRank1%value('position')
+       velocity2 => simulations(iSimulation)%propertiesRealRank1%value('velocity')
        ! Get halo virial masses.
        if (simulations(jSimulation)%propertiesReal%exists('massVirial')) then
-          allocate(massVirial(size(simulations(jSimulation)%position,dim=2)))
-          massVirial=simulations(jSimulation)%propertiesReal%value('massVirial')
+          massVirial => simulations(jSimulation)%propertiesReal%value('massVirial')
        else
           call Galacticus_Error_Report('halo virial masses are required, but are not available in the simulation'//{introspection:location})
        end if
        ! Generate bootstrap weights.
-       if (self%crossCount) then
-          allocate(weight1(bootstrapSampleCount,size(simulations(          1)%position,dim=2)))
-       else
-          allocate(weight1(bootstrapSampleCount,size(simulations(iSimulation)%position,dim=2)))
-       end if
-       allocate   (weight2(bootstrapSampleCount,size(simulations(iSimulation)%position,dim=2)))
+       allocate(weight1(bootstrapSampleCount,size(position1,dim=2)))
+       allocate(weight2(bootstrapSampleCount,size(position2,dim=2)))
        ! Generate bootstrap weights.
        do iSample=1,bootstrapSampleCount
           ! Determine weights for particles.
@@ -308,26 +309,26 @@ contains
        !$omp parallel private(iSample,j,jStart,jEnd,weightPair,mask,separations,positions,velocities,velocitiesRadial,velocitiesTangential,velocityRadialVirialSquared,neighborCount,neighborIndex,neighborDistanceSquared,neighborFinder) reduction(+:pairCountBin,velocityRadialBin,velocityDispersionRadialBin,velocityDispersionTangentialBin,pairCountInflowingBin,velocityRadialInflowingBin,velocityDispersionRadialInflowingBin,velocityDispersionTangentialInflowingBin)
        call Node_Components_Thread_Initialize(self%parameters)
        ! Allocate workspace.
-       allocate(weightPair                 (bootstrapSampleCount,size(simulations(iSimulation)%position,dim=2)))
-       allocate(positions                  (3                   ,size(simulations(iSimulation)%position,dim=2)))
-       allocate(velocities                 (3                   ,size(simulations(iSimulation)%position,dim=2)))
-       allocate(separations                (                     size(simulations(iSimulation)%position,dim=2)))
-       allocate(velocitiesRadial           (                     size(simulations(iSimulation)%position,dim=2)))
-       allocate(velocitiesTangential       (                     size(simulations(iSimulation)%position,dim=2)))
-       allocate(velocityRadialVirialSquared(                     size(simulations(iSimulation)%position,dim=2)))
-       allocate(neighborIndex              (                     size(simulations(iSimulation)%position,dim=2)))
-       allocate(neighborDistanceSquared    (                     size(simulations(iSimulation)%position,dim=2)))
-       allocate(mask                       (                     size(simulations(iSimulation)%position,dim=2)))
+       allocate(weightPair                 (bootstrapSampleCount,size(position2,dim=2)))
+       allocate(positions                  (3                   ,size(position2,dim=2)))
+       allocate(velocities                 (3                   ,size(position2,dim=2)))
+       allocate(separations                (                     size(position2,dim=2)))
+       allocate(velocitiesRadial           (                     size(position2,dim=2)))
+       allocate(velocitiesTangential       (                     size(position2,dim=2)))
+       allocate(velocityRadialVirialSquared(                     size(position2,dim=2)))
+       allocate(neighborIndex              (                     size(position2,dim=2)))
+       allocate(neighborDistanceSquared    (                     size(position2,dim=2)))
+       allocate(mask                       (                     size(position2,dim=2)))
        ! Build a work node.
        node  => treeNode      (                 )
        basic => node    %basic(autoCreate=.true.)
        call basic%timeSet            (self%time)
        call basic%timeLastIsolatedSet(self%time)
        ! Construct the nearest neighbor finder object.
-       neighborFinder=nearestNeighbors(transpose(simulations(iSimulation)%position))
+       neighborFinder=nearestNeighbors(transpose(position2))
        ! Iterate over particles.
        !$omp do schedule(dynamic)
-       do i=1_c_size_t,size(simulations(jSimulation)%position,dim=2,kind=c_size_t)
+       do i=1_c_size_t,size(position1,dim=2,kind=c_size_t)
 #ifdef USEMPI
           ! If running under MPI with N processes, process only every Nth particle.
           if (mod(i,mpiSelf%count()) /= mpiSelf%rank()) cycle
@@ -338,17 +339,17 @@ contains
           radiusVirial  =self%darkMatterHaloScale_%virialRadius  (node)
           velocityVirial=self%darkMatterHaloScale_%virialVelocity(node)
           ! Locate particles nearby.
-          call neighborFinder%searchFixedRadius(simulations(jSimulation)%position(:,i),self%separationMaximum,toleranceZero,neighborCount,neighborIndex,neighborDistanceSquared)
+          call neighborFinder%searchFixedRadius(position1(:,i),self%separationMaximum,toleranceZero,neighborCount,neighborIndex,neighborDistanceSquared)
           ! Find weights of paired particles.
           do j=1_c_size_t,neighborCount
-             weightPair(:,j)=                         weight2 (:,neighborIndex(j))
-             positions (:,j)=simulations(iSimulation)%position(:,neighborIndex(j))
-             velocities(:,j)=simulations(iSimulation)%velocity(:,neighborIndex(j))
+             weightPair(:,j)=weight2  (:,neighborIndex(j))
+             positions (:,j)=position2(:,neighborIndex(j))
+             velocities(:,j)=velocity2(:,neighborIndex(j))
           end do
           ! Compute velocities.
           do j=1,3
-             positions (j,1:neighborCount)=positions (j,1:neighborCount)-simulations(jSimulation)%position(j,i)
-             velocities(j,1:neighborCount)=velocities(j,1:neighborCount)-simulations(jSimulation)%velocity(j,i)
+             positions (j,1:neighborCount)=positions (j,1:neighborCount)-position1(j,i)
+             velocities(j,1:neighborCount)=velocities(j,1:neighborCount)-velocity1(j,i)
           end do
           separations(1:neighborCount)=+sqrt(                                      &
                &                             sum(                                  &
@@ -426,13 +427,13 @@ contains
 #ifdef USEMPI
           if (mpiSelf%isMaster()) then
 #endif
-             call Galacticus_Display_Counter(                                                               &
-                  &                          int(                                                           &
-                  &                              +100.0d0                                                   &
-                  &                              *float(i                                                )  &
-                  &                              /float(size(simulations(1)%position,dim=2,kind=c_size_t))  &
-                  &                             )                                                         , &
-                  &                          .false.                                                        &
+             call Galacticus_Display_Counter(                                                 &
+                  &                          int(                                             &
+                  &                              +100.0d0                                     &
+                  &                              *float(i                                  )  &
+                  &                              /float(size(position1,dim=2,kind=c_size_t))  &
+                  &                             )                                           , &
+                  &                          .false.                                          &
                   &                         )
 #ifdef USEMPI
           end if

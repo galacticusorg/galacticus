@@ -29,11 +29,13 @@
   type, extends(nbodyImporterClass) :: nbodyImporterIRATE
      !% An importer for IRATE files.
      private
-     class  (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
-     class  (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
-     type   (varying_string          )          :: fileName                      , label
-     type   (hdf5Object              )          :: file
-     integer                                    :: snapshot
+     class  (cosmologyParametersClass), pointer                   :: cosmologyParameters_ => null()
+     class  (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_  => null()
+     type   (varying_string          )                            :: fileName                      , label
+     type   (hdf5Object              )                            :: file
+     integer                                                      :: snapshot
+     logical                                                      :: haveProperties
+     type   (varying_string          ), allocatable, dimension(:) :: properties
    contains
      final     ::           irateDestructor
      procedure :: import => irateImport
@@ -52,12 +54,13 @@ contains
     !% Constructor for the {\normalfont \ttfamily irate} N-body importer class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type   (nbodyImporterIRATE      )                :: self
-    type   (inputParameters         ), intent(inout) :: parameters
-    class  (cosmologyParametersClass), pointer       :: cosmologyParameters_
-    class  (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
-    type   (varying_string          )                :: fileName            , label
-    integer                                          :: snapshot
+    type   (nbodyImporterIRATE      )                            :: self
+    type   (inputParameters         ), intent(inout)             :: parameters
+    class  (cosmologyParametersClass), pointer                   :: cosmologyParameters_
+    class  (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_
+    type   (varying_string          ), allocatable, dimension(:) :: properties
+    type   (varying_string          )                            :: fileName            , label
+    integer                                                      :: snapshot
 
     !# <inputParameter>
     !#   <name>fileName</name>
@@ -75,25 +78,35 @@ contains
     !#   <defaultValue>var_str('primary')</defaultValue>
     !#   <description>A label for the simulation.</description>
     !# </inputParameter>
+    allocate(properties(parameters%count('properties',zeroIfNotPresent=.true.)))
+    if (size(properties) > 0) then
+       !# <inputParameter>
+       !#   <name>properties</name>
+       !#   <source>parameters</source>
+       !#   <description>Properties to read from the simulation.</description>
+       !# </inputParameter>
+    end if
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    self=nbodyImporterIRATE(fileName,label,snapshot,cosmologyParameters_,cosmologyFunctions_)
+    self=nbodyImporterIRATE(fileName,label,snapshot,properties,cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="cosmologyFunctions_" />
     return
   end function irateConstructorParameters
 
-  function irateConstructorInternal(fileName,label,snapshot,cosmologyParameters_,cosmologyFunctions_) result (self)
+  function irateConstructorInternal(fileName,label,snapshot,properties,cosmologyParameters_,cosmologyFunctions_) result (self)
     !% Internal constructor for the {\normalfont \ttfamily irate} N-body importer class.
     implicit none
-    type   (nbodyImporterIRATE      )                        :: self
-    type   (varying_string          ), intent(in   )         :: fileName            , label
-    integer                          , intent(in   )         :: snapshot
-    class  (cosmologyParametersClass), intent(in   ), target :: cosmologyParameters_
-    class  (cosmologyFunctionsClass ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="fileName, label, snapshot, *cosmologyParameters_, *cosmologyFunctions_"/>
+    type   (nbodyImporterIRATE      )                              :: self
+    type   (varying_string          ), intent(in   )               :: fileName            , label
+    integer                          , intent(in   )               :: snapshot
+    type   (varying_string          ), intent(in   ), dimension(:) :: properties
+    class  (cosmologyParametersClass), intent(in   ), target       :: cosmologyParameters_
+    class  (cosmologyFunctionsClass ), intent(in   ), target       :: cosmologyFunctions_
+    !# <constructorAssign variables="fileName, label, snapshot, properties, *cosmologyParameters_, *cosmologyFunctions_"/>
 
+    self%haveProperties=size(properties) > 0
     return
   end function irateConstructorInternal
 
@@ -111,28 +124,45 @@ contains
   subroutine irateImport(self,simulations)
     !% Import data from a IRATE file.
     use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, verbosityStandard
-    use :: Galacticus_Error, only : errorStatusSuccess
-    use :: Hashes            , only : rank1IntegerSizeTHash    , rank1DoubleHash
+    use :: Galacticus_Error  , only : errorStatusSuccess
+    use :: Hashes            , only : rank1IntegerSizeTPtrHash , rank1DoublePtrHash         , integerSizeTHash   , doubleHash        , &
+         &                            rank2IntegerSizeTPtrHash , rank2DoublePtrHash
     use :: IO_HDF5           , only : hdf5Object               , hdf5Access                 , H5T_NATIVE_INTEGERS, H5T_NATIVE_DOUBLES
     use :: IO_IRATE          , only : irate
     implicit none
-    class           (nbodyImporterIRATE), intent(inout)                            :: self
-    type            (nBodyData         ), intent(  out), dimension(:), allocatable :: simulations
-    type            (varying_string    )               , dimension(:), allocatable :: datasetNames
-    integer         (c_size_t          )               , dimension(:), allocatable :: propertyInteger
-    double precision                                   , dimension(:), allocatable :: propertyReal
-    type            (irate             )                                           :: irate_
-    type            (hdf5Object        )                                           :: snapshotGroup  , dataset
-    character       (len=13            )                                           :: snapshotLabel
-    integer                                                                        :: i              , status
+    class           (nbodyImporterIRATE), intent(inout)                              :: self
+    type            (nBodyData         ), intent(  out), dimension(:  ), allocatable :: simulations
+    type            (varying_string    )               , dimension(:  ), allocatable :: datasetNames
+    integer         (c_size_t          )               , dimension(:  ), pointer     :: propertyInteger, particleIDs
+    double precision                                   , dimension(:  ), pointer     :: propertyReal
+    double precision                                   , dimension(:,:), pointer     :: position       , velocity
+    type            (irate             )                                             :: irate_
+    type            (hdf5Object        )                                             :: snapshotGroup  , dataset
+    character       (len=13            )                                             :: snapshotLabel
+    integer                                                                          :: i              , status
+    double precision                                                                 :: boxSize
 
     call Galacticus_Display_Indent('import simulation from IRATE file',verbosityStandard)
     allocate(simulations(1))
-    simulations(1)%label=self%label
+    simulations(1)%label                 =self%label
+    simulations(1)%propertiesInteger     =rank1IntegerSizeTPtrHash()
+    simulations(1)%propertiesReal        =rank1DoublePtrHash      ()
+    simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTPtrHash()
+    simulations(1)%propertiesRealRank1   =rank2DoublePtrHash      ()
+    simulations(1)%attributesInteger     =integerSizeTHash        ()
+    simulations(1)%attributesReal        =doubleHash              ()
     irate_=irate(char(self%fileName),self%cosmologyParameters_,self%cosmologyFunctions_)
-    call irate_%readHalos(self%snapshot,center=simulations(1)%position,velocity=simulations(1)%velocity,IDs=simulations(1)%particleIDs)
-    simulations(1)%propertiesInteger=rank1IntegerSizeTHash()
-    simulations(1)%propertiesReal   =rank1DoubleHash      ()
+    call irate_        %readSimulation    (          boxSize)
+    call simulations(1)%attributesReal%set('boxSize',boxSize)
+    !# <conditionalCall>
+    !#  <call>call irate_%readHalos(self%snapshot{conditions})</call>
+    !#  <argument name="center"   value="position"    condition=".not.self%haveProperties .or. any(self%properties == 'position'   )"/>
+    !#  <argument name="velocity" value="velocity"    condition=".not.self%haveProperties .or. any(self%properties == 'velocity'   )"/>
+    !#  <argument name="IDs"      value="particleIDs" condition=".not.self%haveProperties .or. any(self%properties == 'particleIDs')"/>
+    !# </conditionalCall>
+    if (.not.self%haveProperties .or. any(self%properties == 'particleIDs')) call simulations(1)%propertiesInteger  %set('particleIDs',particleIDs)
+    if (.not.self%haveProperties .or. any(self%properties == 'position'   )) call simulations(1)%propertiesRealRank1%set('position'   ,position   )
+    if (.not.self%haveProperties .or. any(self%properties == 'velocity'   )) call simulations(1)%propertiesRealRank1%set('velocity'   ,velocity   )
     write (snapshotLabel,'(a,i5.5)') 'Snapshot',self%snapshot
     !$ call hdf5Access%set()
     call self%file%openFile(char(self%fileName),readOnly=.false.)
@@ -147,16 +177,21 @@ contains
             &  .or.                           &
             &   datasetNames(i) == "HaloID"   &
             & ) cycle
+       if (self%haveProperties .and. .not.any(self%properties == datasetNames(i))) cycle
        dataset=simulations(1)%analysis%openDataset(char(datasetNames(i)))
        call dataset%assertDatasetType(H5T_NATIVE_INTEGERS,1,status)
        if (status == errorStatusSuccess) then
-          call dataset       %readDataset          (                datasetValue=propertyInteger)
+          allocate(propertyInteger(dataset%size(1)))
+          call dataset       %readDatasetStatic    (                datasetValue=propertyInteger)
           call simulations(1)%propertiesInteger%set(datasetNames(i),             propertyInteger)
+          nullify(propertyInteger)
        end if
        call dataset%assertDatasetType(H5T_NATIVE_DOUBLES ,1,status)
        if (status == errorStatusSuccess) then
-          call dataset       %readDataset          (                datasetValue=propertyReal   )
+          allocate(propertyReal   (dataset%size(1)))
+          call dataset       %readDatasetStatic    (                datasetValue=propertyReal   )
           call simulations(1)%propertiesReal   %set(datasetNames(i),             propertyReal   )
+          nullify(propertyReal   )
        end if
        call dataset%close()
     end do

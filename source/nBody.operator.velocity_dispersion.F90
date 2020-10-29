@@ -120,6 +120,7 @@ contains
     integer                                          , allocatable  , dimension(:,:) :: selfBoundStatus
     double precision                                 , parameter                     :: sampleRate           =1.0d0
     double precision                                 , allocatable  , dimension(:,:) :: positionMean                , velocityDispersion
+    double precision                                 , pointer      , dimension(:,:) :: position                    , velocity
     double precision                                 , allocatable  , dimension(:  ) :: distanceRadialSquared
     double precision                                 , allocatable  , dimension(:,:) :: positionRelative
     logical                                          , allocatable  , dimension(:  ) :: mask
@@ -129,11 +130,14 @@ contains
          &                                                                              iSimulation
 
     do iSimulation=1,size(simulations)
+       ! Get particle data.
+       position => simulations(iSimulation)%propertiesRealRank1%value('position')
+       velocity => simulations(iSimulation)%propertiesRealRank1%value('velocity')
        ! Allocate workspace.
-       call allocateArray(distanceRadialSquared,[  size(simulations(iSimulation)%position   ,dim =2       )                          ])
-       call allocateArray(positionRelative     ,[3,size(simulations(iSimulation)%position   ,dim =2       )                          ])
-       call allocateArray(velocityDispersion   ,[  size(self                    %radiusInner,kind=c_size_t),self%bootstrapSampleCount])
-       call allocateArray(mask                 ,[  size(simulations(iSimulation)%position   ,dim =2       )                          ])
+       call allocateArray(distanceRadialSquared,[  size(     position   ,dim =2       )                          ])
+       call allocateArray(positionRelative     ,[3,size(     position   ,dim =2       )                          ])
+       call allocateArray(velocityDispersion   ,[  size(self%radiusInner,kind=c_size_t),self%bootstrapSampleCount])
+       call allocateArray(mask                 ,[  size(     position   ,dim =2       )                          ])
        ! Determine the particle mask to use.
        if (self%selfBoundParticlesOnly) then
           if (simulations(iSimulation)%analysis%hasDataset('selfBoundStatus')) then
@@ -143,9 +147,9 @@ contains
              call Galacticus_Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
           end if
        else
-          call allocateArray(selfBoundStatus,[size(simulations(iSimulation)%position,dim=2,kind=c_size_t),self%bootstrapSampleCount])
+          call allocateArray(selfBoundStatus,[size(position,dim=2,kind=c_size_t),self%bootstrapSampleCount])
           do i=1,self%bootstrapSampleCount
-             do j=1,size(simulations(iSimulation)%position,dim=2)
+             do j=1,size(position,dim=2)
                 selfBoundStatus(j,i)=self%randomNumberGenerator_%poissonSample(sampleRate)
              end do
           end do
@@ -158,8 +162,8 @@ contains
           !$omp parallel workshare
           ! Compute radial distance from the mean position.
           forall(k=1:3)
-             positionRelative(k,:)=+simulations(iSimulation)  %position(k,:) &
-                  &                -positionMean         (k,i)
+             positionRelative(k,:)=+position    (k,:) &
+                  &                -positionMean(k,i)
           end forall
           distanceRadialSquared=sum(positionRelative**2,dim=1)
           !$omp end parallel workshare
@@ -170,8 +174,8 @@ contains
                   &  .and.                                            &
                   &   distanceRadialSquared <  self%radiusOuter(k)**2
              forall(j=1:3)
-                velocityMean       (j)=sum(simulations(iSimulation)%velocity(j,:)   *dble(selfBoundStatus(:,i)),mask=mask)/dble(sum(selfBoundStatus(:,i),mask))
-                velocityMeanSquared(j)=sum(simulations(iSimulation)%velocity(j,:)**2*dble(selfBoundStatus(:,i)),mask=mask)/dble(sum(selfBoundStatus(:,i),mask))
+                velocityMean       (j)=sum(velocity(j,:)   *dble(selfBoundStatus(:,i)),mask=mask)/dble(sum(selfBoundStatus(:,i),mask))
+                velocityMeanSquared(j)=sum(velocity(j,:)**2*dble(selfBoundStatus(:,i)),mask=mask)/dble(sum(selfBoundStatus(:,i),mask))
              end forall
              velocityDispersion(k,i)=sqrt(sum(velocityMeanSquared-velocityMean**2)/3.0d0)
              !$omp end parallel workshare

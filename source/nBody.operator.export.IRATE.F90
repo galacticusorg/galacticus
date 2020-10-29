@@ -116,33 +116,38 @@ contains
     use :: Numerical_Constants_Astronomical, only : massSolar
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    class           (nbodyOperatorExportIRATE), intent(inout)               :: self
-    type            (nBodyData               ), intent(inout), dimension(:) :: simulations
-    type            (irate                   )                              :: irate_
-    character       (len=13                  )                              :: snapshotLabel
-    type            (hdf5Object              )                              :: irateFile         , snapshotGroup, &
-         &                                                                     halosGroup        , dataset
-    integer                                                                 :: i
-    type            (varying_string          )                              :: datasetDescription, unitName
-    double precision                                         , dimension(3) :: unitscgs
+    class           (nbodyOperatorExportIRATE), intent(inout)                 :: self
+    type            (nBodyData               ), intent(inout), dimension(:  ) :: simulations
+    double precision                                         , dimension(3  ) :: unitscgs
+    double precision                          , pointer      , dimension(:,:) :: position          , velocity
+    integer         (c_size_t                ), pointer      , dimension(:  ) :: particleIDs
+    type            (irate                   )                                :: irate_
+    character       (len=13                  )                                :: snapshotLabel
+    type            (hdf5Object              )                                :: irateFile         , snapshotGroup, &
+         &                                                                       halosGroup        , dataset
+    integer                                                                   :: i
+    type            (varying_string          )                                :: datasetDescription, unitName
 
     call Galacticus_Display_Indent('export simulation to IRATE file',verbosityStandard)
     if (size(simulations) /= 1) call Galacticus_Error_Report('precisely 1 simulation should be supplied'//{introspection:location})
     irate_=irate(char(self%fileName),self%cosmologyParameters_,self%cosmologyFunctions_)
-    call irate_%writeHalos(                                                &
-         &                                     self      %snapshot       , &
-         &                                     self      %redshift       , &
-         &                 center             =simulations(1)%position   , &
-         &                 velocity           =simulations(1)%velocity   , &
-         &                 IDs                =simulations(1)%particleIDs, &
-         &                 overwrite          =.true.                    , &
-         &                 objectsOverwritable=.true.                      &
+    position    => simulations(1)%propertiesRealRank1%value('position'   )
+    velocity    => simulations(1)%propertiesRealRank1%value('velocity'   )
+    particleIDs => simulations(1)%propertiesInteger  %value('particleIDs')
+    call irate_%writeHalos(                                      &
+         &                                     self%snapshot   , &
+         &                                     self%redshift   , &
+         &                 center             =     position   , &
+         &                 velocity           =     velocity   , &
+         &                 IDs                =     particleIDs, &
+         &                 overwrite          =.true.          , &
+         &                 objectsOverwritable=.true.            &
          &                )
     ! Write box size to the file.
     if (simulations(1)%attributesReal%exists('boxSize')) call irate_%writeSimulation(simulations(1)%attributesReal%value('boxSize'))
     ! Write any additional properties to the file.
     if     (                                                     &
-         &     size(simulations(1)%particleIDs             ) > 0 &
+         &     size(               particleIDs             ) > 0 &
          &  .and.                                                &
          &   (                                                   &
          &          simulations(1)%propertiesInteger%size()  > 0 &

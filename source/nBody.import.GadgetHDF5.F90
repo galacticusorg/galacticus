@@ -123,14 +123,19 @@ contains
   subroutine gadgetHDF5Import(self,simulations)
     !% Import data from a Gadget HDF5 file.
     use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: Numerical_Constants_Astronomical, only : massSolar              , megaParsec
+    use :: Hashes                          , only : rank1IntegerSizeTPtrHash, rank1DoublePtrHash         , doubleHash
+    use :: Numerical_Constants_Astronomical, only : massSolar               , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    class           (nbodyImporterGadgetHDF5), intent(inout)                            :: self
-    type            (nBodyData              ), intent(  out), allocatable, dimension(:) :: simulations
-    double precision                                                     , dimension(6) :: massParticleType
-    character       (len=9                  )                                           :: particleGroupName
-    type            (hdf5Object             )                                           :: header
+    class           (nbodyImporterGadgetHDF5), intent(inout)                              :: self
+    type            (nBodyData              ), intent(  out), allocatable, dimension(:  ) :: simulations
+    double precision                                                     , dimension(6  ) :: massParticleType
+    double precision                                        , pointer    , dimension(:,:) :: position         , velocity
+    integer         (c_size_t               )               , pointer    , dimension(:  ) :: particleID
+    integer         (c_size_t               )                                             :: countParticles
+    character       (len=9                  )                                             :: particleGroupName
+    type            (hdf5Object             )                                             :: header           , dataset
+    double precision                                                                      :: lengthSoftening  , massParticle
 
     allocate(simulations(1))
     simulations(1)%label=self%label
@@ -143,26 +148,41 @@ contains
     header=self%file%openGroup('Header')
     call header%readAttributeStatic('MassTable',massParticleType)
     call header%close()
-    ! Set softening length and particle mass.
-    simulations(1)%lengthSoftening=+self%lengthSoftening                  &
-         &                         *self%unitLengthInSI                   &
-         &                         /megaParsec
-    simulations(1)%massParticle   =+massParticleType(self%particleType+1) &
-         &                         *self%unitMassInSI                     &
-         &                         /massSolar
+    ! Compute softening length and particle mass.
+    lengthSoftening=+self%lengthSoftening                  &
+         &          *self%unitLengthInSI                   &
+         &          /megaParsec
+    massParticle   =+massParticleType(self%particleType+1) &
+         &          *self%unitMassInSI                     &
+         &          /massSolar
     ! Open the particle group - this group will be used for analysis output.
     simulations(1)%analysis=self%file%openGroup(particleGroupName)
     ! Import the particle postions, velocities and IDs.
-    call simulations(1)%analysis%readDataset('Coordinates',simulations(1)%position   )
-    call simulations(1)%analysis%readDataset('Velocities' ,simulations(1)%velocity   )
-    call simulations(1)%analysis%readDataset('ParticleIDs',simulations(1)%particleIDs)
+    dataset=simulations(1)%analysis%openDataset('ParticleIDs')
+    countParticles=dataset%size(1)
+    call dataset%close()
+    allocate(particleID(  countParticles))
+    allocate(position  (3,countParticles))
+    allocate(velocity  (3,countParticles))
+    call simulations(1)%analysis%readDatasetStatic('Coordinates',position  )
+    call simulations(1)%analysis%readDatasetStatic('Velocities' ,velocity  )
+    call simulations(1)%analysis%readDatasetStatic('ParticleIDs',particleID)
     ! Convert position and velocities to internal units.
-    simulations(1)%position=+simulations(1)%position         &
-         &                  *self          %unitLengthInSI   &
-         &                  /megaParsec
-    simulations(1)%velocity=+simulations(1)%velocity         &
-         &                  *self          %unitVelocityInSI &
-         &                  /kilo
+    position=+position                    &
+         &   *self      %unitLengthInSI   &
+         &   /megaParsec
+    velocity=+velocity                    &
+         &   *self      %unitVelocityInSI &
+         &   /kilo
+    ! Store the data.
+    simulations(1)%propertiesInteger=rank1IntegerSizeTPtrHash()
+    simulations(1)%propertiesReal   =rank1DoublePtrHash      ()
+    simulations(1)%attributesReal   =doubleHash              ()
+    call simulations(1)%propertiesRealRank1%set('position'       ,position       )
+    call simulations(1)%propertiesRealRank1%set('velocity'       ,velocity       )
+    call simulations(1)%propertiesInteger  %set('particleID'     ,particleID     )
+    call simulations(1)%attributesReal     %set('massParticle'   ,massParticle   )
+    call simulations(1)%attributesReal     %set('lengthSoftening',lengthSoftening)
     return
   end subroutine gadgetHDF5Import
 

@@ -23,23 +23,24 @@ module NBody_Simulation_Data
   !% Provides a class to store N-body simulation data.
   use :: IO_HDF5           , only : hdf5Object
   use :: ISO_Varying_String, only : varying_string
-  use :: Kind_Numbers      , only : kind_int8
-  use :: Hashes            , only : rank1IntegerSizeTHash, rank2IntegerSizeTHash, rank1DoubleHash, rank2DoubleHash
+  use :: Hashes            , only : rank1IntegerSizeTPtrHash, rank2IntegerSizeTPtrHash, rank1DoublePtrHash, rank2DoublePtrHash, &
+       &                            integerSizeTHash        , doubleHash
   implicit none
   private
   public :: nBodyData, nBodyDataPropertyType
 
   type :: nBodyData
      !% A class to store N-body simulation data.
-     type            (varying_string       )                              :: label
-     type            (hdf5Object           )                              :: analysis
-     double precision                       , allocatable, dimension(:,:) :: position              , velocity
-     double precision                                                     :: lengthSoftening       , massParticle
-     integer         (kind_int8            ), allocatable, dimension(  :) :: particleIDs
-     type            (rank1IntegerSizeTHash)                              :: propertiesInteger
-     type            (rank1DoubleHash      )                              :: propertiesReal
-     type            (rank2IntegerSizeTHash)                              :: propertiesIntegerRank1
-     type            (rank2DoubleHash      )                              :: propertiesRealRank1
+     type(varying_string          ) :: label
+     type(hdf5Object              ) :: analysis
+     type(integerSizeTHash        ) :: attributesInteger
+     type(doubleHash              ) :: attributesReal
+     type(rank1IntegerSizeTPtrHash) :: propertiesInteger
+     type(rank1DoublePtrHash      ) :: propertiesReal
+     type(rank2IntegerSizeTPtrHash) :: propertiesIntegerRank1
+     type(rank2DoublePtrHash      ) :: propertiesRealRank1
+   contains
+     final :: nBodyDataDestructorScalar, nBodyDataDestructorRank1
   end type nBodyData
 
   interface nBodyData
@@ -65,6 +66,49 @@ contains
     return
   end function nBodyDataConstructor
 
+  subroutine nBodyDataDestructorScalar(self)
+    !% Destruct for scalar {\normalfont \ttfamily nBodyData} objects.
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    use iso_varying_string
+    implicit none
+    type            (nBodyData), intent(inout)                 :: self
+    integer         (c_size_t ), pointer      , dimension(:  ) :: propertyInteger
+    integer         (c_size_t ), pointer      , dimension(:,:) :: propertyIntegerRank1
+    double precision           , pointer      , dimension(:  ) :: propertyReal
+    double precision           , pointer      , dimension(:,:) :: propertyRealRank1
+    integer                                                    :: i
+
+    do i=1,self%propertiesInteger%size()
+       propertyInteger      => self%propertiesInteger     %value(i)
+       deallocate(propertyInteger     )
+    end do
+    do i=1,self%propertiesIntegerRank1%size()
+       propertyIntegerRank1 => self%propertiesIntegerRank1%value(i)
+       deallocate(propertyIntegerRank1)
+    end do
+    do i=1,self%propertiesReal%size()
+       propertyReal         => self%propertiesReal        %value(i)
+       deallocate(propertyReal        )
+    end do
+    do i=1,self%propertiesRealRank1%size()
+       propertyRealRank1    => self%propertiesRealRank1   %value(i)
+       deallocate(propertyRealRank1   )
+    end do       
+    return
+  end subroutine nBodyDataDestructorScalar
+  
+  subroutine nBodyDataDestructorRank1(self)
+    !% Destruct for rank-1 {\normalfont \ttfamily nBodyData} objects.
+    implicit none
+    type   (nBodyData), intent(inout), dimension(:) :: self
+    integer                                         :: i
+
+    do i=1,size(self)
+       call nBodyDataDestructorScalar(self(i))
+    end do
+    return
+  end subroutine nBodyDataDestructorRank1
+  
   integer function nBodyDataPropertyType(propertyName)
     !% Returns the type of the named property.
     implicit none

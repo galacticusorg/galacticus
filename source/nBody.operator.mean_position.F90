@@ -103,6 +103,7 @@ contains
     integer                                   , allocatable  , dimension(:,:) :: selfBoundStatus
     double precision                          , parameter                     :: sampleRate          =1.0d0
     double precision                          , allocatable  , dimension(:,:) :: positionMean               , velocityMean
+    double precision                          , pointer      , dimension(:,:) :: position                   , velocity
     double precision                                                          :: weight
     integer         (c_size_t                )                                :: i                          , j           , &
          &                                                                       iSimulation
@@ -117,23 +118,26 @@ contains
              call Galacticus_Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
           end if
        else
-          call allocateArray(selfBoundStatus,[size(simulations(iSimulation)%position,dim=2,kind=c_size_t),self%bootstrapSampleCount])
+          position => simulations(iSimulation)%propertiesRealRank1%value('position')
+          call allocateArray(selfBoundStatus,[size(position,dim=2,kind=c_size_t),self%bootstrapSampleCount])
           do i=1,self%bootstrapSampleCount
-             do j=1,size(simulations(iSimulation)%position,dim=2)
+             do j=1,size(position,dim=2)
                 selfBoundStatus(j,i)=self%randomNumberGenerator_%poissonSample(sampleRate)
              end do
           end do
        end if
        ! Compute mean position and velocity.
+       position => simulations(iSimulation)%propertiesRealRank1%value('position')
+       velocity => simulations(iSimulation)%propertiesRealRank1%value('velocity')
        call allocateArray(positionMean,[3_c_size_t,self%bootstrapSampleCount])
        call allocateArray(velocityMean,[3_c_size_t,self%bootstrapSampleCount])
        do i=1,self%bootstrapSampleCount
           !$omp parallel workshare
           weight=dble(sum(selfBoundStatus(:,i)))
           forall(j=1:3)
-             positionMean(j,i)=+sum(simulations(iSimulation)%position(j,:)*dble(selfBoundStatus(:,i))) &
+             positionMean(j,i)=+sum(position(j,:)*dble(selfBoundStatus(:,i))) &
                   &            /weight
-             velocityMean(j,i)=+sum(simulations(iSimulation)%velocity(j,:)*dble(selfBoundStatus(:,i))) &
+             velocityMean(j,i)=+sum(velocity(j,:)*dble(selfBoundStatus(:,i))) &
                   &            /weight
           end forall
           !$omp end parallel workshare

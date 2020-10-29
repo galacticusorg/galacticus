@@ -82,63 +82,69 @@ contains
     class           (nbodyOperatorSelectProperties), intent(inout)                 :: self
     type            (nBodyData                    ), intent(inout), dimension(  :) :: simulations
     logical                                        , allocatable  , dimension(  :) :: mask
-    integer         (c_size_t                     ), allocatable  , dimension(  :) :: propertyInteger, propertyIntegerFiltered
-    double precision                               , allocatable  , dimension(  :) :: propertyReal   , propertyRealFiltered
-    double precision                               , allocatable  , dimension(:,:) :: position
-    integer                                                                        :: i              , j
+    integer         (c_size_t                     ), pointer      , dimension(  :) :: propertyInteger     , propertyIntegerFiltered
+    double precision                               , pointer      , dimension(  :) :: propertyReal        , propertyRealFiltered
+    integer         (c_size_t                     ), pointer      , dimension(:,:) :: propertyIntegerRank1, propertyIntegerRank1Filtered
+    double precision                               , pointer      , dimension(:,:) :: propertyRealRank1   , propertyRealRank1Filtered
+    integer                                                                        :: i                   , j                           , &
+         &                                                                            k
     integer         (c_size_t                     )                                :: countFiltered
     
     call Galacticus_Display_Indent('select on property values',verbosityStandard)
     do i=1,size(simulations)
-       allocate(mask(size(simulations(i)%particleIDs)))
        if (simulations(i)%propertiesInteger%exists(self%propertyName)) then
-          propertyInteger=simulations(i)%propertiesInteger%value(self%propertyName)
+          propertyInteger => simulations(i)%propertiesInteger%value(self%propertyName)
+          allocate(mask(size(propertyInteger)))
           do j=1,size(mask)
              mask(j)=any(propertyInteger(j) == self%selectedValues)
           end do
-          deallocate(propertyInteger)
+          nullify(propertyInteger)
        else
           call Galacticus_Error_Report('property "'//self%propertyName//'"does not exist'//{introspection:location})
        end if
-       ! Filter default properties.
        countFiltered=count(mask)
-       !! Position
-       allocate(position(3,countFiltered))
-       do j=1,3
-          position(j,:)=pack(simulations(i)%position(j,:),mask)
-       end do
-       deallocate(simulations(i)%position)
-       call move_alloc(position,simulations(i)%position)
-       !! Velocity
-       allocate(position(3,countFiltered))
-       do j=1,3
-          position(j,:)=pack(simulations(i)%velocity(j,:),mask)
-       end do
-       deallocate(simulations(i)%velocity)
-       call move_alloc(position,simulations(i)%velocity)
-       !! IDs
-       allocate(propertyInteger(countFiltered))
-       propertyInteger=pack(simulations(i)%particleIDs,mask)
-       deallocate(simulations(i)%particleIDs)
-       call move_alloc(propertyInteger,simulations(i)%particleIDs)
-       ! Filter other properties.
+       ! Filter properties.
        !! Integer properties.
-       allocate(propertyIntegerFiltered(countFiltered))
-       do j=1,simulations(i)%propertiesInteger%size()
-          propertyInteger        =simulations(i)%propertiesInteger%value(j)
-          propertyIntegerFiltered=pack(propertyInteger,mask)
-          call simulations(i)%propertiesInteger%set(simulations(i)%propertiesInteger%key(j),propertyIntegerFiltered)
+       do j=1,simulations(i)%propertiesInteger    %size()
+          propertyInteger      => simulations(i)%propertiesInteger    %value(j)
+          allocate(propertyIntegerFiltered    (                                  countFiltered))
+          propertyIntegerFiltered             =pack(propertyInteger          ,mask)
+          call simulations(i)%propertiesInteger    %set(simulations(i)%propertiesInteger        %key(j),propertyIntegerFiltered    )
+          deallocate(propertyInteger            )
+          nullify   (propertyIntegerFiltered    )
        end do
-       deallocate(propertyIntegerFiltered)
        !! Real properties.
-       allocate(propertyRealFiltered   (countFiltered))
        do j=1,simulations(i)%propertiesReal   %size()
-          propertyReal           =simulations(i)%propertiesReal   %value(j)
-          propertyRealFiltered   =pack(propertyReal   ,mask)
-          call simulations(i)%propertiesReal   %set(simulations(i)%propertiesReal   %key(j),propertyRealFiltered   )
+          propertyReal         => simulations(i)%propertiesReal       %value(j)
+          allocate(propertyRealFiltered   (                                      countFiltered))
+          propertyRealFiltered                =pack(propertyReal             ,mask)
+          call simulations(i)%propertiesReal       %set(simulations(i)%propertiesReal           %key(j),propertyRealFiltered       )
+          deallocate(propertyReal               )
+          nullify   (propertyRealFiltered       )
        end do
-       deallocate(propertyRealFiltered   )
-       deallocate(mask                   )
+       !! Integer rank-1 properties.
+       do j=1,simulations(i)%propertiesIntegerRank1%size()
+          propertyIntegerRank1 => simulations(i)%propertiesIntegerRank1%value(j)
+          allocate(propertyIntegerRank1Filtered(size(propertyIntegerRank1,dim=1),countFiltered))
+          do k=1,size(propertyIntegerRank1,dim=1)
+             propertyIntegerRank1Filtered(k,:)=pack(propertyIntegerRank1(k,:),mask)
+          end do
+          call simulations(i)%propertiesIntegerRank1%set(simulations(i)%propertiesIntegerRank1%key(j),propertyIntegerRank1Filtered)
+          deallocate(propertyIntegerRank1        )
+          nullify   (propertyIntegerRank1Filtered)
+       end do
+       !! Real rank-1 properties.
+       do j=1,simulations(i)%propertiesRealRank1   %size()
+          propertyRealRank1    => simulations(i)%propertiesRealRank1   %value(j)
+          allocate(propertyRealRank1Filtered   (size(propertyRealRank1   ,dim=1),countFiltered))
+          do k=1,size(propertyRealRank1   ,dim=1)
+             propertyRealRank1Filtered  (k,:)=  pack(propertyRealRank1   (k,:),mask)
+          end do
+          call simulations(i)%propertiesRealRank1   %set(simulations(i)%propertiesRealRank1   %key(j),propertyRealRank1Filtered   )
+          deallocate(propertyRealRank1           )
+          nullify   (propertyRealRank1Filtered   )
+       end do
+       deallocate(mask)
     end do
     call Galacticus_Display_Unindent('done',verbosityStandard)
     return

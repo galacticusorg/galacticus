@@ -113,6 +113,7 @@ contains
     type            (nBodyData                 ), intent(inout), dimension(:  ) :: simulations
     integer                                     , allocatable  , dimension(:,:) :: selfBoundStatus
     double precision                            , parameter                     :: sampleRate           =1.0d0
+    double precision                            , pointer      , dimension(:,:) :: position
     double precision                            , allocatable  , dimension(:,:) :: positionMean                , rotationCurve
     double precision                            , allocatable  , dimension(:  ) :: distanceRadialSquared
     double precision                            , allocatable  , dimension(:,:) :: positionRelative
@@ -120,12 +121,15 @@ contains
     type            (hdf5Object                )                                :: rotationCurveGroup
     integer         (c_size_t                  )                                :: i                           , j            , &
          &                                                                         iSimulation
-
+    double precision                                                            :: massParticle
+    
     do iSimulation=1,size(simulations)
        ! Allocate workspace.
-       call allocateArray(distanceRadialSquared,[  size(simulations(iSimulation)%position,dim =2       )                          ])
-       call allocateArray(positionRelative     ,[3,size(simulations(iSimulation)%position,dim =2       )                          ])
-       call allocateArray(rotationCurve        ,[  size(self                    %radius  ,kind=c_size_t),self%bootstrapSampleCount])
+       position     => simulations(iSimulation)%propertiesRealRank1%value('position'    )
+       massparticle =  simulations(iSimulation)%attributesReal     %value('massParticle')
+       call allocateArray(distanceRadialSquared,[  size(     position,dim =2       )                          ])
+       call allocateArray(positionRelative     ,[3,size(     position,dim =2       )                          ])
+       call allocateArray(rotationCurve        ,[  size(self%radius  ,kind=c_size_t),self%bootstrapSampleCount])
        ! Determine the particle mask to use.
        if (self%selfBoundParticlesOnly) then
           if (simulations(iSimulation)%analysis%hasDataset('selfBoundStatus')) then
@@ -135,9 +139,9 @@ contains
              call Galacticus_Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
           end if
        else
-          call allocateArray(selfBoundStatus,[size(simulations(iSimulation)%position,dim=2,kind=c_size_t),self%bootstrapSampleCount])
+          call allocateArray(selfBoundStatus,[size(position,dim=2,kind=c_size_t),self%bootstrapSampleCount])
           do i=1,self%bootstrapSampleCount
-             do j=1,size(simulations(iSimulation)%position,dim=2)
+             do j=1,size(position,dim=2)
                 selfBoundStatus(j,i)=self%randomNumberGenerator_%poissonSample(sampleRate)
              end do
           end do
@@ -150,8 +154,8 @@ contains
           !$omp parallel workshare
           ! Compute radial distance from the mean position.
           forall(k=1:3)
-             positionRelative(k,:)=+simulations(iSimulation)  %position(k,:) &
-                  &                -positionMean         (k,i)
+             positionRelative(k,:)=+position    (k,:) &
+                  &                -positionMean(k,i)
           end forall
           distanceRadialSquared=sum(positionRelative**2,dim=1)
           ! Count particles within each radius.
@@ -160,7 +164,7 @@ contains
           end forall
           !$omp end parallel workshare
           ! Compute corresponding rotation curve.
-          rotationCurve(:,i)=sqrt(gravitationalConstantGalacticus*simulations(iSimulation)%massParticle*rotationCurve(:,i)/self%radius)
+          rotationCurve(:,i)=sqrt(gravitationalConstantGalacticus*massParticle*rotationCurve(:,i)/self%radius)
        end do
        ! Store results to file.
        rotationCurveGroup=simulations(iSimulation)%analysis%openGroup('rotationCurve')

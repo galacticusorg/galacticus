@@ -151,6 +151,7 @@ contains
     integer         (c_size_t                  ), allocatable  , dimension(:,:) :: weight1                          , weight2                    , &
          &                                                                         weightPair
     integer         (c_size_t                  ), allocatable  , dimension(:,:) :: pairCountBin
+    double precision                            , pointer      , dimension(:,:) :: position1                        , position2
     integer         (c_size_t                  )                                :: i                                , j                          , &
          &                                                                         iSample                          , bootstrapSampleCount       , &
          &                                                                         iSimulation                      , jSimulation                , &
@@ -186,12 +187,15 @@ contains
 #ifdef USEMPI
        end if
 #endif
+       ! Allocate workspace.
        if (self%crossCount) then
-          allocate(weight1(bootstrapSampleCount,size(simulations(          1)%position,dim=2)))
+          position1 => simulations(1          )%propertiesRealRank1%value('position')
        else
-          allocate(weight1(bootstrapSampleCount,size(simulations(iSimulation)%position,dim=2)))
+          position1 => simulations(iSimulation)%propertiesRealRank1%value('position')
        end if
-       allocate   (weight2(bootstrapSampleCount,size(simulations(iSimulation)%position,dim=2)))
+       position2    => simulations(iSimulation)%propertiesRealRank1%value('position')
+       allocate(weight1(bootstrapSampleCount,size(position1,dim=2)))
+       allocate(weight2(bootstrapSampleCount,size(position2,dim=2)))
        ! Generate bootstrap weights.
        do iSample=1,bootstrapSampleCount
           ! Determine weights for particles.
@@ -222,25 +226,20 @@ contains
        pairCountBin=0_c_size_t
        !$omp parallel private(j,jStart,jEnd,weightPair,neighborCount,neighborIndex,neighborDistanceSquared,neighborFinder) reduction(+:pairCountBin)
        ! Allocate workspace.
-       allocate(weightPair             (bootstrapSampleCount,size(simulations(iSimulation)%position,dim=2)))
-       allocate(neighborIndex          (                     size(simulations(iSimulation)%position,dim=2)))
-       allocate(neighborDistanceSquared(                     size(simulations(iSimulation)%position,dim=2)))
+       allocate(weightPair             (bootstrapSampleCount,size(position2,dim=2)))
+       allocate(neighborIndex          (                     size(position2,dim=2)))
+       allocate(neighborDistanceSquared(                     size(position2,dim=2)))
        ! Construct the nearest neighbor finder object.
-       neighborFinder=nearestNeighbors(transpose(simulations(iSimulation)%position))
+       neighborFinder=nearestNeighbors(transpose(position2))
        ! Iterate over particles.
-       if (self%crossCount) then
-          jSimulation=1
-       else
-          jSimulation=iSimulation
-       end if
        !$omp do schedule(dynamic)
-       do i=1_c_size_t,size(simulations(jSimulation)%position,dim=2,kind=c_size_t)
+       do i=1_c_size_t,size(position1,dim=2,kind=c_size_t)
 #ifdef USEMPI
           ! If running under MPI with N processes, process only every Nth particle.
           if (mod(i,mpiSelf%count()) /= mpiSelf%rank()) cycle
 #endif
           ! Locate particles nearby.
-          call neighborFinder%searchFixedRadius(simulations(jSimulation)%position(:,i),self%separationMaximum,toleranceZero,neighborCount,neighborIndex,neighborDistanceSquared)
+          call neighborFinder%searchFixedRadius(position1(:,i),self%separationMaximum,toleranceZero,neighborCount,neighborIndex,neighborDistanceSquared)
           ! Find weights of paired particles.
           do j=1_c_size_t,neighborCount
              weightPair(:,j)=weight2(:,neighborIndex(j))
@@ -261,13 +260,13 @@ contains
 #ifdef USEMPI
           if (mpiSelf%isMaster()) then
 #endif
-             call Galacticus_Display_Counter(                                                               &
-                  &                          int(                                                           &
-                  &                              +100.0d0                                                   &
-                  &                              *float(i                                                )  &
-                  &                              /float(size(simulations(1)%position,dim=2,kind=c_size_t))  &
-                  &                             )                                                         , &
-                  &                          .false.                                                        &
+             call Galacticus_Display_Counter(                                                 &
+                  &                          int(                                             &
+                  &                              +100.0d0                                     &
+                  &                              *float(i                                  )  &
+                  &                              /float(size(position1,dim=2,kind=c_size_t))  &
+                  &                             )                                           , &
+                  &                          .false.                                          &
                   &                         )
 #ifdef USEMPI
           end if
@@ -291,14 +290,14 @@ contains
 #endif
        if (self%crossCount) then
           jSimulation   = 1
-          pairCountTotal=+size(simulations(          1)%position,dim=2,kind=c_size_t) &
-               &         *size(simulations(iSimulation)%position,dim=2,kind=c_size_t)
+          pairCountTotal=+size(                         position1,dim=2,kind=c_size_t) &
+               &         *size(                         position2,dim=2,kind=c_size_t)
           label         = ":"//simulations(          1)%label// &
                &          ":"//simulations(iSimulation)%label
        else
           jSimulation   = iSimulation
-          pairCountTotal=+size(simulations(iSimulation)%position,dim=2,kind=c_size_t) &
-               &         *size(simulations(iSimulation)%position,dim=2,kind=c_size_t)
+          pairCountTotal=+size(                         position2,dim=2,kind=c_size_t) &
+               &         *size(                         position2,dim=2,kind=c_size_t)
           label         = ":"//simulations(iSimulation)%label
        end if
 #ifdef USEMPI

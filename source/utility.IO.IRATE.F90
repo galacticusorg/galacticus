@@ -113,12 +113,12 @@ contains
     class           (irate     ), intent(inout)                                        :: self
     integer                     , intent(in   )                                        :: snapshot
     double precision            , intent(  out)                             , optional :: redshift
-    double precision            , intent(  out), allocatable, dimension(:,:), optional :: center          , velocity
-    double precision            , intent(  out), allocatable, dimension(  :), optional :: mass
-    integer         (c_size_t  ), intent(  out), allocatable, dimension(  :), optional :: IDs
+    double precision            , intent(  out), pointer    , dimension(:,:), optional :: center          , velocity
+    double precision            , intent(  out), pointer    , dimension(  :), optional :: mass
+    integer         (c_size_t  ), intent(  out), pointer    , dimension(  :), optional :: IDs
     double precision                           , allocatable, dimension(  :)           :: unitsInCGS
     type            (hdf5Object)                                                       :: irateFile       , snapshotGroup, &
-         &                                                                                halosGroup      , thisDataset
+         &                                                                                halosGroup      , dataset
     character       (len=13    )                                                       :: snapshotLabel
     double precision                                                                   :: redshiftInternal, expansionFactor
 
@@ -131,29 +131,33 @@ contains
     expansionFactor=self%cosmologyFunctions_%expansionFactorFromRedshift(redshiftInternal)
     if (present(redshift)) redshift=redshiftInternal
     if (present(IDs     )) then
-       thisDataset=halosGroup%openDataset("HaloID"  )
-       call thisDataset%readDataset(datasetValue=IDs    )
-       call thisDataset%close()
+       dataset=halosGroup%openDataset("HaloID"  )
+       allocate(IDs(dataset%size(1)))
+       call dataset%readDatasetStatic(datasetValue=IDs    )
+       call dataset%close()
     end if
     if (present(mass    )) then
-       thisDataset=halosGroup%openDataset("Mass"    )
-       call thisDataset%readDataset(datasetValue=mass   )
-       call thisDataset%readAttribute('unitscgs',unitsInCGS)
-       call thisDataset%close()
+       dataset=halosGroup%openDataset("Mass"    )
+       allocate(mass(dataset%size(1)))
+       call dataset%readDatasetStatic(datasetValue=mass   )
+       call dataset%readAttribute('unitscgs',unitsInCGS)
+       call dataset%close()
        mass    =mass    *(unitsInCGS(1)/kilo /massSolar )*self%cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**unitsInCGS(2)
     end if
     if (present(center )) then
-       thisDataset=halosGroup%openDataset("Center"  )
-       call thisDataset%readDataset(datasetValue=center  )
-       call thisDataset%readAttribute('unitscgs',unitsInCGS)
-       call thisDataset%close()
+       dataset=halosGroup%openDataset("Center"  )
+       allocate(center(dataset%size(1),dataset%size(2)))
+       call dataset%readDatasetStatic(datasetValue=center  )
+       call dataset%readAttribute('unitscgs',unitsInCGS)
+       call dataset%close()
        center  =center  *(unitsInCGS(1)/hecto/megaParsec)*self%cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**unitsInCGS(2)
     end if
     if (present(velocity)) then
-       thisDataset=halosGroup%openDataset("Velocity")
-       call thisDataset%readDataset(datasetValue=velocity)
-       call thisDataset%readAttribute('unitscgs',unitsInCGS)
-       call thisDataset%close()
+       dataset=halosGroup%openDataset("Velocity")
+       allocate(velocity(dataset%size(1),dataset%size(2)))
+       call dataset%readDatasetStatic(datasetValue=velocity)
+       call dataset%readAttribute('unitscgs',unitsInCGS)
+       call dataset%close()
        velocity=velocity*(unitsInCGS(1)/hecto/kilo      )*self%cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**unitsInCGS(2)
     end if
     call halosGroup   %close()
@@ -246,7 +250,7 @@ contains
     integer         (c_size_t  ), intent(in   ), dimension(  :), optional :: IDs
     logical                     , intent(in   )                , optional :: overwrite    , objectsOverwritable
     type            (hdf5Object)                                          :: irateFile    , snapshotGroup      , &
-         &                                                                   halosGroup   , thisDataset
+         &                                                                   halosGroup   , dataset
     character       (len=13    )                                          :: snapshotLabel
     !# <optionalArgument name="overwrite"           defaultsTo=".false."/>
     !# <optionalArgument name="objectsOverwritable" defaultsTo=".false."/>
@@ -259,31 +263,31 @@ contains
     call snapshotGroup%writeAttribute(redshift,"Redshift")
     if (present(IDs     )) then
        if (size(IDs     ) > 0) then
-          call halosGroup%writeDataset   (IDs                                   ,'HaloID'  ,'Halo IDs'                                          )
+          call halosGroup%writeDataset  (IDs                                   ,'HaloID'  ,'Halo IDs'                                      )
        end if
     end if
     if (present(mass    )) then
        if (size(mass    ) > 0) then
-          call halosGroup%writeDataset   (mass                                  ,'Mass'    ,'Halo masses'           ,datasetReturned=thisDataset)
-          call thisDataset%writeAttribute('Msolar'                              ,'unitname'                                                     )
-          call thisDataset%writeAttribute([kilo*massSolar        , 0.0d0, 0.0d0],'unitscgs'                                                     )
-          call thisDataset%close()
+          call halosGroup%writeDataset  (mass                                  ,'Mass'    ,'Halo masses'           ,datasetReturned=dataset)
+          call dataset   %writeAttribute('Msolar'                              ,'unitname'                                                 )
+          call dataset   %writeAttribute([kilo*massSolar        , 0.0d0, 0.0d0],'unitscgs'                                                 )
+          call dataset   %close         (                                                                                                   )
        end if
     end if
     if (present(center  )) then
        if (size(center  ) > 0) then
-          call halosGroup%writeDataset   (center                                ,'Center'  ,'Halo center positions' ,datasetReturned=thisDataset)
-          call thisDataset%writeAttribute('Mpc'                                 ,'unitname'                                                     )
-          call thisDataset%writeAttribute([hecto*megaparsec      , 0.0d0,-1.0d0],'unitscgs'                                                     )
-          call thisDataset%close()
+          call halosGroup%writeDataset   (center                                ,'Center'  ,'Halo center positions' ,datasetReturned=dataset)
+          call dataset   %writeAttribute('Mpc'                                 ,'unitname'                                                  )
+          call dataset   %writeAttribute([hecto*megaparsec      , 0.0d0,-1.0d0],'unitscgs'                                                  )
+          call dataset   %close         (                                                                                                   )
        end if
     end if
     if (present(velocity)) then
        if (size(velocity) > 0) then
-          call halosGroup%writeDataset   (velocity                              ,'Velocity','Halo center velocities',datasetReturned=thisDataset)
-          call thisDataset%writeAttribute('Mpc'                                ,'unitname'                                                     )
-          call thisDataset%writeAttribute([kilo*hecto           , 0.0d0, 0.0d0],'unitscgs'                                                     )
-          call thisDataset%close()
+          call halosGroup%writeDataset  (velocity                             ,'Velocity','Halo center velocities',datasetReturned=dataset)
+          call dataset   %writeAttribute('Mpc'                                ,'unitname'                                                 )
+          call dataset   %writeAttribute([kilo*hecto           , 0.0d0, 0.0d0],'unitscgs'                                                 )
+          call dataset   %close         (                                                                                                   )
        end if
     end if
     call halosGroup   %close()

@@ -72,22 +72,42 @@ contains
     use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Message, verbosityStandard
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     implicit none
-    class  (nbodyOperatorDeleteProperties), intent(inout)               :: self
-    type   (nBodyData                    ), intent(inout), dimension(:) :: simulations
-    logical                                                             :: propertyFound
-    integer                                                             :: i            , j
+    class           (nbodyOperatorDeleteProperties), intent(inout)                 :: self
+    type            (nBodyData                    ), intent(inout), dimension(  :) :: simulations
+    integer         (c_size_t                     ), pointer      , dimension(  :) :: propertyInteger
+    double precision                               , pointer      , dimension(  :) :: propertyReal
+    integer         (c_size_t                     ), pointer      , dimension(:,:) :: propertyIntegerRank1
+    double precision                               , pointer      , dimension(:,:) :: propertyRealRank1
+    logical                                                                        :: propertyFound
+    integer                                                                        :: i            , j
 
     call Galacticus_Display_Indent('delete named properties',verbosityStandard)
     do i=1,size(self%propertyNames)
        do j=1,size(simulations)
           propertyFound=.false.
-          if (simulations(j)%propertiesInteger%exists(self%propertyNames(i))) then
-             propertyFound=.true.
-             call simulations(j)%propertiesInteger%delete(self%propertyNames(i))
+          if (simulations(j)%propertiesInteger     %exists(self%propertyNames(i))) then
+             propertyFound        =  .true.
+             propertyInteger      => simulations(j)%propertiesInteger     %value(self%propertyNames(i))
+             deallocate(propertyInteger)
+             call simulations(j)%propertiesInteger     %delete(self%propertyNames(i))
           end if
-          if (simulations(j)%propertiesReal   %exists(self%propertyNames(i))) then
-             propertyFound=.true.
-             call simulations(j)%propertiesReal   %delete(self%propertyNames(i))
+          if (simulations(j)%propertiesReal        %exists(self%propertyNames(i))) then
+             propertyFound        =  .true.
+             propertyReal         => simulations(j)%propertiesReal        %value(self%propertyNames(i))
+             deallocate(propertyReal   )
+             call simulations(j)%propertiesReal        %delete(self%propertyNames(i))
+          end if
+          if (simulations(j)%propertiesIntegerRank1%exists(self%propertyNames(i))) then
+             propertyFound        =  .true.
+             propertyIntegerRank1 => simulations(j)%propertiesIntegerRank1%value(self%propertyNames(i))
+             deallocate(propertyIntegerRank1)
+             call simulations(j)%propertiesIntegerRank1%delete(self%propertyNames(i))
+          end if
+          if (simulations(j)%propertiesRealRank1   %exists(self%propertyNames(i))) then
+             propertyFound        =  .true.
+             propertyRealRank1    => simulations(j)%propertiesRealRank1   %value(self%propertyNames(i))
+             deallocate(propertyRealRank1   )
+             call simulations(j)%propertiesRealRank1   %delete(self%propertyNames(i))
           end if
           if (propertyFound) then
              call Galacticus_Display_Message('deleted "' //self%propertyNames(i)//'"'                                    )

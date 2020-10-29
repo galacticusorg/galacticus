@@ -31,6 +31,8 @@
      integer                          , dimension(:), allocatable :: readColumns                      , readColumnsType
      integer                                                      :: readColumnsIntegerCount          , readColumnsRealCount
      type   (varying_string          )                            :: fileName                         , label
+     logical                                                      :: havePosition                     , haveVelocity        , &
+          &                                                          expansionFactorNeeded
    contains
      final     ::           rockstarDestructor
      procedure :: import => rockstarImport
@@ -51,6 +53,7 @@
   !#  <visibility>public</visibility>
   !#  <encodeFunction>yes</encodeFunction>
   !#  <validator>yes</validator>
+  !#  <entry label="null"            />
   !#  <entry label="scale"           />
   !#  <entry label="id"              />
   !#  <entry label="desc_scale"      />
@@ -205,6 +208,13 @@ contains
              call Galacticus_Error_Report('unknown column'//{introspection:location})
           end select
        end do
+       self%havePosition         =any(self%readColumns == rockstarColumnX ) .and. any(self%readColumns == rockstarColumnY ) .and. any(self%readColumns == rockstarColumnZ )
+       self%haveVelocity         =any(self%readColumns == rockstarColumnVX) .and. any(self%readColumns == rockstarColumnVY) .and. any(self%readColumns == rockstarColumnVZ)
+       self%expansionFactorNeeded=any(self%readColumns == rockstarColumnX ) .or.  any(self%readColumns == rockstarColumnY ) .or.  any(self%readColumns == rockstarColumnZ )
+    else
+       self%havePosition         =.false.
+       self%haveVelocity         =.false.
+       self%expansionFactorNeeded=.false.
     end if
     return
   end function rockstarConstructorInternal
@@ -225,24 +235,26 @@ contains
          &                              verbosityStandard
     use :: Memory_Management   , only : allocateArray            , deallocateArray
     use :: File_Utilities      , only : Count_Lines_in_File
-    use :: Hashes              , only : rank1IntegerSizeTHash    , rank1DoubleHash            , integerSizeTHash          , doubleHash
+    use :: Hashes              , only : rank1IntegerSizeTPtrHash , rank1DoublePtrHash         , integerSizeTHash          , doubleHash                      , &
+         &                              rank2IntegerSizeTPtrHash , rank2DoublePtrHash
     implicit none
-    class           (nbodyImporterRockstar), intent(inout)                                 :: self
-    type            (nBodyData            ), intent(  out), dimension( :    ), allocatable :: simulations
-    double precision                                      , dimension( :    ), allocatable :: expansionFactor
-    double precision                                      , dimension( :  ,:), allocatable :: propertiesReal
-    integer         (c_size_t             )               , dimension( :  ,:), allocatable :: propertiesInteger
-    double precision                                      , dimension(0:31  )              :: columnsReal
-    integer         (c_size_t             )               , dimension(0:31  )              :: columnsInteger
-    integer         (c_size_t             )                                                :: countHalos       , countTrees, &
-         &                                                                                    i
-    integer                                                                                :: status           , j         , &
-         &                                                                                    file             , jInteger  , &
-         &                                                                                    jReal
-    character       (len=1024             )                                                :: line
-    character       (len=64               )                                                :: columnName
-    logical                                                                                :: isComment
-    double precision                                                                       :: boxSize
+    class           (nbodyImporterRockstar     ), intent(inout)                                 :: self
+    type            (nBodyData                 ), intent(  out), dimension( :    ), allocatable :: simulations
+    double precision                                           , dimension( :    ), allocatable :: expansionFactor
+    type            (nbodyPropertiesRealList   )               , dimension( :    ), allocatable :: propertiesReal
+    type            (nbodyPropertiesIntegerList)               , dimension( :    ), allocatable :: propertiesInteger
+    double precision                                           , dimension( :  ,:), pointer     :: position         , velocity
+    double precision                                           , dimension(0:31  )              :: columnsReal
+    integer         (c_size_t                  )               , dimension(0:31  )              :: columnsInteger
+    integer         (c_size_t                  )                                                :: countHalos       , countTrees, &
+         &                                                                                         i
+    integer                                                                                     :: status           , j         , &
+         &                                                                                         file             , jInteger  , &
+         &                                                                                         jReal
+    character       (len=1024                  )                                                :: line
+    character       (len=64                    )                                                :: columnName
+    logical                                                                                     :: isComment
+    double precision                                                                            :: boxSize
 
     call Galacticus_Display_Indent('import simulation from Rockstar file',verbosityStandard)
     allocate(simulations(1))
@@ -251,16 +263,19 @@ contains
     countHalos=Count_Lines_In_File(self%fileName,comment_char="#")-1_c_size_t
     countTrees=                                                    0_c_size_t    
     ! Allocate storage
-    call allocateArray(simulations(1)%position       ,[3_c_size_t,countHalos])
-    call allocateArray(simulations(1)%velocity       ,[3_c_size_t,countHalos])
-    call allocateArray(simulations(1)%particleIDs    ,[           countHalos])
-    call allocateArray(               expansionFactor,[           countHalos])
+    if (self%expansionFactorNeeded) allocate(expansionFactor(countHalos))
     if (allocated(self%readColumns)) then
-       allocate(propertiesInteger(countHalos,self%readColumnsIntegerCount))
-       allocate(propertiesReal   (countHalos,self%readColumnsRealCount   ))
+       allocate(propertiesInteger(self%readColumnsIntegerCount))
+       allocate(propertiesReal   (self%readColumnsRealCount   ))
+       do i=1,self%readColumnsIntegerCount
+          allocate(propertiesInteger(i)%property(countHalos))
+       end do
+       do i=1,self%readColumnsRealCount
+          allocate(propertiesReal   (i)%property(countHalos))
+       end do
     else
-       allocate(propertiesInteger(         0,                           0))
-       allocate(propertiesReal   (         0,                           0))
+       allocate(propertiesInteger(0                           ))
+       allocate(propertiesReal   (0                           ))
     end if
     ! Open the file and read.
     i=0_c_size_t
@@ -280,10 +295,7 @@ contains
                   &        columnsInteger(14:14), &
                   &        columnsReal   (15:26), &
                   &        columnsInteger(27:31)
-             expansionFactor            (  i)=columnsReal   ( 0   )
-             simulations(1) %particleIDs(  i)=columnsInteger( 1   )
-             simulations(1) %position   (:,i)=columnsReal   (17:19)
-             simulations(1) %velocity   (:,i)=columnsReal   (20:22)
+             if (self%expansionFactorNeeded) expansionFactor(i)=columnsReal(0)
              ! Read any extra columns.
              if (allocated(self%readColumns)) then
                 jInteger=0
@@ -291,11 +303,11 @@ contains
                 do j=1,size(self%readColumns)
                    select case (self%readColumnsType(j))
                    case (columnTypeInteger)
-                      jInteger                     =jInteger                           +1
-                      propertiesInteger(i,jInteger)=columnsInteger(self%readColumns(j))
+                      jInteger                               =jInteger                           +1
+                      propertiesInteger(jInteger)%property(i)=columnsInteger(self%readColumns(j))
                    case (columnTypeReal   )
-                      jReal                        =jReal                              +1
-                      propertiesReal   (i,jReal   )=columnsReal   (self%readColumns(j))
+                      jReal                                  =jReal                              +1
+                      propertiesReal   (jReal   )%property(i)=columnsReal   (self%readColumns(j))
                    end select
                 end do
              end if
@@ -313,13 +325,19 @@ contains
     end do
     call Galacticus_Display_Counter_Clear(verbosityStandard)
     close(file)
-    ! Convert position to internal units (physical Mpc).
-    do i=1_c_size_t,countHalos
-       simulations(1)%position(:,i)=+simulations(1)           %position       (:,i                 ) &
-            &                       *                          expansionFactor(  i                 ) &
-            &                       /self%cosmologyParameters_%HubbleConstant (  hubbleUnitsLittleH)
+    ! Convert positions to internal units (physical Mpc).
+    jReal=0
+    do j=1,size(self%readColumns)
+       if (self%readColumnsType(j) /= columnTypeReal) cycle
+       jReal=jReal+1
+       select case (self%readColumns(j))
+       case (rockstarColumnX,rockstarColumnY,rockstarColumnZ)
+          propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
+            &                            *                                           expansionFactor                    &
+            &                            /self                 %cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH)
+       end select
     end do
-    call deallocateArray(expansionFactor)
+    deallocate(expansionFactor)
     ! Convert box size to internal units (comoving Mpc).
     boxSize=+boxSize                                                      &
          &  /self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
@@ -328,9 +346,13 @@ contains
     simulations(1)%attributesReal   =doubleHash      ()
     call simulations(1)%attributesReal%set('boxSize',boxSize)
     ! Add any additional properties.
-    simulations(1)%propertiesInteger=rank1IntegerSizeTHash()
-    simulations(1)%propertiesReal   =rank1DoubleHash      ()
+    simulations(1)%propertiesInteger     =rank1IntegerSizeTPtrHash()
+    simulations(1)%propertiesReal        =rank1DoublePtrHash      ()
+    simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTPtrHash()
+    simulations(1)%propertiesRealRank1   =rank2DoublePtrHash      ()
     if (allocated(self%readColumns)) then
+       if (self%havePosition) allocate(position(3,countHalos))
+       if (self%haveVelocity) allocate(velocity(3,countHalos))
        jInteger                        =0
        jReal                           =0
        do j=1,size(self%readColumns)
@@ -359,7 +381,7 @@ contains
              case (rockstarColumnTree_root_ID)
                 columnName='treeID'
              end select
-             call simulations(1)%propertiesInteger%set(columnName,propertiesInteger(:,jInteger))
+             call simulations(1)%propertiesInteger%set(columnName,propertiesInteger(jInteger)%property)
           case (columnTypeReal   )
              jReal   =jReal   +1
              select case (self%readColumns(j))
@@ -369,12 +391,28 @@ contains
                 columnName='descendentExpansionFactor'
              case (rockstarColumnMvir      )
                 columnName='massVirial'
-                propertiesReal(:,jReal)=+propertiesReal                                    (:,jReal             ) &
-                     &                  /self          %cosmologyParameters_%HubbleConstant(  hubbleUnitsLittleH)
-            end select
-             call simulations(1)%propertiesReal   %set(columnName,propertiesReal   (:,jReal   ))
+                propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
+                     &                         /self                 %cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
+             end select
+             if      (self%havePosition.and.self%readColumns(j) == rockstarColumnX ) then
+                position(1,:)=propertiesReal(jReal)%property
+             else if (self%havePosition.and.self%readColumns(j) == rockstarColumnY ) then
+                position(2,:)=propertiesReal(jReal)%property
+             else if (self%havePosition.and.self%readColumns(j) == rockstarColumnZ ) then
+                position(3,:)=propertiesReal(jReal)%property
+             else if (self%haveVelocity.and.self%readColumns(j) == rockstarColumnVX) then
+                velocity(1,:)=propertiesReal(jReal)%property
+             else if (self%haveVelocity.and.self%readColumns(j) == rockstarColumnVY) then
+                velocity(2,:)=propertiesReal(jReal)%property
+             else if (self%haveVelocity.and.self%readColumns(j) == rockstarColumnVZ) then
+                velocity(3,:)=propertiesReal(jReal)%property
+             else
+                call simulations(1)%propertiesReal%set(columnName,propertiesReal(jReal)%property)
+             end if
           end select
        end do
+       if (self%havePosition) call simulations(1)%propertiesRealRank1%set('position',position)
+       if (self%haveVelocity) call simulations(1)%propertiesRealRank1%set('velocity',velocity)
     end if
     call Galacticus_Display_Unindent('done',verbosityStandard)
     return

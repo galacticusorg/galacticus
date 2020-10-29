@@ -165,11 +165,12 @@ contains
     implicit none
     class           (nbodyOperatorMergerRates), intent(inout)               :: self
     type            (nBodyData               ), intent(inout), dimension(:) :: simulations
-    integer         (c_size_t                ), allocatable  , dimension(:) :: indexID                       , hostID                    , &
+    integer         (c_size_t                ), pointer      , dimension(:) :: particleID                    , hostID                    , &
          &                                                                     descendentID                  , snapshotID                , &
          &                                                                     isMostMassiveProgenitor       , alwaysIsolated
-    double precision                          , allocatable  , dimension(:) :: massVirial                    , expansionFactor           , &
-         &                                                                     mergerRate
+    integer         (c_size_t                ), allocatable  , dimension(:) :: indexID
+    double precision                          , pointer      , dimension(:) :: massVirial                    , expansionFactor
+    double precision                          , allocatable  , dimension(:) :: mergerRate
     logical                                   , allocatable  , dimension(:) :: selection
     integer         (c_size_t                )                              :: i                             , j                         , &
          &                                                                     k                             , iSimulation               , &
@@ -195,25 +196,19 @@ contains
 #ifdef USEMPI
        end if
 #endif
-       ! Allocate workspace.
-       allocate(indexID                (size(simulations(iSimulation)%particleIDs)))
-       allocate(snapshotID             (size(simulations(iSimulation)%particleIDs)))
-       allocate(hostID                 (size(simulations(iSimulation)%particleIDs)))
-       allocate(descendentID           (size(simulations(iSimulation)%particleIDs)))
-       allocate(isMostMassiveProgenitor(size(simulations(iSimulation)%particleIDs)))
-       allocate(alwaysIsolated         (size(simulations(iSimulation)%particleIDs)))
-       allocate(massVirial             (size(simulations(iSimulation)%particleIDs)))
-       allocate(expansionFactor        (size(simulations(iSimulation)%particleIDs)))
-       allocate(mergerRate             (size(simulations(iSimulation)%particleIDs)))
-       allocate(selection              (size(simulations(iSimulation)%particleIDs)))
        ! Retrieve required properties.
-       hostID                 =simulations(iSimulation)%propertiesInteger%value('hostID'                 )
-       descendentID           =simulations(iSimulation)%propertiesInteger%value('descendentID'           )
-       snapshotID             =simulations(iSimulation)%propertiesInteger%value('snapshotID'             )
-       isMostMassiveProgenitor=simulations(iSimulation)%propertiesInteger%value('isMostMassiveProgenitor')
-       alwaysIsolated         =simulations(iSimulation)%propertiesInteger%value('alwaysIsolated'         )
-       massVirial             =simulations(iSimulation)%propertiesReal   %value('massVirial'             )
-       expansionFactor        =simulations(iSimulation)%propertiesReal   %value('expansionFactor'        )
+       particleID              => simulations(iSimulation)%propertiesInteger%value('particleIDs'            )
+       hostID                  => simulations(iSimulation)%propertiesInteger%value('hostID'                 )
+       descendentID            => simulations(iSimulation)%propertiesInteger%value('descendentID'           )
+       snapshotID              => simulations(iSimulation)%propertiesInteger%value('snapshotID'             )
+       isMostMassiveProgenitor => simulations(iSimulation)%propertiesInteger%value('isMostMassiveProgenitor')
+       alwaysIsolated          => simulations(iSimulation)%propertiesInteger%value('alwaysIsolated'         )
+       massVirial              => simulations(iSimulation)%propertiesReal   %value('massVirial'             )
+       expansionFactor         => simulations(iSimulation)%propertiesReal   %value('expansionFactor'        )
+       ! Allocate workspace.
+       allocate(indexID   (size(particleID)))
+       allocate(mergerRate(size(particleID)))
+       allocate(selection (size(particleID)))
        ! Initialize merger rates.
        mergerRate=0.0d0
        ! Initialize expansion factors.
@@ -222,7 +217,7 @@ contains
        expansionFactorParent         =-huge(0.0d0)
        expansionFactorProgenitor     =-huge(0.0d0)
        ! Build a sort index.
-       indexID=sortIndex(simulations(iSimulation)%particleIDs)
+       indexID=sortIndex(particleID)
        ! Visit each particle.
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
@@ -232,7 +227,7 @@ contains
        end if
 #endif
        !$omp parallel do private(j,k,isMerger) schedule(dynamic)
-       do i=1_c_size_t,size(simulations(iSimulation)%particleIDs)
+       do i=1_c_size_t,size(particleID)
 #ifdef USEMPI
           ! If running under MPI with N processes, process only every Nth particle.
           if (mod(i,mpiSelf%count()) /= mpiSelf%rank()) cycle
@@ -265,7 +260,7 @@ contains
                &   massVirial   (i) >  self%massMaximum                                                   &
                & )                                                                                  cycle
           ! Identify the descendent halo.
-          k=searchIndexed(simulations(iSimulation)%particleIDs,indexID,descendentID(i))
+          k=searchIndexed(particleID,indexID,descendentID(i))
           if     (                                           &
                &   k                         < 1_c_size_t    &
                &  .or.                                       &
@@ -278,7 +273,7 @@ contains
           if (isMerger) then
              ! Find the ultimate host.
              do while (hostID(j) >= 0_c_size_t)
-                k=searchIndexed(simulations(iSimulation)%particleIDs,indexID,hostID(j))
+                k=searchIndexed(particleID,indexID,hostID(j))
                 if     (                                           &
                      &   k                         < 1_c_size_t    &
                      &  .or.                                       &
@@ -291,7 +286,7 @@ contains
                       exit
                    end if
                 end if
-                if (simulations(iSimulation)%particleIDs(indexID(k)) /= hostID(j)) then
+                if (particleID(indexID(k)) /= hostID(j)) then
                    ! A host could not be found.
                    if (self%missingHostIsFatal) then
                       call Galacticus_Error_Report('failed to find host'//{introspection:location})
@@ -310,7 +305,7 @@ contains
 #ifdef USEMPI
           if (mpiSelf%isMaster()) then
 #endif
-             call Galacticus_Display_Counter(int(100.0d0*dble(i)/dble(size(simulations(iSimulation)%particleIDs))),verbosity=verbosityStandard,isNew=i == 1_c_size_t)
+             call Galacticus_Display_Counter(int(100.0d0*dble(i)/dble(size(particleID))),verbosity=verbosityStandard,isNew=i == 1_c_size_t)
 #ifdef USEMPI
           end if
 #endif

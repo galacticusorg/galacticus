@@ -133,8 +133,8 @@ contains
     implicit none
     class           (nbodyOperatorMassFunction), intent(inout)               :: self
     type            (nBodyData                ), intent(inout), dimension(:) :: simulations
-    double precision                           , allocatable  , dimension(:) :: mass           , massBin        , &
-         &                                                                      massFunction
+    double precision                           , allocatable  , dimension(:) :: massFunction   , massBin
+    double precision                           , pointer      , dimension(:) :: mass
     integer         (c_size_t                 ), allocatable  , dimension(:) :: countBin
     integer         (c_size_t                 )                              :: iSimulation    , massCount      , &
          &                                                                      i              , j
@@ -173,8 +173,7 @@ contains
        end if
        ! Get the mass data.
        if (simulations(iSimulation)%propertiesReal%exists('massVirial')) then
-          allocate(mass(size(simulations(iSimulation)%position,dim=2)))
-          mass=simulations(iSimulation)%propertiesReal%value('massVirial')
+          mass => simulations(iSimulation)%propertiesReal%value('massVirial')
        else
           call Galacticus_Error_Report('halo virial masses are required, but are not available in the simulation'//{introspection:location})
        end if

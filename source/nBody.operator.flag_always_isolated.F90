@@ -81,30 +81,28 @@ contains
     implicit none
     class           (nbodyOperatorFlagAlwaysIsolated), intent(inout)               :: self
     type            (nBodyData                      ), intent(inout), dimension(:) :: simulations
-    integer         (c_size_t                       ), allocatable  , dimension(:) :: alwaysIsolated         , hostID     , &
-         &                                                                            descendentID           , indexID    , &
-         &                                                                            isMostMassiveProgenitor
-    double precision                                 , allocatable  , dimension(:) :: massVirial
+    integer         (c_size_t                       ), pointer      , dimension(:) :: alwaysIsolated         , hostID     , &
+         &                                                                            descendentID           , particleIDs, &
+         &                                                                            isMostMassiveProgenitor, 
+    integer         (c_size_t                       ), allocatable  , dimension(:) :: indexID
+    double precision                                 , pointer      , dimension(:) :: massVirial
     double precision                                                               :: massReference
     integer         (c_size_t                       )                              :: i                      , j          , &
          &                                                                            k                      , iSimulation
 
     call Galacticus_Display_Indent('flag always isolated objects',verbosityStandard)
     do iSimulation=1,size(simulations)
-       ! Allocate workspace.
-       allocate(indexID                (size(simulations(iSimulation)%particleIDs)))
-       allocate(hostID                 (size(simulations(iSimulation)%particleIDs)))
-       allocate(descendentID           (size(simulations(iSimulation)%particleIDs)))
-       allocate(isMostMassiveProgenitor(size(simulations(iSimulation)%particleIDs)))
-       allocate(massVirial             (size(simulations(iSimulation)%particleIDs)))
-       allocate(alwaysIsolated         (size(simulations(iSimulation)%particleIDs)))
        ! Retrieve required properties.
-       hostID                 =simulations(iSimulation)%propertiesInteger%value('hostID'                 )
-       descendentID           =simulations(iSimulation)%propertiesInteger%value('descendentID'           )
-       isMostMassiveProgenitor=simulations(iSimulation)%propertiesInteger%value('isMostMassiveProgenitor')
-       massVirial             =simulations(iSimulation)%propertiesReal   %value('massVirial'             )
+       particleIDs             => simulations(iSimulation)%propertiesInteger%value('particleIDs'            )
+       hostID                  => simulations(iSimulation)%propertiesInteger%value('hostID'                 )
+       descendentID            => simulations(iSimulation)%propertiesInteger%value('descendentID'           )
+       isMostMassiveProgenitor => simulations(iSimulation)%propertiesInteger%value('isMostMassiveProgenitor')
+       massVirial              => simulations(iSimulation)%propertiesReal   %value('massVirial'             )
+       ! Allocate workspace.
+       allocate(indexID       (size(particleIDs)))
+       allocate(alwaysIsolated(size(particleIDs)))
        ! Build a sort index.
-       indexID=sortIndex(simulations(iSimulation)%particleIDs)
+       indexID=sortIndex(particleIDs)
        ! Initialize status - assuming all particles are always-isolated initially.
        alwaysIsolated=1_c_size_t
        ! Visit each particle.
@@ -118,7 +116,7 @@ contains
           do while (massVirial(j) < self%massFactor*massReference)             
              alwaysIsolated(j)=0_c_size_t
              if (descendentID(j) < 0_c_size_t .or. isMostMassiveProgenitor(j) == 0) exit
-             k=searchIndexed(simulations(iSimulation)%particleIDs,indexID,descendentID(j))
+             k=searchIndexed(particleIDs,indexID,descendentID(j))
              if     (                                           &
                   &   k                         < 1_c_size_t    &
                   &  .or.                                       &
@@ -126,10 +124,10 @@ contains
                   & )                                           &
                   & call Galacticus_Error_Report('failed to find descendent'//{introspection:location})
              k=indexID(k)
-             if     (                                                            &
-                  &   simulations(iSimulation)%particleIDs(k) /= descendentID(j) &
-                  & )                                                            &
-                  & call Galacticus_Error_Report(var_str('failed to find descendent [')//descendentID(j)//'] of ['//simulations(iSimulation)%particleIDs(j)//']'//{introspection:location})
+             if     (                                   &
+                  &   particleIDs(k) /= descendentID(j) &
+                  & )                                   &
+                  & call Galacticus_Error_Report(var_str('failed to find descendent [')//descendentID(j)//'] of ['//particleIDs(j)//']'//{introspection:location})
              j=k
           end do
           !$ if (OMP_Get_Thread_Num() == 0) then
@@ -141,10 +139,6 @@ contains
        ! Store results.
        call simulations(iSimulation)%propertiesInteger%set('alwaysIsolated',alwaysIsolated)
        deallocate(indexID       )
-       deallocate(hostID        )
-       deallocate(descendentID  )
-       deallocate(massVirial    )
-       deallocate(alwaysIsolated)
     end do
     call Galacticus_Display_Unindent('done',verbosityStandard)
     return

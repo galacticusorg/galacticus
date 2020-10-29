@@ -117,8 +117,9 @@ contains
   subroutine gadgetBinaryImport(self,simulations)
     !% Import data from a Gadget HDF5 file.
     use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Hashes                          , only : rank1IntegerSizeTPtrHash, rank1DoublePtrHash
     use :: Memory_Management               , only : allocateArray
-    use :: Numerical_Constants_Astronomical, only : massSolar              , megaParsec
+    use :: Numerical_Constants_Astronomical, only : massSolar               , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (nbodyImporterGadgetBinary), intent(inout)                                :: self
@@ -126,6 +127,7 @@ contains
     integer                                                                  , dimension(6  ) :: numberParticleType    , numberParticleTypeFile, &
          &                                                                                       numberParticleTypeRead
     real                                                      , allocatable  , dimension(:,:) :: position              , velocity
+    double precision                                          , pointer      , dimension(:,:) :: position_             , velocity_
     double precision                                                         , dimension(6  ) :: massParticleType
     double precision                                                                          :: time                  , redshift
     integer                                                                                   :: file                  , flagSFR               , &
@@ -144,32 +146,40 @@ contains
        open(newUnit=file,file=char(self%fileName)//"."//trim(adjustl(fileNumberText)),status='old',form='unformatted')
        read (file) numberParticleTypeFile, massParticleType, time, redshift, flagSFR, flagFeedback, numberParticleType, flagCooling, numberFiles
        if (fileNumber == 0) then
-          call allocateArray(simulations(1)%position,[3,numberParticleType(self%particleType+1)])
-          call allocateArray(simulations(1)%velocity,[3,numberParticleType(self%particleType+1)])
+          allocate(position_(3,numberParticleType(self%particleType+1)))
+          allocate(velocity_(3,numberParticleType(self%particleType+1)))
        end if
        allocate(position(3,numberParticleTypeFile(self%particleType+1)))
        allocate(velocity(3,numberParticleTypeFile(self%particleType+1)))
        read (file) position
        read (file) velocity
        close(file)
-       simulations(1)%position(:,numberParticleTypeRead(self%particleType+1)+1:numberParticleTypeRead(self%particleType+1)+numberParticleTypeFile(self%particleType+1))=position
-       simulations(1)%velocity(:,numberParticleTypeRead(self%particleType+1)+1:numberParticleTypeRead(self%particleType+1)+numberParticleTypeFile(self%particleType+1))=velocity
+       position_(:,numberParticleTypeRead(self%particleType+1)+1:numberParticleTypeRead(self%particleType+1)+numberParticleTypeFile(self%particleType+1))=position
+       velocity_(:,numberParticleTypeRead(self%particleType+1)+1:numberParticleTypeRead(self%particleType+1)+numberParticleTypeFile(self%particleType+1))=velocity
        deallocate(position)
        deallocate(velocity)
        numberParticleTypeRead=numberParticleTypeRead+numberParticleTypeFile
        fileNumber            =fileNumber            +1
     end do
     ! Set particle mass.
-    simulations(1)%massParticle=+massParticleType(self%particleType+1) &
-         &                      *self%unitMassInSI                     &
-         &                      /massSolar
+    call simulations(1)%attributesReal%set(                                        &
+         &                                 'massParticle'                        , &
+         &                                 +massParticleType(self%particleType+1)  &
+         &                                 *self%unitMassInSI                      &
+         &                                 /massSolar                              &
+         &                                )
     ! Convert position and velocities to internal units.
-    simulations(1)%position   =+simulations(1)%position         &
-         &                     *self         %unitLengthInSI    &
-         &                     /megaParsec
-    simulations(1)%velocity   =+simulations(1)%velocity         &
-         &                     *self          %unitVelocityInSI &
-         &                     /kilo
+    position_=+position_                   &
+         &    *self      %unitLengthInSI   &
+         &    /megaParsec
+    velocity_=+velocity_                   &
+         &    *self      %unitVelocityInSI &
+         &    /kilo
+    ! Set the properties.
+    simulations(1)%propertiesInteger=rank1IntegerSizeTPtrHash()
+    simulations(1)%propertiesReal   =rank1DoublePtrHash      ()
+    call simulations(1)%propertiesRealRank1%set('position',position_)
+    call simulations(1)%propertiesRealRank1%set('velocity',velocity_)
     return
   end subroutine gadgetBinaryImport
 

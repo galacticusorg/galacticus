@@ -265,10 +265,12 @@ contains
     implicit none
     class           (taskCatalogProjectedCorrelationFunction), intent(inout), target         :: self
     integer                                                  , intent(  out), optional       :: status
-    double precision                                         , allocatable  , dimension(:,:) :: galaxyPosition       , galaxyVelocity          , &
-         &                                                                                      randomPosition
+    double precision                                         , pointer      , dimension(:,:) :: galaxyPosition_      , galaxyVelocity_
+    double precision                                         , allocatable  , dimension(:,:) :: galaxyPosition       , galaxyVelocity
+    double precision                                         , allocatable  , dimension(:,:) :: randomPosition
+    double precision                                         , pointer      , dimension(:  ) :: galaxyMass
     double precision                                         , allocatable  , dimension(:  ) :: correlation          , separation              , &
-         &                                                                                      galaxyMass           , correlationSurvey
+         &                                                                                      correlationSurvey
     double precision                                                        , dimension(3  ) :: rotationAxis
     type            (varying_string                         )                                :: message
     type            (hdf5Object                             )                                :: thisDataset          , correlationFunctionGroup
@@ -288,8 +290,8 @@ contains
     call galaxyFile%readHalos     (                            &
          &                         snapshot=1                , &
          &                         redshift=redshift         , &
-         &                         center  =galaxyPosition   , &
-         &                         velocity=galaxyVelocity   , &
+         &                         center  =galaxyPosition_  , &
+         &                         velocity=galaxyVelocity_  , &
          &                         mass    =galaxyMass         &
          &                         )
     call galaxyFile%readSimulation(                            &
@@ -299,6 +301,13 @@ contains
     message=message//size(galaxyPosition,dim=2)//" galaxies"
     call Galacticus_Display_Message(message)
     call Galacticus_Display_Unindent("done")
+    ! Copy data.
+    allocate(galaxyPosition(size(galaxyPosition_,dim=1),size(galaxyPosition_,dim=2)))
+    allocate(galaxyVelocity(size(galaxyVelocity_,dim=1),size(galaxyVelocity_,dim=2)))
+    galaxyPosition=galaxyPosition_
+    galaxyVelocity=galaxyVelocity_
+    deallocate(galaxyPosition_)
+    deallocate(galaxyVelocity_)
     ! Get cosmic time.
     time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
     ! Prune points below our mass threshold.
@@ -410,6 +419,10 @@ contains
     call thisDataset%writeAttribute(megaParsec,'unitsInSI')
     call thisDataset%close         (                      )
     call correlationFunctionGroup%close()
+    ! Clean up.
+    deallocate(galaxyPosition)
+    deallocate(galaxyVelocity)
+    deallocate(galaxyMass    )
     call Node_Components_Thread_Uninitialize()
     if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: catalog projected correlation function' )

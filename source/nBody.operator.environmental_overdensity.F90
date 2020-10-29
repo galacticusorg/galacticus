@@ -120,6 +120,7 @@ contains
     integer                                                , allocatable  , dimension(:  ) :: neighborIndex
     double precision                                       , allocatable  , dimension(:  ) :: neighborDistance             , overdensity
     double precision                                       , allocatable  , dimension(:,:) :: position
+    double precision                                       , pointer      , dimension(:,:) :: position_
     logical                                                , allocatable  , dimension(:  ) :: particleMask
     type            (nearestNeighbors                     )                                :: neighborFinder
     integer                                                                                :: neighborCount
@@ -130,6 +131,7 @@ contains
          &                                                                                    j                            , k
 
     do iSimulation=1,size(simulations)
+       position_ => simulations(iSimulation)%propertiesRealRank1%value('position')
        if (self%periodic) then
           ! Periodic boundary conditions - add buffers of periodically replicated particles.
           ! First count how many particles total we have including the replicated buffers.
@@ -140,26 +142,26 @@ contains
                 i(2)=m
                 do n=-1,+1
                    i(3)=n
-                   particleCount=+particleCount                                                      &
-                        &        +count(                                                             &
-                        &                simulations(iSimulation)%position(1,:) >= boundLower(i(1))  &
-                        &               .and.                                                        &
-                        &                simulations(iSimulation)%position(1,:) <  boundUpper(i(1))  &
-                        &               .and.                                                        &
-                        &                simulations(iSimulation)%position(2,:) >= boundLower(i(2))  &
-                        &               .and.                                                        &
-                        &                simulations(iSimulation)%position(2,:) <  boundUpper(i(2))  &
-                        &               .and.                                                        &
-                        &                simulations(iSimulation)%position(3,:) >= boundLower(i(3))  &
-                        &               .and.                                                        &
-                        &                simulations(iSimulation)%position(3,:) <  boundUpper(i(3)), &
-                        &               kind=c_size_t                                                &
+                   particleCount=+particleCount                              &
+                        &        +count(                                     &
+                        &                position_(1,:) >= boundLower(i(1))  &
+                        &               .and.                                &
+                        &                position_(1,:) <  boundUpper(i(1))  &
+                        &               .and.                                &
+                        &                position_(2,:) >= boundLower(i(2))  &
+                        &               .and.                                &
+                        &                position_(2,:) <  boundUpper(i(2))  &
+                        &               .and.                                &
+                        &                position_(3,:) >= boundLower(i(3))  &
+                        &               .and.                                &
+                        &                position_(3,:) <  boundUpper(i(3)), &
+                        &               kind=c_size_t                        &
                         &              )
                 end do
              end do
           end do
-          call allocateArray(position    ,[3_c_size_t,particleCount                                              ])
-          call allocateArray(particleMask,[           size(simulations(iSimulation)%position,dim=2,kind=c_size_t)])
+          call allocateArray(position    ,[3_c_size_t,particleCount                      ])
+          call allocateArray(particleMask,[           size(position_,dim=2,kind=c_size_t)])
           particleCount=0_c_size_t
           do l=-1,+1
              i(1)=l
@@ -167,20 +169,20 @@ contains
                 i(2)=m
                 do n=-1,+1
                    i(3)=n
-                   particleMask= simulations(iSimulation)%position(1,:) >= boundLower(i(1)) &
-                        &       .and.                                                       &
-                        &        simulations(iSimulation)%position(1,:) <  boundUpper(i(1)) &
-                        &       .and.                                                       &
-                        &        simulations(iSimulation)%position(2,:) >= boundLower(i(2)) &
-                        &       .and.                                                       &
-                        &        simulations(iSimulation)%position(2,:) <  boundUpper(i(2)) &
-                        &       .and.                                                       &
-                        &        simulations(iSimulation)%position(3,:) >= boundLower(i(3)) &
-                        &       .and.                                                       &
-                        &        simulations(iSimulation)%position(3,:) <  boundUpper(i(3))
+                   particleMask= position_(1,:) >= boundLower(i(1)) &
+                        &       .and.                               &
+                        &        position_(1,:) <  boundUpper(i(1)) &
+                        &       .and.                               &
+                        &        position_(2,:) >= boundLower(i(2)) &
+                        &       .and.                               &
+                        &        position_(2,:) <  boundUpper(i(2)) &
+                        &       .and.                               &
+                        &        position_(3,:) >= boundLower(i(3)) &
+                        &       .and.                               &
+                        &        position_(3,:) <  boundUpper(i(3))
                    particleCountReplicant=count(particleMask,kind=c_size_t)
                    do j=1,3
-                      position(j,particleCount+1_c_size_t:particleCount+particleCountReplicant)=pack(simulations(iSimulation)%position(j,:),particleMask)+float(i(j))*self%lengthBox
+                      position(j,particleCount+1_c_size_t:particleCount+particleCountReplicant)=pack(position_(j,:),particleMask)+float(i(j))*self%lengthBox
                    end do
                    particleCount=particleCount+particleCountReplicant
                 end do
@@ -189,24 +191,24 @@ contains
           call deallocateArray(particleMask)
        else
           ! Non-periodic boundaries - no need to replicate particles.
-          call allocateArray(position,shape(simulations(iSimulation)%position))
-          position=simulations(iSimulation)%position
+          call allocateArray(position,shape(position_))
+          position=position_
        end if
        neighborFinder=nearestNeighbors(transpose(position))
-       call allocateArray(overdensity,[size(simulations(iSimulation)%position,dim=2,kind=c_size_t)])
+       call allocateArray(overdensity,[size(position_,dim=2,kind=c_size_t)])
        overdensity=-2.0d0
        ! Iterate over particles.
        call Galacticus_Display_Counter(0,.true.)
        j=0_c_size_t
        !$omp parallel do private(neighborCount,neighborIndex,neighborDistance) schedule(dynamic)
-       do k=1_c_size_t,size(simulations(iSimulation)%position,dim=2,kind=c_size_t),self%sampleRate
+       do k=1_c_size_t,size(position_,dim=2,kind=c_size_t),self%sampleRate
           ! Locate particles nearby.
-          call neighborFinder%searchFixedRadius(simulations(iSimulation)%position(:,k),self%radiusSphere,toleranceZero,neighborCount,neighborIndex,neighborDistance)
+          call neighborFinder%searchFixedRadius(position_(:,k),self%radiusSphere,toleranceZero,neighborCount,neighborIndex,neighborDistance)
           overdensity(k)=float(neighborCount)/self%particleCountMean-1.0d0
           !$omp atomic
           j=j+self%sampleRate
           !$ if (omp_get_thread_num() == 0) then
-          call Galacticus_Display_Counter(int(100.0d0*float(j)/float(size(simulations(iSimulation)%position,dim=2,kind=c_size_t))),.false.)
+          call Galacticus_Display_Counter(int(100.0d0*float(j)/float(size(position_,dim=2,kind=c_size_t))),.false.)
           !$ end if
        end do
        !$omp end parallel do

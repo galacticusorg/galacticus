@@ -49,4 +49,19 @@ module NBody_Importers
      type (nBodyData         ), allocatable, dimension(:) :: simulations
   end type nbodyImporterList
 
+  type, public :: nbodyPropertiesRealList
+     !% Class used to construct lists of N-body data scalar real properties.
+     double precision, pointer, dimension(:) :: property
+  end type nbodyPropertiesRealList
+
+  type, public :: nbodyPropertiesRealRank1List
+     !% Class used to construct lists of N-body data rank-1 real properties.
+     double precision, pointer, dimension(:,:) :: property
+  end type nbodyPropertiesRealRank1List
+
+  type, public :: nbodyPropertiesIntegerList
+     !% Class used to construct lists of N-body data scalar integer properties.
+     integer(c_size_t), pointer, dimension(:) :: property
+  end type nbodyPropertiesIntegerList
+
 end module NBody_Importers

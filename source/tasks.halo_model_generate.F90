@@ -177,9 +177,10 @@ contains
     implicit none
     class           (taskHaloModelGenerate         ), intent(inout), target         :: self
     integer                                         , intent(  out), optional       :: status
-    double precision                                , allocatable  , dimension(  :) :: haloMass             , galaxyMass
-    double precision                                , allocatable  , dimension(:,:) :: haloPosition         , haloVelocity             , &
-         &                                                                             galaxyPosition       , galaxyVelocity
+    double precision                                , pointer      , dimension(  :) :: haloMass
+    double precision                                , allocatable  , dimension(  :) :: galaxyMass
+    double precision                                , pointer      , dimension(:,:) :: haloPosition         , haloVelocity
+    double precision                                , allocatable  , dimension(:,:) :: galaxyPosition       , galaxyVelocity
     double precision                                               , dimension(3  ) :: satellitePosition    , satelliteVelocity
     type            (treeNode                      ), pointer                       :: node
     class           (nodeComponentBasic            ), pointer                       :: basic
@@ -326,6 +327,10 @@ contains
     call haloFile%copyCosmology (galaxyFile)
     call haloFile%copySimulation(galaxyFile)
     call galaxyFile%writeHalos(1,redshift,galaxyPosition(:,1:galaxyCount),galaxyVelocity(:,1:galaxyCount),galaxyMass(1:galaxyCount))
+    ! Clean up.
+    deallocate(haloPosition)
+    deallocate(haloVelocity)
+    deallocate(haloMass    )
     call Node_Components_Thread_Uninitialize()
     if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: halo model generate' )

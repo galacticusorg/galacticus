@@ -107,30 +107,35 @@ contains
   subroutine randomImport(self,simulations)
     !% Import data from a Random file.
     use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, verbosityStandard
-    use :: Hashes            , only : rank1IntegerSizeTHash    , rank1DoubleHash            , rank2IntegerSizeTHash, rank2DoubleHash
+    use :: Hashes            , only : rank1IntegerSizeTPtrHash , rank1DoublePtrHash         , rank2IntegerSizeTPtrHash, rank2DoublePtrHash
     implicit none
-    class  (nbodyImporterRandom), intent(inout)                            :: self
-    type   (nBodyData          ), intent(  out), dimension(:), allocatable :: simulations
-    integer(c_size_t           )                                           :: i
+    class           (nbodyImporterRandom), intent(inout)                              :: self
+    type            (nBodyData          ), intent(  out), dimension(  :), allocatable :: simulations
+    double precision                                    , dimension(:,:), pointer     :: position   , velocity
+    integer         (c_size_t           )               , dimension(  :), pointer     :: particleIDs
+    integer         (c_size_t           )                                             :: i
 
     call Galacticus_Display_Indent('import simulation from Random file',verbosityStandard)
-    allocate(simulations(1)                                )
-    allocate(simulations(1)%particleIDs(  self%countPoints))
-    allocate(simulations(1)%position   (3,self%countPoints))
-    allocate(simulations(1)%velocity   (3,self%countPoints))
+    allocate(simulations(1                 ))
+    allocate(particleIDs(  self%countPoints))
+    allocate(position   (3,self%countPoints))
+    allocate(velocity   (3,self%countPoints))
     simulations(1)%label='random'
-    simulations(1)%propertiesInteger     =rank1IntegerSizeTHash()
-    simulations(1)%propertiesReal        =rank1DoubleHash      ()
-    simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTHash()
-    simulations(1)%propertiesRealRank1   =rank2DoubleHash      ()
+    simulations(1)%propertiesInteger     =rank1IntegerSizeTPtrHash()
+    simulations(1)%propertiesReal        =rank1DoublePtrHash      ()
+    simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTPtrHash()
+    simulations(1)%propertiesRealRank1   =rank2DoublePtrHash      ()
     do i=1_c_size_t,self%countPoints
-       simulations(1)%particleIDs(  i)=i
-       simulations(1)%position   (:,i)=[self%randomNumberGenerator_%uniformSample(),self%randomNumberGenerator_%uniformSample(),self%randomNumberGenerator_%uniformSample()]
+       particleIDs(  i)=i
+       position   (:,i)=[self%randomNumberGenerator_%uniformSample(),self%randomNumberGenerator_%uniformSample(),self%randomNumberGenerator_%uniformSample()]
     end do
-    simulations(1)%velocity(:,:)=0.0d0
-    simulations(1)%position(1,:)=simulations(1)%position(1,:)*(self%xRange(2)-self%xRange(1))+self%xRange(1)
-    simulations(1)%position(2,:)=simulations(1)%position(2,:)*(self%yRange(2)-self%yRange(1))+self%yRange(1)
-    simulations(1)%position(3,:)=simulations(1)%position(3,:)*(self%zRange(2)-self%zRange(1))+self%zRange(1)
+    velocity(:,:)=0.0d0
+    position(1,:)=position(1,:)*(self%xRange(2)-self%xRange(1))+self%xRange(1)
+    position(2,:)=position(2,:)*(self%yRange(2)-self%yRange(1))+self%yRange(1)
+    position(3,:)=position(3,:)*(self%zRange(2)-self%zRange(1))+self%zRange(1)
+    call simulations(1)%propertiesInteger  %set('particleIDs',particleIDs)
+    call simulations(1)%propertiesRealRank1%set('position'   ,position   )
+    call simulations(1)%propertiesRealRank1%set('velocity'   ,velocity   )
     call Galacticus_Display_Unindent('done',verbosityStandard)
     return
   end subroutine randomImport

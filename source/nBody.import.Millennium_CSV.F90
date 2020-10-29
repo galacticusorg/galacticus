@@ -121,16 +121,17 @@ contains
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     use :: Galacticus_Display  , only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
          &                              verbosityStandard
-    use :: Memory_Management   , only : allocateArray            , deallocateArray
     use :: File_Utilities      , only : Count_Lines_in_File
-    use :: Hashes              , only : rank1IntegerSizeTHash    , rank1DoubleHash
+    use :: Hashes              , only : rank1IntegerSizeTPtrHash , rank1DoublePtrHash         , rank2DoublePtrHash
     use :: String_Handling     , only : String_Split_Words       , String_Count_Words
     implicit none
     class           (nbodyImporterMillenniumCSV), intent(inout)                              :: self
     type            (nBodyData                 ), intent(  out), dimension(  :), allocatable :: simulations
     type            (columnType                )               , dimension(  :), allocatable :: columns
-    double precision                                           , dimension(:,:), allocatable :: propertiesReal
-    integer         (c_size_t                  )               , dimension(:,:), allocatable :: propertiesInteger
+    double precision                                           , dimension(:,:), pointer     :: position                , velocity
+    type            (nbodyPropertiesRealList   )               , dimension(  :), allocatable :: propertiesReal
+    type            (nbodyPropertiesIntegerList)               , dimension(  :), allocatable :: propertiesInteger
+    integer         (c_size_t                  )               , dimension(  :), pointer     :: particleID
     character       (len=  32                  )               , dimension(  :), allocatable :: columnsText
     double precision                            , parameter                                  :: massUnit         =1.0d10
     integer         (c_size_t                  )                                             :: countPoints             , i
@@ -151,9 +152,11 @@ contains
     ! Count lines in file. (Subtract 1 since one lines gives the column headers.)
     countPoints=Count_Lines_In_File(self%fileName,comment_char="#")-1_c_size_t
     ! Allocate storage
-    call allocateArray(simulations(1)%position   ,[3_c_size_t,countPoints])
-    call allocateArray(simulations(1)%velocity   ,[3_c_size_t,countPoints])
-    call allocateArray(simulations(1)%particleIDs,[           countPoints])
+    allocate(position  (3_c_size_t,countPoints))
+    allocate(velocity  (3_c_size_t,countPoints))
+    allocate(particleID(           countPoints))
+    allocate(propertiesReal   (0))
+    allocate(propertiesInteger(0))
     ! Initialize status.
     gotPositionX=.false.
     gotPositionY=.false.
@@ -162,8 +165,6 @@ contains
     gotVelocityY=.false.
     gotVelocityZ=.false.
     gotID       =.false.
-    allocate(propertiesReal(0,0))
-    allocate(propertiesInteger(0,0))
     ! Open the file and read.
     readHeader=.false.
     i=0_c_size_t
@@ -224,8 +225,14 @@ contains
              if (.not.gotVelocityZ) call Galacticus_Error_Report('z velocity is missing' //{introspection:location})
              deallocate(propertiesReal   )
              deallocate(propertiesInteger)
-             allocate(propertiesReal   (countReal   ,countPoints))
-             allocate(propertiesInteger(countInteger,countPoints))
+             allocate(propertiesReal   (countReal   ))
+             allocate(propertiesInteger(countInteger))
+             do j=1,countReal
+                allocate(propertiesReal   (j)%property(countPoints))
+             end do
+             do j=1,countInteger
+                allocate(propertiesInteger(j)%property(countPoints))
+             end do
              readHeader=.true.
           else
              ! Parse the line.
@@ -233,15 +240,15 @@ contains
              call String_Split_Words(columnsText,line,",")
              do j=1,countColumns
                 if (columns(j)%isID) then                
-                   read (columnsText(j),*) simulations      (1)%particleIDs(                 i)
+                   read (columnsText(j),*) particleID       (                           i)
                 else if (columns(j)%isPosition) then                
-                   read (columnsText(j),*) simulations      (1)%position   (columns(j)%index,i)
+                   read (columnsText(j),*) position         (columns(j)%index ,         i)
                 else if (columns(j)%isVelocity) then                
-                   read (columnsText(j),*) simulations      (1)%velocity   (columns(j)%index,i)
+                   read (columnsText(j),*) velocity         (columns(j)%index ,         i)
                 else  if (columns(j)%isReal) then
-                   read (columnsText(j),*) propertiesReal                  (columns(j)%index,i)
+                   read (columnsText(j),*) propertiesReal   (columns(j)%index)%property(i)
                 else  if (columns(j)%isInteger) then
-                   read (columnsText(j),*) propertiesInteger               (columns(j)%index,i)
+                   read (columnsText(j),*) propertiesInteger(columns(j)%index)%property(i)
                 end if
              end do
           end if
@@ -252,24 +259,29 @@ contains
     close(file)
     ! Convert position to internal units (physical Mpc).
     do i=1_c_size_t,countPoints
-       simulations(1)%position(:,i)=+simulations(1)                     %position       (:,i               ) &
-            &                       *self          %cosmologyFunctions_ %expansionFactor(self%time         ) &
-            &                       /self          %cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH)
+       position(:,i)=+position                                     (:,i               ) &
+            &        *self    %cosmologyFunctions_ %expansionFactor(self%time         ) &
+            &        /self    %cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH)
     end do
+    ! Set positions, velocities, and particleIDs.
+    simulations(1)%propertiesInteger  =rank1IntegerSizeTPtrHash()
+    simulations(1)%propertiesReal     =rank1DoublePtrHash      ()
+    simulations(1)%propertiesRealRank1=rank2DoublePtrHash      ()
+    call simulations(1)%propertiesRealRank1%set('position'  ,position  )
+    call simulations(1)%propertiesRealRank1%set('velocity'  ,velocity  )
+    call simulations(1)%propertiesInteger  %set('particleID',particleID)
     ! Convert and set other properties.
-    simulations(1)%propertiesInteger=rank1IntegerSizeTHash()
-    simulations(1)%propertiesReal   =rank1DoubleHash      ()
     do j=1,countColumns
        if (columns(j)%isReal) then
           select case (char(columns(j)%label))
           case ('massVirial')
-             propertiesReal(columns(j)%index,:)=+propertiesReal(columns(j)%index,:)                           &
-                  &                             *massUnit                                                     &
-                  &                             /self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
+             propertiesReal(columns(j)%index)%property=+propertiesReal(columns(j)%index)%property                    &
+                  &                                    *massUnit                                                     &
+                  &                                    /self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
           end select
-          call simulations(1)%propertiesReal    %set(columns(j)%label,propertiesReal   (columns(j)%index,:))
+          call simulations(1)%propertiesReal    %set(columns(j)%label,propertiesReal   (columns(j)%index)%property)
        else if (columns(j)%isInteger) then
-           call simulations(1)%propertiesInteger%set(columns(j)%label,propertiesInteger(columns(j)%index,:))
+           call simulations(1)%propertiesInteger%set(columns(j)%label,propertiesInteger(columns(j)%index)%property)
       end if
     end do
     call Galacticus_Display_Unindent('done',verbosityStandard)

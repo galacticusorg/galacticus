@@ -114,52 +114,55 @@ contains
   subroutine mergeImport(self,simulations)
     !% Merge data from multiple importers.
     use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, verbosityStandard
-    use :: Hashes            , only : rank1IntegerSizeTHash    , rank1DoubleHash            , integerSizeTHash , doubleHash
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Hashes            , only : rank1IntegerSizeTPtrHash , rank1DoublePtrHash         , integerSizeTHash , doubleHash, &
+         &                            rank2IntegerSizeTPtrHash , rank2DoublePtrHash   
     implicit none
-    class           (nbodyImporterMerge), intent(inout)                            :: self
-    type            (nBodyData         ), intent(  out), allocatable, dimension(:) :: simulations
-    type            (nbodyImporterList )               , pointer                   :: importer_
-    integer         (c_size_t          )               , allocatable, dimension(:) :: propertyInteger
-    double precision                                   , allocatable, dimension(:) :: propertyReal
-    integer                                                                        :: j              , k
-    integer         (c_size_t          )                                           :: countObjects
-
+    class           (nbodyImporterMerge), intent(inout)                              :: self
+    type            (nBodyData         ), intent(  out), allocatable, dimension(  :) :: simulations
+    type            (nbodyImporterList )               , pointer                     :: importer_
+    integer         (c_size_t          )               , pointer    , dimension(  :) :: propertyInteger     , propertyIntegerMerged
+    double precision                                   , pointer    , dimension(  :) :: propertyReal        , propertyRealMerged
+    integer         (c_size_t          )               , pointer    , dimension(:,:) :: propertyIntegerRank1, propertyIntegerRank1Merged
+    double precision                                   , pointer    , dimension(:,:) :: propertyRealRank1   , propertyRealRank1Merged
+    integer                                                                          :: j                   , k
+    integer         (c_size_t          )                                             :: countObjects        , countObjectsMerged
+    
     call Galacticus_Display_Indent('merging imported data',verbosityStandard)
     allocate(simulations(1))
-    countObjects          =  0_c_size_t
+    countObjectsMerged    =  0_c_size_t
     importer_             => self%importers
     do while (associated(importer_))
        call importer_%importer_%import(importer_%simulations)
        do j=1,size(importer_%simulations)
-          countObjects =  countObjects+size(importer_%simulations(j)%particleIDs)
+          if (importer_%simulations(j)%propertiesInteger          %size() > 0) then
+             propertyInteger      =>  importer_%simulations(j)%propertiesInteger     %value(1)
+             countObjectsMerged   =  +countObjectsMerged               &
+                  &                  +size(propertyInteger     ,dim=1)
+          else if (importer_%simulations(j)%propertiesReal        %size() > 0) then
+             propertyReal         =>  importer_%simulations(j)%propertiesReal        %value(1)
+             countObjectsMerged   =  +countObjectsMerged               &
+                  &                  +size(propertyReal        ,dim=1)
+          else if (importer_%simulations(j)%propertiesIntegerRank1%size() > 0) then
+             propertyIntegerRank1 =>  importer_%simulations(j)%propertiesIntegerRank1%value(1)
+             countObjectsMerged   =  +countObjectsMerged               &
+                  &                  +size(propertyIntegerRank1,dim=2)
+          else if (importer_%simulations(j)%propertiesRealRank1   %size() > 0) then
+             propertyRealRank1    =>  importer_%simulations(j)%propertiesRealRank1   %value(1)
+             countObjectsMerged   =  +countObjectsMerged               &
+                  &                  +size(propertyRealRank1   ,dim=2)
+          else
+             call Galacticus_Error_Report('no properties are available in the simulations'//{introspection:location})
+          end if
        end do
        importer_ => importer_%next
-    end do
-    allocate(simulations(1)%particleIDs    (  countObjects))
-    allocate(simulations(1)%position       (3,countObjects))
-    allocate(simulations(1)%velocity       (3,countObjects))
-    allocate(               propertyInteger(  countObjects))
-    allocate(               propertyReal   (  countObjects))
+    end do    
     ! Set a label.
     if (self%label == "*") then
        simulations(1)%label=self%importers%simulations(1)%label
     else
        simulations(1)%label=self%label
     end if
-    ! Default properties.
-    countObjects =  0_c_size_t
-    importer_    => self%importers
-    do while (associated(importer_))
-       do j=1,size(importer_%simulations)
-          simulations   (1)%particleIDs(  countObjects+1:countObjects+size(importer_%simulations(j)%particleIDs))=importer_%simulations(j)%particleIDs
-          do k=1,3
-             simulations(1)%position   (k,countObjects+1:countObjects+size(importer_%simulations(j)%particleIDs))=importer_%simulations(j)%position   (k,:)
-             simulations(1)%velocity   (k,countObjects+1:countObjects+size(importer_%simulations(j)%particleIDs))=importer_%simulations(j)%velocity   (k,:)
-          end do
-          countObjects=countObjects+size(importer_%simulations(j)%particleIDs)
-       end do
-       importer_ => importer_%next
-    end do
     ! Extra attributes/properties.
     !! Integer attributes.
     simulations(1)%attributesInteger=integerSizeTHash     ()
@@ -175,44 +178,97 @@ contains
           call simulations(1)%attributesReal   %set(self%importers%simulations(1)%attributesReal   %key(k),self%importers%simulations(1)%attributesReal   %value(k))
        end do
     end if
-    !! Integer properties.
-    simulations(1)%propertiesInteger=rank1IntegerSizeTHash()
+    !! Scalar integer properties.
+    simulations(1)%propertiesInteger=rank1IntegerSizeTPtrHash()
     if (self%importers%simulations(1)%propertiesInteger%size() > 0) then
        do k=1,self%importers%simulations(1)%propertiesInteger%size()
-          countObjects = 0_c_size_t
-          importer_    => self%importers
+          countObjects          = 0_c_size_t
+          importer_             => self%importers
+          propertyIntegerMerged => null()
           do while (associated(importer_))
              do j=1,size(importer_%simulations)
-                propertyInteger(countObjects+1:countObjects+size(importer_%simulations(k)%particleIDs))=importer_%simulations(j)%propertiesInteger%value(k)
-                countObjects=countObjects+size(importer_%simulations(j)%particleIDs)
+                propertyInteger                                                                =>  importer_%simulations(j)%propertiesInteger%value(k)
+                if (.not.associated(propertyIntegerMerged)) allocate(propertyIntegerMerged(countObjectsMerged))
+                propertyIntegerMerged(countObjects+1:countObjects+size(propertyInteger,dim=1)) =   propertyInteger
+                countObjects                                                                   =  +countObjects                &
+                     &                                                                            +size(propertyInteger,dim=1)
              end do
              importer_ => importer_%next
           end do
-          call simulations(1)%propertiesInteger%set(self%importers%simulations(1)%propertiesInteger%key(k),propertyInteger)
+          call simulations(1)%propertiesInteger%set(self%importers%simulations(1)%propertiesInteger%key(k),propertyIntegerMerged)
+          nullify(propertyIntegerMerged)
        end do
     end if
-    !! Real properties.
-    simulations(1)%propertiesReal   =rank1DoubleHash      ()
-    if (self%importers%simulations(1)%propertiesReal   %size() > 0) then
-       do k=1,self%importers%simulations(1)%propertiesReal   %size()
-          countObjects = 0_c_size_t
-          importer_    => self%importers
+    !! Scalar real properties.
+    simulations(1)%propertiesReal=rank1DoublePtrHash()
+    if (self%importers%simulations(1)%propertiesReal%size() > 0) then
+       do k=1,self%importers%simulations(1)%propertiesReal%size()
+          countObjects       = 0_c_size_t
+          importer_          => self%importers
+          propertyRealMerged => null()
           do while (associated(importer_))
              do j=1,size(importer_%simulations)
-                propertyReal   (countObjects+1:countObjects+size(importer_%simulations(k)%particleIDs))=importer_%simulations(j)%propertiesReal   %value(k)
-                countObjects=countObjects+size(importer_%simulations(j)%particleIDs)
+                propertyReal                                                             =>  importer_%simulations(j)%propertiesReal%value(k)
+                if (.not.associated(propertyRealMerged)) allocate(propertyRealMerged(countObjectsMerged))
+                propertyRealMerged(countObjects+1:countObjects+size(propertyReal,dim=1)) =   propertyReal
+                countObjects                                                             =  +countObjects                &
+                     &                                                                      +size(propertyReal,dim=1)
              end do
              importer_ => importer_%next
           end do
-          call simulations(1)%propertiesReal   %set(self%importers%simulations(1)%propertiesReal   %key(k),propertyReal   )
+          call simulations(1)%propertiesReal%set(self%importers%simulations(1)%propertiesReal%key(k),propertyRealMerged)
+          nullify(propertyRealMerged)
        end do
     end if
-    ! Close analysis groups in merged importers.
+    !! Rank-1 integer properties.
+    simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTPtrHash()
+    if (self%importers%simulations(1)%propertiesIntegerRank1%size() > 0) then
+       do k=1,self%importers%simulations(1)%propertiesIntegerRank1%size()
+          countObjects               = 0_c_size_t
+          importer_                  => self%importers
+          propertyIntegerRank1Merged => null()
+          do while (associated(importer_))
+             do j=1,size(importer_%simulations)
+                propertyIntegerRank1                                                                       =>  importer_%simulations(j)%propertiesIntegerRank1%value(k)
+                if (.not.associated(propertyIntegerRank1Merged)) allocate(propertyIntegerRank1Merged(size(propertyIntegerRank1,dim=1),countObjectsMerged))
+                propertyIntegerRank1Merged(:,countObjects+1:countObjects+size(propertyIntegerRank1,dim=2)) =   propertyIntegerRank1
+                countObjects                                                                               =  +countObjects                     &
+                     &                                                                                        +size(propertyIntegerRank1,dim=2)
+             end do
+             importer_ => importer_%next
+          end do
+          call simulations(1)%propertiesIntegerRank1%set(self%importers%simulations(1)%propertiesIntegerRank1%key(k),propertyIntegerRank1Merged)
+          nullify(propertyIntegerRank1Merged)
+       end do
+    end if
+    !! Rank-1 real properties.
+    simulations(1)%propertiesRealRank1=rank2DoublePtrHash()
+    if (self%importers%simulations(1)%propertiesRealRank1%size() > 0) then
+       do k=1,self%importers%simulations(1)%propertiesRealRank1%size()
+          countObjects            = 0_c_size_t
+          importer_               => self%importers
+          propertyRealRank1Merged => null()
+          do while (associated(importer_))
+             do j=1,size(importer_%simulations)
+                propertyRealRank1                                                                    =>  importer_%simulations(j)%propertiesRealRank1%value(k)
+                if (.not.associated(propertyRealRank1Merged)) allocate(propertyRealRank1Merged(size(propertyRealRank1,dim=1),countObjectsMerged))
+                propertyRealRank1Merged(:,countObjects+1:countObjects+size(propertyRealRank1,dim=2)) =   propertyRealRank1
+                countObjects                                                                         =  +countObjects                     &
+                     &                                                                                  +size(propertyRealRank1,dim=2)
+             end do
+             importer_ => importer_%next
+          end do
+          call simulations(1)%propertiesRealRank1%set(self%importers%simulations(1)%propertiesRealRank1%key(k),propertyRealRank1Merged)
+          nullify(propertyRealRank1Merged)
+       end do
+    end if
+    ! Close analysis groups in merged importers and deallocate their simulation data.
     importer_ => self%importers
     do while (associated(importer_))
        do j=1,size(importer_%simulations)
           if (importer_%simulations(j)%analysis%isOpen()) call importer_%simulations(j)%analysis%close()
-      end do
+       end do
+       deallocate(importer_%simulations)
        importer_ => importer_%next
     end do
     call Galacticus_Display_Unindent('done',verbosityStandard)
