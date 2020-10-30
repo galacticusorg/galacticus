@@ -120,7 +120,8 @@ contains
     type            (nBodyData               ), intent(inout), dimension(:  ) :: simulations
     double precision                                         , dimension(3  ) :: unitscgs
     double precision                          , pointer      , dimension(:,:) :: position          , velocity
-    integer         (c_size_t                ), pointer      , dimension(:  ) :: particleIDs
+    integer         (c_size_t                ), pointer      , dimension(:  ) :: particleIDs       , propertyInteger
+    double precision                          , pointer      , dimension(:  ) :: propertyReal
     type            (irate                   )                                :: irate_
     character       (len=13                  )                                :: snapshotLabel
     type            (hdf5Object              )                                :: irateFile         , snapshotGroup, &
@@ -154,14 +155,12 @@ contains
     ! Write box size to the file.
     if (simulations(1)%attributesReal%exists('boxSize')) call irate_%writeSimulation(simulations(1)%attributesReal%value('boxSize'))
     ! Write any additional properties to the file.
-    if     (                                                     &
-         &     size(               particleIDs             ) > 0 &
-         &  .and.                                                &
-         &   (                                                   &
-         &          simulations(1)%propertiesInteger%size()  > 0 &
-         &    .or.                                               &
-         &          simulations(1)%propertiesReal   %size()  > 0 &
-         &   )                                                   &
+    if     (                                                   &
+         &                                                     &
+         &        simulations(1)%propertiesInteger%size()  > 0 &
+         &  .or.                                               &
+         &        simulations(1)%propertiesReal   %size()  > 0 &
+         &                                                     &
          & ) then       
        write (snapshotLabel,'(a,i5.5)') 'Snapshot',self%snapshot
        !$ call hdf5Access%set()
@@ -171,7 +170,8 @@ contains
        do i=1,simulations(1)%propertiesInteger%size()
           select case (char(simulations(1)%propertiesInteger%key(i)))
           case ('particleID'               )
-             datasetDescription="Unique ID for each particle."
+             ! Particle IDs have already been written.
+             cycle
           case ('descendentID'             )
              datasetDescription="Unique ID of descendent."
           case ('progenitorCount'          )
@@ -187,7 +187,8 @@ contains
           case default
              datasetDescription="Unknown property."
           end select
-          call halosGroup%writeDataset  (simulations(1)%propertiesInteger%value(i),char(simulations(1)%propertiesInteger%key(i)),char(datasetDescription)                        )
+          propertyInteger => simulations(1)%propertiesInteger%value(i)
+          if (size(propertyInteger) > 0) call halosGroup%writeDataset  (propertyInteger,char(simulations(1)%propertiesInteger%key(i)),char(datasetDescription)                        )
        end do
        do i=1,simulations(1)%propertiesReal   %size()
           select case (char(simulations(1)%propertiesReal   %key(i)))
@@ -206,10 +207,11 @@ contains
           case default
              datasetDescription="Unknown property."
           end select
-          call halosGroup%writeDataset  (simulations(1)%propertiesReal   %value(i),char(simulations(1)%propertiesReal   %key(i)),char(datasetDescription),datasetReturned=dataset)
-          call dataset   %writeAttribute(char(unitName)                           ,'unitname'                                                                                    )
-          call dataset   %writeAttribute(     unitscgs                            ,'unitscgs'                                                                                    )
-          call dataset   %close         (                                                                                                                                        )
+          propertyReal    => simulations(1)%propertiesReal   %value(i)
+          if (size(propertyReal   ) > 0) call halosGroup%writeDataset  (propertyReal   ,char(simulations(1)%propertiesReal   %key(i)),char(datasetDescription),datasetReturned=dataset)
+          call                                dataset   %writeAttribute(char(unitName) ,'unitname'                                                                                    )
+          call                                dataset   %writeAttribute(     unitscgs  ,'unitscgs'                                                                                    )
+          call                                dataset   %close         (                                                                                                              )
        end do
        call halosGroup   %close()
        call snapshotGroup%close()
