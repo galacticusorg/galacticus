@@ -131,18 +131,26 @@ contains
     call Galacticus_Display_Indent('export simulation to IRATE file',verbosityStandard)
     if (size(simulations) /= 1) call Galacticus_Error_Report('precisely 1 simulation should be supplied'//{introspection:location})
     irate_=irate(char(self%fileName),self%cosmologyParameters_,self%cosmologyFunctions_)
-    position    => simulations(1)%propertiesRealRank1%value('position'   )
-    velocity    => simulations(1)%propertiesRealRank1%value('velocity'   )
-    particleIDs => simulations(1)%propertiesInteger  %value('particleIDs')
-    call irate_%writeHalos(                                      &
-         &                                     self%snapshot   , &
-         &                                     self%redshift   , &
-         &                 center             =     position   , &
-         &                 velocity           =     velocity   , &
-         &                 IDs                =     particleIDs, &
-         &                 overwrite          =.true.          , &
-         &                 objectsOverwritable=.true.            &
-         &                )
+    position    => null()
+    velocity    => null()
+    particleIDs => null()
+    if (simulations(1)%propertiesRealRank1%exists('position'  )) position    => simulations(1)%propertiesRealRank1%value('position'  )
+    if (simulations(1)%propertiesRealRank1%exists('velocity'  )) velocity    => simulations(1)%propertiesRealRank1%value('velocity'  )
+    if (simulations(1)%propertiesInteger  %exists('particleID')) particleIDs => simulations(1)%propertiesInteger  %value('particleID')
+    !# <conditionalCall>
+    !#  <call>
+    !#   call irate_%writeHalos(                                   &amp;
+    !#        &amp;                                 self%snapshot, &amp;
+    !#        &amp;                                 self%redshift, &amp;
+    !#        &amp;             overwrite          =.true.       , &amp;
+    !#        &amp;             objectsOverwritable=.true.         &amp;
+    !#        &amp;             {conditions}                       &amp;
+    !#        &amp;            )
+    !#  </call>
+    !#  <argument name="center"   value="position"    condition="associated(position   )"/>
+    !#  <argument name="velocity" value="velocity"    condition="associated(velocity   )"/>
+    !#  <argument name="IDs"      value="particleIDs" condition="associated(particleIDs)"/>
+    !# </conditionalCall>
     ! Write box size to the file.
     if (simulations(1)%attributesReal%exists('boxSize')) call irate_%writeSimulation(simulations(1)%attributesReal%value('boxSize'))
     ! Write any additional properties to the file.
@@ -170,8 +178,8 @@ contains
              datasetDescription="Number of progenitors."
           case ('hostID'                   )
              datasetDescription="ID of immediate host."
-          case ('hostRootID'               )
-             datasetDescription="ID of root host."
+          case ('isolatedHostID'           )
+             datasetDescription="ID of isolated host."
           case ('descendentHostID'         )
              datasetDescription="ID of descendent's immediate host"
           case ('isPhantom'                )

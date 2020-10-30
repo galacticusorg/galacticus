@@ -156,13 +156,13 @@ contains
     call simulations(1)%attributesReal%set('boxSize',boxSize)
     !# <conditionalCall>
     !#  <call>call irate_%readHalos(self%snapshot{conditions})</call>
-    !#  <argument name="center"   value="position"    condition=".not.self%haveProperties .or. any(self%properties == 'position'   )"/>
-    !#  <argument name="velocity" value="velocity"    condition=".not.self%haveProperties .or. any(self%properties == 'velocity'   )"/>
-    !#  <argument name="IDs"      value="particleIDs" condition=".not.self%haveProperties .or. any(self%properties == 'particleIDs')"/>
+    !#  <argument name="center"   value="position"    condition=".not.self%haveProperties .or. any(self%properties == 'position'  )"/>
+    !#  <argument name="velocity" value="velocity"    condition=".not.self%haveProperties .or. any(self%properties == 'velocity'  )"/>
+    !#  <argument name="IDs"      value="particleIDs" condition=".not.self%haveProperties .or. any(self%properties == 'particleID')"/>
     !# </conditionalCall>
-    if (.not.self%haveProperties .or. any(self%properties == 'particleIDs')) call simulations(1)%propertiesInteger  %set('particleIDs',particleIDs)
-    if (.not.self%haveProperties .or. any(self%properties == 'position'   )) call simulations(1)%propertiesRealRank1%set('position'   ,position   )
-    if (.not.self%haveProperties .or. any(self%properties == 'velocity'   )) call simulations(1)%propertiesRealRank1%set('velocity'   ,velocity   )
+    if (.not.self%haveProperties .or. any(self%properties == 'particleID')) call simulations(1)%propertiesInteger  %set('particleID',particleIDs)
+    if (.not.self%haveProperties .or. any(self%properties == 'position'  )) call simulations(1)%propertiesRealRank1%set('position'  ,position   )
+    if (.not.self%haveProperties .or. any(self%properties == 'velocity'  )) call simulations(1)%propertiesRealRank1%set('velocity'  ,velocity   )
     write (snapshotLabel,'(a,i5.5)') 'Snapshot',self%snapshot
     !$ call hdf5Access%set()
     call self%file%openFile(char(self%fileName),readOnly=.false.)

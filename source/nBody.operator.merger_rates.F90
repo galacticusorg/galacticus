@@ -197,7 +197,7 @@ contains
        end if
 #endif
        ! Retrieve required properties.
-       particleID              => simulations(iSimulation)%propertiesInteger%value('particleIDs'            )
+       particleID              => simulations(iSimulation)%propertiesInteger%value('particleID'             )
        hostID                  => simulations(iSimulation)%propertiesInteger%value('hostID'                 )
        descendentID            => simulations(iSimulation)%propertiesInteger%value('descendentID'           )
        snapshotID              => simulations(iSimulation)%propertiesInteger%value('snapshotID'             )

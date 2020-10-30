@@ -336,7 +336,7 @@ contains
             &                            /self                 %cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH)
        end select
     end do
-    deallocate(expansionFactor)
+    if (allocated(expansionFactor)) deallocate(expansionFactor)
     ! Convert box size to internal units (comoving Mpc).
     boxSize=+boxSize                                                      &
          &  /self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
@@ -368,7 +368,7 @@ contains
              case (rockstarColumnPid         )
                 columnName='hostID'
              case (rockstarColumnUpid        )
-                columnName='hostRootID'
+                columnName='isolatedHostID'
              case (rockstarColumnDesc_pid    )
                 columnName='descendentHostID'
              case (rockstarColumnMmp         )
