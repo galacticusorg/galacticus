@@ -29,7 +29,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Extract source code data.
-scripts/doc/Extract_Data.pl source doc/data
+scripts/doc/extractData.pl source doc/data
 if [ $? -ne 0 ]; then
  echo Failed to extract source code data
  exit 1
