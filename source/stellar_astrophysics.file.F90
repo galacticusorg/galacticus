@@ -27,26 +27,26 @@
   !#   XML file and interpolates in them. The stars can be irregularly spaced in the plane of initial mass and metallicity. The
   !#   XML file should have the following structure:
   !#   \begin{verbatim}
-  !#    <stars>
-  !#     <star>
-  !#       <initialMass>0.6</initialMass>
-  !#       <lifetime>28.19</lifetime>
-  !#       <metallicity>0.0000</metallicity>
-  !#       <ejectedMass>7.65</ejectedMass>
-  !#       <metalYieldMass>0.44435954</metalYieldMass>
-  !#       <elementYieldMassFe>2.2017e-13</elementYieldMassFe>
-  !#       <source>Table 2 of Tumlinson, Shull &amp; Venkatesan (2003, ApJ, 584, 608)</source>
-  !#       <url>http://adsabs.harvard.edu/abs/2003ApJ...584..608T</url>
-  !#     </star>
-  !#     <star>
+  !#    &lt;stars&gt;
+  !#     &lt;star&gt;
+  !#       &lt;initialMass&gt;0.6&lt;/initialMass&gt;
+  !#       &lt;lifetime&gt;28.19&lt;/lifetime&gt;
+  !#       &lt;metallicity&gt;0.0000&lt;/metallicity&gt;
+  !#       &lt;ejectedMass&gt;7.65&lt;/ejectedMass&gt;
+  !#       &lt;metalYieldMass&gt;0.44435954&lt;/metalYieldMass&gt;
+  !#       &lt;elementYieldMassFe&gt;2.2017e-13&lt;/elementYieldMassFe&gt;
+  !#       &lt;source&gt;Table 2 of Tumlinson, Shull &amp; Venkatesan (2003, ApJ, 584, 608)&lt;/source&gt;
+  !#       &lt;url&gt;http://adsabs.harvard.edu/abs/2003ApJ...584..608T&lt;/url&gt;
+  !#     &lt;/star&gt;
+  !#     &lt;star&gt;
   !#       .
   !#       .
   !#       .
-  !#     </star>
+  !#     &lt;/star&gt;
   !#     .
   !#     .
   !#     .
-  !#    </stars>
+  !#    &lt;/stars&gt;
   !#   \end{verbatim}
   !#   Each {\normalfont \ttfamily star} element must contain the {\normalfont \ttfamily initialMass} (given in $M_\odot$) and
   !#   {\normalfont \ttfamily metallicity} tags. Other tags are optional. {\normalfont \ttfamily lifetime} gives the lifetime of
