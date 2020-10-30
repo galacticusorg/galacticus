@@ -152,7 +152,7 @@ contains
     type            (integrator                              )                                  :: integrator_
     integer                                                                                     :: i                       , j, &
          &                                                                                         sourceIndex
-    character       (len=30                                  )                                  :: label
+    character       (len=64                                  )                                  :: label
 
    if (.not.allocated(self%continuuaRatesEscapingTagged)) then
        allocate(self%continuuaRatesEscapingTagged(self%countElements,self%atomicNumberMaximum,radiativeTransferSource_%sourceTypeCount()))
@@ -183,7 +183,7 @@ contains
           do i=1,size(self%elementIndices)
              do j=1,Atomic_Number(self%elementIndices(i))
                 label='rateContinuumEmitted'//trim(Atomic_Short_Label(self%elementIndices(i)))//char(Roman_Numerals(j))
-                if (sourceIndex > 0) label=label//String_Upper_Case_First(char(radiativeTransferSource_%sourceTypeName(sourceIndex)))
+                if (sourceIndex > 0) label=trim(label)//String_Upper_Case_First(char(radiativeTransferSource_%sourceTypeName(sourceIndex)))
                 call outputGroup%writeAttribute(rateEmitted(i,j,sourceIndex),trim(label))
              end do
           end do
