@@ -578,7 +578,7 @@ Extra outputs for merger trees (i.e. those which do not involve output of a fixe
     return
   end subroutine Galacticus_Extra_Output_Example
 \end{verbatim}
-The subroutine will be called for each node in each merger tree at each output, and should perform whatever extra output related to {\normalfont \ttfamily thisNode}. The index of the output and tree are provided as {\normalfont \ttfamily iOutput} and {\normalfont \ttfamily treeIndex} for reference, and may be used in organizing output. The {\normalfont \ttfamily nodePassesFilter} flag will be set to {\normalfont \ttfamily true} if {\normalfont \ttfamily thisNode} passed all active output filters (see \refPhysics{methodsGalacticFilter}). If it is {\normalfont \ttfamily false} then typically no output should occur (although other tasks may still be undertaken).
+The subroutine will be called for each node in each merger tree at each output, and should perform whatever extra output related to {\normalfont \ttfamily thisNode}. The index of the output and tree are provided as {\normalfont \ttfamily iOutput} and {\normalfont \ttfamily treeIndex} for reference, and may be used in organizing output. The {\normalfont \ttfamily nodePassesFilter} flag will be set to {\normalfont \ttfamily true} if {\normalfont \ttfamily thisNode} passed all active output filters (see \refPhysics{galacticFilter}). If it is {\normalfont \ttfamily false} then typically no output should occur (although other tasks may still be undertaken).
 
 \subsubsection{Merger Tree Output Tasks}
 
@@ -680,7 +680,7 @@ where {\normalfont \ttfamily node} is the node for which tasks should be perform
 
 \subsubsection{Radius Solver Tasks}\label{sec:radius_solver}
 
-Galactic radii solver functions (see \refPhysics{methodsGalacticStructureSolver}) need to be able to interact with the components of a tree node to
+Galactic radii solver functions (see \refPhysics{galacticStructureSolver}) need to be able to interact with the components of a tree node to
 \begin{enumerate}
  \item Determine which components want a radius to be solved for;
  \item Get and set the properties of those components.
