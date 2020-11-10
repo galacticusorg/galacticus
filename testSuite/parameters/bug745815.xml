@@ -27,10 +27,6 @@
     <omega value="0.77"/>
   </darkMatterProfileMethod>
 
-  <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
-    <stabilityThresholdGaseous value="0.9"/>
-    <stabilityThresholdStellar value="1.1"/>
-  </galacticDynamicsBarInstabilityMethod>
   <blackHoleBinaryMergersMethod value="rezzolla2008"/>
   <blackHoleSeedMass value="100"/>
   <blackHoleWindEfficiency value="0.001"/>
@@ -206,6 +202,13 @@
           <velocityCharacteristic value="50"/>
         </stellarFeedbackOutflowsMethod>
       </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+    <!-- Bar instability in galactic disks -->
+    <nodeOperatorMethod value="barInstability">
+      <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
+	<stabilityThresholdGaseous value="0.9"/>
+	<stabilityThresholdStellar value="1.1"/>
+      </galacticDynamicsBarInstabilityMethod>
     </nodeOperatorMethod>
   </nodeOperatorMethod>
 

@@ -21,20 +21,19 @@
 
 module Node_Component_Disk_Standard
   !% Implements the standard disk node component.
-  use :: Dark_Matter_Halo_Scales            , only : darkMatterHaloScaleClass
-  use :: Galactic_Dynamics_Bar_Instabilities, only : galacticDynamicsBarInstabilityClass
-  use :: Satellite_Merging_Mass_Movements   , only : mergerMassMovementsClass
-  use :: Star_Formation_Histories           , only : starFormationHistory               , starFormationHistoryClass
-  use :: Stellar_Population_Properties      , only : stellarPopulationPropertiesClass
+  use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
+  use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
+  use :: Star_Formation_Histories        , only : starFormationHistory            , starFormationHistoryClass
+  use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
   implicit none
   private
   public :: Node_Component_Disk_Standard_Scale_Set                    , Node_Component_Disk_Standard_Pre_Evolve         , &
        &    Node_Component_Disk_Standard_Radius_Solver_Plausibility   , Node_Component_Disk_Standard_Radius_Solver      , &
-       &    Node_Component_Disk_Standard_Star_Formation_History_Output, Node_Component_Disk_Standard_Rate_Compute       , &
+       &    Node_Component_Disk_Standard_Star_Formation_History_Output, Node_Component_Disk_Standard_Thread_Uninitialize, &
        &    Node_Component_Disk_Standard_Initialize                   , Node_Component_Disk_Standard_Calculation_Reset  , &
        &    Node_Component_Disk_Standard_State_Store                  , Node_Component_Disk_Standard_State_Retrieve     , &
        &    Node_Component_Disk_Standard_Thread_Initialize            , Node_Component_Disk_Standard_Inactive           , &
-       &    Node_Component_Disk_Standard_Post_Step                    , Node_Component_Disk_Standard_Thread_Uninitialize
+       &    Node_Component_Disk_Standard_Post_Step
 
   !# <component>
   !#  <class>disk</class>
@@ -151,12 +150,11 @@ module Node_Component_Disk_Standard
   !# </component>
 
   ! Objects used by this component.
-  class(darkMatterHaloScaleClass           ), pointer :: darkMatterHaloScale_
-  class(stellarPopulationPropertiesClass   ), pointer :: stellarPopulationProperties_
-  class(galacticDynamicsBarInstabilityClass), pointer :: galacticDynamicsBarInstability_
-  class(starFormationHistoryClass          ), pointer :: starFormationHistory_
-  class(mergerMassMovementsClass           ), pointer :: mergerMassMovements_
-  !$omp threadprivate(darkMatterHaloScale_,stellarPopulationProperties_,galacticDynamicsBarInstability_,starFormationHistory_,mergerMassMovements_)
+  class(darkMatterHaloScaleClass        ), pointer :: darkMatterHaloScale_
+  class(stellarPopulationPropertiesClass), pointer :: stellarPopulationProperties_
+  class(starFormationHistoryClass       ), pointer :: starFormationHistory_
+  class(mergerMassMovementsClass        ), pointer :: mergerMassMovements_
+  !$omp threadprivate(darkMatterHaloScale_,stellarPopulationProperties_,starFormationHistory_,mergerMassMovements_)
 
   ! Internal count of abundances.
   integer                                     :: abundancesCount
@@ -262,12 +260,11 @@ contains
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call satelliteMergerEvent%attach(defaultDiskComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard',dependencies=dependencies)
        call postEvolveEvent     %attach(defaultDiskComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                          )
-       !# <objectBuilder class="darkMatterHaloScale"                                                 name="darkMatterHaloScale_"            source="parameters_"                    />
-       !# <objectBuilder class="stellarPopulationProperties"                                         name="stellarPopulationProperties_"    source="parameters_"                    />
-       !# <objectBuilder class="galacticDynamicsBarInstability"                                      name="galacticDynamicsBarInstability_" source="parameters_"                    />
-       !# <objectBuilder class="starFormationHistory"                                                name="starFormationHistory_"           source="parameters_"                    />
-       !# <objectBuilder class="mergerMassMovements"                                                 name="mergerMassMovements_"            source="parameters_"                    />
-       !# <objectBuilder class="massDistribution"               parameterName="diskMassDistribution" name="diskMassDistribution"            source="parameters_" threadPrivate="yes" >
+       !# <objectBuilder class="darkMatterHaloScale"                                                 name="darkMatterHaloScale_"         source="parameters_"                    />
+       !# <objectBuilder class="stellarPopulationProperties"                                         name="stellarPopulationProperties_" source="parameters_"                    />
+       !# <objectBuilder class="starFormationHistory"                                                name="starFormationHistory_"        source="parameters_"                    />
+       !# <objectBuilder class="mergerMassMovements"                                                 name="mergerMassMovements_"         source="parameters_"                    />
+       !# <objectBuilder class="massDistribution"               parameterName="diskMassDistribution" name="diskMassDistribution"         source="parameters_" threadPrivate="yes" >
        !#  <default>
        !#   <diskMassDistribution value="exponentialDisk">
        !#    <dimensionless value="true"/>
@@ -326,12 +323,11 @@ contains
     if (defaultDiskComponent%standardIsActive()) then
        call satelliteMergerEvent%detach(defaultDiskComponent,satelliteMerger)
        call postEvolveEvent     %detach(defaultDiskComponent,postEvolve     )
-       !# <objectDestructor name="darkMatterHaloScale_"           />
-       !# <objectDestructor name="stellarPopulationProperties_"   />
-       !# <objectDestructor name="galacticDynamicsBarInstability_"/>
-       !# <objectDestructor name="starFormationHistory_"          />
-       !# <objectDestructor name="mergerMassMovements_"           />
-       !# <objectDestructor name="diskMassDistribution"           />
+       !# <objectDestructor name="darkMatterHaloScale_"        />
+       !# <objectDestructor name="stellarPopulationProperties_"/>
+       !# <objectDestructor name="starFormationHistory_"       />
+       !# <objectDestructor name="mergerMassMovements_"        />
+       !# <objectDestructor name="diskMassDistribution"        />
     end if
     return
   end subroutine Node_Component_Disk_Standard_Thread_Uninitialize
@@ -636,131 +632,6 @@ contains
     call disk%isInitializedSet(.true.)
     return
   end subroutine Node_Component_Disk_Standard_Create
-
-  !# <rateComputeTask>
-  !#  <unitName>Node_Component_Disk_Standard_Rate_Compute</unitName>
-  !# </rateComputeTask>
-  subroutine Node_Component_Disk_Standard_Rate_Compute(node,interrupt,interruptProcedureReturn,propertyType)
-    !% Compute the standard disk node mass rate of change.
-    use :: Abundances_Structure            , only : abs                    , abundances           , max               , operator(*)              , &
-          &                                         zeroAbundances
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                , only : defaultDiskComponent   , interruptTask        , nodeComponentDisk , nodeComponentDiskStandard, &
-          &                                         nodeComponentHotHalo   , nodeComponentSpheroid, propertyTypeActive, propertyTypeAll          , &
-          &                                         propertyTypeInactive   , treeNode
-    use :: Histories                       , only : history                , operator(*)
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
-    use :: Stellar_Luminosities_Structure  , only : abs                    , max                  , operator(*)       , stellarLuminosities      , &
-         &                                          zeroStellarLuminosities
-    implicit none
-    type            (treeNode             ), intent(inout), pointer :: node
-    class           (nodeComponentDisk    )               , pointer :: disk
-    class           (nodeComponentSpheroid)               , pointer :: spheroid
-    logical                                , intent(inout)          :: interrupt
-    procedure       (interruptTask        ), intent(inout), pointer :: interruptProcedureReturn
-    integer                                , intent(in   )          :: propertyType
-    procedure       (interruptTask        )               , pointer :: interruptProcedure
-    type            (abundances           ), save                   :: fuelAbundancesRates         , stellarAbundancesRates
-    !$omp threadprivate(stellarAbundancesRates,fuelAbundancesRates)
-    double precision                                                :: barInstabilitySpecificTorque, barInstabilityTimescale, &
-         &                                                             transferRate
-    type            (history              )                         :: historyTransferRate
-    type            (stellarLuminosities  ), save                   :: luminositiesTransferRate
-    !$omp threadprivate(luminositiesTransferRate)
-
-    ! Return immediately if this class is not in use or only inactive properties are being computed.
-    if (.not.defaultDiskComponent%standardIsActive() .or. propertyType == propertyTypeInactive) return
-    ! Get a local copy of the interrupt procedure.
-    interruptProcedure => interruptProcedureReturn
-    ! Get the disk and check that it is of our class.
-    disk => node%disk()
-    select type (disk)
-    class is (nodeComponentDiskStandard)
-       ! Check for a realistic disk, return immediately if disk is unphysical.
-       if     (     disk%angularMomentum() < 0.0d0 &
-            &  .or. disk%radius         () < 0.0d0 &
-            &  .or. disk%massGas        () < 0.0d0 &
-            & ) return
-       ! Interrupt if the disk is not initialized.
-       if (.not.disk%isInitialized()) then
-          interrupt=.true.
-          interruptProcedureReturn => Node_Component_Disk_Standard_Create
-          return
-       end if
-       ! Determine if the disk is bar unstable and, if so, the rate at which material is moved to the pseudo-bulge.
-       if (node%isPhysicallyPlausible) then
-          ! Disk has positive angular momentum, so compute an instability timescale.
-          call galacticDynamicsBarInstability_%timescale(node,barInstabilityTimescale,barInstabilitySpecificTorque)
-       else
-          ! Disk has non-positive angular momentum, therefore it is unphysical. Do not compute an instability timescale in this
-          ! case as the disk radius may be unphysical also.
-          barInstabilityTimescale=-1.0d0
-       end if
-       ! Negative timescale indicates no bar instability.
-       if (barInstabilityTimescale >= 0.0d0) then
-          ! Disk is unstable, so compute rates at which material is transferred to the spheroid.
-          spheroid => node%spheroid()
-          ! Gas mass.
-          transferRate               =max(         0.0d0         ,disk    %massGas             (                         ))/barInstabilityTimescale
-          call                                      disk    %massGasRate             (-           transferRate                              )
-          call                                      spheroid%massGasRate             (+           transferRate ,interrupt,interruptProcedure)
-          ! Fraction of stellar mass transferred.
-          transferRate               =max(         0.0d0         ,disk    %fractionMassRetained(                         ))/barInstabilityTimescale
-          call                                      disk    %fractionMassRetainedRate(-           transferRate                              )
-          ! Stellar mass.
-          transferRate               =max(         0.0d0         ,disk    %massStellar         (                         ))/barInstabilityTimescale
-          call                                      disk    %massStellarRate         (-           transferRate                              )
-          call                                      spheroid%massStellarRate         (+           transferRate ,interrupt,interruptProcedure)
-          ! Angular momentum.
-          transferRate               =max(         0.0d0         ,disk    %angularMomentum     (                         ))/barInstabilityTimescale
-          call                                      disk    %angularMomentumRate     (-           transferRate                              )
-          call                                      spheroid%angularMomentumRate     (+           transferRate ,interrupt,interruptProcedure)
-          ! Gas abundances.
-          fuelAbundancesRates        =max(zeroAbundances         ,disk    %abundancesGas       (                         ))/barInstabilityTimescale
-          call                                      disk    %abundancesGasRate       (-     fuelAbundancesRates                             )
-          call                                      spheroid%abundancesGasRate       (+     fuelAbundancesRates,interrupt,interruptProcedure)
-          ! Stellar abundances.
-          stellarAbundancesRates     =max(zeroAbundances         ,disk    %abundancesStellar   (                         ))/barInstabilityTimescale
-          call                                      disk    %abundancesStellarRate   (-  stellarAbundancesRates                             )
-          call                                      spheroid%abundancesStellarRate   (+  stellarAbundancesRates,interrupt,interruptProcedure)
-          ! Stellar luminosities.
-          if (.not.diskLuminositiesStellarInactive .or. propertyType /= propertyTypeInactive) then
-             luminositiesTransferRate=max(zeroStellarLuminosities,disk    %luminositiesStellar (                         ))/barInstabilityTimescale
-             call                                   disk    %luminositiesStellarRate (-luminositiesTransferRate                             )
-             call                                   spheroid%luminositiesStellarRate (+luminositiesTransferRate,interrupt,interruptProcedure)
-          end if
-          ! Stellar properties history.
-          historyTransferRate=disk%stellarPropertiesHistory()
-          if (historyTransferRate%exists()) then
-             historyTransferRate=historyTransferRate/barInstabilityTimescale
-             call disk    %stellarPropertiesHistoryRate(-historyTransferRate                             )
-             call spheroid%stellarPropertiesHistoryRate(+historyTransferRate,interrupt,interruptProcedure)
-          end if
-          call historyTransferRate%destroy()
-          ! Star formation history.
-          historyTransferRate=disk%starFormationHistory()
-          if (historyTransferRate%exists()) then
-             historyTransferRate=historyTransferRate/barInstabilityTimescale
-             call disk    %starFormationHistoryRate(-historyTransferRate                             )
-             call spheroid%starFormationHistoryRate(+historyTransferRate,interrupt,interruptProcedure)
-          end if
-          call historyTransferRate%destroy()
-          ! Additional external torque.
-          if     (                                                                                                                                                            &
-               &   spheroid%angularMomentum() < (spheroid%massGas()+spheroid%massStellar())*darkMatterHaloScale_%virialRadius(node)*darkMatterHaloScale_%virialVelocity(node) &
-               &  .and.                                                                                                                                                       &
-               &   spheroid%radius         () <                                             darkMatterHaloScale_%virialRadius(node)                                           &
-               & ) then
-             call spheroid%angularMomentumRate(+barInstabilitySpecificTorque*(spheroid%massGas()+spheroid%massStellar()),interrupt,interruptProcedure)
-          end if
-       end if
-    end select
-
-    ! Return the procedure pointer.
-    interruptProcedureReturn => interruptProcedure
-
-    return
-  end subroutine Node_Component_Disk_Standard_Rate_Compute
 
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Disk_Standard_Scale_Set</unitName>

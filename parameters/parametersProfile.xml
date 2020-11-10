@@ -135,14 +135,8 @@
     <A value="0.73"/>
     <omega value="0.7"/>
   </darkMatterProfileMethod>
-
   <spheroidAngularMomentumAtScaleRadius value="0.5"/>
 
-  <!-- Galactic disk dynamics options -->
-  <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
-    <stabilityThresholdGaseous value="0.7"/>
-    <stabilityThresholdStellar value="1.1"/>
-  </galacticDynamicsBarInstabilityMethod>
   <!-- Star formation rate options -->
   <starFormationRateDisksMethod value="intgrtdSurfaceDensity"/>
   <starFormationRateSurfaceDensityDisksMethod value="krumholz2009">
@@ -238,6 +232,13 @@
           <exponent value="3.5"/>
         </stellarFeedbackOutflowsMethod>
       </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+    <!-- Bar instability in galactic disks -->
+    <nodeOperatorMethod value="barInstability">
+      <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
+	<stabilityThresholdGaseous value="0.7"/>
+	<stabilityThresholdStellar value="1.1"/>
+      </galacticDynamicsBarInstabilityMethod>
     </nodeOperatorMethod>
   </nodeOperatorMethod>
 
