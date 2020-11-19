@@ -120,7 +120,8 @@ contains
     type            (nBodyData               ), intent(inout), dimension(:  ) :: simulations
     double precision                                         , dimension(3  ) :: unitscgs
     double precision                          , pointer      , dimension(:,:) :: position          , velocity
-    integer         (c_size_t                ), pointer      , dimension(:  ) :: particleIDs
+    integer         (c_size_t                ), pointer      , dimension(:  ) :: particleIDs       , propertyInteger
+    double precision                          , pointer      , dimension(:  ) :: propertyReal
     type            (irate                   )                                :: irate_
     character       (len=13                  )                                :: snapshotLabel
     type            (hdf5Object              )                                :: irateFile         , snapshotGroup, &
@@ -131,29 +132,35 @@ contains
     call Galacticus_Display_Indent('export simulation to IRATE file',verbosityStandard)
     if (size(simulations) /= 1) call Galacticus_Error_Report('precisely 1 simulation should be supplied'//{introspection:location})
     irate_=irate(char(self%fileName),self%cosmologyParameters_,self%cosmologyFunctions_)
-    position    => simulations(1)%propertiesRealRank1%value('position'   )
-    velocity    => simulations(1)%propertiesRealRank1%value('velocity'   )
-    particleIDs => simulations(1)%propertiesInteger  %value('particleIDs')
-    call irate_%writeHalos(                                      &
-         &                                     self%snapshot   , &
-         &                                     self%redshift   , &
-         &                 center             =     position   , &
-         &                 velocity           =     velocity   , &
-         &                 IDs                =     particleIDs, &
-         &                 overwrite          =.true.          , &
-         &                 objectsOverwritable=.true.            &
-         &                )
+    position    => null()
+    velocity    => null()
+    particleIDs => null()
+    if (simulations(1)%propertiesRealRank1%exists('position'  )) position    => simulations(1)%propertiesRealRank1%value('position'  )
+    if (simulations(1)%propertiesRealRank1%exists('velocity'  )) velocity    => simulations(1)%propertiesRealRank1%value('velocity'  )
+    if (simulations(1)%propertiesInteger  %exists('particleID')) particleIDs => simulations(1)%propertiesInteger  %value('particleID')
+    !# <conditionalCall>
+    !#  <call>
+    !#   call irate_%writeHalos(                                   &amp;
+    !#        &amp;                                 self%snapshot, &amp;
+    !#        &amp;                                 self%redshift, &amp;
+    !#        &amp;             overwrite          =.true.       , &amp;
+    !#        &amp;             objectsOverwritable=.true.         &amp;
+    !#        &amp;             {conditions}                       &amp;
+    !#        &amp;            )
+    !#  </call>
+    !#  <argument name="center"   value="position"    condition="associated(position   )"/>
+    !#  <argument name="velocity" value="velocity"    condition="associated(velocity   )"/>
+    !#  <argument name="IDs"      value="particleIDs" condition="associated(particleIDs)"/>
+    !# </conditionalCall>
     ! Write box size to the file.
     if (simulations(1)%attributesReal%exists('boxSize')) call irate_%writeSimulation(simulations(1)%attributesReal%value('boxSize'))
     ! Write any additional properties to the file.
-    if     (                                                     &
-         &     size(               particleIDs             ) > 0 &
-         &  .and.                                                &
-         &   (                                                   &
-         &          simulations(1)%propertiesInteger%size()  > 0 &
-         &    .or.                                               &
-         &          simulations(1)%propertiesReal   %size()  > 0 &
-         &   )                                                   &
+    if     (                                                   &
+         &                                                     &
+         &        simulations(1)%propertiesInteger%size()  > 0 &
+         &  .or.                                               &
+         &        simulations(1)%propertiesReal   %size()  > 0 &
+         &                                                     &
          & ) then       
        write (snapshotLabel,'(a,i5.5)') 'Snapshot',self%snapshot
        !$ call hdf5Access%set()
@@ -163,15 +170,16 @@ contains
        do i=1,simulations(1)%propertiesInteger%size()
           select case (char(simulations(1)%propertiesInteger%key(i)))
           case ('particleID'               )
-             datasetDescription="Unique ID for each particle."
+             ! Particle IDs have already been written.
+             cycle
           case ('descendentID'             )
              datasetDescription="Unique ID of descendent."
           case ('progenitorCount'          )
              datasetDescription="Number of progenitors."
           case ('hostID'                   )
              datasetDescription="ID of immediate host."
-          case ('hostRootID'               )
-             datasetDescription="ID of root host."
+          case ('isolatedHostID'           )
+             datasetDescription="ID of isolated host."
           case ('descendentHostID'         )
              datasetDescription="ID of descendent's immediate host"
           case ('isPhantom'                )
@@ -179,7 +187,8 @@ contains
           case default
              datasetDescription="Unknown property."
           end select
-          call halosGroup%writeDataset  (simulations(1)%propertiesInteger%value(i),char(simulations(1)%propertiesInteger%key(i)),char(datasetDescription)                        )
+          propertyInteger => simulations(1)%propertiesInteger%value(i)
+          if (size(propertyInteger) > 0) call halosGroup%writeDataset  (propertyInteger,char(simulations(1)%propertiesInteger%key(i)),char(datasetDescription)                        )
        end do
        do i=1,simulations(1)%propertiesReal   %size()
           select case (char(simulations(1)%propertiesReal   %key(i)))
@@ -198,10 +207,11 @@ contains
           case default
              datasetDescription="Unknown property."
           end select
-          call halosGroup%writeDataset  (simulations(1)%propertiesReal   %value(i),char(simulations(1)%propertiesReal   %key(i)),char(datasetDescription),datasetReturned=dataset)
-          call dataset   %writeAttribute(char(unitName)                           ,'unitname'                                                                                    )
-          call dataset   %writeAttribute(     unitscgs                            ,'unitscgs'                                                                                    )
-          call dataset   %close         (                                                                                                                                        )
+          propertyReal    => simulations(1)%propertiesReal   %value(i)
+          if (size(propertyReal   ) > 0) call halosGroup%writeDataset  (propertyReal   ,char(simulations(1)%propertiesReal   %key(i)),char(datasetDescription),datasetReturned=dataset)
+          call                                dataset   %writeAttribute(char(unitName) ,'unitname'                                                                                    )
+          call                                dataset   %writeAttribute(     unitscgs  ,'unitscgs'                                                                                    )
+          call                                dataset   %close         (                                                                                                              )
        end do
        call halosGroup   %close()
        call snapshotGroup%close()

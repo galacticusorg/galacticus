@@ -179,9 +179,9 @@ contains
     lengthSoftening=simulations(current)%attributesReal%value('lengthSoftening')
     massParticle   =simulations(current)%attributesReal%value('massParticle'   )
     ! Get particle data.
-    position    => simulations(current)%propertiesRealRank1%value('position'   )
-    velocity    => simulations(current)%propertiesRealRank1%value('velocity'   )
-    particleIDs => simulations(current)%propertiesInteger  %value('particleIDs')
+    position    => simulations(current)%propertiesRealRank1%value('position'  )
+    velocity    => simulations(current)%propertiesRealRank1%value('velocity'  )
+    particleIDs => simulations(current)%propertiesInteger  %value('particleID')
     ! Allocate workspaces.
     particleCount=size(position,dim=2)
     call allocateArray(isBound                ,[           particleCount,self%bootstrapSampleCount])
@@ -210,7 +210,7 @@ contains
     ! If previous bound status is available, read in the self-bound status and sampling weights. If not, generate new values.
     if (previous > 0) then
        ! Get the self-bound status from the previous snapshot.
-       particleIDsPrevious  => simulations(previous)%propertiesInteger     %value('particleIDs')
+       particleIDsPrevious  => simulations(previous)%propertiesInteger     %value('particleID'  )
        boundStatusPrevious  => simulations(previous)%propertiesIntegerRank1%value('isBound'     )
        sampleWeightPrevious => simulations(previous)%propertiesRealRank1   %value('sampleWeight')
        if (self%bootstrapSampleCount /= size(boundStatusPrevious,dim=2)) &

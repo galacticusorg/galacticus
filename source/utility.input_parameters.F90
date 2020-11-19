@@ -1191,7 +1191,7 @@ contains
        end if
        copyCount                               =  1
     else
-       copyCount                               =  self%copiesCount(parameterName                                                            )
+       copyCount                               =  self%copiesCount(parameterName                                                                                           ,requireValue=requireValue                          )
        parameterNode                           => self%node       (parameterName        ,requireValue=requireValue,copyInstance=copyInstance)
        inputParametersSubParameters            =  inputParameters (parameterNode%content,noOutput    =.true.      ,noBuild     =.true.      )
        inputParametersSubParameters%parameters => parameterNode

@@ -68,11 +68,6 @@
   <!-- Galactic structure options -->
   <galacticStructureSolverMethod value="simple"/>
 
-  <!-- Galactic dynamics options -->
-  <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
-    <stabilityThresholdGaseous value="0.7"/>
-    <stabilityThresholdStellar value="0.7"/>
-  </galacticDynamicsBarInstabilityMethod>
   <!-- Star formation rate -->
   <starFormationRateDisksMethod value="timescale">
     <starFormationTimescaleMethod value="fixed">
@@ -109,6 +104,13 @@
           <exponent value="1.0"/>
         </stellarFeedbackOutflowsMethod>
       </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+    <!-- Bar instability in galactic disks -->
+    <nodeOperatorMethod value="barInstability">
+      <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
+	<stabilityThresholdGaseous value="0.7"/>
+	<stabilityThresholdStellar value="0.7"/>
+      </galacticDynamicsBarInstabilityMethod>
     </nodeOperatorMethod>
   </nodeOperatorMethod>
 

@@ -112,12 +112,12 @@ contains
     class           (nbodyImporterRandom), intent(inout)                              :: self
     type            (nBodyData          ), intent(  out), dimension(  :), allocatable :: simulations
     double precision                                    , dimension(:,:), pointer     :: position   , velocity
-    integer         (c_size_t           )               , dimension(  :), pointer     :: particleIDs
+    integer         (c_size_t           )               , dimension(  :), pointer     :: particleID
     integer         (c_size_t           )                                             :: i
 
     call Galacticus_Display_Indent('import simulation from Random file',verbosityStandard)
     allocate(simulations(1                 ))
-    allocate(particleIDs(  self%countPoints))
+    allocate(particleID (  self%countPoints))
     allocate(position   (3,self%countPoints))
     allocate(velocity   (3,self%countPoints))
     simulations(1)%label='random'
@@ -126,16 +126,16 @@ contains
     simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTPtrHash()
     simulations(1)%propertiesRealRank1   =rank2DoublePtrHash      ()
     do i=1_c_size_t,self%countPoints
-       particleIDs(  i)=i
-       position   (:,i)=[self%randomNumberGenerator_%uniformSample(),self%randomNumberGenerator_%uniformSample(),self%randomNumberGenerator_%uniformSample()]
+       particleID(  i)=i
+       position  (:,i)=[self%randomNumberGenerator_%uniformSample(),self%randomNumberGenerator_%uniformSample(),self%randomNumberGenerator_%uniformSample()]
     end do
     velocity(:,:)=0.0d0
     position(1,:)=position(1,:)*(self%xRange(2)-self%xRange(1))+self%xRange(1)
     position(2,:)=position(2,:)*(self%yRange(2)-self%yRange(1))+self%yRange(1)
     position(3,:)=position(3,:)*(self%zRange(2)-self%zRange(1))+self%zRange(1)
-    call simulations(1)%propertiesInteger  %set('particleIDs',particleIDs)
-    call simulations(1)%propertiesRealRank1%set('position'   ,position   )
-    call simulations(1)%propertiesRealRank1%set('velocity'   ,velocity   )
+    call simulations(1)%propertiesInteger  %set('particleID',particleID)
+    call simulations(1)%propertiesRealRank1%set('position'  ,position  )
+    call simulations(1)%propertiesRealRank1%set('velocity'  ,velocity  )
     call Galacticus_Display_Unindent('done',verbosityStandard)
     return
   end subroutine randomImport

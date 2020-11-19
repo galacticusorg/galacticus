@@ -93,7 +93,7 @@ contains
     call Galacticus_Display_Indent('flag always isolated objects',verbosityStandard)
     do iSimulation=1,size(simulations)
        ! Retrieve required properties.
-       particleIDs             => simulations(iSimulation)%propertiesInteger%value('particleIDs'            )
+       particleIDs             => simulations(iSimulation)%propertiesInteger%value('particleID'             )
        hostID                  => simulations(iSimulation)%propertiesInteger%value('hostID'                 )
        descendentID            => simulations(iSimulation)%propertiesInteger%value('descendentID'           )
        isMostMassiveProgenitor => simulations(iSimulation)%propertiesInteger%value('isMostMassiveProgenitor')

@@ -123,7 +123,7 @@ contains
        nBodyDataPropertyType=propertyTypeInteger
     case('hostID'                   )
        nBodyDataPropertyType=propertyTypeInteger
-    case('hostRootID'               )
+    case('isolatedHostID'           )
        nBodyDataPropertyType=propertyTypeInteger
     case('descendentHostID'         )
        nBodyDataPropertyType=propertyTypeInteger

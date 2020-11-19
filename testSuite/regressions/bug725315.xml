@@ -54,6 +54,13 @@
         </stellarFeedbackOutflowsMethod>
       </stellarFeedbackOutflowsMethod>
     </nodeOperatorMethod>
+    <!-- Bar instability in galactic disks -->
+    <nodeOperatorMethod value="barInstability">
+      <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
+	<stabilityThresholdGaseous value="0.9"/>
+	<stabilityThresholdStellar value="1.1"/>
+      </galacticDynamicsBarInstabilityMethod>
+    </nodeOperatorMethod>
   </nodeOperatorMethod>
 
   <cosmologicalMassVarianceMethod value="filteredPower">
@@ -79,10 +86,6 @@
   <mergerTreeBuildMassDistributionMethod value="powerLaw">
     <exponent value="1.0"/>
   </mergerTreeBuildMassDistributionMethod>
-  <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
-    <stabilityThresholdGaseous value="0.9"/>
-    <stabilityThresholdStellar value="1.1"/>
-  </galacticDynamicsBarInstabilityMethod>
   <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
     <treesPerDecade value="4"/>
     <massTreeMaximum value="2.0e12"/>

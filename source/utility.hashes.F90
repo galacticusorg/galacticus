@@ -324,7 +324,9 @@ contains
     if (keyExists) then
        iKey=searchArray(thisHash%hashKeys(1:thisHash%elementCount),key)
 #if {Type¦match¦^rank\d+[a-zA-Z]+$¦1¦0}
+#if {Type¦match¦Ptr$¦0¦1}
        deallocate(thisHash%hashValues(iKey)%object)
+#endif
 #endif
        thisHash%hashValues(iKey)%object {Type¦assignment} value
     else
