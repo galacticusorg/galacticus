@@ -628,28 +628,73 @@ Enumerations are used to communicate options to many functions in \glc. All avai
 
 \section{Classes}
  
-The type of each method, and the type and names of its arguments are specified for each method of each object. Types are shown in red, enclosed by angle brackets, with a ``{\normalfont \ttfamily *}'' indicating a pointer. A {\normalfont \ttfamily \textless void\textgreater} type indicates a subroutine. Blue arrows after each argument show the argument intent: \textcolor{blue}{$\leftarrow$} implies {\normalfont \ttfamily intent(in)},  \textcolor{blue}{$\rightarrow$} implies {\normalfont \ttfamily intent(out)}, and \textcolor{blue}{$\leftrightarrow$} implies {\normalfont \ttfamily intent(inout)}.
+The return type of each method, and the interfaces (i.e. the types and names of its arguments) are specified for each method of each object. A ``{\normalfont \ttfamily void}'' return type indicates a subroutine.
 
 \subsection{Methods available to all {\normalfont \ttfamily functionClass}es}\label{sec:functionClassAll}
 
 Although not methods directly bound to the {\normalfont \ttfamily functionClass} class, the following methods will be automatically created for all child classes of {\normalfont \ttfamily functionClass} when they are built by \glc.
 
+
 \begin{description}
-\item[]{\normalfont \ttfamily void\ autoHook()}  Insert any event hooks required by this object. 
+  
+\item[]{\normalfont \ttfamily autoHook} Insert any event hooks required by this object. 
+\begin{itemize}
+\item Return type: {\normalfont \ttfamily void}
+\item Interface: {\normalfont \ttfamily ()}\\
+\end{itemize}
 
-\item[]{\normalfont \ttfamily void\ deepCopy(\textcolor{red}{\textless class(\textless functionClassBase \textgreater)\textgreater} destination\arginout)}  Perform a deep copy of the object. Here, {\normalfont \ttfamily \textless functionClassBase \textgreater)\textgreater} refers to the base class of the created {\normalfont \ttfamily functionClass} child.
+\item[]{\normalfont \ttfamily deepCopy}  Perform a deep copy of the object. Here, {\normalfont \ttfamily \textless functionClassBase \textgreater} refers to the base class of the created {\normalfont \ttfamily functionClass} child.
+\begin{itemize}
+\item Return type: {\normalfont \ttfamily void}
+\item Interface: {\normalfont \ttfamily (destination)}\\
+  {\normalfont \ttfamily class(\textless functionClassBase\textgreater), intent(inout) :: destination}\\
+\end{itemize}
 
-\item[]{\normalfont \ttfamily void\ deepCopyReset()}  Reset deep copy pointers in this object and any objects that it uses. 
+\item[]{\normalfont \ttfamily deepCopyReset} Reset deep copy pointers in this object and any objects that it uses.
+\begin{itemize}
+\item Return type: {\normalfont \ttfamily void}
+\item Interface: {\normalfont \ttfamily ()}\\
+\end{itemize}
 
-\item[]{\normalfont \ttfamily void\ descriptor(\textcolor{red}{\textless type(inputParameters)\textgreater} descriptor\arginout,\textcolor{red}{\textless logical\textgreater} includeMethod\argin)}  Return an input parameter list descriptor which could be used to recreate this object. 
+\item[]{\normalfont \ttfamily descriptor} Return an input parameter list descriptor which could be used to recreate this object.
+\begin{itemize}
+\item Return type: {\normalfont \ttfamily void}
+\item Interface: {\normalfont \ttfamily (descriptor, includeMethod)}\\
+  {\normalfont \ttfamily type(inputParameters), intent(inout) :: descriptor}\\
+  {\normalfont \ttfamily logical, intent(in   ), optional :: includeMethod}\\
+\end{itemize}
 
-\item[]{\normalfont \ttfamily type(varying\_string)\ hashedDescriptor(\textcolor{red}{\textless logical\textgreater} includeSourceDigest\argin)}  Return a hash of the descriptor for this object, optionally include the source code digest in the hash. 
+\item[]{\normalfont \ttfamily hashedDescriptor} Return a hash of the descriptor for this object, optionally include the source code digest in the hash.
+\begin{itemize}
+\item Return type: {\normalfont \ttfamily type(varying\_string)}
+\item Interface: {\normalfont \ttfamily (descriptor, includeMethod)}\\
+  {\normalfont \ttfamily logical, intent(in   ), optional :: includeSourceDigest}\\
+\end{itemize}
 
-\item[]{\normalfont \ttfamily type(varying\_string)\ objectType()}  Return the type of the object. 
+\item[]{\normalfont \ttfamily objectType} Return the type of the object. 
+\begin{itemize}
+\item Return type: {\normalfont \ttfamily type(varying\_string)}
+\item Interface: {\normalfont \ttfamily ()}\\
+\end{itemize}
 
-\item[]{\normalfont \ttfamily void\ stateRestore(\textcolor{red}{\textless integer\textgreater} stateFile\argin,\textcolor{red}{\textless type(c\_ptr)\textgreater} gslStateFile\argin,\textcolor{red}{\textless integer(c\_size\_t)\textgreater} stateOperationID\argin)}  Restore the state of this object from file. 
+\item[]{\normalfont \ttfamily stateRestore} Restore the state of this object from file.
+\begin{itemize}
+\item Return type: {\normalfont \ttfamily void}
+\item Interface: {\normalfont \ttfamily (stateFile, gslFile, stateOperationID)}\\
+  {\normalfont \ttfamily integer, intent(in   ) :: stateFile}\\
+  {\normalfont \ttfamily type(c\_ptr), intent(in   ) :: gslStateFile}\\
+  {\normalfont \ttfamily integer(c\_size\_t), intent(in   ) :: stateOperationID}\\
+\end{itemize}
 
-\item[]{\normalfont \ttfamily void\ stateStore(\textcolor{red}{\textless integer\textgreater} stateFile\argin,\textcolor{red}{\textless type(c\_ptr)\textgreater} gslStateFile\argin,\textcolor{red}{\textless integer(c\_size\_t)\textgreater} stateOperationID\argin)}  Store the state of this object to file. 
+\item[]{\normalfont \ttfamily stateStore} Store the state of this object to file.
+\begin{itemize}
+\item Return type: {\normalfont \ttfamily void}
+\item Interface: {\normalfont \ttfamily (stateFile, gslFile, stateOperationID)}\\
+  {\normalfont \ttfamily integer, intent(in   ) :: stateFile}\\
+  {\normalfont \ttfamily type(c\_ptr), intent(in   ) :: gslStateFile}\\
+  {\normalfont \ttfamily integer(c\_size\_t), intent(in   ) :: stateOperationID}\\
+\end{itemize}
+
 \end{description}
  
 \input{dataMethods}
