@@ -79,15 +79,9 @@
      integer         (c_size_t               )                              :: iTime
      double precision                         , dimension(0:1)              :: hTime
    contains
-     !@ <objectMethods>
-     !@  <object>radiationFieldIntergalacticBackground</object>
-     !@  <objectMethod>
-     !@   <method>timeSet</method>
-     !@   <type>\void</type>
-     !@   <arguments>\doublezero\ time\argin</arguments>
-     !@   <description>Set the time for the radiation field.</description>
-     !@  </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the time for the radiation field." method="timeSet" />
+     !# </methods>
      final     ::            intergalacticBackgroundFileDestructor
      procedure :: flux    => intergalacticBackgroundFileFlux
      procedure :: timeSet => intergalacticBackgroundFileTimeSet

@@ -42,15 +42,9 @@
      class(virialDensityContrastClass                                    ), pointer :: virialDensityContrast_   => null()
      type (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer :: referenceDensityContrast => null()
     contains
-     !@ <objectMethods>
-     !@   <object>haloMassFunctionDespali2015</object>
-     !@   <objectMethod>
-     !@     <method>x</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $x$ in the \cite{despali_universality_2015} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the parameter $x$ in the \cite{despali_universality_2015} halo mass function fit." method="x" />
+     !# </methods>
      final     ::                  despali2015Destructor
      procedure :: x             => despali2015X
      procedure :: a             => despali2015A

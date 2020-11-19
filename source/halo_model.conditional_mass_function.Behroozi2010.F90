@@ -110,15 +110,9 @@
      type            (table1DLogarithmicLinear)               :: fMassTable
      class           (table1D                 ), allocatable  :: fMassHaloTable
    contains
-     !@ <objectMethods>
-     !@   <object>conditionalMassFunctionBehroozi2010</object>
-     !@   <objectMethod>
-     !@     <method>compute</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ massHalo\argin, \doublezero\ mass\argin, \doublezero\ numberCentrals\argout, \doublezero\ numberSatellites\argout</arguments>
-     !@     <description>Compute the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})$.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})$." method="compute" />
+     !# </methods>
      final     ::                         behroozi2010Destructor
      procedure :: massFunction         => behroozi2010MassFunction
      procedure :: massFunctionVariance => behroozi2010MassFunctionVariance

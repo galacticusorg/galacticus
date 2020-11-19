@@ -50,15 +50,9 @@
      double precision                                                                                       :: alphaDensityContrast            , timeParameters, &
           &                                                                                                    massParameters
    contains
-     !@ <objectMethods>
-     !@   <object>haloMassFunctionTinker2008</object>
-     !@   <objectMethod>
-     !@     <method>parametersEvaluate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Evaluate hyper-parameters needed for the fitting function.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Evaluate hyper-parameters needed for the fitting function." method="parametersEvaluate" />
+     !# </methods>
      final     ::                       tinker2008Destructor
      procedure :: normalization      => tinker2008Normalization
      procedure :: a                  => tinker2008A

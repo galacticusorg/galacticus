@@ -33,15 +33,9 @@
      double precision                , allocatable, dimension(:,:) :: SED
      type            (interpolator  )                              :: interpolatorLuminosity, interpolatorWavelength
    contains
-     !@ <objectMethods>
-     !@   <object>accretionDiskSpectraFile</object>
-     !@   <objectMethod>
-     !@     <method>loadFile</method>
-     !@     <type>void</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} fileName\argin</arguments>
-     !@     <description>Load a file of AGN spectra.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Load a file of AGN spectra." method="loadFile" />
+     !# </methods>
      final     ::                     fileDestructor
      procedure :: spectrumNode     => fileSpectrumNode
      procedure :: spectrumMassRate => fileSpectrumMassRate

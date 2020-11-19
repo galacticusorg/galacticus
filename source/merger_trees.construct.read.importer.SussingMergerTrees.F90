@@ -53,33 +53,12 @@
      integer                                                                  :: badValueTest
      double precision                                                         :: treeSampleRate
    contains
-     !@ <objectMethods>
-     !@   <object>mergerTreeImporterSussing</object>
-     !@   <objectMethod>
-     !@     <method>load</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>{\textcolor{red}{\textless integer(kind\_int8,:)\textgreater}}\ nodeSelfIndices\argout, {\textcolor{red}{\textless integer(c\_size\_t,:)\textgreater}}\ nodeIndexRanks\argout, {\textcolor{red}{\textless integer(c\_size\_t,:)\textgreater}}\ nodeDescendentLocations\argout, \logicalzero\ nodeIncomplete\argout,  {\textcolor{red}{\textless integer(c\_size\_t)\textgreater}}\ nodeCountTrees\argout, {\textcolor{red}{\textless integer(kind\_int8,:)\textgreater}}\ nodeTreeIndices\argout, \logicalzero\ treeIndicesAssigned\argout, \logicalzero\ branchJumpCheckRequired\argout, {\textcolor{red}{\textless type(importerUnits)\textgreater}}\ massUnits\argout, {\textcolor{red}{\textless type(importerUnits)\textgreater}}\ lengthUnits\argout, {\textcolor{red}{\textless type(importerUnits)\textgreater}}\ velocityUnits\argout</arguments>
-     !@     <description>Load the halo data.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>inSubvolume</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\doublezero\ x\argin, \doublezero\ y\argin, \doublezero\ z\argin, \logicalzero\ [buffered]\argin</arguments>
-     !@     <description>Return true if the given {\normalfont \ttfamily x,y,z} position lies within the current subvolume (plus the buffer region if {\normalfont \ttfamily buffered} is true.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>inSubvolume1D</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\doublezero\ x\argin, \intzero\ iSubvolume\argin, \logicalzero\ [buffered]\argin</arguments>
-     !@     <description>Return true if the given {\normalfont \ttfamily x} position lies within the {\normalfont \ttfamily iSubvolume}$^\mathrm{th}$ subvolume (plus the buffer region if {\normalfont \ttfamily buffered} is true.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>valueIsBad</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\doublezero\ x\argin</arguments>
-     !@     <description>Return true if the given {\normalfont \ttfamily x} value is bad.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Load the halo data." method="load" />
+     !#   <method description="Return true if the given {\normalfont \ttfamily x,y,z} position lies within the current subvolume (plus the buffer region if {\normalfont \ttfamily buffered} is true." method="inSubvolume" />
+     !#   <method description="Return true if the given {\normalfont \ttfamily x} position lies within the {\normalfont \ttfamily iSubvolume}$^\mathrm{th}$ subvolume (plus the buffer region if {\normalfont \ttfamily buffered} is true." method="inSubvolume1D" />
+     !#   <method description="Return true if the given {\normalfont \ttfamily x} value is bad." method="valueIsBad" />
+     !# </methods>
      final     ::                                  sussingDestructor
      procedure :: load                          => sussingLoad
      procedure :: close                         => sussingClose

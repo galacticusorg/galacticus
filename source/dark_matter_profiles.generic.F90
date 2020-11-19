@@ -37,130 +37,29 @@ module Dark_Matter_Profiles_Generic
      ! "USE" association are inaccessible to the child type
      ! (e.g. https://www.ibm.com/support/knowledgecenter/SSGH4D_15.1.3/com.ibm.xlf1513.aix.doc/language_ref/extensible.html).
      class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
-     !@ <objectMethods>
-     !@   <object>darkMatterProfileGeneric</object>
-     !@   <objectMethod>
-     !@     <method>enclosedMass</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout,\textcolor{red}{\textless double precision\textgreater} radius\argin</arguments>
-     !@     <description>Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>density</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout,\textcolor{red}{\textless double precision\textgreater} radius\argin</arguments>
-     !@     <description>Returns the density (in $M_\odot/$Mpc$^3$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>enclosedMassNumerical</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout,\textcolor{red}{\textless double precision\textgreater} radius\argin</arguments>
-     !@     <description>Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc) using a numerical calculation.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>enclosedMassDifferenceNumerical</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout, \textcolor{red}{\textless double precision\textgreater} radiusLower\argin, \textcolor{red}{\textless double precision\textgreater} radiusUpper\argin</arguments>
-     !@     <description>Returns the enclosed mass difference (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} between the given {\normalfont \ttfamily radiusLower} and {\normalfont \ttfamily radiusUpper} (given in units of Mpc) using a numerical calculation.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>potentialNumerical</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout,\textcolor{red}{\textless double precision\textgreater} radius\argin,\textcolor{red}{\textless integer\textgreater} status\argout</arguments>
-     !@     <description>Returns the gravitational potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc) using a numerical calculation.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>potentialDifferenceNumerical</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout, \textcolor{red}{\textless double precision\textgreater} radiusLower\argin, \textcolor{red}{\textless double precision\textgreater} radiusUpper\argin</arguments>
-     !@     <description>Returns the gravitational potential difference (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} between the given {\normalfont \ttfamily radiusLower} and {\normalfont \ttfamily radiusUpper} (given in units of Mpc) using a numerical calculation.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>circularVelocityNumerical</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout,\textcolor{red}{\textless double precision\textgreater} radius\\argin</arguments>
-     !@     <description>Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radialVelocityDispersionNumerical</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout,\textcolor{red}{\textless double precision\textgreater} radius\\argin</arguments>
-     !@     <description>Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radialMomentNumerical</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout, \doublezero\ moment\argin, \doublezero\ radiusMinimum\argin, \doublezero\ radiusMaximum\argin</arguments>
-     !@     <description>Returns the radial moment of the density in the dark matter profile of {\normalfont \ttfamily node} between the given {\normalfont \ttfamily radiusMinimum} and {\normalfont \ttfamily radiusMaximum} (given in units of Mpc).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>rotationNormalizationNumerical</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout</arguments>
-     !@     <description>Return the normalization of the rotation velocity vs. specific angular momentum relation.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>kSpaceNumerical</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout, \doublezero\ waveNumber\argin</arguments>
-     !@     <description>Returns the Fourier transform of the adiabaticGnedin2004 density profile at the specified {\normalfont \ttfamily waveNumber} (given in Mpc$^{-1}$).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>energyNumerical</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout</arguments>
-     !@     <description>Return the energy of the dark matter density profile.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>energyGrowthRateNumerical</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout</arguments>
-     !@     <description>Return the rate of growth of the energy of the dark matter density profile.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>freefallRadiusNumerical</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout,\textcolor{red}{\textless double precision\textgreater} time\argin</arguments>
-     !@     <description>Returns the freefall radius in the dark matter density profile at the specified {\normalfont \ttfamily time} (given in Gyr).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>freefallRadiusIncreaseRateNumerical</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout,\textcolor{red}{\textless double precision\textgreater} time\argin</arguments>
-     !@     <description>Returns the rate of increase of the freefall radius in the dark matter density profile at the specified {\normalfont \ttfamily time} (given in Gyr).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusEnclosingDensityNumerical</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout,\textcolor{red}{\textless double precision\textgreater} density\argin</arguments>
-     !@     <description>Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusEnclosingMassNumerical</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout,\textcolor{red}{\textless double precision\textgreater} mass\argin</arguments>
-     !@     <description>Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given {\normalfont \ttfamily mass} (given in units of $M_\odot$).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>circularVelocityMaximumNumerical</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout</arguments>
-     !@     <description>Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusFromSpecificAngularMomentumNumerical</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout,\textcolor{red}{\textless double precision\textgreater} specificAngularMomentum\argin</arguments>
-     !@     <description>Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given in units of km s$^{-1}$ Mpc).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>densityLogSlopeNumerical</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout,\textcolor{red}{\textless double precision\textgreater} radius\argin</arguments>
-     !@     <description>Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
-   contains
+   contains 
+     !# <methods>
+     !#   <method description="Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc)." method="enclosedMass" />
+     !#   <method description="Returns the density (in $M_\odot/$Mpc$^3$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc)." method="density" />
+     !#   <method description="Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc) using a numerical calculation." method="enclosedMassNumerical" />
+     !#   <method description="Returns the enclosed mass difference (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} between the given {\normalfont \ttfamily radiusLower} and {\normalfont \ttfamily radiusUpper} (given in units of Mpc) using a numerical calculation." method="enclosedMassDifferenceNumerical" />
+     !#   <method description="Returns the gravitational potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc) using a numerical calculation." method="potentialNumerical" />
+     !#   <method description="Returns the gravitational potential difference (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} between the given {\normalfont \ttfamily radiusLower} and {\normalfont \ttfamily radiusUpper} (given in units of Mpc) using a numerical calculation." method="potentialDifferenceNumerical" />
+     !#   <method description="Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc)." method="circularVelocityNumerical" />
+     !#   <method description="Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc)." method="radialVelocityDispersionNumerical" />
+     !#   <method description="Returns the radial moment of the density in the dark matter profile of {\normalfont \ttfamily node} between the given {\normalfont \ttfamily radiusMinimum} and {\normalfont \ttfamily radiusMaximum} (given in units of Mpc)." method="radialMomentNumerical" />
+     !#   <method description="Return the normalization of the rotation velocity vs. specific angular momentum relation." method="rotationNormalizationNumerical" />
+     !#   <method description="Returns the Fourier transform of the adiabaticGnedin2004 density profile at the specified {\normalfont \ttfamily waveNumber} (given in Mpc$^{-1}$)." method="kSpaceNumerical" />
+     !#   <method description="Return the energy of the dark matter density profile." method="energyNumerical" />
+     !#   <method description="Return the rate of growth of the energy of the dark matter density profile." method="energyGrowthRateNumerical" />
+     !#   <method description="Returns the freefall radius in the dark matter density profile at the specified {\normalfont \ttfamily time} (given in Gyr)." method="freefallRadiusNumerical" />
+     !#   <method description="Returns the rate of increase of the freefall radius in the dark matter density profile at the specified {\normalfont \ttfamily time} (given in Gyr)." method="freefallRadiusIncreaseRateNumerical" />
+     !#   <method description="Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$)." method="radiusEnclosingDensityNumerical" />
+     !#   <method description="Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given {\normalfont \ttfamily mass} (given in units of $M_\odot$)." method="radiusEnclosingMassNumerical" />
+     !#   <method description="Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}." method="circularVelocityMaximumNumerical" />
+     !#   <method description="Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given in units of km s$^{-1}$ Mpc)." method="radiusFromSpecificAngularMomentumNumerical" />
+     !#   <method description="Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc)." method="densityLogSlopeNumerical" />
+     !# </methods>
      procedure(genericDensityInterface     ), deferred :: density
      procedure(genericEnclosedMassNumerical), deferred :: enclosedMass
      procedure                                         :: enclosedMassNumerical                      => genericEnclosedMassNumerical

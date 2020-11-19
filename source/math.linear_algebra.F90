@@ -34,45 +34,14 @@ module Linear_Algebra
      type   (c_ptr   ), allocatable :: vector_
      integer(c_size_t)              :: size_
    contains
-     !@ <objectMethods>
-     !@   <object>vector</object>
-     !@   <objectMethod>
-     !@     <method>magnitude</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@     <description>Compute the magnitude of a vector.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>dotProduct</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless class(vector)\textgreater} vector1\argin, \textcolor{red}{\textless class(vector)\textgreater} vector2\argin</arguments>
-     !@     <description>Compute {\normalfont \ttfamily vector1} $\cdot$ {\normalfont \ttfamily vector2}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>subtract</method>
-     !@     <type>\textcolor{red}{\textless type(vector)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless class(vector)\textgreater} vector1\argin, \textcolor{red}{\textless class(vector)\textgreater} vector2\argin</arguments>
-     !@     <description>Compute {\normalfont \ttfamily vector1}-{\normalfont \ttfamily vector2}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>add</method>
-     !@     <type>\textcolor{red}{\textless type(vector)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless class(vector)\textgreater} vector1\argin, \textcolor{red}{\textless class(vector)\textgreater} vector2\argin</arguments>
-     !@     <description>Compute {\normalfont \ttfamily vector1}+{\normalfont \ttfamily vector2}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>crossProduct</method>
-     !@     <type>\textcolor{red}{\textless type(vector)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless class(vector)\textgreater} vector1\argin, \textcolor{red}{\textless class(vector)\textgreater} vector2\argin</arguments>
-     !@     <description>Compute {\normalfont \ttfamily vector1} $\times$ {\normalfont \ttfamily vector2}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>gslObject</method>
-     !@     <type>\textcolor{red}{\textless type(c\_ptr)\textgreater}</type>
-     !@     <arguments></arguments>
-     !@     <description>Return a C pointer to the GSL vector object.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute the magnitude of a vector." method="magnitude" />
+     !#   <method description="Compute {\normalfont \ttfamily vector1} $\cdot$ {\normalfont \ttfamily vector2}." method="operator(.dot.)" />
+     !#   <method description="Compute {\normalfont \ttfamily vector1}-{\normalfont \ttfamily vector2}." method="operator(-)" />
+     !#   <method description="Compute {\normalfont \ttfamily vector1}+{\normalfont \ttfamily vector2}." method="operator(+)" />
+     !#   <method description="Compute {\normalfont \ttfamily vector1} $\times$ {\normalfont \ttfamily vector2}." method="operator(.cross.)" />
+     !#   <method description="Return a C pointer to the GSL vector object." method="gslObject" />
+     !# </methods>
      final     ::                        vectorDestructorRank0, vectorDestructorRank1
      procedure :: magnitude           => vectorMagnitude
      procedure ::                        vectorDotProduct
@@ -100,63 +69,18 @@ module Linear_Algebra
      integer(c_size_t), dimension(2) :: size_
      logical                         :: isSquare
    contains
-     !@ <objectMethods>
-     !@   <object>matrix</object>
-     !@   <objectMethod>
-     !@     <method>determinant</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@     <description>Compute and return the determinant of the matrix.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>logarithmicDeterminant</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@     <description>Compute and return the logarithm of the determinant of the matrix.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>signDeterminant</method>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Compute and return the sign of the determinant of the matrix.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>inverse</method>
-     !@     <type>\textcolor{red}{\textless type(matrix) \textgreater}</type>
-     !@     <arguments></arguments>
-     !@     <description>Compute and return the matrix inverse.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>transpose</method>
-     !@     <type>\textcolor{red}{\textless type(matrix)\textgreater}</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the transpose of a matrix.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>covarianceProduct</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(vector)\textgreater} y\argin</arguments>
-     !@     <description>Compute $y C^{-1} y^\mathrm{T}$ as appears in likelihood functions utilizing covariance matrices.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>linearSystemSolve</method>
-     !@     <type>\textcolor{red}{\textless type(vector)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless type(vector) y\argin \textgreater}</arguments>
-     !@     <description>Solve the linear system $y = A \cdot x$ where $A$ is ourself and $y$ is the specified vector.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>eigenSystem</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(matrix)\textgreater} eigenVectors\argout, \textcolor{red}{\textless type(vector)\textgreater} eigenValues\argout</arguments>
-     !@     <description>Compute eigenvectors and eigenvalues of the matrix.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>choleskyDecomposition</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Compute the Cholesky decomposition of the matrix in place.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute the product of two matrices." method="operator(*)" />
+     !#   <method description="Compute and return the determinant of the matrix." method="determinant" />
+     !#   <method description="Compute and return the logarithm of the determinant of the matrix." method="logarithmicDeterminant" />
+     !#   <method description="Compute and return the sign of the determinant of the matrix." method="signDeterminant" />
+     !#   <method description="Compute and return the matrix inverse." method="inverse" />
+     !#   <method description="Return the transpose of a matrix." method="transpose" />
+     !#   <method description="Compute $y C^{-1} y^\mathrm{T}$ as appears in likelihood functions utilizing covariance matrices." method="covarianceProduct" />
+     !#   <method description="Solve the linear system $y = A \cdot x$ where $A$ is ourself and $y$ is the specified vector." method="linearSystemSolve" />
+     !#   <method description="Compute eigenvectors and eigenvalues of the matrix." method="eigenSystem" />
+     !#   <method description="Compute the Cholesky decomposition of the matrix in place." method="choleskyDecomposition" />
+     !# </methods>
      final     ::                           matrixDestructorRank0       , matrixDestructorRank1
      procedure ::                           matrixMatrixProduct
      generic   :: operator(*)            => matrixMatrixProduct
@@ -184,15 +108,9 @@ module Linear_Algebra
      type   (c_ptr), allocatable :: permutation
      integer(c_int)              :: decompositionSign
    contains
-     !@ <objectMethods>
-     !@   <object>matrixLU</object>
-     !@   <objectMethod>
-     !@     <method>squareSystemSolve</method>
-     !@     <type>\textcolor{red}{\textless type(vector)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless type(vector) y\argin \textgreater}</arguments>
-     !@     <description>Solve the linear system $y = A \cdot x$ where $A$ is ourself and $y$ is the specified vector.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Solve the linear system $y = A \cdot x$ where $A$ is ourself and $y$ is the specified vector." method="squareSystemSolve" />
+     !# </methods>
      final     ::                      matrixLUDestructorRank0  , matrixLUDestructorRank1
      procedure :: squareSystemSolve => matrixLUSquareSystemSolve
   end type matrixLU

@@ -52,15 +52,9 @@
      type            (interpolator                        )          :: interpolatorA
      logical                                                         :: propagateOrbits
    contains
-     !@ <objectMethods>
-     !@   <object>virialOrbitLi2020</object>
-     !@   <objectMethod>
-     !@     <method>eta</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} nodeHost \arginout, \doublezero\ massSatellite\argin, \doublezero\ massHost\argin, \doublezero\ velocityTotalInternal\argin</arguments>
-     !@     <description>Evaluate the $\eta$ parameter of the \cite{li_orbital_2020} virial orbit distribution function.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Evaluate the $\eta$ parameter of the \cite{li_orbital_2020} virial orbit distribution function." method="eta" />
+     !# </methods>
      final     ::                                    li2020Destructor
      procedure :: orbit                           => li2020Orbit
      procedure :: densityContrastDefinition       => li2020DensityContrastDefinition

@@ -31,27 +31,11 @@
      double precision        , allocatable, dimension(:,:) :: angularPowerSpectra
      type            (window)                              :: mangleWindow
    contains
-     !@ <objectMethods>
-     !@   <object>surveyGeometryMangle</object>
-     !@   <objectMethod>
-     !@     <method>mangleDirectory</method>
-     !@     <type>\textcolor{red}{\textless type(varying\_string) \textgreater}</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the directory containing \gls{mangle} files for this survey geometry.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>mangleFiles</method>
-     !@     <type>\textcolor{red}{\textless type(varying\_string)(:) \textgreater}</type>
-     !@     <arguments></arguments>
-     !@     <description>Return array of \gls{mangle} filenames for this survey geometry.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Initialize an instance of the \gls{mangle} survey geometry class.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the directory containing \gls{mangle} files for this survey geometry." method="mangleDirectory" />
+     !#   <method description="Return array of \gls{mangle} filenames for this survey geometry." method="mangleFiles" />
+     !#   <method description="Initialize an instance of the \gls{mangle} survey geometry class." method="initialize" />
+     !# </methods>
      procedure                                  :: windowFunctionAvailable => mangleWindowFunctionAvailable
      procedure                                  :: angularPowerAvailable   => mangleAngularPowerAvailable
      procedure                                  :: solidAngle              => mangleSolidAngle

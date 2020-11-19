@@ -67,15 +67,9 @@
      double precision                                              , allocatable, dimension(:,:) :: densityHydrogen                                   , densityHelium  , &
           &                                                                                         massFilteringComposite
    contains
-     !@ <objectMethods>
-     !@   <object>universeOperatorIntergalacticMediumStateEvolve</object>
-     !@   <objectMethod>
-     !@     <method>stateSet</method>
-     !@     <type>void</type>
-     !@     <arguments>\textcolor{red}{\textless integer(c\_size\_t) \textgreater} iNow\argin</arguments>
-     !@     <description>Set the state of the IGM state class up to the given time index.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the state of the IGM state class up to the given time index." method="stateSet" />
+     !# </methods>
      final     ::             intergalacticMediumStateEvolveDestructor
      procedure :: operate  => intergalacticMediumStateEvolveOperate
      procedure :: stateSet => intergalacticMediumStateEvolveStateSet

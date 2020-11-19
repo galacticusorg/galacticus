@@ -347,21 +347,10 @@ CODE
 	}
 	# Insert type-bindings.
 	my $content = fill_in_string(<<'CODE', PACKAGE => 'code');
-    !@  <objectMethods>
-    !@   <object>{$className}</object>
-    !@   <objectMethod>
-    !@     <method>stateStore</method>
-    !@     <type>void</type>
-    !@     <arguments>\textcolor\{red\}\{\textless integer\textgreater\} stateFile\argin,\textcolor\{red\}\{\textless type(gsl\_file)\textgreater\} gslStateFile\argin,\textcolor\{red\}\{\textless integer\textgreater\} stateOperationID\argin</arguments>
-    !@     <description>Store the state of this object to file.</description>
-    !@   </objectMethod>
-    !@   <objectMethod>
-    !@     <method>stateRestore</method>
-    !@     <type>void</type>
-    !@     <arguments>\textcolor\{red\}\{\textless integer\textgreater\} stateFile\argin,\textcolor\{red\}\{\textless type(gsl\_file)\textgreater\} gslStateFile\argin,\textcolor\{red\}\{\textless integer\textgreater\} stateOperationID\argin</arguments>
-    !@     <description>Restore the state of this object from file.</description>
-    !@   </objectMethod>
-    !@  </objectMethods>
+    !#  <methods>
+    !#   <method method="stateStore"   description="Store the state of this object to file."    />
+    !#   <method method="stateRestore" description="Restore the state of this object from file."/>
+    !#  </methods>
     procedure :: stateStore   => {$className}StateStore
     procedure :: stateRestore => {$className}StateRestore
 CODE

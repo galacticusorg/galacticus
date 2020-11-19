@@ -39,15 +39,9 @@
      logical                                            :: wavenumberMaximumReached
      integer                                            :: cambCountPerDecade
    contains
-     !@ <objectMethods>
-     !@   <object>transferFunctionCAMB</object>
-     !@   <objectMethod>
-     !@     <method>checkRange</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero wavenumber\argin</arguments>
-     !@     <description>Check that the provided wavenumber is within the tabulated range of the transfer function.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Check that the provided wavenumber is within the tabulated range of the transfer function." method="checkRange" />
+     !# </methods>
      final     ::                          cambDestructor
      procedure :: checkRange            => cambCheckRange
      procedure :: value                 => cambValue

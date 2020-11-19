@@ -45,51 +45,15 @@
      type            (table1DLogarithmicLinear     )          :: table
      type            (varying_string               )          :: fileName
    contains
-     !@ <objectMethods>
-     !@   <object>intergalacticMediumFilteringMassGnedin2000</object>
-     !@   <objectMethod>
-     !@     <method>tabulate</method>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <type>\void</type>
-     !@     <description>Tabulate the filtering mass to encompass at least the given {\normalfont \ttfamily time}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>conditionsInitialODEs</method>
-     !@     <arguments>\doublezero\ time\argin, \doubleone\ massFilteringODEs\argout, \doubleone\ [massFilteringScales]\argout</arguments>
-     !@     <type>\void</type>
-     !@     <description>Set the initial conditions for the ODE system.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>coefficientsEarlyEpoch</method>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <type>\doubleone</type>
-     !@     <description>Return coefficients for the early-epoch fitting function to the filtering mass.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>massFilteringEarlyEpoch</method>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <type>\doublezero</type>
-     !@     <description>Return the early-epoch solution for the filtering mass.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>fileWrite</method>
-     !@     <type>\void</type>
-     !@     <description>Store the tabulate filtering mass to file.</description>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>fileRead</method>
-     !@     <type>\void</type>
-     !@     <description>Restore the tabulate filtering mass from file.</description>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>remakeTable</method>
-     !@     <type>\logicalzero</type>
-     !@     <description>Return true if the table must be remade.</description>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulate the filtering mass to encompass at least the given {\normalfont \ttfamily time}." method="tabulate" />
+     !#   <method description="Set the initial conditions for the ODE system." method="conditionsInitialODEs" />
+     !#   <method description="Return coefficients for the early-epoch fitting function to the filtering mass." method="coefficientsEarlyEpoch" />
+     !#   <method description="Return the early-epoch solution for the filtering mass." method="massFilteringEarlyEpoch" />
+     !#   <method description="Store the tabulate filtering mass to file." method="fileWrite" />
+     !#   <method description="Restore the tabulate filtering mass from file." method="fileRead" />
+     !#   <method description="Return true if the table must be remade." method="remakeTable" />
+     !# </methods>
      final     ::                                gnedin2000Destructor
      procedure :: massFiltering               => gnedin2000MassFiltering
      procedure :: massFilteringRateOfChange   => gnedin2000MassFilteringRateOfChange

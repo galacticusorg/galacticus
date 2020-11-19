@@ -37,15 +37,9 @@
      private
      logical :: initialized
    contains
-     !@ <objectMethods>
-     !@   <object>chemicalStateAtomicCIECloudy</object>
-     !@   <objectMethod>
-     !@     <method>tabulate</method>
-     !@     <type>void</type>
-     !@     <arguments>\textcolor{red}{\textless type(abundances)\textgreater} gasAbunances\argin</arguments>
-     !@     <description>Run {\normalfont \scshape Cloudy} to tabulate chemical state as necessary.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Run {\normalfont \scshape Cloudy} to tabulate chemical state as necessary." method="tabulate" />
+     !# </methods>
      final     ::                                       atomicCIECloudyDestructor
      procedure :: tabulate                           => atomicCIECloudyTabulate
      procedure :: electronDensity                    => atomicCIECloudyElectronDensity

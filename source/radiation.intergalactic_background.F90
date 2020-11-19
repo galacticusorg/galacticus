@@ -28,15 +28,9 @@
      !% A radiation field class for intergalactic background light.
      private
    contains
-     !@ <objectMethods>
-     !@  <object>radiationFieldIntergalacticBackground</object>
-     !@  <objectMethod>
-     !@   <method>timeSet</method>
-     !@   <type>\void</type>
-     !@   <arguments>\doublezero\ time\argin</arguments>
-     !@   <description>Set the time for the intergalactic background radiation field.</description>
-     !@  </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the time for the intergalactic background radiation field." method="timeSet" />
+     !# </methods>
      procedure(intergalacticBackgroundTimeSet), deferred :: timeSet
   end type radiationFieldIntergalacticBackground
 

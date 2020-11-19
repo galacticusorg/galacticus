@@ -130,39 +130,13 @@
           &                                count
      integer, allocatable, dimension(:) :: indices
    contains
-     !@ <objectMethods>
-     !@   <object>polynomialIterator</object>
-     !@   <objectMethod>
-     !@     <method>reset</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Reset the iterator object to the start of its sequence.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>iterate</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Move to the next iteration of polynomial coefficient indices. Returns true if successful. If no more iterations are available, returns false.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>index</method>
-     !@     <type>\intone</type>
-     !@     <arguments>\intone\ i\argin</arguments>
-     !@     <description>Return the $i^\mathrm{th}$ index of the polynomial coefficient.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>currentOrder</method>
-     !@     <type>\intone</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the current order of the polynomial coefficient.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>counter</method>
-     !@     <type>\intone</type>
-     !@     <arguments></arguments>
-     !@     <description>Return an incremental counter (i.e. begins at $0$ and increases by $1$ on each iteration).</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset the iterator object to the start of its sequence." method="reset" />
+     !#   <method description="Move to the next iteration of polynomial coefficient indices. Returns true if successful. If no more iterations are available, returns false." method="iterate" />
+     !#   <method description="Return the $i^\mathrm{th}$ index of the polynomial coefficient." method="index" />
+     !#   <method description="Return the current order of the polynomial coefficient." method="currentOrder" />
+     !#   <method description="Return an incremental counter (i.e. begins at $0$ and increases by $1$ on each iteration)." method="counter" />
+     !# </methods>
      procedure :: index        => polynomialIteratorIndex
      procedure :: currentOrder => polynomialIteratorCurrentOrder
      procedure :: counter      => polynomialIteratorCounter

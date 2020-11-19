@@ -52,15 +52,9 @@
           &                                                 radiusTidalPrevious
      integer         (kind_int8               )          :: lastUniqueID
    contains
-     !@ <objectMethods>
-     !@   <object>satelliteTidalStrippingZentner2005</object>
-     !@   <objectMethod>
-     !@     <method>calculationReset</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
-     !@     <description>Reset memoized calculations.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset memoized calculations." method="calculationReset" />
+     !# </methods>
      final     ::                     zentner2005Destructor
      procedure :: autoHook         => zentner2005AutoHook
      procedure :: calculationReset => zentner2005CalculationReset

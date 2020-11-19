@@ -222,55 +222,12 @@ sub boundFunctionTable {
 	}
 	if ( defined($descriptionText) ) {
 	    ++$methodCount;
-	    $description .= "     !@  <objectMethod>\n     !@   <method>".$_->{'name'}."</method>\n     !@   <description>".$descriptionText."</description>\n";
-	    if ( exists($_->{'descriptor'}) ) {
-		# Build type and argument descriptions directly from the function descriptor.
-		my $returnType;	
-		if ( $_->{'descriptor'}->{'type'} =~ m/^([a-zA-Z0-9_\(\)\s]+)\s+=>\s+([a-zA-Z0-9_]+)/ ) {
-		    $returnType = latex_encode($1);
-		} else {
-		    $returnType = $_->{'descriptor'}->{'type'};
-		}
-		my @arguments;
-		if ( exists($_->{'descriptor'}->{'variables'}) ) {
-		    foreach my $declaration ( @{$_->{'descriptor'}->{'variables'}} ) {
-			my $intent = join(" ",map {$_ =~ m/intent\(\s*((in|out)+)\s*\)/ ? $1 : ()} @{$declaration->{'attributes'}});
-			if ( $intent ne "" ) {
-			    my $type = $declaration->{'intrinsic'};
-			    $type .= "(".$declaration->{'type'}.")"
-				if ( exists($declaration->{'type'}) );
-			    $type = "*".$type
-				if ( grep {$_ eq "pointer"} @{$declaration->{'attributes'}} );
-			    my $dimension = join(",",map {$_ =~ m/dimension\(\s*(.*)\s*\)/ ? $1 : ()} @{$declaration->{'attributes'}});
-			    $type .= "[".$dimension."]"
-				unless ( $dimension eq "" );
-			    my $optional =  grep {$_ eq "optional"} @{$declaration->{'attributes'}};
-			    foreach ( @{$declaration->{'variables'}} ) {
-				push(
-				    @arguments,
-				    "\\textcolor{red}{\\textless ".latex_encode($type)."\\textgreater} ".($optional ? "[" : "").$_.($optional ? "]" : "")."\\arg".$intent
-				    )
-				    unless ( $_ eq "self" );
-			    }
-			}
-		    }
-		}
-		$description .= "     !@    <type>\\textcolor{red}{\\textless ".$returnType."\\textgreater}</type>\n";
-		$description .= "     !@    <arguments>".join(", ",@arguments)."</arguments>\n";
-	    } else {
-		# Build type and arguments from those directly supplied.
-		$description .= "     !@    <type>".$_->{'returnType'}."</type>\n"
-		    if ( exists($_->{'returnType'}) );
-		$description .= "     !@    <arguments>".$_->{'arguments'}."</arguments>\n"
-		    if ( exists($_->{'arguments'}) );
-	    }
-	    $description .= "     !@  </objectMethod>\n";
+	    my $methodName = (exists($_->{'descriptor'}) && exists($_->{'descriptor'}->{'methodName'})) ? $_->{'descriptor'}->{'methodName'} : $_->{'name'};
+	    $description .= "     !#  <method method=\"".$methodName."\" description=\"".$descriptionText."\"/>\n";
 	}
     }
-    if ( $methodCount == 1 ) {
-	$description =~ s/(\!\@\s+\<method\>)/!@   <object>$objectName<\/object>\n     $1/;
-    } elsif ( $methodCount > 1 ) {
-	$description = "     !@ <objectMethods>\n     !@  <object>".$objectName."</object>\n".$description."     !@ </objectMethods>\n";
+    if ( $methodCount >= 1 ) {
+	$description = "     !# <methods>\n".$description."     !# </methods>\n";
     }
     # Construct final product.
     my $product = "";

@@ -41,38 +41,17 @@ module Merger_Tree_Read_Importers
      double precision :: unitsInSI
      integer          :: hubbleExponent, scaleFactorExponent
    contains
-     !@ <objectMethods>
-     !@   <object>importerUnits</object>
-     !@   <objectMethod>
-     !@     <method>multiply</method>
-     !@     <type>\textcolor{red}{\textless type(importerUnits)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless type(importerUnits)\textgreater} units2\argin</arguments>
-     !@     <description>Multiply by another {\normalfont \ttfamily importerUnits} object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>exponentiate</method>
-     !@     <type>\textcolor{red}{\textless type(importerUnits)\textgreater}</type>
-     !@     <arguments>\intzero exponent\argin</arguments>
-     !@     <description>Raise to the given integer power.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>areEqual</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\textcolor{red}{\textless type(importerUnits)\textgreater} units2\argin</arguments>
-     !@     <description>Return true if the provided units are equal.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>areNotEqual</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\textcolor{red}{\textless type(importerUnits)\textgreater} units2\argin</arguments>
-     !@     <description>Return true if the provided units are not equal.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Multiply by another {\normalfont \ttfamily importerUnits} object." method="operator(*)" />
+     !#   <method description="Raise to the given integer power."                                 method="operator(**)"/>
+     !#   <method description="Return true if the provided units are equal."                      method="operator(==)"/>
+     !#   <method description="Return true if the provided units are not equal."                  method="operator(/=)"/>
+     !# </methods>
      procedure :: multiply     => importerUnitsMultiply
      procedure :: exponentiate => importerUnitsExponentiate
      procedure :: areEqual     => importerUnitsAreEqual
      procedure :: areNotEqual  => importerUnitsAreNotEqual
-     generic   :: operator(* ) => multiply
+     generic   :: operator(*)  => multiply
      generic   :: operator(**) => exponentiate
      generic   :: operator(==) => areEqual
      generic   :: operator(/=) => areNotEqual

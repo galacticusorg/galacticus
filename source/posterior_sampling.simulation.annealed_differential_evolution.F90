@@ -44,21 +44,9 @@
      double precision                            :: temperatureMaximum
      double precision, allocatable, dimension(:) :: temperatures
    contains
-     !@ <objectMethods>
-     !@   <object>posteriorSampleSimulationAnnealedDffrntlEvltn</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ temperatureLevelCount\argin, \doublezero\ temperatureMaximum</arguments>
-     !@     <description>Initialize the object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>level</method>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the current tempering level.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Initialize the object." method="initialize" />
+     !# </methods>
      procedure :: acceptProposal => annealedDifferentialEvolutionAcceptProposal
      procedure :: update         => annealedDifferentialEvolutionUpdate
      procedure :: temperature    => annealedDifferentialEvolutionTemperature

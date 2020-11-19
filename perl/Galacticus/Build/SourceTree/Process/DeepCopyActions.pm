@@ -121,61 +121,20 @@ end subroutine {$className}DeepCopyActions
 CODE
 	# Insert type-bindings.
 	my $content = fill_in_string(<<'CODE', PACKAGE => 'code');
-    !@  <objectMethods>
-    !@   <object>{$className}</object>
-    !@   <objectMethod>
-    !@     <method>deepCopyActions</method>
-    !@     <type>void</type>
-    !@     <arguments></arguments>
-    !@     <description>Perform actions needed for deep copy of this object.</description>
-    !@   </objectMethod>
-    !@  </objectMethods>
+    !# <methods>
+    !#  <method method="deepCopyActions" description="Perform actions needed for deep copy of this object."/>
+    !# </methods>
     procedure :: deepCopyActions => {$className}DeepCopyActions
 CODE
-	my $binding =
-	    [
-	     {
-		 type       => "code" ,
-		 content    => $content,
-		 firstChild => undef(),
-		 sibling    => undef()
-	     }
-	    ];
-	&Galacticus::Build::SourceTree::InsertPostContains($classes{$directive->{'class'}}->{'node'},$binding);
+	my $treeContent = &Galacticus::Build::SourceTree::ParseCode($content,'null');
+	my @childrenContent = &Galacticus::Build::SourceTree::Children($treeContent);
+	&Galacticus::Build::SourceTree::InsertPostContains($classes{$directive->{'class'}}->{'node'},\@childrenContent);
 
 	# Insert code.
-	my $treeTmp = &Galacticus::Build::SourceTree::ParseCode($deepCopyAction,'null');
-	&Galacticus::Build::SourceTree::ProcessTree($treeTmp);
-	my $postContains =
-	    [
-	     {
-		 type       => "code" ,
-		 content    => &Galacticus::Build::SourceTree::Serialize($treeTmp),
-		 firstChild => undef(),
-		 sibling    => undef(),
-		 parent     => undef(),
-		 source     => "Galacticus::Build::SourceTree::Process::DeepCopyActions::Process_DeepCopyActions()",
-		 line       => 1
-	     }
-	    ];
-	&Galacticus::Build::SourceTree::InsertPostContains($directiveNode->{'parent'},$postContains);
-
-	# If the parent node is a file, then this must be a functionClass instance which will be built into a submodule. In this
-	# case we must provide our own interface to the deepCopyActions function.
-	if ( $directiveNode->{'parent'}->{'type'} eq "file" ) {
-	    my $interface = fill_in_string(<<'CODE', PACKAGE => 'code');
-interface
-   module subroutine {$className}DeepCopyActions(self)
-      class({$className}), intent(inout) :: self
-   end subroutine {$className}DeepCopyActions
-end interface
-CODE
-	my $treeTmp = &Galacticus::Build::SourceTree::ParseCode($interface,'null');
-	&Galacticus::Build::SourceTree::ProcessTree($treeTmp);
-	my $preContains = [ $treeTmp->{'firstChild'} ];
-	&Galacticus::Build::SourceTree::InsertPreContains($directiveNode->{'parent'},$preContains);
-	}
-
+	my $treeDeepCopyActions = &Galacticus::Build::SourceTree::ParseCode($deepCopyAction,'null');
+	&Galacticus::Build::SourceTree::ProcessTree($treeDeepCopyActions);
+	my @childrenDeepCopyActions = &Galacticus::Build::SourceTree::Children($treeDeepCopyActions);
+	&Galacticus::Build::SourceTree::InsertPostContains($directiveNode->{'parent'},\@childrenDeepCopyActions);
 
     }
 }

@@ -9,6 +9,7 @@ use Data::Dumper;
 use Scalar::Util qw(reftype);
 use Fortran::Utils;
 use File::Slurp;
+use Sort::Topological qw(toposort);
 use Galacticus::Build::SourceTree::Hooks;
 use Galacticus::Build::SourceTree::Parse::Directives;
 use Galacticus::Build::SourceTree::Parse::Visibilities;
@@ -35,6 +36,7 @@ use Galacticus::Build::SourceTree::Process::HDF5FCInterop;
 use Galacticus::Build::SourceTree::Process::Constructors;
 use Galacticus::Build::SourceTree::Process::ConditionalCall;
 use Galacticus::Build::SourceTree::Process::EventHooks;
+use Galacticus::Build::SourceTree::Process::ClassDocumentation;
 use Galacticus::Build::SourceTree::Analyze::UseDuplication;
 
 sub ParseFile {    
@@ -131,9 +133,19 @@ sub ProcessTree {
     # Get the tree.
     my $tree      = shift();
     my (%options) = @_;
+    # Get a list of all defined processors.
+    my @processors = sort(keys(%Galacticus::Build::SourceTree::Hooks::processHooks));
+    # Perform a topological sort to enforce dependencies.
+    my %dependencies;
+    foreach my $processor ( keys(%Galacticus::Build::SourceTree::Hooks::processDependencies) ) {
+	foreach my $dependent ( @{$Galacticus::Build::SourceTree::Hooks::processDependencies{$processor}} ) {
+	    push(@{$dependencies{$dependent}},$processor);
+	}
+    }
+    my @processorsOrdered = toposort(sub { @{$dependencies{$_[0]} || []}; }, \@processors );
     # Run all defined processors on the tree.
     &{$Galacticus::Build::SourceTree::Hooks::processHooks{$_}}($tree,\%options)
-	foreach ( sort(keys(%Galacticus::Build::SourceTree::Hooks::processHooks)) );
+	foreach ( @processorsOrdered );
     return $tree;
 }
 

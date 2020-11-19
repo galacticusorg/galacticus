@@ -51,15 +51,9 @@
           &                                                          velocityTangentialMean_          , velocityTotalRootMeanSquared_
      type            (table1DLinearLinear       ), dimension(3,3) :: voightDistributions
    contains
-     !@ <objectMethods>
-     !@   <object>virialOrbitJiang2014</object>
-     !@   <objectMethod>
-     !@     <method>parametersSelect</method>
-     !@     <arguments>\doublezero\ massHost\argin, \doublezero\ massSatellite\argin, \intzero\ i\argout, \intzero\ j\argout</arguments>
-     !@     <type>\void</type>
-     !@     <description>Select the parameter set to use for this satellite/host pairing.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Select the parameter set to use for this satellite/host pairing." method="parametersSelect" />
+     !# </methods>
      final     ::                                    jiang2014Destructor
      procedure :: orbit                           => jiang2014Orbit
      procedure :: densityContrastDefinition       => jiang2014DensityContrastDefinition

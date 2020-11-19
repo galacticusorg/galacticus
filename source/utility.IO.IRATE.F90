@@ -33,45 +33,16 @@ module IO_IRATE
      class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
      class(cosmologyParametersClass), pointer :: cosmologyParameters_
    contains
-     !@ <objectMethods>
-     !@   <object>irate</object>
-     !@   <objectMethod>
-     !@     <method>readHalos</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ snapshot\argin, \doublezero\ [redshift]\argout, \doubletwo\ [center]\argout, \doubletwo\ [velocity]\argout, \doubleone\ [mass]\argout</arguments>
-     !@     <description>Read a snapshot from the \gls{irate} format file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>readSimulation</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ [boxSize]\argout</arguments>
-     !@     <description>Read the requested properties of the simulation from an \gls{irate} format file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>writeSimulation</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ [boxSize]\argin</arguments>
-     !@     <description>Write the requested properties of the simulation from an \gls{irate} format file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>copySimulation</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(irate)\textgreater} targetFile\arginout</arguments>
-     !@     <description>Copy ``{\normalfont \ttfamily SimulationProperties}'' group from one \gls{irate} file to another.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>copyCosmology</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(irate)\textgreater} targetFile\arginout</arguments>
-     !@     <description>Copy ``{\normalfont \ttfamily Cosmology}'' group from one \gls{irate} file to another.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>writeHalos</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ snapshot\argin, \doublezero\ redshift\argin, \doubletwo\ [center]\argin, \doubletwo\ [velocity]\argin, \doubleone\ [mass]\argin</arguments>
-     !@     <description></description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Read a snapshot from the \gls{irate} format file." method="readHalos" />
+     !#   <method description="Read the requested properties of the simulation from an \gls{irate} format file." method="readSimulation" />
+     !#   <method description="Write the requested properties of the simulation from an \gls{irate} format file." method="writeSimulation" />
+     !#   <method description="Copy ``{\normalfont \ttfamily SimulationProperties}'' group from one \gls{irate} file to another." method="copySimulation" />
+     !#   <method description="Copy ``{\normalfont \ttfamily Cosmology}'' group from one \gls{irate} file to another." method="copyCosmology" />
+     !#   <method method="writeHalos">
+     !#     <description></description>
+     !#   </method>
+     !# </methods>
      procedure :: readHalos       => irateReadHalos
      procedure :: readSimulation  => irateReadSimulation
      procedure :: writeSimulation => irateWriteSimulation

@@ -50,15 +50,9 @@
      type            (varying_string                       )                        :: logFileRoot                                , interactionRoot                       , &
           &                                                                            logFilePreviousRoot
    contains
-     !@ <objectMethods>
-     !@   <object>posteriorSampleSimulationParticleSwarm</object>
-     !@   <objectMethod>
-     !@     <method>posterior</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless class(posteriorSampleStateClass)\textgreater} simulationState\argin</arguments>
-     !@     <description>Return the log of posterior probability for the given {\normalfont \ttfamily simulationState}.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the log of posterior probability for the given {\normalfont \ttfamily simulationState}." method="posterior" />
+     !# </methods>
      final     ::              particleSwarmDestructor
      procedure :: simulate  => particleSwarmSimulate
      procedure :: posterior => particleSwarmPosterior

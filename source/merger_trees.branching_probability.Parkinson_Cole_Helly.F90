@@ -70,33 +70,12 @@
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_              => null()
      class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_                   => null()
    contains
-     !@ <objectMethods>
-     !@   <object>mergerTreeBranchingProbabilityParkinsonColeHelly</object>
-     !@   <objectMethod>
-     !@     <method>computeCommonFactors</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ deltaParent\argin, \doublezero\ massHaloParent\argin</arguments>
-     !@     <description>Compute common factors needed for the calculations.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>V</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ massFraction\argin, \doublezero\ haloMass\argin</arguments>
-     !@     <description>Compute the function $V(q)$ from \cite{parkinson_generating_2008}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>modifier</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ childSigma\argin</arguments>
-     !@     <description>Compute the part of the modifier term which depends on $\sigma_\mathrm{s}$.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>hypergeometricA</method>
-     !@     <type>\doubleone</type>
-     !@     <arguments>\doublezero\ gamma\argin</arguments>
-     !@     <description>Compute the $a$ parameter of the hypergeometric function.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute common factors needed for the calculations." method="computeCommonFactors" />
+     !#   <method description="Compute the function $V(q)$ from \cite{parkinson_generating_2008}." method="V" />
+     !#   <method description="Compute the part of the modifier term which depends on $\sigma_\mathrm{s}$." method="modifier" />
+     !#   <method description="Compute the $a$ parameter of the hypergeometric function." method="hypergeometricA" />
+     !# </methods>
      final     ::                          parkinsonColeHellyDestructor
      procedure :: V                     => parkinsonColeHellyV
      procedure :: modifier              => parkinsonColeHellyModifier

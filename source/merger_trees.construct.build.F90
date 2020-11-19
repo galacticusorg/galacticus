@@ -55,15 +55,9 @@
      integer         (c_size_t                  ), allocatable, dimension(:) :: treeMassCount                   , rankMass
      logical                                                                 :: computeTreeWeights
    contains
-     !@ <objectMethods>
-     !@   <object>mergerTreeConstructorBuild</object>
-     !@   <objectMethod>
-     !@     <method>constructMasses</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Construct the set of tree masses to be built.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Construct the set of tree masses to be built." method="constructMasses" />
+     !# </methods>
      final     ::                    buildDestructor
      procedure :: construct       => buildConstruct
      procedure :: constructMasses => buildConstructMasses

@@ -50,21 +50,10 @@
      double precision                                         :: radiusFinalPrevious                , radiusInitialPrevious
      integer                                                  :: nonAnalyticSolver
    contains
-     !@ <objectMethods>
-     !@   <object>darkMatterProfileDMOHeated</object>
-     !@   <objectMethod>
-     !@     <method>calculationReset</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
-     !@     <description>Reset memoized calculations.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusInitial</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} node\arginout, \doublezero\ radiusFinal\argin</arguments>
-     !@     <description>Return the initial radius corresponding to the given final radius in a heated dark matter halo density profile.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset memoized calculations." method="calculationReset" />
+     !#   <method description="Return the initial radius corresponding to the given final radius in a heated dark matter halo density profile." method="radiusInitial" />
+     !# </methods>
      final     ::                                      heatedDestructor
      procedure :: autoHook                          => heatedAutoHook
      procedure :: calculationReset                  => heatedCalculationReset

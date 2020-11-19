@@ -80,21 +80,10 @@
      ! Current epoch.
      double precision                                          :: timeNow
    contains
-     !@ <objectMethods>
-     !@   <object>mergerTreeBranchingProbabilityGnrlzdPrssSchchtr</object>
-     !@   <objectMethod>
-     !@     <method>computeCommonFactors</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ deltaParent\argin, \doublezero\ massHaloParent\argin</arguments>
-     !@     <description>Compute common factors needed for the calculations.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>excursionSetTest</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
-     !@     <description>Compute common factors needed for the calculations.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute common factors needed for the calculations." method="computeCommonFactors" />
+     !#   <method description="Compute common factors needed for the calculations." method="excursionSetTest" />
+     !# </methods>
      final     ::                          generalizedPressSchechterDestructor
      procedure :: probability           => generalizedPressSchechterProbability
      procedure :: probabilityBound      => generalizedPressSchechterProbabilityBound

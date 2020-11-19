@@ -55,69 +55,18 @@ module Hashes
      type   ({Type¦label}Container), allocatable, dimension(:) :: hashValues
      type   (varying_string       ), allocatable, dimension(:) :: hashKeys
    contains
-     !@ <objectMethods>
-     !@   <object>{Type¦label}Hash</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <description>Initialize the hash.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>set</method>
-     !@     <description>Set the value of a key in the hash.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless (character(len=*)|varying\_string)\textgreater} key\argin, \intzero\ value\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>delete</method>
-     !@     <description>Delete a key from the hash.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless (character(len=*)|varying\_string)\textgreater} key\argin, \intzero\ value\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>value</method>
-     !@     <description>Return the value for the given key.</description>
-     !@     <type>\intzero</type>
-     !@     <arguments>\textcolor{red}{\textless (character(len=*)|varying\_string|\intzero)\textgreater} key\argin, \intzero\ value\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>key</method>
-     !@     <description>Return the key of the {\normalfont \ttfamily indexValue}$^\mathrm{th}$ entry in the hash.</description>
-     !@     <type>\textcolor{red}{\textless type(varying\_string)\textgreater}</type>
-     !@     <arguments>\intzero\ indexValue\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>keys</method>
-     !@     <description>Return an array of all keys in the hash.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(varying\_string)[:]\textgreater} keys\arginout</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>values</method>
-     !@     <description>Return an array of all values in the hash.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless {Type¦intrinsic}{Type¦attributes}[:]\textgreater} values\arginout</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>exists</method>
-     !@     <description>Return true if the specified key exists in the hash.</description>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\textcolor{red}{\textless (character(len=*)|varying\_string|\intzero)\textgreater} key\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>size</method>
-     !@     <description>Return the number of keys in the hash.</description>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>destroy</method>
-     !@     <description>Destroy the hash.</description>
-     !@     <type>void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Initialize the hash." method="initialize" />
+     !#   <method description="Set the value of a key in the hash." method="set" />
+     !#   <method description="Delete a key from the hash." method="delete" />
+     !#   <method description="Return the value for the given key." method="value" />
+     !#   <method description="Return the key of the {\normalfont \ttfamily indexValue}$^\mathrm{th}$ entry in the hash." method="key" />
+     !#   <method description="Return an array of all keys in the hash." method="keys" />
+     !#   <method description="Return an array of all values in the hash." method="values" />
+     !#   <method description="Return true if the specified key exists in the hash." method="exists" />
+     !#   <method description="Return the number of keys in the hash." method="size" />
+     !#   <method description="Destroy the hash." method="destroy" />
+     !# </methods>
      final     ::                             {Type¦label}Destructor
      procedure :: initialize               => {Type¦label}Initialize
      procedure :: {Type¦label}SetVarStr

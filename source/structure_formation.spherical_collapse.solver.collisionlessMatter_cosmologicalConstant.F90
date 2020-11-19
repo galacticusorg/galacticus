@@ -33,27 +33,11 @@
      type (varying_string         )          :: fileNameCriticalOverdensity          , fileNameVirialDensityContrast, &
           &                                     fileNameRadiusTurnaround
    contains
-     !@ <objectMethods>
-     !@   <object>sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt</object>
-     !@   <objectMethod>
-     !@     <method>restoreTable</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ time\argin,  \textcolor{red}{\textless class(table1d)\textgreater} restoredTable\arginout, \textcolor{red}{\textless type(varying\_string)\textgreater} fileName\argin, \logicalzero\ tableStore\argin, \intzero\ status\argout</arguments>
-     !@     <description>Restore a tabulated solution from file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>storeTable</method>
-     !@     <type>void</type>
-     !@     <arguments>\textcolor{red}{\textless class(table1d)\textgreater} restoredTable\arginout, \textcolor{red}{\textless type(varying\_string)\textgreater} fileName\argin, \logicalzero\ tableStore\argin</arguments>
-     !@     <description>Store a tabulated solution to file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>tabulate</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ time\argin, \textcolor{red}{\textless class(table1d)\textgreater} sphericalCollapse\_\arginout, \intzero\ calculationType\argin</arguments>
-     !@     <description>Store a tabulated solution to file.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Restore a tabulated solution from file." method="restoreTable" />
+     !#   <method description="Store a tabulated solution to file." method="storeTable" />
+     !#   <method description="Store a tabulated solution to file." method="tabulate" />
+     !# </methods>
      final     ::                          cllsnlssMttCsmlgclCnstntDestructor
      procedure :: criticalOverdensity   => cllsnlssMttCsmlgclCnstntCriticalOverdensity
      procedure :: virialDensityContrast => cllsnlssMttCsmlgclCnstntVirialDensityContrast

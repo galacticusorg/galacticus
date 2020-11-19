@@ -58,27 +58,11 @@
      double precision                                :: coldFractionStored
      logical                                         :: coldFractionComputed
    contains
-     !@ <objectMethods>
-     !@   <object>accretionHaloColdMode</object>
-     !@   <objectMethod>
-     !@     <method>calculationReset</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
-     !@     <description>Reset memoized calculations.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>chemicalMasses</method>
-     !@     <type>\textcolor{red}{\textless type(chemicalAbundances)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout, \doublezero massAccreted\argin, \intzero accretionMode\argin</arguments>
-     !@     <description>Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>coldModeFraction</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout, \intzero accretionMode\argin</arguments>
-     !@     <description>Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter).</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset memoized calculations." method="calculationReset" />
+     !#   <method description="Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter)." method="chemicalMasses" />
+     !#   <method description="Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter)." method="coldModeFraction" />
+     !# </methods>
      final     ::                           coldModeDestructor
      procedure :: autoHook               => coldModeAutoHook
      procedure :: calculationReset       => coldModeCalculationReset

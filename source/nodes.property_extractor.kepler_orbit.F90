@@ -32,21 +32,10 @@
      integer                                                     :: count_
      type            (varying_string)                            :: prefix
    contains
-     !@ <objectMethods>
-     !@   <object>nodePropertyExtractorKeplerOrbit</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <description>Initialize the properties to be extracted.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(varying\_string)\textgreater}(:) properties\argin, \textcolor{red}{\textless character(len=*))\textgreater} prefix\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>extractFromOrbit</method>
-     !@     <description>Extract properties from a {\normalfont \ttfamily keplerOrbit} object.</description>
-     !@     <type>\doubleone</type>
-     !@     <arguments>\textcolor{red}{\textless type(keplerObrit)\textgreater} orbit\arginout</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Initialize the properties to be extracted." method="initialize" />
+     !#   <method description="Extract properties from a {\normalfont \ttfamily keplerOrbit} object." method="extractFromOrbit" />
+     !# </methods>
      procedure :: initialize       => keplerOrbitInitialize
      procedure :: elementCount     => keplerOrbitElementCount
      procedure :: extractFromOrbit => keplerOrbitExtractFromOrbit

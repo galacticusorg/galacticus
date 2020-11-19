@@ -31,21 +31,10 @@
      double precision                                                :: massTreeMinimum                           , massTreeMaximum, &
           &                                                             treesPerDecade
    contains
-     !@ <objectMethods>
-     !@   <object>mergerTreeBuildMassesSampledDistribution</object>
-     !@   <objectMethod>
-     !@     <method>constructor</method>
-     !@     <arguments>\textcolor{red}{\textless type(inputParameters)\textgreater} parameters\arginout</arguments>
-     !@     <type>\void</type>
-     !@     <description>Handles construction of the abstract parent class.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>sampleCMF</method>
-     !@     <arguments>\doubleone\ x\argout</arguments>
-     !@     <type>\void</type>
-     !@     <description>Return a set of values {\normalfont \ttfamily sampleCount} in the interval 0--1, corresponding to values of the cumulative mass distribution.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Handles construction of the abstract parent class." method="construct" />
+     !#   <method description="Return a set of values {\normalfont \ttfamily sampleCount} in the interval 0--1, corresponding to values of the cumulative mass distribution." method="sampleCMF" />
+     !# </methods>
      final     ::              sampledDistributionDestructor
      procedure :: construct => sampledDistributionConstruct
      procedure :: sampleCMF => sampledDistributionCMF

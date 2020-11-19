@@ -34,33 +34,12 @@
      double precision                                         :: time                     , mass, &
           &                                                      massFunction
    contains
-     !@ <objectMethods>
-     !@   <object>haloMassFunctionTinker2008Form</object>
-     !@   <objectMethod>
-     !@     <method>a</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $a$ in the \cite{tinker_towardhalo_2008} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>b</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $b$ in the \cite{tinker_towardhalo_2008} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>c</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $c$ in the \cite{tinker_towardhalo_2008} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>normalization</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $A$ in the \cite{tinker_towardhalo_2008} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the parameter $a$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="a" />
+     !#   <method description="Return the parameter $b$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="b" />
+     !#   <method description="Return the parameter $c$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="c" />
+     !#   <method description="Return the parameter $A$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="normalization" />
+     !# </methods>
      procedure                                    :: differential  => tinker2008FormDifferential
      procedure(tinker2008FormParameter), deferred :: normalization
      procedure(tinker2008FormParameter), deferred :: a

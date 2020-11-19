@@ -42,15 +42,9 @@
      integer         (c_size_t                      )                              :: countRadiiFractional 
      logical                                                                       :: finalized
    contains
-     !@ <objectMethods>
-     !@   <object>outputAnalysisSubhaloRadialDistribution</object>
-     !@   <objectMethod>
-     !@     <method>finalizeAnalysis</method>
-     !@     <arguments></arguments>
-     !@     <type>\void</type>
-     !@     <description>Finalize analysis.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Finalize analysis." method="finalizeAnalysis" />
+     !# </methods>
      final     ::                     subhaloRadialDistributionDestructor
      procedure :: analyze          => subhaloRadialDistributionAnalyze
      procedure :: finalize         => subhaloRadialDistributionFinalize

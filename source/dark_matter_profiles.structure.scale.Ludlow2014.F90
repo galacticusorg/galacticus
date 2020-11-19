@@ -27,21 +27,10 @@
      !% A dark matter halo profile scale radii class implementing the algorithm of \cite{ludlow_mass-concentration-redshift_2014}.
      private
    contains
-     !@ <objectMethods>
-     !@   <object>darkMatterProfileScaleRadiusLudlow2014</object>
-     !@   <objectMethod>
-     !@     <method>formationTimeRoot</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ timeFormation\argin</arguments>
-     !@     <description>Evalute a function which goes to zero at the formation time of the tree.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>formationTimeRootFunctionSet</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(rootFinder)\textgreater} finder\arginout</arguments>
-     !@     <description>Initialize a root finder object for use in finding the formation time of the tree.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Evalute a function which goes to zero at the formation time of the tree." method="formationTimeRoot" />
+     !#   <method description="Initialize a root finder object for use in finding the formation time of the tree." method="formationTimeRootFunctionSet" />
+     !# </methods>
      procedure, nopass :: formationTimeRoot            => ludlow2014FormationTimeRoot
      procedure         :: formationTimeRootFunctionSet => ludlow2014FormationTimeRootFunctionSet
   end type darkMatterProfileScaleRadiusLudlow2014

@@ -67,33 +67,12 @@
          &               temperatureH2PlusElectronPrevious                   , coolingFunctionElectronMolecularHydrogenCation      , &
          &               coolingFunctionRotationalTemperatureGradient        , coolingFunctionVibrationalTemperatureGradient
    contains
-     !@ <objectMethods>
-     !@   <object>coolingFunctionMolecularHydrogenGalliPalla</object>
-     !@   <objectMethod>
-     !@     <method>coolingFunctionH_H2</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ numberDensityHydrogen\argin, \doublezero\ temperature\argin,\textcolor{red}{\textless type(chemicalAbundances)\textgreater} chemicalDensities\argin</arguments>
-     !@     <description>Compute the cooling function due to H--H$_2$.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>coolingFunctionH2Plus_Electron</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ temperature\argin,\textcolor{red}{\textless type(chemicalAbundances)\textgreater} chemicalDensities\argin</arguments>
-     !@     <description>Compute the cooling function due to H$_2^+$--e$^-$.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>coolingFunctionH_H2Plus</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ temperature\argin,\textcolor{red}{\textless type(chemicalAbundances)\textgreater} chemicalDensities\argin</arguments>
-     !@     <description>Compute the cooling function due to H--H$_2^+$.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>commonFactors</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ numberDensityHydrogen\argin, \doublezero\ temperature\argin, \doublezero\ numberDensityCriticalOverNumberDensityHydrogen\argout, \doublezero\ coolingFunctionLocalThermodynamicEquilibrium\argout, \doublezero\ coolingFunctionLowDensityLimit\argout</arguments>
-     !@     <description>Compute common factors.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute the cooling function due to H--H$_2$." method="coolingFunctionH_H2" />
+     !#   <method description="Compute the cooling function due to H$_2^+$--e$^-$." method="coolingFunctionH2Plus_Electron" />
+     !#   <method description="Compute the cooling function due to H--H$_2^+$." method="coolingFunctionH_H2Plus" />
+     !#   <method description="Compute common factors." method="commonFactors" />
+     !# </methods>
      procedure :: coolingFunction                    => molecularHydrogenGalliPallaCoolingFunction
      procedure :: coolingFunctionTemperatureLogSlope => molecularHydrogenGalliPallaCoolingFunctionTemperatureLogSlope
      procedure :: coolingFunctionDensityLogSlope     => molecularHydrogenGalliPallaCoolingFunctionDensityLogSlope

@@ -53,31 +53,15 @@ module iso_varying_string
      private
      character(LEN=1), dimension(:), allocatable :: chars
    contains
-     !@ <objectMethod>
-     !@   <object>varying_string</object>
-     !@   <method>destroy</method>
-     !@   <description>Destroys the object by deallocating internal storage.</description>
-     !@ </objectMethod>
-     procedure :: destroy => destroy_VS
-     !@ <objectMethod>
-     !@   <object>varying_string</object>
-     !@   <method>loadFromFile</method>
-     !@   <description>Loads a varying string with the contents of a file.</description>
-     !@ </objectMethod>
+     !# <methods>
+     !#  <method method="destroy"      description="Destroys the object by deallocating internal storage."/>
+     !#  <method method="loadFromFile" description="Loads a varying string with the contents of a file."  />
+     !#  <method method="stateStore"   description="Store the state of a varying string to file."         />
+     !#  <method method="stateRestore" description="Restore the state of a varying string from file."     />
+     !# </methods>
+     procedure :: destroy      => destroy_VS
      procedure :: loadFromFile => load_from_file_VS
-     !@ <objectMethod>
-     !@   <object>varying_string</object>
-     !@   <method>stateStore</method>
-     !@   <arguments>\intzero\ stateFile\argin</arguments>
-     !@   <description>Store the state of a varying string to file.</description>
-     !@ </objectMethod>
-     procedure :: stateStore => vsStateStore
-     !@ <objectMethod>
-     !@   <object>varying_string</object>
-     !@   <method>restoreState</method>
-     !@   <arguments>\intzero\ stateFile\argin</arguments>
-     !@   <description>Restore the state of a varying string from file.</description>
-     !@ </objectMethod>
+     procedure :: stateStore   => vsStateStore
      procedure :: stateRestore => vsStateRestore
   end type varying_string
 

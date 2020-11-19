@@ -30,15 +30,9 @@
      double precision                            , allocatable, dimension(:) :: randomTheta                     , randomPhi
      class           (randomNumberGeneratorClass), pointer                   :: randomNumberGenerator_ => null()
    contains
-     !@ <objectMethods>
-     !@   <object>surveyGeometryRandomPoints</object>
-     !@   <objectMethod>
-     !@     <method>randomsInitialize</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Initialize arrays of random points to define the survey angular geometry.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Initialize arrays of random points to define the survey angular geometry." method="randomsInitialize" />
+     !# </methods>
      procedure                                          :: windowFunctionAvailable => randomPointsWindowFunctionAvailable
      procedure                                          :: angularPowerAvailable   => randomPointsAngularPowerAvailable
      procedure                                          :: windowFunctions         => randomPointsWindowFunctions

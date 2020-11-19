@@ -50,33 +50,12 @@ module Chemical_Structures
      type            (atomicBond     ), allocatable, dimension(:) :: bond
    contains
      ! Data methods.
-     !@ <objectMethods>
-     !@   <object>chemicalStructure</object>
-     !@   <objectMethod>
-     !@     <method>retrieve</method>
-     !@     <description>Get a chemical from the database.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} chemicalName\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>export</method>
-     !@     <description>Write a chemical structure to a CML file.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} coutputFile\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>charge</method>
-     !@     <description>Return the charge of a chemical.</description>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>mass</method>
-     !@     <description>Return the mass of a chemical in atomic mass units.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Get a chemical from the database." method="retrieve" />
+     !#   <method description="Write a chemical structure to a CML file." method="export" />
+     !#   <method description="Return the charge of a chemical." method="charge" />
+     !#   <method description="Return the mass of a chemical in atomic mass units." method="mass" />
+     !# </methods>
      procedure :: retrieve=>Chemical_Database_Get
      procedure :: export  =>Chemical_Structure_Export
      procedure :: charge  =>Chemical_Structure_Charge

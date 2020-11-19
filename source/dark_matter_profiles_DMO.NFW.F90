@@ -71,87 +71,21 @@
           &                                                     massScalePrevious                      , circularVelocityPrevious           , &
           &                                                     circularVelocityRadiusPrevious
    contains
-     !@ <objectMethods>
-     !@   <object>darkMatterProfileDMONFW</object>
-     !@   <objectMethod>
-     !@     <method>calculationReset</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
-     !@     <description>Reset memoized calculations.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>densityScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin</arguments>
-     !@     <description>Returns the density (in units such that the virial mass and scale length are unity) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>enclosedMassScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin</arguments>
-     !@     <description>Returns the enclosed mass (in units of the virial mass) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>densityEnclosedByRadiusScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin</arguments>
-     !@     <description>Returns the density (in units of the virial mass per cubic scale radius) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} which is enclosed a given radius (in units of the scale radius).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radialVelocityDispersionScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin</arguments>
-     !@     <description>Returns the radial velocity dispersion (in units of the virial velocity) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>freefallTabulate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ freefallTimeScaleFree\argin</arguments>
-     !@     <description>Tabulates the freefall time vs. freefall radius for NFW halos.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>freefallTimeScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin</arguments>
-     !@     <description>Compute the freefall time in a scale-free NFW halo.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>angularMomentumScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ concentration\argin</arguments>
-     !@     <description>Returns the total angular momentum in an NFW dark matter profile with given {\normalfont \ttfamily concentration}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>inverseAngularMomentum</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ specificAngularMomentum\argin</arguments>
-     !@     <description>Tabulates the specific angular momentum vs. radius in an NFW profile for rapid inversion.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>profileEnergy</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ concentration\argin</arguments>
-     !@     <description>Computes the total energy of an NFW profile halo of given {\normalfont \ttfamily concentration}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>specificAngularMomentumScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin</arguments>
-     !@     <description>Returns the specific angular momentum, normalized to unit scale length and unit velocity at the scale radius, at position {\normalfont \ttfamily radius} (in units of the scale radius) in an NFW profile.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>tabulate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ concentration\argin</arguments>
-     !@     <description>Tabulate properties of the NFW halo profile which must be computed numerically.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>enclosedDensityTabulate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ enclosedDensityScaleFree\argin</arguments>
-     !@     <description>Tabulate the density enclosed within a given radius for the NFW profile.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset memoized calculations." method="calculationReset" />
+     !#   <method description="Returns the density (in units such that the virial mass and scale length are unity) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="densityScaleFree" />
+     !#   <method description="Returns the enclosed mass (in units of the virial mass) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="enclosedMassScaleFree" />
+     !#   <method description="Returns the density (in units of the virial mass per cubic scale radius) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} which is enclosed a given radius (in units of the scale radius)." method="densityEnclosedByRadiusScaleFree" />
+     !#   <method description="Returns the radial velocity dispersion (in units of the virial velocity) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="radialVelocityDispersionScaleFree" />
+     !#   <method description="Tabulates the freefall time vs. freefall radius for NFW halos." method="freefallTabulate" />
+     !#   <method description="Compute the freefall time in a scale-free NFW halo." method="freefallTimeScaleFree" />
+     !#   <method description="Returns the total angular momentum in an NFW dark matter profile with given {\normalfont \ttfamily concentration}." method="angularMomentumScaleFree" />
+     !#   <method description="Tabulates the specific angular momentum vs. radius in an NFW profile for rapid inversion." method="inverseAngularMomentum" />
+     !#   <method description="Computes the total energy of an NFW profile halo of given {\normalfont \ttfamily concentration}." method="profileEnergy" />
+     !#   <method description="Returns the specific angular momentum, normalized to unit scale length and unit velocity at the scale radius, at position {\normalfont \ttfamily radius} (in units of the scale radius) in an NFW profile." method="specificAngularMomentumScaleFree" />
+     !#   <method description="Tabulate properties of the NFW halo profile which must be computed numerically." method="tabulate" />
+     !#   <method description="Tabulate the density enclosed within a given radius for the NFW profile." method="enclosedDensityTabulate" />
+     !# </methods>
      final     ::                                      nfwDestructor
      procedure :: autoHook                          => nfwAutoHook
      procedure :: calculationReset                  => nfwCalculationReset

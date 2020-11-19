@@ -143,27 +143,11 @@
           &                                                           temperatureSlopePrevious  , metallicitySlopePrevious    , &
           &                                                           coolingFunctionPrevious   , coolingFunctionSlopePrevious
    contains
-     !@ <objectMethods>
-     !@   <object>coolingFunctionCIEFile</object>
-     !@   <objectMethod>
-     !@     <method>readFile</method>
-     !@     <type>void</type>
-     !@     <arguments>\textcolor{red}{\textless char(len=*)\textgreater} fileName\argin</arguments>
-     !@     <description>Read the named cooling function file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>interpolatingFactors</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ temperature\argin, \doublezero\ metallicity\argin, \textcolor{red}{\textless integer(c\_size\_t)\textgreater} iTemperature\argout, \doublezero\ hTemperature\argout, \textcolor{red}{\textless integer(c\_size\_t)\textgreater} iMetallicity\argout, \doublezero\ hMetallicity\argout</arguments>
-     !@     <description>Compute interpolating factors in a CIE cooling function file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>interpolate</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless integer(c\_size\_t)\textgreater} iTemperature\argin, \doublezero\ hTemperature\argin, \textcolor{red}{\textless integer(c\_size\_t)\textgreater} iMetallicity\argin, \doublezero\ hMetallicity\argin</arguments>
-     !@     <description>Interpolate in the cooling function.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Read the named cooling function file." method="readFile" />
+     !#   <method description="Compute interpolating factors in a CIE cooling function file." method="interpolatingFactors" />
+     !#   <method description="Interpolate in the cooling function." method="interpolate" />
+     !# </methods>
      procedure :: readFile                           => cieFileReadFile
      procedure :: interpolatingFactors               => cieFileInterpolatingFactors
      procedure :: interpolate                        => cieFileInterpolate

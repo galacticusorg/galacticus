@@ -35,15 +35,9 @@
      private
      type(distributionOperatorList), pointer :: operators => null()
    contains
-     !@ <objectMethods>
-     !@   <object>outputAnalysisDistributionOperatorSequence</object>
-     !@   <objectMethod>
-     !@     <method>prepend</method>
-     !@     <arguments>\textcolor{red}{\textless class(outputAnalysisDistributionOperatorClass)\textgreater} operator\_\argin</arguments>
-     !@     <type>\void</type>
-     !@     <description>Prepend an operator to a sequence of distribution operators.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Prepend an operator to a sequence of distribution operators." method="prepend" />
+     !# </methods>
      final     ::                        sequenceDestructor
      procedure :: operateScalar       => sequenceOperateScalar
      procedure :: operateDistribution => sequenceOperateDistribution

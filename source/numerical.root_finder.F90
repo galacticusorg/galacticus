@@ -90,69 +90,17 @@ module Root_Finder
      procedure       (rootFunctionDerivativeTemplate), nopass, pointer :: finderFunctionDerivative
      procedure       (rootFunctionBothTemplate      ), nopass, pointer :: finderFunctionBoth
    contains
-     !@ <objectMethods>
-     !@   <object>rootFinder</object>
-     !@   <objectMethod>
-     !@     <method>rootFunction</method>
-     !@     <description>Set the function that evaluates $f(x)$ to use in a {\normalfont \ttfamily rootFinder} object.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless function(\textless double\textgreater} x\argin\textcolor{red}{)\textgreater} rootFunction</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>rootFunctionDerivative</method>
-     !@     <description>Set the functions that evaluate $f(x)$ and derivatives to use in a {\normalfont \ttfamily rootFinder} object.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless function(\textless double\textgreater} x\argin\textcolor{red}{)\textgreater} rootFunction, \textcolor{red}{\textless function(\textless double\textgreater} x\argin\textcolor{red}{)\textgreater} rootFunctionDerivative, \textcolor{red}{\textless void(\textless double\textgreater} x\argin, \textcolor{red}{\textless double\textgreater} f\argin, \textcolor{red}{\textless double\textgreater} fdf\argin\textcolor{red}{)\textgreater} rootFunctionBoth</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>type</method>
-     !@     <description>Set the type of algorithm to use in a {\normalfont \ttfamily rootFinder} object.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(c\_ptr)\textgreater} solverType\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>typeDerivative</method>
-     !@     <description>Set the type of algorithm to use in a {\normalfont \ttfamily rootFinder} object in cases where the derivative of the function is available.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(c\_ptr)\textgreater} solverDerivativeType\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>tolerance</method>
-     !@     <description>Set the tolerance to use in a {\normalfont \ttfamily rootFinder} object.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ [toleranceAbsolute]\argin, \doublezero\ [toleranceRelative]\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>rangeExpand</method>
-     !@     <description>Specify how the initial range will be expanded in a {\normalfont \ttfamily rootFinder} object to bracket the root.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ [rangeExpandUpward]\argin,\doublezero\ [rangeExpandDownward]\argin, \enumRangeExpand\ [rangeExpandType]\argin, \doublezero\ [rangeUpwardLimit]\argin, \doublezero\ [rangeDownwardLimit]\argin, \enumRangeExpandSignExpect\ [rangeExpandDownwardSignExpect]\argin, \enumRangeExpandSignExpect\ [rangeExpandUpwardSignExpect]\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>find</method>
-     !@     <description>Find the root of the function given an initial guess or range.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ [rootGuess]|\textcolor{red}{\textless double(2)\textgreater} [rootRange]</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isInitialized</method>
-     !@     <description>Return the initialization state of a {\normalfont \ttfamily rootFinder} object.</description>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>destroy</method>
-     !@     <description>Destroy the {\normalfont \ttfamily rootFinder} object.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>solverTypeIsValid</method>
-     !@     <description>Return true if the solver type is valid.</description>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the function that evaluates $f(x)$ to use in a {\normalfont \ttfamily rootFinder} object." method="rootFunction" />
+     !#   <method description="Set the functions that evaluate $f(x)$ and derivatives to use in a {\normalfont \ttfamily rootFinder} object." method="rootFunctionDerivative" />
+     !#   <method description="Set the type of algorithm to use in a {\normalfont \ttfamily rootFinder} object." method="type" />
+     !#   <method description="Set the tolerance to use in a {\normalfont \ttfamily rootFinder} object." method="tolerance" />
+     !#   <method description="Specify how the initial range will be expanded in a {\normalfont \ttfamily rootFinder} object to bracket the root." method="rangeExpand" />
+     !#   <method description="Find the root of the function given an initial guess or range." method="find" />
+     !#   <method description="Return the initialization state of a {\normalfont \ttfamily rootFinder} object." method="isInitialized" />
+     !#   <method description="Destroy the {\normalfont \ttfamily rootFinder} object." method="destroy" />
+     !#   <method description="Return true if the solver type is valid." method="solverTypeIsValid" />
+     !# </methods>
      final     ::                            Root_Finder_Finalize
      procedure :: destroy                 => Root_Finder_Destroy
      procedure :: rootFunction            => Root_Finder_Root_Function

@@ -41,21 +41,10 @@
      type            (interpolator     )                            :: tableInterpolator
      !$ integer      (omp_lock_kind    )                            :: tableLock
    contains
-     !@ <objectMethods>
-     !@   <object>massDistributionSersic</object>
-     !@   <objectMethod>
-     !@     <method>tabulate</method>
-     !@     <description>Tabulate the Sersic profile.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ [radius]\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusHalfMassProjected</method>
-     !@     <description>Return the half mass radius of the profile in projection.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulate the Sersic profile." method="tabulate" />
+     !#   <method description="Return the half mass radius of the profile in projection." method="radiusHalfMassProjected" />
+     !# </methods>
      procedure :: tabulate                => sersicTabulate
      procedure :: density                 => sersicDensity
      procedure :: densityRadialMoment     => sersicDensityRadialMoment

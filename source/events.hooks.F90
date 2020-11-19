@@ -92,45 +92,14 @@ module Events_Hooks
      !$ double precision                   :: waitTimeRead = 0.0d0   , waitTimeWrite=0.0d0
 #endif
    contains
-     !@ <objectMethods>
-     !@   <object>eventHook</object>
-     !@   <objectMethod>
-     !@     <method>count</method>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return a count of the number of hooks into this event.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>first</method>
-     !@     <type></type>
-     !@     <arguments>\textcolor{red}{\textless *type(hook)\textgreater}</arguments>
-     !@     <description>Return a pointer to the first hook into this event.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type></type>
-     !@     <arguments></arguments>
-     !@     <description>Initialize the event.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>lock</method>
-     !@     <type>void</type>
-     !@     <arguments></arguments>
-     !@     <description>Lock the event.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>unlock</method>
-     !@     <type>void</type>
-     !@     <arguments></arguments>
-     !@     <description>Unlock the event.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>resolveDependencies</method>
-     !@     <type>void</type>
-     !@     <arguments></arguments>
-     !@     <description>Reorder hooked functions to resolved any dependencies.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return a count of the number of hooks into this event." method="count" />
+     !#   <method description="Return a pointer to the first hook into this event." method="first" />
+     !#   <method description="Initialize the event." method="initialize" />
+     !#   <method description="Lock the event." method="lock" />
+     !#   <method description="Unlock the event." method="unlock" />
+     !#   <method description="Reorder hooked functions to resolved any dependencies." method="resolveDependencies" />
+     !# </methods>
      procedure :: count               => eventHookCount
      procedure :: first               => eventHookFirst
      procedure :: initialize          => eventHookInitialize
@@ -143,27 +112,11 @@ module Events_Hooks
      !% Class used to define a set of hooked function calls for a given event.
      private
    contains
-     !@ <objectMethods>
-     !@   <object>eventHookUnspecified</object>
-     !@   <objectMethod>
-     !@     <method>attach</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(*)\textgreater} *object\_\argin, \textcolor{red}{\textless procedure()\textgreater} *function\_\argin</arguments>
-     !@     <description>Attach a hook to the event.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isAttached</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\textcolor{red}{\textless class(*)\textgreater} *object\_\argin, \textcolor{red}{\textless procedure()\textgreater} *function\_\argin</arguments>
-     !@     <description>Return true if the object is attached to this event.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>detach</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(*)\textgreater} *object\_\argin, \textcolor{red}{\textless procedure()\textgreater} *function\_\argin</arguments>
-     !@     <description>Detach a hook from the event.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Attach a hook to the event." method="attach" />
+     !#   <method description="Return true if the object is attached to this event." method="isAttached" />
+     !#   <method description="Detach a hook from the event." method="detach" />
+     !# </methods>
      procedure :: attach     => eventHookUnspecifiedAttach
      procedure :: isAttached => eventHookUnspecifiedIsAttached
      procedure :: detach     => eventHookUnspecifiedDetach

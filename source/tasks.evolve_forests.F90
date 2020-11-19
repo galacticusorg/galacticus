@@ -58,21 +58,10 @@
      ! Pointer to the parameters for this task.
      type            (inputParameters            )          :: parameters
    contains
-     !@ <objectMethods>
-     !@   <object>taskEvolveForests</object>
-     !@   <objectMethod>
-     !@     <method>suspendTree</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(mergerTree)\textgreater} tree\argout</arguments>
-     !@     <description>Suspend a tree (to memory or to file).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>resumeTree</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(mergerTree)\textgreater} tree\argout</arguments>
-     !@     <description>Restore a suspended tree.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Suspend a tree (to memory or to file)." method="suspendTree" />
+     !#   <method description="Restore a suspended tree." method="resumeTree" />
+     !# </methods>
      final     ::                evolveForestsDestructor
      procedure :: perform     => evolveForestsPerform
      procedure :: suspendTree => evolveForestsSuspendTree

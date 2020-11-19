@@ -22,7 +22,7 @@ rm -f                                                                           
 
 # Ensure that nodeComponent and treeNode objects are built, along with any functions.
 rm -rf work/build
-make -j$PPN all
+make -j$PPN GALACTICUS_BUILD_DOCS=yes all
 if [ $? -ne 0 ]; then
  echo Failed to build all executables
  exit 1
@@ -64,9 +64,6 @@ ls physics/*.tex | sort | awk '{print "\\input{"substr($1,1,length($1)-4)"}"}' >
 
 # Order enumeration definitions.
 ls enumerations/definitions/*.tex | sort | awk '{print "\\input{"substr($1,1,length($1)-4)"}"}' > autoEnumerationDefinitions.tex
-
-# Order enumeration specifiers.
-ls enumerations/specifiers/*.tex | sort | awk '{print "\\input{"substr($1,1,length($1)-4)"}"}' > autoEnumerationSpecifiers.tex
 
 # Iterate over manuals.
 for type in "Usage" "Physics" "Development" "Source"; do

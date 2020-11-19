@@ -43,39 +43,13 @@ module Multidimensional_Minimizer
      procedure(gslMultiminFunctionDFTemplate ), pointer    , nopass :: minimizeFunctionDerivative
      procedure(gslMultiminFunctionFDFTemplate), pointer    , nopass :: minimizeFunctionBoth
    contains
-     !@ <objectMethods>
-     !@   <object>multiDMinimizer</object>
-     !@   <objectMethod>
-     !@     <method>set</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ x\argin, \doublezero\ stepSize\argin, \doublezero\ tolerance\argin</arguments>
-     !@     <description>Set the initial state of the minimizer.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>iterate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ [status]\argout</arguments>
-     !@     <description>Iterate the minimizer.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>testGradient</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\doublezero\ toleranceAbsolute\argin</arguments>
-     !@     <description>Test the gradient of the function at the current point in the minimizer.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>minimum</method>
-     !@     <type>\doubleone</type>
-     !@     <arguments></arguments>
-     !@     <description>Retrieve the parameter values at the current minimum from the minimizer.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>x</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@     <description>Retrieve the function value at the current minimum from the minimizer.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the initial state of the minimizer." method="set" />
+     !#   <method description="Iterate the minimizer." method="iterate" />
+     !#   <method description="Test the gradient of the function at the current point in the minimizer." method="testGradient" />
+     !#   <method description="Retrieve the parameter values at the current minimum from the minimizer." method="minimum" />
+     !#   <method description="Retrieve the function value at the current minimum from the minimizer." method="x" />
+     !# </methods>
      final     ::                 multiDMinimizerDestructor
      procedure :: set          => multiDMinimizerSet
      procedure :: iterate      => multiDMinimizerIterate

@@ -56,21 +56,10 @@
      double precision                                               , allocatable, dimension(:) :: temperatures
      class           (posteriorSampleStateClass                    ), allocatable, dimension(:) :: temperedStates
    contains
-     !@ <objectMethods>
-     !@   <object>posteriorSampleSimulationTemperedDffrntlEvltn</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(posteriorSampleDffrntlEvltnPrpslSzTmpExpClass)\textgreater} posteriorSampleDffrntlEvltnPrpslSzTmpExp_\argin</arguments>
-     !@     <description>Return the current tempering level.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>level</method>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the current tempering level.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the current tempering level." method="initialize" />
+     !#   <method description="Return the current tempering level." method="level" />
+     !# </methods>
      final     ::                   temperedDifferentialEvolutionDestructor
      procedure :: logging        => temperedDifferentialEvolutionLogging
      procedure :: acceptProposal => temperedDifferentialEvolutionAcceptProposal

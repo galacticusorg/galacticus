@@ -41,21 +41,10 @@
      private
      double precision :: degreesOfFreedom
    contains
-     !@ <objectMethods>
-     !@   <object>distributionFunction1DStudentT</object>
-     !@   <objectMethod>
-     !@     <method>cumulativeUpper</method>
-     !@     <arguments>\doublezero\ x\argin, \doublezero\ nu\argin</arguments>
-     !@     <type>\doublezero</type>
-     !@     <description>The upper-tail cumulative distribution function.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>inverseUpper</method>
-     !@     <arguments>\doublezero\ Q\argin, \doublezero\ nu\argin</arguments>
-     !@     <type>\doublezero</type>
-     !@     <description>The upper-tail inverse cumulative distribution function.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="The upper-tail cumulative distribution function." method="cumulativeUpper" />
+     !#   <method description="The upper-tail inverse cumulative distribution function." method="inverseUpper" />
+     !# </methods>
      procedure :: density         => studentTDensity
      procedure :: cumulative      => studentTCumulative
      procedure :: inverse         => studentTInverse

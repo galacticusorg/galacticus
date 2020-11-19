@@ -100,45 +100,14 @@
           &                                                                                   radiusVirial                             , darkMatterFraction
      logical                                                                               :: massesComputed
    contains
-     !@ <objectMethods>
-     !@   <object>darkMatterProfileAdiabaticGnedin2004</object>
-     !@   <objectMethod>
-     !@     <method>calculationReset</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
-     !@     <description>Reset memoized calculations.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>computeFactors</method>
-     !@     <description>Compute factors needed for solving adiabatic contraction.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout, \doublezero\ radius\argin, \logicalzero\ [computeGradientFactors]\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusOrbitalMean</method>
-     !@     <description>Compute the orbit-averaged radius for dark matter.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusOrbitalMeanDerivative</method>
-     !@     <description>Compute the derivative of the orbit-averaged radius for dark matter.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusInitial</method>
-     !@     <description>Compute the initial radius in the dark matter profile.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout, \doublezero\ radius\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusInitialDerivative</method>
-     !@     <description>Compute the derivative of the initial radius in the dark matter profile.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout, \doublezero\ radius\argin</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset memoized calculations." method="calculationReset" />
+     !#   <method description="Compute factors needed for solving adiabatic contraction." method="computeFactors" />
+     !#   <method description="Compute the orbit-averaged radius for dark matter." method="radiusOrbitalMean" />
+     !#   <method description="Compute the derivative of the orbit-averaged radius for dark matter." method="radiusOrbitalMeanDerivative" />
+     !#   <method description="Compute the initial radius in the dark matter profile." method="radiusInitial" />
+     !#   <method description="Compute the derivative of the initial radius in the dark matter profile." method="radiusInitialDerivative" />
+     !# </methods>
      final     ::                                      adiabaticGnedin2004Destructor
      procedure :: autoHook                          => adiabaticGnedin2004AutoHook
      procedure :: calculationReset                  => adiabaticGnedin2004CalculationReset

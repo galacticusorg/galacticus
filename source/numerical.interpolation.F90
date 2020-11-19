@@ -141,63 +141,17 @@ module Numerical_Interpolation
      logical                                               :: initialized      , interpolatable
      double precision          , allocatable, dimension(:) :: x                , y 
    contains
-     !@ <objectMethods>
-     !@   <object>interpolator</object>
-     !@   <objectMethod>
-     !@     <method>interpolate</method>
-     !@     <description>Interpolate in the tabulated function.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ x\argin, \doubleone\ [ya]\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>derivative</method>
-     !@     <description>Interpolate the derivative in the tabulated function.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ x\argin, \doubleone\ [ya]\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>locate</method>
-     !@     <description>Locate the position in the array corresponding to the given {\normalfont \ttfamily x}.</description>
-     !@     <type>\intzero</type>
-     !@     <arguments>\doublezero\ x\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>linearFactors</method>
-     !@     <description>Return factors required to perform a linear interpolation.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ x\argin, \intzero\ i\argout, \doubleone\ h\argout</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>linearWeights</method>
-     !@     <description>Return weights required to perform a linear interpolation.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ x\argin, \intzero\ i\argin, \doubleone\ h\argout</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>gslAllocate</method>
-     !@     <description>Allocate GSL objects.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>gslReallocate</method>
-     !@     <description>Reallocate GSL objects.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>gslInitialize</method>
-     !@     <description>Initialize GSL interpolator.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ ya\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>assertInterpolatable</method>
-     !@     <description>Assert that the data is interpolatable.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Interpolate in the tabulated function." method="interpolate" />
+     !#   <method description="Interpolate the derivative in the tabulated function." method="derivative" />
+     !#   <method description="Locate the position in the array corresponding to the given {\normalfont \ttfamily x}." method="locate" />
+     !#   <method description="Return factors required to perform a linear interpolation." method="linearFactors" />
+     !#   <method description="Return weights required to perform a linear interpolation." method="linearWeights" />
+     !#   <method description="Allocate GSL objects." method="gslAllocate" />
+     !#   <method description="Reallocate GSL objects." method="gslReallocate" />
+     !#   <method description="Initialize GSL interpolator." method="gslInitialize" />
+     !#   <method description="Assert that the data is interpolatable." method="assertInterpolatable" />
+     !# </methods>
      final     ::                         interpolatorDestructorRank0       , &
           &                               interpolatorDestructorRank1       , &
           &                               interpolatorDestructorRank2

@@ -24,37 +24,12 @@
      !% A scalar output analysis class.
      private
    contains
-     !@ <objectMethods>
-     !@  <object>nodePropertyExtractorScalar</object>
-     !@  <objectMethod>
-     !@   <method>extract</method>
-     !@   <description>Extract the property from the given {\normalfont \ttfamily node}.</description>
-     !@   <type>\doublezero</type>
-     !@   <pass>yes</pass>
-     !@   <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\argin</arguments>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>name</method>
-     !@   <description>Return the name of the property extracted.</description>
-     !@   <type>\textcolor{red}{\textless type(varying\_string)\textgreater}</type>
-     !@   <pass>yes</pass>
-     !@   <arguments></arguments>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>description</method>
-     !@   <description>Return a description of the property extracted.</description>
-     !@   <type>\textcolor{red}{\textless type(varying\_string)\textgreater}</type>
-     !@   <pass>yes</pass>
-     !@   <arguments></arguments>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>unitsInSI</method>
-     !@   <description>Return the units of the property extracted in the SI system.</description>
-     !@   <type>\doublezero</type>
-     !@   <pass>yes</pass>
-     !@   <arguments></arguments>
-     !@  </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Extract the property from the given {\normalfont \ttfamily node}." method="extract" pass="yes" />
+     !#   <method description="Return the name of the property extracted." method="name" pass="yes" />
+     !#   <method description="Return a description of the property extracted." method="description" pass="yes" />
+     !#   <method description="Return the units of the property extracted in the SI system." method="unitsInSI" pass="yes" />
+     !# </methods>
      procedure(scalarExtract  ), deferred :: extract
      procedure(scalarName     ), deferred :: name
      procedure(scalarName     ), deferred :: description

@@ -182,10 +182,6 @@ sub Process_Enumerations {
 	    }
 	    print $defHndl "\\end{tabular}\n";
 	    close($defHndl);
-	    system("mkdir -p doc/enumerations/specifiers");
-	    open(my $specHndl,">doc/enumerations/specifiers/".$node->{'directive'}->{'name'}.".tex");
-	    print $specHndl "\\def\\enum".ucfirst($node->{'directive'}->{'name'})."{\\textcolor{red}{\\hyperlink{ht:AutoEnumerations".ucfirst($node->{'directive'}->{'name'})."}{\\textless ".$node->{'directive'}->{'name'}."\\textgreater}}}\n";
-	    close($specHndl);
 	}
 	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }

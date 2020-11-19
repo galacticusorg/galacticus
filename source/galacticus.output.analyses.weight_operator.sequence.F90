@@ -35,15 +35,9 @@
      private
      type(weightOperatorList), pointer :: operators => null()
    contains
-     !@ <objectMethods>
-     !@   <object>outputAnalysisWeightOperatorSequence</object>
-     !@   <objectMethod>
-     !@     <method>prepend</method>
-     !@     <arguments>\textcolor{red}{\textless class(outputAnalysisWeightOperatorClass)\textgreater} operator\_\argin</arguments>
-     !@     <type>\void</type>
-     !@     <description>Prepend an operator to a sequence of weight operators.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Prepend an operator to a sequence of weight operators." method="prepend" />
+     !# </methods>
      final     ::            sequenceDestructor
      procedure :: operate => sequenceOperate
      procedure :: prepend => sequencePrepend

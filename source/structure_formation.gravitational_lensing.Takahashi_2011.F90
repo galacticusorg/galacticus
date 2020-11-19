@@ -50,21 +50,10 @@
           &                                                    aConvergence                     , omegaConvergence                    , &
           &                                                    scaleSourcePrevious
    contains
-     !@ <objectMethods>
-     !@   <object>gravitationalLensingTakahashi2011</object>
-     !@   <objectMethod>
-     !@     <method>lensingDistributionConstruct</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ redshift\argin, \doublezero\ scaleSource\argin</arguments>
-     !@     <description>Construct the gravitational lensing distribution functions for the specified redshift and source scale.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>convergenceDistribution</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ convergence\argin</arguments>
-     !@     <description>Returns the gravitational lensing convergence probability density function at the given convergence.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Construct the gravitational lensing distribution functions for the specified redshift and source scale." method="lensingDistributionConstruct" />
+     !#   <method description="Returns the gravitational lensing convergence probability density function at the given convergence." method="convergenceDistribution" />
+     !# </methods>
      final     ::                                 takahashi2011Destructor
      procedure :: magnificationPDF             => takahashi2011MagnificationPDF
      procedure :: magnificationCDF             => takahashi2011MagnificationCDF

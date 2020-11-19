@@ -75,27 +75,11 @@
      type            (table1DLinearLinear)                  :: molecularFraction
      procedure       (double precision   ), nopass, pointer :: molecularFraction_
    contains
-     !@ <objectMethods>
-     !@   <object>starFormationRateSurfaceDensityDisksKrumholz2009</object>
-     !@   <objectMethod>
-     !@     <method>calculationReset</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
-     !@     <description>Reset memoized calculations.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>computeFactors</method>
-     !@     <arguments></arguments>
-     !@     <type>\void</type>
-     !@     <description>Compute constant factors required.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>surfaceDensityFactors</method>
-     !@     <arguments></arguments>
-     !@     <type>\void</type>
-     !@     <description>Compute surface density factors required.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset memoized calculations." method="calculationReset" />
+     !#   <method description="Compute constant factors required." method="computeFactors" />
+     !#   <method description="Compute surface density factors required." method="surfaceDensityFactors" />
+     !# </methods>
      final     ::                          krumholz2009Destructor
      procedure :: autoHook              => krumholz2009AutoHook
      procedure :: computeFactors        => krumholz2009ComputeFactors

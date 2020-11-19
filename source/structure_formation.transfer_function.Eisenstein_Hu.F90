@@ -48,15 +48,9 @@
           &                                                 wavenumberEffectivePow        , wavenumberPrevious     , &
           &                                                 time
    contains
-     !@ <objectMethods>
-     !@   <object>transferFunctionEisensteinHu1999</object>
-     !@   <objectMethod>
-     !@     <method>computeFactors</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ wavenumber\argin, \doublezero\ wavenumberEffective\argout, \doublezero\ wavenumberNeutrino\argout, \doublezero\ L\argout, \doublezero\ C\argout</arguments>
-     !@     <description>Compute common factors needed by \cite{eisenstein_power_1999} transfer function calculations.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute common factors needed by \cite{eisenstein_power_1999} transfer function calculations." method="computeFactors" />
+     !# </methods>
      final     ::                          eisensteinHu1999Destructor
      procedure :: value                 => eisensteinHu1999Value
      procedure :: logarithmicDerivative => eisensteinHu1999LogarithmicDerivative

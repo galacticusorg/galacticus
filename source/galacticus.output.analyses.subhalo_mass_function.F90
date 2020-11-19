@@ -42,15 +42,9 @@
      integer         (c_size_t                      )                              :: countMassRatios 
      logical                                                                       :: finalized
    contains
-     !@ <objectMethods>
-     !@   <object>outputAnalysisSubhaloMassFunction</object>
-     !@   <objectMethod>
-     !@     <method>finalizeAnalysis</method>
-     !@     <arguments></arguments>
-     !@     <type>\void</type>
-     !@     <description>Finalize analysis.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Finalize analysis." method="finalizeAnalysis" />
+     !# </methods>
      final     ::                     subhaloMassFunctionDestructor
      procedure :: analyze          => subhaloMassFunctionAnalyze
      procedure :: finalize         => subhaloMassFunctionFinalize

@@ -231,177 +231,36 @@
      real                                                 , allocatable, dimension(:) :: timingTimes
      type            (varying_string                     ), allocatable, dimension(:) :: timingLabels
    contains
-     !@ <objectMethods>
-     !@   <object>mergerTreeConstructorRead</object>
-     !@   <objectMethod>
-     !@     <method>enforceSubhaloStatus</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\arginout</arguments>
-     !@     <description>Ensure that any node which was once a subhalo remains a subhalo.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>scanForSubhaloPromotions</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\arginout, \textcolor{red}{\textless class(treeNodeList)(:)\textgreater} nodeList\arginout</arguments>
-     !@     <description>Scan for cases where a subhalo stops being a subhalo and so must be promoted.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>createNodeIndices</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\arginout</arguments>
-     !@     <description>Create a sorted list of node indices with an index into the original array.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>nodeLocation</method>
-     !@     <type>\textcolor{red}{\textless integer(c\_size\_)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless integer(kind\_int8)(:)\textgreater} nodeIndex\argin</arguments>
-     !@     <description>Return the location in the original array of the given {\normalfont \ttfamily nodeIndex}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>descendentNodeSortIndex</method>
-     !@     <type>\textcolor{red}{\textless integer(c\_size\_)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless integer(kind\_int8)(:)\textgreater} descendentIndex\argin</arguments>
-     !@     <description> Return the sort index of the given {\normalfont \ttfamily descendentIndex}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>destroyNodeIndices</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Destroy the sorted list of node indices.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>buildDescendentPointers</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\arginout</arguments>
-     !@     <description>Builds pointers from each node to its descendent node.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>buildIsolatedParentPointers</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\arginout, \textcolor{red}{\textless class(treeNodeList)(:)\textgreater} nodeList\arginout</arguments>
-     !@     <description>Create parent pointer links between isolated nodes and assign times and masses to those nodes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>assignNamedProperties</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\arginout, \textcolor{red}{\textless class(treeNodeList)(:)\textgreater} nodeList\arginout</arguments>
-     !@     <description>Assign named properties to nodes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>assignScaleRadii</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\arginout, \textcolor{red}{\textless class(treeNodeList)(:)\textgreater} nodeList\arginout</arguments>
-     !@     <description>Assign scale radii to nodes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>scanForMergers</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\arginout, \textcolor{red}{\textless class(treeNodeList)(:)\textgreater} nodeList\arginout, \textcolor{red}{\textless integer(c\_size\_t)\textgreater} historyCountMaximum\argout</arguments>
-     !@     <description>Scan for and record mergers between nodes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>assignSpinParameters</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\arginout, \textcolor{red}{\textless class(treeNodeList)(:)\textgreater} nodeList\arginout</arguments>
-     !@     <description>Assign spin parameters to nodes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>assignMergers</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\arginout, \textcolor{red}{\textless class(treeNodeList)(:)\textgreater} nodeList\arginout</arguments>
-     !@     <description>Assign pointers to merge targets.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>scanForBranchJumps</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\arginout, \textcolor{red}{\textless class(treeNodeList)(:)\textgreater} nodeList\arginout</arguments>
-     !@     <description>Search for subhalos which move between branches/trees.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>buildSubhaloMassHistories</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\arginout, \textcolor{red}{\textless class(treeNodeList)(:)\textgreater} nodeList\arginout, \textcolor{red}{\textless integer(kind\_int8)(:)\textgreater} historyIndex\argin, \textcolor{red}{\textless integer(c\_size\_t)\textgreater} historyCountMaximum\argin, \doubleone\ historyMass\arginout, \doubleone\ hitoryTime\arginout, \doubletwo\ position\arginout, \doubletwo\ velocity\arginout</arguments>
-     !@     <description>Build and attached bound mass histories to subhalos.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>timeUntilMergingSubresolution</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)\textgreater} lastSeenNode\argin, \textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\arginout, \textcolor{red}{\textless class(treeNodeList)(:)\textgreater} nodeList\arginout, \intzero\ iNode\argin, \doublezero\ timeSubhaloMerges\arginout</arguments>
-     !@     <description>Compute the additional time until merging after a subhalo is lost from the tree (presumably due to limited resolution).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>phaseSpacePositionRealize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ time\argin, \doubleone\ position\argin, \doubleone\ velocity\argin</arguments>
-     !@     <description>Modify relative positions and velocities to account for both any periodicity of the simulated volume, and for Hubble flow.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>timingRecord</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} label\argin</arguments>
-     !@     <description>Record timing data.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>timingReport</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Report on time taken in various steps of processing merger trees read from file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>rootNodeAffinitiesInitial</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\arginout</arguments>
-     !@     <description>Find initial root node affinities for all nodes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isOnPushList</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)\textgreater} node\argin</arguments>
-     !@     <description>Return true if the given node is on the current ``push-to'' list of nodes for split forests.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isOnPullList</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)\textgreater} node\argin</arguments>
-     !@     <description>Return true if the given node is on the current ``pull-from'' list of nodes for split forests.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>pushListIndex</method>
-     !@     <type>\textcolor{red}{\textless integer(c\_size\_t)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)\textgreater} node\argin</arguments>
-     !@     <description>Return the index of the given node in the ``push-to'' list of nodes for split forests.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>pullListIndex</method>
-     !@     <type>\textcolor{red}{\textless integer(c\_size\_t)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)\textgreater} node\argin, \textcolor{red}{\textless integer(c\_size\_t)\textgreater} iPull\argin</arguments>
-     !@     <description>Return the index of the given node in the ``pull-from'' list of nodes for split forests.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>pullListCount</method>
-     !@     <type>\textcolor{red}{\textless integer(c\_size\_t)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)\textgreater} node\argin</arguments>
-     !@     <description>Return the number of the given node in the ``pull-from'' list of nodes for split forests.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>assignSplitForestEvents</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)\textgreater} node\argin, \textcolor{red}{\textless class(treeNodeList)(:)\textgreater} nodeList\arginout</arguments>
-     !@     <description>Assign events to nodes if they jump between trees in a forest.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isSubhaloSubhaloMerger</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\argin, \textcolor{red}{\textless class(nodeData)\textgreater} node\argin</arguments>
-     !@     <description>Returns true if {\normalfont \ttfamily node} undergoes a subhalo-subhalo merger.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>createNodeArray</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(mergerTree)\textgreater} tree\arginout, \textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\argin, \textcolor{red}{\textless class(nodeData)\textgreater} node\argin, \intzero\ isolatedNodeCount\argout, \logicalone\ childIsSubhalo\arginout</arguments>
-     !@     <description>Create an array of standard nodes and associated structures.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Ensure that any node which was once a subhalo remains a subhalo." method="enforceSubhaloStatus" />
+     !#   <method description="Scan for cases where a subhalo stops being a subhalo and so must be promoted." method="scanForSubhaloPromotions" />
+     !#   <method description="Create a sorted list of node indices with an index into the original array." method="createNodeIndices" />
+     !#   <method description="Return the location in the original array of the given {\normalfont \ttfamily nodeIndex}." method="nodeLocation" />
+     !#   <method description=" Return the sort index of the given {\normalfont \ttfamily descendentIndex}." method="descendentNodeSortIndex" />
+     !#   <method description="Destroy the sorted list of node indices." method="destroyNodeIndices" />
+     !#   <method description="Builds pointers from each node to its descendent node." method="buildDescendentPointers" />
+     !#   <method description="Create parent pointer links between isolated nodes and assign times and masses to those nodes." method="buildIsolatedParentPointers" />
+     !#   <method description="Assign named properties to nodes." method="assignNamedProperties" />
+     !#   <method description="Assign scale radii to nodes." method="assignScaleRadii" />
+     !#   <method description="Scan for and record mergers between nodes." method="scanForMergers" />
+     !#   <method description="Assign spin parameters to nodes." method="assignSpinParameters" />
+     !#   <method description="Assign pointers to merge targets." method="assignMergers" />
+     !#   <method description="Search for subhalos which move between branches/trees." method="scanForBranchJumps" />
+     !#   <method description="Build and attached bound mass histories to subhalos." method="buildSubhaloMassHistories" />
+     !#   <method description="Compute the additional time until merging after a subhalo is lost from the tree (presumably due to limited resolution)." method="timeUntilMergingSubresolution" />
+     !#   <method description="Modify relative positions and velocities to account for both any periodicity of the simulated volume, and for Hubble flow." method="phaseSpacePositionRealize" />
+     !#   <method description="Record timing data." method="timingRecord" />
+     !#   <method description="Report on time taken in various steps of processing merger trees read from file." method="timingReport" />
+     !#   <method description="Find initial root node affinities for all nodes." method="rootNodeAffinitiesInitial" />
+     !#   <method description="Return true if the given node is on the current ``push-to'' list of nodes for split forests." method="isOnPushList" />
+     !#   <method description="Return true if the given node is on the current ``pull-from'' list of nodes for split forests." method="isOnPullList" />
+     !#   <method description="Return the index of the given node in the ``push-to'' list of nodes for split forests." method="pushListIndex" />
+     !#   <method description="Return the index of the given node in the ``pull-from'' list of nodes for split forests." method="pullListIndex" />
+     !#   <method description="Return the number of the given node in the ``pull-from'' list of nodes for split forests." method="pullListCount" />
+     !#   <method description="Assign events to nodes if they jump between trees in a forest." method="assignSplitForestEvents" />
+     !#   <method description="Returns true if {\normalfont \ttfamily node} undergoes a subhalo-subhalo merger." method="isSubhaloSubhaloMerger" />
+     !#   <method description="Create an array of standard nodes and associated structures." method="createNodeArray" />
+     !# </methods>
      final     ::                                  readDestructor
      procedure :: construct                     => readConstruct
      procedure :: enforceSubhaloStatus          => readEnforceSubhaloStatus
@@ -447,39 +306,13 @@
      logical                                     :: progenitorsFound
      type   (mergerTreeConstructorRead), pointer :: constructor
    contains
-     !@ <objectMethods>
-     !@   <object>progenitorIterator</object>
-     !@   <objectMethod>
-     !@     <method>descendentSet</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)\textgreater} node\argin, \textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\argin</arguments>
-     !@     <description>Set the target descendent node and initialize the iterator.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>next</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\argin</arguments>
-     !@     <description>Move to the next progenitor. Returns true if the next progenitor exists, false otherwise.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>index</method>
-     !@     <type>\textcolor{red}{\textless integer(kind=kind\_int8)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\argin</arguments>
-     !@     <description>Return the index of the current progenitor.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>current</method>
-     !@     <type>\textcolor{red}{\textless *class(nodeData)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\argin</arguments>
-     !@     <description>Return a pointer to the current progenitor.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>exist</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return true if any progenitors exist, false otherwise.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the target descendent node and initialize the iterator." method="descendentSet" />
+     !#   <method description="Move to the next progenitor. Returns true if the next progenitor exists, false otherwise." method="next" />
+     !#   <method description="Return the index of the current progenitor." method="index" />
+     !#   <method description="Return a pointer to the current progenitor." method="current" />
+     !#   <method description="Return true if any progenitors exist, false otherwise." method="exist" />
+     !# </methods>
      procedure :: descendentSet => progenitorIteratorDescendentSet
      procedure :: next          => progenitorIteratorNext
      procedure :: index         => progenitorIteratorIndex

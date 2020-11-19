@@ -70,21 +70,10 @@
      type            (interpolator  ), allocatable, dimension(:,:  ) :: interpolatorAge
      type            (interpolator  ), allocatable, dimension(:    ) :: interpolatorMass
    contains
-     !@ <objectMethods>
-     !@   <object>stellarTracksFile</object>
-     !@   <objectMethod>
-     !@     <method>interpolationCompute</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>\textcolor{red}{\textless integer(c\_size\_t)(2)\textgreater} interpolationIndicesMetallicity\argout, {\textless integer(c\_size\_t)(2,2)\textgreater} interpolationIndicesMass\argout, {\textless integer(c\_size\_t)(2,2,2)\textgreater} interpolationIndicesAge\argout, {\textless double(2)\textgreater} interpolationFactorsMetallicity\argout, {\textless double(2,2)\textgreater} interpolationFactorsMass\argout, {\textless double(2,2,2)\textgreater} interpolationFactorsAge\argout, \logicalzero\ metallicityOutOfRange\argout, \logicalzero\ massOutOfRange\argout, \logicalzero\ ageOutOfRange\argout</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>interpolate</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@     <description>\textcolor{red}{\textless integer(c\_size\_t)(2)\textgreater} interpolationIndicesMetallicity\argin, {\textless integer(c\_size\_t)(2,2)\textgreater} interpolationIndicesMass\argin, {\textless integer(c\_size\_t)(2,2,2)\textgreater} interpolationIndicesAge\argin, {\textless double(2)\textgreater} interpolationFactorsMetallicity\argin, {\textless double(2,2)\textgreater} interpolationFactorsMass\argin, {\textless double(2,2,2)\textgreater} interpolationFactorsAge\argin, {\textless double(:,:,:)\textgreater} stellarTracks\argin</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="\textcolor{red}{\textless integer(c\_size\_t)(2)\textgreater} interpolationIndicesMetallicity\argout, {\textless integer(c\_size\_t)(2,2)\textgreater} interpolationIndicesMass\argout, {\textless integer(c\_size\_t)(2,2,2)\textgreater} interpolationIndicesAge\argout, {\textless double(2)\textgreater} interpolationFactorsMetallicity\argout, {\textless double(2,2)\textgreater} interpolationFactorsMass\argout, {\textless double(2,2,2)\textgreater} interpolationFactorsAge\argout, \logicalzero\ metallicityOutOfRange\argout, \logicalzero\ massOutOfRange\argout, \logicalzero\ ageOutOfRange\argout" method="interpolationCompute" />
+     !#   <method description="\textcolor{red}{\textless integer(c\_size\_t)(2)\textgreater} interpolationIndicesMetallicity\argin, {\textless integer(c\_size\_t)(2,2)\textgreater} interpolationIndicesMass\argin, {\textless integer(c\_size\_t)(2,2,2)\textgreater} interpolationIndicesAge\argin, {\textless double(2)\textgreater} interpolationFactorsMetallicity\argin, {\textless double(2,2)\textgreater} interpolationFactorsMass\argin, {\textless double(2,2,2)\textgreater} interpolationFactorsAge\argin, {\textless double(:,:,:)\textgreater} stellarTracks\argin" method="interpolate" />
+     !# </methods>
      procedure :: luminosity           => fileLuminosity
      procedure :: temperatureEffective => fileTemperatureEffective
      procedure :: interpolationCompute => fileInterpolationCompute

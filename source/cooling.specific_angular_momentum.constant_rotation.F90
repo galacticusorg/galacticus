@@ -61,15 +61,9 @@
      integer                                                 :: sourceAngularMomentumSpecificMean          , sourceNormalizationRotation
      logical                                                 :: useInteriorMean
    contains
-     !@ <objectMethods>
-     !@   <object>coolingSpecificAngularMomentumConstantRotation</object>
-     !@   <objectMethod>
-     !@     <method>calculationReset</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
-     !@     <description>Reset memoized calculations.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset memoized calculations." method="calculationReset" />
+     !# </methods>
      final     ::                            constantRotationDestructor
      procedure :: autoHook                => constantRotationAutoHook
      procedure :: calculationReset        => constantRotationCalculationReset

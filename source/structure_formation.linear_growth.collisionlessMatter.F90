@@ -41,15 +41,9 @@
      class           (cosmologyParametersClass), pointer     :: cosmologyParameters_         => null()
      class           (cosmologyFunctionsClass ), pointer     :: cosmologyFunctions_          => null()
    contains
-     !@ <objectMethods>
-     !@   <object>linearGrowthCollisionlessMatter</object>
-     !@   <objectMethod>
-     !@     <method>retabulate</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <description>Tabulate linear growth factor.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulate linear growth factor." method="retabulate" />
+     !# </methods>
      final     ::                                         collisionlessMatterDestructor
      procedure :: value                                => collisionlessMatterValue
      procedure :: logarithmicDerivativeExpansionFactor => collisionlessMatterLogarithmicDerivativeExpansionFactor

@@ -70,15 +70,9 @@
      private
      type(multiCounter) :: counter_
    contains
-     !@ <objectMethods>
-     !@   <object>domainIteratorCartesian3D</object>
-     !@   <objectMethod>
-     !@     <method>next</method>
-     !@     <arguments></arguments>
-     !@     <type>\logicalzero</type>
-     !@     <description>Move to the next cell in the domain.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Move to the next cell in the domain." method="next" />
+     !# </methods>
      procedure :: next => domainIteratorCartesian3DNext
   end type domainIteratorCartesian3D
   

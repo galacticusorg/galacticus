@@ -70,15 +70,9 @@
           &                                                   b1                                        , b2
      integer                                               :: densityContrastMethod                     , densityProfileMethod
    contains
-     !@ <objectMethods>
-     !@   <object>darkMatterProfileConcentrationDuttonMaccio2014</object>
-     !@   <objectMethod>
-     !@     <method>definitions</method>
-     !@     <arguments></arguments>
-     !@     <type>\void</type>
-     !@     <description>Establish definitions for virial density contrast and dark matter halo profile.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Establish definitions for virial density contrast and dark matter halo profile." method="definitions" />
+     !# </methods>
      final     ::                                   duttonMaccio2014Destructor
      procedure :: definitions                    => duttonMaccio2014Definitions
      procedure :: concentration                  => duttonMaccio2014Concentration

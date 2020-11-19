@@ -212,129 +212,28 @@ module Merger_Tree_Data_Structure
      integer                                                                                   :: metaDataCount              =0
      type            (treeMetaData  ), allocatable, dimension(               :               ) :: metaData
    contains
-     !@ <objectMethods>
-     !@   <object>mergerTreeData</object>
-     !@   <objectMethod>
-     !@     <method>reset</method>
-     !@     <description>Reset the data structure.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>forestCountSet</method>
-     !@     <description>Set the total number of forests in the data structure.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ forestCount\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>nodeCountSet</method>
-     !@     <description>Set the total number of nodes in the data structure.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ nodeCount\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>particleCountSet</method>
-     !@     <description>Set the total number of particles in the data structure.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ particleCount\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>readASCII</method>
-     !@     <description>Read node data from an ASCII file into the data structure.</description>
-     !@     <type>\void</type>
-     !@     <arguments>inputFile\argin, [commentCharacter]\argin, [separator]\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>readParticlesASCII</method>
-     !@     <description>Read particle data from an ASCII file into the data structure</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} inputFile\argin, \textcolor{red}{\textless character(len=1)\textgreater} [commentCharacter]\argin, \textcolor{red}{\textless character(len=*)\textgreater} [separator]\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setProperty</method>
-     !@     <description>Set a node property in the data structure.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\enumPropertyType\ propertyType\argin, \textcolor{red}{\textless integer(kind=kind\_int8)(:)|\doubleone\textgreater} property\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setPropertyColumn</method>
-     !@     <description>Set the column in an ASCII data file corresponding to a given node property.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\enumPropertyType\ propertyType\argin, columnNumber\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setParticlePropertyColumn</method>
-     !@     <description>Set the column in an ASCII data file corresponding to a given particle property.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\enumPropertyType\ propertyType\argin, \intzero\ columnNumber\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setParticleMass</method>
-     !@     <description>Set the mass of an N-body particle in the simulation from which the trees were derived.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ particleMass\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setSelfContained</method>
-     !@     <description>Specify if trees are self-contained (i.e. contain no cross-links to other trees).</description>
-     !@     <type>\void</type>
-     !@     <arguments>\logicalzero\ areSelfContained\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setIncludesHubbleFlow</method>
-     !@     <description>Specify if velocities include the Hubble flow.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\logicalzero\ includesHubbleFlow\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setPositionsArePeriodic</method>
-     !@     <description>Set if positions are periodic.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\logicalzero\ isPeriodic\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setIncludesSubhaloMasses</method>
-     !@     <description>Set whether halo masses include the masses of the subhalos.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\logicalzero\ includesSubhaloMasses\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setDummyHostId</method>
-     !@     <description>Set host ID for self-hosting halos if host ID is not node ID.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ dummyHostId\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setConversionFactor</method>
-     !@     <description>Set property type and conversion factor to adjust inconsistent units.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\enumPropertyType\ propertyType\argin, \doublezero\ conversionFactor\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setUnits</method>
-     !@     <description>Set the units used.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\enumMetaDataType\ unitType\argin, \doublezero\ unitsInSI\argin, \intzero\ [hubbleExponent]\argin, \intzero\ [scaleFactorExponent]\argin, \textcolor{red}{\textless character(len=*)\textgreater} [name]\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>addMetadata</method>
-     !@     <description>Add a metadatum to the tree data structure.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\enumMetaDataType\ metadataType\argin, \textcolor{red}{\textless character(len=*)\textgreater} label\argin, \textcolor{red}{\textless (\doublezero,\intzero,character(len=*))\textgreater} value\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>makeReferences</method>
-     !@     <description>Specify whether or not merger tree dataset references should be made.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\logicalzero\ makeReferences\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>export</method>
-     !@     <description>Export the tree data to an output file.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} outputFileName\argin, \enumMergerTreeFormat\ outputFormat\argin, \intzero\ hdfChunkSize\argin, \intzero\ hdfCompressionLevel\argin, \logicalzero\ [append]\argin</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset the data structure." method="reset" />
+     !#   <method description="Set the total number of forests in the data structure." method="forestCountSet" />
+     !#   <method description="Set the total number of nodes in the data structure." method="nodeCountSet" />
+     !#   <method description="Set the total number of particles in the data structure." method="particleCountSet" />
+     !#   <method description="Read node data from an ASCII file into the data structure." method="readASCII" />
+     !#   <method description="Read particle data from an ASCII file into the data structure" method="readParticlesASCII" />
+     !#   <method description="Set a node property in the data structure." method="setProperty" />
+     !#   <method description="Set the column in an ASCII data file corresponding to a given node property." method="setPropertyColumn" />
+     !#   <method description="Set the column in an ASCII data file corresponding to a given particle property." method="setParticlePropertyColumn" />
+     !#   <method description="Set the mass of an N-body particle in the simulation from which the trees were derived." method="setParticleMass" />
+     !#   <method description="Specify if trees are self-contained (i.e. contain no cross-links to other trees)." method="setSelfContained" />
+     !#   <method description="Specify if velocities include the Hubble flow." method="setIncludesHubbleFlow" />
+     !#   <method description="Set if positions are periodic." method="setPositionsArePeriodic" />
+     !#   <method description="Set whether halo masses include the masses of the subhalos." method="setIncludesSubhaloMasses" />
+     !#   <method description="Set host ID for self-hosting halos if host ID is not node ID." method="setDummyHostId" />
+     !#   <method description="Set property type and conversion factor to adjust inconsistent units." method="setConversionFactor" />
+     !#   <method description="Set the units used." method="setUnits" />
+     !#   <method description="Add a metadatum to the tree data structure." method="addMetadata" />
+     !#   <method description="Specify whether or not merger tree dataset references should be made." method="makeReferences" />
+     !#   <method description="Export the tree data to an output file." method="export" />
+     !# </methods>
      procedure :: reset                                           =>Merger_Tree_Data_Structure_Reset
      procedure :: forestCountSet                                  =>Merger_Tree_Data_Structure_Set_Forest_Count
      procedure :: nodeCountSet                                    =>Merger_Tree_Data_Structure_Set_Node_Count

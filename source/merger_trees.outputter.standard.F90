@@ -72,63 +72,17 @@
      class           (cosmologyFunctionsClass     ), pointer                     :: cosmologyFunctions_     => null()
      class           (nodePropertyExtractorClass  ), pointer                     :: nodePropertyExtractor_  => null()
    contains
-     !@ <objectMethods>
-     !@  <object>mergerTreeOutputterStandard</object>
-     !@  <objectMethod>
-     !@   <method>makeGroup</method>
-     !@   <type>void</type>
-     !@   <arguments>\textcolor{red}{\textless type(mergerTree)\textgreater} tree\arginout, \textcolor{red}{\textless integer(c\_size\_t)\textgreater} indexOutput\argin</arguments>
-     !@   <description>Make an group in the \glc\ file in which to store {\normalfont \ttfamily tree}.</description>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>dumpIntegerBuffer</method>
-     !@   <type>void</type>
-     !@   <arguments>\textcolor{red}{\textless integer(c\_size\_t)\textgreater} indexOutput\argin</arguments>
-     !@   <description>Dump the contents of the integer properties buffer to the \glc\ output file.</description>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>dumpDoubleBuffer</method>
-     !@   <type>void</type>
-     !@   <arguments>\textcolor{red}{\textless integer(c\_size\_t)\textgreater} indexOutput\argin</arguments>
-     !@   <description>Dump the contents of the double properties buffer to the \glc\ output file.</description>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>extendIntegerBuffer</method>
-     !@   <type>void</type>
-     !@   <arguments></arguments>
-     !@   <description>Extend the size of the integer buffer.</description>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>extendDoubleBuffer</method>
-     !@   <type>void</type>
-     !@   <arguments></arguments>
-     !@   <description>Extend the size of the double buffer.</description>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>propertiesCount</method>
-     !@   <type>void</type>
-     !@   <arguments>\doublezero\ time\argin, \textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
-     !@   <description>Count up the number of properties that will be output.</description>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>buffersAllocate</method>
-     !@   <type>void</type>
-     !@   <arguments>\textcolor{red}{\textless integer(c\_size\_t)\textgreater} indexOutput\argin</arguments>
-     !@   <description>Allocate buffers for storage of properties.</description>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>propertyNamesEstablish</method>
-     !@   <type>void</type>
-     !@   <arguments>\doublezero\ time\argin, \textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
-     !@   <description>Set names for the properties.</description>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>outputGroupCreate</method>
-     !@   <type>void</type>
-     !@   <arguments>\textcolor{red}{\textless integer(c\_size\_t)\textgreater} indexOutput\argin, \doublezero\ time\argin</arguments>
-     !@   <description>Create a group in which to store this output.</description>
-     !@  </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Make an group in the \glc\ file in which to store {\normalfont \ttfamily tree}." method="makeGroup" />
+     !#   <method description="Dump the contents of the integer properties buffer to the \glc\ output file." method="dumpIntegerBuffer" />
+     !#   <method description="Dump the contents of the double properties buffer to the \glc\ output file." method="dumpDoubleBuffer" />
+     !#   <method description="Extend the size of the integer buffer." method="extendIntegerBuffer" />
+     !#   <method description="Extend the size of the double buffer." method="extendDoubleBuffer" />
+     !#   <method description="Count up the number of properties that will be output." method="propertiesCount" />
+     !#   <method description="Allocate buffers for storage of properties." method="buffersAllocate" />
+     !#   <method description="Set names for the properties." method="propertyNamesEstablish" />
+     !#   <method description="Create a group in which to store this output." method="outputGroupCreate" />
+     !# </methods>
      final     ::                           standardDestructor
      procedure :: output                 => standardOutput
      procedure :: finalize               => standardFinalize

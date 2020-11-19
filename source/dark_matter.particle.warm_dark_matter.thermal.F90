@@ -30,21 +30,10 @@
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      double precision                                    :: massValue                     , degreesOfFreedomEffectiveValue
    contains
-     !@ <objectMethods>
-     !@   <object>darkMatterParticleWDMThermal</object>
-     !@   <objectMethod>
-     !@     <method>degreesOfFreedomEffective</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the effective number of degrees of freedom of the thermal wark dark matter particle.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>degreesOfFreedomEffectiveDecoupling</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the effective number of relativisitc degrees of freedom in the universe at the time at which the thermal wark dark matter particle decoupled.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the effective number of degrees of freedom of the thermal wark dark matter particle." method="degreesOfFreedomEffective" />
+     !#   <method description="Return the effective number of relativisitc degrees of freedom in the universe at the time at which the thermal wark dark matter particle decoupled." method="degreesOfFreedomEffectiveDecoupling" />
+     !# </methods>
      final     ::                                        wdmThermalDestructor
      procedure :: mass                                => wdmThermalMass
      procedure :: degreesOfFreedomEffective           => wdmThermalDegreesOfFreedomEffective

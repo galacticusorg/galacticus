@@ -128,15 +128,9 @@
      type            (table1DGeneric          )          :: transfer
      double precision                                    :: time                          , redshift
    contains
-     !@ <objectMethods>
-     !@   <object>transferFunctionFile</object>
-     !@   <objectMethod>
-     !@     <method>readFile</method>
-     !@     <type>void</type>
-     !@     <arguments>\textcolor{red}{\textless char(len=*)\textgreater} fileName\argin</arguments>
-     !@     <description>Read the named transfer function file.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Read the named transfer function file." method="readFile" />
+     !# </methods>
      final     ::                          fileDestructor
      procedure :: readFile              => fileReadFile
      procedure :: value                 => fileValue

@@ -72,15 +72,9 @@ module Numerical_Quasi_Random_Sequences
      type   (c_ptr), allocatable :: gsl_qrng , gsl_qrng_type
      integer                     :: qrngType
    contains
-     !@ <objectMethods>
-     !@   <object>quasiRandomNumberGenerator</object>
-     !@   <objectMethod>
-     !@     <method>get</method>
-     !@     <description>Get numbers from the sequence.</description>
-     !@     <type>(\doublezero|\doubleone)</type>
-     !@     <arguments>\intzero\ [n]\argin</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Get numbers from the sequence." method="get" />
+     !# </methods>
      final     ::        quasiRandomNumberGeneratorDestructor
      procedure :: get => quasiRandomNumberGeneratorGet
   end type quasiRandomNumberGenerator

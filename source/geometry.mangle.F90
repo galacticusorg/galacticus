@@ -31,15 +31,9 @@ module Geometry_Mangle
      double precision, dimension(3) :: x
      double precision               :: c
    contains
-     !@ <objectMethods>
-     !@   <object>cap</object>
-     !@   <objectMethod>
-     !@     <method>pointIncluded</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\textcolor{red}{\textless double(3)\textgreater} point\argin</arguments>
-     !@     <description>Return true if the given point lives inside the {\normalfont \scshape mangle} cap.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return true if the given point lives inside the {\normalfont \scshape mangle} cap." method="pointIncluded" />
+     !# </methods>
     procedure :: pointIncluded => capPointIncluded
   end type cap
 
@@ -49,15 +43,9 @@ module Geometry_Mangle
      double precision                                 :: weight  , solidAngle
      type            (cap), dimension(:), allocatable :: caps
    contains
-     !@ <objectMethods>
-     !@   <object>polygon</object>
-     !@   <objectMethod>
-     !@     <method>pointIncluded</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\textcolor{red}{\textless double(3)\textgreater} point\argin</arguments>
-     !@     <description>Return true if the given point lives inside the {\normalfont \scshape mangle} polygon.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return true if the given point lives inside the {\normalfont \scshape mangle} polygon." method="pointIncluded" />
+     !# </methods>
      procedure :: pointIncluded => polygonPointIncluded
   end type polygon
 
@@ -67,21 +55,10 @@ module Geometry_Mangle
      type   (polygon      ), dimension(:), allocatable :: polygons
      integer(kind=c_size_t), dimension(:), allocatable :: solidAngleIndex
    contains
-     !@ <objectMethods>
-     !@   <object>window</object>
-     !@   <objectMethod>
-     !@     <method>read</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} fileName\argin</arguments>
-     !@     <description>Read the specified {\normalfont \scshape mangle} polygon file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>pointIncluded</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\textcolor{red}{\textless double(3)\textgreater} point\argin</arguments>
-     !@     <description>Return true if the given point lives inside the {\normalfont \scshape mangle} window.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Read the specified {\normalfont \scshape mangle} polygon file."                        method="read"         />
+     !#   <method description="Return true if the given point lives inside the {\normalfont \scshape mangle} window." method="pointIncluded"/>
+     !# </methods>
      procedure :: read          => windowRead
      procedure :: pointIncluded => windowPointIncluded
   end type window

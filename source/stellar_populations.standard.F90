@@ -69,21 +69,10 @@
      type            (populationTable              )                            :: energyOutput
      type            (populationTable              ), allocatable, dimension(:) :: yield
    contains
-     !@ <objectMethods>
-     !@   <object>stellarPopulationStandard</object>
-     !@   <objectMethod>
-     !@     <method>starIsEvolved</method>
-     !@     <arguments>\doublezero\ massInitial\argin, \doublezero\ metallicity\argin,\doublezero\ age\argin</arguments>
-     !@     <type>\logicalzero</type>
-     !@     <description>Return true if the star of given initial mass and metallicity has evolved off of the main sequence by the given age.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>interpolate</method>
-     !@     <arguments>\textcolor{red}{\textless type(abundances)\textgreater} abundances_\argin, \doublezero\ ageMinimum\argin,\doublezero\ ageMaximum\argin, \textcolor{red}{\textless type(populationTable)\textgreater} property\arginout</arguments>
-     !@     <type>\logicalzero</type>
-     !@     <description>Interpolate in the given property to return the mean rate of production of that property from the stellar population between the given minimum and maximum ages.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return true if the star of given initial mass and metallicity has evolved off of the main sequence by the given age." method="starIsEvolved" />
+     !#   <method description="Interpolate in the given property to return the mean rate of production of that property from the stellar population between the given minimum and maximum ages." method="interpolate" />
+     !# </methods>
      final     ::                                  standardDestructor
      procedure :: rateRecycling                 => standardRateRecycling
      procedure :: rateYield                     => standardRateYield

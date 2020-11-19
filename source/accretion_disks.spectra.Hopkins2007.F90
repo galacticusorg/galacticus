@@ -29,15 +29,9 @@
      private
      type(lockDescriptor) :: fileLock
    contains
-     !@ <objectMethods>
-     !@   <object>accretionDiskSpectraHopkins2007</object>
-     !@   <objectMethod>
-     !@     <method>buildFile</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Build the tabulation file containing AGN spectra.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Build the tabulation file containing AGN spectra." method="buildFile" />
+     !# </methods>
      procedure :: buildFile => hopkins2007BuildFile
   end type accretionDiskSpectraHopkins2007
 

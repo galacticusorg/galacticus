@@ -26,21 +26,10 @@
      !% Implementation of an abstract mass distribution class for spherically symmetric distributions.
      private
    contains
-     !@ <objectMethods>
-     !@   <object>massDistributionSpherical</object>
-     !@   <objectMethod>
-     !@     <method>radiusHalfMass</method>
-     !@     <description>Returns the radius enclosing half of the mass of the mass distribution.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusEnclosingMass</method>
-     !@     <description>Returns the radius enclosing the given mass.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ mass\argin</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Returns the radius enclosing half of the mass of the mass distribution." method="radiusHalfMass" />
+     !#   <method description="Returns the radius enclosing the given mass." method="radiusEnclosingMass" />
+     !# </methods>
      procedure :: symmetry             => sphericalSymmetry
      procedure :: massEnclosedBySphere => sphericalMassEnclosedBySphere
      procedure :: radiusHalfMass       => sphericalRadiusHalfMass

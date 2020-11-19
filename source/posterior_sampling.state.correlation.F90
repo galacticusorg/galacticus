@@ -33,27 +33,11 @@
      double precision, allocatable, dimension(:,:) :: states
      integer         , allocatable, dimension(:  ) :: correlationLengths
    contains
-     !@ <objectMethods>
-     !@   <object>posteriorSampleStateCorrelation</object>
-     !@   <objectMethod>
-     !@     <method>correlationLength</method>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the current correlation length in the chains.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>correlationLengthCompute</method>
-     !@     <type>\intzero</type>
-     !@     <arguments>\logicalone\ [outlierMask]\argin</arguments>
-     !@     <description>Compute correlation lengths in the chains.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>postConvergenceCorrelationCount</method>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the number of post-convergence correlation lengths that have accrued.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the current correlation length in the chains." method="correlationLength" />
+     !#   <method description="Compute correlation lengths in the chains." method="correlationLengthCompute" />
+     !#   <method description="Return the number of post-convergence correlation lengths that have accrued." method="postConvergenceCorrelationCount" />
+     !# </methods>
      procedure :: parameterCountSet               => correlationParameterCountSet
      procedure :: update                          => correlationUpdate
      procedure :: reset                           => correlationReset

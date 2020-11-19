@@ -118,27 +118,11 @@
           &                                                      fractionTimestepSatelliteMinimum
      type            (deadlockList                 ), pointer :: deadlockHeadNode                 => null()
    contains
-     !@ <objectMethods>
-     !@   <object>mergerTreeEvolverStandard</object>
-     !@   <objectMethod>
-     !@     <method>timeEvolveTo</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout, \doublezero\ timeEnd\argin, \textcolor{red}{\textless procedure(timestepTask)\textgreater} *timestepTask_\argout, \textcolor{red}{\textless class(*)\textgreater} *timestepSelf \argout, \logicalzero\ report\argin, \textcolor{red}{\textless type(treeNode)\textgreater} [*nodeLock]\argout, \textcolor{red}{\textless type(varying\_string)\textgreater} [lockType]\argout</arguments>
-     !@     <description>Find the time to which a node can be evolved.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>deadlockAddNode</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *nodeLock\argin, \textcolor{red}{\textless integer(kind\_int8)\textgreater} treeIndex\argin, \textcolor{red}{\textless type(treeNode)\textgreater} *node\argin, \textcolor{red}{\textless type(varying\_string)\textgreater} lockType\argin</arguments>
-     !@     <description>Add a node to the deadlock list.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>deadlockOutputTree</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ timeEnd\argin</arguments>
-     !@     <description>Output a description of a deadlocked tree.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Find the time to which a node can be evolved." method="timeEvolveTo" />
+     !#   <method description="Add a node to the deadlock list." method="deadlockAddNode" />
+     !#   <method description="Output a description of a deadlocked tree." method="deadlockOutputTree" />
+     !# </methods>
      final     ::                       standardDestructor
      procedure :: evolve             => standardEvolve
      procedure :: timeEvolveTo       => standardTimeEvolveTo

@@ -38,15 +38,9 @@
      class           (darkMatterParticleClass                         ), pointer     :: darkMatterParticle_      => null()
      class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt), pointer     :: sphericalCollapseSolver_ => null()
    contains
-     !@ <objectMethods>
-     !@   <object>criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt</object>
-     !@   <objectMethod>
-     !@     <method>retabulate</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <description>Tabulate spherical collapse critical overdensity.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulate spherical collapse critical overdensity." method="retabulate" />
+     !# </methods>
      final     ::                    sphericalCollapseClsnlssMttrCsmlgclCnstntDestructor
      procedure :: value           => sphericalCollapseClsnlssMttrCsmlgclCnstntValue
      procedure :: gradientTime    => sphericalCollapseClsnlssMttrCsmlgclCnstntGradientTime

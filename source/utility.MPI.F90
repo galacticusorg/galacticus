@@ -38,135 +38,29 @@ module MPI_Utilities
      type   (varying_string)                            :: hostName
      integer                , allocatable, dimension(:) :: allRanks      , nodeAffinities
    contains
-     !@ <objectMethods>
-     !@   <object>mpiObject</object>
-     !@   <objectMethod>
-     !@     <method>isMaster</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return true if this is the master process (i.e. rank-0 process).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isActive</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return true if MPI is active.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>rank</method>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the rank of this process.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>count</method>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the total number of processes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>rankLabel</method>
-     !@     <type>\textcolor{red}{\textless type(varying\_string)\textgreater}</type>
-     !@     <arguments></arguments>
-     !@     <description>Return a label containing the rank of the process.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>nodeCount</method>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the number of nodes on which this MPI job is running.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>nodeAffinity</method>
-     !@     <type>\intzero</type>
-     !@     <arguments>\intzero\ [rank]\argin</arguments>
-     !@     <description>Return the index of the node on which the MPI process of the given rank (or this process if no rank is given) is running.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>hostAffinity</method>
-     !@     <type>\textcolor{red}{\textless type(varying\_string)\textgreater}</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the name of the host on which this MPI process is running.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>requestData</method>
-     !@     <type>\doubletwo|\inttwo|\logicaltwo</type>
-     !@     <arguments>\intone requestFrom\argin, \doubleone|\intone|\logicalone array</arguments>
-     !@     <description>Request the content of {\normalfont \ttfamily array} from each processes listed in {\normalfont \ttfamily requestFrom}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>broadcastData</method>
-     !@     <type>void</type>
-     !@     <arguments>\intzero sendFrom\argin, \doublezero|\doubleone|\doubletwo|\doublethree\ array\arginout</arguments>
-     !@     <description>Broadcast the content of {\normalfont \ttfamily array} from the {\normalfont \ttfamily sendFrom} processes to all other processes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>messageWaiting</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\intzero\ [from]\argin, \intzero\ [tag]\argin</arguments>
-     !@     <description>Return true if a message is waiting, optionally from the specified process and with the specified tag.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>average</method>
-     !@     <type>\doubleone</type>
-     !@     <arguments>\doubleone array\argin</arguments>
-     !@     <description>Return the average of {\normalfont \ttfamily array} over all processes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>median</method>
-     !@     <type>\intone</type>
-     !@     <arguments>\intone array\argin</arguments>
-     !@     <description>Return the median of {\normalfont \ttfamily array} over all processes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>sum</method>
-     !@     <type>\intzero|\intone</type>
-     !@     <arguments>(\intzero|\intone|\inttwo|\intthree|\doublezero|\doubleone|\doubletwo) array\argin</arguments>
-     !@     <description>Return the sum of {\normalfont \ttfamily array} over all processes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>maxval</method>
-     !@     <type>\doubleone</type>
-     !@     <arguments>(\doublezero|\doubleone) array\argin</arguments>
-     !@     <description>Return the maximum value of {\normalfont \ttfamily array} over all processes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>maxloc</method>
-     !@     <type>\intone</type>
-     !@     <arguments>\doubleone array\argin</arguments>
-     !@     <description>Return the rank of the process with the maximum value of {\normalfont \ttfamily array} over all processes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>minval</method>
-     !@     <type>\doublezero|\doubleone|\intzero|\intone</type>
-     !@     <arguments>(\doublezero|\doubleone|\intzero|\intone) array\argin</arguments>
-     !@     <description>Return the minimum value of {\normalfont \ttfamily array} over all processes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>any</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\logicalzero\ scalar\argin, \logicalzero\ [mask]\argin</arguments>
-     !@     <description>Return true if any of {\normalfont \ttfamily scalar} is true over all processes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>all</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\logicalzero\ scalar\argin, \logicalzero\ [mask]\argin</arguments>
-     !@     <description>Return true if every {\normalfont \ttfamily scalar} is true over all processes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>minloc</method>
-     !@     <type>\intone</type>
-     !@     <arguments>\doubleone array\argin</arguments>
-     !@     <description>Return the rank of the process with the minimum value of {\normalfont \ttfamily array} over all processes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>gather</method>
-     !@     <type>(\doubleone|\doubletwo|\doublethree|\inttwo)</type>
-     !@     <arguments>(\doublezero|\doubleone|\doubletwo|\intone) array\argin</arguments>
-     !@     <description>Gather arrays from all processes into an array of rank one higher.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return true if this is the master process (i.e. rank-0 process)." method="isMaster" />
+     !#   <method description="Return true if MPI is active." method="isActive" />
+     !#   <method description="Return the rank of this process." method="rank" />
+     !#   <method description="Return the total number of processes." method="count" />
+     !#   <method description="Return a label containing the rank of the process." method="rankLabel" />
+     !#   <method description="Return the number of nodes on which this MPI job is running." method="nodeCount" />
+     !#   <method description="Return the index of the node on which the MPI process of the given rank (or this process if no rank is given) is running." method="nodeAffinity" />
+     !#   <method description="Return the name of the host on which this MPI process is running." method="hostAffinity" />
+     !#   <method description="Request the content of {\normalfont \ttfamily array} from each processes listed in {\normalfont \ttfamily requestFrom}." method="requestData" />
+     !#   <method description="Broadcast the content of {\normalfont \ttfamily array} from the {\normalfont \ttfamily sendFrom} processes to all other processes." method="broadcastData" />
+     !#   <method description="Return true if a message is waiting, optionally from the specified process and with the specified tag." method="messageWaiting" />
+     !#   <method description="Return the average of {\normalfont \ttfamily array} over all processes." method="average" />
+     !#   <method description="Return the median of {\normalfont \ttfamily array} over all processes." method="median" />
+     !#   <method description="Return the sum of {\normalfont \ttfamily array} over all processes." method="sum" />
+     !#   <method description="Return the maximum value of {\normalfont \ttfamily array} over all processes." method="maxval" />
+     !#   <method description="Return the rank of the process with the maximum value of {\normalfont \ttfamily array} over all processes." method="maxloc" />
+     !#   <method description="Return the minimum value of {\normalfont \ttfamily array} over all processes." method="minval" />
+     !#   <method description="Return true if any of {\normalfont \ttfamily scalar} is true over all processes." method="any" />
+     !#   <method description="Return true if every {\normalfont \ttfamily scalar} is true over all processes." method="all" />
+     !#   <method description="Return the rank of the process with the minimum value of {\normalfont \ttfamily array} over all processes." method="minloc" />
+     !#   <method description="Gather arrays from all processes into an array of rank one higher." method="gather" />
+     !# </methods>
      procedure :: isMaster       => mpiIsMaster
      procedure :: isActive       => mpiIsActive
      procedure :: rank           => mpiGetRank
@@ -235,21 +129,10 @@ module MPI_Utilities
 #endif
      !$ type(ompLock )     :: ompLock_
    contains
-     !@ <objectMethods>
-     !@   <object>mpiCounter</object>
-     !@   <objectMethod>
-     !@     <method>increment</method>
-     !@     <type>\textcolor{red}{\textless integer(c\_size\_t)\textgreater}</type>
-     !@     <arguments></arguments>
-     !@     <description>Increment the counter and return the new value.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>get</method>
-     !@     <type>\textcolor{red}{\textless integer(c\_size\_t)\textgreater}</type>
-     !@     <arguments></arguments>
-     !@     <description>Get the current value of the counter.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Increment the counter and return the new value." method="increment" />
+     !#   <method description="Get the current value of the counter." method="get" />
+     !# </methods>
      final     ::              counterDestructor
      procedure :: increment => counterIncrement
      procedure :: get       => counterGet

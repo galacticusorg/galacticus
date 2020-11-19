@@ -59,15 +59,9 @@
      double precision                                                              :: tolerance                 , logPriorNormalization
      logical                                                                       :: initialized
    contains
-     !@ <objectMethods>
-     !@   <object>posteriorSampleLikelihoodPosteriorAsPrior</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(mappingList)[:]\textgreater} modelParametersActive_\argin</arguments>
-     !@     <description>Initialize the posterior-as-prior likelihood.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Initialize the posterior-as-prior likelihood." method="initialize" />
+     !# </methods>
      final     ::                    posteriorAsPriorDestructor
      procedure :: evaluate        => posteriorAsPriorEvaluate
      procedure :: functionChanged => posteriorAsPriorFunctionChanged

@@ -108,99 +108,23 @@
      double precision                               :: jetPowerDiskFromBlackHoleRadiusPrevious, jetPowerDiskFromBlackHoleSpinPrevious, &
           &                                            jetPowerDiskFromBlackHoleStored
    contains
-     !@ <objectMethods>
-     !@   <object>accretionDisksADAF</object>
-     !@   <objectMethod>
-     !@     <method>height</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
-     !@     <description>Return the dimensionless height of the ADAF at a given radius.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>velocity</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
-     !@     <description>Return the dimensionless velocity of the ADAF at a given radius.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>temperature</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
-     !@     <description>Return the dimensionless temperature of the ADAF at a given radius.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>enthalpy</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
-     !@     <description>Return the dimensionless enthalpy of the ADAF at a given radius.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>enthalpyAngularMomentumProduct</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
-     !@     <description>Return the product of dimensionless enthalpy and angular momentum of the ADAF at a given radius.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>angularMomentum</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
-     !@     <description>Return the dimensionless angular momentum of the ADAF at a given radius.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>gammaRadial</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
-     !@     <description>Return the radial part of the relativistic boost factor in the ADAF at a given radius.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>gammaAzimuthal</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
-     !@     <description>Return the azimuthal part of the relativistic boost factor in the ADAF at a given radius.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>gamma</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
-     !@     <description>Return the relativistic boost factor in the ADAF at a given radius.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>viscosityParameter</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ spinBlackHole\argin</arguments>
-     !@     <description>Return the viscosity parameter, $\alpha$, in the ADAF.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>fluidAngularVelocity</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
-     !@     <description>Return the dimensionless angular velocity of the ADAF fluid at the given radius.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>fieldEnhancement</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
-     !@     <description>Return the magnetic field enhancement factor in the ADAF at the given radius.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>jetPowerBlackHole</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
-     !@     <description>Return the power of the jet launched by the black hole for the ADAF.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>jetPowerDisk</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
-     !@     <description>Return the power of the jet launched from the disk for the ADAF.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>jetPowerDiskFromBlackHole</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
-     !@     <description>Return the power of the jet launched from the disk which is derived frm the black hole.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the dimensionless height of the ADAF at a given radius." method="height" />
+     !#   <method description="Return the dimensionless velocity of the ADAF at a given radius." method="velocity" />
+     !#   <method description="Return the dimensionless temperature of the ADAF at a given radius." method="temperature" />
+     !#   <method description="Return the dimensionless enthalpy of the ADAF at a given radius." method="enthalpy" />
+     !#   <method description="Return the product of dimensionless enthalpy and angular momentum of the ADAF at a given radius." method="enthalpyAngularMomentumProduct" />
+     !#   <method description="Return the dimensionless angular momentum of the ADAF at a given radius." method="angularMomentum" />
+     !#   <method description="Return the radial part of the relativistic boost factor in the ADAF at a given radius." method="gammaRadial" />
+     !#   <method description="Return the azimuthal part of the relativistic boost factor in the ADAF at a given radius." method="gammaAzimuthal" />
+     !#   <method description="Return the relativistic boost factor in the ADAF at a given radius." method="gamma" />
+     !#   <method description="Return the viscosity parameter, $\alpha$, in the ADAF." method="viscosityParameter" />
+     !#   <method description="Return the dimensionless angular velocity of the ADAF fluid at the given radius." method="fluidAngularVelocity" />
+     !#   <method description="Return the magnetic field enhancement factor in the ADAF at the given radius." method="fieldEnhancement" />
+     !#   <method description="Return the power of the jet launched by the black hole for the ADAF." method="jetPowerBlackHole" />
+     !#   <method description="Return the power of the jet launched from the disk for the ADAF." method="jetPowerDisk" />
+     !#   <method description="Return the power of the jet launched from the disk which is derived frm the black hole." method="jetPowerDiskFromBlackHole" />
+     !# </methods>
      final     ::                                   adafDestructor
      procedure :: efficiencyRadiative            => adafEfficiencyRadiative
      procedure :: powerJet                       => adafPowerJet

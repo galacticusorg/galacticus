@@ -88,27 +88,11 @@ end type hook{$interfaceType}
 type, extends(eventHook) :: eventHook{$interfaceType}
   private
  contains
-  !@ <objectMethods>
-  !@   <object>eventHook{$interfaceType}</object>
-  !@   <objectMethod>
-  !@     <method>attach</method>
-  !@     <type>\void</type>
-  !@     <arguments>\textcolor\{red\}\{\textless class(*)\textgreater\} *object\_\argin, \textcolor\{red\}\{\textless procedure()\textgreater\} *function\_\argin</arguments>
-  !@     <description>Attach a hook to the event.</description>
-  !@   </objectMethod>
-  !@   <objectMethod>
-  !@     <method>isAttached</method>
-  !@     <type>\logicalzero</type>
-  !@     <arguments>\textcolor\{red\}\{\textless class(*)\textgreater\} *object\_\argin, \textcolor\{red\}\{\textless procedure()\textgreater\} *function\_\argin</arguments>
-  !@     <description>Return true if the object is attached to this event.</description>
-  !@   </objectMethod>
-  !@   <objectMethod>
-  !@     <method>detach</method>
-  !@     <type>\void</type>
-  !@     <arguments>\textcolor\{red\}\{\textless class(*)\textgreater\} *object\_\argin, \textcolor\{red\}\{\textless procedure()\textgreater\} *function\_\argin</arguments>
-  !@     <description>Detach a hook from the event.</description>
-  !@   </objectMethod>
-  !@ </objectMethods>
+  !# <methods>
+  !#   <method method="attach"     description="Attach a hook to the event."                         />
+  !#   <method method="isAttached" description="Return true if the object is attached to this event."/>
+  !#   <method method="detach"     description="Detach a hook from the event."                       />
+  !# </methods>
   procedure :: attach     => eventHook{$interfaceType}Attach
   procedure :: isAttached => eventHook{$interfaceType}IsAttached
   procedure :: detach     => eventHook{$interfaceType}Detach
@@ -181,15 +165,9 @@ subroutine eventHook{$interfaceType}Attach(self,object_,function_,openMPThreadBi
   return
 end subroutine eventHook{$interfaceType}Attach
 CODE
-		    my $attacherNode   =
-		    {
-			type       => "code",
-			content    => $attacher,
-			firstChild => undef(),
-			source     => "Galacticus::Build::SourceTree::Process::EventHooks::Process_EventHooks()",
-			line       => 1
-		    };
-		    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$attacherNode]);
+		    my $attacherTree  = &Galacticus::Build::SourceTree::ParseCode($attacher,"null()");
+		    my @attacherNodes = &Galacticus::Build::SourceTree::Children($attacherTree);
+		    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},\@attacherNodes);
 		    my $detacher = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine eventHook{$interfaceType}Detach(self,object_,function_)
   use Galacticus_Error, only : Galacticus_Error_Report
@@ -228,16 +206,9 @@ subroutine eventHook{$interfaceType}Detach(self,object_,function_)
   return
 end subroutine eventHook{$interfaceType}Detach
 CODE
-		    my $detacherNode   =
-		    {
-			type       => "code",
-			content    => $detacher,
-			firstChild => undef(),
-			source     => "Galacticus::Build::SourceTree::Process::EventHooks::Process_EventHooks()",
-			line       => 1
-		    };
-		    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$detacherNode]);
-		    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},"hook".$code::interfaceType,"public");
+		    my $detacherTree  = &Galacticus::Build::SourceTree::ParseCode($detacher,"null()");
+		    my @detacherNodes = &Galacticus::Build::SourceTree::Children($detacherTree);
+		    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},\@detacherNodes);
 		    my $isAttacher = fill_in_string(<<'CODE', PACKAGE => 'code');
 logical function eventHook{$interfaceType}IsAttached(self,object_,function_)
   use Galacticus_Error, only : Galacticus_Error_Report
@@ -268,27 +239,15 @@ logical function eventHook{$interfaceType}IsAttached(self,object_,function_)
   return
 end function eventHook{$interfaceType}IsAttached
 CODE
-		    my $isAttacherNode   =
-		    {
-			type       => "code",
-			content    => $isAttacher,
-			firstChild => undef(),
-			source     => "Galacticus::Build::SourceTree::Process::EventHooks::Process_EventHooks()",
-			line       => 1
-		    };
-		    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$isAttacherNode]);
+		    my $isAttacherTree  = &Galacticus::Build::SourceTree::ParseCode($isAttacher,"null()");
+		    my @isAttacherNodes = &Galacticus::Build::SourceTree::Children($isAttacherTree);
+		    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},\@isAttacherNodes);
 		    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},"hook".$code::interfaceType,"public");
 	        }
 		$hookObject .= "type(eventHook".$code::interfaceType."), public :: ".$hook->{'name'}."Event\n";
-		my $newNode   =
-		{
-		    type       => "code",
-		    content    => $hookObject,
-		    firstChild => undef(),
-		    source     => "Galacticus::Build::SourceTree::Process::EventHooks::Process_EventHooks()",
-		    line       => 1
-		};
-		&Galacticus::Build::SourceTree::InsertAfterNode($node,[$newNode]);
+		my $hookTree = &Galacticus::Build::SourceTree::ParseCode($hookObject,"null()");
+		my @hookNodes = &Galacticus::Build::SourceTree::Children($hookTree);
+		&Galacticus::Build::SourceTree::InsertAfterNode($node,\@hookNodes);
 	    }
             # Build a function to initialize all event hooks.
             my $initializor = fill_in_string(<<'CODE', PACKAGE => 'code');

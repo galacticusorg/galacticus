@@ -30,21 +30,10 @@
     double precision            :: specificEnergyOverRadiusSquared_, specificEnergyOverRadiusSquaredParent_
     integer         (kind_int8) :: lastUniqueID                    , parentUniqueID
   contains
-     !@ <objectMethods>
-     !@   <object>darkMatterProfileHeatingTidal</object>
-     !@   <objectMethod>
-     !@     <method>calculationReset</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout</arguments>
-     !@     <description>Reset memoized calculations.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>specificEnergyOverRadiusSquared</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout</arguments>
-     !@     <description>Compute $Q = E / r^2$.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset memoized calculations." method="calculationReset" />
+     !#   <method description="Compute $Q = E / r^2$." method="specificEnergyOverRadiusSquared" />
+     !# </methods>
      final     ::                                    tidalDestructor
      procedure :: autoHook                        => tidalAutoHook
      procedure :: calculationReset                => tidalCalculationReset

@@ -41,33 +41,12 @@
      double precision                     , dimension(2          ) :: axisRatio
      type            (matrix)                                      :: rotationIn                       , rotationOut
    contains
-     !@ <objectMethods>
-     !@   <object>massDistributionGaussianEllipsoid</object>
-     !@   <objectMethod>
-     !@     <method>densityEllipsoidal</method>
-     !@     <description>Compute the density on the isodensity surface defined by the parameter $m^2$2.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ mSquared\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>accelerationTabulate</method>
-     !@     <description>Tabulate the gravitational acceleration due to the ellipsoid.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>accelerationInterpolate</method>
-     !@     <description>Interpolate in the tabulated gravitational acceleration due to the ellipsoid.</description>
-     !@     <type>\doubleone</type>
-     !@     <arguments>\doubleone\ positionCartesian\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <description>(Re)initialize the structural properties of the Gaussian ellispoid.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ scaleLength\argin, \textcolor{red}{\textless type(vector)\textgreater} axes\argin</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute the density on the isodensity surface defined by the parameter $m^2$2." method="densityEllipsoidal" />
+     !#   <method description="Tabulate the gravitational acceleration due to the ellipsoid." method="accelerationTabulate" />
+     !#   <method description="Interpolate in the tabulated gravitational acceleration due to the ellipsoid." method="accelerationInterpolate" />
+     !#   <method description="(Re)initialize the structural properties of the Gaussian ellispoid." method="initialize" />
+     !# </methods>
      procedure :: density                 => gaussianEllipsoidDensity
      procedure :: densityEllipsoidal      => gaussianEllipsoidDensityEllipsoidal
      procedure :: acceleration            => gaussianEllipsoidAcceleration

@@ -28,15 +28,9 @@
      type   (treeNode), pointer :: branchHead  , node
      logical                    :: nodesRemain_
    contains
-     !@ <objectMethods>
-     !@  <object>mergerTreeWalkerAllNodesBranch</object>
-     !@  <objectMethod>
-     !@   <method>descend</method>
-     !@   <type>\void</type>
-     !@   <arguments></arguments>
-     !@   <description>Descend through the hierarchy to the deepest node along the current branch.</description>
-     !@  </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Descend through the hierarchy to the deepest node along the current branch." method="descend" />
+     !# </methods>
      procedure :: next        => allNodesBranchNext
      procedure :: nodesRemain => allNodesBranchNodesRemain
      procedure :: descend     => allNodesBranchDescend

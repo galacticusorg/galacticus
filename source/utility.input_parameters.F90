@@ -66,57 +66,16 @@ module Input_Parameters
      type   (genericObjectList), allocatable, dimension(:) :: objects
      logical                                               :: created=.false., removed   =.false.
    contains
-     !@ <objectMethods>
-     !@   <object>inputParameter</object>
-     !@   <objectMethod>
-     !@     <method>isParameter</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return true if this is a valid parameter node.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>objectCreated</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return true the object corresponding to this parameter has been created.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>objectGet</method>
-     !@     <type>\textcolor{red}{\textless *class(functionClass)\textgreater}</type>
-     !@     <arguments></arguments>
-     !@     <description>Return a pointer to the object corresponding to this parameter.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>objectSet</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless *class(functionClass)\textgreater} object\argin, \logicalzero\ isShared\argin</arguments>
-     !@     <description>Set a pointer to the object corresponding to this parameter.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>reset</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Reset all objects in this parameter and any sub-parameters.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>set</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ value\argin</arguments>
-     !@     <description>Set the value of this parameter.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>get</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the value of this parameter in a simple textual context.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>destroy</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Destroy this parameter and all subparameters.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return true if this is a valid parameter node." method="isParameter" />
+     !#   <method description="Return true the object corresponding to this parameter has been created." method="objectCreated" />
+     !#   <method description="Return a pointer to the object corresponding to this parameter." method="objectGet" />
+     !#   <method description="Set a pointer to the object corresponding to this parameter." method="objectSet" />
+     !#   <method description="Reset all objects in this parameter and any sub-parameters." method="reset" />
+     !#   <method description="Set the value of this parameter." method="set" />
+     !#   <method description="Return the value of this parameter in a simple textual context." method="get" />
+     !#   <method description="Destroy this parameter and all subparameters." method="destroy" />
+     !# </methods>
      procedure :: isParameter   => inputParameterIsParameter
      procedure :: objectCreated => inputParameterObjectCreated
      procedure :: objectGet     => inputParameterObjectGet
@@ -140,123 +99,27 @@ module Input_Parameters
      logical                                   :: global                 =  .false., isNull                   =.false., &
           &                                       outputParametersCopied =  .false., outputParametersTemporary=.false.
    contains
-     !@ <objectMethods>
-     !@   <object>inputParameters</object>
-     !@   <objectMethod>
-     !@     <method>buildTree</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(inputParameter)\textgreater} *parentParameter\arginout, \textcolor{red}{\textless type(node)\textgreater} *parametersNode\argin</arguments>
-     !@     <description>Build a tree of {\normalfont \ttfamily inputParameter} objects from the structure of an XML parameter file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>resolveReferences</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Resolve references in the tree of {\normalfont \ttfamily inputParameter} objects.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>markGlobal</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Mark an input parameter set as the global set.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isGlobal</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return true if these parameters are the global set.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>parametersGroupOpen</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(hdf5Object)\textgreater} outputGroup\arginout</arguments>
-     !@     <description>Open an output group for parameters in the given HDF5 object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>parametersGroupCopy</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(inputParameters)\textgreater} inputParameters\_\argin</arguments>
-     !@     <description>Copy the HDF5 output group for parameters from another parameters object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>validateName</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} parameterName\argin</arguments>
-     !@     <description>Check that a given parameter name is a valid name, aborting if not.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>checkParameters</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(varying\_string)[:]\textgreater} [allowedParameterNames]\argin</arguments>
-     !@     <description>Check that parameters are valid and, optionally, check if they match expected names in the provided list.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>node</method>
-     !@     <type>\textcolor{red}{\textless type(node)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} parameterName\argin</arguments>
-     !@     <description>Return the XML node containing the named parameter.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isPresent</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} parameterName\argin</arguments>
-     !@     <description>Return true if the named parameter is present in the set.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>copiesCount</method>
-     !@     <type>\intzero</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} parameterName\argin, \logicalzero [zeroIfNotPresent]\argin</arguments>
-     !@     <description>Return a count of the number copies of the named parameter. If the parameter is not present, this function aborts, unless {\normalfont \ttfamily zeroIfNotPresent} is set to {\normalfont \ttfamily true}, in which case a result of 0 is returned.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>count</method>
-     !@     <type>\intzero</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} parameterName\argin, \logicalzero [zeroIfNotPresent]\argin</arguments>
-     !@     <description>Return a count of the number of values in the named parameter. If the parameter is not present, this function aborts, unless {\normalfont \ttfamily zeroIfNotPresent} is set to {\normalfont \ttfamily true}, in which case a result of 0 is returned.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>subParameters</method>
-     !@     <type>\textcolor{red}{\textless type(inputParameters)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} parameterName\argin</arguments>
-     !@     <description>Return the set of subparameters of the named parameter.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>value</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}({\textless *\textgreater} parameterName|{\textless node\textgreater} parameterNode)\argin, parameterValue, \textcolor{red}({\textless *\textgreater} [defaultValue]|)\argin, \enumInputParameterErrorStatus [errorStatus]\argout, \logicalzero [writeOutput]\argin</arguments>
-     !@     <description>Return the value of a parameter specified by name or XML node. A default value can be specified only if the parameter is specified by name. Supported types include rank-0 and rank-1 logicals, integers, long integers, doubles, characters, and varying strings.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>serializeToString</method>
-     !@     <type>\textcolor{red}{\textless type(varying\_string)\textgreater}</type>
-     !@     <arguments></arguments>
-     !@     <description>Serialize input parameters to a string.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>serializeToXML</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(varying\_string)\textgreater} parameterFile\argin</arguments>
-     !@     <description>Serialize input parameters to an XML file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>addParameter</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} parameterName\argin, \textcolor{red}{\textless character(len=*)\textgreater} parameterValue\argin</arguments>
-     !@     <description>Add a parameter.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>reset</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Reset all objects in this parameter set.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>destroy</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Destroy the parameters document.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Build a tree of {\normalfont \ttfamily inputParameter} objects from the structure of an XML parameter file." method="buildTree" />
+     !#   <method description="Resolve references in the tree of {\normalfont \ttfamily inputParameter} objects." method="resolveReferences" />
+     !#   <method description="Mark an input parameter set as the global set." method="markGlobal" />
+     !#   <method description="Return true if these parameters are the global set." method="isGlobal" />
+     !#   <method description="Open an output group for parameters in the given HDF5 object." method="parametersGroupOpen" />
+     !#   <method description="Copy the HDF5 output group for parameters from another parameters object." method="parametersGroupCopy" />
+     !#   <method description="Check that a given parameter name is a valid name, aborting if not." method="validateName" />
+     !#   <method description="Check that parameters are valid and, optionally, check if they match expected names in the provided list." method="checkParameters" />
+     !#   <method description="Return the XML node containing the named parameter." method="node" />
+     !#   <method description="Return true if the named parameter is present in the set." method="isPresent" />
+     !#   <method description="Return a count of the number copies of the named parameter. If the parameter is not present, this function aborts, unless {\normalfont \ttfamily zeroIfNotPresent} is set to {\normalfont \ttfamily true}, in which case a result of 0 is returned." method="copiesCount" />
+     !#   <method description="Return a count of the number of values in the named parameter. If the parameter is not present, this function aborts, unless {\normalfont \ttfamily zeroIfNotPresent} is set to {\normalfont \ttfamily true}, in which case a result of 0 is returned." method="count" />
+     !#   <method description="Return the set of subparameters of the named parameter." method="subParameters" />
+     !#   <method description="Return the value of a parameter specified by name or XML node. A default value can be specified only if the parameter is specified by name. Supported types include rank-0 and rank-1 logicals, integers, long integers, doubles, characters, and varying strings." method="value" />
+     !#   <method description="Serialize input parameters to a string." method="serializeToString" />
+     !#   <method description="Serialize input parameters to an XML file." method="serializeToXML" />
+     !#   <method description="Add a parameter." method="addParameter" />
+     !#   <method description="Reset all objects in this parameter set." method="reset" />
+     !#   <method description="Destroy the parameters document." method="destroy" />
+     !# </methods>
      final     ::                        inputParametersFinalize
      procedure :: buildTree           => inputParametersBuildTree
      procedure :: resolveReferences   => inputParametersResolveReferences
@@ -297,21 +160,10 @@ module Input_Parameters
      integer                                            :: count
      type   (varying_string), allocatable, dimension(:) :: name , value
    contains
-     !@ <objectMethods>
-     !@   <object>inputParameterList</object>
-     !@   <objectMethod>
-     !@     <method>serializeToXML</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Serialize a list of input parameters to an XML document.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>add</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} name\argin, \textcolor{red}{\textless character(len=*)\textgreater} value\argin</arguments>
-     !@     <description>Add a parameter and value to the list.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Serialize a list of input parameters to an XML document." method="serializeToXML" />
+     !#   <method description="Add a parameter and value to the list." method="add" />
+     !# </methods>
      final     ::                      inputParameterListDestructor
      procedure :: add               => inputParameterListAdd
      procedure :: serializeToXML    => inputParameterListSerializeToXML

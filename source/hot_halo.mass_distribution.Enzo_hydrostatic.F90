@@ -43,15 +43,9 @@
      class(hotHaloTemperatureProfileClass        ), pointer :: hotHaloTemperatureProfile_ => null()
      class(hotHaloMassDistributionCoreRadiusClass), pointer :: hotHaloMassDistributionCoreRadius_ => null()
    contains
-     !@ <objectMethods>
-     !@   <object>hotHaloMassDistributionEnzoHydrostatic</object>
-     !@   <objectMethod>
-     !@     <method>densityNormalization</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} node\arginout</arguments>
-     !@     <description>Return the normalization of the density profile.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the normalization of the density profile." method="densityNormalization" />
+     !# </methods>
      final     ::                          enzoHydrostaticDestructor
      procedure :: densityNormalization  => enzoHydrostaticDensityNormalization
      procedure :: density               => enzoHydrostaticDensity

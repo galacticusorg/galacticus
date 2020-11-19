@@ -65,33 +65,12 @@
      integer         (kind=kind_int8                       )          :: lastUniqueID
      class           (intergalacticMediumFilteringMassClass), pointer :: intergalacticMediumFilteringMass_ => null()
    contains
-     !@ <objectMethods>
-     !@   <object>accretionHaloNaozBarkana2007</object>
-     !@   <objectMethod>
-     !@     <method>calculationReset</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
-     !@     <description>Reset memoized calculations.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>filteredFraction</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
-     !@     <description>Returns the fraction of potential accretion onto a halo from the \gls{igm} which succeeded.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>filteredFractionRate</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
-     !@     <description>Returns the fraction of potential accretion rate onto a halo from the \gls{igm} which succeeds.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>filteredFractionCompute</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\doublezero\ massHalo\argin, \doublezero\ massFiltering\argin</arguments>
-     !@     <description>Returns the fraction of potential accretion onto a halo from the \gls{igm} which succeeded given the halo and filtering masses.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset memoized calculations." method="calculationReset" />
+     !#   <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which succeeded." method="filteredFraction" />
+     !#   <method description="Returns the fraction of potential accretion rate onto a halo from the \gls{igm} which succeeds." method="filteredFractionRate" />
+     !#   <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which succeeded given the halo and filtering masses." method="filteredFractionCompute" />
+     !# </methods>
      final     ::                            naozBarkana2007Destructor
      procedure :: autoHook                => naozBarkana2007AutoHook
      procedure :: calculationReset        => naozBarkana2007CalculationReset

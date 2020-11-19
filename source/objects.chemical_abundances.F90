@@ -36,167 +36,56 @@ module Chemical_Abundances_Structure
      private
      double precision, allocatable, dimension(:) :: chemicalValue
    contains
-     !@ <objectMethods>
-     !@   <object>chemicalAbundances</object>
-     !@   <objectMethod>
-     !@     <method>multiply</method>
-     !@     <type>\textcolor{red}{\textless type(chemicalAbundances)\textgreater}</type>
-     !@     <arguments>\doublezero\ multiplier\argin</arguments>
-     !@     <description>Multiply a chemical abundance by a scalar.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>divide</method>
-     !@     <type>\textcolor{red}{\textless type(chemicalAbundances)\textgreater}</type>
-     !@     <arguments>\doublezero\ divisor\argin</arguments>
-     !@     <description>Divide a chemical abundance by a scalar.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>add</method>
-     !@     <type>\textcolor{red}{\textless type(chemicalAbundances)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless type(chemicalAbundances)\textgreater} abundances2\argin</arguments>
-     !@     <description>Add two chemical abundances.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>subtract</method>
-     !@     <type>\textcolor{red}{\textless type(chemicalAbundances)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless type(chemicalAbundances)\textgreater} abundances2\argin</arguments>
-     !@     <description>Subtract one chemical abundance from another.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>serializeCount</method>
-     !@     <description>Return a count of the number of properties in a serialized chemical abundances object.</description>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>serialize</method>
-     !@     <description>Serialize a chemical abundances object to an array.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ chemicalAbundancesArray\argout</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>deserialize</method>
-     !@     <description>Deserialize a chemical abundances object from an array.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ chemicalAbundancesArray\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>increment</method>
-     !@     <description>Increment a chemical abundances object.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(chemicalAbundances)\textgreater} addAbundances\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>abundance</method>
-     !@     <description>Returns the abundance of a chemical given its index.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\intzero\ moleculeIndex\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>abundanceSet</method>
-     !@     <description>Sets the abundance of a chemical given its index.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ moleculeIndex\argin, \doublezero\ abundance\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>reset</method>
-     !@     <description>Resets abundances to zero.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setToUnity</method>
-     !@     <description>Set abundances to unity.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isZero</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return true if a chemicals object is zero.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>destroy</method>
-     !@     <description>Destroys a chemical abundances object.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>numberToMass</method>
-     !@     <description>Converts from abundances by number to abundances by mass.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(chemicalAbundances)\textgreater} chemicalsByMass\arginout</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>massToNumber</method>
-     !@     <description>Converts from abundances by mass to abundances by number.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(chemicalAbundances)\textgreater} chemicalsByNumber\arginout</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>enforcePositive</method>
-     !@     <description>Enforces all chemical values to be positive.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>builder</method>
-     !@     <description>Build a chemical abundances object from an XML definition.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless *type(node)\textgreater} chemicalAbundancesDefinition\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>dump</method>
-     !@     <description>Dump a chemical abundances object.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>dumpRaw</method>
-     !@     <description>Dump a chemical abundances object in binary.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ fileHandle\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>readRaw</method>
-     !@     <description>Read a chemical abundances object in binary.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ fileHandle\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>nonStaticSizeOf</method>
-     !@     <description>Returns the size of any non-static components of the type.</description>
-     !@     <type>\textcolor{red}{\textless integer(c\_size\_t) \textgreater}</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
-     procedure :: add     =>Chemical_Abundances_Add
-     procedure :: subtract=>Chemical_Abundances_Subtract
-     procedure :: multiply=>Chemical_Abundances_Multiply
-     procedure :: divide  =>Chemical_Abundances_Divide
-     generic                   :: operator(+)            => add
-     generic                   :: operator(-)            => subtract
-     generic                   :: operator(*)            => multiply
-     generic                   :: operator(/)            => divide
-     procedure         :: nonStaticSizeOf=>Chemicals_Non_Static_Size_Of
-     procedure, nopass :: serializeCount =>Chemicals_Property_Count
-     procedure         :: serialize      =>Chemical_Abundances_Serialize
-     procedure         :: deserialize    =>Chemical_Abundances_Deserialize
-     procedure         :: increment      =>Chemical_Abundances_Increment
-     procedure         :: abundance      =>Chemicals_Abundances
-     procedure         :: abundanceSet   =>Chemicals_Abundances_Set
-     procedure         :: reset          =>Chemicals_Abundances_Reset
-     procedure         :: setToUnity     =>Chemicals_Abundances_Set_To_Unity
-     procedure         :: isZero         =>Chemicals_Abundances_Is_Zero
-     procedure         :: destroy        =>Chemicals_Abundances_Destroy
-     procedure         :: numberToMass   =>Chemicals_Number_To_Mass
-     procedure         :: massToNumber   =>Chemicals_Mass_To_Number
-     procedure         :: enforcePositive=>Chemicals_Enforce_Positive
-     procedure         :: builder        =>Chemicals_Builder
-     procedure         :: dump           =>Chemicals_Dump
-     procedure         :: dumpRaw        =>Chemicals_Dump_Raw
-     procedure         :: readRaw        =>Chemicals_Read_Raw
+     !# <methods>
+     !#   <method description="Multiply a chemical abundance by a scalar." method="operator(*)" />
+     !#   <method description="Divide a chemical abundance by a scalar." method="operator(/)" />
+     !#   <method description="Add two chemical abundances." method="operator(+)" />
+     !#   <method description="Subtract one chemical abundance from another." method="operator(-)" />
+     !#   <method description="Return a count of the number of properties in a serialized chemical abundances object." method="serializeCount" />
+     !#   <method description="Serialize a chemical abundances object to an array." method="serialize" />
+     !#   <method description="Deserialize a chemical abundances object from an array." method="deserialize" />
+     !#   <method description="Increment a chemical abundances object." method="increment" />
+     !#   <method description="Returns the abundance of a chemical given its index." method="abundance" />
+     !#   <method description="Sets the abundance of a chemical given its index." method="abundanceSet" />
+     !#   <method description="Resets abundances to zero." method="reset" />
+     !#   <method description="Set abundances to unity." method="setToUnity" />
+     !#   <method description="Return true if a chemicals object is zero." method="isZero" />
+     !#   <method description="Destroys a chemical abundances object." method="destroy" />
+     !#   <method description="Converts from abundances by number to abundances by mass." method="numberToMass" />
+     !#   <method description="Converts from abundances by mass to abundances by number." method="massToNumber" />
+     !#   <method description="Enforces all chemical values to be positive." method="enforcePositive" />
+     !#   <method description="Build a chemical abundances object from an XML definition." method="builder" />
+     !#   <method description="Dump a chemical abundances object." method="dump" />
+     !#   <method description="Dump a chemical abundances object in binary." method="dumpRaw" />
+     !#   <method description="Read a chemical abundances object in binary." method="readRaw" />
+     !#   <method description="Returns the size of any non-static components of the type." method="nonStaticSizeOf" />
+     !# </methods>
+     procedure         ::                    Chemical_Abundances_Add
+     procedure         ::                    Chemical_Abundances_Subtract
+     procedure         ::                    Chemical_Abundances_Multiply
+     procedure         ::                    Chemical_Abundances_Divide
+     generic           :: operator(+)     => Chemical_Abundances_Add
+     generic           :: operator(-)     => Chemical_Abundances_Subtract
+     generic           :: operator(*)     => Chemical_Abundances_Multiply
+     generic           :: operator(/)     => Chemical_Abundances_Divide
+     procedure         :: nonStaticSizeOf => Chemicals_Non_Static_Size_Of
+     procedure, nopass :: serializeCount  => Chemicals_Property_Count
+     procedure         :: serialize       => Chemical_Abundances_Serialize
+     procedure         :: deserialize     => Chemical_Abundances_Deserialize
+     procedure         :: increment       => Chemical_Abundances_Increment
+     procedure         :: abundance       => Chemicals_Abundances
+     procedure         :: abundanceSet    => Chemicals_Abundances_Set
+     procedure         :: reset           => Chemicals_Abundances_Reset
+     procedure         :: setToUnity      => Chemicals_Abundances_Set_To_Unity
+     procedure         :: isZero          => Chemicals_Abundances_Is_Zero
+     procedure         :: destroy         => Chemicals_Abundances_Destroy
+     procedure         :: numberToMass    => Chemicals_Number_To_Mass
+     procedure         :: massToNumber    => Chemicals_Mass_To_Number
+     procedure         :: enforcePositive => Chemicals_Enforce_Positive
+     procedure         :: builder         => Chemicals_Builder
+     procedure         :: dump            => Chemicals_Dump
+     procedure         :: dumpRaw         => Chemicals_Dump_Raw
+     procedure         :: readRaw         => Chemicals_Read_Raw
   end type chemicalAbundances
 
   ! Count of the number of elements being tracked.

@@ -43,15 +43,9 @@
      logical                                                  :: formationRedshiftCompute
      double precision                                         :: formationRedshift
    contains
-     !@ <objectMethods>
-     !@   <object>darkMatterHaloMassAccretionHistoryWechsler2002</object>
-     !@   <objectMethod>
-     !@     <method>expansionFactorAtFormation</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ haloMass\argin</arguments>
-     !@     <description>Compute the formation expansion factor.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute the formation expansion factor." method="expansionFactorAtFormation" />
+     !# </methods>
      final     ::                               wechsler2002Destructor
      procedure :: time                       => wechsler2002Time
      procedure :: massAccretionRate          => wechsler2002MassAccretionRate

@@ -172,21 +172,10 @@ module Numerical_ODE_Solvers
      integer  (c_size_t                   )                      :: dim
      logical                                                     :: integratorErrorTolerant
    contains
-     !@ <objectMethods>
-     !@   <object>odeSolver</object>
-     !@   <objectMethod>
-     !@     <method>solve</method>
-     !@     <description>Solve the ODE system.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>errors</method>
-     !@     <description>Return estimates of the errors in ODE variables.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ yError\argout</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Solve the ODE system." method="solve" />
+     !#   <method description="Return estimates of the errors in ODE variables." method="errors" />
+     !# </methods>
      final     ::           odeSolverDestructor
      procedure :: solve  => odeSolverSolve
      procedure :: errors => odeSolverErrors

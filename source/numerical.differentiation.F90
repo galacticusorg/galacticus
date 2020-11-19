@@ -35,15 +35,9 @@ module Numerical_Differentiation
      private
      type(c_ptr) :: f
    contains
-     !@ <objectMethods>
-     !@   <object>differentiator</object>
-     !@   <objectMethod>
-     !@     <method>derivative</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\doublezero\ x\argin, \doublezero\ [h]\argout, \doublezero\ [errorAbsolute]\argout</arguments>
-     !@     <description>Returns the derivative of the function at argument {\normalfont \ttfamily x}.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Returns the derivative of the function at argument {\normalfont \ttfamily x}." method="derivative" />
+     !# </methods>
      final     ::               differentiatorDestructor
      procedure :: derivative => differentiatorDerivative
   end type differentiator

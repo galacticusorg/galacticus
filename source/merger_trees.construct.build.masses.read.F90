@@ -28,15 +28,9 @@
      type            (varying_string) :: fileName
      double precision                 :: massIntervalFractional
    contains
-     !@ <objectMethods>
-     !@   <object>mergerTreeBuildMassesRead</object>
-     !@   <objectMethod>
-     !@     <method>read</method>
-     !@     <arguments>\doubleone\ mass\argout, \doubleone\ weight\argout</arguments>
-     !@     <type>\void</type>
-     !@     <description>Read the halo masses, and, optionally, weights, from file..</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Read the halo masses, and, optionally, weights, from file.." method="read" />
+     !# </methods>
      procedure                             :: construct => readConstruct
      procedure(readReadTemplate), deferred :: read
   end type mergerTreeBuildMassesRead

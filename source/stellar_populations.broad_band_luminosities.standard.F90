@@ -49,15 +49,9 @@
      logical                                                       :: maximumAgeExceededIsFatal
      type            (ompReadWriteLock)                            :: luminosityTableLock
    contains
-     !@ <objectMethods>
-     !@   <object>stellarPopulationBroadBandLuminositiesStandard</object>
-     !@   <objectMethod>
-     !@     <method>tabulate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intone\ luminosityIndex\argin,\intone\ filterIndex\argin, \textcolor{red}{\textless type(stellarLuminosities)(:)\textgreater} stellarPopulationSpectraPostprocessor_\argin, \textcolor{red}{\textless type(stellarLuminosities)\textgreater} stellarPopulation_\arginout, \doublezero\ redshift\argin</arguments>
-     !@     <description>Tabulate broad band stellar luminosities.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulate broad band stellar luminosities." method="tabulate" />
+     !# </methods>
      procedure :: luminosities     => standardLuminosities
      procedure :: luminosityTracks => standardLuminosityTracks
      procedure :: tabulate         => standardTabulate

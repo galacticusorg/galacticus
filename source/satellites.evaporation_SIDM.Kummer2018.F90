@@ -36,15 +36,9 @@
      type            (interpolator             ), allocatable :: evaporationFactor
      double precision                                         :: rateScatteringNormalization          , xMaximum
    contains
-     !@ <objectMethods>
-     !@   <object>satelliteEvaporationSIDMKummer2018</object>
-     !@   <objectMethod>
-     !@     <method>tabulate</method>
-     !@     <arguments>\doublezero\ xMaximum\argin</arguments>
-     !@     <type>\void</type>
-     !@     <description>Tabulate the evaporation factor.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulate the evaporation factor." method="tabulate" />
+     !# </methods>
      final     ::                 kummer2018Destructor
      procedure :: massLossRate => kummer2018MassLossRate
      procedure :: tabulate     => kummer2018Tabulate

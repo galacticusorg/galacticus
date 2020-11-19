@@ -66,18 +66,15 @@ module Galactic_Structure_Options
   !#  <entry label="luminosity" />
   !# </enumeration>
 
+  !# <enumeration>
+  !#  <name>structureErrorCode</name>
+  !#  <description>Error codes for galactic structure functions.</description>
+  !#  <entry label="success"  description="Successful completeion."/>
+  !#  <entry label="infinite" description="Result is ±∞."          />
+  !# </enumeration>
+
   ! Null value to use when no weighting is to be applied.
   integer         , parameter, public :: weightIndexNull=0
-
-  ! Error codes.
-  !@ <enumeration>
-  !@  <name>structureErrorCode</name>
-  !@  <description>Error codes for galactic structure functions.</description>
-  !@  <entry label="structureErrorCodeSuccess"  />
-  !@  <entry label="structureErrorCodeInfinite" />
-  !@ </enumeration>
-  integer, parameter :: structureErrorCodeSuccess =0 ! Successful completion.
-  integer, parameter :: structureErrorCodeInfinite=1 ! Result is ±∞.
 
   ! Suitably large value to represent infinite radius.
   double precision, parameter, public :: radiusLarge    =1.0d10

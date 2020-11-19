@@ -33,27 +33,11 @@
      double precision                                         :: aValue                             , pValue, &
           &                                                      normalizationValue
    contains
-     !@ <objectMethods>
-     !@   <object>haloMassFunctionShethTormen</object>
-     !@   <objectMethod>
-     !@     <method>a</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $a$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>p</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $p$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>normalization</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $A$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the parameter $a$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit." method="a" />
+     !#   <method description="Return the parameter $p$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit." method="p" />
+     !#   <method description="Return the parameter $A$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit." method="normalization" />
+     !# </methods>
      final     ::                  shethTormenDestructor
      procedure :: differential  => shethTormenDifferential
      procedure :: a             => shethTormenA

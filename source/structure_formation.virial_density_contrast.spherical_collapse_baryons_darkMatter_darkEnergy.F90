@@ -51,21 +51,10 @@
      class           (intergalacticMediumFilteringMassClass             ), pointer     :: intergalacticMediumFilteringMass_ => null()
      type            (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy), pointer     :: sphericalCollapseSolverClustered_ => null(), sphericalCollapseSolverUnclustered_ => null()
    contains
-     !@ <objectMethods>
-     !@   <object>virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy</object>
-     !@   <objectMethod>
-     !@     <method>retabulate</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <description>Tabulate spherical collapse virial density contrast.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>retabulateTurnaround</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <description>Tabulate spherical collapse turnaround radius.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulate spherical collapse virial density contrast." method="retabulate" />
+     !#   <method description="Tabulate spherical collapse turnaround radius." method="retabulateTurnaround" />
+     !# </methods>
      final     ::                                sphericalCollapseBrynsDrkMttrDrkEnrgyDestructor
      procedure :: densityContrast             => sphericalCollapseBrynsDrkMttrDrkEnrgyDensityContrast
      procedure :: densityContrastRateOfChange => sphericalCollapseBrynsDrkMttrDrkEnrgyDensityContrastRtChng

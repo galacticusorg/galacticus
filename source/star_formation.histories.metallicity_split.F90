@@ -51,15 +51,6 @@
   !# </starFormationHistory>
   type, extends(starFormationHistoryClass) :: starFormationHistoryMetallicitySplit
      !% A star formation histories class which records star formation split by metallicity.
-     !@ <objectMethods>
-     !@   <object>starFormationHistoryMetallicitySplit</object>
-     !@   <objectMethod>
-     !@     <method>make</method>
-     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} historyStarFormation\arginout, \doublezero\ timeBegin\argin, \doublezero\ timeEnd\argin, \doubleone\ [timesCurrent]</arguments>
-     !@     <type>\void</type>
-     !@     <description>Make the star formation history.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
      private
      class           (outputTimesClass), pointer :: outputTimes_            => null()
      integer                                     :: countMetallicities
@@ -69,6 +60,9 @@
      double precision, allocatable, dimension(:) :: metallicityTable
      logical                                     :: metallicityTableWritten
    contains
+     !# <methods>
+     !#   <method description="Make the star formation history." method="make" />
+     !# </methods>
      final     ::           metallicitySplitDestructor
      procedure :: create => metallicitySplitCreate
      procedure :: rate   => metallicitySplitRate

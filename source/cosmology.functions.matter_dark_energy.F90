@@ -44,21 +44,10 @@
      private
      double precision :: darkEnergyEquationOfStateW0, darkEnergyEquationOfStateW1
    contains
-     !@ <objectMethods>
-     !@   <object>cosmologyFunctionsMatterDarkEnergy</object>
-     !@   <objectMethod>
-     !@     <method>targetSelf</method>
-     !@     <type>void</type>
-     !@     <arguments></arguments>
-     !@     <description>Set a module-scope pointer to {\normalfont \ttfamily self}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>exponentDarkEnergyDerivative</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ [time]\argin, \doublezero\ [expansionFactor]\argin</arguments>
-     !@     <description>Return the derivative of the dark energy exponent with respect to expansion factor.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set a module-scope pointer to {\normalfont \ttfamily self}." method="targetSelf" />
+     !#   <method description="Return the derivative of the dark energy exponent with respect to expansion factor." method="exponentDarkEnergyDerivative" />
+     !# </methods>
      procedure :: cosmicTime                    => matterDarkEnergyCosmicTime
      procedure :: omegaDarkEnergyEpochal        => matterDarkEnergyOmegaDarkEnergyEpochal
      procedure :: hubbleParameterEpochal        => matterDarkEnergyHubbleParameterEpochal

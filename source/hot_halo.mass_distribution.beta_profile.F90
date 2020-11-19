@@ -42,15 +42,9 @@
      type            (massDistributionBetaProfile           )          :: distribution
      class           (hotHaloMassDistributionCoreRadiusClass), pointer :: hotHaloMassDistributionCoreRadius_ => null()
    contains
-     !@ <objectMethods>
-     !@   <object>hotHaloMassDistributionBetaProfile</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>void</type>
-     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} node\argin</arguments>
-     !@     <description>Initialize the $\beta$-profile density hot halo mass distribution for the given {\normalfont \ttfamily node}.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Initialize the $\beta$-profile density hot halo mass distribution for the given {\normalfont \ttfamily node}." method="initialize" />
+     !# </methods>
      final     ::                          betaProfileDestructor
      procedure :: initialize            => betaProfileInitialize
      procedure :: density               => betaProfileDensity

@@ -39,15 +39,9 @@
           &                                                  transitionMagnification          , renormalization    , &
           &                                                  redshiftPrevious                 , scaleSourcePrevious
    contains
-     !@ <objectMethods>
-     !@   <object>gravitationalLensingBaryonicModifier</object>
-     !@   <objectMethod>
-     !@     <method>renormalize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ redshift\argin, \doublezero\ scaleSource\argin</arguments>
-     !@     <description>Renormalize the gravitational lensing magnification distribution function.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Renormalize the gravitational lensing magnification distribution function." method="renormalize" />
+     !# </methods>
      final     ::                     baryonicModifierDestructor
      procedure :: magnificationPDF => baryonicModifierMagnificationPDF
      procedure :: magnificationCDF => baryonicModifierMagnificationCDF

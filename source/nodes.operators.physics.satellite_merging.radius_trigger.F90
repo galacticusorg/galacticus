@@ -30,15 +30,9 @@
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: radiusVirialFraction
    contains
-     !@ <objectMethods>
-     !@   <object>nodeOperatorSatelliteMergingRadiusTrigger</object>
-     !@   <objectMethod>
-     !@     <method>radiusMerge</method>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout</arguments>
-     !@     <type>\doublezero</type>
-     !@     <description>Compute the radius at which the satellite will be merged.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute the radius at which the satellite will be merged." method="radiusMerge" />
+     !# </methods>
      final     ::                          satelliteMergingRadiusTriggerDestructor
      procedure :: differentialEvolution => satelliteMergingRadiusTriggerDifferentialEvolution
      procedure :: radiusMerge           => satelliteMergingRadiusTriggerRadiusMerge

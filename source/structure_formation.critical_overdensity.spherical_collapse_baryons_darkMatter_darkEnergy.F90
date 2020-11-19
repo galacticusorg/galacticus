@@ -48,15 +48,9 @@
      class           (intergalacticMediumFilteringMassClass             ), pointer     :: intergalacticMediumFilteringMass_ => null()
      type            (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy), pointer     :: sphericalCollapseSolverClustered_ => null(), sphericalCollapseSolverUnclustered_ => null()
    contains
-     !@ <objectMethods>
-     !@   <object>criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy</object>
-     !@   <objectMethod>
-     !@     <method>retabulate</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <description>Tabulate spherical collapse critical overdensity.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulate spherical collapse critical overdensity." method="retabulate" />
+     !# </methods>
      final     ::                    sphericalCollapseBrynsDrkMttrDrkEnrgyDestructor
      procedure :: value           => sphericalCollapseBrynsDrkMttrDrkEnrgyValue
      procedure :: gradientTime    => sphericalCollapseBrynsDrkMttrDrkEnrgyGradientTime

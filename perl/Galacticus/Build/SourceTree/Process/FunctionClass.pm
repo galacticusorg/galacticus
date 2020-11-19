@@ -2315,8 +2315,7 @@ CODE
 		}
 	    }
 	    $modulePreContains->{'content'} .= "    contains\n";
-	    $modulePreContains->{'content'} .= "    !@ <objectMethods>\n";
-	    $modulePreContains->{'content'} .= "    !@   <object>".$directive->{'name'}."Class</object>\n";
+	    $modulePreContains->{'content'} .= "    !# <methods>\n";
 	    my $generics;
             foreach my $methodName ( keys(%methods) ) {
                 next
@@ -2361,14 +2360,11 @@ CODE
 			}
 		    }
 		}
-		$modulePreContains->{'content'} .= "    !@   <objectMethod>\n";
-		$modulePreContains->{'content'} .= "    !@     <method>".$methodName."</method>\n";
-		$modulePreContains->{'content'} .= "    !@     <type>".latex_encode($method->{'type'})."</type>\n";
-		$modulePreContains->{'content'} .= "    !@     <arguments>".$argumentList."</arguments>\n";
-		$modulePreContains->{'content'} .= "    !@     <description>\n";
-                $modulePreContains->{'content'} .= join("\n",map {"    !@      ".$_} split("\n",$method->{'description'}))."\n";
-                $modulePreContains->{'content'} .= "    !@     </description>\n";
-		$modulePreContains->{'content'} .= "    !@   </objectMethod>\n";
+		$modulePreContains->{'content'} .= "    !#  <method method=\"".$methodName."\">\n";
+		$modulePreContains->{'content'} .= "    !#   <description>\n";
+                $modulePreContains->{'content'} .= join("\n",map {"    !#    ".$_} split("\n",$method->{'description'}))."\n";
+                $modulePreContains->{'content'} .= "    !#   </description>\n";
+		$modulePreContains->{'content'} .= "    !#  </method>\n";
 		if ( exists($directive->{'generic'}) ) {
 		    foreach my $generic ( &List::ExtraUtils::as_array($directive->{'generic'}) ) {
 			if ( grep {$_ eq $methodName} &List::ExtraUtils::as_array($generic->{'method'}) ) {
@@ -2381,14 +2377,13 @@ CODE
 		}
 	    }
 	    foreach my $generic ( &List::ExtraUtils::hashList($generics, keyAs => "name") ) {
-		$modulePreContains->{'content'} .= "    !@   <objectMethod>\n";
-		$modulePreContains->{'content'} .= "    !@     <method>".$generic->{'name'}."</method>\n";
-		$modulePreContains->{'content'} .= "    !@     <type>".latex_encode($generic->{'type'})."</type>\n";
-		$modulePreContains->{'content'} .= "    !@     <arguments>".join(" | ",@{$generic->{'argumentList'}})."</arguments>\n";
-		$modulePreContains->{'content'} .= "    !@     <description>".join(" | ",@{$generic->{'description'}})."</description>\n";
-		$modulePreContains->{'content'} .= "    !@   </objectMethod>\n";
+		$modulePreContains->{'content'} .= "    !#  <method method=\"".$generic->{'name'}."\">\n";
+		$modulePreContains->{'content'} .= "    !#     <description>\n";
+		$modulePreContains->{'content'} .= "    !#      ".join(" | ",@{$generic->{'description'}})."\n";
+		$modulePreContains->{'content'} .= "    !#     </description>\n";
+		$modulePreContains->{'content'} .= "    !#  </method>\n";
 	    }
-	    $modulePreContains->{'content'} .= "    !@ </objectMethods>\n";
+	    $modulePreContains->{'content'} .= "    !# </methods>\n";
 	    my $methodTable = Text::Table->new(
 		{
 		    is_sep => 1,
@@ -3001,17 +2996,6 @@ CODE
 	    $modulePostContains->{'content'} .= "      type   (varying_string ) :: message\n";
 	    $modulePostContains->{'content'} .= "      !\$omp critical (".$directive->{'name'}."Initialization)\n";
 	    $modulePostContains->{'content'} .= "      if (.not.".$directive->{'name'}."Initialized) then\n";
-	    $modulePostContains->{'content'} .= "         !@ <inputParameter>\n";
-	    $modulePostContains->{'content'} .= "         !@   <name>".$directive->{'name'}."Method</name>\n";
-	    $modulePostContains->{'content'} .= "         !@   <defaultValue>".$directive->{'default'}."</defaultValue>\n"
-              if ( exists($directive->{'default'}) );
-	    $modulePostContains->{'content'} .= "         !@   <attachedTo>module</attachedTo>\n";
-	    $modulePostContains->{'content'} .= "         !@   <description>\n";
-	    $modulePostContains->{'content'} .= "         !@     The method to be used for {\\normalfont \\ttfamily ".$directive->{'name'}."}.\n";
-	    $modulePostContains->{'content'} .= "         !@   </description>\n";
-	    $modulePostContains->{'content'} .= "         !@   <type>string</type>\n";
-	    $modulePostContains->{'content'} .= "         !@   <cardinality>1</cardinality>\n";
-	    $modulePostContains->{'content'} .= "         !@ </inputParameter>\n";
 	    $modulePostContains->{'content'} .= "         call globalParameters%value('".$directive->{'name'}."Method',".$directive->{'name'}."Method";
 	    $modulePostContains->{'content'} .= ",defaultValue=var_str('".$directive->{'default'}."')"
                if ( exists($directive->{'default'}) );
@@ -3506,14 +3490,14 @@ CODE
 	    print $docPhysics $documentationPhysics;
 	    close($docPhysics);
 	    # Insert into tree.	  
-            ## To allow processing of directives by our preprocessor, we parse and process our generated code here, before
-            ## serializing it back into the original node.
-	    my $treeTmp = &Galacticus::Build::SourceTree::ParseCode ($modulePostContains->{'content'},'Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()');
-	    &Galacticus::Build::SourceTree::ProcessTree($treeTmp);
-	    $modulePostContains->{'content'} = &Galacticus::Build::SourceTree::Serialize($treeTmp);
-	    &Galacticus::Build::SourceTree::InsertAfterNode   ($node            ,$codeContent->{'module'}->{'preContains' });
-	    &Galacticus::Build::SourceTree::InsertPreContains ($node->{'parent'},$codeContent->{'module'}->{'interfaces'  });
-	    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},$codeContent->{'module'}->{'postContains'});
+            ## To allow processing of directives by our preprocessor, we parse and process our generated code here.
+	    my $treePrecontainsTmp  = &Galacticus::Build::SourceTree::ParseCode($modulePreContains ->{'content'},'Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()');
+	    my $treePostcontainsTmp = &Galacticus::Build::SourceTree::ParseCode($modulePostContains->{'content'},'Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()');
+	    &Galacticus::Build::SourceTree::ProcessTree       (                   $treePrecontainsTmp                              );
+	    &Galacticus::Build::SourceTree::ProcessTree       (                   $treePostcontainsTmp                             );
+	    &Galacticus::Build::SourceTree::InsertAfterNode   ($node            ,[$treePrecontainsTmp                             ]);
+	    &Galacticus::Build::SourceTree::InsertPreContains ($node->{'parent'}, $codeContent        ->{'module'}->{'interfaces'} );
+	    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$treePostcontainsTmp                            ]);
 	    # Generate submodule files.
 	    foreach my $className ( keys(%{$codeContent->{'submodule'}}) ) {
                 # Submodule names are just the class name with an underscore appended.

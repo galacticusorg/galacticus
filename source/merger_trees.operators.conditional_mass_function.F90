@@ -172,21 +172,10 @@
      type            (varying_string         )                                      :: outputGroupName
      !$ integer      (omp_lock_kind          )                                      :: accumulateLock
    contains
-     !@ <objectMethods>
-     !@   <object>mergerTreeOperatorConditionalMF</object>
-     !@   <objectMethod>
-     !@     <method>binWeights</method>
-     !@     <type>\doubleone</type>
-     !@     <arguments>\doublezero\ mass\argin,\doublezero\ time\argin,\doublezero\ massLogarithmicMinimumBins\argin,\doublezero\ massLogarithmicWidthInverseBins\argin,\intzero\ countBins\argin</arguments>
-     !@     <description>Compute weights for a halo in each bin of the mass function.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>binWeights2D</method>
-     !@     <type>\doubletwo</type>
-     !@     <arguments>\doublezero\ mass1\argin,\doublezero\ time1\argin,\doublezero\ mass2\argin,\doublezero\ time2\argin,\doublezero\ massLogarithmicMinimumBins1\argin,\doublezero\ massLogarithmicWidthInverseBins1\argin,\intzero\ countBins2\argin,\doublezero\ massLogarithmicMinimumBins2\argin,\doublezero\ massLogarithmicWidthInverseBins2\argin,\intzero\ countBins2\argin</arguments>
-     !@     <description>Compute weights for a halo in each bin of a 2D mass function.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute weights for a halo in each bin of the mass function." method="binWeights" />
+     !#   <method description="Compute weights for a halo in each bin of a 2D mass function." method="binWeights2D" />
+     !# </methods>
      final     ::                        conditionalMFDestructor
      procedure :: operatePreEvolution => conditionalMFOperatePreEvolution
      procedure :: finalize            => conditionalMFFinalize

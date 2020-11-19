@@ -49,21 +49,10 @@
      logical                                                                       :: finalized                         , likelihoodNormalize             , &
           &                                                                           xAxisIsLog                        , yAxisIsLog
    contains
-     !@ <objectMethods>
-     !@   <object>outputAnalysisMeanFunction1D</object>
-     !@   <objectMethod>
-     !@     <method>results</method>
-     !@     <arguments>\doubleone\ [binCenter]\arginout, \doubletwo\ [functionValue]\arginout, \doubletwo\ [functionCovariance]\arginout</arguments>
-     !@     <type>\void</type>
-     !@     <description>Return the results of the mean function operator.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>finalizeAnalysis</method>
-     !@     <arguments></arguments>
-     !@     <type>\void</type>
-     !@     <description>Finalize analysis of the mean function operator.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the results of the mean function operator." method="results" />
+     !#   <method description="Finalize analysis of the mean function operator." method="finalizeAnalysis" />
+     !# </methods>
      final     ::                     meanFunction1DDestructor
      procedure :: analyze          => meanFunction1DAnalyze
      procedure :: finalize         => meanFunction1DFinalize

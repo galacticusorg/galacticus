@@ -59,15 +59,9 @@ module Numerical_Integration2
      !% Generic numerical integrator class.
      double precision :: toleranceAbsolute, toleranceRelative
    contains
-     !@ <objectMethods>
-     !@   <object>integrator2</object>
-     !@   <objectMethod>
-     !@     <method>toleranceSet</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ [toleranceAbsolute]\argin, \doublezero\ [toleranceRelative]\argin</arguments>
-     !@     <description>Set tolerances to use in this integrator.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set tolerances to use in this integrator." method="toleranceSet" />
+     !# </methods>
      procedure :: toleranceSet => toleranceSetGeneric
   end type integrator2
 
@@ -77,21 +71,10 @@ module Numerical_Integration2
      private
      procedure       (integrand1D), pointer, nopass :: integrand
    contains
-     !@ <objectMethods>
-     !@   <object>integrator1D</object>
-     !@   <objectMethod>
-     !@     <method>integrandSet</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless procedure(\doublezero\ (\doublezero\ x\argin))\textgreater}\ integrand\argin</arguments>
-     !@     <description>Set the integrand function to be integrated.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>evaluate</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ a\argin, \doublezero\ b,\argin</arguments>
-     !@     <description>Evaluate the integral.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the integrand function to be integrated." method="integrandSet" />
+     !#   <method description="Evaluate the integral." method="evaluate" />
+     !# </methods>
      procedure                       :: integrandSet => integrandSet1D
      procedure(evaluate1D), deferred :: evaluate
   end type integrator1D
@@ -114,15 +97,9 @@ module Numerical_Integration2
      private
      integer :: iterationsMaximum
    contains
-     !@ <objectMethods>
-     !@   <object>integratorCompositeTrapezoidal1D</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ iterationsMaximum\argin</arguments>
-     !@     <description>Set the maximum number of iterations allowed in the integrator.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the maximum number of iterations allowed in the integrator." method="initialize" />
+     !# </methods>
      procedure :: initialize => compositeTrapezoidalInitialize1D
      procedure :: evaluate   => compositeTrapezoidalEvaluate1D
   end type integratorCompositeTrapezoidal1D
@@ -142,21 +119,10 @@ module Numerical_Integration2
      integer                                     :: iterationsMaximum
      double precision, allocatable, dimension(:) :: xKronrod         , wGauss, wKronrod
    contains
-     !@ <objectMethods>
-     !@   <object>integratorCompositeGaussKronrod1D</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ iterationsMaximum\argin, \intzero\ order\argin</arguments>
-     !@     <description>Initialize the integrator.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>evaluateInterval</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ a\argin, \doublezero\ b\argin, \doublezero\ integralKronrod\argout, \doublezero\ error\argout</arguments>
-     !@     <description>Evaluate the integral over an interval and also return the error on the integral.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Initialize the integrator." method="initialize" />
+     !#   <method description="Evaluate the integral over an interval and also return the error on the integral." method="evaluateInterval" />
+     !# </methods>
      procedure :: initialize       => compositeGaussKronrod1DInitialize
      procedure :: evaluate         => compositeGaussKronrod1DEvaluate
      procedure :: evaluateInterval => compositeGaussKronrod1DEvaluateInterval
@@ -168,15 +134,9 @@ module Numerical_Integration2
      private
      procedure       (integrandVectorized1D), pointer, nopass :: integrand
    contains
-     !@ <objectMethods>
-     !@   <object>integratorVectorized1D</object>
-     !@   <objectMethod>
-     !@     <method>integrandSet</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless \doubleone\ function(doubleone\ x\argin)\textgreater}\ integrand\argin</arguments>
-     !@     <description>Set the integrand function to be integrated.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the integrand function to be integrated." method="integrandSet" />
+     !# </methods>
      procedure                                 :: integrandSet => integrandVectorizedSet1D
      procedure(evaluateVectorized1D), deferred :: evaluate
   end type integratorVectorized1D
@@ -201,21 +161,10 @@ module Numerical_Integration2
      integer                                     :: iterationsMaximum
      double precision, allocatable, dimension(:) :: d
    contains
-     !@ <objectMethods>
-     !@   <object>integratorVectorizedCompositeTrapezoidal1D</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ iterationsMaximum\argin</arguments>
-     !@     <description>Set the maximum number of iterations allowed in the integrator.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>evaluate</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ a\argin, \doublezero\ b,\argin</arguments>
-     !@     <description>Evaluate the integral.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the maximum number of iterations allowed in the integrator." method="initialize" />
+     !#   <method description="Evaluate the integral." method="evaluate" />
+     !# </methods>
      procedure :: initialize => vectorizedCompositeTrapezoidalInitialize1D
      procedure :: evaluate   => vectorizedCompositeTrapezoidalEvaluate1D
   end type integratorVectorizedCompositeTrapezoidal1D
@@ -227,27 +176,11 @@ module Numerical_Integration2
      integer                                     :: iterationsMaximum
      double precision, allocatable, dimension(:) :: xKronrod         , wGauss, wKronrod
    contains
-     !@ <objectMethods>
-     !@   <object>integratorVectorizedCompositeGaussKronrod1D</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ iterationsMaximum\argin, \intzero\ order\argin</arguments>
-     !@     <description>Set the maximum number of iterations allowed, and the order of the integrator.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>evaluate</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ a\argin, \doublezero\ b,\argin</arguments>
-     !@     <description>Evaluate the integral.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>evaluateInterval</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ a\argin, \doublezero\ b\argin, \doublezero\ integralKronrod\argout, \doublezero\ error\argout</arguments>
-     !@     <description>Evaluate the integral over an interval and also return the error on the integral.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the maximum number of iterations allowed, and the order of the integrator." method="initialize" />
+     !#   <method description="Evaluate the integral." method="evaluate" />
+     !#   <method description="Evaluate the integral over an interval and also return the error on the integral." method="evaluateInterval" />
+     !# </methods>
      procedure :: initialize       => vectorizedCompositeGaussKronrod1DInitialize
      procedure :: evaluate         => vectorizedCompositeGaussKronrod1DEvaluate
      procedure :: evaluateInterval => vectorizedCompositeGaussKronrod1DEvaluateInterval
@@ -258,15 +191,9 @@ module Numerical_Integration2
      !% Generic numerical integrator class.
      double precision, allocatable, dimension(:) :: toleranceAbsolute, toleranceRelative
    contains
-     !@ <objectMethods>
-     !@   <object>integratorMulti</object>
-     !@   <objectMethod>
-     !@     <method>tolerancesSet</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ [toleranceAbsolute]\argin, \doubleone\ [toleranceRelative]\argin</arguments>
-     !@     <description>Set tolerances to use in this integrator.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set tolerances to use in this integrator." method="tolerancesSet" />
+     !# </methods>
      final     ::                  integratorMultiDestructor
      procedure :: tolerancesSet => tolerancesSetGeneric
   end type integratorMulti
@@ -278,21 +205,10 @@ module Numerical_Integration2
      integer                                      :: integrandCount
      procedure(integrandMulti1D), pointer, nopass :: integrand
    contains
-     !@ <objectMethods>
-     !@   <object>integratorMulti1D</object>
-     !@   <objectMethod>
-     !@     <method>integrandSet</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ integrandCount\argin, \textcolor{red}{\textless procedure(\doublezero\ (\doublezero\ x\argin))\textgreater}\ integrand\argin</arguments>
-     !@     <description>Set the integrand function to be integrated.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>evaluate</method>
-     !@     <type>\doubleone</type>
-     !@     <arguments>\doublezero\ a\argin, \doublezero\ b,\argin</arguments>
-     !@     <description>Evaluate the integral.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the integrand function to be integrated." method="integrandSet" />
+     !#   <method description="Evaluate the integral." method="evaluate" />
+     !# </methods>
      procedure                            :: integrandSet => integrandMulti1DSet
      procedure(evaluateMulti1D), deferred :: evaluate
   end type integratorMulti1D
@@ -321,15 +237,9 @@ module Numerical_Integration2
      integer                                                :: integrandCount
      procedure(integrandMultiVectorized1D), pointer, nopass :: integrand
    contains
-     !@ <objectMethods>
-     !@   <object>integratorMultiVectorized1D</object>
-     !@   <objectMethod>
-     !@     <method>integrandSet</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ integrandCount\argin, \textcolor{red}{\textless \doubleone\ function(doubleone\ x\argin)\textgreater}\ integrand\argin</arguments>
-     !@     <description>Set the integrand function to be integrated.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the integrand function to be integrated." method="integrandSet" />
+     !# </methods>
      procedure                                      :: integrandSet => integrandMultiVectorizedSet1D
      procedure(evaluateMultiVectorized1D), deferred :: evaluate
   end type integratorMultiVectorized1D
@@ -358,27 +268,11 @@ module Numerical_Integration2
      integer                                     :: intervalsMaximum
      double precision, allocatable, dimension(:) :: xKronrod         , wGauss, wKronrod
    contains
-     !@ <objectMethods>
-     !@   <object>integratorMultiVectorizedCompositeGaussKronrod1D</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ intervalsMaximum\argin, \intzero\ order\argin</arguments>
-     !@     <description>Set the maximum number of intervals allowed, and the order of the integrator.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>evaluate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ a\argin, \doublezero\ b\argin, \doubleone\ integral\argout</arguments>
-     !@     <description>Evaluate the integrals.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>evaluateInterval</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ a\argin, \doublezero\ b\argin, \doubleone\ integralKronrod\argout, \doubleone\ error\argout</arguments>
-     !@     <description>Evaluate the integrals over an interval and also return errors on the integrals.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the maximum number of intervals allowed, and the order of the integrator." method="initialize" />
+     !#   <method description="Evaluate the integrals." method="evaluate" />
+     !#   <method description="Evaluate the integrals over an interval and also return errors on the integrals." method="evaluateInterval" />
+     !# </methods>
      procedure :: initialize       => multiVectorizedCompositeGaussKronrod1DInitialize
      procedure :: evaluate         => multiVectorizedCompositeGaussKronrod1DEvaluate
      procedure :: evaluateInterval => multiVectorizedCompositeGaussKronrod1DEvaluateInterval
@@ -390,21 +284,10 @@ module Numerical_Integration2
      private
      integer :: intervalsMaximum
    contains
-     !@ <objectMethods>
-     !@   <object>integratorMultiVectorizedCompositeTrapezoidal1D</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ intervalsMaximum\argin</arguments>
-     !@     <description>Set the maximum number of intervals allowed.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>evaluate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ a\argin, \doublezero\ b\argin, \doubleone\ integral\argout</arguments>
-     !@     <description>Evaluate the integrals.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the maximum number of intervals allowed." method="initialize" />
+     !#   <method description="Evaluate the integrals." method="evaluate" />
+     !# </methods>
      procedure :: initialize => multiVectorizedCompositeTrapezoidal1DInitialize
      procedure :: evaluate   => multiVectorizedCompositeTrapezoidal1DEvaluate
   end type integratorMultiVectorizedCompositeTrapezoidal1D

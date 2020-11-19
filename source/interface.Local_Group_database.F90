@@ -54,6 +54,11 @@ module Interface_Local_Group_DB
      !% Vector type.
      double precision, dimension(3) :: x
    contains
+     !# <methods>
+     !#  <method method="operator(==)"   description="Test equality of two 3D vectors."         />
+     !#  <method method="operator(&lt;)" description="Less than operator for two 3D vectors."   />
+     !#  <method method="operator(&gt;)" description="Greater than operator for two 3D vectors."/>
+     !# </methods>
      procedure ::                 vector3DEquals
      procedure ::                 vector3DComparisonUnimplemented
      generic   :: operator(==) => vector3DEquals
@@ -68,40 +73,19 @@ module Interface_Local_Group_DB
      type   (xmlNodeList), allocatable, dimension(:) :: galaxies
      logical             , allocatable, dimension(:) :: selected
    contains
-     !@ <objectMethods>
-     !@   <object>localGroupDB</object>
-     !@   <objectMethod>
-     !@     <method>getProperty</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater}name\argin, \textcolor{red}{\textless type(varying\_string)(:)\textgreater}property\arginout</arguments>
-     !@     <description>Return an array of values of the named property for the current selection.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>select</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater}name\argin, \textcolor{red}{\textless character(len=*)\textgreater}value\argin</arguments>
-     !@     <description>Select all galaxies in the current selection where the named property has the given value.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>selectAll</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Select all galaxies in the database.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>update</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Update the database.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
-     final     ::                localGroupDBDestructor
-     procedure ::                localGroupDBGetProperty{Type¦label}
-     generic   :: getProperty => localGroupDBGetProperty{Type¦label}
-     procedure ::                localGroupDBSelect{Type¦label}
-     generic   :: select      => localGroupDBSelect{Type¦label}
-     procedure :: selectAll   => localGroupDBSelectAll
-     procedure :: update      => localGroupDBUpdate
+     !# <methods>
+     !#   <method description="Return an array of values of the named property for the current selection." method="getProperty" />
+     !#   <method description="Select all galaxies in the current selection where the named property has the given value." method="select" />
+     !#   <method description="Select all galaxies in the database." method="selectAll" />
+     !#   <method description="Update the database." method="update" />
+     !# </methods>
+     final     ::                            localGroupDBDestructor
+     procedure :: getProperty{Type¦label} => localGroupDBGetProperty{Type¦label}
+     generic   :: getProperty             => getProperty{Type¦label}
+     procedure :: select{Type¦label}      => localGroupDBSelect{Type¦label}
+     generic   :: select                  => select{Type¦label}
+     procedure :: selectAll               => localGroupDBSelectAll
+     procedure :: update                  => localGroupDBUpdate
   end type localGroupDB
 
   interface localGroupDB

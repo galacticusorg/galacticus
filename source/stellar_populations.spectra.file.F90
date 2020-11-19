@@ -40,15 +40,9 @@
      type            (interpolator)                                :: interpolatorAge       , interpolatorMetallicity, &
           &                                                           interpolatorWavelength
    contains
-     !@ <objectMethods>
-     !@   <object>spectralTable</object>
-     !@   <objectMethod>
-     !@     <method>interpolatorsDeepCopy</method>
-     !@     <type>void</type>
-     !@     <arguments></arguments>
-     !@     <description>Perform deep copy actions on interpolators.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Perform deep copy actions on interpolators." method="interpolatorsDeepCopy" />
+     !# </methods>
      procedure :: interpolatorsDeepCopy => spectralTableInterpolatorsDeepCopy
   end type spectralTable
 
@@ -79,15 +73,9 @@
      logical                 :: forceZeroMetallicity, fileRead
      type   (varying_string) :: fileName
    contains
-     !@ <objectMethods>
-     !@   <object>stellarPopulationSpectraFile</object>
-     !@   <objectMethod>
-     !@     <method>readFile</method>
-     !@     <type>void</type>
-     !@     <arguments>\textcolor{red}{\textless char(len=*)\textgreater} fileName\argin</arguments>
-     !@     <description>Read the named stellar population spectra file.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Read the named stellar population spectra file." method="readFile" />
+     !# </methods>
      procedure :: readFile           => fileReadFile
      procedure :: luminosity         => fileLuminosity
      procedure :: tabulation         => fileTabulation

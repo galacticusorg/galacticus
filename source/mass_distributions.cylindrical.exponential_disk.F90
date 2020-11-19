@@ -51,45 +51,14 @@
   !$ integer      (omp_lock_kind           )                              :: factorComputeLock                     , rotationCurveLock                     , &
   !$   &                                                                     rotationCurveGradientLock             , potentialLock
 contains
-     !@ <objectMethods>
-     !@   <object>massDistributionExponentialDisk</object>
-     !@   <objectMethod>
-     !@     <method>tabulate</method>
-     !@     <description>Tabulates the potential for an exponential disk mass distribution.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>besselFactorRotationCurve</method>
-     !@     <description>Compute the Bessel function factor appearing in the exponential disk rotation curve.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ halfRadius\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>besselFactorRotationCurveGradient</method>
-     !@     <description>Compute the Bessel function factor appearing in the exponential disk rotation curve gradient.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ halfRadius\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>besselFactorPotential</method>
-     !@     <description>Compute the Bessel function factor appearing in the exponential disk potential.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ halfRadius\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>accelerationTabulate</method>
-     !@     <description>Tabulate the gravitational acceleration and tidal tensor due to the disk.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>accelerationInterpolate</method>
-     !@     <description>Interpolate in the tabulated gravitational acceleration and/or tidal tensor due to the disk.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(coordinateCylindrical)\textgreater} coordinatesCylindrical\argin, [accelerationRadial]\argout, [accelerationVertical]\argout, [tidalTensorRadialRadial]\argout, [tidalTensorVerticalVertical]\argout, [tidalTensorCross]\argout</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulates the potential for an exponential disk mass distribution." method="tabulate" />
+     !#   <method description="Compute the Bessel function factor appearing in the exponential disk rotation curve." method="besselFactorRotationCurve" />
+     !#   <method description="Compute the Bessel function factor appearing in the exponential disk rotation curve gradient." method="besselFactorRotationCurveGradient" />
+     !#   <method description="Compute the Bessel function factor appearing in the exponential disk potential." method="besselFactorPotential" />
+     !#   <method description="Tabulate the gravitational acceleration and tidal tensor due to the disk." method="accelerationTabulate" />
+     !#   <method description="Interpolate in the tabulated gravitational acceleration and/or tidal tensor due to the disk." method="accelerationInterpolate" />
+     !# </methods>
      final     ::                                      exponentialDiskDestructor
      procedure :: tabulate                          => exponentialDiskTabulate
      procedure :: besselFactorRotationCurve         => exponentialDiskBesselFactorRotationCurve

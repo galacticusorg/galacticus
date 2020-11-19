@@ -48,15 +48,9 @@
      double precision :: stabilityThresholdStellar, stabilityThresholdGaseous, &
           &              timescaleMinimum
    contains
-     !@ <objectMethods>
-     !@   <object>galacticDynamicsBarInstabilityEfstathiou1982</object>
-     !@   <objectMethod>
-     !@     <method>estimator</method>
-     !@     <arguments></arguments>
-     !@     <type>\doublezero</type>
-     !@     <description>Compute the stability estimator for the \cite{efstathiou_stability_1982} model for galactic disk bar instability.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute the stability estimator for the \cite{efstathiou_stability_1982} model for galactic disk bar instability." method="estimator" />
+     !# </methods>
      procedure :: timescale => efstathiou1982Timescale
      procedure :: estimator => efstathiou1982Estimator
   end type galacticDynamicsBarInstabilityEfstathiou1982

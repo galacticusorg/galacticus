@@ -40,15 +40,9 @@
      class           (haloEnvironmentClass         ), pointer :: haloEnvironment_          => null()
      double precision                                         :: massBackground
    contains
-     !@ <objectMethods>
-     !@   <object>cosmologicalMassVariancePeakBackgroundSplit</object>
-     !@   <objectMethod>
-     !@     <method>varianceBackground</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <description>Compute the variance of the background at this time.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute the variance of the background at this time." method="varianceBackground" />
+     !# </methods>
      final     ::                                       variancePeakBackgroundSplitDestructor
      procedure :: sigma8                             => variancePeakBackgroundSplitSigma8
      procedure :: powerNormalization                 => variancePeakBackgroundSplitPowerNormalization

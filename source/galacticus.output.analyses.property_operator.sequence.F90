@@ -35,15 +35,9 @@
      private
      type(propertyOperatorList), pointer :: operators => null()
    contains
-     !@ <objectMethods>
-     !@   <object>outputAnalysisPropertyOperatorSequence</object>
-     !@   <objectMethod>
-     !@     <method>prepend</method>
-     !@     <arguments>\textcolor{red}{\textless class(outputAnalysisPropertyOperatorClass)\textgreater} operator\_\argin</arguments>
-     !@     <type>\void</type>
-     !@     <description>Prepend an operator to a sequence of property operators.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Prepend an operator to a sequence of property operators." method="prepend" />
+     !# </methods>
      final     ::            sequenceDestructor
      procedure :: operate => sequenceOperate
      procedure :: prepend => sequencePrepend

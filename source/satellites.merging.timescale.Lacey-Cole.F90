@@ -34,15 +34,9 @@
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: timescaleMultiplier
    contains
-     !@ <objectMethods>
-     !@   <object>satelliteMergingTimescalesLaceyCole1993</object>
-     !@   <objectMethod>
-     !@     <method>timeUntilMergingMassDependence</method>
-     !@     <type>double precision</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the mass-dependent part of the time (in Gyr) until the satellite will merge with its host.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the mass-dependent part of the time (in Gyr) until the satellite will merge with its host." method="timeUntilMergingMassDependence" />
+     !# </methods>
      final     ::                                   laceyCole1993Destructor
      procedure :: timeUntilMerging               => laceyCole1993TimeUntilMerging
      procedure :: timeUntilMergingMassDependence => laceyCole1993TimeUntilMergingMassDependence

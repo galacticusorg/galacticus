@@ -94,39 +94,13 @@
      type            (uniqueTable                            ), allocatable, dimension(:) :: rootVarianceUniqueTable
      logical                                                                              :: monotonicInterpolation                       , growthIsMassDependent_
    contains
-     !@ <objectMethods>
-     !@   <object>cosmologicalMassVarianceFilteredPower</object>
-     !@   <objectMethod>
-     !@     <method>retabulate</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ mass\argin, \doublezero\ time\argin</arguments>
-     !@     <description>Tabulate cosmological mass variance.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>interpolantsTime</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ time\argin, \intzero\ i\argout, \doublezero\ h\argout</arguments>
-     !@     <description>Compute the interpolating factors in time.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>fileWrite</method>
-     !@     <type>void</type>
-     !@     <arguments></arguments>
-     !@     <description>Write the tabulated mass variance to file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>fileRead</method>
-     !@     <type>void</type>
-     !@     <arguments></arguments>
-     !@     <description>Read the tabulated mass variance from file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>remakeTable</method>
-     !@     <type>\logicalzero</type>
-     !@     <description>Return true if the table must be remade.</description>
-     !@     <arguments>\doublezero\ [mass]\argin, \doublezero\ [time]\argin</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulate cosmological mass variance." method="retabulate" />
+     !#   <method description="Compute the interpolating factors in time." method="interpolantsTime" />
+     !#   <method description="Write the tabulated mass variance to file." method="fileWrite" />
+     !#   <method description="Read the tabulated mass variance from file." method="fileRead" />
+     !#   <method description="Return true if the table must be remade." method="remakeTable" />
+     !# </methods>
      final     ::                                        filteredPowerDestructor
      procedure :: sigma8                              => filteredPowerSigma8
      procedure :: powerNormalization                  => filteredPowerPowerNormalization

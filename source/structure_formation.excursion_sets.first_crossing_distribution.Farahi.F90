@@ -184,39 +184,13 @@
      double precision                                            , dimension(0:1)   :: hTimeRate                                 , hVarianceRate
      integer         (c_size_t                     )                                :: iTimeRate                                 , iVarianceRate
    contains
-     !@ <objectMethods>
-     !@   <object>excursionSetFirstCrossingFarahi</object>
-     !@   <objectMethod>
-     !@     <method>rateTabulate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ varianceProgenitor\argin, \doublezero\ time\argin</arguments>
-     !@     <description>Tabulate excursion set barrier crossing rates ensuring that they span the given progenitor variance and time.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>varianceRange</method>
-     !@     <type>\doubleone</type>
-     !@     <arguments>\doublezero\ rangeMinimum\argin, \doublezero\ rangeMaximum\argin, \intzero\ rangeNumber, \doublezero\ exponent</arguments>
-     !@     <description>Build a range of variances at which to tabulate the excursion set solutions.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>fileRead</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Read excursion set solutions from file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>fileWrite</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Write excursion set solutions to file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>fileNameInitialize</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Initialize the file name for storing excursion set data.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulate excursion set barrier crossing rates ensuring that they span the given progenitor variance and time." method="rateTabulate" />
+     !#   <method description="Build a range of variances at which to tabulate the excursion set solutions." method="varianceRange" />
+     !#   <method description="Read excursion set solutions from file." method="fileRead" />
+     !#   <method description="Write excursion set solutions to file." method="fileWrite" />
+     !#   <method description="Initialize the file name for storing excursion set data." method="fileNameInitialize" />
+     !# </methods>
      final     ::                       farahiDestructor
      procedure :: probability        => farahiProbability
      procedure :: rate               => farahiRate

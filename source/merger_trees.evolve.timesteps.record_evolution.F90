@@ -58,15 +58,9 @@
           &                                                                  time                            , massTotal
      type            (interpolator           )                            :: interpolator_
    contains
-     !@ <objectMethods>
-     !@   <object>mergerTreeEvolveTimestepRecordEvolution</object>
-     !@   <objectMethod>
-     !@     <method>reset</method>
-     !@     <arguments></arguments>
-     !@     <type>\void</type>
-     !@     <description>Reset the record of galaxy evolution.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset the record of galaxy evolution." method="reset" />
+     !# </methods>
      final     ::                 recordEvolutionDestructor
      procedure :: timeEvolveTo => recordEvolutionTimeEvolveTo
      procedure :: autoHook     => recordEvolutionAutoHook

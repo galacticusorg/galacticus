@@ -35,15 +35,9 @@
      private
      type(radiationFieldList), pointer :: radiationFields => null()
    contains
-     !@ <objectMethods>
-     !@  <object>radiationFieldSummation</object>
-     !@  <objectMethod>
-     !@   <method>list</method>
-     !@   <type>\void</type>
-     !@   <arguments>\textcolor{red}{\textless *type(radiationFieldList)\textgreater}</arguments>
-     !@   <description>Return a list of all sub-components.</description>
-     !@  </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return a list of all sub-components." method="list" />
+     !# </methods>
      final     ::         summationDestructor
      procedure :: flux => summationFlux
      procedure :: list => summationList

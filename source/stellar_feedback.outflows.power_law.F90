@@ -38,15 +38,9 @@
      private
      double precision :: velocityCharacteristic_, exponent
    contains
-     !@ <objectMethods>
-     !@   <object>stellarFeedbackOutflowsPowerLaw</object>
-     !@   <objectMethod>
-     !@     <method>velocityCharacteristic</method>
-     !@     <arguments>\textcolor{red}{\textless class(nodeComponent)\textgreater} component\arginout</arguments>
-     !@     <type>\doublezero</type>
-     !@     <description>Return the characteristic velocity for power law feedback models.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the characteristic velocity for power law feedback models." method="velocityCharacteristic" />
+     !# </methods>
      procedure :: outflowRate            => powerLawOutflowRate
      procedure :: velocityCharacteristic => powerLawVelocityCharacteristic
   end type stellarFeedbackOutflowsPowerLaw

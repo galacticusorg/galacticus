@@ -27,15 +27,9 @@
      private
      double precision :: massDestruction, massDestructionFractional
    contains
-     !@ <objectMethods>
-     !@   <object>nodeOperatorSatelliteDestructionMassThreshold</object>
-     !@   <objectMethod>
-     !@     <method>massDestroy</method>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout</arguments>
-     !@     <type>\doublezero</type>
-     !@     <description>Compute the mass at which the satellite will be destroyed.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute the mass at which the satellite will be destroyed." method="massDestroy" />
+     !# </methods>
      procedure :: differentialEvolution => satelliteDestructionMassThresholdDifferentialEvolution
      procedure :: massDestroy           => satelliteDestructionMassThresholdMassDestroy
   end type nodeOperatorSatelliteDestructionMassThreshold

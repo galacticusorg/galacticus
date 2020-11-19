@@ -92,87 +92,21 @@
           &                                                     concentrationPrevious                            , burkertNormalizationFactorPrevious   , &
           &                                                     maximumVelocityPrevious
    contains
-     !@ <objectMethods>
-     !@   <object>darkMatterProfileDMOBurkert</object>
-     !@   <objectMethod>
-     !@     <method>calculationReset</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
-     !@     <description>Reset memoized calculations.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>densityScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin</arguments>
-     !@     <description>Returns the density (in units such that the virial mass and scale length are unity) in a Burkert dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>enclosedMassScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin</arguments>
-     !@     <description>Returns the enclosed mass (in units of the virial mass) in a Burkert dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radialVelocityDispersionScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin</arguments>
-     !@     <description>Returns the scale-free radial velocity dispersion in a Burkert dark matter profile.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radialVelocityDispersionTabulate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ radius\argin</arguments>
-     !@     <description>Tabulates the radial velocity dispersion vs. radius for Burkert halos.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>freefallTabulate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ freefallTimeScaleFree\argin</arguments>
-     !@     <description>Tabulates the freefall time vs. freefall radius for Burkert halos.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>freefallTimeScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin</arguments>
-     !@     <description>Compute the freefall time in a scale-free Burkert halo.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusEnclosingDensityTabulate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ densityScaleFree\argin\argin</arguments>
-     !@     <description>Tabulates the radius vs. enclosed density for Burkert halos.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>angularMomentumScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ concentration\argin</arguments>
-     !@     <description>Returns the total angular momentum in an Burkert dark matter profile with given {\normalfont \ttfamily concentration}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>inverseAngularMomentum</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ specificAngularMomentum\argin</arguments>
-     !@     <description>Tabulates the specific angular momentum vs. radius in an Burkert profile for rapid inversion.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>profileEnergy</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ concentration\argin</arguments>
-     !@     <description>Computes the total energy of an Burkert profile halo of given {\normalfont \ttfamily concentration}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>specificAngularMomentumScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin</arguments>
-     !@     <description>Returns the specific angular momentum, normalized to unit scale length and unit velocity at the scale radius, at position {\normalfont \ttfamily radius} (in units of the scale radius) in an Burkert profile.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>tabulate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ concentration\argin</arguments>
-     !@     <description>Tabulate properties of the Burkert halo profile which must be computed numerically.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset memoized calculations." method="calculationReset" />
+     !#   <method description="Returns the density (in units such that the virial mass and scale length are unity) in a Burkert dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="densityScaleFree" />
+     !#   <method description="Returns the enclosed mass (in units of the virial mass) in a Burkert dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="enclosedMassScaleFree" />
+     !#   <method description="Returns the scale-free radial velocity dispersion in a Burkert dark matter profile." method="radialVelocityDispersionScaleFree" />
+     !#   <method description="Tabulates the radial velocity dispersion vs. radius for Burkert halos." method="radialVelocityDispersionTabulate" />
+     !#   <method description="Tabulates the freefall time vs. freefall radius for Burkert halos." method="freefallTabulate" />
+     !#   <method description="Compute the freefall time in a scale-free Burkert halo." method="freefallTimeScaleFree" />
+     !#   <method description="Tabulates the radius vs. enclosed density for Burkert halos." method="radiusEnclosingDensityTabulate" />
+     !#   <method description="Returns the total angular momentum in an Burkert dark matter profile with given {\normalfont \ttfamily concentration}." method="angularMomentumScaleFree" />
+     !#   <method description="Tabulates the specific angular momentum vs. radius in an Burkert profile for rapid inversion." method="inverseAngularMomentum" />
+     !#   <method description="Computes the total energy of an Burkert profile halo of given {\normalfont \ttfamily concentration}." method="profileEnergy" />
+     !#   <method description="Returns the specific angular momentum, normalized to unit scale length and unit velocity at the scale radius, at position {\normalfont \ttfamily radius} (in units of the scale radius) in an Burkert profile." method="specificAngularMomentumScaleFree" />
+     !#   <method description="Tabulate properties of the Burkert halo profile which must be computed numerically." method="tabulate" />
+     !# </methods>
      final     ::                                      burkertDestructor
      procedure :: autoHook                          => burkertAutoHook
      procedure :: calculationReset                  => burkertCalculationReset

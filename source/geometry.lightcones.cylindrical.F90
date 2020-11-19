@@ -59,15 +59,11 @@
      double precision                                  , dimension(:,:), allocatable :: activeCenterPosition                  , activePosition
      integer         (c_size_t                        )                              :: activeOutput
    contains
-     !@ <objectMethods>
-     !@   <object>geometryLightconeCylindrical</object>
-     !@   <objectMethod>
-     !@     <method>sampleNode</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout</arguments>
-     !@     <description>Determine if, and how many times, the given node appears in the ``lightcone'', and choose positions for each instance.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#  <method method="sampleNode">
+     !#   <description>Determine if, and how many times, the given node appears in the ``lightcone'', and choose positions for each instance.</description>
+     !#  </method>
+     !# </methods>
      final     ::                     cylindricalDestructor
      procedure :: isInLightcone    => cylindricalIsInLightcone
      procedure :: replicationCount => cylindricalReplicationCount

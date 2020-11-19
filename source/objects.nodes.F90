@@ -40,23 +40,120 @@ module Galacticus_Nodes
   use            :: Tensors                         , only : tensorRank2Dimension3Symmetric, tensorNullR2D3Sym
   private
   public :: nodeClassHierarchyInitialize, nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask, nodeEventBuildFromRaw
-
+  
   type, public :: treeNodeList
      !% Type to give a list of treeNodes.
      type(treeNode), pointer :: node
   end type treeNodeList
-
+  
   type, public :: treeNodeLinkedList
      !% Type to give a linked list of treeNodes.
      type(treeNode          ), pointer :: node
      type(treeNodeLinkedList), pointer :: next
   end type treeNodeLinkedList
 
-  ! Include merger tree object.
-  include "objects.merger_trees.type.inc"
+  type, public :: mergerTree
+     !% The merger tree object type.
+     integer         (kind=kind_int8            )                  :: index
+     type            (hdf5Object                )                  :: hdf5Group
+     double precision                                              :: volumeWeight                    , initializedUntil
+     type            (treeNode                  ), pointer         :: baseNode               => null()
+     type            (mergerTree                ), pointer         :: nextTree               => null(), firstTree        => null()
+     type            (universe                  ), pointer         :: hostUniverse           => null()
+     type            (treeEvent                 ), pointer, public :: event
+     class           (randomNumberGeneratorClass), pointer         :: randomNumberGenerator_ => null()
+     type            (doubleHash                )                  :: properties
+   contains
+     ! Tree creation/destruction.
+     !# <methods>
+     !#   <method description="Destroys the merger tree, including all nodes and their components." method="destroy" />
+     !#   <method description="Returns a pointer to the node with given index in the merger tree, or a null pointer if no such node exists." method="getNode" />
+     !#   <method description="Create a {\normalfont \ttfamily treeEvent} object in this tree." method="createEvent" />
+     !#   <method description="Remove a {\normalfont \ttfamily treeEvent} from this tree." method="removeEvent" />
+     !#   <method description="Return the earliest time in a merger tree." method="earliestTime" />
+     !#   <method description="Return the earliest time in an evolving merger tree." method="earliestTimeEvolving" />
+     !#   <method description="Return the latest time in a merger tree." method="latestTime" />
+     !#   <method description="Return the size (in bytes) of a merger tree." method="sizeOf" />
+     !# </methods>
+     procedure :: destroy              => Merger_Tree_Destroy
+     procedure :: getNode              => Merger_Tree_Node_Get
+     procedure :: createEvent          => Merger_Tree_Create_Event
+     procedure :: removeEvent          => Merger_Tree_Remove_Event
+     procedure :: earliestTime         => Merger_Tree_Earliest_Time
+     procedure :: earliestTimeEvolving => Merger_Tree_Earliest_Time_Evolving
+     procedure :: latestTime           => Merger_Tree_Latest_Time
+     procedure :: sizeOf               => Merger_Tree_Size_Of
+  end type mergerTree
 
-  ! Include universe class.
-  include "objects.universe.type.inc"
+  interface mergerTree
+     !% Interface to merger tree constructors.
+     module procedure mergerTreeConstructor
+  end interface mergerTree
+    
+  type, public :: treeEvent
+     !% Type for events attached to trees.
+     private
+     integer         (kind=kind_int8)         , public :: ID
+     type            (mergerTree    ), pointer, public :: tree
+     double precision                         , public :: time
+     type            (treeEvent     ), pointer, public :: next
+     procedure       (treeEventTask ), pointer, public :: task
+  end type treeEvent
+  
+  ! Interface for tree event tasks.
+  abstract interface
+     logical function treeEventTask(thisEvent,thisTree,deadlockStatus)
+       import treeEvent, mergerTree
+       class  (treeEvent ), intent(in   ) :: thisEvent
+       type   (mergerTree), intent(inout) :: thisTree
+       integer            , intent(inout) :: deadlockStatus
+     end function treeEventTask
+  end interface
+  
+  type, public :: mergerTreeList
+     !% A class used for building linked lists of merger trees.
+     type(mergerTreeList), pointer :: next
+     type(mergerTree    ), pointer :: tree
+  end type mergerTreeList
+
+  type, public :: universe
+     !% The universe object class.
+     type   (mergerTreeList), pointer         :: trees         => null()
+     logical                                  :: allTreesBuilt =  .false.
+     type   (universeEvent ), pointer, public :: event
+     type   (genericHash   )                  :: attributes
+   contains
+     !# <methods>
+     !#   <method description="Create a {\normalfont \ttfamily treeEvent} object in this universe." method="createEvent" />
+     !#   <method description="Remove a {\normalfont \ttfamily treeEvent} from this universe." method="removeEvent" />
+     !#   <method description="Pop a {\normalfont \ttfamily mergerTree} from this universe." method="popTree" />
+     !#   <method description="Pop a {\normalfont \ttfamily mergerTree} from this universe." method="pushTree" />
+     !# </methods>
+     procedure :: createEvent => universeCreateEvent
+     procedure :: removeEvent => universeRemoveEvent
+     procedure :: popTree     => universePopTree
+     procedure :: pushTree    => universePushTree
+  end type universe
+
+  type, public :: universeEvent
+     !% Type for events attached to universes.
+     private
+     integer         (kind=kind_int8   )         , public :: ID
+     type            (universe         ), pointer, public :: universe
+     double precision                            , public :: time
+     type            (universeEvent    ), pointer, public :: next
+     procedure       (universeEventTask), pointer, public :: task
+     class           (*                ), pointer, public :: creator
+  end type universeEvent
+
+  ! Interface for universe event tasks.
+  abstract interface
+     logical function universeEventTask(thisEvent,thisUniverse)
+       import universeEvent, universe
+       class  (universeEvent), intent(in   ) :: thisEvent
+       type   (universe     ), intent(inout) :: thisUniverse
+     end function universeEventTask
+  end interface
 
   ! Zero dimension arrays to be returned as defaults.
   integer                                            , dimension(0) :: nullInteger1d
@@ -1132,11 +1229,309 @@ module Galacticus_Nodes
     call Galacticus_Error_Report(message//{introspection:location})
     return
   end subroutine nodeComponentGetError
+  
+  function mergerTreeConstructor() result(self)
+    !% Constructor for the merger tree class. Currently does nothing.
+    implicit none
+    type(mergerTree) :: self
+    
+    return
+  end function mergerTreeConstructor
 
-  ! Include functions for the merger tree class.
-  include "objects.merger_trees.functions.inc"
+  subroutine Merger_Tree_Destroy(tree)
+    !% Destroys the entire merger tree.
+    implicit none
+    class(mergerTree), intent(inout) :: tree
+    type (treeEvent ), pointer       :: event, eventNext
 
-  ! Include functions for the universe class.
-  include "objects.universe.functions.inc"
+    select type (tree)
+    type is (mergerTree)
+       ! Destroy all nodes.
+       if (associated(tree%baseNode)) then
+          call tree%baseNode%destroyBranch()
+          deallocate(tree%baseNode)
+       end if
+       ! Destroy the HDF5 group associated with this tree.
+       call tree%hdf5Group%destroy()
+       ! Destroy any events attached to this tree.
+       event => tree%event
+       do while (associated(event))
+          eventNext => event%next
+          deallocate(event)
+          event => eventNext
+       end do
+       ! Destroy the property hash.
+       call tree%properties%destroy()
+       ! Destroy the random number generator.
+       !# <objectDestructor name="tree%randomNumberGenerator_"/>
+    end select
+    return
+  end subroutine Merger_Tree_Destroy
+
+  function Merger_Tree_Node_Get(tree,nodeIndex)
+    !% Return a pointer to a node in {\normalfont \ttfamily tree} given the index of the node.
+    implicit none
+    class  (mergerTree    ), intent(in   ), target :: tree
+    integer(kind=kind_int8), intent(in   )         :: nodeIndex
+    type   (mergerTree    ), pointer               :: treeCurrent
+    type   (treeNode      ), pointer               :: Merger_Tree_Node_Get, node
+
+    Merger_Tree_Node_Get => null()
+    treeCurrent => tree
+    do while (associated(treeCurrent))
+       node => treeCurrent%baseNode
+       do while (associated(node))
+          if (node%index() == nodeIndex) then
+             Merger_Tree_Node_Get => node
+             return
+          end if
+          node => node%walkTreeWithSatellites()
+       end do
+       treeCurrent => treeCurrent%nextTree
+    end do
+    return
+  end function Merger_Tree_Node_Get
+
+  function Merger_Tree_Create_Event(self) result (eventNew)
+    !% Create a new event in a merger tree.
+    implicit none
+    class(mergerTree), intent(inout) :: self
+    type (treeEvent ), pointer       :: eventNew, event
+
+    allocate(eventNew)
+    nullify(eventNew%next)
+    !$omp atomic
+    eventID=eventID+1
+    eventNew%ID=eventID
+    if (associated(self%event)) then
+       event => self%event
+       do while (associated(event%next))
+          event => event%next
+       end do
+       event%next => eventNew
+    else
+       self%event => eventNew
+    end if
+    return
+  end function Merger_Tree_Create_Event
+
+  subroutine Merger_Tree_Remove_Event(self,event)
+    !% Removed an event from {\normalfont \ttfamily self}.
+    implicit none
+    class  (mergerTree), intent(inout) :: self
+    type   (treeEvent ), intent(in   ) :: event
+    type   (treeEvent ), pointer       :: eventLast, eventNext, eventCurrent
+
+    ! Destroy the event.
+    eventLast    => null()
+    eventCurrent => self%event
+    do while (associated(eventCurrent))
+       ! Match the event.
+       if (eventCurrent%ID == event%ID) then
+          if (associated(eventCurrent,self%event)) then
+             self     %event => eventCurrent%next
+             eventLast       => self %event
+          else
+             eventLast%next  => eventCurrent%next
+          end if
+          eventNext => eventCurrent%next
+          deallocate(eventCurrent)
+          eventCurrent => eventNext
+       else
+          eventLast    => eventCurrent
+          eventCurrent => eventCurrent%next
+       end if
+    end do
+    return
+  end subroutine Merger_Tree_Remove_Event
+
+  double precision function Merger_Tree_Earliest_Time(self)
+    !% Return the earliest time in a merger tree.
+    implicit none
+    class           (mergerTree        ), intent(inout), target :: self
+    double precision                    , parameter             :: timeInfinity=huge(1.0d0)
+    type            (mergerTree        ), pointer               :: treeCurrent
+    type            (treeNode          ), pointer               :: node
+    class           (nodeComponentBasic), pointer               :: basic
+
+    Merger_Tree_Earliest_Time =  timeInfinity
+    treeCurrent               => self
+    do while (associated(treeCurrent))
+       node => treeCurrent%baseNode
+       do while (associated(node))
+          if (.not.associated(node%firstChild)) then
+             basic                     =>                               node %basic()
+             Merger_Tree_Earliest_Time =  min(Merger_Tree_Earliest_Time,basic%time ())
+          end if
+          node => node%walkTreeWithSatellites()
+       end do
+       treeCurrent => treeCurrent%nextTree
+    end do
+    return
+  end function Merger_Tree_Earliest_Time
+
+  double precision function Merger_Tree_Earliest_Time_Evolving(self)
+    !% Return the earliest time in a merger tree.
+    implicit none
+    class           (mergerTree        ), intent(inout), target :: self
+    double precision                    , parameter             :: timeInfinity=huge(1.0d0)
+    type            (mergerTree        ), pointer               :: treeCurrent
+    type            (treeNode          ), pointer               :: node
+    class           (nodeComponentBasic), pointer               :: basic
+
+    Merger_Tree_Earliest_Time_Evolving =  timeInfinity
+    treeCurrent                        => self
+    do while (associated(treeCurrent))
+       node => treeCurrent%baseNode
+       do while (associated(node))
+          if (.not.associated(node%firstChild).and.(associated(node%parent).or..not.associated(node%firstSatellite))) then
+             basic                              =>                                        node %basic()
+             Merger_Tree_Earliest_Time_Evolving =  min(Merger_Tree_Earliest_Time_Evolving,basic%time ())
+          end if
+          node => node%walkTreeWithSatellites()
+       end do
+       treeCurrent => treeCurrent%nextTree
+    end do
+    return
+  end function Merger_Tree_Earliest_Time_Evolving
+
+  double precision function Merger_Tree_Latest_Time(self)
+    !% Return the latest time in a merger tree.
+    implicit none
+    class           (mergerTree        ), intent(inout), target :: self
+    type            (mergerTree        ), pointer               :: treeCurrent
+    class           (nodeComponentBasic), pointer               :: baseBasic
+
+    Merger_Tree_Latest_Time =  -1.0d0
+    treeCurrent             => self
+    do while (associated(treeCurrent))
+       if (associated(treeCurrent%baseNode)) then
+          baseBasic               =>                             treeCurrent%baseNode%basic()
+          Merger_Tree_Latest_Time =  max(Merger_Tree_Latest_Time,baseBasic  %time          ())
+       end if
+       treeCurrent => treeCurrent%nextTree
+    end do
+    return
+  end function Merger_Tree_Latest_Time
+
+  integer(c_size_t) function Merger_Tree_Size_Of(self)
+    !% Return the size (in bytes) of a merger tree.
+    implicit none
+    class(mergerTree), intent(in   ) :: self
+    type (treeEvent ), pointer       :: event
+    
+    !# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+    !#  <description>
+  !#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+  !#  </description>
+    !# </workaround>
+    !Merger_Tree_Size_Of=sizeof(self)
+    Merger_Tree_Size_Of=0_c_size_t
+    event => self%event
+    do while (associated(event))
+       !# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+       !#  <description>
+  !#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+  !#  </description>
+       !# </workaround>
+       ! Merger_Tree_Size_Of=Merger_Tree_Size_Of+sizeof(event)
+       event => event%next
+    end do
+    return
+  end function Merger_Tree_Size_Of
+
+
+  function universeCreateEvent(self) result (newEvent)
+    !% Create a new event in a universe.
+    implicit none
+    class(universe     ), intent(inout) :: self
+    type (universeEvent), pointer       :: newEvent, thisEvent
+
+    allocate(newEvent)
+    nullify(newEvent%next)
+    !$omp atomic
+    eventID=eventID+1
+    newEvent%ID=eventID
+    if (associated(self%event)) then
+       thisEvent => self%event
+       do while (associated(thisEvent%next))
+          thisEvent => thisEvent%next
+       end do
+       thisEvent%next => newEvent
+    else
+       self%event => newEvent
+    end if
+    return
+  end function universeCreateEvent
+
+  subroutine universeRemoveEvent(self,event)
+    !% Remove an event from {\normalfont \ttfamily self}.
+    implicit none
+    class  (universe     ), intent(inout) :: self
+    type   (universeEvent), intent(in   ) :: event
+    type   (universeEvent), pointer       :: lastEvent, nextEvent, thisEvent
+
+    ! Destroy the event.
+    lastEvent => null()
+    thisEvent => self%event
+    do while (associated(thisEvent))
+       ! Match the event.
+       if (thisEvent%ID == event%ID) then
+          if (associated(thisEvent,self%event)) then
+             self     %event => thisEvent%next
+             lastEvent       => self     %event
+          else
+             lastEvent%next  => thisEvent%next
+          end if
+          nextEvent => thisEvent%next
+          deallocate(thisEvent)
+          thisEvent => nextEvent
+       else
+          lastEvent => thisEvent
+          thisEvent => thisEvent%next
+       end if
+    end do
+    return
+  end subroutine universeRemoveEvent
+  
+  function universePopTree(self)
+    !% Pop a tree from the universe.
+    implicit none
+    type (mergerTree    ), pointer       :: universePopTree
+    class(universe      ), intent(inout) :: self
+    type (mergerTreeList), pointer       :: nextTree
+
+    if (associated(self%trees)) then
+       universePopTree => self%trees%tree
+       nextTree        => self%trees%next
+       deallocate(self%trees)
+       self%trees      => nextTree
+    else
+       universePopTree => null()
+    end if
+    return
+  end function universePopTree
+
+  subroutine universePushTree(self,thisTree)
+    !% Pop a tree from the universe.
+    implicit none
+    class(universe      ), intent(inout)          :: self
+    type (mergerTree    ), intent(in   ), pointer :: thisTree
+    type (mergerTreeList)               , pointer :: nextTree, newTree
+
+    allocate(newTree)
+    newTree%tree => thisTree
+    newTree%next => null()
+    if (associated(self%trees)) then
+       nextTree => self%trees
+       do while (associated(nextTree%next))
+          nextTree => nextTree%next
+       end do
+       nextTree%next => newTree
+    else
+       self%trees => newTree
+    end if
+    return
+  end subroutine universePushTree
 
 end module Galacticus_Nodes

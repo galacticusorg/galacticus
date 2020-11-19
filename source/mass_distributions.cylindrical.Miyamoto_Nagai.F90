@@ -33,21 +33,10 @@
      logical                                    :: surfaceDensityInitialized, massEnclosedInitialized
      type            (table1DLogarithmicLinear) :: surfaceDensityTable      , massEnclosedTable
    contains
-     !@ <objectMethods>
-     !@   <object>massDistributionMiyamotoNagai</object>
-     !@   <objectMethod>
-     !@     <method>surfaceDensityTabulate</method>
-     !@     <description>Initialize the surface density tabulation.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>massEnclosedTabulate</method>
-     !@     <description>Initialize the enclosed mass tabulation.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Initialize the surface density tabulation." method="surfaceDensityTabulate" />
+     !#   <method description="Initialize the enclosed mass tabulation." method="massEnclosedTabulate" />
+     !# </methods>
      procedure :: density                    => miyamotoNagaiDensity
      procedure :: surfaceDensity             => miyamotoNagaiSurfaceDensity
      procedure :: surfaceDensityTabulate     => miyamotoNagaiSurfaceDensityTabulate

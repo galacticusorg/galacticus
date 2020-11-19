@@ -93,33 +93,12 @@
      ! Tolerances for behavior close to the resolution limit.
      double precision                                                     :: toleranceResolutionSelf                           , toleranceResolutionParent
    contains
-     !@ <objectMethods>
-     !@   <object>mergerTreeBuilderCole2000</object>
-     !@   <objectMethod>
-     !@     <method>shouldAbort</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\textless type(mergerTree)\textgreater\ tree\argin</arguments>
-     !@     <description>Return true if construction of the merger tree should be aborted.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>shouldFollowBranch</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\textless type(mergerTree)\textgreater\ tree\argin, \textless type(treeNode)\textgreater\ node\argin</arguments>
-     !@     <description>Return true if the branch should be followed.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>criticalOverdensitySet</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textless class(criticalOverdensityClass)\textgreater criticalOverdensity_</arguments>
-     !@     <description>Set the critical overdensity object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>criticalOverdensityUpdate</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ deltaCritical\argin, \doublezero\ massCurrent\argin, \doublezero\ massNew\argin, \textless type(treeNode)\textgreater\ nodeNew\arginout</arguments>
-     !@     <description>Set the critical overdensity object.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return true if construction of the merger tree should be aborted." method="shouldAbort" />
+     !#   <method description="Return true if the branch should be followed." method="shouldFollowBranch" />
+     !#   <method description="Set the critical overdensity object." method="criticalOverdensitySet" />
+     !#   <method description="Set the critical overdensity object." method="criticalOverdensityUpdate" />
+     !# </methods>
      final     ::                              cole2000Destructor
      procedure :: build                     => cole2000Build
      procedure :: shouldAbort               => cole2000ShouldAbort

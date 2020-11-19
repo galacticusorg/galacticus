@@ -54,33 +54,12 @@
      integer                                                       , allocatable, dimension(:  ) :: elementAtomicNumbers
      double precision                                              , allocatable, dimension(:,:) :: crossSectionPhotoIonizationPrevious
    contains
-     !@ <objectMethods>
-     !@   <object>radiativeTransferMatterAtomic</object>
-     !@   <objectMethod>
-     !@     <method>recombinationRateHydrogen</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless type(radiativeTransferPropertiesMatterAtomic)\textgreater} properties</arguments>
-     !@     <description>Return the total rate of recombinations (in units of s$^{-1}$).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>absorptionCoefficientSpecies</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\intzero\ atomicNumber\argin, \intzero\ ionizationState\argin, \doublezero\ wavelength\argin, \textcolor{red}{\textless type(radiativeTransferPropertiesMatterAtomic)\textgreater} properties</arguments>
-     !@     <description>Return the total rate of recombinations (in units of s$^{-1}$).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>historyUpdate</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless type(radiativeTransferPropertiesMatterAtomic)\textgreater} properties\arginout</arguments>
-     !@     <description>Update the ionization state hsitory in a properties object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>crossSectionPhotoIonization</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\intzero\ elementIndex\argin, \intzero\ ionizationState\argin, \doublezero\ wavelength\argin</arguments>
-     !@     <description>Compute the total photoionization cross section for the given element and ionization state.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the total rate of recombinations (in units of s$^{-1}$)." method="recombinationRateHydrogen" />
+     !#   <method description="Return the total rate of recombinations (in units of s$^{-1}$)." method="absorptionCoefficientSpecies" />
+     !#   <method description="Update the ionization state hsitory in a properties object." method="historyUpdate" />
+     !#   <method description="Compute the total photoionization cross section for the given element and ionization state." method="crossSectionPhotoIonization" />
+     !# </methods>
      final     ::                                 atomicDestructor
      procedure :: propertyClass                => atomicPropertyClass
      procedure :: populateDomain               => atomicPopulateDomain

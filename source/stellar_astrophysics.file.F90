@@ -77,15 +77,9 @@
           &                                                                    interpolationResetMassEjected    , interpolationResetMassYield    , &
           &                                                                    readDone
   contains
-     !@ <objectMethods>
-     !@   <object>stellarAstrophysicsFile</object>
-     !@   <objectMethod>
-     !@     <method>read</method>
-     !@     <arguments></arguments>
-     !@     <type>\void</type>
-     !@     <description>Read stellar astrophysics data from file.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Read stellar astrophysics data from file." method="read" />
+     !# </methods>
      procedure :: massInitial => fileMassInitial
      procedure :: massEjected => fileMassEjected
      procedure :: massYield   => fileMassYield

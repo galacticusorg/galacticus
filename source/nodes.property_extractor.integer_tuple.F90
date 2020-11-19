@@ -26,44 +26,13 @@
      !% A integerTuple property extractor.
      private
    contains
-     !@ <objectMethods>
-     !@  <object>nodePropertyExtractorIntegerTuple</object>
-     !@  <objectMethod>
-     !@   <method>elementCount</method>
-     !@   <description>Return the number of properties in the tuple.</description>
-     !@   <type>\intzero</type>
-     !@   <pass>yes</pass>
-     !@   <arguments>\doublezero\ time\argin</arguments>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>extract</method>
-     !@   <description>Extract the properties from the given {\normalfont \ttfamily node}.</description>
-     !@   <type>\intone</type>
-     !@   <pass>yes</pass>
-     !@   <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\argin, \doublezero\ time\argin, \textcolor{red}{\textless type(multiCounter)\textgreater} [instance]\argin</arguments>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>names</method>
-     !@   <description>Return the names of the properties extracted.</description>
-     !@   <type>\textcolor{red}{\textless type(varying\_string)\textgreater}(:)</type>
-     !@   <pass>yes</pass>
-     !@   <arguments>\doublezero\ time\argin</arguments>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>descriptions</method>
-     !@   <description>Return descriptions of the properties extracted.</description>
-     !@   <type>\textcolor{red}{\textless type(varying\_string)\textgreater}(:)</type>
-     !@   <pass>yes</pass>
-     !@   <arguments>\doublezero\ time\argin</arguments>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>unitsInSI</method>
-     !@   <description>Return the units of the properties extracted in the SI system.</description>
-     !@   <type>\doubleone</type>
-     !@   <pass>yes</pass>
-     !@   <arguments>\doublezero\ time\argin</arguments>
-     !@  </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the number of properties in the tuple." method="elementCount" pass="yes" />
+     !#   <method description="Extract the properties from the given {\normalfont \ttfamily node}." method="extract" pass="yes" />
+     !#   <method description="Return the names of the properties extracted." method="names" pass="yes" />
+     !#   <method description="Return descriptions of the properties extracted." method="descriptions" pass="yes" />
+     !#   <method description="Return the units of the properties extracted in the SI system." method="unitsInSI" pass="yes" />
+     !# </methods>
      procedure(integerTupleElementCount), deferred :: elementCount
      procedure(integerTupleExtract     ), deferred :: extract
      procedure(integerTupleNames       ), deferred :: names

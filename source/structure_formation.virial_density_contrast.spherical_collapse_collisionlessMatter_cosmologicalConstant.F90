@@ -40,15 +40,9 @@
      class           (cosmologyFunctionsClass                         ), pointer     :: cosmologyFunctions_      => null()
      class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt), pointer     :: sphericalCollapseSolver_ => null()
    contains
-     !@ <objectMethods>
-     !@   <object>virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt</object>
-     !@   <objectMethod>
-     !@     <method>retabulate</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <description>Tabulate spherical collapse virial density contrast.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulate spherical collapse virial density contrast." method="retabulate" />
+     !# </methods>
      final     ::                                sphericalCollapseClsnlssMttrCsmlgclCnstntDestructor
      procedure :: densityContrast             => sphericalCollapseClsnlssMttrCsmlgclCnstntDensityContrast
      procedure :: densityContrastRateOfChange => sphericalCollapseClsnlssMttrCsmlgclCnstntDensityContrastRtChng

@@ -83,255 +83,49 @@ module Kepler_Orbits
      logical          :: semimajorAxisIsSet
    contains
      ! Orbit methods.
-     !@ <objectMethods>
-     !@   <object>keplerOrbit</object>
-     !@   <objectMethod>
-     !@     <method>builder</method>
-     !@     <description>Build a Kepler orbit from an XML definition.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless *type(node)\textgreater} keplerOrbitDefinition\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>dump</method>
-     !@     <description>Dump an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>dumpRaw</method>
-     !@     <description>Dump an orbit in binary.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ fileHandle\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>readRaw</method>
-     !@     <description>Read an orbit in binary.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ fileHandle\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>reset</method>
-     !@     <description>Resets orbit properties. If the optional {\normalfont \ttfamily keep} argument is provided and listed properties will \emph{not} be reset.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intone\ [keep]\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>destroy</method>
-     !@     <description>Destroys an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isDefined</method>
-     !@     <description>Returns true if an orbit is fully defined.</description>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>assertIsDefined</method>
-     !@     <description>Asserts that an orbit is fully defined.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isBound</method>
-     !@     <description>Returns true if the orbit is bound.</description>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>propagate</method>
-     !@     <description>Propagates an orbit to a new position.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ velocityRadial\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>velocityRadialSet</method>
-     !@     <description>Sets the radial velocity of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ newRadius\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>massesSet</method>
-     !@     <description>Sets the masses of satellite and host objects.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ satelliteMass\argin, \doublezero\ hostMass\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusSet</method>
-     !@     <description>Sets the radius of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ radius\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>thetaSet</method>
-     !@     <description>Sets the angle $\theta$ of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ theta\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>phiSet</method>
-     !@     <description>Sets the angle $\phi$ of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ theta\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>epsilonSet</method>
-     !@     <description>Sets the angle $\epsilon$ of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ theta\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusPericenterSet</method>
-     !@     <description>Sets the pericenter radius of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ radius\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusApocenterSet</method>
-     !@     <description>Sets the apocenter radius of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ radius\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>velocityTangentialSet</method>
-     !@     <description>Sets the tangential velocity of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ velocityTangential\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>energySet</method>
-     !@     <description>Sets the energy of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ energy\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>eccentricitySet</method>
-     !@     <description>Sets the eccentricity of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ eccentricity\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>angularMomentumSet</method>
-     !@     <description>Sets the angular momentum of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ angularMomentum\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>semiMajorAxisSet</method>
-     !@     <description>Sets the semi-major axis of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ semiMajorAxis\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>hostMass</method>
-     !@     <description>Returns the host mass of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>velocityScale</method>
-     !@     <description>Returns the velocity scale of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>specificReducedMass</method>
-     !@     <description>Returns the specific reduced mass (i.e. the reduced mass per unit satellite mass, $\mu_\mathrm{s} = M_\mathrm{host}/(M_\mathrm{satellite}+M_\mathrm{host})$) of the orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radius</method>
-     !@     <description>Returns the radius of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>theta</method>
-     !@     <description>Returns the angle $\theta$ of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>phi</method>
-     !@     <description>Returns the angle $\phi$ of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>epsilon</method>
-     !@     <description>Returns the angle $\epsilon$ of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusPericenter</method>
-     !@     <description>Returns the pericenter radius of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusApocenter</method>
-     !@     <description>Returns the apocenter radius of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>velocityRadial</method>
-     !@     <description>Returns the radial velocity of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>velocityTangential</method>
-     !@     <description>Returns the tangential velocity of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>energy</method>
-     !@     <description>Returns the energy of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>eccentricity</method>
-     !@     <description>Returns the eccentricity of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>angularMomentum</method>
-     !@     <description>Returns the angular momentum of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>semiMajorAxis</method>
-     !@     <description>Returns the semi-major axis of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>position</method>
-     !@     <description>Returns the position coordinates.</description>
-     !@     <type>\textcolor{red}{\textless coordinateCartesian}</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>velocity</method>
-     !@     <description>Returns the velocity coordinates.</description>
-     !@     <type>\textcolor{red}{\textless coordinateCartesian}</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>nonStaticSizeOf</method>
-     !@     <description>Returns the size of any non-static components of the type.</description>
-     !@     <type>\textcolor{red}{\textless integer(c\_size\_t) \textgreater}</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Build a Kepler orbit from an XML definition." method="builder" />
+     !#   <method description="Dump an orbit." method="dump" />
+     !#   <method description="Dump an orbit in binary." method="dumpRaw" />
+     !#   <method description="Read an orbit in binary." method="readRaw" />
+     !#   <method description="Resets orbit properties. If the optional {\normalfont \ttfamily keep} argument is provided and listed properties will \emph{not} be reset." method="reset" />
+     !#   <method description="Destroys an orbit." method="destroy" />
+     !#   <method description="Returns true if an orbit is fully defined." method="isDefined" />
+     !#   <method description="Asserts that an orbit is fully defined." method="assertIsDefined" />
+     !#   <method description="Returns true if the orbit is bound." method="isBound" />
+     !#   <method description="Propagates an orbit to a new position." method="propagate" />
+     !#   <method description="Sets the radial velocity of an orbit." method="velocityRadialSet" />
+     !#   <method description="Sets the masses of satellite and host objects." method="massesSet" />
+     !#   <method description="Sets the radius of an orbit." method="radiusSet" />
+     !#   <method description="Sets the angle $\theta$ of an orbit." method="thetaSet" />
+     !#   <method description="Sets the angle $\phi$ of an orbit." method="phiSet" />
+     !#   <method description="Sets the angle $\epsilon$ of an orbit." method="epsilonSet" />
+     !#   <method description="Sets the pericenter radius of an orbit." method="radiusPericenterSet" />
+     !#   <method description="Sets the apocenter radius of an orbit." method="radiusApocenterSet" />
+     !#   <method description="Sets the tangential velocity of an orbit." method="velocityTangentialSet" />
+     !#   <method description="Sets the energy of an orbit." method="energySet" />
+     !#   <method description="Sets the eccentricity of an orbit." method="eccentricitySet" />
+     !#   <method description="Sets the angular momentum of an orbit." method="angularMomentumSet" />
+     !#   <method description="Sets the semi-major axis of an orbit." method="semiMajorAxisSet" />
+     !#   <method description="Returns the host mass of an orbit." method="hostMass" />
+     !#   <method description="Returns the velocity scale of an orbit." method="velocityScale" />
+     !#   <method description="Returns the specific reduced mass (i.e. the reduced mass per unit satellite mass, $\mu_\mathrm{s} = M_\mathrm{host}/(M_\mathrm{satellite}+M_\mathrm{host})$) of the orbit." method="specificReducedMass" />
+     !#   <method description="Returns the radius of an orbit." method="radius" />
+     !#   <method description="Returns the angle $\theta$ of an orbit." method="theta" />
+     !#   <method description="Returns the angle $\phi$ of an orbit." method="phi" />
+     !#   <method description="Returns the angle $\epsilon$ of an orbit." method="epsilon" />
+     !#   <method description="Returns the pericenter radius of an orbit." method="radiusPericenter" />
+     !#   <method description="Returns the apocenter radius of an orbit." method="radiusApocenter" />
+     !#   <method description="Returns the radial velocity of an orbit." method="velocityRadial" />
+     !#   <method description="Returns the tangential velocity of an orbit." method="velocityTangential" />
+     !#   <method description="Returns the energy of an orbit." method="energy" />
+     !#   <method description="Returns the eccentricity of an orbit." method="eccentricity" />
+     !#   <method description="Returns the angular momentum of an orbit." method="angularMomentum" />
+     !#   <method description="Returns the semi-major axis of an orbit." method="semiMajorAxis" />
+     !#   <method description="Returns the position coordinates." method="position" />
+     !#   <method description="Returns the velocity coordinates." method="velocity" />
+     !#   <method description="Returns the size of any non-static components of the type." method="nonStaticSizeOf" />
+     !# </methods>
      procedure :: builder               => Kepler_Orbits_Builder
      procedure :: dump                  => Kepler_Orbits_Dump
      procedure :: dumpRaw               => Kepler_Orbits_Dump_Raw

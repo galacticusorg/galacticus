@@ -28,21 +28,10 @@
      class           (darkMatterParticleClass), pointer :: darkMatterParticle_          => null()
      double precision                                   :: crossSectionSelfInteraction_
    contains
-     !@ <objectMethods>
-     !@   <object>darkMatterParticleSelfInteractingDarkMatter</object>
-     !@   <objectMethod>
-     !@     <method>crossSectionSelfInteraction</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>crossSectionSelfInteractionDifferential</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>double precision, intent(in   ) :: theta</arguments>
-     !@     <description>Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\Omega$, of the dark matter particle in units of cm$^2$ g$^{-1}$ ster$^{-1}$.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$." method="crossSectionSelfInteraction" />
+     !#   <method description="Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\Omega$, of the dark matter particle in units of cm$^2$ g$^{-1}$ ster$^{-1}$." method="crossSectionSelfInteractionDifferential" />
+     !# </methods>
      final     ::                                            selfInteractingDMDestructor
      procedure :: mass                                    => selfInteractingDMMass
      procedure :: crossSectionSelfInteraction             => selfInteractingDMCrossSectionSelfInteraction

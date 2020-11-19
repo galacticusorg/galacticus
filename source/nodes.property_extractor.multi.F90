@@ -36,58 +36,14 @@
      private
      type(multiExtractorList), pointer :: extractors => null()
    contains
-     !@ <objectMethods>
-     !@  <object>nodePropertyExtractorMulti</object>
-     !@  <objectMethod>
-     !@   <method>initialize</method>
-     !@   <description>Initialize the multi property extractor.</description>
-     !@   <type>\void</type>
-     !@   <pass>yes</pass>
-     !@   <arguments></arguments>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>elementCount</method>
-     !@   <description>Return the number of properties in the tuple.</description>
-     !@   <type>\intzero</type>
-     !@   <pass>yes</pass>
-     !@   <arguments>\intzero\ elementType\argin,\doublezero\ time\argin</arguments>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>extractDouble</method>
-     !@   <description>Extract the double properties from the given {\normalfont \ttfamily node}.</description>
-     !@   <type>\doubleone</type>
-     !@   <pass>yes</pass>
-     !@   <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\argin, \doublezero\ time\argin, \textcolor{red}{\textless type(multiCounter)\textgreater} [instance]\argin</arguments>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>extractInteger</method>
-     !@   <description>Extract the integer properties from the given {\normalfont \ttfamily node}.</description>
-     !@   <type>\intone</type>
-     !@   <pass>yes</pass>
-     !@   <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\argin, \doublezero\ time\argin, \textcolor{red}{\textless type(multiCounter)\textgreater} [instance]\argin</arguments>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>names</method>
-     !@   <description>Return the names of the properties extracted.</description>
-     !@   <type>\textcolor{red}{\textless type(varying\_string)\textgreater}(:)</type>
-     !@   <pass>yes</pass>
-     !@   <arguments>\intzero\ elementType\argin,\doublezero\ time\argin</arguments>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>descriptions</method>
-     !@   <description>Return descriptions of the properties extracted.</description>
-     !@   <type>\textcolor{red}{\textless type(varying\_string)\textgreater}(:)</type>
-     !@   <pass>yes</pass>
-     !@   <arguments>\intzero\ elementType\argin,\doublezero\ time\argin</arguments>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>unitsInSI</method>
-     !@   <description>Return the units of the properties extracted in the SI system.</description>
-     !@   <type>\doubleone</type>
-     !@   <pass>yes</pass>
-     !@   <arguments>\intzero\ elementType\argin,\doublezero\ time\argin</arguments>
-     !@  </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the number of properties in the tuple." method="elementCount" pass="yes" />
+     !#   <method description="Extract the double properties from the given {\normalfont \ttfamily node}." method="extractDouble" pass="yes" />
+     !#   <method description="Extract the integer properties from the given {\normalfont \ttfamily node}." method="extractInteger" pass="yes" />
+     !#   <method description="Return the names of the properties extracted." method="names" pass="yes" />
+     !#   <method description="Return descriptions of the properties extracted." method="descriptions" pass="yes" />
+     !#   <method description="Return the units of the properties extracted in the SI system." method="unitsInSI" pass="yes" />
+     !# </methods>
      final     ::                   multiDestructor
      procedure :: elementCount   => multiElementCount
      procedure :: extractDouble  => multiExtractDouble

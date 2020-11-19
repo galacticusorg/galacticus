@@ -37,21 +37,10 @@
           &                                                  enclosingMassRadiusPrevious                               , radialVelocityDispersionTruncateMinimumPrevious, &
           &                                                  radialVelocityDispersionTruncateMinimumUntruncatedPrevious
    contains
-     !@ <objectMethods>
-     !@   <object>darkMatterProfileDMOTruncated</object>
-     !@   <objectMethod>
-     !@     <method>calculationReset</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
-     !@     <description>Reset memoized calculations.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>truncationFunction</method>
-     !@     <type>void</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout, \doublezero\ radius\argin, \doublezero\ [x]\argout, \doublezero\ [multiplier]\argout, \doublezero\ [multiplierGradient]\argout</arguments>
-     !@     <description>Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset memoized calculations." method="calculationReset" />
+     !#   <method description="Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc)." method="truncationFunction" />
+     !# </methods>
      final     ::                                      truncatedDestructor
      procedure :: autoHook                          => truncatedAutoHook
      procedure :: calculationReset                  => truncatedCalculationReset

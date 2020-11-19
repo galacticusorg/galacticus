@@ -65,27 +65,11 @@
      !$ integer      (omp_lock_kind                   )          :: densityContrastTableLock
      integer                                                     :: densityContrastTableRemakeCount
    contains
-     !@ <objectMethods>
-     !@   <object>virialDensityContrastPercolation</object>
-     !@   <objectMethod>
-     !@     <method>tabulate</method>
-     !@     <description>Tabulate the virial density contrast as a function of mass and time.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ mass\argin, \doublezero\ time\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>restoreTable</method>
-     !@     <type>void</type>
-     !@     <arguments></arguments>
-     !@     <description>Restore a tabulated solution from file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>storeTable</method>
-     !@     <type>void</type>
-     !@     <arguments></arguments>
-     !@     <description>Store a tabulated solution to file.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulate the virial density contrast as a function of mass and time." method="tabulate" />
+     !#   <method description="Restore a tabulated solution from file." method="restoreTable" />
+     !#   <method description="Store a tabulated solution to file." method="storeTable" />
+     !# </methods>
      final     ::                                percolationDestructor
      procedure :: densityContrast             => percolationDensityContrast
      procedure :: densityContrastRateOfChange => percolationDensityContrastRateOfChange

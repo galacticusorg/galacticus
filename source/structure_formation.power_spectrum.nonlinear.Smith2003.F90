@@ -44,15 +44,9 @@
           &                                                 f1                                , f2                     , &
           &                                                 f3
    contains
-     !@ <objectMethods>
-     !@   <object>powerSpectrumNonlinearSmith2003</object>
-     !@   <objectMethod>
-     !@     <method>coefficients</method>
-     !@     <description>Compute the fitting function coefficients at the given time.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute the fitting function coefficients at the given time." method="coefficients" />
+     !# </methods>
      final     ::                 smith2003Destructor
      procedure :: value        => smith2003Value
      procedure :: coefficients => smith2003Coefficients

@@ -68,51 +68,15 @@
      class           (randomNumberGeneratorClass                  ), pointer                   :: randomNumberGenerator_                   => null()
      type            (varying_string                              )                            :: logFileRoot                                       , interactionRoot
    contains
-     !@ <objectMethods>
-     !@   <object>posteriorSampleSimulationDifferentialEvolution</object>
-     !@   <objectMethod>
-     !@     <method>logging</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return true if the simulator is currently logging state.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>posterior</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless class(posteriorSampleStateClass)\textgreater} posteriorSampleState_\argin</arguments>
-     !@     <description>Return the log of posterior probability for the given {\normalfont \ttfamily posteriorSampleState}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>update</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ stateVector\argin</arguments>
-     !@     <description>Update the simulator to the new {\normalfont \ttfamily stateVector} after a step.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>temperature</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the current temperature.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>acceptProposal</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\doublezero\ logPosterior\argin, \doublezero\ logPosteriorProposed\argin</arguments>
-     !@     <description>Return true if the proposed state should be accepted.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>stepSize</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the step size parameter, $\gamma$, for the differential evolution proposal vector.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>chainSelect</method>
-     !@     <type>\intzero</type>
-     !@     <arguments>\intone\ [blockedChains]\argin</arguments>
-     !@     <description>Select a chain.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return true if the simulator is currently logging state." method="logging" />
+     !#   <method description="Return the log of posterior probability for the given {\normalfont \ttfamily posteriorSampleState}." method="posterior" />
+     !#   <method description="Update the simulator to the new {\normalfont \ttfamily stateVector} after a step." method="update" />
+     !#   <method description="Return the current temperature." method="temperature" />
+     !#   <method description="Return true if the proposed state should be accepted." method="acceptProposal" />
+     !#   <method description="Return the step size parameter, $\gamma$, for the differential evolution proposal vector." method="stepSize" />
+     !#   <method description="Select a chain." method="chainSelect" />
+     !# </methods>
      final     ::                   differentialEvolutionDestructor
      procedure :: simulate       => differentialEvolutionSimulate
      procedure :: logging        => differentialEvolutionLogging

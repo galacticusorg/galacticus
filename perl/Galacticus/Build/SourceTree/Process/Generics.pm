@@ -11,6 +11,7 @@ use LaTeX::Encode;
 use Storable qw(dclone);
 use Scalar::Util qw(reftype);
 use List::ExtraUtils;
+use Galacticus::Build::SourceTree::Parse::Declarations;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'generics'} = \&Process_Generics;
@@ -48,8 +49,8 @@ sub Process_Generics {
 			    my $copyNode  = $copy;
 			    my $copyDepth = -1;			    
 			    while ( $copyNode ) {
-				# Replace generic tags in opener and closer.
-				foreach my $element ( 'opener', 'closer' ) {
+				# Replace generic tags in opener, closer, and name.
+				foreach my $element ( 'opener', 'closer', 'name' ) {
 				    if ( exists($copyNode->{$element}) ) {
 					$copyNode->{$element} = &ReplaceGeneric($copyNode->{$element},$node->{'directive'}->{'identifier'},$instance,$_)
 					    foreach ( keys(%{$instance}) );
@@ -66,6 +67,15 @@ sub Process_Generics {
 				    }
 				    close($code);				    
 				    $copyNode->{'content'} = $newCode;
+				    # Check if the code is part of a variable declaration.
+				    if ( $copyNode->{'parent'}->{'type'} eq "declaration" ) {
+					my $nodeCopy = dclone($copyNode);
+					my $treeTmp  = {type => "null", firstChild => $nodeCopy, sibling => undef(), parent => undef()};
+					$nodeCopy->{'parent'} = $treeTmp;
+					&Galacticus::Build::SourceTree::Parse::Declarations::Parse_Declarations($treeTmp);
+					&Galacticus::Build::SourceTree::ReplaceNode($copyNode->{'parent'},[$treeTmp->{'firstChild'}]);
+					$copyNode = $treeTmp->{'firstChild'};
+				    }
 				}
 				# Move to the next node in the copied tree.
 				$copyNode = &Galacticus::Build::SourceTree::Walk_Tree($copyNode,\$copyDepth);
@@ -112,6 +122,14 @@ sub Process_Generics {
 			    }
 			    close($code);
 			    $subTreeNode->{'node'}->{'content'} = $newCode;
+			    # Check if the code is part of a variable declaration.
+			    if ( $subTreeNode->{'node'}->{'parent'}->{'type'} eq "declaration" ) {
+				my $nodeCopy = dclone($subTreeNode->{'node'});
+				my $treeTmp  = {type => "null", firstChild => $nodeCopy, sibling => undef(), parent => undef()};
+				$nodeCopy->{'parent'} = $treeTmp;
+				&Galacticus::Build::SourceTree::Parse::Declarations::Parse_Declarations($treeTmp);
+				&Galacticus::Build::SourceTree::ReplaceNode($subTreeNode->{'node'}->{'parent'},[$treeTmp->{'firstChild'}]);
+			    }
 			}
 		    }
 		}

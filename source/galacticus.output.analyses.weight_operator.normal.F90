@@ -33,15 +33,9 @@
      double precision                                                :: rangeLower                               , rangeUpper, &
           &                                                             rootVariance_
    contains
-     !@ <objectMethods>
-     !@   <object>outputAnalysisWeightOperatorNormal</object>
-     !@   <objectMethod>
-     !@     <method>rootVariance</method>
-     !@     <description>Return the root-variance to use in the weight operator.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout, \doublezero\ propertyValue\argin, \doublezero\ propertyValueIntrinsic\argin, \intzero\ propertyType\argin, \intzero\ propertyQuantity\argin, \textcolor{red}{\textless integer(c\_size\_t)\textgreater} outputIndex\argin</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the root-variance to use in the weight operator." method="rootVariance" />
+     !# </methods>
      final     ::                 normalDestructor
      procedure :: operate      => normalOperate
      procedure :: rootVariance => normalRootVariance

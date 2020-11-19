@@ -55,15 +55,9 @@
      double precision                                    :: cutOffNormalization           , radiiRatio
      type            (varying_string          )          :: normalization
    contains
-     !@ <objectMethods>
-     !@   <object>powerSpectrumWindowFunctionTopHatSharpKHybrid</object>
-     !@   <objectMethod>
-     !@     <method>radii</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ smoothingMass\argin,\doublezero\ radiusTopHat\argin,\doublezero\ radiusKSpaceSharp\argin</arguments>
-     !@     <description>Set the radii of the components of the window function.</description>
-     !@   </objectMethod>
-     !@  </objectMethods>
+     !# <methods>
+     !#   <method description="Set the radii of the components of the window function." method="radii" />
+     !# </methods>
      final     ::                      topHatSharpKHybridDestructor
      procedure :: value             => topHatSharpKHybridValue
      procedure :: wavenumberMaximum => topHatSharpKHybridWavenumberMaximum

@@ -36,15 +36,9 @@
      type            (interpolator             ), allocatable :: decelerationFactor
      double precision                                         :: rateScatteringNormalization          , xMaximum
    contains
-     !@ <objectMethods>
-     !@   <object>satelliteDecelerationSIDMKummer2018</object>
-     !@   <objectMethod>
-     !@     <method>tabulate</method>
-     !@     <arguments>\doublezero\ xMaximum\argin</arguments>
-     !@     <type>\void</type>
-     !@     <description>Tabulate the deceleration factor.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulate the deceleration factor." method="tabulate" />
+     !# </methods>
      final     ::                 kummer2018Destructor
      procedure :: acceleration => kummer2018Acceleration
      procedure :: tabulate     => kummer2018Tabulate

@@ -54,27 +54,11 @@
      double precision                                   , allocatable, dimension(:  ) :: massWeight
      double precision                                   , allocatable, dimension(:,:) :: distributionTable
    contains
-     !@ <objectMethods>
-     !@   <object>haloSpinDistributionNbodyErrors</object>
-     !@   <objectMethod>
-     !@     <method>distributionAveraged</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} node\arginout, \doublezero\ massLimit\argin</arguments>
-     !@     <description>Return the spin distribution function averaged over all halos above the given {\normalfont \ttfamily massLimit}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>distributionFixedPoint</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} node\arginout, \doublezero\ spinMeasured\argin</arguments>
-     !@     <description>Return the spin distribution function at a fixed point in intrinsic mass and spin.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>tabulate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ [massRequired]\argin, \doublezero\ [spinRequired]\argin</arguments>
-     !@     <description>Tabulate the spin distribution as a fuction of spin and halo mass. Ensure that the table spans the {\normalfont \ttfamily massRequired} and {\normalfont \ttfamily spinRequireed} if provided.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the spin distribution function averaged over all halos above the given {\normalfont \ttfamily massLimit}." method="distributionAveraged" />
+     !#   <method description="Return the spin distribution function at a fixed point in intrinsic mass and spin." method="distributionFixedPoint" />
+     !#   <method description="Tabulate the spin distribution as a fuction of spin and halo mass. Ensure that the table spans the {\normalfont \ttfamily massRequired} and {\normalfont \ttfamily spinRequireed} if provided." method="tabulate" />
+     !# </methods>
      final     ::                           nbodyErrorsDestructor
      procedure :: sample                 => nbodyErrorsSample
      procedure :: distribution           => nbodyErrorsDistribution

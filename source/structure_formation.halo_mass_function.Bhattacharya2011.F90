@@ -32,33 +32,12 @@
      double precision                                         :: aValue                             , pValue, &
           &                                                      normalizationValue                 , qValue
    contains
-     !@ <objectMethods>
-     !@   <object>haloMassFunctionBhattacharya2011</object>
-     !@   <objectMethod>
-     !@     <method>a</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $\bar{a}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>p</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $\bar{p}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>q</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $\bar{q}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>normalization</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $\bar{A}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the parameter $\bar{a}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="a" />
+     !#   <method description="Return the parameter $\bar{p}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="p" />
+     !#   <method description="Return the parameter $\bar{q}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="q" />
+     !#   <method description="Return the parameter $\bar{A}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="normalization" />
+     !# </methods>
      final     ::                  bhattacharya2011Destructor
      procedure :: differential  => bhattacharya2011Differential
      procedure :: a             => bhattacharya2011A

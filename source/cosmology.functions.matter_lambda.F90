@@ -63,21 +63,10 @@
           &                                                                   distanceTableLuminosityDistanceKCorrectedNegated
      logical                                                               :: enableRangeChecks
    contains
-     !@ <objectMethods>
-     !@   <object>cosmologyFunctionsMatterLambda</object>
-     !@   <objectMethod>
-     !@     <method>distanceTabulate</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <description>Tabulate comoving distance as a function of cosmic time.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>expansionFactorTabulate</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <description>Tabulate expansion factor as a function of cosmic time.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulate comoving distance as a function of cosmic time." method="distanceTabulate" />
+     !#   <method description="Tabulate expansion factor as a function of cosmic time." method="expansionFactorTabulate" />
+     !# </methods>
      final     ::                                  matterLambdaDestructor
      procedure :: epochValidate                 => matterLambdaEpochValidate
      procedure :: cosmicTime                    => matterLambdaCosmicTime

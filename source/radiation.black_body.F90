@@ -27,15 +27,9 @@
      private
      double precision :: temperature_
    contains
-     !@ <objectMethods>
-     !@  <object>radiationFieldBlackBody</object>
-     !@  <objectMethod>
-     !@   <method>temperature</method>
-     !@   <type>\doublezero</type>
-     !@   <arguments></arguments>
-     !@   <description>Return the temperature of te black-body radiation field.</description>
-     !@  </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the temperature of te black-body radiation field." method="temperature" />
+     !# </methods>
      procedure :: flux        => blackBodyFlux
      procedure :: temperature => blackBodyTemperature
   end type radiationFieldBlackBody

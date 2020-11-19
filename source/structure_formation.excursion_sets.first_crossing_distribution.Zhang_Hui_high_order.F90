@@ -111,15 +111,9 @@
      private
      double precision :: timeMinimumPrevious, timeMaximumPrevious
    contains
-     !@ <objectMethods>
-     !@   <object>excursionSetFirstCrossingZhangHuiHighOrder</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Initialize the high order \cite{zhang_random_2006} class.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Initialize the high order \cite{zhang_random_2006} class." method="initialize" />
+     !# </methods>
      procedure :: initialize  => zhangHuiHighOrderInitialize
      procedure :: probability => zhangHuiHighOrderProbability
   end type excursionSetFirstCrossingZhangHuiHighOrder

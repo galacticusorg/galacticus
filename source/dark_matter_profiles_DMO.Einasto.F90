@@ -96,75 +96,19 @@
      type            (interpolator), allocatable                   :: fourierProfileTableAlphaInterpolator          , fourierProfileTableConcentrationInterpolator   , &
           &                                                           fourierProfileTableWavenumberInterpolator
    contains
-     !@ <objectMethods>
-     !@   <object>darkMatterProfileDMOEinasto</object>
-     !@   <objectMethod>
-     !@     <method>densityScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin, \doublezero\ alpha\argin</arguments>
-     !@     <description>Returns the density (in units such that the virial mass and scale length are unity) in an Einasto dark matter profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>enclosedMassScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin, \doublezero\ alpha\argin</arguments>
-     !@     <description>Returns the enclosed mass (in units of the virial mass) in an Einasto dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radialVelocityDispersionScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin, \doublezero\ alpha\argin</arguments>
-     !@     <description>Returns the scale-free radial velocity dispersion in an Einasto dark matter profile.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radialVelocityDispersionTabulate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ radius\argin, \doublezero\ alphaRequired\argin</arguments>
-     !@     <description>Tabulates the radial velocity dispersion vs. radius for Einasto halos.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>energyTableMake</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ concentrationRequired\argin, \doublezero\ alphaRequired\argin</arguments>
-     !@     <description>Create a tabulation of the energy of Einasto profiles as a function of their concentration of $\alpha$ parameter.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>fourierProfileTableMake</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ wavenumberRequired\argin, \doublezero\ concentrationRequired\argin, \doublezero\ alphaRequired\argin</arguments>
-     !@     <description>Create a tabulation of the Fourier transform of Einasto profiles as a function of their $\alpha$ parameter and dimensionless wavenumber.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>freefallTabulate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ freefallTimeScaleFree\argin, \doublezero\ alphaRequired\argin</arguments>
-     !@     <description>Tabulates the freefall time vs. freefall radius for Einasto halos.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>freefallTimeScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin, \doublezero\ alpha\argin</arguments>
-     !@     <description>Compute the freefall time in a scale-free Einasto halo.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>potentialScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin, \doublezero\ alpha\argin</arguments>
-     !@     <description>Returns the gravitational potential (in units where the virial mass and scale radius are unity) in an Einasto dark matter profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusFromSpecificAngularMomentumScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ alpha\argin, \doublezero\ specificAngularMomentumScaleFree\argin</arguments>
-     !@     <description> Comptue the radius at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentumScaleFree} in a scale free Einasto profile.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusFromSpecificAngularMomentumTableMake</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ alphaRequired\argin, \doublezero\ specificAngularMomentumRequired\argin</arguments>
-     !@     <description>Create a tabulation of the relation between specific angular momentum and radius in an Einasto profile.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Returns the density (in units such that the virial mass and scale length are unity) in an Einasto dark matter profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="densityScaleFree" />
+     !#   <method description="Returns the enclosed mass (in units of the virial mass) in an Einasto dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="enclosedMassScaleFree" />
+     !#   <method description="Returns the scale-free radial velocity dispersion in an Einasto dark matter profile." method="radialVelocityDispersionScaleFree" />
+     !#   <method description="Tabulates the radial velocity dispersion vs. radius for Einasto halos." method="radialVelocityDispersionTabulate" />
+     !#   <method description="Create a tabulation of the energy of Einasto profiles as a function of their concentration of $\alpha$ parameter." method="energyTableMake" />
+     !#   <method description="Create a tabulation of the Fourier transform of Einasto profiles as a function of their $\alpha$ parameter and dimensionless wavenumber." method="fourierProfileTableMake" />
+     !#   <method description="Tabulates the freefall time vs. freefall radius for Einasto halos." method="freefallTabulate" />
+     !#   <method description="Compute the freefall time in a scale-free Einasto halo." method="freefallTimeScaleFree" />
+     !#   <method description="Returns the gravitational potential (in units where the virial mass and scale radius are unity) in an Einasto dark matter profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="potentialScaleFree" />
+     !#   <method description=" Comptue the radius at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentumScaleFree} in a scale free Einasto profile." method="radiusFromSpecificAngularMomentumScaleFree" />
+     !#   <method description="Create a tabulation of the relation between specific angular momentum and radius in an Einasto profile." method="radiusFromSpecificAngularMomentumTableMake" />
+     !# </methods>
      final     ::                                               einastoDestructor
      procedure :: density                                    => einastoDensity
      procedure :: densityLogSlope                            => einastoDensityLogSlope

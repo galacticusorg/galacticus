@@ -57,191 +57,45 @@ module Stellar_Luminosities_Structure
      private
      double precision, allocatable, dimension(:) :: luminosityValue
    contains
-     !@ <objectMethods>
-     !@   <object>stellarLuminosities</object>
-     !@   <objectMethod>
-     !@     <method>multiply</method>
-     !@     <type>\textcolor{red}{\textless type(stellarLuminosities)\textgreater}</type>
-     !@     <arguments>\doublezero\ multiplier\argin</arguments>
-     !@     <description>Multiply stellar luminosities by a scalar.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>divide</method>
-     !@     <type>\textcolor{red}{\textless type(stellarLuminosities)\textgreater}</type>
-     !@     <arguments>\doublezero\ divisor\argin</arguments>
-     !@     <description>Divide stellar luminosities by a scalar.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>add</method>
-     !@     <type>\textcolor{red}{\textless type(stellarLuminosities)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless type(stellarLuminosities)\textgreater} stellarLuminosities2\argin</arguments>
-     !@     <description>Add two stellarLuminosities.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>subtract</method>
-     !@     <type>\textcolor{red}{\textless type(stellarLuminosities)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless type(stellarLuminosities)\textgreater} stellarLuminosities2\argin</arguments>
-     !@     <description>Subtract one abundance from another.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>increment</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(stellarLuminosities)\textgreater} addStellarLuminosities\argin</arguments>
-     !@     <description>Increment a stellar luminosities object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>serializeCount</method>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return a count of the number of properties in a serialized stellar luminosities object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>serialize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ array\argout</arguments>
-     !@     <description>Serialize a stellar luminosities object to an array.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>deserialize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ array\argin</arguments>
-     !@     <description>Deserialize a stellar luminosities object from an array.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isZero</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return true if a stellar luminosities object is zero.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>destroy</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Destroy a stellar luminosities object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>reset</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Reset a stellar luminosities object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>builder</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless *type(node)\textgreater} stellarLuminositiesDefinition\argin</arguments>
-     !@     <description>Build a stellar luminosities object from a provided XML description.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>dump</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Dump a stellar luminosities object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <type>\void</type>
-     !@     <method>dumpRaw</method>
-     !@     <arguments>\intzero\ fileHandle\argin</arguments>
-     !@     <description>Dump a stellar luminosities object to binary.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>readRaw</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ fileHandle\argin</arguments>
-     !@     <description>Read a stellar luminosities object from binary.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setToUnity</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Set a stellar luminosities object to unity.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>luminosity</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\intzero\ index\argin</arguments>
-     !@     <description>Return the $i^\mathrm{th}$ luminosity.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>output</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ integerProperty\arginout, \intzero\ integerBufferCount\arginout, \inttwo\ integerBuffer\arginout, \intzero doubleProperty\arginout, \intzero\ doubleBufferCount\arginout, \doubletwo\ doubleBuffer\arginout, \doublezero\ time\argin, \intzero\ instance\argin</arguments>
-     !@     <description>Store a stellar luminosities object in the output buffers.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>postOutput</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <description>Store a stellar luminosities object in the output buffers.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>luminosityOutputCount</method>
-     !@     <type>\intzero</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <description>Return the number of luminosities to be output at the given time.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>outputCount</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ integerPropertyCount\arginout, \intzero\ doublePropertyCount\arginout, \doublezero\ time\argin, \intzero\ instance\argin</arguments>
-     !@     <description>Specify the count of a stellar luminosities object for output.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>outputNames</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ integerProperty\arginout, \textcolor{red}{\textless char[*](:)\textgreater} integerPropertyNames\arginout, \textcolor{red}{\textless char[*](:)\textgreater} integerPropertyComments\arginout, \doubleone\ integerPropertyUnitsSI\arginout, \intzero\ doubleProperty\arginout, \textcolor{red}{\textless char[*](:)\textgreater} doublePropertyNames\arginout, \textcolor{red}{\textless char[*](:)\textgreater} doublePropertyComments\arginout, \doubleone\ doublePropertyUnitsSI\arginout, \doublezero\ time\argin, \intzero\ instance\argin</arguments>
-     !@     <description>Specify the names of stellar luminosities object properties for output.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>luminosityCount</method>
-     !@     <type>\intzero</type>
-     !@     <arguments>\logicalzero\ [unmapped]</arguments>
-     !@     <description>Return the total number of luminosities tracked. If {\normalfont \ttfamily unmapped} is true, then the number of luminosities prior to mapping is returned.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setLuminosities</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ mass\argin,\textcolor{red}{\textless class(stellarPopulationClass)} stellarPopulation\_\arginout,\doublezero currentTime\argin,\textcolor{red}{\textless type(abundances)\textgreater} fuelAbundances\argin</arguments>
-     !@     <description>Set the luminosities using a single stellar population.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isOutput</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\intzero\ index\argin, \doublezero\ time\argin</arguments>
-     !@     <description>Return true if the indexed luminosity is to be output at the given time.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>index</method>
-     !@     <type>\intzero</type>
-     !@     <arguments>\textcolor{red}{\textless type(varying\_string)\textgreater} name\argin</arguments>
-     !@     <description>Return the index to a luminosity specified by name.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>name</method>
-     !@     <type>\textcolor{red}{\textless type(varying\_string)\textgreater}</type>
-     !@     <arguments>\intzero\ index\argin</arguments>
-     !@     <description>Return the name of a luminosity specified by index.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>truncate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(stellarLuminosities)\textgreater} templateLuminosities\argin</arguments>
-     !@     <description>Truncate the number of stellar luminosities stored to match that in the given {\normalfont \ttfamily templateLuminosities}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>nonStaticSizeOf</method>
-     !@     <description>Returns the size of any non-static components of the type.</description>
-     !@     <type>\textcolor{red}{\textless integer(c\_size\_t) \textgreater}</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
-     procedure         :: add                   => Stellar_Luminosities_Add
-     procedure         :: subtract              => Stellar_Luminosities_Subtract
-     procedure         :: multiply              => Stellar_Luminosities_Multiply
-     procedure         :: divide                => Stellar_Luminosities_Divide
-     generic           :: operator(+)           => add
-     generic           :: operator(-)           => subtract
-     generic           :: operator(*)           => multiply
-     generic           :: operator(/)           => divide
+     !# <methods>
+     !#   <method description="Multiply stellar luminosities by a scalar." method="operator(*)" />
+     !#   <method description="Divide stellar luminosities by a scalar." method="operator(/)" />
+     !#   <method description="Add two stellarLuminosities." method="operator(+)" />
+     !#   <method description="Subtract one abundance from another." method="operator(-)" />
+     !#   <method description="Increment a stellar luminosities object." method="increment" />
+     !#   <method description="Return a count of the number of properties in a serialized stellar luminosities object." method="serializeCount" />
+     !#   <method description="Serialize a stellar luminosities object to an array." method="serialize" />
+     !#   <method description="Deserialize a stellar luminosities object from an array." method="deserialize" />
+     !#   <method description="Return true if a stellar luminosities object is zero." method="isZero" />
+     !#   <method description="Destroy a stellar luminosities object." method="destroy" />
+     !#   <method description="Reset a stellar luminosities object." method="reset" />
+     !#   <method description="Build a stellar luminosities object from a provided XML description." method="builder" />
+     !#   <method description="Dump a stellar luminosities object." method="dump" />
+     !#   <method description="Dump a stellar luminosities object to binary." method="dumpRaw" />
+     !#   <method description="Read a stellar luminosities object from binary." method="readRaw" />
+     !#   <method description="Set a stellar luminosities object to unity." method="setToUnity" />
+     !#   <method description="Return the $i^\mathrm{th}$ luminosity." method="luminosity" />
+     !#   <method description="Store a stellar luminosities object in the output buffers." method="output" />
+     !#   <method description="Store a stellar luminosities object in the output buffers." method="postOutput" />
+     !#   <method description="Return the number of luminosities to be output at the given time." method="luminosityOutputCount" />
+     !#   <method description="Specify the count of a stellar luminosities object for output." method="outputCount" />
+     !#   <method description="Specify the names of stellar luminosities object properties for output." method="outputNames" />
+     !#   <method description="Return the total number of luminosities tracked. If {\normalfont \ttfamily unmapped} is true, then the number of luminosities prior to mapping is returned." method="luminosityCount" />
+     !#   <method description="Set the luminosities using a single stellar population." method="setLuminosities" />
+     !#   <method description="Return true if the indexed luminosity is to be output at the given time." method="isOutput" />
+     !#   <method description="Return the index to a luminosity specified by name or properties." method="index" />
+     !#   <method description="Return the name of a luminosity specified by index." method="name" />
+     !#   <method description="Truncate the number of stellar luminosities stored to match that in the given {\normalfont \ttfamily templateLuminosities}." method="truncate" />
+     !#   <method description="Returns the size of any non-static components of the type." method="nonStaticSizeOf" />
+     !# </methods>
+     procedure         ::                          Stellar_Luminosities_Add
+     procedure         ::                          Stellar_Luminosities_Subtract
+     procedure         ::                          Stellar_Luminosities_Multiply
+     procedure         ::                          Stellar_Luminosities_Divide
+     generic           :: operator(+)           => Stellar_Luminosities_Add
+     generic           :: operator(-)           => Stellar_Luminosities_Subtract
+     generic           :: operator(*)           => Stellar_Luminosities_Multiply
+     generic           :: operator(/)           => Stellar_Luminosities_Divide
      procedure         :: nonStaticSizeOf       => Stellar_Luminosities_Non_Static_Size_Of
      procedure         :: isZero                => Stellar_Luminosities_Is_Zero
      procedure         :: destroy               => Stellar_Luminosities_Destroy

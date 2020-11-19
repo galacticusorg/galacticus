@@ -52,21 +52,10 @@
      double precision                , allocatable, dimension(:) :: correctedHatR
      logical                         , allocatable, dimension(:) :: chainMask
    contains
-     !@ <objectMethods>
-     !@   <object>posteriorSampleConvergenceGelmanRubin</object>
-     !@   <objectMethod>
-     !@     <method>convergenceMeasure</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the current convergence measure, $\hat{R}$.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>convergenceMeasureTarget</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the target convergence measure, $\hat{R}$.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the current convergence measure, $\hat{R}$." method="convergenceMeasure" />
+     !#   <method description="Return the target convergence measure, $\hat{R}$." method="convergenceMeasureTarget" />
+     !# </methods>
      final     ::                             gelmanRubinDestructor
      procedure :: isConverged              => gelmanRubinIsConverged
      procedure :: convergedAtStep          => gelmanRubinConvergedAtStep

@@ -46,15 +46,9 @@
      private
      double precision :: temperatureScale
    contains
-     !@ <objectMethods>
-     !@   <object>posteriorSampleSimulationStochasticDffrntlEvltn</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ temperatureLevelCount\argin, \doublezero\ temperatureMaximum</arguments>
-     !@     <description>Initialize the object.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Initialize the object." method="initialize" />
+     !# </methods>
      procedure :: acceptProposal => stochasticDifferentialEvolutionAcceptProposal
      procedure :: initialize     => stochasticDifferentialEvolutionInitialize
   end type posteriorSampleSimulationStochasticDffrntlEvltn

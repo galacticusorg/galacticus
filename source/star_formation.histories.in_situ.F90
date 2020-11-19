@@ -32,20 +32,14 @@
   !# </starFormationHistory>
   type, extends(starFormationHistoryClass) :: starFormationHistoryInSitu
      !% A star formation histories class which records \emph{in situ} star formation.
-     !@ <objectMethods>
-     !@   <object>starFormationHistoryInSitu</object>
-     !@   <objectMethod>
-     !@     <method>make</method>
-     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} historyStarFormation\arginout, \doublezero\ timeBegin\argin, \doublezero\ timeEnd\argin, \doubleone\ [timesCurrent]</arguments>
-     !@     <type>\void</type>
-     !@     <description>Make the star formation history.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
-    private
+     private
      class           (outputTimesClass), pointer :: outputTimes_ => null()
      double precision                            :: timeStep              , timeStepFine, &
           &                                         timeFine
    contains
+     !# <methods>
+     !#   <method description="Make the star formation history." method="make" />
+     !# </methods>
      final     ::             inSituDestructor
      procedure :: create   => inSituCreate
      procedure :: rate     => inSituRate

@@ -34,15 +34,9 @@
      integer         , allocatable, dimension(:) :: accepted
      integer                                     :: acceptedStateCount
    contains
-     !@ <objectMethods>
-     !@   <object>posteriorSampleStateSimple</object>
-     !@   <objectMethod>
-     !@     <method>countSet</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ stateCount\argin</arguments>
-     !@     <description>Set the state count.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the state count." method="countSet" />
+     !# </methods>
      procedure :: parameterCountSet => simpleParameterCountSet
      procedure :: get               => simpleGet
      procedure :: update            => simpleUpdate

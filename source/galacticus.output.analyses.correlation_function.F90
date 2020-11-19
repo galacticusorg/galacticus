@@ -98,21 +98,10 @@
      double precision                                         , allocatable, dimension(:,:  ) :: probabilitySatellite
      integer                                                                                  :: countSatellites
    contains
-     !@ <objectMethods>
-     !@   <object>outputAnalysisCorrelationFunction</object>
-     !@   <objectMethod>
-     !@     <method>accumulateNode</method>
-     !@     <arguments>\doublezero\ mass\argin, \intzero\ massType\argin, \intzero\ indexOutput\argin, \textcolor{red}{\textless type(treeNode)\textgreater} node\arginout</arguments>
-     !@     <type>\void</type>
-     !@     <description>Accumulate a node to the correlation function.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>accumulateHalo</method>
-     !@     <arguments>\intzero\ indexOutput\argin, \textcolor{red}{\textless type(treeNode)\textgreater} node\arginout</arguments>
-     !@     <type>\void</type>
-     !@     <description>Accumulate a halo to the correlation function.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Accumulate a node to the correlation function." method="accumulateNode" />
+     !#   <method description="Accumulate a halo to the correlation function." method="accumulateHalo" />
+     !# </methods>
      final     ::                   correlationFunctionDestructor
      procedure :: analyze        => correlationFunctionAnalyze
      procedure :: finalize       => correlationFunctionFinalize

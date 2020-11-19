@@ -29,15 +29,9 @@
      !% A random error output distribution operator class.
      private
    contains
-     !@ <objectMethods>
-     !@   <object>outputAnalysisDistributionOperatorRandomError</object>
-     !@   <objectMethod>
-     !@     <method>rootVariance</method>
-     !@     <arguments>\doublezero\ propertyValue\argin,\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout</arguments>
-     !@     <type>\doublezero</type>
-     !@     <description>Return the root-variance to apply to the distribution.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the root-variance to apply to the distribution." method="rootVariance" />
+     !# </methods>
      procedure                                           :: operateScalar       => randomErrorOperateScalar
      procedure                                           :: operateDistribution => randomErrorOperateDistribution
      procedure(randomErrorOperateRootVariance), deferred :: rootVariance

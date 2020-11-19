@@ -30,15 +30,9 @@
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      double precision                                   :: time
    contains
-     !@ <objectMethods>
-     !@  <object>radiationFieldCosmicMicrowaveBackground</object>
-     !@  <objectMethod>
-     !@   <method>timeSet</method>
-     !@   <type>\void</type>
-     !@   <arguments>\doublezero\ time\argin</arguments>
-     !@   <description>Set the time for the radiation field.</description>
-     !@  </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the time for the radiation field." method="timeSet" />
+     !# </methods>
      final     ::            cosmicMicrowaveBackgroundDestructor
      procedure :: timeSet => cosmicMicrowaveBackgroundTimeSet
   end type radiationFieldCosmicMicrowaveBackground

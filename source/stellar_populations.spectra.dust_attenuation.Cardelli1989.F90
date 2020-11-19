@@ -27,21 +27,10 @@
      private
      double precision :: Rv
    contains
-     !@ <objectMethods>
-     !@   <object>stellarSpectraDustAttenuationCardelli1989</object>
-     !@   <objectMethod>
-     !@     <method>a</method>
-     !@     <description>Return fitting function $a(x)$ for the dust attenuation model of \cite{cardelli_relationship_1989}.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ x\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>b</method>
-     !@     <description>Return fitting function $b(x)$ for the dust attenuation model of \cite{cardelli_relationship_1989}.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ x\argin</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return fitting function $a(x)$ for the dust attenuation model of \cite{cardelli_relationship_1989}." method="a" />
+     !#   <method description="Return fitting function $b(x)$ for the dust attenuation model of \cite{cardelli_relationship_1989}." method="b" />
+     !# </methods>
      procedure :: attenuation => cardelli1989Attenuation
      procedure :: a           => cardelli1989A
      procedure :: b           => cardelli1989B

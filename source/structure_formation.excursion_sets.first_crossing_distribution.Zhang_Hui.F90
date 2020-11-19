@@ -50,33 +50,12 @@
      double precision                                                        :: barrierIntegrand                       , barrierGradientIntegrand       , &
           &                                                                     timeIntegrand                          , varianceIntegrand
    contains
-     !@ <objectMethods>
-     !@   <object>excursionSetFirstCrossingZhangHui</object>
-     !@   <objectMethod>
-     !@     <method>g1</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ variance\argin, \doublezero\ time\argin</arguments>
-     !@     <description>Returns the function $g_1(S)$ \citep{zhang_random_2006}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>g2</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ variance\argin, \doublezero\ variancePrimed\argin, \doublezero\ time\argin</arguments>
-     !@     <description>Returns the function $g_2(S,S^\prime)$ \citep{zhang_random_2006}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>g2Integrated</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ variance\argin, \doublezero\ deltaVariance\argin, \doublezero\ time\argin</arguments>
-     !@     <description>Returns the function $g_2(S,S^\prime)$ integrated over a range $\Delta S$ \citep{zhang_random_2006}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>delta</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\intzero\ i\argin, \intzero\ j\argin,\doublezero\ iVariance\argin, \doublezero\ jVariance\argin, \doublezero\ deltaVariance\argin, \doublezero\ time\argin</arguments>
-     !@     <description>Returns the function $g_2(S,S^\prime)$ integrated over a range $\Delta S$ \citep{zhang_random_2006}.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Returns the function $g_1(S)$ \citep{zhang_random_2006}." method="g1" />
+     !#   <method description="Returns the function $g_2(S,S^\prime)$ \citep{zhang_random_2006}." method="g2" />
+     !#   <method description="Returns the function $g_2(S,S^\prime)$ integrated over a range $\Delta S$ \citep{zhang_random_2006}." method="g2Integrated" />
+     !#   <method description="Returns the function $g_2(S,S^\prime)$ integrated over a range $\Delta S$ \citep{zhang_random_2006}." method="delta" />
+     !# </methods>
      final     ::                    zhangHuiDestructor
      procedure :: probability     => zhangHuiProbability
      procedure :: rate            => zhangHuiRate

@@ -82,21 +82,10 @@
      type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                 => null()
      integer                                                            :: countChemicals
    contains
-     !@ <objectMethods>
-     !@   <object>accretionHaloSimple</object>
-     !@   <objectMethod>
-     !@     <method>failedFraction</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
-     !@     <description>Returns the fraction of potential accretion onto a halo from the \gls{igm} which fails.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>velocityScale</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
-     !@     <description>Returns the velocity scale to use for {\normalfont \ttfamily node}.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which fails." method="failedFraction" />
+     !#   <method description="Returns the velocity scale to use for {\normalfont \ttfamily node}." method="velocityScale" />
+     !# </methods>
      final     ::                           simpleDestructor
      procedure :: branchHasBaryons       => simpleBranchHasBaryons
      procedure :: accretionRate          => simpleAccretionRate

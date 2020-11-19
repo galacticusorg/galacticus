@@ -40,39 +40,13 @@
      class           (mergerTreeBuilderClass ), pointer                      :: mergerTreeBuilder_           => null()
      class           (cosmologyFunctionsClass), pointer                      :: cosmologyFunctions_          => null()
    contains
-     !@ <objectMethods>
-     !@   <object>mergerTreeOperatorAugment</object>
-     !@   <objectMethod>
-     !@     <method>buildTreeFromNode</method>
-     !@     <type>\intzero</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout,\logicalzero extendingEndNode\argin,\doublezero tolerance\argin,\doublezero timeEarliestIn\argin,\textcolor{red}{\textless type(mergerTree)\textgreater} treeBest\arginout,\doublezero treeBestWorstFit\arginout,\logicalzero treeBestOverride\argin,\doublezero massCutoffScale\arginout,\doublezero massOvershootScale\arginout,\logicalzero treeNewHasNodeAboveResolution\arginout,\logicalzero treeBestHasNodeAboveResolution\arginout,\logicalzero newRescale\argin</arguments>
-     !@     <description>Build a merger tree starting from the given node.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>acceptTree</method>
-     !@     <type>\intzero</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout,\textcolor{red}{\textless type(mergerTree)\textgreater} tree\arginout,\intzero nodeChildCount\arginout,\logicalzero extendingEndNode\argin,\doublezero tolerance\argin,\textcolor{red}{\textless type(mergerTree)\textgreater} treeBest\arginout,\doublezero treeBestWorstFit\arginout,\logicalzero treeBestOverride\argin,\doublezero massCutoffScale\arginout,\logicalzero treeNewHasNodeAboveResolution\arginout,\logicalzero treeBestHasNodeAboveResolution\arginout,\textcolor{red}{\textless type(mergerTree)\textgreater} newTreeBest\arginout</arguments>
-     !@     <description>Determine if a newly built tree is an acceptable match.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>extendNonOverlapNodes</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(mergerTree)\textgreater} tree\arginout,\textcolor{red}{\textless type(treeNode)\textgreater} *nodeNonOverlapFirst\arginout,\doublezero tolerance\argin,\doublezero timeEarliest\argin,\textcolor{red}{\textless type(mergerTree)\textgreater} treeBest\arginout,\doublezero massCutoffScale\arginout</arguments>
-     !@     <description>Graft new branches onto all end-nodes of a newly built tree.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>sortChildren</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
-     !@     <description>Sort child nodes into descending mass order.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>nonOverlapReinsert</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *listFirstElement\arginout</arguments>
-     !@     <description>Reinsert a linked list of non-overlap nodes into their parent tree.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Build a merger tree starting from the given node." method="buildTreeFromNode" />
+     !#   <method description="Determine if a newly built tree is an acceptable match." method="acceptTree" />
+     !#   <method description="Graft new branches onto all end-nodes of a newly built tree." method="extendNonOverlapNodes" />
+     !#   <method description="Sort child nodes into descending mass order." method="sortChildren" />
+     !#   <method description="Reinsert a linked list of non-overlap nodes into their parent tree." method="nonOverlapReinsert" />
+     !# </methods>
      final     ::                          augmentDestructor
      procedure :: operatePreEvolution   => augmentOperatePreEvolution
      procedure :: finalize              => augmentFinalize

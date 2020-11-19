@@ -159,27 +159,11 @@
      integer                                                           :: atomicHydrogenCationChemicalIndex, atomicHydrogenChemicalIndex, &
           &                                                               electronChemicalIndex
    contains
-     !@ <objectMethods>
-     !@   <object>chemicalStateCIEFile</object>
-     !@   <objectMethod>
-     !@     <method>readFile</method>
-     !@     <type>void</type>
-     !@     <arguments>\textcolor{red}{\textless char(len=*)\textgreater} fileName\argin</arguments>
-     !@     <description>Read the named chemical state file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>interpolatingFactors</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ temperature\argin, \doublezero\ metallicity\argin, \textcolor{red}{\textless integer(c\_size\_t)\textgreater} iTemperature\argout, \doublezero\ hTemperature\argout, \textcolor{red}{\textless integer(c\_size\_t)\textgreater} iMetallicity\argout, \doublezero\ hMetallicity\argout</arguments>
-     !@     <description>Compute interpolating factors in a CIE chemical state file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>interpolate</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless integer(c\_size\_t)\textgreater} iTemperature\argin, \doublezero\ hTemperature\argin, \textcolor{red}{\textless integer(c\_size\_t)\textgreater} iMetallicity\argin, \doublezero\ hMetallicity\argin, \doubletwo\ density\argin</arguments>
-     !@     <description>Interpolate in the given density table.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Read the named chemical state file." method="readFile" />
+     !#   <method description="Compute interpolating factors in a CIE chemical state file." method="interpolatingFactors" />
+     !#   <method description="Interpolate in the given density table." method="interpolate" />
+     !# </methods>
      procedure :: readFile                           => cieFileReadFile
      procedure :: interpolatingFactors               => cieFileInterpolatingFactors
      procedure :: interpolate                        => cieFileInterpolate

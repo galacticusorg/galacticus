@@ -27,15 +27,9 @@
      private
      type(varying_string) :: definition_
    contains
-     !@ <objectMethods>
-     !@   <object>modelParameterDerived</object>
-     !@   <objectMethod>
-     !@     <method>definition</method>
-     !@     <type>\textcolor{red}{\textless type(varying\_string)\textgreater}</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the definition for this parameter.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the definition for this parameter." method="definition" />
+     !# </methods>
      procedure :: definition => derivedDefinition
   end type modelParameterDerived
 

@@ -37,15 +37,9 @@ module Math_Exponentiation
      type            (table1DLinearLinear) :: solution
      logical                               :: abortOutsideRange
    contains
-     !@ <objectMethods>
-     !@   <object>fastExponentiator</object>
-     !@   <objectMethod>
-     !@     <method>exponentiate</method>
-     !@     <arguments>\doublezero\ x\argin</arguments>
-     !@     <type>\doublezero</type>
-     !@     <description>Evaluate {\normalfont \ttfamily x}$^y$ using table look-up.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Evaluate {\normalfont \ttfamily x}$^y$ using table look-up." method="exponentiate" />
+     !# </methods>
      procedure :: exponentiate => fastExponentiatorExponentiate
   end type fastExponentiator
 

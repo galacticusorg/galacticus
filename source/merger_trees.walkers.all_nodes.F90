@@ -30,27 +30,11 @@
      type   (treeNode  ), pointer :: node      , nodePrevious
      logical                      :: spanForest, nodesRemain_
    contains
-     !@ <objectMethods>
-     !@  <object>mergerTreeWalkerAllNodes</object>
-     !@  <objectMethod>
-     !@   <method>previous</method>
-     !@   <type>\void</type>
-     !@   <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
-     !@   <description>Step back to the previously visited node (if possible).</description>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>setNode</method>
-     !@   <type>\void</type>
-     !@   <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\argin</arguments>
-     !@   <description>Set the walker to the given node.</description>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>descend</method>
-     !@   <type>\void</type>
-     !@   <arguments></arguments>
-     !@   <description>Descend through the hierarchy to the deepest node along the current branch.</description>
-     !@  </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Step back to the previously visited node (if possible)." method="previous" />
+     !#   <method description="Set the walker to the given node." method="setNode" />
+     !#   <method description="Descend through the hierarchy to the deepest node along the current branch." method="descend" />
+     !# </methods>
      procedure :: next        => allNodesNext
      procedure :: previous    => allNodesPrevious
      procedure :: setNode     => allNodesSetNode

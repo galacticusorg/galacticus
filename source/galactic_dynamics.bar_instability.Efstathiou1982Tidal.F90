@@ -51,15 +51,9 @@
      class           (satelliteTidalFieldClass), pointer :: satelliteTidalField_ => null()
      double precision                                    :: massThresholdHarrassment
    contains
-     !@ <objectMethods>
-     !@   <object>galacticDynamicsBarInstabilityEfstathiou1982Tidal</object>
-     !@   <objectMethod>
-     !@     <method>tidalTensorRadial</method>
-     !@     <arguments></arguments>
-     !@     <type>\doublezero</type>
-     !@     <description>Compute the radial term of the tidal tensor.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute the radial term of the tidal tensor." method="tidalTensorRadial" />
+     !# </methods>
      final     ::                      efstathiou1982Destructor
      procedure :: tidalTensorRadial => efstathiou1982TidalTidalTensorRadial
      procedure :: timescale         => efstathiou1982TidalTimescale

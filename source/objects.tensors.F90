@@ -54,163 +54,42 @@ module Tensors
      private
      double precision :: x00,x01,x02,x11,x12,x22
    contains
-     !@ <objectMethods>
-     !@   <object>tensorRank2Dimension3Symmetric</object>
-     !@   <objectMethod>
-     !@     <method>isZero</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return true if a tensor object is zero.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>destroy</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Destroy a tensor object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>multiply</method>
-     !@     <type>\textcolor{red}{\textless type(tensorRank2Dimension3Symmetric)\textgreater}</type>
-     !@     <arguments>\doublezero\ multiplier\argin</arguments>
-     !@     <description>Multiply a tensor by a scalar.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>divide</method>
-     !@     <type>\textcolor{red}{\textless type(tensorRank2Dimension3Symmetric)\textgreater}</type>
-     !@     <arguments>\doublezero\ divisor\argin</arguments>
-     !@     <description>Divide a tensor by a scalar.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>add</method>
-     !@     <type>\textcolor{red}{\textless type(tensorRank2Dimension3Symmetric)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless type(tensorRank2Dimension3Symmetric)\textgreater} tensorRank2Dimension3Symmetric2\argin</arguments>
-     !@     <description>Add two tensors.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>subtract</method>
-     !@     <type>\textcolor{red}{\textless type(tensorRank2Dimension3Symmetric)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless type(tensorRank2Dimension3Symmetric)\textgreater} tensor1\argin, \textcolor{red}{\textless type(tensorRank2Dimension3Symmetric)\textgreater} tensor2\argin</arguments>
-     !@     <description>Subtract one tensor from another.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>equality</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\textcolor{red}{\textless type(tensorRank2Dimension3Symmetric)\textgreater} self\argin, \textcolor{red}{\textless double(3,3)\textgreater} matrix\argin</arguments>
-     !@     <description>Return true if a tensor and a matrix are equal.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>reset</method>
-     !@     <description>Reset elements to zero.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>builder</method>
-     !@     <description>Build tensor object from a provided XML description.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless *type(node)\textgreater} tensorRank2Dimension3SymmetricDefinition\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>dump</method>
-     !@     <description>Dump the tensor object.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>dumpRaw</method>
-     !@     <description>Dump the tensor object to binary.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ fileHandle\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>readRaw</method>
-     !@     <description>Read the tensor object from binary.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ fileHandle\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setToUnity</method>
-     !@     <description>Set all elements of the tensor object to unity.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setToIdentity</method>
-     !@     <description>Set a tensor object to the indentity (i.e. all diagonal elements 1, all other elements 0).</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>serializeCount</method>
-     !@     <description>Return a count of the number of properties in a serialized tensor object.</description>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>serialize</method>
-     !@     <description>Serialize the tensor object to an array.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ tensorArray\argout</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>deserialize</method>
-     !@     <description>Deserialize the tensor object from an array.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ tensorArray\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>increment</method>
-     !@     <description>Increment the tensor object.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(tensorRank2Dimension3Symmetric)\textgreater} addTensor\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>toMatrix</method>
-     !@     <description>Construct a matrix from a tensor object.</description>
-     !@     <type>\textcolor{red}{double(3,3)}</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>fromMatrix</method>
-     !@     <description>Construct a matrix from a tensor object.</description>
-     !@     <arguments>\textcolor{red}{double(3,3)} matrix</arguments>
-     !@     <type>\textcolor{red}{\textless type(tensorRank2Dimension3Symmetric)\textgreater}</type>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>contract</method>
-     !@     <description>Contract a tensor, returning $\mathbf{T}^i_i$.</description>
-     !@     <arguments></arguments>
-     !@     <type>\doublezero</type>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>doubleContract</method>
-     !@     <description>Return the double contraction of two tensors, $\mathbf{A}^i_j \mathbf{B}^j_i$.</description>
-     !@     <arguments>\textcolor{red}{\textless type(tensorRank2Dimension3Symmetric)\textgreater} tensor1\argin</arguments>
-     !@     <type>\doublezero</type>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>vectorProject</method>
-     !@     <description>Return the projection of a tensor/vector dot product onto the same vector, $\sum_{i=1}^3 \sum_{j=1}^3 \mathbf{A}^i_j x_i x_j$.</description>
-     !@     <arguments>\doubleone\ vector\argin</arguments>
-     !@     <type>\doublezero</type>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>nonStaticSizeOf</method>
-     !@     <description>Returns the size of any non-static components of the type.</description>
-     !@     <type>\textcolor{red}{\textless integer(c\_size\_t) \textgreater}</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
-     procedure         :: add             => Tensor_R2_D3_Sym_Add
-     procedure         :: subtract        => Tensor_R2_D3_Sym_Subtract
-     procedure         :: multiply        => Tensor_R2_D3_Sym_Scalar_Multiply
-     procedure         :: divide          => Tensor_R2_D3_Sym_Scalar_Divide
-     procedure         :: equality        => Tensor_R2_D3_Sym_Matrix_Equality
-     generic           :: operator(+)     => add
-     generic           :: operator(-)     => subtract
-     generic           :: operator(*)     => multiply
-     generic           :: operator(/)     => divide
-     generic           :: operator(==)    => equality
+     !# <methods>
+     !#   <method description="Return true if a tensor object is zero." method="isZero" />
+     !#   <method description="Destroy a tensor object." method="destroy" />
+     !#   <method description="Multiply a tensor by a scalar." method="operator(*)" />
+     !#   <method description="Divide a tensor by a scalar." method="operator(/)" />
+     !#   <method description="Add two tensors." method="operator(+)" />
+     !#   <method description="Subtract one tensor from another." method="operator(-)" />
+     !#   <method description="Return true if a tensor and a matrix are equal." method="operator(==)" />
+     !#   <method description="Reset elements to zero." method="reset" />
+     !#   <method description="Build tensor object from a provided XML description." method="builder" />
+     !#   <method description="Dump the tensor object." method="dump" />
+     !#   <method description="Dump the tensor object to binary." method="dumpRaw" />
+     !#   <method description="Read the tensor object from binary." method="readRaw" />
+     !#   <method description="Set all elements of the tensor object to unity." method="setToUnity" />
+     !#   <method description="Set a tensor object to the indentity (i.e. all diagonal elements 1, all other elements 0)." method="setToIdentity" />
+     !#   <method description="Return a count of the number of properties in a serialized tensor object." method="serializeCount" />
+     !#   <method description="Serialize the tensor object to an array." method="serialize" />
+     !#   <method description="Deserialize the tensor object from an array." method="deserialize" />
+     !#   <method description="Increment the tensor object." method="increment" />
+     !#   <method description="Construct a matrix from a tensor object." method="toMatrix" />
+     !#   <method description="Construct a matrix from a tensor object." method="fromMatrix" />
+     !#   <method description="Contract a tensor, returning $\mathbf{T}^i_i$." method="contract" />
+     !#   <method description="Return the double contraction of two tensors, $\mathbf{A}^i_j \mathbf{B}^j_i$." method="doubleContract" />
+     !#   <method description="Return the projection of a tensor/vector dot product onto the same vector, $\sum_{i=1}^3 \sum_{j=1}^3 \mathbf{A}^i_j x_i x_j$." method="vectorProject" />
+     !#   <method description="Returns the size of any non-static components of the type." method="nonStaticSizeOf" />
+     !# </methods>
+     procedure         ::                    Tensor_R2_D3_Sym_Add
+     procedure         ::                    Tensor_R2_D3_Sym_Subtract
+     procedure         ::                    Tensor_R2_D3_Sym_Scalar_Multiply
+     procedure         ::                    Tensor_R2_D3_Sym_Scalar_Divide
+     procedure         ::                    Tensor_R2_D3_Sym_Matrix_Equality
+     generic           :: operator(+)     => Tensor_R2_D3_Sym_Add
+     generic           :: operator(-)     => Tensor_R2_D3_Sym_Subtract
+     generic           :: operator(*)     => Tensor_R2_D3_Sym_Scalar_Multiply
+     generic           :: operator(/)     => Tensor_R2_D3_Sym_Scalar_Divide
+     generic           :: operator(==)    => Tensor_R2_D3_Sym_Matrix_Equality
      procedure         :: nonStaticSizeOf => Tensor_R2_D3_Sym_Non_Static_Size_Of
      procedure         :: isZero          => Tensor_R2_D3_Sym_Is_Zero
      procedure         :: destroy         => Tensor_R2_D3_Sym_Destroy

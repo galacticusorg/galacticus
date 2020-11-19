@@ -53,33 +53,12 @@
      class           (intergalacticMediumStateClass  ), pointer :: intergalacticMediumState_        => null()
      type            (linearGrowthCollisionlessMatter), pointer :: linearGrowthCollisionlessMatter_ => null()
    contains
-     !@ <objectMethods>
-     !@   <object>linearGrowthBaryonsDarkMatter</object>
-     !@   <objectMethod>
-     !@     <method>retabulate</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <description>Tabulate linear growth factor.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>fileWrite</method>
-     !@     <type>void</type>
-     !@     <arguments></arguments>
-     !@     <description>Read the tabulated mass variance from file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>fileRead</method>
-     !@     <type>void</type>
-     !@     <arguments></arguments>
-     !@     <description>Read the tabulated mass variance from file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>remakeTable</method>
-     !@     <type>\logicalzero</type>
-     !@     <description>Return true if the table must be remade.</description>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulate linear growth factor." method="retabulate" />
+     !#   <method description="Read the tabulated mass variance from file." method="fileWrite" />
+     !#   <method description="Read the tabulated mass variance from file." method="fileRead" />
+     !#   <method description="Return true if the table must be remade." method="remakeTable" />
+     !# </methods>
      final     ::                                         baryonsDarkMatterDestructor
      procedure :: value                                => baryonsDarkMatterValue
      procedure :: logarithmicDerivativeExpansionFactor => baryonsDarkMatterLogarithmicDerivativeExpansionFactor
