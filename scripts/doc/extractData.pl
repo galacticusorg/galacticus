@@ -121,7 +121,9 @@ foreach my $className ( sort(keys(%{$classes})) ) {
 		print $methodsFile "\\item[]{\\normalfont \\ttfamily ";
 		if ( exists($method->{'type'}) ) {
 		    (my $methodLabel = $method->{'method'}) =~ s/([^\\])_/$1\\_/g;
-		    print $methodsFile $methodLabel."}\n";
+		    my $description = $method->{'description'};
+		    chomp($description);
+		    print $methodsFile $methodLabel."} ".$description."\n";
 		    print $methodsFile "\\begin{itemize}\n";
 		    print $methodsFile "\\item Return type: ".&declarationBuilder($method->{'type'}, variables => 0)."\n";
 		    my @argumentList = &List::ExtraUtils::as_array($method->{'argumentList'});
