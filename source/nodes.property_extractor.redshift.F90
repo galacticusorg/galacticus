@@ -17,126 +17,126 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a redshiftLastIsolated property extractor class.
+!% Contains a module which implements a redshift property extractor class.
 
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorRedshiftLastIsolated">
-  !#  <description>A node property extractor class which extracts the redshift at which a \gls{node} was last isolated---named ``{\normalfont \ttfamily redshiftLastIsolated}.</description>
+  !# <nodePropertyExtractor name="nodePropertyExtractorRedshift">
+  !#  <description>A node property extractor class which extracts the current redshift at which a \gls{node} exists---named ``{\normalfont \ttfamily redshift}.</description>
   !# </nodePropertyExtractor>
-  type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRedshiftLastIsolated
-     !% A redshiftLastIsolated property extractor class.
+  type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRedshift
+     !% A redshift property extractor class.
      private
      class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
    contains
-     final     ::                redshiftLastIsolatedDestructor
-     procedure :: extract     => redshiftLastIsolatedExtract
-     procedure :: name        => redshiftLastIsolatedName
-     procedure :: description => redshiftLastIsolatedDescription
-     procedure :: unitsInSI   => redshiftLastIsolatedUnitsInSI
-     procedure :: type        => redshiftLastIsolatedType
-  end type nodePropertyExtractorRedshiftLastIsolated
+     final     ::                redshiftDestructor
+     procedure :: extract     => redshiftExtract
+     procedure :: name        => redshiftName
+     procedure :: description => redshiftDescription
+     procedure :: unitsInSI   => redshiftUnitsInSI
+     procedure :: type        => redshiftType
+  end type nodePropertyExtractorRedshift
 
-  interface nodePropertyExtractorRedshiftLastIsolated
-     !% Constructors for the ``redshiftLastIsolated'' output analysis class.
-     module procedure redshiftLastIsolatedConstructorParameters
-     module procedure redshiftLastIsolatedConstructorInternal
-  end interface nodePropertyExtractorRedshiftLastIsolated
+  interface nodePropertyExtractorRedshift
+     !% Constructors for the ``redshift'' output analysis class.
+     module procedure redshiftConstructorParameters
+     module procedure redshiftConstructorInternal
+  end interface nodePropertyExtractorRedshift
 
 contains
 
-  function redshiftLastIsolatedConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily redshiftLastIsolated} property extractor class which takes a parameter set as input.
+  function redshiftConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily redshift} property extractor class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (nodePropertyExtractorRedshiftLastIsolated)                :: self
-    type (inputParameters                          ), intent(inout) :: parameters
-    class(cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctions_
+    type (nodePropertyExtractorRedshift)                :: self
+    type (inputParameters              ), intent(inout) :: parameters
+    class(cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
 
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    self=nodePropertyExtractorRedshiftLastIsolated(cosmologyFunctions_)
+    self=nodePropertyExtractorRedshift(cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"/>
     return
-  end function redshiftLastIsolatedConstructorParameters
+  end function redshiftConstructorParameters
 
-  function redshiftLastIsolatedConstructorInternal(cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily redshiftLastIsolated} property extractor class.
+  function redshiftConstructorInternal(cosmologyFunctions_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily redshift} property extractor class.
     implicit none
-    type (nodePropertyExtractorRedshiftLastIsolated)                        :: self
-    class(cosmologyFunctionsClass                  ), intent(in   ), target :: cosmologyFunctions_
+    type (nodePropertyExtractorRedshift)                        :: self
+    class(cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
     !# <constructorAssign variables="*cosmologyFunctions_"/>
 
     return
-  end function redshiftLastIsolatedConstructorInternal
+  end function redshiftConstructorInternal
 
-  subroutine redshiftLastIsolatedDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily redshiftLastIsolated} property extractor class.
+  subroutine redshiftDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily redshift} property extractor class.
     implicit none
-    type(nodePropertyExtractorRedshiftLastIsolated), intent(inout) :: self
+    type(nodePropertyExtractorRedshift), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
-  end subroutine redshiftLastIsolatedDestructor
+  end subroutine redshiftDestructor
 
-  double precision function redshiftLastIsolatedExtract(self,node,instance)
+  double precision function redshiftExtract(self,node,instance)
     !% Implement a last isolated redshift output analysis.
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    class(nodePropertyExtractorRedshiftLastIsolated), intent(inout)           :: self
-    type (treeNode                                 ), intent(inout), target   :: node
-    type (multiCounter                             ), intent(inout), optional :: instance
-    class(nodeComponentBasic                       ), pointer                 :: basic
+    class(nodePropertyExtractorRedshift), intent(inout)           :: self
+    type (treeNode                     ), intent(inout), target   :: node
+    type (multiCounter                 ), intent(inout), optional :: instance
+    class(nodeComponentBasic           ), pointer                 :: basic
     !$GLC attributes unused :: self, instance
 
-    basic                       => node              %basic()
-    redshiftLastIsolatedExtract =  self %cosmologyFunctions_%redshiftFromExpansionFactor(    &
-         &                         self %cosmologyFunctions_%expansionFactor             (   &
-         &                         basic                    %timeLastIsolated             () &
-         &                                                                               )   &
-         &                                                                              )
+    basic           => node %basic                                            ()
+    redshiftExtract =  self %cosmologyFunctions_%redshiftFromExpansionFactor(    &
+         &                         self %cosmologyFunctions_%expansionFactor (   &
+         &                         basic                    %time             () &
+         &                                                                   )   &
+         &                                                                  )
     return
-  end function redshiftLastIsolatedExtract
+  end function redshiftExtract
 
-  function redshiftLastIsolatedName(self)
+  function redshiftName(self)
     !% Return the name of the last isolated redshift property.
     implicit none
-    type (varying_string                           )                :: redshiftLastIsolatedName
-    class(nodePropertyExtractorRedshiftLastIsolated), intent(inout) :: self
+    type (varying_string               )                :: redshiftName
+    class(nodePropertyExtractorRedshift), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    redshiftLastIsolatedName=var_str('redshiftLastIsolated')
+    redshiftName=var_str('redshift')
     return
-  end function redshiftLastIsolatedName
+  end function redshiftName
 
-  function redshiftLastIsolatedDescription(self)
-    !% Return a description of the redshiftLastIsolated property.
+  function redshiftDescription(self)
+    !% Return a description of the redshift property.
     implicit none
-    type (varying_string                           )                :: redshiftLastIsolatedDescription
-    class(nodePropertyExtractorRedshiftLastIsolated), intent(inout) :: self
+    type (varying_string               )                :: redshiftDescription
+    class(nodePropertyExtractorRedshift), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    redshiftLastIsolatedDescription=var_str('The redshift of the epoch at which the galaxy was last isolated.')
+    redshiftDescription=var_str('The redshift of the epoch at which the galaxy exists.')
     return
-  end function redshiftLastIsolatedDescription
+  end function redshiftDescription
 
-  double precision function redshiftLastIsolatedUnitsInSI(self)
+  double precision function redshiftUnitsInSI(self)
     !% Return the units of the last isolated redshift property in the SI system.
     implicit none
-    class(nodePropertyExtractorRedshiftLastIsolated), intent(inout) :: self
+    class(nodePropertyExtractorRedshift), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    redshiftLastIsolatedUnitsInSI=0.0d0
+    redshiftUnitsInSI=0.0d0
     return
-  end function redshiftLastIsolatedUnitsInSI
+  end function redshiftUnitsInSI
 
-  integer function redshiftLastIsolatedType(self)
+  integer function redshiftType(self)
     !% Return the type of the last isolated redshift property.
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
-    class(nodePropertyExtractorRedshiftLastIsolated), intent(inout) :: self
+    class(nodePropertyExtractorRedshift), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    redshiftLastIsolatedType=outputAnalysisPropertyTypeLinear
+    redshiftType=outputAnalysisPropertyTypeLinear
     return
-  end function redshiftLastIsolatedType
+  end function redshiftType
