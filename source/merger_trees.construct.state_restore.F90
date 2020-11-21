@@ -99,7 +99,7 @@ contains
     return
   end function stateRestoredConstructorInternal
 
-  function stateRestoredConstruct(self,treeNumber) result(tree)
+  function stateRestoredConstruct(self,treeNumber,finished) result(tree)
     !% Restores the state of a merger tree from file.
     use            :: Functions_Global, only : Galacticus_State_Retrieve_
     use            :: Galacticus_Nodes, only : mergerTree
@@ -108,6 +108,7 @@ contains
     type   (mergerTree                        ), pointer       :: tree
     class  (mergerTreeConstructorStateRestored), intent(inout) :: self
     integer(c_size_t                          ), intent(in   ) :: treeNumber
+    logical                                    , intent(  out) :: finished
 
     ! Only one tree to construct.
     if (treeNumber == 1_c_size_t) then
@@ -119,6 +120,7 @@ contains
     else
        nullify(tree)
     end if
+    finished=.not.associated(tree)
     return
   end function stateRestoredConstruct
 

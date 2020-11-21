@@ -349,7 +349,7 @@ contains
     double precision                                                          , save :: timeSectionForestBegin
     logical                                                                          :: triggerExit                               , triggerFinishUniverse       , &
          &                                                                              disableSingleForestEvolution              , triggerFinishFinal          , &
-         &                                                                              triggerFinish
+         &                                                                              triggerFinish                             , treesFinished
     integer         (c_size_t                     )                                  :: iBranchAcceptedLast                       , treeCount
     integer         (omp_lock_kind                )                                  :: initializationLock
     integer         (kind_int8                    )                                  :: systemClockRate                           , systemClockMaximum
@@ -431,10 +431,14 @@ contains
           ! the stack waiting to be processed.
           ! Perform any pre-tree construction tasks.
           call evolveForestsMergerTreeOperator_%operatePreConstruction()
-          ! Get the number of the next tree to process.
-          treeNumber=self%evolveForestsWorkShare_%forestNumber(utilizeOpenMPThreads=.not.self%evolveSingleForest)
           ! Get a tree.
-          tree                                    => evolveForestsMergerTreeConstructor_%construct(treeNumber)
+          treesFinished =  .false.
+          tree          => null()
+          do while (.not.associated(tree).and..not.treesFinished)
+             ! Get the number of the next tree to process.
+             treeNumber=self%evolveForestsWorkShare_%forestNumber(utilizeOpenMPThreads=.not.self%evolveSingleForest)
+             tree => evolveForestsMergerTreeConstructor_%construct(treeNumber,treesFinished)
+          end do
           if (associated(tree)) tree%hostUniverse => self%universeWaiting
           finished                                =  finished.or..not.associated(tree)
           treeIsNew                               =  .not.finished

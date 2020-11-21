@@ -125,20 +125,21 @@ contains
     return
   end subroutine smoothAccretionDestructor
 
-  function smoothAccretionConstruct(self,treeNumber) result(tree)
+  function smoothAccretionConstruct(self,treeNumber,finished) result(tree)
     !% Build a merger tree with a smooth mass accretion history using the fitting function of \cite{wechsler_concentrations_2002}.
     use            :: Galacticus_Nodes, only : mergerTree  , nodeComponentBasic, treeNode
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Kind_Numbers    , only : kind_int8
     implicit none
-    class           (mergerTreeConstructorSmoothAccretion   ), intent(inout) :: self
-    type            (mergerTree                             ), pointer       :: tree
-    integer         (c_size_t                               ), intent(in   ) :: treeNumber
-    type            (treeNode                               ), pointer       :: nodeCurrent        , nodeNew
-    class           (nodeComponentBasic                     ), pointer       :: basicBase          , basicNew
-    integer         (kind=kind_int8                         )                :: indexNode
-    double precision                                                         :: expansionFactorBase, timeBase, &
-         &                                                                      massNode           , timeNode
+    class           (mergerTreeConstructorSmoothAccretion), intent(inout) :: self
+    type            (mergerTree                          ), pointer       :: tree
+    integer         (c_size_t                            ), intent(in   ) :: treeNumber
+    logical                                               , intent(  out) :: finished
+    type            (treeNode                            ), pointer       :: nodeCurrent        , nodeNew
+    class           (nodeComponentBasic                  ), pointer       :: basicBase          , basicNew
+    integer         (kind=kind_int8                      )                :: indexNode
+    double precision                                                      :: expansionFactorBase, timeBase, &
+         &                                                                   massNode           , timeNode
 
     ! Build the merger tree.
     if (treeNumber == 1_c_size_t) then
@@ -200,5 +201,6 @@ contains
     else
        nullify(tree)
     end if
+    finished=.not.associated(tree)
     return
   end function smoothAccretionConstruct

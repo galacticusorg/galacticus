@@ -193,7 +193,7 @@ contains
     return
   end subroutine buildDestructor
 
-  function buildConstruct(self,treeNumber) result(tree)
+  function buildConstruct(self,treeNumber,finished) result(tree)
     !% Build a merger tree.
     use :: Functions_Global       , only : Galacticus_State_Retrieve_, Galacticus_State_Store_
     use :: Galacticus_Nodes       , only : mergerTree                , nodeComponentBasic     , treeNode
@@ -201,13 +201,14 @@ contains
     use :: Merger_Tree_State_Store, only : treeStateStoreSequence
     use :: String_Handling        , only : operator(//)
     implicit none
-    type            (mergerTree                ), pointer       :: tree
-    class           (mergerTreeConstructorBuild), intent(inout) :: self
-    integer         (c_size_t                  ), intent(in   ) :: treeNumber
-    class           (nodeComponentBasic        ), pointer       :: basicBase
-    integer         (kind_int8                 ), parameter     :: baseNodeIndex=1
-    integer         (kind_int8                 )                :: treeIndex
-    type            (varying_string            )                :: message
+    type   (mergerTree                ), pointer       :: tree
+    class  (mergerTreeConstructorBuild), intent(inout) :: self
+    integer(c_size_t                  ), intent(in   ) :: treeNumber
+    logical                            , intent(  out) :: finished
+    class  (nodeComponentBasic        ), pointer       :: basicBase
+    integer(kind_int8                 ), parameter     :: baseNodeIndex=1
+    integer(kind_int8                 )                :: treeIndex
+    type   (varying_string            )                :: message
 
     ! Ensure masses are constructed.
     call self%constructMasses()
@@ -291,6 +292,7 @@ contains
     else
        nullify(tree)
     end if
+    finished=.not.associated(tree)
     return
   end function buildConstruct
 

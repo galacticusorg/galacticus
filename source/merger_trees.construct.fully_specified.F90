@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
 !!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
@@ -201,7 +201,7 @@ contains
     return
   end subroutine fullySpecifiedDestructor
 
-  function fullySpecifiedConstruct(self,treeNumber) result(tree)
+  function fullySpecifiedConstruct(self,treeNumber,finished) result(tree)
     !% Construct a fully-specified merger tree.
     use            :: FoX_DOM           , only : node
     use            :: Galacticus_Display, only : Galacticus_Display_Indent   , Galacticus_Display_Unindent, Galacticus_Verbosity_Level, verbosityInfo
@@ -212,14 +212,15 @@ contains
     use            :: Kind_Numbers      , only : kind_int8
     use            :: Memory_Management , only : Memory_Usage_Record
     implicit none
-    type            (mergerTree                         ), pointer                     :: tree
-    class           (mergerTreeConstructorFullySpecified), intent(inout)               :: self
-    integer         (c_size_t                           ), intent(in   )               :: treeNumber
-    type            (treeNodeList                       ), allocatable  , dimension(:) :: nodeArray
-    type            (node                               ), pointer                     :: treeDefinition, nodeDefinition
-    type            (xmlNodeList                        ), allocatable  , dimension(:) :: nodes
-    integer                                                                            :: i             , nodeCount
-    integer         (kind_int8                          )                              :: indexValue
+    type   (mergerTree                         ), pointer                     :: tree
+    class  (mergerTreeConstructorFullySpecified), intent(inout)               :: self
+    integer(c_size_t                           ), intent(in   )               :: treeNumber
+    logical                                     , intent(  out)               :: finished
+    type   (treeNodeList                       ), allocatable  , dimension(:) :: nodeArray
+    type   (node                               ), pointer                     :: treeDefinition, nodeDefinition
+    type   (xmlNodeList                        ), allocatable  , dimension(:) :: nodes
+    integer                                                                   :: i             , nodeCount
+    integer(kind_int8                          )                              :: indexValue
 
     ! Read one tree.
     if (treeNumber > 0_c_size_t .and. treeNumber <= self%treeCount) then
@@ -298,6 +299,7 @@ contains
     else
        nullify(tree)
     end if
+    finished=.not.associated(tree)
     return
 
   contains

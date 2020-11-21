@@ -38,6 +38,7 @@ module Merger_Tree_Construction
   !#   <type>type(mergerTree), pointer</type>
   !#   <pass>yes</pass>
   !#   <argument>integer(c_size_t), intent(in   ) :: treeNumber</argument>
+  !#   <argument>logical          , intent(  out) :: finished</argument>
   !#  </method>
   !# </functionClass>
 

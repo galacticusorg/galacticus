@@ -875,7 +875,7 @@ contains
     return
   end subroutine readDestructor
 
-  function readConstruct(self,treeNumber) result(tree)
+  function readConstruct(self,treeNumber,finished) result(tree)
     !% Construct a merger tree by reading its definition from file.
     use    :: Array_Utilities           , only : operator(.intersection.)
     use    :: Arrays_Search             , only : searchArrayClosest
@@ -895,6 +895,7 @@ contains
     type            (mergerTree               ), pointer                             :: tree
     class           (mergerTreeConstructorRead), intent(inout)                       :: self
     integer         (c_size_t                 ), intent(in   )                       :: treeNumber
+    logical                                    , intent(  out)                       :: finished
     integer         (c_size_t                 )                                      :: treeNumberInternal
     integer         (kind_int8                ), allocatable, dimension(:  )         :: historyIndex
     double precision                           , allocatable, dimension(:  )         :: historyMass           , historyTime
@@ -1309,6 +1310,7 @@ contains
     else
        nullify(tree)
     end if
+    finished=.not.associated(tree)
     return
   end function readConstruct
 
