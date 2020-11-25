@@ -37,13 +37,13 @@
   type, extends(mergerTreeNodeEvolverClass) :: mergerTreeNodeEvolverStandard
      !% Implementation of the standard merger tree node evolver.
      private
-     class           (mergerTreeNodeMergerClass    ), pointer                   :: mergerTreeNodeMerger_
+     class           (mergerTreeNodeMergerClass    ), pointer                   :: mergerTreeNodeMerger_ => null()
      double precision                                                           :: odeToleranceAbsolute               , odeToleranceRelative         , &
           &                                                                        odeJacobianStepSizeRelative
      integer                                                                    :: odeAlgorithm                       , odeAlgorithmNonJacobian
      class           (galacticStructureSolverClass ), pointer                   :: galacticStructureSolver_
-     class           (nodeOperatorClass            ), pointer                   :: nodeOperator_
-     class           (mergerTreeEvolveProfilerClass), pointer                   :: mergerTreeEvolveProfiler_
+     class           (nodeOperatorClass            ), pointer                   :: nodeOperator_ => null()
+     class           (mergerTreeEvolveProfilerClass), pointer                   :: mergerTreeEvolveProfiler_ => null()
      integer                                                                    :: odeLatentIntegratorType            , odeLatentIntegratorOrder     , &
           &                                                                        odeLatentIntegratorIntervalsMaximum
      integer         (c_size_t                     )                            :: propertyCountAll                   , propertyCountMaximum         , &
@@ -302,7 +302,7 @@ contains
     !# <objectDestructor name="self%mergerTreeNodeMerger_"    />
     !# <objectDestructor name="self%nodeOperator_"            />
     !# <objectDestructor name="self%mergerTreeEvolveProfiler_"/>
-    call subhaloPromotionEvent%detach(self,standardNodeSubhaloPromotion)
+    if (subhaloPromotionEvent%isAttached(self,standardNodeSubhaloPromotion)) call subhaloPromotionEvent%detach(self,standardNodeSubhaloPromotion)
     return
   end subroutine standardDestructor
 
@@ -638,7 +638,7 @@ contains
              call node%timeStepSet(stepSize)
              ! Extract values.
              call node%deserializeValues(self%propertyValuesActive  ,self%propertyTypeODE       )
-             call node%deserializeValues(self%propertyValuesInactive,self%propertyTypeIntegrator)
+             call node%deserializeValues(self%propertyValuesInactive,self%propertyTypeIntegrator)            
              ! Flag interruption if one occurred, and ensure that the time is matched precisely to the end or interrupt time (can differ
              ! due to finite precision of the ODE integrator).
              if (self%timeInterruptFirst /= 0.0d0) then
@@ -953,7 +953,6 @@ contains
        call Galacticus_Display_Message(repeat(" ",lengthMaximum)//' : y            : dy/dt        : yScale       : yError       : yErrorScaled')
        call Galacticus_Display_Message(line)
        do i=1,standardSelf%propertyCountActive
-          stepFactor=abs(yError(i))/yTolerance(i)
           message=standardSelf%activeNode%nameFromIndex(int(i),standardSelf%propertyTypeODE)
           message=repeat(" ",lengthMaximum-len(message))//message
           write (label,'(e12.6)') y                                (i)
@@ -964,7 +963,12 @@ contains
           message=message//" : "//label
           write (label,'(e12.6)') yError                           (i)
           message=message//" : "//label
-          write (label,'(e12.6)') stepFactor
+          if (yTolerance(i) /= 0.0d0) then
+             stepFactor=abs(yError(i))/yTolerance(i)
+             write (label,'(e12.6)') stepFactor
+          else
+             label="infinity"
+          end if
           message=message//" : "//label
           call Galacticus_Display_Message(message)
        end do
@@ -991,7 +995,7 @@ contains
     return
   end function standardODEStepTolerances
 
-  subroutine standardPostStepProcessing(y,status) bind(c)
+  subroutine standardPostStepProcessing(y,postStepStatus) bind(c)
     !% Perform any post-step actions on the node.
     use            :: Interface_GSL, only : GSL_Success
     use, intrinsic :: ISO_C_Binding, only : c_double   , c_int
@@ -1000,14 +1004,14 @@ contains
     !# </include>
     implicit none
     real   (kind=c_double), intent(inout), dimension(*) :: y
-    integer(kind=c_int   ), intent(inout)               :: status
+    integer(kind=c_int   ), intent(inout)               :: postStepStatus
 
     call standardSelf%activeNode%deserializeValues(y(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
     !# <include directive="postStepTask" type="functionCall" functionType="void">
-    !#  <functionArgs>standardSelf%activeNode,status</functionArgs>
+    !#  <functionArgs>standardSelf%activeNode,postStepStatus</functionArgs>
     include 'objects.tree_node.post_step.inc'
     !# </include>
-    if (status /= GSL_Success) call standardSelf%activeNode%serializeValues(y(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
+    if (postStepStatus /= GSL_Success) call standardSelf%activeNode%serializeValues(y(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
     return
   end subroutine standardPostStepProcessing
 
