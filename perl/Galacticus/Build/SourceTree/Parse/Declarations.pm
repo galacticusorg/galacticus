@@ -153,16 +153,18 @@ sub BuildDeclarations {
     # Build Fortran code from declarations list.
     my $node =   shift() ;
     $node->{'firstChild'}->{'content'} = $node->{'implicitNone'} ? "implicit none\n" : "";
-    foreach ( @{$node->{'declarations'}} ) {
+    foreach my $declaration ( @{$node->{'declarations'}} ) {
 	my $declarationCode  = "  ";
 	$declarationCode    .= "!\$ "
-	    if ( exists($_->{'openMP'}) && $_->{'openMP'} );
-	$declarationCode    .= $_->{'intrinsic'};
-	$declarationCode    .= "(".$_->{'type'}.")"
-	    if ( exists($_->{'type'}) && defined($_->{'type'}) );
-	$declarationCode    .= ", ".join(", ",@{$_->{'attributes'}})
-	    if ( exists($_->{'attributes'}) && $_->{'attributes'} && scalar(@{$_->{'attributes'}}) > 0 );
-	$declarationCode    .= " :: ".join(", ",@{$_->{'variables'}})."\n";
+	    if ( exists($declaration->{'openMP'}) && $declaration->{'openMP'} );
+	$declarationCode    .= $declaration->{'intrinsic'};
+	$declarationCode    .= "(".$declaration->{'type'}.")"
+	    if ( exists($declaration->{'type'}) && defined($declaration->{'type'}) );
+	$declarationCode    .= ", ".join(", ",@{$declaration->{'attributes'}})
+	    if ( exists($declaration->{'attributes'}) && $declaration->{'attributes'} && scalar(@{$declaration->{'attributes'}}) > 0 );
+	$declarationCode    .= " :: ".join(", ",@{$declaration->{'variables'}})."\n";
+	$declarationCode    .= " !\$omp threadprivate(".join(",",map {$_ =~ s/([a-zA-Z0-9_]+).*/$1/; $_} @{$declaration->{'variables'}}).")\n"
+	    if ( exists($declaration->{'threadprivate'}) && $declaration->{'threadprivate'} );
 	$node->{'firstChild'}->{'content'} .= $declarationCode;
     }
 }
