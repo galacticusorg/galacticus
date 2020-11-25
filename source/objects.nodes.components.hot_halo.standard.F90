@@ -189,7 +189,7 @@ module Node_Component_Hot_Halo_Standard
   !#   </property>
   !#  </properties>
   !#  <bindings>
-   !#    <binding method="massRemovalRate" function="Node_Component_Hot_Halo_Standard_Mass_Removal_Rate" description="Called whenever the standard hot halo component removes mass from the halo." returnType="\void" arguments="" bindsTo="component" />
+  !#    <binding method="massRemovalRate" function="Node_Component_Hot_Halo_Standard_Mass_Removal_Rate" description="Called whenever the standard hot halo component removes mass from the halo." returnType="\void" arguments="" bindsTo="component" />
   !#    <binding method="outflowReturn" bindsTo="component" isDeferred="true" >
   !#     <interface>
   !#      <type>void</type>
