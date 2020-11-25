@@ -130,11 +130,13 @@ module MPI_Utilities
      !$ type(ompLock )     :: ompLock_
    contains
      !# <methods>
-     !#   <method description="Increment the counter and return the new value." method="increment" />
-     !#   <method description="Get the current value of the counter." method="get" />
+     !#   <method description="Increment the counter and return the new value." method="increment"/>
+     !#   <method description="Decrement the counter and return the new value." method="decrement"/>
+     !#   <method description="Get the current value of the counter."           method="get"      />
      !# </methods>
      final     ::              counterDestructor
      procedure :: increment => counterIncrement
+     procedure :: decrement => counterDecrement
      procedure :: get       => counterGet
   end type mpiCounter
 
@@ -1764,11 +1766,11 @@ contains
          &                                     MPI_Win_Lock           , MPI_Put         , MPI_Win_Unlock     , MPI_Lock_Exclusive
 #endif
     implicit none
-    type   (mpiCounter      ) :: self
+    type   (mpiCounter)               :: self
 #ifdef USEMPI
-    integer                   :: mpiSize, iError
-    integer(c_size_t), dimension(1) :: countInitial
-    integer(c_size_t), pointer :: countInitialPointer
+    integer                           :: mpiSize            , iError
+    integer(c_size_t  ), dimension(1) :: countInitial
+    integer(c_size_t  ), pointer      :: countInitialPointer
 
     call MPI_SizeOf(0_c_size_t,mpiSize,iError)
     if (iError /= 0) call Galacticus_Error_Report('failed to get type size'//{introspection:location})
@@ -1855,6 +1857,39 @@ call mpiBarrier()
 #endif
     return
   end function counterIncrement
+
+  function counterDecrement(self)
+    !% Decrement an MPI counter.
+#ifdef USEMPI
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: MPI_F08         , only : MPI_Win_Lock           , MPI_Get_Accumulate, MPI_Win_Unlock, MPI_Lock_Exclusive, &
+         &                          MPI_Address_Kind       , MPI_Sum
+#endif
+    implicit none
+    integer(c_size_t  )                :: counterDecrement
+    class  (mpiCounter), intent(inout) :: self
+#ifdef USEMPI
+    integer(c_size_t  ), dimension(1)  :: counterIn       , counterOut
+    integer                            :: iError
+
+    counterIn=-1
+    !$ call self%ompLock_%  set()
+    call MPI_Win_Lock(MPI_Lock_Exclusive,0,0,self%window,iError)
+    if (iError /= 0) call Galacticus_Error_Report('failed to lock RMA window'          //{introspection:location})
+    call MPI_Get_Accumulate(counterIn,1,self%typeClass,counterOut,1,self%typeClass,0,0_MPI_Address_Kind,1,self%typeClass,MPI_Sum,self%window,iError)
+    if (iError /= 0) call Galacticus_Error_Report('failed to accumulate to MPI counter'//{introspection:location})
+    call MPI_Win_Unlock(0,self%window,iError)
+    if (iError /= 0) call Galacticus_Error_Report('failed to unlock RMA window'        //{introspection:location})
+    !$ call self%ompLock_%unset()
+    counterDecrement=counterOut(1)
+#else
+    !$ call self%ompLock_%  set()
+    counterDecrement=self%counter
+    self%counter=self%counter-1_c_size_t
+    !$ call self%ompLock_%unset()
+#endif
+    return
+  end function counterDecrement
 
   function counterGet(self)
     !% Return the current value of an MPI counter.
