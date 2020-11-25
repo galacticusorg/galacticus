@@ -36,6 +36,9 @@ sub Process_EventHooks {
 	    my @hooks = map {&Galacticus::Build::Directives::Extract_Directives($_,'eventHook')} &List::ExtraUtils::as_array($directiveLocations->{'eventHook'}->{'file'});
 	    # Create an object for each event hook.
 	    foreach my $hook ( @hooks ) {
+		# Skip hooks that are duplicates.
+		next
+		    if ( exists($hook->{'isDuplicate'}) && $hook->{'isDuplicate'} eq "yes" );
 		# Determine the interface type for this hook.
 		$code::interfaceType = &interfaceTypeGet($hook);
 		my $hookObject;
@@ -374,22 +377,32 @@ my $waitTimeWriterNode   =
 		 },
                  {
 		     intrinsic  => "integer"      ,
-		     variables  => [ "ompLevel_", "ompLevelCurrent_" ]
+		     variables  => [ "ompLevel_" ]
 		 },
                  {
-		     intrinsic  => "logical"      ,
-		     variables  => [ "ompAncestorGot_" ]
+		     intrinsic     => "integer"             ,
+		     variables     => [ "ompLevelCurrent_=-1" ],
+		     attributes    => [ "save" ],
+		     threadprivate => 1
 		 },
                  {
-                     intrinsic  => "integer"                        ,
-                     attributes => [ "dimension(:)", "allocatable" ],
-		     variables  => [ "ompAncestorThreadNum_" ]
+		     intrinsic     => "logical"            ,
+		     variables     => [ "ompAncestorGot_=.false." ],
+		     attributes    => [ "save" ],
+		     threadprivate => 1
+		 },
+                 {
+                     intrinsic     => "integer"                                ,
+                     attributes    => [ "dimension(:)", "allocatable", "save" ],
+		     variables     => [ "ompAncestorThreadNum_" ],
+		     threadprivate => 1
 		 }
 		);
             my @declarations;
             foreach my $declaration ( @declarationsPotential ) {
+		(my $variableName = $declaration->{'variables'}->[0]) =~ s/([a-zA-Z0-9_]+).*/$1/;
 		push(@declarations,$declaration)
-                    unless ( &Galacticus::Build::SourceTree::Parse::Declarations::DeclarationExists($node->{'parent'},$declaration->{'variables'}->[0]) );
+                    unless ( &Galacticus::Build::SourceTree::Parse::Declarations::DeclarationExists($node->{'parent'},$variableName) );
             }
 	    &Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},\@declarations);
 	    # Create the code.
@@ -399,8 +412,6 @@ my $waitTimeWriterNode   =
             $code::location      = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'});
 	    my $eventHookCode    = fill_in_string(<<'CODE', PACKAGE => 'code');
 call {$eventName}Event%lock(writeLock=.false.)
-!$ ompAncestorGot_=.false.
-!$ ompLevelCurrent_=-1
 hook_ => {$eventName}Event%first()
 do while (associated(hook_))
    select type (hook_)
@@ -424,7 +435,7 @@ do while (associated(hook_))
       !$    ! Binds at the OpenMP level - check levels match, and that this hooked object matches the OpenMP thread number across all levels.
       !$    if (hook_%openMPLevel == ompLevelCurrent_) then
       !$       functionActive_=.true.
-      !$       do ompLevel_=0,hook_%openMPLevel
+      !$       do ompLevel_=hook_%openMPLevel,0,-1
       !$          if (hook_%openMPThread(ompLevel_) /= ompAncestorThreadNum_(ompLevel_)) then
       !$             functionActive_=.false.
       !$             exit
@@ -437,7 +448,7 @@ do while (associated(hook_))
       !$    ! Binds at all levels at or above the level of the hooked object - check this condition is met, and that the hooked object matches the OpenMP thread number across all levels.
       !$    if (hook_%openMPLevel <= ompLevelCurrent_) then
       !$       functionActive_=.true.
-      !$       do ompLevel_=0,ompLevelCurrent_
+      !$       do ompLevel_=ompLevelCurrent_,0,-1
       !$          if (hook_%openMPThread(min(ompLevel_,hook_%openMPLevel)) /= ompAncestorThreadNum_(ompLevel_)) then
       !$             functionActive_=.false.
       !$             exit
