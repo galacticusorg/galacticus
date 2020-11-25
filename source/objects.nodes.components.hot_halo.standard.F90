@@ -1171,10 +1171,12 @@ contains
     double precision                                                       :: outflowedMass            , massReturnRate         , &
          &                                                                    angularMomentumReturnRate, massToDensityConversion, &
          &                                                                    hydrogenByMass           , temperature            , &
-         &                                                                    numberDensityHydrogen    , densityAtOuterRadius, radiusVirial, outerRadius, densityMinimum
+         &                                                                    numberDensityHydrogen    , densityAtOuterRadius   , &
+         &                                                                    radiusVirial             , outerRadius            , &
+         &                                                                    densityMinimum
     type            (abundances                  ), save                   :: abundancesReturnRate     , outflowedAbundances
     !$omp threadprivate(abundancesReturnRate,outflowedAbundances)
-    type            (chemicalAbundances          ), save                   :: chemicalDensities        , chemicalMasses           , &
+    type            (chemicalAbundances          ), save                   :: chemicalDensities        , chemicalMasses         , &
          &                                                                    chemicalMassesRates
     !$omp threadprivate(chemicalDensities,chemicalMassesRates,chemicalMasses)
 
