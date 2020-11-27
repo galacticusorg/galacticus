@@ -74,6 +74,10 @@ module Node_Component_Dark_Matter_Profile_Scale
   ! Queriable dark matter profile object.
   type            (nodeComponentDarkMatterProfileScale)          :: darkMatterProfile
 
+  ! Tree-initializing status.
+  logical :: treeInitializing=.false.
+  !$omp threadprivate(treeInitializing)
+
 contains
 
   !# <nodeComponentInitializationTask>
@@ -156,7 +160,18 @@ contains
 
     ! Set the scale if it isn't already set.
     selfNode => self%host()
-    if (self%scaleValue() < 0.0d0) call self%scaleSet(darkMatterProfileScaleRadius_%radius(selfNode))
+   
+
+    ! Initialize scale radii if necessary. We do this by calling the tree initialization function (which ensures that nodes are
+    ! visited in depth first order), unless tree initialization is alredy underway in which case depth-first ordering is
+    ! guaranteed and we can go ahead and set the scale radius directly.
+    if (self%scaleValue() < 0.0d0) then
+       if (treeInitializing) then
+          call self%scaleSet(darkMatterProfileScaleRadius_%radius(selfNode))
+       else
+          call Node_Component_Dark_Matter_Profile_Scale_Tree_Initialize(selfNode)
+       end if
+    end if
     if (self%scaleIsLimited()) then
        radiusVirial      =darkMatterHaloScale_%virialRadius(selfNode)
        scaleLengthMaximum=radiusVirial/darkMatterProfileMinimumConcentration
@@ -260,12 +275,19 @@ contains
              ! Perform our own depth-first tree walk to set scales in all nodes of the tree. This is necessary as we require access
              ! to the parent scale to set scale growth rates, but must initialize scales in a strictly depth-first manner as some
              ! algorithms rely on knowing the progenitor structure of the tree to compute scale radii.
+             !
+             ! Record that we are performing tree initalization. During tree intialization the scale get function, which normally
+             ! calls this tree initialization function if scale radii need to be initialized, will instead initialize
+             ! directly. This avoids infinite recursion, and is safe as the scale get function is guaranteed to be called in
+             ! depth-first order by this tree initialization function.
+             treeInitializing=.true.
              treeWalker=mergerTreeWalkerAllNodes(node%hostTree,spanForest=.false.)
              do while (treeWalker%next(nodeWork))
                 ! Get the scale radius - this will initialize the radius if necessary.
                 darkMatterProfileWork => nodeWork             %darkMatterProfile(autoCreate=.true.)
                 radiusScale           =  darkMatterProfileWork%scale            (                 )
              end do
+             treeInitializing=.false.
           end if
        class default
           call Galacticus_Error_Report('unexpected class'//{introspection:location})
