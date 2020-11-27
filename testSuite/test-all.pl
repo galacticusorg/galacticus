@@ -460,7 +460,7 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
-	name     => "tests.bug745815.exe",                                                # Regresssions.
+	name     => "tests.bug745815.exe",                                                # Regressions.
 	valgrind => 0,
 	mpi      => 0
     },
