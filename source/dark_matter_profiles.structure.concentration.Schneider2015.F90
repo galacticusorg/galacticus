@@ -36,7 +36,7 @@
   !#   where $\delta_\mathrm{c}(z)$ is the critical overdensity for collapse at redshift $z$, and $f$ is the fraction of a halo's
   !#   mass assembled at formation time (given by the {\normalfont \ttfamily [massFractionFormation]} parameter. From this, the
   !#   mass of a halo in the reference model with the same redshift of collapse is found, and the reference model is used to
-  !#   compute the concentration of a halo of that mass.\
+  !#   compute the concentration of a halo of that mass.
   !#  </description>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationSchneider2015

@@ -41,7 +41,7 @@
      !% A dark matter halo profile concentration class implementing the modifier of
      !% \cite{schneider_non-linear_2012}.
      private
-     class(darkMatterProfileConcentrationClass), pointer :: cdmConcentration => null()
+     class(darkMatterProfileConcentrationClass), pointer :: cdmConcentration  => null()
      class(transferFunctionClass              ), pointer :: transferFunction_ => null()
    contains
      final     ::                                   wdmDestructor
