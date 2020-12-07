@@ -327,6 +327,6 @@ contains
     ! Ensure that data has been read.
     call fileReadData(self)
     ! Interpolate in the tables to get the electron fraction.
-    fileSinglyIonizedHeliumFraction=min(1.0d0,max(0.0d0,self%ionizedHeliumFractionTable%interpolate(time)))
+    fileSinglyIonizedHeliumFraction=min(1.0d0,max(0.0d0,self%interpolatorIonizedHeliumFraction%interpolate(time)))
     return
   end function fileSinglyIonizedHeliumFraction
