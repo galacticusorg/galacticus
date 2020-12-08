@@ -17,26 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a transfer function class based on the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.
+!% Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function.
 
-  use :: Cosmology_Functions  , only : cosmologyFunctionsClass
-  use :: Cosmology_Parameters , only : cosmologyParametersClass
-  use :: Dark_Matter_Particles, only : darkMatterParticleClass
+  use :: Cosmology_Functions , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <transferFunction name="transferFunctionETHOSDM">
-  !#  <description>Provides a transfer function based on the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.</description>
+  !#  <description>Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function.</description>
   !# </transferFunction>
   type, extends(transferFunctionClass) :: transferFunctionETHOSDM
-     !% A transfer function class which modifies another transfer function using the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.
+     !% Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function.
      private
-     double precision                                    :: n_alpha                         , n_beta        , &
-          &                                                 n_gamma                         , n_sigma, n_tau, &
-	  &						    k_peak, h_peak                  , h_2        , &
+     double precision                                    :: alpha                         , beta    , &
+          &                                                 gamma                         , sigma   , &
+          &                                                 tau                           , kPeak   , &
+	  &                                                 hPeak                         , h2      , &
           &                                                 time                          , redshift
      class           (transferFunctionClass   ), pointer :: transferFunctionCDM  => null()
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
-     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
    contains
      final     ::                          ETHOSDMDestructor
      procedure :: value                 => ETHOSDMValue
@@ -46,109 +45,100 @@
   end type transferFunctionETHOSDM
 
   interface transferFunctionETHOSDM
-     !% Constructors for the {\normalfont \ttfamily bode2001} transfer function class.
+     !% Constructors for the {\normalfont \ttfamily ETHOS} transfer function class.
      module procedure ETHOSDMConstructorParameters
      module procedure ETHOSDMConstructorInternal
   end interface transferFunctionETHOSDM
 
 contains
-
+  
   function ETHOSDMConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily bode2001} transfer function class which takes a parameter set as input.
+    !% Constructor for the {\normalfont \ttfamily ETHOS} transfer function class which takes a parameter set as input.
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
     use :: Galacticus_Error              , only : Galacticus_Error_Report
     use :: Input_Parameters              , only : inputParameter            , inputParameters
     implicit none
-    type            (transferFunctionETHOSDM)                 :: self
+    type            (transferFunctionETHOSDM )                :: self
     type            (inputParameters         ), intent(inout) :: parameters
     class           (transferFunctionClass   ), pointer       :: transferFunctionCDM
     class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
-    class           (darkMatterParticleClass ), pointer       :: darkMatterParticle_
-    double precision                                          :: n_alpha             , n_beta     , &
-         &                                                       n_gamma             , n_sigma    , & 
-	 &							 n_tau,  k_peak, h_peak, h_2	  , &
+    double precision                                          :: alpha               , beta , &
+         &                                                       gamma               , sigma, & 
+	 &							 tau                 , kPeak, &
+         &                                                       hPeak               , h2   , &
          &			                                 redshift
 
     ! Validate parameters.
     if (.not.parameters%isPresent('transferFunctionMethod')) call Galacticus_Error_Report("an explicit 'transferFunctionMethod' must be given"//{introspection:location})
     ! Read parameters.
     !# <inputParameter>
-    !#   <name>n_alpha</name>
+    !#   <name>alpha</name>
     !#   <source>parameters</source>
     !#   <defaultValue>40.0d0</defaultValue>
-    !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>The parameter $\alpha appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>n_beta</name>
+    !#   <name>beta</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.5d0</defaultValue>
-    !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>The parameter $\beta appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>n_gamma</name>
+    !#   <name>gamma</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-10d0</defaultValue>
-    !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>The parameter $\gamma appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>n_sigma</name>
+    !#   <name>sigma</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-10d0</defaultValue>
-    !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>The parameter $\sigma appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>n_tau</name>
+    !#   <name>tau</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-10d0</defaultValue>
-    !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>The parameter $\tau appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>k_peak</name>
+    !#   <name>kPeak</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-10d0</defaultValue>
-    !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>The parameter $\k_\mathrm{peak}$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>h_peak</name>
+    !#   <name>hPeak</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-10d0</defaultValue>
-    !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>The parameter $\h_\mathrm{peak}$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>h_2</name>
+    !#   <name>h2</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-10d0</defaultValue>
-    !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>The parameter $\h2$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     !# <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
     !# <inputParameter>
     !#   <name>redshift</name>
@@ -158,43 +148,40 @@ contains
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-     self=transferFunctionETHOSDM(transferFunctionCDM,n_alpha,n_beta,n_gamma,n_sigma,n_tau,k_peak,h_peak,h_2,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_)
+    self=transferFunctionETHOSDM(transferFunctionCDM,alpha,beta,gamma,sigma,tau,kPeak,hPeak,h2,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="cosmologyFunctions_" />
-    !# <objectDestructor name="darkMatterParticle_" />
     !# <objectDestructor name="transferFunctionCDM" />
     return
   end function ETHOSDMConstructorParameters
-
-  function ETHOSDMConstructorInternal(transferFunctionCDM,n_alpha,n_beta,n_gamma,n_sigma,n_tau,k_peak,h_peak,h_2,time,cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily bode2001} transfer function class.
-    use :: Cosmology_Parameters , only : hubbleUnitsLittleH
-    use :: Dark_Matter_Particles, only : darkMatterParticleWDMThermal
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
+  
+  function ETHOSDMConstructorInternal(transferFunctionCDM,alpha,beta,gamma,sigma,tau,kPeak,hPeak,h2,time,cosmologyParameters_,cosmologyFunctions_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily ETHOS} transfer function class.
+    use :: Cosmology_Parameters, only : hubbleUnitsLittleH
+    use :: Galacticus_Error    , only : Galacticus_Error_Report
     implicit none
-    type            (transferFunctionETHOSDM)                         :: self
+    type            (transferFunctionETHOSDM )                        :: self
     class           (transferFunctionClass   ), target, intent(in   ) :: transferFunctionCDM
-    double precision                                  , intent(in   ) :: n_alpha                   , n_beta                            , &
-         &                                                               n_gamma, n_sigma, n_tau, k_peak, h_peak,h_2 , time
+    double precision                                  , intent(in   ) :: alpha              , beta , &
+         &                                                               gamma              , sigma, &
+         &                                                               tau                , kPeak, &
+         &                                                               hPeak              , h2   , &
+         &                                                               time
     class           (cosmologyParametersClass), target, intent(in   ) :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), target, intent(in   ) :: cosmologyFunctions_
-    class           (darkMatterParticleClass ), target, intent(in   ) :: darkMatterParticle_
-    double precision                          , parameter             :: massReference       =1.0d0, degreesOfFreedomReference=1.5d0
-    !# <constructorAssign variables="*transferFunctionCDM, n_alpha, n_beta, n_gamma,n_sigma, n_tau, k_peak, h_peak, h_2, time, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterParticle_"/>
-
-    self%redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
+    !# <constructorAssign variables="*transferFunctionCDM, alpha, beta, gamma,sigma, tau, kPeak, hPeak, h2, time, *cosmologyParameters_, *cosmologyFunctions_"/>
     
+    self%redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
     return
   end function ETHOSDMConstructorInternal
 
   subroutine ETHOSDMDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily bode2001} transfer function class.
+    !% Destructor for the {\normalfont \ttfamily ETHOS} transfer function class.
     implicit none
     type(transferFunctionETHOSDM), intent(inout) :: self
-
+    
     !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%darkMatterParticle_" />
     !# <objectDestructor name="self%transferFunctionCDM" />
     return
   end subroutine ETHOSDMDestructor
@@ -204,23 +191,66 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (transferFunctionETHOSDM), intent(inout) :: self
-    double precision                          , intent(in   ) :: wavenumber			      
+    double precision                         , intent(in   ) :: wavenumber			      
 
     ETHOSDMValue=+self%transferFunctionCDM%value(wavenumber)
-    if (self%n_alpha > 0.0d0)                    &
-         & ETHOSDMValue=+ETHOSDMValue              &
-         &              *((                          &
-         &                  1.0d0                    &
-         &                 +                         &
-         &                  (                        &
-         &                   +self%n_alpha             &
-         &                   *wavenumber             &
-         &                  )**(self%n_beta)           &
-         &                )  **(self%n_gamma)          &
-	 &              - sqrt(self%h_peak)*exp(-.5d0*((wavenumber-self%k_peak)/(self%n_sigma*self%k_peak))**2.0d0) &
-         &              + .25d0*sqrt(self%h_2)*erfc((wavenumber - 1.805d0*self%k_peak)/(self%n_tau*self%k_peak)-2.0d0)  &
-	 &              * erf(-(wavenumber - 1.805d0*self%k_peak)/(self%n_sigma*self%k_peak)-2.0d0)               &   
-         &              * cos(1.1083d0*Pi*wavenumber/self%k_peak))
+    if (self%alpha > 0.0d0)                    &
+         & ETHOSDMValue=+ETHOSDMValue          &
+         &              *(                     &
+         &                +(                   &
+         &                  +1.0d0             &
+         &                  +(                 &
+         &                    +self%alpha      &
+         &                    *wavenumber      &
+         &                   )**self%beta      &
+         &                 )  **self%gamma     &
+	 &                -sqrt(self%hPeak)    &
+         &                *exp(                &
+         &                     -0.5d0          &
+         &                     *(              &
+         &                       +(            &
+         &                         +wavenumber &
+         &                         -self%kPeak &
+         &                        )            &
+         &                       /(            &
+         &                         +self%sigma &
+         &                         *self%kPeak &
+         &                        )            &
+         &                      )**2           &
+         &                    )                &
+         &                +0.25d0              &
+         &                *sqrt(self%h2)       &
+         &                *erfc(               &
+         &                      +(             &
+         &                        +wavenumber  &
+         &                        -1.805d0     &
+         &                        *self%kPeak  &
+         &                       )             &
+         &                      /(             &
+         &                        +self%tau    &
+         &                        *self%kPeak  &
+         &                       )             &
+         &                      -2.0d0         &
+         &                     )               &
+	 &                *erf(                &
+         &                     -(              &
+         &                       +wavenumber   &
+         &                       -1.805d0      &
+         &                       *self%kPeak   &
+         &                      )              &
+         &                     /(              &
+         &                       +self%sigma   &
+         &                       *self%kPeak   &
+         &                      )              &
+         &                     -2.0d0          &
+         &                    )                &                    
+         &                *cos(                &
+         &                     +1.1083d0       &
+         &                     *Pi             &
+         &                     *wavenumber     &
+         &                     /self%kPeak     &
+         &                    )                &
+         &               )
     return
   end function ETHOSDMValue
 
@@ -229,32 +259,223 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (transferFunctionETHOSDM), intent(inout) :: self
-    double precision                          , intent(in   ) :: wavenumber
+    double precision                         , intent(in   ) :: wavenumber
 
-    
     ETHOSDMLogarithmicDerivative=+self%transferFunctionCDM%logarithmicDerivative(wavenumber)
-    if (self%n_alpha > 0.0d0)                                       &
+    if (self%alpha > 0.0d0)                                                                   &
          & ETHOSDMLogarithmicDerivative=+ETHOSDMLogarithmicDerivative                         &
-         &                 +    (self%n_alpha*(wavenumber*self%n_alpha)**(-1 + self%n_beta)   &
-         &                 *    (1 + (wavenumber*self%n_alpha)**self%n_beta)**(-1 + self%n_gamma)*self%n_beta     &
-         &                 *    self%n_gamma + (Sqrt(self%h_peak)*(wavenumber - self%k_peak)) &
-         &                 /    (Exp((wavenumber - self%k_peak)**2                            &
-         &                 /    (2.*self%k_peak**2*self%n_sigma**2))*self%k_peak**2*self%n_sigma**2)             & 
-         &                 -    (Sqrt(self%h_2)*Cos((3.4818271379735677*wavenumber)/self%k_peak)                 &
-         &                 *    Erfc(-2 + (-wavenumber + 1.805*self%k_peak)/(self%k_peak*self%n_sigma)))         &
-         &                 /    (2.*Exp(-2 + (wavenumber - 1.805*self%k_peak)/(self%k_peak*self%n_tau))**2       &
-         &    *    self%k_peak *self%n_tau*Sqrt(Pi)) + (Sqrt(self%h_2)*Cos((3.4818271379735677*wavenumber)/self%k_peak) &    
-         &                 *    Erfc(-2 + (wavenumber - 1.805*self%k_peak)/(self%k_peak*self%n_tau)))            &
-         &    /    (2.*Exp(-2 + (-wavenumber + 1.805*self%k_peak)/(self%k_peak*self%n_sigma))**2*self%k_peak     &
-         &                 *    self%n_sigma*Sqrt(Pi))- (0.8704567844933919*Sqrt(self%h_2)                &
-         &                 *    Erfc(-2 + (-wavenumber + 1.805*self%k_peak)/(self%k_peak*self%n_sigma))          &
-         &                 *    Erfc(-2 + (wavenumber - 1.805*self%k_peak)/(self%k_peak*self%n_tau))             &
-         &                 *    Sin((3.4818271379735677*wavenumber)/self%k_peak))/self%k_peak)/(-(Sqrt(self%h_peak)  &
-         &                 /    Exp((wavenumber - self%k_peak)**2/(2.*self%k_peak**2*self%n_sigma**2))) + (1         &
-         &                 +    (wavenumber*self%n_alpha)**self%n_beta)**self%n_gamma + (Sqrt(self%h_2)              &
-         &                 *    Cos((3.4818271379735677*wavenumber)/self%k_peak)                             &
-         &                 *    Erfc(-2 + (-wavenumber + 1.805*self%k_peak)/(self%k_peak*self%n_sigma))            &
-         &                 *    Erfc(-2 + (wavenumber - 1.805*self%k_peak)/(self%k_peak*self%n_tau)))/4.)
+         &                              +(                                                    &
+         &                                +self%alpha                                         &
+         &                                *(                                                  &
+         &                                  +wavenumber                                       &
+         &                                  *self%alpha                                       &
+         &                                 )**(-1.0d0+self%beta)                              &
+         &                                *(                                                  &
+         &                                  +1.0d0                                            &
+         &                                  +(                                                &
+         &                                    +wavenumber                                     &
+         &                                    *self%alpha                                     &
+         &                                   )**self%beta                                     &
+         &                                 )**(-1.0d0+self%gamma)                             &
+         &                                *self%beta                                          &
+         &                                *self%gamma                                         &
+         &                                +(                                                  &
+         &                                  +sqrt(self%hPeak)                                 &
+         &                                  *(                                                &
+         &                                    +wavenumber                                     &
+         &                                    -self%kPeak                                     &
+         &                                   )                                                &
+         &                                 )                                                  &
+         &                                /(                                                  &
+         &                                  +exp(                                             &
+         &                                       +(                                           &
+         &                                         +wavenumber                                &
+         &                                         -self%kPeak                                &
+         &                                        )**2                                        &
+         &                                       /(                                           &
+         &                                         +2.0d0                                     &
+         &                                         *self%kPeak**2                             &
+         &                                         *self%sigma**2                             &
+         &                                        )                                           &
+         &                                      )                                             &
+         &                                  *self%kPeak**2                                    &
+         &                                  *self%sigma**2                                    &
+         &                                 )                                                  &
+         &                                -(                                                  &
+         &                                  +sqrt(self%h2)                                    &
+         &                                  *cos (                                            &
+         &                                        +(                                          &
+         &                                          +3.4818271379735677d0                     &
+         &                                          *wavenumber                               &
+         &                                         )                                          &
+         &                                        /self%kPeak                                 &
+         &                                       )                                            &
+         &                                  *erfc(                                            &
+         &                                        -2.0d0                                      &
+         &                                        +(                                          &
+         &                                          -wavenumber                               &
+         &                                          +1.805d0                                  &
+         &                                          *self%kPeak                               &
+         &                                         )                                          &
+         &                                        /(                                          &
+         &                                          +self%kPeak                               &
+         &                                          *self%sigma                               &
+         &                                         )                                          &
+         &                                       )                                            &
+         &                                 )                                                  &
+         &                                /(                                                  &
+         &                                  +2.0d0                                            &
+         &                                  *exp(                                             &
+         &                                       -2.0d0                                       &
+         &                                       +(                                           &
+         &                                         +wavenumber                                &
+         &                                         -1.805d0                                   &
+         &                                         *self%kPeak                                &
+         &                                        )                                           &
+         &                                       /(                                           &
+         &                                         +self%kPeak                                &
+         &                                         *self%tau                                  &
+         &                                        )                                           &
+         &                                      )**2                                          &
+         &                                  *self%kPeak                                       &
+         &                                  *self%tau                                         &
+         &                                  *sqrt(Pi)                                         &
+         &                                 )                                                  &
+         &                                +(                                                  &
+         &                                  +sqrt(self%h2)                                    &
+         &                                  *cos (                                            &
+         &                                        +(                                          &
+         &                                          +3.4818271379735677d0                     &
+         &                                          *wavenumber                               &
+         &                                         )                                          &
+         &                                        /self%kPeak                                 &
+         &                                       )                                            &
+         &                                  *erfc(                                            &
+         &                                        -2.0d0                                      &
+         &                                        +(                                          &
+         &                                          +wavenumber                               &
+         &                                          -1.805d0                                  &
+         &                                          *self%kPeak                               &
+         &                                         )                                          &
+         &                                        /(                                          &
+         &                                          +self%kPeak                               &
+         &                                          *self%tau                                 &
+         &                                         )                                          &
+         &                                       )                                            &
+         &                                 )                                                  &
+         &                                /(                                                  &
+         &                                  +2.0d0                                            &
+         &                                  *exp(                                             &
+         &                                       -2.0d0                                       &
+         &                                       +(                                           &
+         &                                         -wavenumber                                &
+         &                                         +1.805d0                                   &
+         &                                         *self%kPeak                                &
+         &                                        )                                           &
+         &                                       /(                                           &
+         &                                         +self%kPeak                                &
+         &                                         *self%sigma                                &
+         &                                        )                                           &
+         &                                      )**2                                          &
+         &                                  *self%kPeak                                       &
+         &                                  *self%sigma                                       &
+         &                                  *sqrt(Pi)                                         &
+         &                                 )                                                  &
+         &                                -(                                                  &
+         &                                  +0.8704567844933919d0                             &
+         &                                  *sqrt(self%h2)                                    &
+         &                                  *erfc(                                            &
+         &                                        -2.0d0                                      &
+         &                                        +(                                          &
+         &                                          -wavenumber                               &
+         &                                          +1.805d0                                  &
+         &                                          *self%kPeak                               &
+         &                                         )                                          &
+         &                                        /(                                          &
+         &                                          +self%kPeak                               &
+         &                                          *self%sigma                               &
+         &                                         )                                          &
+         &                                       )                                            &
+         &                                  *erfc(                                            &
+         &                                        -2.0d0                                      &
+         &                                        +(                                          &
+         &                                          +wavenumber                               &
+         &                                          -1.805d0                                  &
+         &                                          *self%kPeak                               &
+         &                                         )                                          &
+         &                                        /(                                          &
+         &                                          +self%kPeak                               &
+         &                                          *self%tau                                 &
+         &                                         )                                          &
+         &                                       )                                            &
+         &                                  *sin (                                            &
+         &                                        +(                                          &
+         &                                          +3.4818271379735677d0                     &
+         &                                          *wavenumber                               &
+         &                                         )                                          &
+         &                                        /self%kPeak                                 &
+         &                                       )                                            &
+         &                                 )                                                  &
+         &                                /self%kPeak                                         &
+         &                               )                                                    &
+         &                              /(                                                    &
+         &                                -(                                                  &
+         &                                  +sqrt(self%hPeak)                                 &
+         &                                  /exp (                                            &
+         &                                        +(                                          &
+         &                                          +wavenumber                               &
+         &                                          -self%kPeak                               &
+         &                                         )**2                                       &
+         &                                        /(                                          &
+         &                                          +2.0d0                                    &
+         &                                          *self%kPeak**2                            &
+         &                                          *self%sigma**2                            &
+         &                                         )                                          &
+         &                                       )                                            &
+         &                                 )                                                  &
+         &                                +(                                                  &
+         &                                  +1.0d0                                            &
+         &                                  +(                                                &
+         &                                    +wavenumber                                     &
+         &                                    *self%alpha                                     &
+         &                                   )**self%beta                                     &
+         &                                 )**self%gamma                                      &
+         &                                +(                                                  &
+         &                                  +sqrt(self%h2)                                    &
+         &                                  *cos (                                            &
+         &                                        +(                                          &
+         &                                          +3.4818271379735677                       &
+         &                                          *wavenumber                               &
+         &                                         )                                          &
+         &                                        /self%kPeak                                 &
+         &                                       )                                            &
+         &                                  *erfc(                                            &
+         &                                        -2.0d0                                      &
+         &                                        +(                                          &
+         &                                          -wavenumber                               &
+         &                                          +1.805d0                                  &
+         &                                          *self%kPeak                               &
+         &                                         )                                          &
+         &                                        /(                                          &
+         &                                          +self%kPeak                               &
+         &                                          *self%sigma                               &
+         &                                         )                                          &
+         &                                       )                                            &
+         &                                  *erfc(                                            &
+         &                                        -2.0d0                                      &
+         &                                        +(                                          &
+         &                                          +wavenumber                               &
+         &                                          -1.805d0                                  &
+         &                                          *self%kPeak                               &
+         &                                         )                                          &
+         &                                        /(                                          &
+         &                                          +self%kPeak                               &
+         &                                          *self%tau                                 &
+         &                                         )                                          &
+         &                                       )                                            &
+         &                                 )                                                  &
+         &                                /4.0d0                                              &
+         &                               )
     return
   end function ETHOSDMLogarithmicDerivative
 
@@ -264,22 +485,21 @@ contains
     use :: Galacticus_Error        , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (transferFunctionETHOSDM), intent(inout)            :: self
-    integer                                   , intent(  out), optional :: status
-    double precision                          , parameter               :: wavenumberHalfModeScaleFree=sqrt(0.25d0+2.0d0*log(2.0d0))-0.5d0
-    double precision                                                    :: matterDensity                                                  , wavenumberHalfMode
+    class           (transferFunctionETHOSDM), intent(inout)           :: self
+    integer                                  , intent(  out), optional :: status
+    double precision                                                   :: matterDensity, wavenumberHalfMode
 
     matterDensity       =+self%cosmologyParameters_%OmegaMatter    () &
          &               *self%cosmologyParameters_%densityCritical()
-    wavenumberHalfMode  =+self%k_peak/2.5d0
-    ETHOSDMHalfModeMass=+4.0d0              &
-         &               *Pi                   &
-         &               /3.0d0                &
-         &               *matterDensity        &
-         &               *(                    &
-         &                 +Pi                 &
-         &                 /wavenumberHalfMode &
-         &               )**3
+    wavenumberHalfMode  =+self%kPeak/2.5d0
+    ETHOSDMHalfModeMass=+4.0d0                &
+         &              *Pi                   &
+         &              /3.0d0                &
+         &              *matterDensity        &
+         &              *(                    &
+         &                +Pi                 &
+         &                /wavenumberHalfMode &
+         &              )**3
     if (present(status)) status=errorStatusSuccess
     return
   end function ETHOSDMHalfModeMass

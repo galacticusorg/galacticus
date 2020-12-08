@@ -17,72 +17,66 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a transfer function class based on the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.
+  !% Contains a module which implements a transfer function class based on the fuzzy dark matter modifier of \cite{hu_fuzzy_2000}.
 
-  use :: Cosmology_Functions  , only : cosmologyFunctionsClass
-  use :: Cosmology_Parameters , only : cosmologyParametersClass
-  use :: Dark_Matter_Particles, only : darkMatterParticleClass
+  use :: Cosmology_Functions , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
 
-  !# <transferFunction name="transferFunctionHu2008fuzzy">
-  !#  <description>Provides a transfer function based on the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.</description>
+  !# <transferFunction name="transferFunctionHu2008Fuzzy">
+  !#  <description>Provides a transfer function based on the fuzzy dark matter modifier of \cite{hu_fuzzy_2000}.</description>
   !# </transferFunction>
-  type, extends(transferFunctionClass) :: transferFunctionHu2008fuzzy
-     !% A transfer function class which modifies another transfer function using the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.
+  type, extends(transferFunctionClass) :: transferFunctionHu2008Fuzzy
+     !% A transfer function class which modifies another transfer function using the fuzzy dark matter modifier of
+     !% \cite{hu_fuzzy_2000}.
      private
-     double precision                                    :: m_22                         , n_beta        , &
-          &                                                 n_gamma                         ,  &
-          &                                                 time                          , redshift
+     double precision                                    :: m22                           , time, &
+          &                                                 redshift
      class           (transferFunctionClass   ), pointer :: transferFunctionCDM  => null()
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
-     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
    contains
-     final     ::                          Hu2008fuzzyDestructor
-     procedure :: value                 => Hu2008fuzzyValue
-     procedure :: logarithmicDerivative => Hu2008fuzzyLogarithmicDerivative
-     procedure :: halfModeMass          => Hu2008fuzzyHalfModeMass
-     procedure :: epochTime             => Hu2008fuzzyEpochTime
-  end type transferFunctionHu2008fuzzy
+     final     ::                          hu2008FuzzyDestructor
+     procedure :: value                 => hu2008FuzzyValue
+     procedure :: logarithmicDerivative => hu2008FuzzyLogarithmicDerivative
+     procedure :: halfModeMass          => hu2008FuzzyHalfModeMass
+     procedure :: epochTime             => hu2008FuzzyEpochTime
+  end type transferFunctionHu2008Fuzzy
 
-  interface transferFunctionHu2008fuzzy
+  interface transferFunctionHu2008Fuzzy
      !% Constructors for the {\normalfont \ttfamily bode2001} transfer function class.
-     module procedure Hu2008fuzzyConstructorParameters
-     module procedure Hu2008fuzzyConstructorInternal
-  end interface transferFunctionHu2008fuzzy
+     module procedure hu2008FuzzyConstructorParameters
+     module procedure hu2008FuzzyConstructorInternal
+  end interface transferFunctionHu2008Fuzzy
 
 contains
 
-  function Hu2008fuzzyConstructorParameters(parameters) result(self)
+  function hu2008FuzzyConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily bode2001} transfer function class which takes a parameter set as input.
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
     use :: Galacticus_Error              , only : Galacticus_Error_Report
     use :: Input_Parameters              , only : inputParameter            , inputParameters
     implicit none
-    type            (transferFunctionHu2008fuzzy)                :: self
-    type            (inputParameters         ), intent(inout) :: parameters
-    class           (transferFunctionClass   ), pointer       :: transferFunctionCDM
-    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
-    class           (darkMatterParticleClass ), pointer       :: darkMatterParticle_
-    double precision                                          :: m_22             , n_beta     , &
-         &                                                       n_gamma                  , redshift
+    type            (transferFunctionHu2008Fuzzy)                :: self
+    type            (inputParameters            ), intent(inout) :: parameters
+    class           (transferFunctionClass      ), pointer       :: transferFunctionCDM
+    class           (cosmologyParametersClass   ), pointer       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass    ), pointer       :: cosmologyFunctions_
+    double precision                                             :: m22                 , redshift
 
     ! Validate parameters.
     if (.not.parameters%isPresent('transferFunctionMethod')) call Galacticus_Error_Report("an explicit 'transferFunctionMethod' must be given"//{introspection:location})
     ! Read parameters.
     !# <inputParameter>
-    !#   <name>m_22</name>
+    !#   <name>m22</name>
     !#   <source>parameters</source>
     !#   <defaultValue>40.0d0</defaultValue>
-    !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
     !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     !# <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
     !# <inputParameter>
     !#   <name>redshift</name>
@@ -92,109 +86,124 @@ contains
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-     self=transferFunctionHu2008fuzzy(transferFunctionCDM,m_22,n_beta,n_gamma,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_)
+     self=transferFunctionHu2008Fuzzy(transferFunctionCDM,m22,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="cosmologyFunctions_" />
-    !# <objectDestructor name="darkMatterParticle_" />
     !# <objectDestructor name="transferFunctionCDM" />
     return
-  end function Hu2008fuzzyConstructorParameters
+  end function hu2008FuzzyConstructorParameters
 
-  function Hu2008fuzzyConstructorInternal(transferFunctionCDM,m_22,n_beta,n_gamma,time,cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_) result(self)
+  function hu2008FuzzyConstructorInternal(transferFunctionCDM,m22,time,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily bode2001} transfer function class.
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
-    use :: Dark_Matter_Particles, only : darkMatterParticleWDMThermal
     use :: Galacticus_Error     , only : Galacticus_Error_Report
     implicit none
-    type            (transferFunctionHu2008fuzzy)                         :: self
-    class           (transferFunctionClass   ), target, intent(in   ) :: transferFunctionCDM
-    double precision                                  , intent(in   ) :: m_22                   , n_beta                            , &
-         &                                                               n_gamma                        , time
-    class           (cosmologyParametersClass), target, intent(in   ) :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), target, intent(in   ) :: cosmologyFunctions_
-    class           (darkMatterParticleClass ), target, intent(in   ) :: darkMatterParticle_
-    double precision                          , parameter             :: massReference       =1.0d0, degreesOfFreedomReference=1.5d0
-    !# <constructorAssign variables="*transferFunctionCDM, m_22, n_beta, n_gamma, time, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterParticle_"/>
+    type            (transferFunctionHu2008Fuzzy)                        :: self
+    class           (transferFunctionClass      ), target, intent(in   ) :: transferFunctionCDM
+    double precision                                     , intent(in   ) :: m22                 , time
+    class           (cosmologyParametersClass   ), target, intent(in   ) :: cosmologyParameters_
+    class           (cosmologyFunctionsClass    ), target, intent(in   ) :: cosmologyFunctions_
+    !# <constructorAssign variables="*transferFunctionCDM, m22, time, *cosmologyParameters_, *cosmologyFunctions_"/>
 
     self%redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
-    
     return
-  end function Hu2008fuzzyConstructorInternal
+  end function hu2008FuzzyConstructorInternal
 
-  subroutine Hu2008fuzzyDestructor(self)
+  subroutine hu2008FuzzyDestructor(self)
     !% Destructor for the {\normalfont \ttfamily bode2001} transfer function class.
     implicit none
-    type(transferFunctionHu2008fuzzy), intent(inout) :: self
+    type(transferFunctionHu2008Fuzzy), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%darkMatterParticle_" />
     !# <objectDestructor name="self%transferFunctionCDM" />
     return
-  end subroutine Hu2008fuzzyDestructor
+  end subroutine hu2008FuzzyDestructor
 
-  double precision function Hu2008fuzzyValue(self,wavenumber)
+  double precision function hu2008FuzzyValue(self,wavenumber)
     !% Return the transfer function at the given wavenumber.
     implicit none
-    class           (transferFunctionHu2008fuzzy), intent(inout) :: self
-    double precision                          , intent(in   ) :: wavenumber
-    double precision                                          :: x
+    class           (transferFunctionHu2008Fuzzy), intent(inout) :: self
+    double precision                             , intent(in   ) :: wavenumber
+    double precision                                             :: x
 			      
-    Hu2008fuzzyValue=+self%transferFunctionCDM%value(wavenumber)
-    x                = (1.61d0/9.00d0)*(self%m_22**(-4.0d0/9.0d0))*wavenumber
-
-    Hu2008fuzzyValue       =+Hu2008fuzzyValue    &
-         &                         *(            &
-         &             cos(x**3)/(1+x**8))   
+    hu2008FuzzyValue=+self%transferFunctionCDM%value(wavenumber)
+    x               =+1.61d0                     &
+         &           /9.00d0                     &
+         &           *self%m22  **(-4.0d0/9.0d0) &
+         &           *wavenumber
+    hu2008FuzzyValue =+hu2008FuzzyValue &
+         &            *(                &
+         &              +cos(x**3)      &
+         &              /(              &
+         &                +1.0d0        &
+         &                +x**8         &
+         &               )              &
+         &             )   
     return
-  end function Hu2008fuzzyValue
+  end function hu2008FuzzyValue
 
-  double precision function Hu2008fuzzyLogarithmicDerivative(self,wavenumber)
+  double precision function hu2008FuzzyLogarithmicDerivative(self,wavenumber)
     !% Return the logarithmic derivative of the transfer function at the given wavenumber.
     implicit none
-    class           (transferFunctionHu2008fuzzy), intent(inout) :: self
-    double precision                          , intent(in   ) :: wavenumber
-    double precision                                          :: x
+    class           (transferFunctionHu2008Fuzzy), intent(inout) :: self
+    double precision                             , intent(in   ) :: wavenumber
+    double precision                                             :: x
 
-    Hu2008fuzzyLogarithmicDerivative=+self%transferFunctionCDM%logarithmicDerivative(wavenumber)
-    x                = (1.61d0/9.00d0)*(self%m_22**(-4.0d0/9.0d0))*wavenumber
+    hu2008FuzzyLogarithmicDerivative=+self%transferFunctionCDM%logarithmicDerivative(wavenumber)
+    x                               =+1.61d0                           &
+         &                           /9.00d0                           &
+         &                           *self%m22**(-4.0d0/9.0d0)         &
+         &                           *wavenumber
+    hu2008FuzzyLogarithmicDerivative=+hu2008FuzzyLogarithmicDerivative &
+         &                           +(                                &
+         &                             -8.0d0                          &
+         &                             *    x** 7                      &
+         &                             -3.0d0                          &
+         &                             *(                              &
+         &                               +  x**10                      &
+         &                               +  x** 2                      &
+         &                              )                              &
+         &                             *tan(x** 3)                     &
+         &                            )                                &
+         &                           /(                                &
+         &                             +1.0d0                          &
+         &                             +    x** 8                      &
+         &                            )
+    return
+  end function hu2008FuzzyLogarithmicDerivative
 
-    Hu2008fuzzyLogarithmicDerivative = Hu2008fuzzyLogarithmicDerivative + (-8.0d0*x**7 - 3*(x**10 + x**2)*tan(x**3))  / (1+x**8)                    
-  end function Hu2008fuzzyLogarithmicDerivative
-
-  double precision function Hu2008fuzzyHalfModeMass(self,status)
+  double precision function hu2008FuzzyHalfModeMass(self,status)
     !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     !% to a \gls{cdm} transfer function.
     use :: Galacticus_Error        , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (transferFunctionHu2008fuzzy), intent(inout)            :: self
-    integer                                   , intent(  out), optional :: status
-    double precision                          , parameter               :: wavenumberHalfModeScaleFree=sqrt(0.25d0+2.0d0*log(2.0d0))-0.5d0
-    double precision                                                    :: matterDensity                                                  , wavenumberHalfMode
+    class           (transferFunctionHu2008Fuzzy), intent(inout)           :: self
+    integer                                      , intent(  out), optional :: status
+    double precision                                                       :: matterDensity, wavenumberHalfMode
 
-    matterDensity       =+self%cosmologyParameters_%OmegaMatter    () &
-         &               *self%cosmologyParameters_%densityCritical()
-
-    wavenumberHalfMode  = 4.5*self%m_22**(4.0d0/9.0d0)
-                        
-    Hu2008fuzzyHalfModeMass=+4.0d0              &
-         &               *Pi                   &
-         &               /3.0d0                &
-         &               *matterDensity        &
-         &               *(                    &
-         &                 +Pi                 &
-         &                 /wavenumberHalfMode &
-         &               )**3
+    matterDensity          =+self%cosmologyParameters_%OmegaMatter    () &
+         &                  *self%cosmologyParameters_%densityCritical()
+    wavenumberHalfMode     =+4.5d0                   &
+         &                  *self%m22**(4.0d0/9.0d0)
+    hu2008FuzzyHalfModeMass=+4.0d0                &
+         &                  *Pi                   &
+         &                  /3.0d0                &
+         &                  *matterDensity        &
+         &                  *(                    &
+         &                    +Pi                 &
+         &                    /wavenumberHalfMode &
+         &                  )**3
     if (present(status)) status=errorStatusSuccess
     return
-  end function Hu2008fuzzyHalfModeMass
+  end function hu2008FuzzyHalfModeMass
 
-  double precision function Hu2008fuzzyEpochTime(self)
+  double precision function hu2008FuzzyEpochTime(self)
     !% Return the cosmic time at the epoch at which this transfer function is defined.
     implicit none
-    class(transferFunctionHu2008fuzzy), intent(inout) :: self
+    class(transferFunctionHu2008Fuzzy), intent(inout) :: self
 
-    Hu2008fuzzyEpochTime=self%time
+    hu2008FuzzyEpochTime=self%time
     return
-  end function Hu2008fuzzyEpochTime
+  end function hu2008FuzzyEpochTime
