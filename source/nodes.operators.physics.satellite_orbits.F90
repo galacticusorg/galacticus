@@ -49,7 +49,7 @@ contains
   end function satelliteOrbitConstructorParameters
   
   subroutine satelliteOrbitDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Perform deceleration of a satellite due to dark matter self-interactions.
+    !% Perform evolution of a satellite orbit due to its velocity and the acceleration of its host's potential.
     use :: Galacticus_Nodes                  , only : nodeComponentSatellite
     use :: Galactic_Structure_Accelerations  , only : Galactic_Structure_Acceleration
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
@@ -65,9 +65,10 @@ contains
     integer                                     , intent(in   )          :: propertyType
     type            (treeNode                  ), pointer                :: nodeHost
     class           (nodeComponentSatellite    )               , pointer :: satellite
-    double precision                            , dimension(3)           :: position         , velocity, &
+    double precision                            , dimension(3)           :: position         , velocity             , &
          &                                                                  acceleration
-    double precision                                                     :: massEnclosed     , radius
+    double precision                                                     :: massEnclosedHost , massEnclosedSatellite, &
+         &                                                                  radius
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
 
     if (.not.node%isSatellite()) return
@@ -83,18 +84,19 @@ contains
          &                      *velocity   &
          &                     )
     if (radius <= 0.0d0) return ! If radius is non-positive, assume no acceleration.
-    massEnclosed=Galactic_Structure_Enclosed_Mass(nodeHost,radius  )
-    acceleration=Galactic_Structure_Acceleration (nodeHost,position)           
+    massEnclosedSatellite=Galactic_Structure_Enclosed_Mass(node    ,radius  )
+    massEnclosedHost     =Galactic_Structure_Enclosed_Mass(nodeHost,radius  )
+    acceleration         =Galactic_Structure_Acceleration (nodeHost,position)
     ! Include a factor (1+m_{sat}/m_{host})=m_{sat}/µ (where µ is the reduced mass) to convert from the two-body problem of
     ! satellite and host orbitting their common center of mass to the equivalent one-body problem (since we're solving for the
     ! motion of the satellite relative to the center of the host which is held fixed).
-    call satellite%velocityRate(                            &
-         &                      +acceleration               &
-         &                      *(                          &
-         &                        +1.0d0                    &
-         &                        +satellite%boundMass   () &
-         &                        /          massEnclosed   &
-         &                      )                           &
+    call satellite%velocityRate(                         &
+         &                      +acceleration            &
+         &                      *(                       &
+         &                        +1.0d0                 &
+         &                        +massEnclosedSatellite &
+         &                        /massEnclosedHost      &
+         &                      )                        &
          &                     )
     return
   end subroutine satelliteOrbitDifferentialEvolution
