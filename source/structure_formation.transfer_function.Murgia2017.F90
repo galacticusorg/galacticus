@@ -72,7 +72,7 @@ contains
     !#   <name>alpha</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.0075d0</defaultValue>
-    !#   <description>The parameter $\alpha appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>The parameter $\alpha$ appearing in the warm dark matter transfer function \citep{murgia_non-cold_2017}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -80,7 +80,7 @@ contains
     !#   <name>beta</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.5d0</defaultValue>
-    !#   <description>The parameter $\beta appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>The parameter $\beta$ appearing in the warm dark matter transfer function \citep{murgia_non-cold_2017}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -88,7 +88,7 @@ contains
     !#   <name>gamma</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-10.0d0</defaultValue>
-    !#   <description>The parameter $\gamma appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>The parameter $\gamma$ appearing in the warm dark matter transfer function \citep{murgia_non-cold_2017}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>

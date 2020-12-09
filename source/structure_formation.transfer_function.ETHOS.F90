@@ -77,7 +77,7 @@ contains
     !#   <name>alpha</name>
     !#   <source>parameters</source>
     !#   <defaultValue>40.0d0</defaultValue>
-    !#   <description>The parameter $\alpha appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+    !#   <description>The parameter $\alpha$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -85,55 +85,55 @@ contains
     !#   <name>beta</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.5d0</defaultValue>
-    !#   <description>The parameter $\beta appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+    !#   <description>The parameter $\beta$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gamma</name>
     !#   <source>parameters</source>
-    !#   <defaultValue>-10d0</defaultValue>
-    !#   <description>The parameter $\gamma appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+    !#   <defaultValue>-10.0d0</defaultValue>
+    !#   <description>The parameter $\gamma$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sigma</name>
     !#   <source>parameters</source>
-    !#   <defaultValue>-10d0</defaultValue>
-    !#   <description>The parameter $\sigma appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+    !#   <defaultValue>-10.0d0</defaultValue>
+    !#   <description>The parameter $\sigma$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>tau</name>
     !#   <source>parameters</source>
-    !#   <defaultValue>-10d0</defaultValue>
-    !#   <description>The parameter $\tau appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+    !#   <defaultValue>-10.0d0</defaultValue>
+    !#   <description>The parameter $\tau$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>kPeak</name>
     !#   <source>parameters</source>
-    !#   <defaultValue>-10d0</defaultValue>
-    !#   <description>The parameter $\k_\mathrm{peak}$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+    !#   <defaultValue>-10.0d0</defaultValue>
+    !#   <description>The parameter $k_\mathrm{peak}$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>hPeak</name>
     !#   <source>parameters</source>
-    !#   <defaultValue>-10d0</defaultValue>
-    !#   <description>The parameter $\h_\mathrm{peak}$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+    !#   <defaultValue>-10.0d0</defaultValue>
+    !#   <description>The parameter $h_\mathrm{peak}$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>h2</name>
     !#   <source>parameters</source>
-    !#   <defaultValue>-10d0</defaultValue>
-    !#   <description>The parameter $\h2$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+    !#   <defaultValue>-10.0d0</defaultValue>
+    !#   <description>The parameter $h_2$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
