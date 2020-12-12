@@ -71,7 +71,7 @@ contains
     !#   <name>m22</name>
     !#   <source>parameters</source>
     !#   <defaultValue>40.0d0</defaultValue>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>Dark matter particle mass in units of $10^{-22}$~eV.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -93,7 +93,7 @@ contains
     !# <objectDestructor name="transferFunctionCDM" />
     return
   end function hu2008FuzzyConstructorParameters
-
+  
   function hu2008FuzzyConstructorInternal(transferFunctionCDM,m22,time,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily bode2001} transfer function class.
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH

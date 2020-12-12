@@ -101,7 +101,7 @@ contains
     !#   <name>sigma</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-10.0d0</defaultValue>
-    !#   <description>The parameter $\sigma$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+    !#   <description>The parameter $\sigma$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}, determines width of first peak in transfer function.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -109,7 +109,7 @@ contains
     !#   <name>tau</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-10.0d0</defaultValue>
-    !#   <description>The parameter $\tau$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+    !#   <description>The parameter $\tau$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}, determines damping of DAO.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -117,7 +117,7 @@ contains
     !#   <name>kPeak</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-10.0d0</defaultValue>
-    !#   <description>The parameter $k_\mathrm{peak}$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+    !#   <description>The parameter $k_\mathrm{peak}$, the wavenumber of first peak in ETHOS transfer function, apearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -125,7 +125,7 @@ contains
     !#   <name>hPeak</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-10.0d0</defaultValue>
-    !#   <description>The parameter $h_\mathrm{peak}$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+    !#   <description>The parameter $h_\mathrm{peak}$, the amplitude of the first peak, appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -133,7 +133,7 @@ contains
     !#   <name>h2</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-10.0d0</defaultValue>
-    !#   <description>The parameter $h_2$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+    !#   <description>The parameter $h_2$, the amplitude of the second peak, appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -204,7 +204,7 @@ contains
          &                    *wavenumber      &
          &                   )**self%beta      &
          &                 )  **self%gamma     &
-	 &                -sqrt(self%hPeak)    &
+	       &                -sqrt(self%hPeak)    &
          &                *exp(                &
          &                     -0.5d0          &
          &                     *(              &
@@ -232,7 +232,7 @@ contains
          &                       )             &
          &                      -2.0d0         &
          &                     )               &
-	 &                *erf(                &
+	       &                *erf(                &
          &                     -(              &
          &                       +wavenumber   &
          &                       -1.805d0      &

@@ -120,8 +120,7 @@ contains
   end function ETHOSValue
 
   double precision function ETHOSWavenumberMaximum(self,smoothingMass)
-    !% Maximum wavenumber for a top hat in real space window function Fourier transformed into $k$-space used in computing the
-    !% variance of the power spectrum.
+    !% Sets maximum wavenumber to effectively infinity (really large number)
     implicit none
     class           (powerSpectrumWindowFunctionETHOS), intent(inout) :: self
     double precision                                  , intent(in   ) :: smoothingMass

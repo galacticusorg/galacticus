@@ -27,8 +27,8 @@
      !% A transfer function class for fuzzy dark matter using the fitting function of \cite{murgia_non-cold_2017}.
      private
      double precision :: m22
-   end type transferFunctionFuzzyDM
-
+  end type transferFunctionFuzzyDM
+   
   interface transferFunctionFuzzyDM
      !% Constructors for the {\normalfont \ttfamily fuzzyDM} transfer function class.
      module procedure fuzzyDMConstructorParameters
@@ -66,7 +66,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>5.475d0</defaultValue>
     !#   <defaultSource>\citep[][average of values in Table~4]{murgia_non-cold_2017}</defaultSource>
-    !#   <description>The parameter $\beta$ appearing in the transfer function \citep{murgia_non-cold_2017}.</description>
+    !#   <description>The parameter $\beta$, which controls the shape of the cut-off, appearing in the transfer function \citep{murgia_non-cold_2017}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -75,7 +75,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>-2.0d0</defaultValue>
     !#   <defaultSource>\citep[][average of values in Table~4]{murgia_non-cold_2017}</defaultSource>
-    !#   <description>The parameter $\gamma$ appearing in the transfer function \citep{murgia_non-cold_2017}.</description>
+    !#   <description>The parameter $\gamma$, which controls the shape of the cut-off, appearing in the transfer function \citep{murgia_non-cold_2017}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -115,3 +115,4 @@ contains
     self%transferFunctionMurgia2017=transferFunctionMurgia2017(transferFunctionCDM,alpha,beta,gamma,time,cosmologyParameters_,cosmologyFunctions_)
     return
   end function fuzzyDMConstructorInternal
+

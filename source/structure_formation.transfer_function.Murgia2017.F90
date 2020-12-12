@@ -51,7 +51,7 @@
 
 contains
 
-  function murgia2017ConstructorParameters(parameters) result(self)
+function murgia2017ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily murgia2017} transfer function class which takes a parameter set as input.
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
@@ -72,7 +72,7 @@ contains
     !#   <name>alpha</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.0075d0</defaultValue>
-    !#   <description>The parameter $\alpha$ appearing in the warm dark matter transfer function \citep{murgia_non-cold_2017}.</description>
+    !#   <description>The parameter $\alpha$, which sets the cut-off scale length, appearing in the warm dark matter transfer function \citep{murgia_non-cold_2017}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -80,7 +80,7 @@ contains
     !#   <name>beta</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.5d0</defaultValue>
-    !#   <description>The parameter $\beta$ appearing in the warm dark matter transfer function \citep{murgia_non-cold_2017}.</description>
+    !#   <description>The parameter $\beta$, which controls the shape of the cut-off, appearing in the warm dark matter transfer function \citep{murgia_non-cold_2017}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -88,7 +88,7 @@ contains
     !#   <name>gamma</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-10.0d0</defaultValue>
-    !#   <description>The parameter $\gamma$ appearing in the warm dark matter transfer function \citep{murgia_non-cold_2017}.</description>
+    !#   <description>The parameter $\gamma$, which controls the shape of the cut-off, appearing in the warm dark matter transfer function \citep{murgia_non-cold_2017}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -103,7 +103,7 @@ contains
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-     self=transferFunctionmurgia2017(transferFunctionCDM,alpha,beta,gamma,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_)
+    self=transferFunctionmurgia2017(transferFunctionCDM,alpha,beta,gamma,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="cosmologyFunctions_" />
