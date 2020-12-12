@@ -1139,19 +1139,24 @@ contains
   subroutine standardMerge(self,node)
     !% Handles instances where {\normalfont \ttfamily node} is about to merge with its parent node.
     use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
+    use :: Galacticus_Nodes  , only : nodeComponentBasic
     use :: String_Handling   , only : operator(//)
     !# <include directive="nodeMergerTask" type="moduleUse">
     include 'events.node_mergers.process.modules.inc'
     !# </include>
     implicit none
-    class(mergerTreeNodeEvolverStandard), intent(inout)          :: self
-    type (treeNode                     ), intent(inout), pointer :: node
-    type (varying_string               )                         :: message
+    class    (mergerTreeNodeEvolverStandard), intent(inout)          :: self
+    type     (treeNode                     ), intent(inout), pointer :: node
+    class    (nodeComponentBasic           )               , pointer :: basic
+    type     (varying_string               )                         :: message
+    character(len=7                        )                         :: label
 
     ! Display a message.
     if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+       basic => node%basic()
+       write (label,'(f7.4)') basic%time()
        message='Making node '
-       message=message//node%index()//' a satellite in '//node%parent%index()
+       message=message//node%index()//' a satellite in '//node%parent%index()//' at time '//trim(adjustl(label))//' Gyr'
        call Galacticus_Display_Message(message,verbosityInfo)
     end if
     ! Call subroutines to perform any necessary processing prior to this node merger event.

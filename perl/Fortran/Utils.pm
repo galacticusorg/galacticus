@@ -750,6 +750,8 @@ sub Extract_Variables {
 		unless ( defined($prefix) );
 	    $variableList = $prefix.$remainder;
 	} else {
+	    die("failed to remove bracketed text in '".$variableList."'")
+		unless ( defined($extracted) );
 	    $extracted =~ s/\(/\%\%OPEN\%\%/g;
 	    $extracted =~ s/\)/\%\%CLOSE\%\%/g;
 	    $extracted =~ s/\[/\%\%OPENSQ\%\%/g;

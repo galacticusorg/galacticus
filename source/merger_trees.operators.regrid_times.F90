@@ -94,9 +94,9 @@ contains
     class           (linearGrowthClass            ), pointer                     :: linearGrowth_
     double precision                               , allocatable  , dimension(:) :: snapshotTimes
     logical                                                                      :: dumpTrees
-    integer                                                                      :: regridCount                     , snapshotSpacing   , &
+    integer                                                                      :: regridCount          , snapshotSpacing   , &
          &                                                                          iTime
-    double precision                                                             :: expansionFactorStart            , expansionFactorEnd, &
+    double precision                                                             :: expansionFactorStart , expansionFactorEnd, &
          &                                                                          snapTolerance
     type            (varying_string               )                              :: snapshotSpacingText
 
@@ -222,7 +222,7 @@ contains
        ! snapshots as reported by the Millennium Database using query: "select z from Snapshots..MR".
        ! Check for consistent number of timesteps.
        if (regridCount /= 60) call Galacticus_Error_Report('"millennium" grid spacing requires exactly 60 timesteps'//{introspection:location})
-       ! Convert expansion factors to time.
+       ! Convert redshifts to time.
        self%timeGrid=[                                                                         &
             &         19.915688d0,18.243723d0,16.724525d0,15.343073d0,14.085914d0,12.940780d0, &
             &         11.896569d0,10.943864d0,10.073462d0, 9.277915d0, 8.549912d0, 7.883204d0, &

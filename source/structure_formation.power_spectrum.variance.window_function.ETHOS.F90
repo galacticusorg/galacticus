@@ -17,22 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the ETHOS power spectrum window function class.
+  !% Implements the ETHOS power spectrum window function class.
+  
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionETHOS">
-  !#  <description>ETHOS window function for filtering of power spectra.</description>
+  !#  <description>
+  !#   ETHOS window function for filtering of power spectra. This window function was chosen to give good matches to N-body halo
+  !#   mass functions derived from the ETHOS transfer functions. The functional form was provided by Francis-Yan Cyr-Racine
+  !#   ({\normalfont \ttfamily \textless fycr@unm.edu\textgreater}; private communication):
+  !#   \begin{equation}
+  !#    W(kR) = (\frac{1}{1+\left(\frac{kR}{c}\right)^\beta})
+  !#   \end{equation}
+  !#   with $c = 3.78062835$, $\beta = 3.4638743$, where $R$ is related to $M$ via the standard relation $M =
+  !#   \frac{4\pi}{3}\bar\rho_m R^3$.
+  !#  </description>
   !# </powerSpectrumWindowFunction>
   type, extends(powerSpectrumWindowFunctionClass) :: powerSpectrumWindowFunctionETHOS
      !% ETHOS power spectrum window function class.
      private
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
-     double precision                                    :: cutOffNormalization
-     type            (varying_string          )          :: normalization
+     class(cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
    contains
-     final     ::                               ETHOSDestructor
-     procedure :: value                      => ETHOSValue
-     procedure :: wavenumberMaximum          => ETHOSWavenumberMaximum
+     final     ::                      ETHOSDestructor
+     procedure :: value             => ETHOSValue
+     procedure :: wavenumberMaximum => ETHOSWavenumberMaximum
   end type powerSpectrumWindowFunctionETHOS
 
   interface powerSpectrumWindowFunctionETHOS
@@ -47,76 +55,25 @@ contains
     !% Constructor for the ETHOS  power spectrum window function class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (powerSpectrumWindowFunctionETHOS)                      :: self
-    type            (inputParameters                       ), intent(inout) :: parameters
-    class           (cosmologyParametersClass              ), pointer       :: cosmologyParameters_
-    type            (varying_string                        )                :: normalization
-    character       (len=32                                )                :: normalizationChar
-    double precision                                                        :: normalizationValue
-
-    ! Check parameters.
-    !# <inputParameter>
-    !#   <name>normalization</name>
-    !#   <source>parameters</source>
-    !#   <variable>normalization</variable>
-    !#   <defaultValue>var_str('natural')</defaultValue>
-    !#   <description>
-    !#     The parameter $a$ in the relation $k_\mathrm{s} = a/r_\mathrm{s}$, where $k_\mathrm{s}$ is the cut-off wavenumber for
-    !#     the sharp $k$-space window function and $r_\mathrm{s}$ is the radius of a sphere (in real-space) enclosing the
-    !#     requested smoothing mass. Alternatively, a value of {\normalfont \ttfamily natural} will be supplied in which case the normalization
-    !#     is chosen such that, in real-space, $W(r=0)=1$. This results in a contained mass of $M=6 \pi^2 \bar{\rho} k_\mathrm{s}^{-3}$.
-    !#   </description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
+    type (powerSpectrumWindowFunctionETHOS)                :: self
+    type (inputParameters                 ), intent(inout) :: parameters
+    class(cosmologyParametersClass        ), pointer       :: cosmologyParameters_
+    
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    if (normalization == 'natural') then
-       normalizationValue=0.0d0
-    else
-       normalizationChar=char(normalization)
-       read (normalizationChar,*) normalizationValue
-    end if
-    self=ETHOSConstructorInternal(cosmologyParameters_,normalizationValue)
+    self=ETHOSConstructorInternal(cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function ETHOSConstructorParameters
 
-  function ETHOSConstructorInternal(cosmologyParameters_,normalization) result(self)
+  function ETHOSConstructorInternal(cosmologyParameters_) result(self)
     !% Internal constructor for the ETHOS power spectrum window function class.
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    type            (powerSpectrumWindowFunctionETHOS)                              :: self
-    class           (cosmologyParametersClass              ), target, intent(in   ) :: cosmologyParameters_
-    double precision                                                , intent(in   ) :: normalization
-    character       (len=18                                )                        :: normalizationText
+    type (powerSpectrumWindowFunctionETHOS)                        :: self
+    class(cosmologyParametersClass        ), target, intent(in   ) :: cosmologyParameters_
     !# <constructorAssign variables="*cosmologyParameters_"/>
 
-    ! Compute normalization.
-    if (normalization <= 0.0d0) then
-       ! Compute the "natural" normalization.
-       self%cutOffNormalization=                                &
-            & +(                                                &
-            &   +6.0d0                                          &
-            &   *Pi                                         **2 &
-            &   *self%cosmologyParameters_%OmegaMatter    ()    &
-            &   *self%cosmologyParameters_%densityCritical()    &
-            &  )**(1.0d0/3.0d0)
-       self%normalization='natural'
-    else
-       ! Use provided normalization.
-       self%cutOffNormalization=                                &
-            & +normalization                                    &
-            & *(                                                &
-            &   +4.0d0                                          &
-            &   *Pi                                             &
-            &   *self%cosmologyParameters_%OmegaMatter    ()    &
-            &   *self%cosmologyParameters_%densityCritical()    &
-            &   /3.0d0                                          &
-            &  )**(1.0d0/3.0d0)
-       write (normalizationText,'(e17.10)') normalization
-       self%normalization=trim(normalizationText)
-    end if
     return
   end function ETHOSConstructorInternal
 
@@ -131,37 +88,43 @@ contains
 
   double precision function ETHOSValue(self,wavenumber,smoothingMass)
     !% ETHOS window function used in computing the variance of the power spectrum.
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (powerSpectrumWindowFunctionETHOS), intent(inout) :: self
-    double precision                                        , intent(in   ) :: smoothingMass   , wavenumber
-    double precision                                                        :: wavenumberCutOff, b, c, ETHOS_Radius
-
-    b = 3.4638743d0
-    c = 3.78062835d0 
-
-    ETHOS_Radius = +( +3.0d0                                    &
-         &         /4.0d0                                       &
-         &         /3.14159265d0                                &
-         &         *smoothingMass                               &
-         &         /self%cosmologyParameters_%OmegaMatter    () &
-         &         /self%cosmologyParameters_%densityCritical() &
-         &        )**(1.0d0/3.0d0)
-
-    wavenumberCutOff=self%wavenumberMaximum(smoothingMass)
-    if      (wavenumber <=            0.0d0) then
-       ETHOSValue=0.0d0
+    double precision                                  , intent(in   ) :: smoothingMass               , wavenumber
+    double precision                                  , parameter     :: b               =3.4638743d0, c         =3.78062835d0 
+    double precision                                                  :: radius
+    
+    radius =+(                                             &
+         &    +3.0d0                                       &
+         &    /4.0d0                                       &
+         &    /Pi                                          &
+         &    *smoothingMass                               &
+         &    /self%cosmologyParameters_%OmegaMatter    () &
+         &    /self%cosmologyParameters_%densityCritical() &
+         &   )**(1.0d0/3.0d0)
+    if (wavenumber <= 0.0d0) then
+       ETHOSValue=+0.0d0
     else
-       ETHOSValue= 1.0d0/(1.0d0+(wavenumber*ETHOS_Radius/c)**b)
+       ETHOSValue=+1.0d0          &
+            &     /(              &
+            &       +1.0d0        &
+            &       +(            &
+            &         +wavenumber &
+            &         *radius     &
+            &         /c          &
+            &        )**b         &
+            &      )
     end if
     return
   end function ETHOSValue
 
-   double precision function ETHOSWavenumberMaximum(self,smoothingMass)
+  double precision function ETHOSWavenumberMaximum(self,smoothingMass)
     !% Sets maximum wavenumber to effectively infinity (really large number)
     implicit none
     class           (powerSpectrumWindowFunctionETHOS), intent(inout) :: self
-    double precision                                   , intent(in   ) :: smoothingMass
-    double precision                                   , parameter     :: wavenumberLarge=huge(1.0d0) ! Effective infinity.
+    double precision                                  , intent(in   ) :: smoothingMass
+    double precision                                  , parameter     :: wavenumberLarge=huge(1.0d0) ! Effective infinity.
     !$GLC attributes unused :: self, smoothingMass
 
     ETHOSWavenumberMaximum=wavenumberLarge

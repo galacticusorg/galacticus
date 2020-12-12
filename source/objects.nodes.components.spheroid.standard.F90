@@ -611,11 +611,8 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Spheroid_Standard_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the standard spheroid node mass rate of change.
-    use :: Abundances_Structure            , only : abs                     , abundances          , max                  , operator(*)
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                , only : defaultSpheroidComponent, nodeComponentHotHalo, nodeComponentSpheroid, nodeComponentSpheroidStandard, &
-         &                                          propertyTypeActive      , propertyTypeAll     , propertyTypeInactive , treeNode
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
+    use :: Galacticus_Nodes, only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidStandard, &
+         &                           propertyTypeInactive   , treeNode
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
     logical                                , intent(inout)          :: interrupt

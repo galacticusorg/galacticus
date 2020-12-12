@@ -17,90 +17,70 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a transfer function class for fuzzy dark matter, using the Murgia nCDM transfer function and picking values of alpha, beta, and gamma that correspond to fuzzy dark matter models. Alpha is a function of m_22, which measures the dark matter particle mass. 
+  !% Contains a module which implements a transfer function class for fuzzy dark matter using the fitting function of
+  !% \cite{murgia_non-cold_2017}.
 
-  use :: Cosmology_Functions  , only : cosmologyFunctionsClass
-  use :: Cosmology_Parameters , only : cosmologyParametersClass
-  use :: Dark_Matter_Particles, only : darkMatterParticleClass
-
-  !# <transferFunction name="transferFunctionfuzzyDM">
-  !#  <description>Provides a transfer function for fuzzy dark matter based on the Murgia nCDM transfer function.</description>
+  !# <transferFunction name="transferFunctionFuzzyDM">
+  !#  <description>A transfer function class for fuzzy dark matter using the fitting function of \cite{murgia_non-cold_2017}.</description>
   !# </transferFunction>
-  type, extends(transferFunctionClass) :: transferFunctionfuzzyDM
-     !% A transfer function class for fuzzy dark matter.
+  type, extends(transferFunctionMurgia2017) :: transferFunctionFuzzyDM
+     !% A transfer function class for fuzzy dark matter using the fitting function of \cite{murgia_non-cold_2017}.
      private
-     double precision                                    :: m_22                         , n_beta        , &
-          &                                                 n_gamma                         ,  &
-          &                                                 time                          , redshift
-     class           (transferFunctionClass   ), pointer :: transferFunctionCDM  => null()
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
-     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
-   contains
-     final     ::                          fuzzyDMDestructor
-     procedure :: value                 => fuzzyDMValue
-     procedure :: logarithmicDerivative => fuzzyDMLogarithmicDerivative
-     procedure :: halfModeMass          => fuzzyDMHalfModeMass
-     procedure :: epochTime             => fuzzyDMEpochTime
-  end type transferFunctionfuzzyDM
-
-  interface transferFunctionfuzzyDM
-     !% Constructors for the fuzzy DM transfer function class.
+     double precision :: m22
+  end type transferFunctionFuzzyDM
+   
+  interface transferFunctionFuzzyDM
+     !% Constructors for the {\normalfont \ttfamily fuzzyDM} transfer function class.
      module procedure fuzzyDMConstructorParameters
      module procedure fuzzyDMConstructorInternal
-  end interface transferFunctionfuzzyDM
+  end interface transferFunctionFuzzyDM
 
 contains
 
   function fuzzyDMConstructorParameters(parameters) result(self)
-    !% Constructor for the fuzzy DM transfer function class which takes a parameter set as input.
+    !% Constructor for the {\normalfont \ttfamily fuzzyDM} transfer function class which takes a parameter set as input.
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
-    use :: Galacticus_Error              , only : Galacticus_Error_Report
     use :: Input_Parameters              , only : inputParameter            , inputParameters
     implicit none
-    type            (transferFunctionfuzzyDM)                :: self
+    type            (transferFunctionFuzzyDM )                :: self
     type            (inputParameters         ), intent(inout) :: parameters
     class           (transferFunctionClass   ), pointer       :: transferFunctionCDM
     class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
-    class           (darkMatterParticleClass ), pointer       :: darkMatterParticle_
-    double precision                                          :: m_22             , n_beta     , &
-         &                                                       n_gamma                  , redshift
+    double precision                                          :: m22                 , beta    , &
+         &                                                       gamma               , redshift
 
     ! Validate parameters.
     if (.not.parameters%isPresent('transferFunctionMethod')) call Galacticus_Error_Report("an explicit 'transferFunctionMethod' must be given"//{introspection:location})
     ! Read parameters.
     !# <inputParameter>
-    !#   <name>m_22</name>
+    !#   <name>m22</name>
     !#   <source>parameters</source>
-    !#   <defaultValue>40.0d0</defaultValue>
-    !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>Normalized dark matter particle mass. m_22 is the actual particle mass divided by 10^-22 eV.</description>
+    !#   <description>The mass of the fuzzy dark matter particle in units of $10^{-22}$~eV, $m_{22}$.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>n_beta</name>
+    !#   <name>beta</name>
     !#   <source>parameters</source>
-    !#   <defaultValue>5.5d0</defaultValue>
-    !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\beta$ appearing in the Murgia nCDM transfer function, controls shape of cutoff.</description>
+    !#   <defaultValue>5.475d0</defaultValue>
+    !#   <defaultSource>\citep[][average of values in Table~4]{murgia_non-cold_2017}</defaultSource>
+    !#   <description>The parameter $\beta$, which controls the shape of the cut-off, appearing in the transfer function \citep{murgia_non-cold_2017}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>n_gamma</name>
+    !#   <name>gamma</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-2.0d0</defaultValue>
-    !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\gamma$ appearing in the Murgia nCDM transfer fuction, controls shape of cutoff.</description>
+    !#   <defaultSource>\citep[][average of values in Table~4]{murgia_non-cold_2017}</defaultSource>
+    !#   <description>The parameter $\gamma$, which controls the shape of the cut-off, appearing in the transfer function \citep{murgia_non-cold_2017}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     !# <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
     !# <inputParameter>
     !#   <name>redshift</name>
@@ -110,132 +90,29 @@ contains
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-     self=transferFunctionfuzzyDM(transferFunctionCDM,m_22,n_beta,n_gamma,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_)
+    self=transferFunctionFuzzyDM(transferFunctionCDM,m22,beta,gamma,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="cosmologyFunctions_" />
-    !# <objectDestructor name="darkMatterParticle_" />
     !# <objectDestructor name="transferFunctionCDM" />
     return
   end function fuzzyDMConstructorParameters
 
-  function fuzzyDMConstructorInternal(transferFunctionCDM,m_22,n_beta,n_gamma,time,cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_) result(self)
-    !% Internal constructor for the fuzzy DM transfer function class.
-    use :: Cosmology_Parameters , only : hubbleUnitsLittleH
-    use :: Dark_Matter_Particles, only : darkMatterParticleWDMThermal
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
+  function fuzzyDMConstructorInternal(transferFunctionCDM,m22,beta,gamma,time,cosmologyParameters_,cosmologyFunctions_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily fuzzyDM} transfer function class.
     implicit none
-    type            (transferFunctionfuzzyDM)                         :: self
+    type            (transferFunctionFuzzyDM)                         :: self
     class           (transferFunctionClass   ), target, intent(in   ) :: transferFunctionCDM
-    double precision                                  , intent(in   ) :: m_22                   , n_beta                            , &
-         &                                                               n_gamma                        , time
+    double precision                                  , intent(in   ) :: m22                 , beta, &
+         &                                                               gamma               , time
     class           (cosmologyParametersClass), target, intent(in   ) :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), target, intent(in   ) :: cosmologyFunctions_
-    class           (darkMatterParticleClass ), target, intent(in   ) :: darkMatterParticle_
-    double precision                          , parameter             :: massReference       =1.0d0, degreesOfFreedomReference=1.5d0
-    !# <constructorAssign variables="*transferFunctionCDM, m_22, n_beta, n_gamma, time, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterParticle_"/>
+    double precision                                                  :: alpha
+    !# <constructorAssign variables="m22"/>
 
-    self%redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
-    
+    alpha  =+0.11d0                   &
+         &  *self%m22**(-4.0d0/9.0d0) 
+    self%transferFunctionMurgia2017=transferFunctionMurgia2017(transferFunctionCDM,alpha,beta,gamma,time,cosmologyParameters_,cosmologyFunctions_)
     return
   end function fuzzyDMConstructorInternal
 
-  subroutine fuzzyDMDestructor(self)
-    !% Destructor for the fuzzy DM transfer function class.
-    implicit none
-    type(transferFunctionfuzzyDM), intent(inout) :: self
-
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%darkMatterParticle_" />
-    !# <objectDestructor name="self%transferFunctionCDM" />
-    return
-  end subroutine fuzzyDMDestructor
-
-  double precision function fuzzyDMValue(self,wavenumber)
-    !% Return the transfer function at the given wavenumber.
-    implicit none
-    class           (transferFunctionfuzzyDM), intent(inout) :: self
-    double precision                          , intent(in   ) :: wavenumber
-    double precision                                          :: n_alpha			      
-
-    fuzzyDMValue=+self%transferFunctionCDM%value(wavenumber)
-    n_alpha = 0.11d0*(self%m_22)**(-4.0d0/9.0d0) 
-    if (n_alpha > 0.0d0)                    &
-         & fuzzyDMValue=+fuzzyDMValue              &
-         &               *(                          &
-         &                  1.0d0                    &
-         &                 +                         &
-         &                  (                        &
-         &                   +n_alpha             &
-         &                   *wavenumber             &
-         &                  )**(self%n_beta)           &
-         &                )  **(self%n_gamma)
-    return
-  end function fuzzyDMValue
-
-  double precision function fuzzyDMLogarithmicDerivative(self,wavenumber)
-    !% Return the logarithmic derivative of the transfer function at the given wavenumber.
-    implicit none
-    class           (transferFunctionfuzzyDM), intent(inout) :: self
-    double precision                          , intent(in   ) :: wavenumber
-    double precision                                          :: n_alpha
-
-    n_alpha = 0.11d0*(self%m_22)**(-4.0d0/9.0d0)
-    fuzzyDMLogarithmicDerivative=+self%transferFunctionCDM%logarithmicDerivative(wavenumber)
-    if (n_alpha > 0.0d0)                                       &
-         & fuzzyDMLogarithmicDerivative=+fuzzyDMLogarithmicDerivative &
-         &                               +self%n_beta                     &
-         &                               *self%n_gamma                    &
-         &                               *(                             &
-         &                                   n_alpha                    &
-         &                                    *wavenumber)**self%n_beta      &
-         &                                 /(                           &
-         &                                  (                           &
-         &                                   +1.0d0                     &
-         &                                   +(                         &
-         &                                     +n_alpha            &
-         &                                     *wavenumber)**(self%n_beta) &
-         &                                  )*wavenumber                &
-         &                                )                             
-    return
-  end function fuzzyDMLogarithmicDerivative
-
-  double precision function fuzzyDMHalfModeMass(self,status)
-    !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
-    !% to a \gls{cdm} transfer function.
-    use :: Galacticus_Error        , only : errorStatusSuccess
-    use :: Numerical_Constants_Math, only : Pi
-    implicit none
-    class           (transferFunctionfuzzyDM), intent(inout)            :: self
-    integer                                   , intent(  out), optional :: status
-    double precision                          , parameter               :: wavenumberHalfModeScaleFree=sqrt(0.25d0+2.0d0*log(2.0d0))-0.5d0
-    double precision                                                    :: matterDensity                                                  , wavenumberHalfMode
-    double precision                                          :: n_alpha
-
-    n_alpha = 0.11d0*(self%m_22)**(-4.0d0/9.0d0)
-    matterDensity       =+self%cosmologyParameters_%OmegaMatter    () &
-         &               *self%cosmologyParameters_%densityCritical()
-    wavenumberHalfMode  =+(                            &
-         &                 +(1.0d0/n_alpha)        &
-         &                 *((1.0d0/sqrt(2.0d0))**(1.0d0/self%n_gamma)  &
-         &                 -1.0d0)**(1/self%n_beta))
-    fuzzyDMHalfModeMass=+4.0d0              &
-         &               *Pi                   &
-         &               /3.0d0                &
-         &               *matterDensity        &
-         &               *(                    &
-         &                 +Pi                 &
-         &                 /wavenumberHalfMode &
-         &               )**3
-    if (present(status)) status=errorStatusSuccess
-    return
-  end function fuzzyDMHalfModeMass
-
-  double precision function fuzzyDMEpochTime(self)
-    !% Return the cosmic time at the epoch at which this transfer function is defined.
-    implicit none
-    class(transferFunctionfuzzyDM), intent(inout) :: self
-
-    fuzzyDMEpochTime=self%time
-    return
-  end function fuzzyDMEpochTime
