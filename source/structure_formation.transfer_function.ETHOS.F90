@@ -17,17 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a transfer function class based on the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.
+!% Contains a module which implements a transfer function class based on the ETHOS model.
 
   use :: Cosmology_Functions  , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters , only : cosmologyParametersClass
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !# <transferFunction name="transferFunctionETHOSDM">
-  !#  <description>Provides a transfer function based on the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.</description>
+  !#  <description>Provides a transfer function based on the ETHOS model </description>
   !# </transferFunction>
   type, extends(transferFunctionClass) :: transferFunctionETHOSDM
-     !% A transfer function class which modifies another transfer function using the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.
+     !% A transfer function class which modifies the CDM transfer function to fit the ETHOS model. 
      private
      double precision                                    :: n_alpha                         , n_beta        , &
           &                                                 n_gamma                         , n_sigma, n_tau, &
@@ -46,7 +46,7 @@
   end type transferFunctionETHOSDM
 
   interface transferFunctionETHOSDM
-     !% Constructors for the {\normalfont \ttfamily bode2001} transfer function class.
+     !% Constructors for the ETHOS transfer function class.
      module procedure ETHOSDMConstructorParameters
      module procedure ETHOSDMConstructorInternal
   end interface transferFunctionETHOSDM
@@ -54,7 +54,7 @@
 contains
 
   function ETHOSDMConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily bode2001} transfer function class which takes a parameter set as input.
+    !% Constructor for the ETHOS transfer function class which takes a parameter set as input.
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
     use :: Galacticus_Error              , only : Galacticus_Error_Report
@@ -79,7 +79,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>40.0d0</defaultValue>
     !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>The parameter $\alpha$ from nCDM transfer function [Murgia et al (2017)], sets the cutoff scale length.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -88,7 +88,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>1.5d0</defaultValue>
     !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>The parameter $\beta$ from nCDM transfer function [Murgia et al (2017)], controls shape of cutoff .</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -97,7 +97,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>-10d0</defaultValue>
     !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>The parameter $\gamma$ from nCDM transfer function [Murgia et al (2017)], controls shape of cutoff.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -106,7 +106,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>-10d0</defaultValue>
     !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>From ETHOS paper [Bohr et al (2020)], determines width of first peak in transfer function.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -115,7 +115,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>-10d0</defaultValue>
     !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>From ETHOS paper [Bohr et al (2020)], determines damping of DAO.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -124,7 +124,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>-10d0</defaultValue>
     !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>Wavenumber of first peak in ETHOS transfer function.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -133,7 +133,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>-10d0</defaultValue>
     !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>Amplitude of first peak in ETHOS transfer function.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -142,7 +142,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>-10d0</defaultValue>
     !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>Amplitude of second peak in ETHOS transfer function.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -168,7 +168,7 @@ contains
   end function ETHOSDMConstructorParameters
 
   function ETHOSDMConstructorInternal(transferFunctionCDM,n_alpha,n_beta,n_gamma,n_sigma,n_tau,k_peak,h_peak,h_2,time,cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily bode2001} transfer function class.
+    !% Internal constructor for the ETHOS transfer function class.
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleWDMThermal
     use :: Galacticus_Error     , only : Galacticus_Error_Report
@@ -189,7 +189,7 @@ contains
   end function ETHOSDMConstructorInternal
 
   subroutine ETHOSDMDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily bode2001} transfer function class.
+    !% Destructor for the ETHOS transfer function class.
     implicit none
     type(transferFunctionETHOSDM), intent(inout) :: self
 

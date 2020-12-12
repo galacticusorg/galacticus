@@ -17,17 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a transfer function class based on the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.
+!% Contains a module which implements a transfer function class for fuzzy dark matter, using the Murgia nCDM transfer function and picking values of alpha, beta, and gamma that correspond to fuzzy dark matter models. Alpha is a function of m_22, which measures the dark matter particle mass. 
 
   use :: Cosmology_Functions  , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters , only : cosmologyParametersClass
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !# <transferFunction name="transferFunctionfuzzyDM">
-  !#  <description>Provides a transfer function based on the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.</description>
+  !#  <description>Provides a transfer function for fuzzy dark matter based on the Murgia nCDM transfer function.</description>
   !# </transferFunction>
   type, extends(transferFunctionClass) :: transferFunctionfuzzyDM
-     !% A transfer function class which modifies another transfer function using the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.
+     !% A transfer function class for fuzzy dark matter.
      private
      double precision                                    :: m_22                         , n_beta        , &
           &                                                 n_gamma                         ,  &
@@ -45,7 +45,7 @@
   end type transferFunctionfuzzyDM
 
   interface transferFunctionfuzzyDM
-     !% Constructors for the {\normalfont \ttfamily bode2001} transfer function class.
+     !% Constructors for the fuzzy DM transfer function class.
      module procedure fuzzyDMConstructorParameters
      module procedure fuzzyDMConstructorInternal
   end interface transferFunctionfuzzyDM
@@ -53,7 +53,7 @@
 contains
 
   function fuzzyDMConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily bode2001} transfer function class which takes a parameter set as input.
+    !% Constructor for the fuzzy DM transfer function class which takes a parameter set as input.
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
     use :: Galacticus_Error              , only : Galacticus_Error_Report
@@ -76,25 +76,25 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>40.0d0</defaultValue>
     !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>Normalized dark matter particle mass. m_22 is the actual particle mass divided by 10^-22 eV.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>n_beta</name>
     !#   <source>parameters</source>
-    !#   <defaultValue>1.5d0</defaultValue>
+    !#   <defaultValue>5.5d0</defaultValue>
     !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>The parameter $\beta$ appearing in the Murgia nCDM transfer function, controls shape of cutoff.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>n_gamma</name>
     !#   <source>parameters</source>
-    !#   <defaultValue>-10d0</defaultValue>
+    !#   <defaultValue>-2.0d0</defaultValue>
     !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>The parameter $\gamma$ appearing in the Murgia nCDM transfer fuction, controls shape of cutoff.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -120,7 +120,7 @@ contains
   end function fuzzyDMConstructorParameters
 
   function fuzzyDMConstructorInternal(transferFunctionCDM,m_22,n_beta,n_gamma,time,cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily bode2001} transfer function class.
+    !% Internal constructor for the fuzzy DM transfer function class.
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleWDMThermal
     use :: Galacticus_Error     , only : Galacticus_Error_Report
@@ -141,7 +141,7 @@ contains
   end function fuzzyDMConstructorInternal
 
   subroutine fuzzyDMDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily bode2001} transfer function class.
+    !% Destructor for the fuzzy DM transfer function class.
     implicit none
     type(transferFunctionfuzzyDM), intent(inout) :: self
 

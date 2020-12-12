@@ -17,17 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a transfer function class based on the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.
+!% Contains a module which implements a transfer function class for fuzzy dark matter based on Hu et al 2008. More precise than fuzzyDM transfer fuction using Murgia nCDM framework. 
 
   use :: Cosmology_Functions  , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters , only : cosmologyParametersClass
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !# <transferFunction name="transferFunctionHu2008fuzzy">
-  !#  <description>Provides a transfer function based on the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.</description>
+  !#  <description>Provides a transfer function based on the fuzzy dark matter paper Hu et al 2008.</description>
   !# </transferFunction>
   type, extends(transferFunctionClass) :: transferFunctionHu2008fuzzy
-     !% A transfer function class which modifies another transfer function using the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.
+     !% A transfer function class for fuzzy dark matter
      private
      double precision                                    :: m_22                         , n_beta        , &
           &                                                 n_gamma                         ,  &
@@ -45,7 +45,7 @@
   end type transferFunctionHu2008fuzzy
 
   interface transferFunctionHu2008fuzzy
-     !% Constructors for the {\normalfont \ttfamily bode2001} transfer function class.
+     !% Constructors for the Hu 2008 fuzzy dark matter transfer function class.
      module procedure Hu2008fuzzyConstructorParameters
      module procedure Hu2008fuzzyConstructorInternal
   end interface transferFunctionHu2008fuzzy
@@ -53,7 +53,7 @@
 contains
 
   function Hu2008fuzzyConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily bode2001} transfer function class which takes a parameter set as input.
+    !% Constructor for fuzzy DM  transfer function class which takes a parameter set as input.
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
     use :: Galacticus_Error              , only : Galacticus_Error_Report
@@ -76,7 +76,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>40.0d0</defaultValue>
     !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>Normalized dark matter particle mass. m_22 is the actual particle mass divided by 10^-22 eV.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -102,7 +102,7 @@ contains
   end function Hu2008fuzzyConstructorParameters
 
   function Hu2008fuzzyConstructorInternal(transferFunctionCDM,m_22,n_beta,n_gamma,time,cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily bode2001} transfer function class.
+    !% Internal constructor for the Hu fuzzy dark matter transfer function class.
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleWDMThermal
     use :: Galacticus_Error     , only : Galacticus_Error_Report
@@ -123,7 +123,7 @@ contains
   end function Hu2008fuzzyConstructorInternal
 
   subroutine Hu2008fuzzyDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily bode2001} transfer function class.
+    !% Destructor for the Hu fuzzy DM transfer function class.
     implicit none
     type(transferFunctionHu2008fuzzy), intent(inout) :: self
 

@@ -17,17 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a transfer function class based on the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.
+!% Contains a module which implements a general transfer function class for nCDM models based on Murgia et al 2017. Very general three parameter framework that can be used for a range of DM models from fuzzy DM to sterile neutrinos. 
 
   use :: Cosmology_Functions  , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters , only : cosmologyParametersClass
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !# <transferFunction name="transferFunctionMurgia2017">
-  !#  <description>Provides a transfer function based on the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.</description>
+  !#  <description>Provides the Murgia transfer function for nCDM.</description>
   !# </transferFunction>
   type, extends(transferFunctionClass) :: transferFunctionMurgia2017
-     !% A transfer function class which modifies another transfer function using the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.
+     !% A transfer function class which modifies the CDM transfer function to describe nCDM scenarios.
      private
      double precision                                    :: n_alpha                         , n_beta        , &
           &                                                 n_gamma                         ,  &
@@ -45,7 +45,7 @@
   end type transferFunctionMurgia2017
 
   interface transferFunctionMurgia2017
-     !% Constructors for the {\normalfont \ttfamily bode2001} transfer function class.
+     !% Constructors for the Murgia transfer function class.
      module procedure Murgia2017ConstructorParameters
      module procedure Murgia2017ConstructorInternal
   end interface transferFunctionMurgia2017
@@ -53,7 +53,7 @@
 contains
 
   function Murgia2017ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily bode2001} transfer function class which takes a parameter set as input.
+    !% Constructor for the Murgia transfer function class which takes a parameter set as input.
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
     use :: Galacticus_Error              , only : Galacticus_Error_Report
@@ -76,7 +76,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>0.0075d0</defaultValue>
     !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>The parameter $\alpha$ appearing in the Murgia nCDM transfer function, sets the cutoff scale length.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -85,7 +85,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>1.5d0</defaultValue>
     !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>The parameter $\beta$ appearing in the Murgia nCDM transfer function, controls shape of cutoff.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -94,7 +94,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>-10d0</defaultValue>
     !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-    !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+    !#   <description>The parameter $\gamma$ appearing in the Murgia nCDM transfer function, controls shape of cutoff.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -120,7 +120,7 @@ contains
   end function Murgia2017ConstructorParameters
 
   function Murgia2017ConstructorInternal(transferFunctionCDM,n_alpha,n_beta,n_gamma,time,cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily bode2001} transfer function class.
+    !% Internal constructor for the Murgia transfer function class.
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleWDMThermal
     use :: Galacticus_Error     , only : Galacticus_Error_Report
@@ -141,7 +141,7 @@ contains
   end function Murgia2017ConstructorInternal
 
   subroutine Murgia2017Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily bode2001} transfer function class.
+    !% Destructor for the Murgia transfer function class.
     implicit none
     type(transferFunctionMurgia2017), intent(inout) :: self
 
