@@ -417,6 +417,85 @@
 
      <!-- Observational systematics -->
 
+     <!-- ALFALFA HI mass systematics -->
+     <modelParameterMethod value="active">
+       <name value="alfalfaMassSystematics0"/>
+       <distributionFunction1DPrior     value="normal"  >
+         <limitLower value="-0.5000+0"/>
+         <limitUpper value="+0.5000+0"/>
+         <mean       value="+0.000e+0"/>
+         <variance   value="+0.100e+0"/>
+       </distributionFunction1DPrior>
+       <operatorUnaryMapper             value="identity"/>
+       <distributionFunction1DPerturber value="cauchy"   >
+         <median value="0.0"   />
+         <scale  value="1.0e-12"/>
+       </distributionFunction1DPerturber>
+     </modelParameterMethod>
+     <modelParameterMethod value="active">
+       <name value="alfalfaMassSystematics1"/>
+       <distributionFunction1DPrior     value="normal"  >
+         <limitLower value="-0.050e+0"/>
+         <limitUpper value="+0.050e+0"/>
+         <mean       value="+0.000e+0"/>
+         <variance   value="+1.000e-2"/>
+       </distributionFunction1DPrior>
+       <operatorUnaryMapper             value="identity"/>
+       <distributionFunction1DPerturber value="cauchy"   >
+         <median value="0.0"   />
+         <scale  value="1.0e-12"/>
+       </distributionFunction1DPerturber>
+     </modelParameterMethod>
+     <!-- Apply to ALFALFA HI mass function -->
+     <modelParameterMethod value="derived">
+       <name value="outputAnalysisMethod::outputAnalysisMethod[6]::systematicErrorPolynomialCoefficient{0}"/>
+       <definition value="%[alfalfaMassSystematics0]"/>
+     </modelParameterMethod>
+     <modelParameterMethod value="derived">
+       <name value="outputAnalysisMethod::outputAnalysisMethod[6]::systematicErrorPolynomialCoefficient{1}"/>
+       <definition value="%[alfalfaMassSystematics1]"/>
+     </modelParameterMethod>
+
+     <!-- ULTRAVISTA stellar mass systematics -->
+     <modelParameterMethod value="active">
+       <name value="ultravistaStellarMassSystematics0"/>
+       <distributionFunction1DPrior     value="normal"  >
+         <limitLower value="-0.5000+0"/>
+         <limitUpper value="+0.5000+0"/>
+         <mean       value="+0.000e+0"/>
+         <variance   value="+0.100e+0"/>
+       </distributionFunction1DPrior>
+       <operatorUnaryMapper             value="identity"/>
+       <distributionFunction1DPerturber value="cauchy"   >
+         <median value="0.0"   />
+         <scale  value="1.0e-12"/>
+       </distributionFunction1DPerturber>
+     </modelParameterMethod>
+     <modelParameterMethod value="active">
+       <name value="ultravistaStellarMassSystematics1"/>
+       <distributionFunction1DPrior     value="normal"  >
+         <limitLower value="-0.050e+0"/>
+         <limitUpper value="+0.050e+0"/>
+         <mean       value="+0.000e+0"/>
+         <variance   value="+1.000e-2"/>
+       </distributionFunction1DPrior>
+       <operatorUnaryMapper             value="identity"/>
+       <distributionFunction1DPerturber value="cauchy"   >
+         <median value="0.0"   />
+         <scale  value="1.0e-12"/>
+       </distributionFunction1DPerturber>
+     </modelParameterMethod>
+     <!-- Apply to ULTRAVISTA stellar mass function -->
+     <modelParameterMethod value="derived">
+       <!-- Shift masses to correct to Kroupa IMF used by Muzzin et al. -->
+       <name value="outputAnalysisMethod::outputAnalysisMethod[1]::systematicErrorPolynomialCoefficient{0}"/>
+       <definition value="%[ultravistaStellarMassSystematics0]+0.4"/>
+     </modelParameterMethod>
+     <modelParameterMethod value="derived">
+       <name value="outputAnalysisMethod::outputAnalysisMethod[1]::systematicErrorPolynomialCoefficient{1}"/>
+       <definition value="%[ultravistaStellarMassSystematics1]"/>
+     </modelParameterMethod>
+
      <!-- GAMA stellar mass incompleteness model -->
      <!-- Model (plus priors) are from Benson equation 10 of Benson (2019; MNRAS; 482; 1062) -->
      <modelParameterMethod value="active">
@@ -532,14 +611,6 @@
      </modelParameterMethod>
      <!-- Apply to SHMR relations -->
      <modelParameterMethod value="derived">
-       <name value="outputAnalysisMethod::outputAnalysisMethod[1]::systematicErrorPolynomialCoefficient{0}"/>
-       <definition value="%[sdssStellarMassSystematics0]"/>
-     </modelParameterMethod>
-     <modelParameterMethod value="derived">
-       <name value="outputAnalysisMethod::outputAnalysisMethod[1]::systematicErrorPolynomialCoefficient{1}"/>
-       <definition value="%[sdssStellarMassSystematics1]"/>
-     </modelParameterMethod>
-     <modelParameterMethod value="derived">
        <name value="outputAnalysisMethod::outputAnalysisMethod[2]::systematicErrorPolynomialCoefficient{0}"/>
        <definition value="%[sdssStellarMassSystematics0]"/>
      </modelParameterMethod>
@@ -561,6 +632,14 @@
      </modelParameterMethod>
      <modelParameterMethod value="derived">
        <name value="outputAnalysisMethod::outputAnalysisMethod[4]::systematicErrorPolynomialCoefficient{1}"/>
+       <definition value="%[sdssStellarMassSystematics1]"/>
+     </modelParameterMethod>
+     <modelParameterMethod value="derived">
+       <name value="outputAnalysisMethod::outputAnalysisMethod[5]::systematicErrorPolynomialCoefficient{0}"/>
+       <definition value="%[sdssStellarMassSystematics0]"/>
+     </modelParameterMethod>
+     <modelParameterMethod value="derived">
+       <name value="outputAnalysisMethod::outputAnalysisMethod[5]::systematicErrorPolynomialCoefficient{1}"/>
        <definition value="%[sdssStellarMassSystematics1]"/>
      </modelParameterMethod>
    
