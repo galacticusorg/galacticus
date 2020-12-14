@@ -104,6 +104,7 @@ contains
   subroutine multipleImport(self,simulations)
     !% Import data using multiple importers.
     use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, verbosityStandard
+    use :: Hashes            , only : rank1IntegerSizeTPtrHash , rank2IntegerSizeTPtrHash   , rank1DoublePtrHash, rank2DoublePtrHash
     implicit none
     class  (nbodyImporterMultiple), intent(inout)                            :: self
     type   (nBodyData            ), intent(  out), allocatable, dimension(:) :: simulations
@@ -127,6 +128,18 @@ contains
        do i=1,size(importer_%simulations)
           countSimulations                  =countSimulations+1_c_size_t
           simulations     (countSimulations)=importer_%simulations(i)
+       end do
+       importer_ => importer_%next
+    end do
+    ! Close analysis groups in combined importers and remove their pointers to simulation data.
+    importer_ => self%importers
+    do while (associated(importer_))
+       do i=1,size(importer_%simulations)
+          if (importer_%simulations(i)%analysis%isOpen()) call importer_%simulations(i)%analysis%close()
+          importer_%simulations(i)%propertiesInteger     =rank1IntegerSizeTPtrHash()
+          importer_%simulations(i)%propertiesIntegerRank1=rank2IntegerSizeTPtrHash()
+          importer_%simulations(i)%propertiesReal        =rank1DoublePtrHash      ()
+          importer_%simulations(i)%propertiesRealRank1   =rank2DoublePtrHash      ()
        end do
        importer_ => importer_%next
     end do
