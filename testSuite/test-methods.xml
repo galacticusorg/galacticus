@@ -163,11 +163,13 @@
     	<presetMergerNodes value="false" parameterLevel="-1"/>
       </treeNodeMethodSatellite>
       <treeNodeMethodSatellite value="preset" parameterLevel="top">
-    	<presetMergerTimes value="true" parameterLevel="-1"/>
-    	<presetMergerNodes value="true" parameterLevel="-1"/>
-    	<satelliteMergingTimescalesSubresolutionMethod value="zero" parameterLevel="-1"/>
+    	<presetMergerTimes                             value="true"              parameterLevel="-1"/>
+    	<presetMergerNodes                             value="true"              parameterLevel="-1"/>
+    	<satelliteMergingTimescalesSubresolutionMethod value="zero"              parameterLevel="-1"/>
     	<satelliteMergingTimescalesSubresolutionMethod value="boylanKolchin2008" parameterLevel="-1"/>
       </treeNodeMethodSatellite>
+      <treeNodeMethodPosition value="preset"             parameterLevel="top"/>
+      <treeNodeMethodPosition value="presetInterpolated" parameterLevel="top"/>
       <presetSubhaloMasses value="false"/>
       <presetSubhaloIndices value="false"/>
       <treeIndexToRootNodeIndex value="true"/>
