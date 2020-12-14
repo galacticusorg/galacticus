@@ -1355,8 +1355,8 @@ contains
              nodes(iNode)%position=position(:,iNode)
              nodes(iNode)%velocity=velocity(:,iNode)
           end forall
-       call deallocateArray(position)
-       call deallocateArray(velocity)
+          call deallocateArray(position)
+          call deallocateArray(velocity)
        end if
     end select
     return
