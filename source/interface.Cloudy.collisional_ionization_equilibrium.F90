@@ -32,19 +32,20 @@ contains
 
   subroutine Interface_Cloudy_CIE_Tabulate(metallicityMaximumLogarithmic,fileNameCoolingFunction,fileNameChemicalState,versionFileFormat,includeContinuum)
     !% An interface to the \gls{cloudy} code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
-    use :: File_Utilities              , only : File_Exists                , File_Lock                       , File_Remove              , File_Unlock
-    use :: Galacticus_Display          , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
-          &                                     Galacticus_Display_Unindent, verbosityWorking
-    use :: Galacticus_Error            , only : Galacticus_Error_Report
-    use :: IO_HDF5                     , only : hdf5Access                 , hdf5Object
-    use :: ISO_Varying_String          , only : var_str                    , varying_string                  , operator(//)             , char                      , &
-         &                                      assignment(=)
-    use :: Interfaces_Cloudy           , only : Interface_Cloudy_Initialize
-    use :: Numerical_Constants_Prefixes, only : kilo
-    use :: Numerical_Constants_Units   , only : electronVolt
-    use :: Numerical_Ranges            , only : Make_Range                 , rangeTypeLinear                 , rangeTypeLogarithmic
-    use :: String_Handling             , only : operator(//)
-    use :: System_Command              , only : System_Command_Do
+    use :: File_Utilities                  , only : File_Exists                   , File_Lock                          , File_Remove              , File_Unlock
+    use :: Galacticus_Display              , only : Galacticus_Display_Counter    , Galacticus_Display_Counter_Clear   , Galacticus_Display_Indent, Galacticus_Display_Message, &
+          &                                         Galacticus_Display_Unindent   , verbosityWorking
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: IO_HDF5                         , only : hdf5Access                    , hdf5Object
+    use :: ISO_Varying_String              , only : var_str                       , varying_string                     , operator(//)             , char                      , &
+         &                                          assignment(=)
+    use :: Interfaces_Cloudy               , only : Interface_Cloudy_Initialize
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Numerical_Constants_Units       , only : electronVolt
+    use :: Numerical_Constants_Astronomical, only : heliumToHydrogenAbundanceSolar, heliumToHydrogenAbundancePrimordial
+    use :: Numerical_Ranges                , only : Make_Range                    , rangeTypeLinear                    , rangeTypeLogarithmic
+    use :: String_Handling                 , only : operator(//)
+    use :: System_Command                  , only : System_Command_Do
     implicit none
     double precision                , intent(in   )                   :: metallicityMaximumLogarithmic
     type            (varying_string), intent(in   )                   :: fileNameCoolingFunction                , fileNameChemicalState
@@ -57,7 +58,6 @@ contains
          &                                                               metallicityStepLogarithmic   =+0.250d+0
     double precision                , parameter                       :: energyMinimum                =+1.000d-3, energyMaximum                =+1.000d2
     integer                         , parameter                       :: energyBinsPerDecade=50
-    double precision                , parameter                       :: heliumAbundancePrimordial    =+0.072d+0, heliumAbundanceSolar         =+0.100d0 ! Values as used by Cloudy.
     double precision                , allocatable  , dimension(:    ) :: metallicitiesLogarithmic               , temperaturesLogarithmic               , &
          &                                                               energyContinuum
     double precision                , allocatable  , dimension(:,:  ) :: coolingFunction                        , densityElectron                       , &
@@ -165,7 +165,7 @@ contains
           else
              write (cloudyScript,'(a,f6.3)') 'metals _log ',metallicitiesLogarithmic(iMetallicity)
              ! Assume a linear growth of helium abundance with metallicity.
-             abundanceHelium=heliumAbundancePrimordial+(heliumAbundanceSolar-heliumAbundancePrimordial)*(10.0d0**metallicitiesLogarithmic(iMetallicity))
+             abundanceHelium=heliumToHydrogenAbundancePrimordial+(heliumToHydrogenAbundanceSolar-heliumToHydrogenAbundancePrimordial)*(10.0d0**metallicitiesLogarithmic(iMetallicity))
              write (cloudyScript,'(a,f6.3)') 'element abundance linear helium ',abundanceHelium
           end if
           write        (cloudyScript,'(a,f6.3,a)') 'constant temper ',temperatureMinimumLogarithmic,' vary'
