@@ -47,7 +47,7 @@
   !#   \end{eqnarray}
   !#   where $a=\tan(\psi/2)$ and $x=\tan^{-1}[\sqrt{2}\tan (\psi/2)]$.
   !#
-  !#   Various sub-parameters specify the details of the light geometry. The {\normalfont \ttfamily lengthReplication} parameter
+  !#   Various sub-parameters specify the details of the lightcone geometry. The {\normalfont \ttfamily lengthReplication} parameter
   !#   should give the length of the simulation box (the box will be replicated to span the volume covered by the lightcone),
   !#   with the {\normalfont \ttfamily lengthUnitsInSI} parameter giving the length unit in SI units and {\normalfont \ttfamily
   !#   lengthHubbleExponent} giving the exponent of $h$ that appears in the length unit. The {\normalfont \ttfamily angularSize}
@@ -399,7 +399,11 @@ contains
   end function squareReplicationCount
 
   logical function squareIsInLightcone(self,node,atPresentEpoch,radiusBuffer)
-    !% Determine if the given {\normalfont \ttfamily node} lies within the lightcone.
+    !% Determine if the given {\normalfont \ttfamily node} lies within the lightcone. Note that, when called with {\normalfont
+    !% \ttfamily atPresentEpoch=false} this function returns true if the node is in the lightcone at any point during its
+    !% existance. However, this check is made assuming that each node remains at fixed comoving coordinates between each output
+    !% time---there is no consideration of movement between output times. It is therefore recommended that some buffer is added to
+    !% catch any nodes which may briefly enter the lightcone between output times.
     use            :: Arrays_Search       , only : searchArrayClosest
     use            :: Galacticus_Error    , only : Galacticus_Component_List, Galacticus_Error_Report
     use            :: Galacticus_Nodes    , only : defaultPositionComponent , defaultSatelliteComponent, nodeComponentBasic, nodeComponentPosition, &
@@ -554,7 +558,7 @@ contains
     end if
     ! Iterate over possible output times.
     do output=outputMinimum,outputMaximum
-       ! Get position of galaxy in comoving coordinates.
+       ! Get position of galaxy in physical coordinates.
        if (atPresentEpoch_) then
           position     => node    %position()
           nodePosition =  position%position()
