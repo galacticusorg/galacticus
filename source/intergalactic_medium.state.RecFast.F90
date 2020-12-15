@@ -93,6 +93,7 @@ contains
     type            (hdf5Object                     )                              :: outputFile          , dataset          , &
          &                                                                            provenance          , recFastProvenance
     logical                                                                        :: buildFile
+    type            (lockDescriptor                 )                              :: fileLock
     !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_"/>
 
     ! Compute dark matter density.
@@ -125,7 +126,7 @@ contains
     call Directory_Make(galacticusPath(pathTypeDataDynamic)//'intergalacticMedium')
     ! Lock file.
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.true.)
+    call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.false.)
     ! Check existance of file.
     buildFile=.false.
     if (File_Exists(char(self%fileName))) then
@@ -157,7 +158,9 @@ contains
        write (parametersUnit,*    )  6
        close(parametersUnit)
        ! Run RecFast.
+       call File_Lock(char(recfastPath//"recfast.exe"),fileLock,lockIsShared=.false.)
        call System_Command_Do(recfastPath//"recfast.exe < "//parameterFile)
+       call File_Unlock(fileLock)
        ! Parse the output file.
        countRedshift=Count_Lines_in_File(recFastFile)-1
        allocate(redshift         (countRedshift))
