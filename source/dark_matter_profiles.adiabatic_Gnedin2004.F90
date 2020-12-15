@@ -436,9 +436,9 @@ contains
     !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
     !% in units of km s$^{-1}$ Mpc).
     implicit none
-    class           (darkMatterProfileAdiabaticGnedin2004), intent(inout), target  :: self
-    type            (treeNode                            ), intent(inout), pointer :: node
-    double precision                                      , intent(in   )          :: specificAngularMomentum
+    class           (darkMatterProfileAdiabaticGnedin2004), intent(inout), target :: self
+    type            (treeNode                            ), intent(inout)         :: node
+    double precision                                      , intent(in   )         :: specificAngularMomentum
 
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004RadiusFromSpecificAngularMomentum=self%darkMatterProfileDMO_%radiusFromSpecificAngularMomentum         (node,specificAngularMomentum)

@@ -66,7 +66,7 @@ contains
     use :: Kepler_Orbits          , only : keplerOrbit
     use :: Root_Finder            , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
-    type            (treeNode                 ), intent(inout), pointer  :: nodeHost
+    type            (treeNode                 ), intent(inout), target   :: nodeHost
     type            (keplerOrbit              ), intent(inout)           :: orbit
     integer                                    , intent(  out), optional :: errorCode
     class           (darkMatterHaloScaleClass ), intent(inout)           :: darkMatterHaloScale_
@@ -146,17 +146,17 @@ contains
     use :: Numerical_Constants_Prefixes , only : kilo
     use :: Root_Finder                  , only : rangeExpandMultiplicative   , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: nodeHost
-    type            (keplerOrbit       ), intent(inout)          :: orbit
-    integer                             , intent(in   )          :: extremumType
-    double precision                    , intent(  out)          :: radius                 , velocity
-    class           (nodeComponentBasic), pointer                :: basicHost
-    double precision                    , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
-    type            (rootFinder        ), save                   :: finder
+    type            (treeNode          ), intent(inout), target :: nodeHost
+    type            (keplerOrbit       ), intent(inout)         :: orbit
+    integer                             , intent(in   )         :: extremumType
+    double precision                    , intent(  out)         :: radius                 , velocity
+    class           (nodeComponentBasic), pointer               :: basicHost
+    double precision                    , parameter             :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
+    type            (rootFinder        ), save                  :: finder
     !$omp threadprivate(finder )
-    type            (keplerOrbit       )                         :: orbitCurrent
-    integer                                                      :: status
-    double precision                                             :: potential
+    type            (keplerOrbit       )                        :: orbitCurrent
+    integer                                                     :: status
+    double precision                                            :: potential
 
 
 
@@ -305,11 +305,11 @@ contains
     use :: Kepler_Orbits                , only : keplerOrbit
     use :: Numerical_Constants_Astronomical , only : gravitationalConstantGalacticus
     implicit none
-    type            (keplerOrbit)                         :: Satellite_Orbit_Convert_To_Current_Potential
-    type            (keplerOrbit), intent(inout)          :: orbit
-    type            (treeNode   ), intent(inout), pointer :: currentHost
-    double precision                                      :: potentialHost                               , radiusVirialOriginal, &
-         &                                                   velocityVirialOriginal
+    type            (keplerOrbit)                :: Satellite_Orbit_Convert_To_Current_Potential
+    type            (keplerOrbit), intent(inout) :: orbit
+    type            (treeNode   ), intent(inout) :: currentHost
+    double precision                             :: potentialHost                               , radiusVirialOriginal, &
+         &                                          velocityVirialOriginal
 
     ! Compute the properties of the initial orbit, and the current potential.
     radiusVirialOriginal  =gravitationalConstantGalacticus*orbit%hostMass()/orbit%velocityScale()**2
@@ -324,7 +324,7 @@ contains
   subroutine Satellite_Orbit_Reset(node)
     !% Reset the satellite orbit calculations.
     implicit none
-    type(treeNode), intent(inout), pointer :: node
+    type(treeNode), intent(inout) :: node
 
     pericenterCalculated=.false.
     apocenterCalculated =.false.

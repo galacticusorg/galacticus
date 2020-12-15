@@ -560,12 +560,12 @@ contains
     use :: Galacticus_Nodes            , only : nodeComponentDarkMatterProfile , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (darkMatterProfileDMOEinasto   ), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    double precision                                , intent(in   )          :: specificAngularMomentum
-    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
-    double precision                                                         :: alpha                           , scaleRadius, &
-         &                                                                      specificAngularMomentumScaleFree
+    class           (darkMatterProfileDMOEinasto   ), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: specificAngularMomentum
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    double precision                                                :: alpha                           , scaleRadius, &
+         &                                                             specificAngularMomentumScaleFree
 
     ! Get components.
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)

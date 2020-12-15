@@ -130,11 +130,11 @@ contains
     use :: Galacticus_Nodes, only : defaultMassFlowStatisticsComponent, nodeComponentMassFlowStatistics, nodeComponentMassFlowStatisticsStandard, propertyTypeInactive, &
           &                         treeNode
     implicit none
-    type     (treeNode                       ), pointer, intent(inout) :: node
-    logical                                   ,          intent(inout) :: interrupt
-    procedure(                               ), pointer, intent(inout) :: interruptProcedure
+    type     (treeNode                       ), intent(inout)          :: node
+    logical                                   , intent(inout)          :: interrupt
+    procedure(                               ), intent(inout), pointer :: interruptProcedure
     integer                                   , intent(in   )          :: propertyType
-    class    (nodeComponentMassFlowStatistics), pointer                :: massFlowStatistics
+    class    (nodeComponentMassFlowStatistics)               , pointer :: massFlowStatistics
     !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Return immediately if inactive variables are requested.

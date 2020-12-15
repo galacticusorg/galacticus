@@ -54,7 +54,7 @@ module Merger_Trees_Evolve_Node
   !#   <description>Handles instances where {\normalfont \ttfamily node} is about to merge with its parent node.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#  </method>
   !#  <method name="isAccurate" >
   !#   <description>Return true if a tree node property is within expected accuracy of a given value.</description>

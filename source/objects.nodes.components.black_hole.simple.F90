@@ -219,7 +219,7 @@ contains
     use :: Numerical_Constants_Physical, only : speedLight
     use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: node
+    type            (treeNode                ), intent(inout)          :: node
     logical                                   , intent(inout)          :: interrupt
     procedure       (interruptTask           ), intent(inout), pointer :: interruptProcedure
     integer                                   , intent(in   )          :: propertyType
@@ -351,12 +351,12 @@ contains
     use :: Galacticus_Nodes                , only : treeNode
     use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: node
-    double precision                        , intent(in   )          :: time
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                              integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    type            (treeNode)              , intent(inout) :: node
+    double precision                        , intent(in   ) :: time
+    integer                                 , intent(inout) :: doubleProperty         , integerProperty
+    character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
+         &                                                     integerPropertyComments, integerPropertyNames
+    double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     !$GLC attributes unused :: time, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI
 
     ! Ensure that the black hole component is of the simple class.
@@ -379,10 +379,10 @@ contains
     !% Account for the number of black hole properties to be written to the the \glc\ output file.
     use :: Galacticus_Nodes, only : treeNode
     implicit none
-    type            (treeNode), intent(inout), pointer :: node
-    double precision          , intent(in   )          :: time
-    integer                   , intent(inout)          :: doublePropertyCount  , integerPropertyCount
-    integer                   , parameter              :: extraPropertyCount =1
+    type            (treeNode), intent(inout) :: node
+    double precision          , intent(in   ) :: time
+    integer                   , intent(inout) :: doublePropertyCount  , integerPropertyCount
+    integer                   , parameter     :: extraPropertyCount =1
     !$GLC attributes unused :: time, integerPropertyCount
 
     ! Ensure that the black hole component is of the simple class.
@@ -432,8 +432,8 @@ contains
     !% Return true if the black hole component of {\normalfont \ttfamily node} is a match to the simple implementation.
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, nodeComponentBlackHoleSimple, treeNode
     implicit none
-    type (treeNode              ), intent(inout), pointer :: node
-    class(nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent
+    type (treeNode              ), intent(inout) :: node
+    class(nodeComponentBlackHole), pointer       :: thisBlackHoleComponent
 
     ! Get the black hole component.
     thisBlackHoleComponent => node%blackHole()

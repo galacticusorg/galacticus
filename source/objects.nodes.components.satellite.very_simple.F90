@@ -154,7 +154,7 @@ contains
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatellite, nodeComponentSatelliteVerySimple, propertyTypeInactive, &
           &                         treeNode
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode
+    type            (treeNode              ), intent(inout)          :: thisNode
     logical                                 , intent(inout)          :: interrupt
     procedure       (                      ), intent(inout), pointer :: interruptProcedure
     integer                                 , intent(in   )          :: propertyType

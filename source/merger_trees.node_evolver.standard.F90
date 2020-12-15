@@ -37,34 +37,34 @@
   type, extends(mergerTreeNodeEvolverClass) :: mergerTreeNodeEvolverStandard
      !% Implementation of the standard merger tree node evolver.
      private
-     class           (mergerTreeNodeMergerClass    ), pointer                   :: mergerTreeNodeMerger_ => null()
-     double precision                                                           :: odeToleranceAbsolute               , odeToleranceRelative         , &
+     class           (mergerTreeNodeMergerClass    ), pointer                   :: mergerTreeNodeMerger_               => null()
+     double precision                                                           :: odeToleranceAbsolute                         , odeToleranceRelative         , &
           &                                                                        odeJacobianStepSizeRelative
-     integer                                                                    :: odeAlgorithm                       , odeAlgorithmNonJacobian
+     integer                                                                    :: odeAlgorithm                                 , odeAlgorithmNonJacobian
      class           (galacticStructureSolverClass ), pointer                   :: galacticStructureSolver_
-     class           (nodeOperatorClass            ), pointer                   :: nodeOperator_ => null()
-     class           (mergerTreeEvolveProfilerClass), pointer                   :: mergerTreeEvolveProfiler_ => null()
-     integer                                                                    :: odeLatentIntegratorType            , odeLatentIntegratorOrder     , &
+     class           (nodeOperatorClass            ), pointer                   :: nodeOperator_                       => null()
+     class           (mergerTreeEvolveProfilerClass), pointer                   :: mergerTreeEvolveProfiler_           => null()
+     integer                                                                    :: odeLatentIntegratorType                      , odeLatentIntegratorOrder     , &
           &                                                                        odeLatentIntegratorIntervalsMaximum
-     integer         (c_size_t                     )                            :: propertyCountAll                   , propertyCountMaximum         , &
-          &                                                                        propertyCountInactive              , propertyCountActive          , &
+     integer         (c_size_t                     )                            :: propertyCountAll                             , propertyCountMaximum         , &
+          &                                                                        propertyCountInactive                        , propertyCountActive          , &
           &                                                                        propertyCountPrevious
-     double precision                               , allocatable, dimension(:) :: propertyScalesActive               , propertyValuesActive         , &
-          &                                                                        propertyErrors                     , propertyTolerances           , &
-          &                                                                        propertyValuesActiveSaved          , propertyScalesInactive       , &
-          &                                                                        propertyValuesInactiveSaved        , propertyValuesInactive       , &
-          &                                                                        odeTolerancesInactiveRelative      , odeTolerancesInactiveAbsolute
-     logical                                                                    :: profileOdeEvolver                  , reuseODEStepSize
+     double precision                               , allocatable, dimension(:) :: propertyScalesActive                         , propertyValuesActive         , &
+          &                                                                        propertyErrors                               , propertyTolerances           , &
+          &                                                                        propertyValuesActiveSaved                    , propertyScalesInactive       , &
+          &                                                                        propertyValuesInactiveSaved                  , propertyValuesInactive       , &
+          &                                                                        odeTolerancesInactiveRelative                , odeTolerancesInactiveAbsolute
+     logical                                                                    :: profileOdeEvolver                            , reuseODEStepSize
      integer         (kind=kind_int8               )                            :: activeTreeIndex
      type            (treeNode                     ), pointer                   :: activeNode
-     integer                                                                    :: trialCount                         , propertyTypeODE              , &
+     integer                                                                    :: trialCount                                   , propertyTypeODE              , &
           &                                                                        propertyTypeIntegrator
      logical                                                                    :: interruptFirstFound
      double precision                                                           :: timeInterruptFirst
      procedure       (interruptTask                ), pointer    , nopass       :: functionInterruptFirst
      logical                                                                    :: useJacobian
      double precision                                                           :: timePrevious
-     double precision                               , allocatable, dimension(:) :: propertyValuesPrevious             , propertyRatesPrevious
+     double precision                               , allocatable, dimension(:) :: propertyValuesPrevious                       , propertyRatesPrevious
      integer         (kind_int8                    )                            :: systemClockMaximum
    contains
      final     ::               standardDestructor
@@ -881,7 +881,7 @@ contains
     include 'objects.node.component.derivatives.modules.inc'
     !# </include>
     implicit none
-    type     (treeNode), intent(inout), pointer :: node
+    type     (treeNode), intent(inout)          :: node
     logical            , intent(  out)          :: interrupt
     procedure(        ), intent(  out), pointer :: functionInterruptReturn
     integer            , intent(in   )          :: propertyType
@@ -1145,11 +1145,11 @@ contains
     include 'events.node_mergers.process.modules.inc'
     !# </include>
     implicit none
-    class    (mergerTreeNodeEvolverStandard), intent(inout)          :: self
-    type     (treeNode                     ), intent(inout), pointer :: node
-    class    (nodeComponentBasic           )               , pointer :: basic
-    type     (varying_string               )                         :: message
-    character(len=7                        )                         :: label
+    class    (mergerTreeNodeEvolverStandard), intent(inout) :: self
+    type     (treeNode                     ), intent(inout) :: node
+    class    (nodeComponentBasic           ), pointer       :: basic
+    type     (varying_string               )                :: message
+    character(len=7                        )                :: label
 
     ! Display a message.
     if (Galacticus_Verbosity_Level() >= verbosityInfo) then

@@ -348,7 +348,7 @@ contains
     !% Compute rates of change of properties in the standard implementation of the basic component.
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandardExtended, propertyTypeInactive, treeNode
     implicit none
-    type     (treeNode          ), intent(inout), pointer :: node
+    type     (treeNode          ), intent(inout)          :: node
     logical                      , intent(inout)          :: interrupt
     procedure(                  ), intent(inout), pointer :: interruptProcedure
     integer                      , intent(in   )          :: propertyType
@@ -402,8 +402,8 @@ contains
     !% Switch off accretion of new mass onto this node once it becomes a satellite.
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandardExtended, treeNode
     implicit none
-    type (treeNode          ), intent(inout), pointer :: node
-    class(nodeComponentBasic)               , pointer :: basic
+    type (treeNode          ), intent(inout) :: node
+    class(nodeComponentBasic), pointer       :: basic
 
     ! Get the basic component.
     basic => node%basic()

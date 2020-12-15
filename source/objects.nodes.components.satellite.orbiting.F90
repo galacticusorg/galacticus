@@ -302,11 +302,11 @@ contains
     !% bound mass is automatically set to the original halo mass by virtue of that being the class default).
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatellite, nodeComponentSatelliteOrbiting, treeNode
     implicit none
-    type            (treeNode              ), pointer, intent(inout) :: node
-    type            (treeNode              ), pointer                :: nodeHost
-    class           (nodeComponentSatellite), pointer                :: satellite
-    logical                                                          :: isNewSatellite
-    type            (keplerOrbit           )                         :: orbit
+    type            (treeNode              ), intent(inout) :: node
+    type            (treeNode              ), pointer       :: nodeHost
+    class           (nodeComponentSatellite), pointer       :: satellite
+    logical                                                 :: isNewSatellite
+    type            (keplerOrbit           )                :: orbit
 
     ! Return immediately if this method is not active.
     if (.not.defaultSatelliteComponent%orbitingIsActive()) return
@@ -441,10 +441,10 @@ contains
     use :: Galacticus_Error                    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentSatellite             , nodeComponentSatelliteOrbiting, treeNode
     implicit none
-    class           (nodeComponentSatellite)              , intent(inout) :: satelliteComponent
-    type            (treeNode              ), pointer     , intent(in   ) :: thisNode
-    double precision                                                      :: virialRadius      , maximumRadius, &
-         &                                                                   satelliteMass
+    class           (nodeComponentSatellite), intent(inout) :: satelliteComponent
+    type            (treeNode              ), intent(inout) :: thisNode
+    double precision                                        :: virialRadius      , maximumRadius, &
+         &                                                     satelliteMass
 
     select type (satelliteComponent)
     class is (nodeComponentSatelliteOrbiting)

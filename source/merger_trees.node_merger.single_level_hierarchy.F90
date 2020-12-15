@@ -61,7 +61,7 @@ contains
     use :: String_Handling    , only : operator(//)
     implicit none
     class(mergerTreeNodeMergerSingleLevelHierarchy), intent(inout)          :: self
-    type (treeNode                                ), intent(inout), pointer :: node
+    type (treeNode                                ), intent(inout), target  :: node
     type (treeNode                                )               , pointer :: nodeChild    , nodeParent, &
          &                                                                     nodeSatellite
     type (varying_string                          )                         :: message

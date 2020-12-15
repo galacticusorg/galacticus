@@ -538,9 +538,9 @@ contains
     include 'galacticus.output.merger_tree.property_count.modules.inc'
     !# </include>
     implicit none
-    class           (mergerTreeOutputterStandard), intent(inout)          :: self
-    double precision                             , intent(in   )          :: time
-    type            (treeNode                   ), intent(inout), pointer :: node
+    class           (mergerTreeOutputterStandard), intent(inout) :: self
+    double precision                             , intent(in   ) :: time
+    type            (treeNode                   ), intent(inout) :: node
 
     self%integerPropertyCount=0
     self%doublePropertyCount =0
@@ -623,10 +623,10 @@ contains
     include 'galacticus.output.merger_tree.names.modules.inc'
     !# </include>
     implicit none
-    class           (mergerTreeOutputterStandard), intent(inout)          :: self
-    double precision                             , intent(in   )          :: time
-    type            (treeNode                   ), intent(inout), pointer :: node
-    integer                                                               :: doubleProperty, integerProperty
+    class           (mergerTreeOutputterStandard), intent(inout) :: self
+    double precision                             , intent(in   ) :: time
+    type            (treeNode                   ), intent(inout) :: node
+    integer                                                      :: doubleProperty, integerProperty
 
     integerProperty=0
     doubleProperty =0

@@ -94,10 +94,10 @@
      double precision                                                     :: toleranceResolutionSelf                           , toleranceResolutionParent
    contains
      !# <methods>
-     !#   <method description="Return true if construction of the merger tree should be aborted." method="shouldAbort" />
-     !#   <method description="Return true if the branch should be followed." method="shouldFollowBranch" />
-     !#   <method description="Set the critical overdensity object." method="criticalOverdensitySet" />
-     !#   <method description="Set the critical overdensity object." method="criticalOverdensityUpdate" />
+     !#   <method description="Return true if construction of the merger tree should be aborted." method="shouldAbort"              />
+     !#   <method description="Return true if the branch should be followed."                     method="shouldFollowBranch"       />
+     !#   <method description="Set the critical overdensity object."                              method="criticalOverdensitySet"   />
+     !#   <method description="Set the critical overdensity object."                              method="criticalOverdensityUpdate"/>
      !# </methods>
      final     ::                              cole2000Destructor
      procedure :: build                     => cole2000Build
@@ -654,9 +654,9 @@ contains
     !% \ttfamily cole2000} tree builder we always continue.
     use :: Galacticus_Nodes, only : mergerTree, treeNode
     implicit none
-    class(mergerTreeBuilderCole2000), intent(inout)          :: self
-    type (mergerTree               ), intent(in   )          :: tree
-    type (treeNode                 ), intent(inout), pointer :: node
+    class(mergerTreeBuilderCole2000), intent(inout) :: self
+    type (mergerTree               ), intent(in   ) :: tree
+    type (treeNode                 ), intent(inout) :: node
     !$GLC attributes unused :: self, tree, node
 
     cole2000ShouldFollowBranch=.true.

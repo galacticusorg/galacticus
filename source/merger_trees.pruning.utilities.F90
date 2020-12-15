@@ -32,10 +32,10 @@ contains
     use :: Galacticus_Nodes   , only : treeNode
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodesBranch
     implicit none
-    type(treeNode                      ), pointer, intent(inout) :: node
-    type(treeNode                      ), pointer                :: workNode  , mergeeNode, &
-         &                                                          nextMergee
-    type(mergerTreeWalkerAllNodesBranch)                         :: treeWalker
+    type(treeNode                      ), intent(inout) :: node
+    type(treeNode                      ), pointer       :: workNode  , mergeeNode, &
+         &                                                 nextMergee
+    type(mergerTreeWalkerAllNodesBranch)                :: treeWalker
 
     ! Walk the branch to be pruned.
     treeWalker=mergerTreeWalkerAllNodesBranch(node)
@@ -61,8 +61,8 @@ contains
     !% Unlink a parent node from a tree branch which is about to be pruned.
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    type   (treeNode          ), pointer, intent(inout) :: node              , parentNode
-    logical                             , intent(in   ) :: parentWillBePruned, preservePrimaryProgenitor
+    type   (treeNode          ), intent(inout), pointer :: node              , parentNode
+    logical                    , intent(in   )          :: parentWillBePruned, preservePrimaryProgenitor
     type   (treeNode          ), pointer                :: newNode           , workNode
     class  (nodeComponentBasic), pointer                :: newBasic
 

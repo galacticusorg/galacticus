@@ -142,10 +142,10 @@ contains
     use :: Galacticus_Nodes            , only : nodeComponentBasic             , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    type            (treeNode                 ), intent(inout), pointer :: node
-    double precision                           , intent(in   )          :: angularMomentum
-    class           (darkMatterProfileDMOClass), intent(inout)          :: darkMatterProfileDMO_
-    class           (nodeComponentBasic       )               , pointer :: basic
+    type            (treeNode                 ), intent(inout) :: node
+    double precision                           , intent(in   ) :: angularMomentum
+    class           (darkMatterProfileDMOClass), intent(inout) :: darkMatterProfileDMO_
+    class           (nodeComponentBasic       ), pointer       :: basic
 
     call assertPropertiesGettable()
     basic                 =>  node             %basic()

@@ -181,7 +181,7 @@ contains
     use :: Abundances_Structure, only : abundances          , operator(*)
     use :: Galacticus_Nodes    , only : nodeComponentHotHalo, nodeComponentHotHaloVerySimple, treeNode
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: node
+    type            (treeNode            ), intent(inout)          :: node
     double precision                      , intent(in   )          :: massRate
     logical                               , intent(inout)          :: interrupt
     procedure       (                    ), intent(inout), pointer :: interruptProcedure
@@ -260,7 +260,7 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentHotHalo   , nodeComponentHotHaloVerySimple, propertyTypeInactive, treeNode, &
          &                          defaultHotHaloComponent
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: node
+    type            (treeNode            ), intent(inout)          :: node
     logical                               , intent(inout)          :: interrupt
     procedure       (                    ), intent(inout), pointer :: interruptProcedure
     integer                               , intent(in   )          :: propertyType
@@ -500,15 +500,15 @@ contains
     use :: Accretion_Halos     , only : accretionModeHot  , accretionModeTotal
     use :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentHotHalo, nodeComponentHotHaloVerySimple, treeNode, defaultHotHaloComponent
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: node
-    type            (treeNode            )               , pointer :: nodeParent
-    class           (nodeComponentHotHalo)               , pointer :: hotHaloParent       , hotHalo
-    class           (nodeComponentBasic  )               , pointer :: basic               , basicParent
-    type            (abundances          ), save                   :: massMetalsAccreted  , fractionMetalsAccreted, &
-         &                                                            massMetalsReaccreted
+    type            (treeNode            ), intent(inout) :: node
+    type            (treeNode            ), pointer       :: nodeParent
+    class           (nodeComponentHotHalo), pointer       :: hotHaloParent       , hotHalo
+    class           (nodeComponentBasic  ), pointer       :: basic               , basicParent
+    type            (abundances          ), save          :: massMetalsAccreted  , fractionMetalsAccreted, &
+         &                                                   massMetalsReaccreted
     !$omp threadprivate(massMetalsAccreted,fractionMetalsAccreted,massMetalsReaccreted)
-    double precision                                               :: massAccreted        , massUnaccreted        , &
-         &                                                            fractionAccreted    , massReaccreted
+    double precision                                      :: massAccreted        , massUnaccreted        , &
+         &                                                   fractionAccreted    , massReaccreted
 
     ! Return immediately if this class is not in use.
     if (.not.defaultHotHaloComponent%verySimpleIsActive()) return
@@ -574,8 +574,8 @@ contains
     !% Get and store the cooling rate for {\normalfont \ttfamily node}.
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
     implicit none
-    type (treeNode            ), intent(inout), pointer :: node
-    class(nodeComponentHotHalo)               , pointer :: hotHalo
+    type (treeNode            ), intent(inout) :: node
+    class(nodeComponentHotHalo), pointer       :: hotHalo
 
     if (.not.gotCoolingRate) then
        ! Get the hot halo component.

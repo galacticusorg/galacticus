@@ -90,7 +90,7 @@ contains
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent, nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScalePreset, propertyTypeInactive, &
           &                         treeNode
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: node
+    type            (treeNode                      ), intent(inout)          :: node
     logical                                         , intent(inout)          :: interrupt
     procedure       (                              ), intent(inout), pointer :: interruptProcedure
     integer                                         , intent(in   )          :: propertyType

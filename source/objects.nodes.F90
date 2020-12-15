@@ -819,7 +819,7 @@ module Galacticus_Nodes
   function Merger_Tree_Walk_Descend_to_Progenitors(self) result (progenitorNode)
     !% Descend to the deepest progenitor (satellites and children) of {\normalfont \ttfamily self}.
     implicit none
-    type(treeNode), intent(in   ), pointer :: self
+    type(treeNode), intent(in   ), target  :: self
     type(treeNode)               , pointer :: progenitorNode
 
     ! Begin at the input node.

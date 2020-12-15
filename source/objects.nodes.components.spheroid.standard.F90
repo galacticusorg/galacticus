@@ -612,9 +612,9 @@ contains
   subroutine Node_Component_Spheroid_Standard_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the standard spheroid node mass rate of change.
     use :: Galacticus_Nodes, only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidStandard, &
-         &                           propertyTypeInactive   , treeNode
+         &                          propertyTypeInactive    , treeNode
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: node
+    type            (treeNode             ), intent(inout)          :: node
     logical                                , intent(inout)          :: interrupt
     procedure       (                     ), intent(inout), pointer :: interruptProcedure
     integer                                , intent(in   )          :: propertyType

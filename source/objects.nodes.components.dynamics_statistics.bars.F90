@@ -133,7 +133,7 @@ contains
     use :: Galacticus_Nodes, only : defaultDynamicsStatisticsComponent , interruptTask, nodeComponentBasic, nodeComponentDynamicsStatistics, &
           &                         nodeComponentDynamicsStatisticsBars, treeNode
     implicit none
-    type            (treeNode                       ), intent(inout), pointer      :: node
+    type            (treeNode                       ), intent(inout)               :: node
     logical                                          , intent(inout)               :: interrupt
     procedure       (interruptTask                  ), intent(inout), pointer      :: interruptProcedure
     integer                                          , intent(in   )               :: propertyType

@@ -102,11 +102,11 @@ contains
     !% where $\nu=\delta_\mathrm{c}(t)/\sigma(M)$ is the peak height of the halo.
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    class           (darkMatterProfileShapeGao2008), intent(inout)          :: self
-    type            (treeNode                     ), intent(inout), pointer :: node
-    double precision                               , parameter              :: nuMaximum=3.907d0
-    class           (nodeComponentBasic           )               , pointer :: basic
-    double precision                                                        :: nu
+    class           (darkMatterProfileShapeGao2008), intent(inout)  :: self
+    type            (treeNode                     ), intent(inout), :: node
+    double precision                               , parameter      :: nuMaximum=3.907d0
+    class           (nodeComponentBasic           ), pointer        :: basic
+    double precision                                                :: nu
 
     ! Get the basic component.
     basic => node%basic()

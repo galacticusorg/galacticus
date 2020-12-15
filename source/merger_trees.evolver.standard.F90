@@ -971,7 +971,7 @@ contains
     !% Add a node to the deadlocked nodes list.
     implicit none
     class  (mergerTreeEvolverStandard), intent(inout)          :: self
-    type   (treeNode                 ), intent(in   ), pointer :: nodeLock        , node
+    type   (treeNode                 ), intent(in   ), target  :: nodeLock        , node
     integer(kind=kind_int8           ), intent(in   )          :: treeIndex
     type   (varying_string           ), intent(in   )          :: lockType
     type   (deadlockList             )               , pointer :: deadlockThisNode
@@ -1120,10 +1120,10 @@ contains
     type            (mergerTree        ), intent(in   )          :: tree
     type            (treeNode          ), intent(inout), pointer :: node
     integer                             , intent(inout)          :: statusDeadlock
-    class           (nodeEvent         )               , pointer :: eventLast     , eventNext        , &
+    class           (nodeEvent         )               , pointer :: eventLast            , eventNext        , &
          &                                                          event
     class           (nodeComponentBasic)               , pointer :: basic
-    double precision                                             :: timeNode      , timeEventEarliest
+    double precision                                             :: timeNode             , timeEventEarliest
     logical                                                      :: mergerTreeEvolverDone
     !$GLC attributes unused :: self, tree
 
@@ -1138,7 +1138,7 @@ contains
        event => event%next
     end do
     ! Get the first event.
-    event => node%event
+    event     => node%event
     eventLast => node%event
     ! Iterate over all events.
     do while (associated(event))
@@ -1162,11 +1162,11 @@ contains
           else
              ! The mergerTreeEvolver was not performed, so simply move to the next event.
              eventLast => event
-             event => event%next
+             event     => event%next
           end if
        else
           eventLast => event
-          event => event%next
+          event     => event%next
        end if
     end do
     return

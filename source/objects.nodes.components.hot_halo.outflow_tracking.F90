@@ -105,7 +105,7 @@ contains
           &                                              propertyTypeInactive    , treeNode
     use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloOutflowReturnRate
     implicit none
-    type            (treeNode                    ), intent(inout), pointer :: node
+    type            (treeNode                    ), intent(inout)          :: node
     logical                                       , intent(inout)          :: interrupt
     procedure       (interruptTask               ), intent(inout), pointer :: interruptProcedure
     integer                                       , intent(in   )          :: propertyType

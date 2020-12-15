@@ -770,11 +770,11 @@ contains
     !% in units of km s$^{-1}$ Mpc).
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
-    class           (darkMatterProfileGeneric), intent(inout), target  :: self
-    type            (treeNode                ), intent(inout), pointer :: node
-    double precision                          , intent(in   )          :: specificAngularMomentum
-    double precision                          , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
-    type            (rootFinder              )                         :: finder
+    class           (darkMatterProfileGeneric), intent(inout), target :: self
+    type            (treeNode                ), intent(inout), target :: node
+    double precision                          , intent(in   )         :: specificAngularMomentum
+    double precision                          , parameter             :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
+    type            (rootFinder              )                        :: finder
 
     genericSelf                    => self
     genericNode                    => node

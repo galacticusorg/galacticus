@@ -990,7 +990,7 @@ contains
     type   (treeNode                 ), intent(inout), pointer                   :: node
     type   (mergerTree               ), intent(inout), target                    :: tree
     integer                           , intent(in   )                            :: nodeChildCount
-    type   (treeNode                 ), intent(inout), pointer                   :: nodeNonOverlapFirst
+    type   (treeNode                 ), intent(inout)                            :: nodeNonOverlapFirst
     type   (treeNodeList             ), intent(inout), dimension(nodeChildCount) :: endNodes
     type   (treeNode                 ), pointer                                  :: nodeCurrent        , nodeCurrentSibling
     integer                                                                      :: i
@@ -1149,7 +1149,7 @@ contains
     return
   end subroutine augmentSortChildren
 
-  subroutine augmentNonOverlapListAdd(node, listFirstElement)
+  subroutine augmentNonOverlapListAdd(node,listFirstElement)
     !% Add the given node to a linked list of non-overlap nodes in the current trial tree.
     use :: Galacticus_Nodes, only : treeNode
     implicit none
@@ -1188,7 +1188,7 @@ contains
     use :: Galacticus_Nodes, only : treeNode
     implicit none
     class(mergerTreeOperatorAugment), intent(in   )          :: self
-    type (treeNode                 ), intent(in   ), pointer :: listFirstElement
+    type (treeNode                 ), intent(in   ), target  :: listFirstElement
     type (treeNode                 )               , pointer :: nodeCurrent     , listHead
 
     listHead => listFirstElement
@@ -1215,7 +1215,7 @@ contains
     implicit none
     class           (mergerTreeOperatorAugment), intent(inout)          :: self
     type            (mergerTree               ), intent(inout), target  :: treeBest
-    type            (treeNode                 ), intent(in   ), pointer :: nodeNonOverlapFirst
+    type            (treeNode                 ), intent(in   ), target  :: nodeNonOverlapFirst
     double precision                           , intent(in   )          :: tolerance
     double precision                           , intent(inout)          :: massCutoffScale        , massOvershootScale
     type            (treeNode                 )               , pointer :: nodeCurrent
@@ -1255,7 +1255,7 @@ contains
     !% tolerance.
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    type            (treeNode          ), intent(in   ), pointer :: nodeNew            , nodeOriginal
+    type            (treeNode          ), intent(inout)          :: nodeNew            , nodeOriginal
     double precision                    , intent(in   )          :: tolerance
     double precision                    , intent(inout)          :: treeCurrentWorstFit
     class           (nodeComponentBasic)               , pointer :: basicNew           , basicOriginal

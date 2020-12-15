@@ -160,9 +160,9 @@ contains
     !% Optionally move a satellite to coincide with the postion of its host.
     use :: Galacticus_Nodes, only : defaultPositionComponent, nodeComponentPosition, treeNode
     implicit none
-    type (treeNode             ), intent(inout)          :: node
-    type (treeNode             )               , pointer :: nodeHost
-    class(nodeComponentPosition)               , pointer :: position, positionHost
+    type (treeNode             ), intent(inout) :: node
+    type (treeNode             ), pointer       :: nodeHost
+    class(nodeComponentPosition), pointer       :: position, positionHost
 
     ! Return immediately if this method is not active or if positions are not to be reset.
     if (.not.defaultPositionComponent%presetIsActive() .or. .not.positionsPresetSatelliteToHost) return

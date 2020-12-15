@@ -111,10 +111,10 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic     , treeNode
     implicit none
-    class           (darkMatterProfileShapeKlypin2015), intent(inout)          :: self
-    type            (treeNode                        ), intent(inout), pointer :: node
-    class           (nodeComponentBasic              )               , pointer :: basic
-    double precision                                                           :: nu
+    class           (darkMatterProfileShapeKlypin2015), intent(inout) :: self
+    type            (treeNode                        ), intent(inout) :: node
+    class           (nodeComponentBasic              ), pointer       :: basic
+    double precision                                                  :: nu
 
     ! Get the basic component.
     basic => node%basic()

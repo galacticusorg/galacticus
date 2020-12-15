@@ -2763,7 +2763,7 @@ contains
     use :: Galacticus_Nodes , only : nodeEvent       , nodeEventBranchJump, treeNode
     use :: Node_Branch_Jumps, only : Node_Branch_Jump
     implicit none
-    type            (treeNode ), intent(inout), pointer :: jumpToHost, node
+    type            (treeNode ), intent(inout), target  :: jumpToHost, node
     double precision           , intent(in   )          :: timeOfJump
     class           (nodeEvent)               , pointer :: newEvent  , pairEvent
 

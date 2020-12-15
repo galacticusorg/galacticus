@@ -305,7 +305,7 @@ contains
     use :: Numerical_Constants_Physical    , only : boltzmannsConstant       , speedLight
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    type            (treeNode              ), intent(inout), pointer   :: node
+    type            (treeNode              ), intent(inout)            :: node
     logical                                 , intent(inout)            :: interrupt
     procedure       (interruptTask         ), intent(inout), pointer   :: interruptProcedure
     integer                                 , intent(in   )            :: propertyType
@@ -770,12 +770,12 @@ contains
     use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: node
-    double precision                        , intent(in   )          :: time
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                              integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    type            (treeNode)              , intent(inout) :: node
+    double precision                        , intent(in   ) :: time
+    integer                                 , intent(inout) :: doubleProperty         , integerProperty
+    character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
+         &                                                     integerPropertyComments, integerPropertyNames
+    double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     !$GLC attributes unused :: time
 
     if (Node_Component_Black_Hole_Standard_Matches(node)) then
@@ -809,10 +809,10 @@ contains
     !% Account for the number of black hole properties to be written to the the \glc\ output file.
     use :: Galacticus_Nodes, only : treeNode
     implicit none
-    type            (treeNode), intent(inout), pointer :: node
-    double precision          , intent(in   )          :: time
-    integer                   , intent(inout)          :: doublePropertyCount  , integerPropertyCount
-    integer                   , parameter              :: extraPropertyCount =3
+    type            (treeNode), intent(inout) :: node
+    double precision          , intent(in   ) :: time
+    integer                   , intent(inout) :: doublePropertyCount  , integerPropertyCount
+    integer                   , parameter     :: extraPropertyCount =3
     !$GLC attributes unused :: time
 
     if (Node_Component_Black_Hole_Standard_Matches(node)) then
@@ -870,8 +870,8 @@ contains
     !% Return true if the black hole component of {\normalfont \ttfamily node} is a match to the standard implementation.
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, nodeComponentBlackHoleStandard, treeNode
     implicit none
-    type (treeNode              ), intent(inout), pointer :: node
-    class(nodeComponentBlackHole)               , pointer :: blackHole
+    type (treeNode              ), intent(inout) :: node
+    class(nodeComponentBlackHole), pointer       :: blackHole
 
     ! Get the black hole component.
     blackHole => node%blackHole()
@@ -1021,10 +1021,10 @@ contains
     !% A simple interpolating function which is used as a measure of the fraction of a halo which is in the hot accretion mode.
     use :: Galacticus_Nodes, only : treeNode
     implicit none
-    type            (treeNode), intent(inout), pointer :: node
-    double precision          , parameter              :: coolingRadiusFractionalTransitionMinimum=0.9d0
-    double precision          , parameter              :: coolingRadiusFractionalTransitionMaximum=1.0d0
-    double precision                                   :: coolingRadiusFractional                       , x
+    type            (treeNode), intent(inout) :: node
+    double precision          , parameter     :: coolingRadiusFractionalTransitionMinimum=0.9d0
+    double precision          , parameter     :: coolingRadiusFractionalTransitionMaximum=1.0d0
+    double precision                          :: coolingRadiusFractional                       , x
 
     coolingRadiusFractional=+coolingRadius_      %      radius(node) &
          &                  /darkMatterHaloScale_%virialRadius(node)

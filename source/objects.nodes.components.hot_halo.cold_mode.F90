@@ -184,7 +184,7 @@ contains
     use :: Node_Component_Hot_Halo_Standard_Data, only : currentNode            , formationNode       , hotHaloAngularMomentumLossFraction, hotHaloCoolingFromNode
     use :: Numerical_Constants_Math             , only : Pi
     implicit none
-    type            (treeNode                    ), intent(inout)          , pointer :: node
+    type            (treeNode                    ), intent(inout)          , target  :: node
     double precision                              , intent(in   )                    :: massRate
     logical                                       , intent(inout), optional          :: interrupt
     procedure       (interruptTask               ), intent(inout), optional, pointer :: interruptProcedure
@@ -249,7 +249,7 @@ contains
     use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloOutflowAngularMomentumAlwaysGrows     , outerRadiusOverVirialRadiusMinimum
     use :: Numerical_Constants_Math             , only : Pi
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: node
+    type            (treeNode            ), intent(inout)          :: node
     logical                               , intent(inout)          :: interrupt
     procedure       (interruptTask       ), intent(inout), pointer :: interruptProcedure
     integer                               , intent(in   )          :: propertyType
@@ -507,18 +507,18 @@ contains
           &                                              treeNode                            , defaultHotHaloComponent
     use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloNodeMergerLimitBaryonFraction, starveSatellites
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: node
-    type            (treeNode            )               , pointer :: nodeParent
-    class           (nodeComponentHotHalo)               , pointer :: hotHaloParent          , hotHalo
-    class           (nodeComponentSpin   )               , pointer :: spinParent
-    class           (nodeComponentBasic  )               , pointer :: basicParent            , basic
-    double precision                                               :: baryonicMassCurrent    , baryonicMassMaximum   , &
-         &                                                            fractionRemove         , massAccretedCold      , &
-         &                                                            massAccreted           , massUnaccreted        , &
-         &                                                            angularMomentumAccreted, massReaccreted        , &
-         &                                                            fractionAccreted
-    type            (abundances          ), save                   :: massMetalsAccreted     , fractionMetalsAccreted, &
-         &                                                            massMetalsReaccreted
+    type            (treeNode            ), intent(inout) :: node
+    type            (treeNode            ), pointer       :: nodeParent
+    class           (nodeComponentHotHalo), pointer       :: hotHaloParent          , hotHalo
+    class           (nodeComponentSpin   ), pointer       :: spinParent
+    class           (nodeComponentBasic  ), pointer       :: basicParent            , basic
+    double precision                                      :: baryonicMassCurrent    , baryonicMassMaximum   , &
+         &                                                   fractionRemove         , massAccretedCold      , &
+         &                                                   massAccreted           , massUnaccreted        , &
+         &                                                   angularMomentumAccreted, massReaccreted        , &
+         &                                                   fractionAccreted
+    type            (abundances          ), save          :: massMetalsAccreted     , fractionMetalsAccreted, &
+         &                                                   massMetalsReaccreted
     !$omp threadprivate(massMetalsAccreted,fractionMetalsAccreted,massMetalsReaccreted)
 
     ! Return immediately if this class is not in use.

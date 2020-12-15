@@ -660,7 +660,7 @@ contains
     !% (e.g. fully-mixed metals).
     use :: Galacticus_Nodes, only : interruptTask, nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: node
+    type            (treeNode            ), intent(inout)          :: node
     double precision                      , intent(in   )          :: gasMassRate
     logical                               , intent(inout)          :: interrupt
     procedure       (interruptTask       ), intent(inout), pointer :: interruptProcedure
@@ -745,7 +745,7 @@ contains
     use :: Galacticus_Nodes                     , only : interruptTask          , nodeComponentHotHalo, nodeComponentHotHaloStandard      , treeNode
     use :: Node_Component_Hot_Halo_Standard_Data, only : currentNode            , formationNode       , hotHaloAngularMomentumLossFraction, hotHaloCoolingFromNode
     implicit none
-    type            (treeNode                ), intent(inout)          , pointer :: node
+    type            (treeNode                ), intent(inout)          , target  :: node
     double precision                          , intent(in   )                    :: massRate
     logical                                   , intent(inout), optional          :: interrupt
     procedure       (interruptTask           ), intent(inout), optional, pointer :: interruptProcedure
@@ -992,7 +992,7 @@ contains
     use :: Numerical_Constants_Math             , only : Pi
     use :: Radiation_Fields                     , only : radiationFieldIntergalacticBackground
     implicit none
-    type            (treeNode              )           , intent(inout), pointer :: node
+    type            (treeNode              )           , intent(inout)          :: node
     logical                                            , intent(inout)          :: interrupt
     procedure       (interruptTask         )           , intent(inout), pointer :: interruptProcedure
     integer                                            , intent(in   )          :: propertyType
@@ -1435,21 +1435,21 @@ contains
           &                                              treeNode                            , defaultHotHaloComponent
     use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloNodeMergerLimitBaryonFraction, starveSatellites       , starveSatellitesOutflowed
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: node
-    type            (treeNode            )               , pointer :: nodeParent
-    class           (nodeComponentHotHalo)               , pointer :: hotHaloParent , hotHalo
-    class           (nodeComponentSpin   )               , pointer :: spinParent
-    class           (nodeComponentBasic  )               , pointer :: parentBasic            , basic
-    double precision                                               :: baryonicMassCurrent    , baryonicMassMaximum      , &
-         &                                                            fractionRemove         , massAccreted             , &
-         &                                                            massUnaccreted         , massReaccreted           , &
-         &                                                            fractionAccreted       , angularMomentumAccreted  , &
-         &                                                            massAccretedHot
-    type            (abundances          ), save                   :: massMetalsAccreted     , fractionMetalsAccreted   , &
-         &                                                            massMetalsReaccreted
+    type            (treeNode            ), intent(inout) :: node
+    type            (treeNode            ), pointer       :: nodeParent
+    class           (nodeComponentHotHalo), pointer       :: hotHaloParent , hotHalo
+    class           (nodeComponentSpin   ), pointer       :: spinParent
+    class           (nodeComponentBasic  ), pointer       :: parentBasic            , basic
+    double precision                                      :: baryonicMassCurrent    , baryonicMassMaximum      , &
+         &                                                   fractionRemove         , massAccreted             , &
+         &                                                   massUnaccreted         , massReaccreted           , &
+         &                                                   fractionAccreted       , angularMomentumAccreted  , &
+         &                                                   massAccretedHot
+    type            (abundances          ), save          :: massMetalsAccreted     , fractionMetalsAccreted   , &
+         &                                                   massMetalsReaccreted
     !$omp threadprivate(massMetalsAccreted,fractionMetalsAccreted,massMetalsReaccreted)
-    type            (chemicalAbundances  ), save                   :: massChemicalsAccreted  , fractionChemicalsAccreted, &
-         &                                                            massChemicalsReaccreted
+    type            (chemicalAbundances  ), save          :: massChemicalsAccreted  , fractionChemicalsAccreted, &
+         &                                                   massChemicalsReaccreted
     !$omp threadprivate(massChemicalsAccreted,fractionChemicalsAccreted,massChemicalsReaccreted)
 
     ! Return immediately if this class is not in use.
@@ -1793,8 +1793,8 @@ contains
     !% Get and store the cooling rate for {\normalfont \ttfamily node}.
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
     implicit none
-    type (treeNode            ), intent(inout), pointer :: node
-    class(nodeComponentHotHalo)               , pointer :: hotHalo
+    type (treeNode            ), intent(inout) :: node
+    class(nodeComponentHotHalo), pointer       :: hotHalo
 
     if (.not.gotCoolingRate) then
        ! Get the hot halo component.

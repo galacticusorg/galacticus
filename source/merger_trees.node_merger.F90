@@ -35,7 +35,7 @@ module Merger_Trees_Merge_Node
   !#   <description>Process the merger between {\normalfont \ttfamily node} and its parent node, then destroy it.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
+  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
   !#  </method>
   !# </functionClass>
 

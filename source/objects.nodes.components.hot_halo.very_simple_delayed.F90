@@ -176,7 +176,7 @@ contains
     use :: Galacticus_Nodes    , only : nodeComponentHotHalo         , nodeComponentHotHaloVerySimpleDelayed, propertyTypeInactive, treeNode, &
          &                              defaultHotHaloComponent
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: node
+    type            (treeNode             ), intent(inout)          :: node
     logical                                , intent(inout)          :: interrupt
     procedure       (                     ), intent(inout), pointer :: interruptProcedure
     integer                                , intent(in   )          :: propertyType
@@ -380,9 +380,9 @@ contains
     use :: Abundances_Structure, only : zeroAbundances
     use :: Galacticus_Nodes    , only : nodeComponentHotHalo, nodeComponentHotHaloVerySimpleDelayed, treeNode, defaultHotHaloComponent
     implicit none
-    type (treeNode            ), intent(inout), pointer :: node
-    type (treeNode            )               , pointer :: parentNode
-    class(nodeComponentHotHalo)               , pointer :: parentHotHalo, hotHalo
+    type (treeNode            ), intent(inout) :: node
+    type (treeNode            ), pointer       :: parentNode
+    class(nodeComponentHotHalo), pointer       :: parentHotHalo, hotHalo
 
     ! Return immediately if this class is not in use.
     if (.not.defaultHotHaloComponent%verySimpleDelayedIsActive()) return

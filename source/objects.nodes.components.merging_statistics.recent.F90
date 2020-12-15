@@ -188,14 +188,14 @@ contains
     use            :: Galacticus_Nodes, only : defaultMergingStatisticsComponent, nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     implicit none
-    type            (treeNode                      ), intent(inout)         , pointer :: node
-    type            (treeNode                      )                        , pointer :: nodeDescendent
-    class           (nodeComponentMergingStatistics)                        , pointer :: mergingStatisticsParent
-    class           (nodeComponentBasic            )                        , pointer :: basicDescendentParent  , basicParent, &
-         &                                                                               basic
-    integer                                         , dimension(outputCount)          :: mergerIncrement
-    integer         (c_size_t                      )                                  :: i
-    double precision                                                                  :: recentTimeInterval     , timeBase
+    type            (treeNode                      ), intent(inout)          :: node
+    type            (treeNode                      ), pointer                :: nodeDescendent
+    class           (nodeComponentMergingStatistics), pointer                :: mergingStatisticsParent
+    class           (nodeComponentBasic            ), pointer                :: basicDescendentParent  , basicParent, &
+         &                                                                      basic
+    integer                                         , dimension(outputCount) :: mergerIncrement
+    integer         (c_size_t                      )                         :: i
+    double precision                                                         :: recentTimeInterval     , timeBase
 
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%recentIsActive()) return
@@ -279,12 +279,12 @@ contains
     !% Set names of black hole properties to be written to the \glc\ output file.
     use :: Galacticus_Nodes, only : treeNode
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: node
-    double precision                        , intent(in   )          :: time
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                              integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    type            (treeNode)              , intent(inout) :: node
+    double precision                        , intent(in   ) :: time
+    integer                                 , intent(inout) :: doubleProperty         , integerProperty
+    character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
+         &                                                     integerPropertyComments, integerPropertyNames
+    double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     !$GLC attributes unused :: time, doubleProperty, doublePropertyComments, doublePropertyNames, doublePropertyUnitsSI
 
     if (Node_Component_Merging_Statistics_Recent_Matches(node)) then
@@ -304,9 +304,9 @@ contains
     !% Account for the number of black hole properties to be written to the the \glc\ output file.
     use :: Galacticus_Nodes, only : treeNode
     implicit none
-    type            (treeNode), intent(inout), pointer :: node
-    double precision          , intent(in   )          :: time
-    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
+    type            (treeNode), intent(inout) :: node
+    double precision          , intent(in   ) :: time
+    integer                   , intent(inout) :: doublePropertyCount, integerPropertyCount
     !$GLC attributes unused :: doublePropertyCount, time
 
     if (Node_Component_Merging_Statistics_Recent_Matches(node)) integerPropertyCount=integerPropertyCount+1
@@ -348,8 +348,8 @@ contains
     !% Return true if the black hole component of {\normalfont \ttfamily node} is a match to the standard implementation.
     use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent, nodeComponentMergingStatistics, nodeComponentMergingStatisticsRecent, treeNode
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: node
-    class(nodeComponentMergingStatistics)               , pointer :: mergingStatistics
+    type (treeNode                      ), intent(inout) :: node
+    class(nodeComponentMergingStatistics), pointer       :: mergingStatistics
 
     ! Get the merging statistics component.
     mergingStatistics => node%mergingStatistics()
