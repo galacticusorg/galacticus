@@ -20,6 +20,7 @@
   !% An implementation of the lightcone geometry class which assumes a square field of view.
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
+  use :: Output_Times       , only : outputTimesClass
 
   !# <geometryLightcone name="geometryLightconeSquare">
   !#  <description>
@@ -63,6 +64,7 @@
      !% A lightcone geometry class which assumes a square field of view.
      private
      class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_       => null()
+     class           (outputTimesClass       ), pointer                   :: outputTimes_              => null()
      double precision                         , dimension(3,3)            :: unitVector
      double precision                         , dimension(3  )            :: origin
      double precision                         , dimension(:), allocatable :: outputTimes                        , distanceMinimum        , &
@@ -115,7 +117,7 @@
 
 contains
 
-  function squareConstructorParameters(parameters)
+  function squareConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily square} lightcone geometry distribution class which takes a parameter list as
     !% input.
     use :: Cosmology_Parameters            , only : cosmologyParameters    , cosmologyParametersClass, hubbleUnitsLittleH
@@ -123,26 +125,19 @@ contains
     use :: Input_Parameters                , only : inputParameter         , inputParameters
     use :: Numerical_Constants_Astronomical, only : degreesToRadians       , megaParsec
     implicit none
-    type            (geometryLightconeSquare )                            :: squareConstructorParameters
-    type            (inputParameters         ), intent(inout)             :: parameters
-    double precision                          , dimension(3,3)            :: unitVector
-    double precision                          , dimension(3)              :: origin                     , unitVector1         , &
-         &                                                                   unitVector2                , unitVector3
-    double precision                          , dimension(:), allocatable :: redshift                   , outputTimes
-    class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_
-    double precision                                                      :: lengthReplication          , angularSize         , &
-         &                                                                   lengthUnitsInSI            , unitConversionLength
-    integer                                                               :: lengthHubbleExponent       , iOutput
-    logical                                                               :: timeEvolvesAlongLightcone
+    type            (geometryLightconeSquare )                 :: self
+    type            (inputParameters         ), intent(inout)  :: parameters
+    double precision                          , dimension(3,3) :: unitVector
+    double precision                          , dimension(3)   :: origin                     , unitVector1         , &
+         &                                                        unitVector2                , unitVector3
+    class           (cosmologyParametersClass), pointer        :: cosmologyParameters_
+    class           (cosmologyFunctionsClass ), pointer        :: cosmologyFunctions_
+    class           (outputTimesClass        ), pointer        :: outputTimes_
+    double precision                                           :: lengthReplication          , angularSize         , &
+         &                                                        lengthUnitsInSI            , unitConversionLength
+    integer                                                    :: lengthHubbleExponent
+    logical                                                    :: timeEvolvesAlongLightcone
 
-    ! Check and read parameters.
-    if (parameters%isPresent('redshift')) then
-       allocate(redshift   (parameters%count('redshift')))
-       allocate(outputTimes(parameters%count('redshift')))
-    else
-       call Galacticus_Error_Report('list of output redshifts to use must be supplied'//{introspection:location})
-    end if
     !# <inputParameter>
     !#   <name>origin</name>
     !#   <source>parameters</source>
@@ -192,12 +187,6 @@ contains
     !#   <description>The angular size (i.e. side length) of the square field of view of the lightcone (in units of degrees).</description>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>redshift</name>
-    !#   <source>parameters</source>
-    !#   <variable>redshift</variable>
-    !#   <description>The redshifts of output times to be used in the lightcone.</description>
-    !# </inputParameter>
-    !# <inputParameter>
     !#   <name>timeEvolvesAlongLightcone</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
@@ -206,14 +195,7 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    ! Convert redshifts to times.
-    do iOutput=1,size(redshift)
-       outputTimes(iOutput)=cosmologyFunctions_ %cosmicTime                 (                   &
-            &                cosmologyFunctions_%expansionFactorFromRedshift (                  &
-            &                                                                 redshift(iOutput) &
-            &                                                                )                  &
-            &                                                               )
-    end do
+    !# <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
     ! Convert angle to radians.
     angularSize=angularSize*degreesToRadians
     ! Convert lengths units internal units.
@@ -223,70 +205,73 @@ contains
     origin              =origin           *unitConversionLength
     lengthReplication   =lengthReplication*unitConversionLength
     ! Construct the object.
-    squareConstructorParameters=geometryLightconeSquare(origin,unitVector,angularSize,outputTimes,lengthReplication,timeEvolvesAlongLightcone,cosmologyFunctions_)
+    self=geometryLightconeSquare(origin,unitVector,angularSize,lengthReplication,timeEvolvesAlongLightcone,cosmologyFunctions_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="outputTimes_"        />
     return
   end function squareConstructorParameters
 
-  function squareConstructorInternal(origin,unitVector,angularSize,outputTimes,lengthReplication,timeEvolvesAlongLightcone,cosmologyFunctions_)
+  function squareConstructorInternal(origin,unitVector,angularSize,lengthReplication,timeEvolvesAlongLightcone,cosmologyFunctions_,outputTimes_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily square} lightcone geometry distribution class.
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: ISO_Varying_String      , only : var_str                , varying_string
     use :: Memory_Management       , only : allocateArray          , deallocateArray
     use :: Numerical_Constants_Math, only : Pi                     , e
-    use :: Sorting                 , only : sort
     use :: String_Handling         , only : operator(//)
     use :: Vectors                 , only : Vector_Magnitude
     implicit none
-    type            (geometryLightconeSquare)                                 :: squareConstructorInternal
-    double precision                          , dimension(3,3), intent(in   ) :: unitVector
-    double precision                          , dimension(3)  , intent(in   ) :: origin
-    double precision                          , dimension(:)  , intent(in   ) :: outputTimes
-    class           (cosmologyFunctionsClass ), target        , intent(in   ) :: cosmologyFunctions_
-    double precision                                          , intent(in   ) :: lengthReplication                 , angularSize
-    logical                                                   , intent(in   ) :: timeEvolvesAlongLightcone
-    double precision                          , parameter                     :: orthogonalityTolerance   =1.000d-6
-    double precision                          , parameter                     :: angularSizeSmall         =0.017d+0
-    integer                                                                   :: iOutput                           , i              , &
-         &                                                                       j
-    double precision                                                          :: timeMinimum                       , timeMaximum    , &
-         &                                                                       tanHalfAngle                      , outputTime     , &
-         &                                                                       distanceMinimum                   , distanceMaximum, &
-         &                                                                       magnitude
-    character       (len=12                 )                                 :: label
-    type            (varying_string         )                                 :: message
-    !# <constructorAssign variables="origin,unitVector,angularSize,outputTimes,lengthReplication,timeEvolvesAlongLightcone,*cosmologyFunctions_"/>
+    type            (geometryLightconeSquare)                                :: self
+    double precision                         , dimension(3,3), intent(in   ) :: unitVector
+    double precision                         , dimension(3)  , intent(in   ) :: origin
+    class           (cosmologyFunctionsClass), target        , intent(in   ) :: cosmologyFunctions_
+    class           (outputTimesClass       ), target        , intent(in   ) :: outputTimes_
+    double precision                                         , intent(in   ) :: lengthReplication                 , angularSize
+    logical                                                  , intent(in   ) :: timeEvolvesAlongLightcone
+    double precision                         , parameter                     :: orthogonalityTolerance   =1.000d-6
+    double precision                         , parameter                     :: angularSizeSmall         =0.017d+0
+    integer                                                                  :: i                                 , j
+    integer         (c_size_t               )                                :: iOutput
+    double precision                                                         :: timeMinimum                       , timeMaximum    , &
+         &                                                                      tanHalfAngle                      , outputTime     , &
+         &                                                                      distanceMinimum                   , distanceMaximum, &
+         &                                                                      magnitude
+    character       (len=12                 )                                :: label
+    type            (varying_string         )                                :: message
+    !# <constructorAssign variables="origin, unitVector, angularSize, lengthReplication, timeEvolvesAlongLightcone, *cosmologyFunctions_, *outputTimes_"/>
 
-    ! Ensures times are sorted.
-    call sort(squareConstructorInternal%outputTimes)
+    ! Extract times from the outputTimes object.
+    allocate(self%outputTimes(self%outputTimes_%count()))
+    do iOutput=1_c_size_t,self%outputTimes_%count()
+       self%outputTimes(iOutput)=self%outputTimes_%time(iOutput)
+    end do
     ! Find the minimum and maximum distance associated with each output time.
-    call allocateArray(squareConstructorInternal%distanceMinimum,shape(squareConstructorInternal%outputTimes))
-    call allocateArray(squareConstructorInternal%distanceMaximum,shape(squareConstructorInternal%outputTimes))
-    do iOutput=1,size(squareConstructorInternal%outputTimes)
-       if (iOutput == 1                                          ) then
-          timeMinimum=                                                      squareConstructorInternal%outputTimes(iOutput)
+    call allocateArray(self%distanceMinimum,shape(self%outputTimes))
+    call allocateArray(self%distanceMaximum,shape(self%outputTimes))
+    do iOutput=1,size(self%outputTimes)
+       if (iOutput == 1                     ) then
+          timeMinimum=                                 self%outputTimes(iOutput)
        else
-          timeMinimum=sqrt(squareConstructorInternal%outputTimes(iOutput-1)*squareConstructorInternal%outputTimes(iOutput))
+          timeMinimum=sqrt(self%outputTimes(iOutput-1)*self%outputTimes(iOutput))
        end if
-       if (iOutput == size(squareConstructorInternal%outputTimes)) then
-          timeMaximum=                                                      squareConstructorInternal%outputTimes(iOutput)
+       if (iOutput == size(self%outputTimes)) then
+          timeMaximum=                                 self%outputTimes(iOutput)
        else
-          timeMaximum=sqrt(squareConstructorInternal%outputTimes(iOutput+1)*squareConstructorInternal%outputTimes(iOutput))
+          timeMaximum=sqrt(self%outputTimes(iOutput+1)*self%outputTimes(iOutput))
        end if
-       squareConstructorInternal%distanceMinimum(iOutput)=squareConstructorInternal%cosmologyFunctions_%distanceComoving(timeMaximum)
-       squareConstructorInternal%distanceMaximum(iOutput)=squareConstructorInternal%cosmologyFunctions_%distanceComoving(timeMinimum)
+       self%distanceMinimum(iOutput)=self%cosmologyFunctions_%distanceComoving(timeMaximum)
+       self%distanceMaximum(iOutput)=self%cosmologyFunctions_%distanceComoving(timeMinimum)
     end do
     ! Normalize unit vectors.
     do i=1,3
-       squareConstructorInternal%unitVector(:,i)=+                 squareConstructorInternal%unitVector(:,i)  &
-            &                                    /Vector_Magnitude(squareConstructorInternal%unitVector(:,i))
+       self%unitVector(:,i)=+                 self%unitVector(:,i)  &
+            &               /Vector_Magnitude(self%unitVector(:,i))
     end do
     ! Test for orthogonality.
     do i=1,2
        do j=i+1,3
-          magnitude=abs(Dot_Product(squareConstructorInternal%unitVector(:,i),squareConstructorInternal%unitVector(:,j)))
+          magnitude=abs(Dot_Product(self%unitVector(:,i),self%unitVector(:,j)))
           if (magnitude > orthogonalityTolerance) then
              write (label,'(e12.6)') magnitude
              message=var_str('unit vectors ')//i//' and '//j//' are not orthogonal (|êᵢ⨯êⱼ|='//label//')'
@@ -297,47 +282,47 @@ contains
     ! If requested, reduce the list of lightcone output times to the final time, and have it incorporate the full radial length of
     ! the lightcone. This allows the construction of lightcones with no evolution along the cone.
     if (.not.timeEvolvesAlongLightcone) then
-       outputTime     =squareConstructorInternal%outputTimes    (size(squareConstructorInternal%outputTimes))
-       distanceMinimum=squareConstructorInternal%distanceMinimum(size(squareConstructorInternal%outputTimes))
-       distanceMaximum=squareConstructorInternal%distanceMaximum(                                         1 )
-       call deallocateArray(squareConstructorInternal%outputTimes        )
-       call deallocateArray(squareConstructorInternal%distanceMinimum    )
-       call deallocateArray(squareConstructorInternal%distanceMaximum    )
-       call   allocateArray(squareConstructorInternal%outputTimes    ,[1])
-       call   allocateArray(squareConstructorInternal%distanceMinimum,[1])
-       call   allocateArray(squareConstructorInternal%distanceMaximum,[1])
-       squareConstructorInternal%outputTimes    =outputTime
-       squareConstructorInternal%distanceMinimum=distanceMinimum
-       squareConstructorInternal%distanceMaximum=distanceMaximum
+       outputTime     =self%outputTimes    (size(self%outputTimes))
+       distanceMinimum=self%distanceMinimum(size(self%outputTimes))
+       distanceMaximum=self%distanceMaximum(                    1 )
+       call deallocateArray(self%outputTimes        )
+       call deallocateArray(self%distanceMinimum    )
+       call deallocateArray(self%distanceMaximum    )
+       call   allocateArray(self%outputTimes    ,[1])
+       call   allocateArray(self%distanceMinimum,[1])
+       call   allocateArray(self%distanceMaximum,[1])
+       self%outputTimes    =outputTime
+       self%distanceMinimum=distanceMinimum
+       self%distanceMaximum=distanceMaximum
     end if
     ! Compute the solid angle of the lightcone.
     if (angularSize < angularSizeSmall) then
-       squareConstructorInternal%solidAngleSubtended=angularSize**2
+       self%solidAngleSubtended=angularSize**2
     else
        tanHalfAngle=tan(angularSize/2.0d0)
-       squareConstructorInternal%solidAngleSubtended=+2.0d0                                     &
-            &                                        *Pi                                        &
-            &                                        *(                                         &
-            &                                          +3.0d0                                   &
-            &                                          -cos(                                    &
-            &                                               atan(                               &
-            &                                                     sqrt(2.0d0)                   &
-            &                                                    *tanHalfAngle                  &
-            &                                                   )                               &
-            &                                              )                                    &
-            &                                         )                                         &
-            &                                        -8.0d0                                     &
-            &                                        *inverseCosineIntegral(                    &
-            &                                                               tanHalfAngle      , &
-            &                                                               atan(               &
-            &                                                                     sqrt(2.0d0)   &
-            &                                                                    *tanHalfAngle  &
-            &                                                                   )               &
-            &                                                              )
+       self%solidAngleSubtended=+2.0d0                                     &
+            &                   *Pi                                        &
+            &                   *(                                         &
+            &                     +3.0d0                                   &
+            &                     -cos(                                    &
+            &                          atan(                               &
+            &                                sqrt(2.0d0)                   &
+            &                               *tanHalfAngle                  &
+            &                              )                               &
+            &                         )                                    &
+            &                    )                                         &
+            &                   -8.0d0                                     &
+            &                   *inverseCosineIntegral(                    &
+            &                                          tanHalfAngle      , &
+            &                                          atan(               &
+            &                                                sqrt(2.0d0)   &
+            &                                               *tanHalfAngle  &
+            &                                              )               &
+            &                                         )
     end if
     ! Set property attribute check status.
-    squareConstructorInternal%positionGettableChecked =.false.
-    squareConstructorInternal%mergeTimeGettableChecked=.false.
+    self%positionGettableChecked =.false.
+    self%mergeTimeGettableChecked=.false.
     return
 
   contains
@@ -375,13 +360,14 @@ contains
     type(geometryLightconeSquare), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyFunctions_" />
+    !# <objectDestructor name="self%outputTimes_"        />
     return
   end subroutine squareDestructor
 
   function squareReplicationCount(self,node)
     !% Determine the number of times {\normalfont \ttfamily node} appears in the lightcone.
     use            :: Arrays_Search   , only : searchArrayClosest
-    use            :: Galacticus_Nodes, only : nodeComponentBasic      , nodeComponentPosition, treeNode
+    use            :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentPosition, treeNode
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     implicit none
     integer(c_size_t               )                :: squareReplicationCount
@@ -393,7 +379,7 @@ contains
 
     basic    => node%basic   ()
     position => node%position()
-    output=searchArrayClosest(self%outputTimes,basic%time())
+    output   =  searchArrayClosest(self%outputTimes,basic%time())
     call self%replicants(output,position%position(),replicantActionCount,count=squareReplicationCount)
     return
   end function squareReplicationCount
