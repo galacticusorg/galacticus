@@ -774,7 +774,7 @@ sub runTestScript {
     # Test if this is a script to run.
     if ( $fileName =~ m/^test\-.*\.pl$/ && $fileName ne "test-all.pl" ) {
 	if ( ( $mpi eq "MPI" && $fileName =~ m/_MPI\.pl/ ) || ( $mpi eq "noMPI" && $fileName !~ m/_MPI\.pl/ ) ) {
-	    system("grep -q launch.pl ".$fileName);
+	    system("grep -q -e launch.pl -e 'selfManage: true' ".$fileName);
 	    if ( $? == 0 ) {
 		# This script will launch its own models.
 		push(
