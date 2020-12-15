@@ -1090,11 +1090,9 @@
  	<baseMassMinimum value="1.0e7"/>
       </mergerTreeOperatorMethod>
       <mergerTreeOperatorMethod value="regridTimes" iterable="no">
- 	<expansionFactorEnd value="1.0"/>
- 	<expansionFactorStart value="0.047"/>
- 	<regridCount value="60"/>
- 	<snapshotRedshifts value="19.915688 18.243723 16.724525 15.343073 14.085914 12.940780        11.896569 10.943864 10.073462  9.277915  8.549912  7.883204        7.272188  6.711586  6.196833  5.723864  5.288833  4.888449        4.519556  4.179469  3.865683  3.575905  3.308098  3.060419        2.831182  2.618862  2.422044  2.239486  2.070027  1.912633        1.766336  1.630271  1.503636  1.385718  1.275846  1.173417        1.077875  0.988708  0.905463  0.827699  0.755036  0.687109        0.623590  0.564177  0.508591  0.456577  0.407899  0.362340        0.319703  0.279802  0.242469  0.207549  0.174898  0.144383        0.115883  0.089288  0.064493  0.041403  0.019933  0.000000"/>
- 	<snapshotSpacing value="list"/>
+	<outputTimesMethod value="simulationSnapshots">
+	  <fileName value="%DATASTATICPATH%/simulations/millennium.xml"/>
+	</outputTimesMethod>
       </mergerTreeOperatorMethod>
       <mergerTreeOperatorMethod value="pruneByMass" iterable="no">
  	<massThreshold value="7.08e10"/>
@@ -1167,11 +1165,9 @@
       <massResolution value="1.0e10"/>
     </mergerTreeMassResolutionMethod>
     <mergerTreeOperatorMethod value="regridTimes">
-      <expansionFactorEnd value="1.0"/>
-      <expansionFactorStart value="0.047"/>
-      <regridCount value="60"/>
-      <snapshotRedshifts value="19.915688 18.243723 16.724525 15.343073 14.085914 12.940780      11.896569 10.943864 10.073462  9.277915  8.549912  7.883204      7.272188  6.711586  6.196833  5.723864  5.288833  4.888449      4.519556  4.179469  3.865683  3.575905  3.308098  3.060419      2.831182  2.618862  2.422044  2.239486  2.070027  1.912633      1.766336  1.630271  1.503636  1.385718  1.275846  1.173417      1.077875  0.988708  0.905463  0.827699  0.755036  0.687109      0.623590  0.564177  0.508591  0.456577  0.407899  0.362340      0.319703  0.279802  0.242469  0.207549  0.174898  0.144383      0.115883  0.089288  0.064493  0.041403  0.019933  0.000000"/>
-      <snapshotSpacing value="list"/>
+      <outputTimesMethod value="simulationSnapshots">
+	<fileName value="%DATASTATICPATH%/simulations/millennium.xml"/>
+      </outputTimesMethod>
     </mergerTreeOperatorMethod>
     <nodeOperatorMethod value="null"/>
     <treeNodeMethodBasic value="standard"/>
