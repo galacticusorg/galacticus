@@ -45,7 +45,7 @@
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
-     double precision                                    :: epsilon             , gamma
+     double precision                                    :: epsilon                       , gamma
    contains
      final     ::                gnedin1999Destructor
      procedure :: heatingRate => gnedin1999HeatingRate
@@ -122,7 +122,7 @@ contains
     use :: Galacticus_Nodes                  , only : nodeComponentBasic               , nodeComponentSatellite                  , treeNode
     use :: Numerical_Constants_Astronomical  , only : gigaYear                         , megaParsec
     use :: Numerical_Constants_Math          , only : Pi
-    use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes      , only : kilo
     use :: Tensors                           , only : assignment(=)                    , max                                     , operator(*) , tensorRank2Dimension3Symmetric
     use :: Vectors                           , only : Vector_Magnitude
