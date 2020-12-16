@@ -46,8 +46,12 @@
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
      double precision                                     :: logarithmCoulomb
    contains
-     final     ::                 chandrasekhar1943Destructor
-     procedure :: acceleration => chandrasekhar1943Acceleration
+     !# <methods>
+     !#   <method description="Compute the Coulomb logarithm, $\log \Lambda$, appearing in the \cite{chandrasekhar_dynamical_1943} dynamical friction equation." method="coulombLogarithm" />
+     !# </methods>
+     final     ::                     chandrasekhar1943Destructor
+     procedure :: acceleration     => chandrasekhar1943Acceleration
+     procedure :: coulombLogarithm => chandrasekhar1943CoulombLogarithm
   end type satelliteDynamicalFrictionChandrasekhar1943
 
   interface satelliteDynamicalFrictionChandrasekhar1943
@@ -148,7 +152,7 @@ contains
     if (Xv <= XvMaximum) then
        chandrasekhar1943Acceleration=  -4.0d0                              &
             &                          *Pi                                 &
-            &                          *self%logarithmCoulomb              &
+            &                          *self%coulombLogarithm(node)        &
             &                          *gravitationalConstantGalacticus**2 &
             &                          *massSatellite                      &
             &                          *densityHost                        &
@@ -167,7 +171,7 @@ contains
     else
        chandrasekhar1943Acceleration=  -4.0d0                              &
             &                          *Pi                                 &
-            &                          *self%logarithmCoulomb              &
+            &                          *self%coulombLogarithm(node)        &
             &                          *gravitationalConstantGalacticus**2 &
             &                          *massSatellite                      &
             &                          *densityHost                        &
@@ -180,3 +184,12 @@ contains
     return
   end function chandrasekhar1943Acceleration
 
+  double precision function chandrasekhar1943CoulombLogarithm(self,node) result(coulombLogarithm)
+    !% Evaluate the Coulomb logarithm for the \cite{chandrasekhar_dynamical_1943} dynamical friction model.
+    implicit none
+    class(satelliteDynamicalFrictionChandrasekhar1943), intent(inout) :: self
+    type (treeNode                                   ), intent(inout) :: node
+
+    coulombLogarithm=self%logarithmCoulomb
+    return
+  end function chandrasekhar1943CoulombLogarithm
