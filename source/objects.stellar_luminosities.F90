@@ -1118,7 +1118,7 @@ contains
     use            :: ISO_Varying_String        , only : assignment(=)           , char                         , extract, operator(==), &
           &                                              var_str
     use            :: Memory_Management         , only : deallocateArray
-    use            :: Output_Times              , only : outputTimes             , outputTimesClass
+    use            :: Stellar_Luminosities_Data , only : outputCount             , outputRedshifts
     use            :: Stellar_Population_Spectra, only : stellarPopulationSpectra, stellarPopulationSpectraClass
     use            :: String_Handling           , only : String_Split_Words      , char
     implicit none
@@ -1126,9 +1126,8 @@ contains
     type            (varying_string               ), intent(inout), allocatable, dimension(:) :: luminosityRedshiftText   , luminosityFilter           , &
          &                                                                                       luminosityType           , luminosityPostprocessSet
     double precision                               , intent(inout), allocatable, dimension(:) :: luminosityRedshift       , luminosityBandRedshift
-    integer         (c_size_t                     )                                           :: j                        , outputCount                , &
-         &                                                                                       i                        , newFilterCount             , &
-                                                                                                 k
+    integer         (c_size_t                     )                                           :: i                        , j                          , &
+         &                                                                                       k                        , newFilterCount
     integer                                                       , allocatable, dimension(:) :: luminosityMapTmp
     type            (varying_string               )               , allocatable, dimension(:) :: luminosityRedshiftTextTmp, luminosityFilterTmp        , &
          &                                                                                       luminosityTypeTmp        , luminosityPostprocessSetTmp
@@ -1136,22 +1135,18 @@ contains
     double precision                                              , allocatable, dimension(:) :: luminosityRedshiftTmp    , luminosityBandRedshiftTmp
     class           (stellarPopulationSpectraClass), pointer                                  :: stellarPopulationSpectra_
     class           (cosmologyFunctionsClass      ), pointer                                  :: cosmologyFunctions_
-    class           (outputTimesClass             ), pointer                                  :: outputTimes_
-    character       (len=32                       )                                           :: redshiftLabel            , word                     , &
+    character       (len= 32                      )                                           :: redshiftLabel            , word                       , &
          &                                                                                       wavelengthCentralLabel   , resolutionLabel
     character       (len=256                      )                                           :: newFilterName            , lineName
-    double precision                                                                          :: outputRedshift           , resolution               , &
-         &                                                                                       wavelengthMinimum        , wavelengthMaximum        , &
-         &                                                                                       restWavelengthMinimum    , restWavelengthMaximum    , &
-         &                                                                                       wavelengthRatio          , wavelengthCentral        , &
-         &                                                                                       observedWidth            , restWidth                , &
-         &                                                                                       tabulatedWidth           , filterWidth
-
+    double precision                                                                          :: wavelengthMinimum        , wavelengthMaximum          , &
+         &                                                                                       restWavelengthMinimum    , restWavelengthMaximum      , &
+         &                                                                                       wavelengthRatio          , wavelengthCentral          , &
+         &                                                                                       observedWidth            , restWidth                  , &
+         &                                                                                       tabulatedWidth           , filterWidth                , &
+         &                                                                                       resolution
+    
     ! Get cosmology functions.
     cosmologyFunctions_ => cosmologyFunctions()
-    ! Get number of output redshifts.
-    outputTimes_        => outputTimes       ()
-    outputCount         =  outputTimes_%count()
     ! Iterate over all luminosities.
     i=1
     do while (i <= size(luminosityRedshiftText))
@@ -1178,12 +1173,11 @@ contains
                &                                     )
           ! Modify new filters.
           do j=1,outputCount
-             outputRedshift=outputTimes_%redshift(j)
-             write (redshiftLabel,*) outputRedshift
+             write (redshiftLabel,*) outputRedshifts(j)
              luminosityRedshiftText   (j+i-1)=redshiftLabel
-             luminosityRedshift       (j+i-1)=outputRedshift
+             luminosityRedshift       (j+i-1)=outputRedshifts(j)
              if (luminosityBandRedshiftTmp  (i) <= -2.0d0) then
-                luminosityBandRedshift(j+i-1)=outputRedshift
+                luminosityBandRedshift(j+i-1)=outputRedshifts(j)
              else
                 luminosityBandRedshift(j+i-1)=luminosityBandRedshiftTmp  (i)
              end if
