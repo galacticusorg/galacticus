@@ -132,6 +132,7 @@ contains
     type(transferFunctionCAMB), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_" />
     !# <objectDestructor name="self%darkMatterParticle_" />
     return
   end subroutine cambDestructor

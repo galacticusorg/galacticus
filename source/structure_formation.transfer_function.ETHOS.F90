@@ -31,7 +31,7 @@
      double precision                                    :: alpha                         , beta    , &
           &                                                 gamma                         , sigma   , &
           &                                                 tau                           , kPeak   , &
-	  &                                                 hPeak                         , h2      , &
+          &                                                 hPeak                         , h2      , &
           &                                                 time                          , redshift
      class           (transferFunctionClass   ), pointer :: transferFunctionCDM  => null()
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
@@ -66,9 +66,9 @@ contains
     class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
     double precision                                          :: alpha               , beta , &
          &                                                       gamma               , sigma, & 
-	 &							 tau                 , kPeak, &
+         &                                                       tau                 , kPeak, &
          &                                                       hPeak               , h2   , &
-         &			                                 redshift
+         &                                                       redshift
 
     ! Validate parameters.
     if (.not.parameters%isPresent('transferFunctionMethod')) call Galacticus_Error_Report("an explicit 'transferFunctionMethod' must be given"//{introspection:location})
@@ -182,6 +182,7 @@ contains
     type(transferFunctionETHOSDM), intent(inout) :: self
     
     !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_" />
     !# <objectDestructor name="self%transferFunctionCDM" />
     return
   end subroutine ETHOSDMDestructor
@@ -191,7 +192,7 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (transferFunctionETHOSDM), intent(inout) :: self
-    double precision                         , intent(in   ) :: wavenumber			      
+    double precision                         , intent(in   ) :: wavenumber
 
     ETHOSDMValue=+self%transferFunctionCDM%value(wavenumber)
     if (self%alpha > 0.0d0)                    &
@@ -204,7 +205,7 @@ contains
          &                    *wavenumber      &
          &                   )**self%beta      &
          &                 )  **self%gamma     &
-	       &                -sqrt(self%hPeak)    &
+         &                -sqrt(self%hPeak)    &
          &                *exp(                &
          &                     -0.5d0          &
          &                     *(              &
@@ -232,7 +233,7 @@ contains
          &                       )             &
          &                      -2.0d0         &
          &                     )               &
-	       &                *erf(                &
+         &                *erf(                &
          &                     -(              &
          &                       +wavenumber   &
          &                       -1.805d0      &

@@ -132,6 +132,7 @@ function murgia2017ConstructorParameters(parameters) result(self)
     type(transferFunctionMurgia2017), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_" />
     !# <objectDestructor name="self%transferFunctionCDM" />
     return
   end subroutine murgia2017Destructor
