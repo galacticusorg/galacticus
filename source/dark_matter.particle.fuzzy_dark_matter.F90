@@ -67,7 +67,7 @@ contains
     double precision                                   , parameter     :: massUnitsFuzzyDM=1.0d-22/kilo
 
     self%massValue=+mass             &
-         &         /massUnitsFuzzyDM
+         &         *massUnitsFuzzyDM
     return
   end function fuzzyDMConstructorInternal
 
