@@ -19,8 +19,9 @@
 
   !% Contains a module which implements a transfer function class based on the fuzzy dark matter modifier of \cite{hu_fuzzy_2000}.
 
-  use :: Cosmology_Functions , only : cosmologyFunctionsClass
-  use :: Cosmology_Parameters, only : cosmologyParametersClass
+  use :: Cosmology_Functions  , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters , only : cosmologyParametersClass
+  use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !# <transferFunction name="transferFunctionHu2000FDM">
   !#  <description>Provides a transfer function based on the fuzzy dark matter modifier of \cite{hu_fuzzy_2000}.</description>
@@ -34,6 +35,7 @@
      class           (transferFunctionClass   ), pointer :: transferFunctionCDM  => null()
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
+     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
    contains
      final     ::                          hu2000FDMDestructor
      procedure :: value                 => hu2000FDMValue
@@ -62,22 +64,16 @@ contains
     class           (transferFunctionClass    ), pointer       :: transferFunctionCDM
     class           (cosmologyParametersClass ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass  ), pointer       :: cosmologyFunctions_
-    double precision                                           :: m22                 , redshift
+    class           (darkMatterParticleClass  ), pointer       :: darkMatterParticle_
+    double precision                                           :: redshift
 
     ! Validate parameters.
     if (.not.parameters%isPresent('transferFunctionMethod')) call Galacticus_Error_Report("an explicit 'transferFunctionMethod' must be given"//{introspection:location})
     ! Read parameters.
-    !# <inputParameter>
-    !#   <name>m22</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>40.0d0</defaultValue>
-    !#   <description>Dark matter particle mass in units of $10^{-22}$~eV.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
+    !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     !# <inputParameter>
     !#   <name>redshift</name>
     !#   <source>parameters</source>
@@ -86,26 +82,42 @@ contains
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-     self=transferFunctionHu2000FDM(transferFunctionCDM,m22,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_)
+     self=transferFunctionHu2000FDM(transferFunctionCDM,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="cosmologyFunctions_" />
     !# <objectDestructor name="transferFunctionCDM" />
+    !# <objectDestructor name="darkMatterParticle_" />
     return
   end function hu2000FDMConstructorParameters
   
-  function hu2000FDMConstructorInternal(transferFunctionCDM,m22,time,cosmologyParameters_,cosmologyFunctions_) result(self)
+  function hu2000FDMConstructorInternal(transferFunctionCDM,time,cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily hu2000} transfer function class.
-    use :: Cosmology_Parameters , only : hubbleUnitsLittleH
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Cosmology_Parameters        , only : hubbleUnitsLittleH
+    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Dark_Matter_Particles       , only : darkMatterParticleFuzzyDarkMatter
+    use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
     type            (transferFunctionHu2000FDM)                        :: self
     class           (transferFunctionClass    ), target, intent(in   ) :: transferFunctionCDM
-    double precision                                   , intent(in   ) :: m22                 , time
+    double precision                                   , intent(in   ) :: time
     class           (cosmologyParametersClass ), target, intent(in   ) :: cosmologyParameters_
     class           (cosmologyFunctionsClass  ), target, intent(in   ) :: cosmologyFunctions_
-    !# <constructorAssign variables="*transferFunctionCDM, m22, time, *cosmologyParameters_, *cosmologyFunctions_"/>
+    class           (darkMatterParticleClass  ), target, intent(in   ) :: darkMatterParticle_
+    !# <constructorAssign variables="*transferFunctionCDM, time, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterParticle_"/>
 
+    select type (darkMatterParticle__ => self%darkMatterParticle_)
+    class is (darkMatterParticleFuzzyDarkMatter)
+       if (darkMatterParticle__%densityFraction() == 1.0d0) then
+          self%m22              =+darkMatterParticle__%mass() &
+               &                 *kilo                        &
+               &                 /1.0d-22
+       else
+          call Galacticus_Error_Report('transfer function is not implemented for a mixed CDM and fuzzy dark matter model'//{introspection:location})
+       end if
+    class default
+       call Galacticus_Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
+    end select
     self%redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
     return
   end function hu2000FDMConstructorInternal
@@ -118,6 +130,7 @@ contains
     !# <objectDestructor name="self%cosmologyParameters_"/>
     !# <objectDestructor name="self%cosmologyFunctions_" />
     !# <objectDestructor name="self%transferFunctionCDM" />
+    !# <objectDestructor name="self%darkMatterParticle_" />
     return
   end subroutine hu2000FDMDestructor
 
