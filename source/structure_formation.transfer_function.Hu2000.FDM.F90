@@ -30,8 +30,8 @@
      !% A transfer function class which modifies another transfer function using the fuzzy dark matter modifier of
      !% \cite{hu_fuzzy_2000}.
      private
-     double precision                                    :: m22                           , time, &
-          &                                                 redshift
+     double precision                                    :: jeansWavenumberEq             , m22     , &
+          &                                                 time                          , redshift
      class           (transferFunctionClass   ), pointer :: transferFunctionCDM  => null()
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
@@ -112,6 +112,7 @@ contains
           self%m22              =+darkMatterParticle__%mass() &
                &                 *kilo                        &
                &                 /1.0d-22
+          self%jeansWavenumberEq=9.00d0*sqrt(self%m22)
        else
           call Galacticus_Error_Report('transfer function is not implemented for a mixed CDM and fuzzy dark matter model'//{introspection:location})
        end if
@@ -141,19 +142,21 @@ contains
     double precision                           , intent(in   ) :: wavenumber
     double precision                                           :: x
 
-    hu2000FDMValue=+self%transferFunctionCDM%value(wavenumber)
-    x               =+1.61d0                     &
-         &           /9.00d0                     &
-         &           *self%m22  **(-4.0d0/9.0d0) &
-         &           *wavenumber
-    hu2000FDMValue =+hu2000FDMValue &
+    hu2000FDMValue   =self%transferFunctionCDM%value(wavenumber)
+    x                =+1.61d0                   &
+         &            *self%m22**(1.0d0/18.0d0) &
+         &            *(                        &
+         &              +          wavenumber   &
+         &              /self%jeansWavenumberEq &
+         &             )
+    hu2000FDMValue   =+hu2000FDMValue   &
          &            *(                &
          &              +cos(x**3)      &
          &              /(              &
          &                +1.0d0        &
          &                +x**8         &
          &               )              &
-         &             )   
+         &             )
     return
   end function hu2000FDMValue
 
@@ -165,10 +168,12 @@ contains
     double precision                                           :: x
 
     hu2000FDMLogarithmicDerivative=+self%transferFunctionCDM%logarithmicDerivative(wavenumber)
-    x                               =+1.61d0                           &
-         &                           /9.00d0                           &
-         &                           *self%m22**(-4.0d0/9.0d0)         &
-         &                           *wavenumber
+    x                             =+1.61d0                   &
+         &                         *self%m22**(1.0d0/18.0d0) &
+         &                         *(                        &
+         &                           +          wavenumber   &
+         &                           /self%jeansWavenumberEq &
+         &                          )
     hu2000FDMLogarithmicDerivative=+hu2000FDMLogarithmicDerivative &
          &                           +(                                &
          &                             -8.0d0                          &
@@ -197,18 +202,19 @@ contains
     integer                                    , intent(  out), optional :: status
     double precision                                                     :: matterDensity, wavenumberHalfMode
 
-    matterDensity          =+self%cosmologyParameters_%OmegaMatter    () &
-         &                  *self%cosmologyParameters_%densityCritical()
-    wavenumberHalfMode     =+4.5d0                   &
-         &                  *self%m22**(4.0d0/9.0d0)
+    matterDensity        =+self%cosmologyParameters_%OmegaMatter    () &
+         &                *self%cosmologyParameters_%densityCritical()
+    wavenumberHalfMode   =+1.108d0                 &
+         &                *4.5d0                   &
+         &                *self%m22**(4.0d0/9.0d0)
     hu2000FDMHalfModeMass=+4.0d0                &
-         &                  *Pi                   &
-         &                  /3.0d0                &
-         &                  *matterDensity        &
-         &                  *(                    &
-         &                    +Pi                 &
-         &                    /wavenumberHalfMode &
-         &                  )**3
+         &                *Pi                   &
+         &                /3.0d0                &
+         &                *matterDensity        &
+         &                *(                    &
+         &                  +Pi                 &
+         &                  /wavenumberHalfMode &
+         &                 )**3
     if (present(status)) status=errorStatusSuccess
     return
   end function hu2000FDMHalfModeMass
