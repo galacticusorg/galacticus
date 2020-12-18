@@ -110,6 +110,7 @@ contains
     class           (cosmologyFunctionsClass ), target, intent(in   ) :: cosmologyFunctions_
     class           (darkMatterParticleClass ), target, intent(in   ) :: darkMatterParticle_
     double precision                                                  :: alpha
+    double precision                                                  :: wavenumberHalfMode
     !# <constructorAssign variables="*darkMatterParticle_"/>
 
     select type (darkMatterParticle__ => self%darkMatterParticle_)
@@ -124,8 +125,13 @@ contains
     class default
        call Galacticus_Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
     end select
-    alpha  =+0.11d0                   &
-         &  *self%m22**(-4.0d0/9.0d0) 
+    wavenumberHalfMode=+4.5d0                   &
+         &             *self%m22**(4.0d0/9.0d0)
+    alpha             =+(                       &
+         &               -1.0d0                 &
+         &               +2.0d0**(-0.5d0/gamma) &
+         &              )**(1.0d0/beta)         &
+         &             /wavenumberHalfMode
     self%transferFunctionMurgia2017=transferFunctionMurgia2017(transferFunctionCDM,alpha,beta,gamma,time,cosmologyParameters_,cosmologyFunctions_)
     return
   end function fuzzyDMConstructorInternal
