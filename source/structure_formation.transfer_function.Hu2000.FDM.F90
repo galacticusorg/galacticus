@@ -175,20 +175,14 @@ contains
          &                           /self%jeansWavenumberEq &
          &                          )
     hu2000FDMLogarithmicDerivative=+hu2000FDMLogarithmicDerivative &
-         &                           +(                                &
-         &                             -8.0d0                          &
-         &                             *    x** 7                      &
-         &                             -3.0d0                          &
-         &                             *(                              &
-         &                               +  x**10                      &
-         &                               +  x** 2                      &
-         &                              )                              &
-         &                             *tan(x** 3)                     &
-         &                            )                                &
-         &                           /(                                &
-         &                             +1.0d0                          &
-         &                             +    x** 8                      &
-         &                            )
+         &                         +(                              &
+         &                           -8.0d0                        &
+         &                           *       x**8                  &
+         &                           /(1.0d0+x**8)                 &
+         &                           -3.0d0                        &
+         &                           *       x**3                  &
+         &                           *tan(x**3)                    &
+         &                          )
     return
   end function hu2000FDMLogarithmicDerivative
 
