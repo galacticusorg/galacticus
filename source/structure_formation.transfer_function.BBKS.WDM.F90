@@ -35,6 +35,7 @@
      private
      class           (transferFunctionClass   ), pointer :: transferFunctionCDM  => null()
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
      class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
      double precision                                    :: lengthFreeStreaming           , time
    contains
@@ -86,10 +87,10 @@ contains
     type            (transferFunctionBBKSWDM )                        :: self
     class           (transferFunctionClass   ), target, intent(in   ) :: transferFunctionCDM
     class           (cosmologyParametersClass), target, intent(in   ) :: cosmologyParameters_
+    class           (cosmologyFunctionsClass ), target, intent(in   ) :: cosmologyFunctions_
     class           (darkMatterParticleClass ), target, intent(in   ) :: darkMatterParticle_
-    class           (cosmologyFunctionsClass )        , intent(inout) :: cosmologyFunctions_
     double precision                                                  :: degreesOfFreedomEffectiveDecoupling
-    !# <constructorAssign variables="*transferFunctionCDM, *cosmologyParameters_, *darkMatterParticle_"/>
+    !# <constructorAssign variables="*transferFunctionCDM, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterParticle_"/>
 
     ! Get degrees of freedom at the time at which the dark matter particle decoupled.
     select type (particle => self%darkMatterParticle_)
@@ -100,7 +101,7 @@ contains
        call Galacticus_Error_Report('transfer function expects a thermal warm dark matter particle'//{introspection:location})
     end select
     ! Compute the epoch - the transfer function is assumed to be for z=0.
-    self%time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(0.0d0))
+    self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(0.0d0))
     ! Compute the free-streaming length-like parameter (equation G6 of BBKS).
     self%lengthFreeStreaming=+0.2d0                                                                                     &
          &                                         /(                                                                   &
@@ -123,6 +124,7 @@ contains
     type(transferFunctionBBKSWDM), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_" />
     !# <objectDestructor name="self%darkMatterParticle_" />
     !# <objectDestructor name="self%transferFunctionCDM" />
     return

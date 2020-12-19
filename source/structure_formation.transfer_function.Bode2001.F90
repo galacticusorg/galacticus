@@ -111,7 +111,7 @@ contains
     !#   <defaultValue>cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%equalityEpochMatterRadiation(requestTypeExpansionFactor))</defaultValue>
     !#   <description>The redshift of the epoch at which the transfer function is defined.</description>
     !# </inputParameter>
-     self=transferFunctionBode2001(transferFunctionCDM,epsilon,eta,nu,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_)
+    self=transferFunctionBode2001(transferFunctionCDM,epsilon,eta,nu,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="cosmologyFunctions_" />
@@ -126,14 +126,14 @@ contains
     use :: Dark_Matter_Particles, only : darkMatterParticleWDMThermal
     use :: Galacticus_Error     , only : Galacticus_Error_Report
     implicit none
-    type            (transferFunctionBode2001)                        :: self
-    class           (transferFunctionClass   ), target, intent(in   ) :: transferFunctionCDM
-    double precision                                  , intent(in   ) :: epsilon                   , eta                            , &
-         &                                                               nu                        , time
-    class           (cosmologyParametersClass), target, intent(in   ) :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), target, intent(in   ) :: cosmologyFunctions_
-    class           (darkMatterParticleClass ), target, intent(in   ) :: darkMatterParticle_
-    double precision                          , parameter             :: massReference       =1.0d0, degreesOfFreedomReference=1.5d0
+    type            (transferFunctionBode2001)                           :: self
+    class           (transferFunctionClass   ), target   , intent(in   ) :: transferFunctionCDM
+    double precision                                     , intent(in   ) :: epsilon                   , eta                            , &
+         &                                                                  nu                        , time
+    class           (cosmologyParametersClass), target   , intent(in   ) :: cosmologyParameters_
+    class           (cosmologyFunctionsClass ), target   , intent(in   ) :: cosmologyFunctions_
+    class           (darkMatterParticleClass ), target   , intent(in   ) :: darkMatterParticle_
+    double precision                          , parameter                :: massReference       =1.0d0, degreesOfFreedomReference=1.5d0
     !# <constructorAssign variables="*transferFunctionCDM, epsilon, eta, nu, time, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterParticle_"/>
 
     self%redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
@@ -166,6 +166,7 @@ contains
     type(transferFunctionBode2001), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_" />
     !# <objectDestructor name="self%darkMatterParticle_" />
     !# <objectDestructor name="self%transferFunctionCDM" />
     return
