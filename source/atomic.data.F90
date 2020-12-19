@@ -185,13 +185,13 @@ contains
     use :: Memory_Management , only : Memory_Usage_Record    , allocateArray
     use :: String_Handling   , only : String_Lower_Case      , char
     implicit none
-    type            (Node       )              , pointer     :: abundanceTypeElement, doc              , thisAtom, &
-         &                                                      thisElement
+    type            (Node       )              , pointer     :: abundanceTypeElement, doc              , &
+         &                                                      atom                , element
     type            (xmlNodeList), dimension(:), allocatable :: elementList
     integer                      , dimension(1)              :: elementValueInteger
     double precision             , dimension(1)              :: elementValueDouble
-    integer                                                  :: atomicNumber        , iAbundancePattern, iAtom   , &
-         &                                                      ioErr
+    integer                                                  :: atomicNumber        , iAbundancePattern, &
+         &                                                      iAtom               , ioErr
     double precision                                         :: abundance           , totalMass
     character       (len=100    )                            :: abundanceType
 
@@ -247,14 +247,14 @@ contains
           ! Loop over elements.
           do iAtom=1,size(elementList)
              ! Get atom.
-             thisAtom => elementList(iAtom-1)%element
+             atom => elementList(iAtom-1)%element
              ! Get atomic number.
-             thisElement => XML_Get_First_Element_By_Tag_Name(thisAtom,"atomicNumber")
-             call extractDataContent(thisElement,elementValueInteger)
+             element => XML_Get_First_Element_By_Tag_Name(atom,"atomicNumber")
+             call extractDataContent(element,elementValueInteger)
              atomicNumber=elementValueInteger(1)
              ! Get the abundance.
-             thisElement => XML_Get_First_Element_By_Tag_Name(thisAtom,"abundance"   )
-             call extractDataContent(thisElement,elementValueDouble )
+             element => XML_Get_First_Element_By_Tag_Name(atom,"abundance"   )
+             call extractDataContent(element,elementValueDouble )
              abundance=elementValueDouble    (1)
              ! Store in the atoms array.
              atoms(atomicNumberIndex(atomicNumber))%abundanceByMass(iAbundancePattern)=abundance

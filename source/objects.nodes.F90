@@ -102,10 +102,10 @@ module Galacticus_Nodes
   
   ! Interface for tree event tasks.
   abstract interface
-     logical function treeEventTask(thisEvent,thisTree,deadlockStatus)
+     logical function treeEventTask(event,tree,deadlockStatus)
        import treeEvent, mergerTree
-       class  (treeEvent ), intent(in   ) :: thisEvent
-       type   (mergerTree), intent(inout) :: thisTree
+       class  (treeEvent ), intent(in   ) :: event
+       type   (mergerTree), intent(inout) :: tree
        integer            , intent(inout) :: deadlockStatus
      end function treeEventTask
   end interface
@@ -124,10 +124,10 @@ module Galacticus_Nodes
      type   (genericHash   )                  :: attributes
    contains
      !# <methods>
-     !#   <method description="Create a {\normalfont \ttfamily treeEvent} object in this universe." method="createEvent" />
-     !#   <method description="Remove a {\normalfont \ttfamily treeEvent} from this universe." method="removeEvent" />
-     !#   <method description="Pop a {\normalfont \ttfamily mergerTree} from this universe." method="popTree" />
-     !#   <method description="Pop a {\normalfont \ttfamily mergerTree} from this universe." method="pushTree" />
+     !#   <method description="Create a {\normalfont \ttfamily treeEvent} object in this universe." method="createEvent"/>
+     !#   <method description="Remove a {\normalfont \ttfamily treeEvent} from this universe."      method="removeEvent"/>
+     !#   <method description="Pop a {\normalfont \ttfamily mergerTree} from this universe."        method="popTree"    />
+     !#   <method description="Pop a {\normalfont \ttfamily mergerTree} from this universe."        method="pushTree"   />
      !# </methods>
      procedure :: createEvent => universeCreateEvent
      procedure :: removeEvent => universeRemoveEvent
@@ -148,10 +148,10 @@ module Galacticus_Nodes
 
   ! Interface for universe event tasks.
   abstract interface
-     logical function universeEventTask(thisEvent,thisUniverse)
+     logical function universeEventTask(event,universe_)
        import universeEvent, universe
-       class  (universeEvent), intent(in   ) :: thisEvent
-       type   (universe     ), intent(inout) :: thisUniverse
+       class  (universeEvent), intent(in   ) :: event
+       type   (universe     ), intent(inout) :: universe_
      end function universeEventTask
   end interface
 
@@ -336,18 +336,18 @@ module Galacticus_Nodes
     implicit none
     class(treeNode ), intent(inout)          :: self
     class(nodeEvent), intent(inout), pointer :: newEvent
-    class(nodeEvent)               , pointer :: thisEvent
+    class(nodeEvent)               , pointer :: event
 
     !$omp atomic
     eventID       =  eventID+1
     newEvent%ID   =  eventID
     newEvent%next => null()
     if (associated(self%event)) then
-       thisEvent => self%event
-       do while (associated(thisEvent%next))
-          thisEvent => thisEvent%next
+       event => self%event
+       do while (associated(event%next))
+          event => event%next
        end do
-       thisEvent%next => newEvent
+       event%next => newEvent
     else
        self%event => newEvent
     end if
@@ -359,30 +359,30 @@ module Galacticus_Nodes
     implicit none
     class  (treeNode ), intent(inout) :: self
     class  (nodeEvent), intent(in   ) :: event
-    class  (nodeEvent), pointer       :: lastEvent  , nextEvent, pairEvent
+    class  (nodeEvent), pointer       :: eventLast  , eventNext, eventPaired
     logical                           :: pairMatched
 
     ! Locate the paired event in self and remove it.
-    pairEvent => self%event
-    lastEvent => self%event
+    eventPaired => self%event
+    eventLast   => self%event
     ! Iterate over all events.
     pairMatched=.false.
-    do while (associated(pairEvent).and..not.pairMatched)
+    do while (associated(eventPaired).and..not.pairMatched)
        ! Match the paired event ID with the current event ID.
-       if (pairEvent%ID == event%ID) then
+       if (eventPaired%ID == event%ID) then
           pairMatched=.true.
-          if (associated(pairEvent,self%event)) then
-             self     %event => pairEvent%next
-             lastEvent       => self     %event
+          if (associated(eventPaired,self%event)) then
+             self     %event => eventPaired%next
+             eventLast       => self       %event
           else
-             lastEvent%next  => pairEvent%next
+             eventLast%next  => eventPaired%next
           end if
-          nextEvent => pairEvent%next
-          deallocate(pairEvent)
-          pairEvent => nextEvent
+          eventNext => eventPaired%next
+          deallocate(eventPaired)
+          eventPaired => eventNext
        else
-          lastEvent => pairEvent
-          pairEvent => pairEvent%next
+          eventLast   => eventPaired
+          eventPaired => eventPaired%next
        end if
     end do
     if (.not.pairMatched) call Galacticus_Error_Report('unable to find paired event'//{introspection:location})
@@ -604,19 +604,19 @@ module Galacticus_Nodes
     return
   end function Tree_Node_Get_Earliest_Progenitor
 
-  function Tree_Node_Merges_With_Node(thisNode)
-    !% Returns a pointer to the node with which {\normalfont \ttfamily thisNode} will merge.
+  function Tree_Node_Merges_With_Node(node)
+    !% Returns a pointer to the node with which {\normalfont \ttfamily node} will merge.
     implicit none
-    class(treeNode), intent(in   ) :: thisNode
+    class(treeNode), intent(in   ) :: node
     type (treeNode), pointer       :: Tree_Node_Merges_With_Node
 
     ! Check if a specific merge node has been set.
-    if (associated(thisNode%mergeTarget)) then
+    if (associated(node%mergeTarget)) then
        ! One has, so simply return it.
-       Tree_Node_Merges_With_Node => thisNode%mergeTarget
+       Tree_Node_Merges_With_Node => node%mergeTarget
     else
        ! No specific merge node has been set, assume merging with the parent node.
-       Tree_Node_Merges_With_Node => thisNode%parent
+       Tree_Node_Merges_With_Node => node%parent
     end if
     return
   end function Tree_Node_Merges_With_Node
@@ -629,7 +629,7 @@ module Galacticus_Nodes
     use :: String_Handling   , only : operator(//)
     implicit none
     class(treeNode      ), intent(in   ), target :: self
-    type (treeNode      ), pointer               :: hostNode, previousNode, selfActual, thisNode
+    type (treeNode      ), pointer               :: nodeHost, nodePrevious, selfActual, node
     type (varying_string)                        :: message
 
     select type (self)
@@ -641,26 +641,26 @@ module Galacticus_Nodes
     end select
 
     ! Remove from the parent node satellite list.
-    hostNode => selfActual%parent
+    nodeHost => selfActual%parent
     if (Galacticus_Verbosity_Level() >= verbosityInfo) then
        message='Satellite node ['
-       message=message//selfActual%index()//'] being removed from host node ['//hostNode%index()//']'
+       message=message//selfActual%index()//'] being removed from host node ['//nodeHost%index()//']'
        call Galacticus_Display_Message(message,verbosityInfo)
     end if
-    if (associated(hostNode%firstSatellite,selfActual)) then
+    if (associated(nodeHost%firstSatellite,selfActual)) then
        ! This is the first satellite, unlink it, and link to any sibling.
-       hostNode%firstSatellite => selfActual%sibling
+       nodeHost%firstSatellite => selfActual%sibling
     else
-       thisNode     => hostNode%firstSatellite
-       previousNode => null()
-       do while (associated(thisNode))
-          if (associated(thisNode,selfActual)) then
+       node         => nodeHost%firstSatellite
+       nodePrevious => null()
+       do while (associated(node))
+          if (associated(node,selfActual)) then
              ! Found our node, link its older sibling to its younger sibling.
-             previousNode%sibling => thisNode%sibling
+             nodePrevious%sibling => node%sibling
              exit
           end if
-          previousNode => thisNode
-          thisNode     => thisNode%sibling
+          nodePrevious => node
+          node     => node%sibling
        end do
     end if
     return
@@ -674,7 +674,7 @@ module Galacticus_Nodes
     use :: String_Handling   , only : operator(//)
     implicit none
     class(treeNode      ), intent(in   ), target :: self
-    type (treeNode      ), pointer               :: hostNode, previousNode, selfActual, thisNode
+    type (treeNode      ), pointer               :: nodeHost, nodePrevious, selfActual, node
     type (varying_string)                        :: message
 
     select type (self)
@@ -687,24 +687,24 @@ module Galacticus_Nodes
 
     ! Remove from the mergee list of any merge target.
     if (associated(selfActual%mergeTarget)) then
-       hostNode => selfActual%mergeTarget
+       nodeHost => selfActual%mergeTarget
        message='Mergee node ['
-       message=message//selfActual%index()//'] being removed from merge target ['//hostNode%index()//']'
+       message=message//selfActual%index()//'] being removed from merge target ['//nodeHost%index()//']'
        call Galacticus_Display_Message(message,verbosityInfo)
-       if (associated(hostNode%firstMergee,selfActual)) then
+       if (associated(nodeHost%firstMergee,selfActual)) then
           ! This is the first mergee, unlink it, and link to any sibling.
-          hostNode%firstMergee => selfActual%siblingMergee
+          nodeHost%firstMergee => selfActual%siblingMergee
        else
-          thisNode     => hostNode%firstMergee
-          previousNode => null()
-          do while (associated(thisNode))
-             if (associated(thisNode,selfActual)) then
+          node         => nodeHost%firstMergee
+          nodePrevious => null()
+          do while (associated(node))
+             if (associated(node,selfActual)) then
                 ! Found our node, link its older sibling to its younger sibling.
-                previousNode%siblingMergee => thisNode%siblingMergee
+                nodePrevious%siblingMergee => node%siblingMergee
                 exit
              end if
-             previousNode => thisNode
-             thisNode     => thisNode%siblingMergee
+             nodePrevious => node
+             node         => node%siblingMergee
           end do
        end if
     end if
@@ -1422,8 +1422,8 @@ module Galacticus_Nodes
     
     !# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
     !#  <description>
-  !#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-  !#  </description>
+    !#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+    !#  </description>
     !# </workaround>
     !Merger_Tree_Size_Of=sizeof(self)
     Merger_Tree_Size_Of=0_c_size_t
@@ -1431,8 +1431,8 @@ module Galacticus_Nodes
     do while (associated(event))
        !# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
        !#  <description>
-  !#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-  !#  </description>
+       !#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+       !#  </description>
        !# </workaround>
        ! Merger_Tree_Size_Of=Merger_Tree_Size_Of+sizeof(event)
        event => event%next
@@ -1445,7 +1445,7 @@ module Galacticus_Nodes
     !% Create a new event in a universe.
     implicit none
     class(universe     ), intent(inout) :: self
-    type (universeEvent), pointer       :: newEvent, thisEvent
+    type (universeEvent), pointer       :: newEvent, event
 
     allocate(newEvent)
     nullify(newEvent%next)
@@ -1453,11 +1453,11 @@ module Galacticus_Nodes
     eventID=eventID+1
     newEvent%ID=eventID
     if (associated(self%event)) then
-       thisEvent => self%event
-       do while (associated(thisEvent%next))
-          thisEvent => thisEvent%next
+       event => self%event
+       do while (associated(event%next))
+          event => event%next
        end do
-       thisEvent%next => newEvent
+       event%next => newEvent
     else
        self%event => newEvent
     end if
@@ -1469,26 +1469,26 @@ module Galacticus_Nodes
     implicit none
     class  (universe     ), intent(inout) :: self
     type   (universeEvent), intent(in   ) :: event
-    type   (universeEvent), pointer       :: lastEvent, nextEvent, thisEvent
+    type   (universeEvent), pointer       :: eventLast, eventNext, event_
 
     ! Destroy the event.
-    lastEvent => null()
-    thisEvent => self%event
-    do while (associated(thisEvent))
+    eventLast => null()
+    event_    => self%event
+    do while (associated(event_))
        ! Match the event.
-       if (thisEvent%ID == event%ID) then
-          if (associated(thisEvent,self%event)) then
-             self     %event => thisEvent%next
-             lastEvent       => self     %event
+       if (event_%ID == event%ID) then
+          if (associated(event_,self%event)) then
+             self     %event => event_%next
+             eventLast       => self  %event
           else
-             lastEvent%next  => thisEvent%next
+             eventLast%next  => event_%next
           end if
-          nextEvent => thisEvent%next
-          deallocate(thisEvent)
-          thisEvent => nextEvent
+          eventNext => event_   %next
+          deallocate(event_)
+          event_    => eventNext
        else
-          lastEvent => thisEvent
-          thisEvent => thisEvent%next
+          eventLast => event_
+          event_    => event_%next
        end if
     end do
     return
@@ -1512,24 +1512,24 @@ module Galacticus_Nodes
     return
   end function universePopTree
 
-  subroutine universePushTree(self,thisTree)
+  subroutine universePushTree(self,tree)
     !% Pop a tree from the universe.
     implicit none
     class(universe      ), intent(inout)          :: self
-    type (mergerTree    ), intent(in   ), pointer :: thisTree
-    type (mergerTreeList)               , pointer :: nextTree, newTree
+    type (mergerTree    ), intent(in   ), pointer :: tree
+    type (mergerTreeList)               , pointer :: treeNext, treeNew
 
-    allocate(newTree)
-    newTree%tree => thisTree
-    newTree%next => null()
+    allocate(treeNew)
+    treeNew%tree => tree
+    treeNew%next => null()
     if (associated(self%trees)) then
-       nextTree => self%trees
-       do while (associated(nextTree%next))
-          nextTree => nextTree%next
+       treeNext => self%trees
+       do while (associated(treeNext%next))
+          treeNext => treeNext%next
        end do
-       nextTree%next => newTree
+       treeNext%next => treeNew
     else
-       self%trees => newTree
+       self%trees => treeNew
     end if
     return
   end subroutine universePushTree

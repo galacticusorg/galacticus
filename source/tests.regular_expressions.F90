@@ -25,7 +25,7 @@ program Tests_Regular_Expressions
   use :: Regular_Expressions, only : regEx
   use :: Unit_Tests         , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  type(regEx) :: thisRegEx
+  type(regEx) :: regEx_
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
@@ -34,10 +34,10 @@ program Tests_Regular_Expressions
   call Unit_Tests_Begin_Group("Regular expressions")
 
   ! Test reg-ex matching.
-  thisRegEx=regEx("stellarPopulationFileFor[a-zA-Z0-9]+IMF")
-  call Assert("Matches",thisRegEx%matches('nothingToSeeHereMoveAlong'          ),.false.)
-  call Assert("Matches",thisRegEx%matches('stellarPopulationFileForSalpeterIMF'),.true. )
-  call thisRegEx%destroy()
+  regEx_=regEx("stellarPopulationFileFor[a-zA-Z0-9]+IMF")
+  call Assert("Matches",regEx_%matches('nothingToSeeHereMoveAlong'          ),.false.)
+  call Assert("Matches",regEx_%matches('stellarPopulationFileForSalpeterIMF'),.true. )
+  call regEx_%destroy()
 
   ! End unit tests.
   call Unit_Tests_End_Group()

@@ -100,13 +100,13 @@ contains
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
     character(len=*       ), intent(in   ) :: testName  , reason
-    type     (assertResult), pointer       :: thisResult
+    type     (assertResult), pointer       :: result
 
     ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
-    thisResult%result=testSkipped
-    thisResult%label =trim(testName)
-    thisResult%note  =trim(reason  )
+    result => Get_New_Assert_Result()
+    result%result=testSkipped
+    result%label =trim(testName)
+    result%note  =trim(reason  )
     return
   end subroutine Skip
 
@@ -120,7 +120,7 @@ contains
     real                   , intent(in   )           :: value1       , value2
     integer                , intent(in   ), optional :: compare
     real                   , intent(in   ), optional :: absTol       , relTol
-    type     (assertResult), pointer                 :: thisResult
+    type     (assertResult), pointer                 :: result
     integer                                          :: compareActual
     logical                                          :: passed
 
@@ -151,11 +151,11 @@ contains
     end select
 
     ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
+    result => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
+    result%result=getStatus(passed)
+    result%label =trim(testName)
 
     return
   end subroutine Assert_Real_Scalar
@@ -170,7 +170,7 @@ contains
     double precision              , intent(in   )           :: value1       , value2
     integer                       , intent(in   ), optional :: compare
     double precision              , intent(in   ), optional :: absTol       , relTol
-    type            (assertResult), pointer                 :: thisResult
+    type            (assertResult), pointer                 :: result
     integer                                                 :: compareActual
     logical                                                 :: passed
     character       (len=16      )                          :: label        , comparison
@@ -209,17 +209,17 @@ contains
     end select
 
     ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
+    result => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
+    result%result=getStatus(passed)
+    result%label =trim(testName)
     if (.not.passed) then
        write (label,'(e16.8)') value1
-       thisResult%note=                 trim(adjustl(label))
-       thisResult%note=thisResult%note//" "//trim(comparison)//" "
+       result%note=                 trim(adjustl(label))
+       result%note=result%note//" "//trim(comparison)//" "
        write (label,'(e16.8)') value2
-       thisResult%note=thisResult%note//trim(adjustl(label))
+       result%note=result%note//trim(adjustl(label))
     end if
     return
   end subroutine Assert_Double_Scalar
@@ -232,7 +232,7 @@ contains
     character(len=*       ), intent(in   )           :: testName
     integer                , intent(in   )           :: value1       , value2
     integer                , intent(in   ), optional :: compare
-    type     (assertResult), pointer                 :: thisResult
+    type     (assertResult), pointer                 :: result
     integer                                          :: compareActual
     logical                                          :: passed
 
@@ -263,11 +263,11 @@ contains
     end select
 
     ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
+    result => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
+    result%result=getStatus(passed)
+    result%label =trim(testName)
 
     return
   end subroutine Assert_Integer_Scalar
@@ -281,7 +281,7 @@ contains
     character(len=*         ), intent(in   )           :: testName
     integer  (kind=kind_int8), intent(in   )           :: value1       , value2
     integer                  , intent(in   ), optional :: compare
-    type     (assertResult  ), pointer                 :: thisResult
+    type     (assertResult  ), pointer                 :: result
     integer                                            :: compareActual
     logical                                            :: passed
 
@@ -312,11 +312,11 @@ contains
     end select
 
     ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
+    result => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
+    result%result=getStatus(passed)
+    result%label =trim(testName)
 
     return
   end subroutine Assert_Integer8_Scalar
@@ -329,7 +329,7 @@ contains
     character(len=*       ), intent(in   )           :: testName
     character(len=*       ), intent(in   )           :: value1       , value2
     integer                , intent(in   ), optional :: compare
-    type     (assertResult), pointer                 :: thisResult
+    type     (assertResult), pointer                 :: result
     integer                                          :: compareActual
     logical                                          :: passed
 
@@ -360,11 +360,11 @@ contains
     end select
 
     ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
+    result => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
+    result%result=getStatus(passed)
+    result%label =trim(testName)
 
     return
   end subroutine Assert_Character_Scalar
@@ -378,7 +378,7 @@ contains
     character(len=*         ), intent(in   )           :: testName
     type     (varying_string), intent(in   )           :: value1       , value2
     integer                  , intent(in   ), optional :: compare
-    type     (assertResult  ), pointer                 :: thisResult
+    type     (assertResult  ), pointer                 :: result
     integer                                            :: compareActual
     logical                                            :: passed
 
@@ -409,11 +409,11 @@ contains
     end select
 
     ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
+    result => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
+    result%result=getStatus(passed)
+    result%label =trim(testName)
 
     return
   end subroutine Assert_VarString_Scalar
@@ -428,7 +428,7 @@ contains
     real                   , dimension(:), intent(in   )           :: value1       , value2
     integer                              , intent(in   ), optional :: compare
     real                                 , intent(in   ), optional :: absTol       , relTol
-    type     (assertResult), pointer                               :: thisResult
+    type     (assertResult), pointer                               :: result
     integer                                                        :: compareActual, iTest
     logical                                                        :: passed
 
@@ -465,11 +465,11 @@ contains
     end select
 
     ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
+    result => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
+    result%result=getStatus(passed)
+    result%label =trim(testName)
 
     return
   end subroutine Assert_Real_1D_Array
@@ -484,7 +484,7 @@ contains
     double precision              , dimension(          : ), intent(in   )           :: value1       , value2
     integer                                                , intent(in   ), optional :: compare
     double precision                                       , intent(in   ), optional :: absTol       , relTol
-    type            (assertResult), pointer                                          :: thisResult
+    type            (assertResult), pointer                                          :: result
     integer                                                                          :: compareActual, iTest
     logical                       , dimension(size(value1))                          :: passed
     character       (len=22      )                                                   :: label        , comparison
@@ -526,20 +526,20 @@ contains
     end select
 
     ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
+    result => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=getStatus(all(passed))
-    thisResult%label =trim(testName)
+    result%result=getStatus(all(passed))
+    result%label =trim(testName)
     if (.not.all(passed)) then
-       thisResult%note=var_str('')
+       result%note=var_str('')
        do iTest=1,min(size(value1),size(value2))
           if (passed(iTest)) cycle
           write (label,'(i2,1x,a1,1x,e16.8)') iTest,':',value1(iTest)
-          thisResult%note=thisResult%note//trim(adjustl(label))
-          thisResult%note=thisResult%note//" "//trim(comparison)//" "
+          result%note=result%note//trim(adjustl(label))
+          result%note=result%note//" "//trim(comparison)//" "
           write (label,'(e16.8)') value2(iTest)
-          thisResult%note=thisResult%note//trim(adjustl(label))//"; "
+          result%note=result%note//trim(adjustl(label))//"; "
        end do
     end if
     return
@@ -556,7 +556,7 @@ contains
     integer                                     , intent(in   ), optional :: compare
     double complex                              , intent(in   ), optional :: absTol       , relTol
     double complex                                                        :: absTolActual , relTolActual
-    type            (assertResult), pointer                               :: thisResult
+    type            (assertResult), pointer                               :: result
     integer                                                               :: compareActual, iTest
     logical                                                               :: passed
 
@@ -596,10 +596,10 @@ contains
        call Galacticus_Error_Report('comparison not supported for complex values'//{introspection:location})
     end select
     ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
+    result => Get_New_Assert_Result()
     ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
+    result%result=getStatus(passed)
+    result%label =trim(testName)
     return
   end subroutine Assert_Double_Complex_1D_Array
 
@@ -613,7 +613,7 @@ contains
     double precision              , dimension(:,:), intent(in   )           :: value1       , value2
     integer                                       , intent(in   ), optional :: compare
     double precision                              , intent(in   ), optional :: absTol       , relTol
-    type            (assertResult), pointer                                 :: thisResult
+    type            (assertResult), pointer                                 :: result
     integer                                                                 :: compareActual, iTest , jTest
     logical                                                                 :: passed
 
@@ -652,11 +652,11 @@ contains
     end select
 
     ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
+    result => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
+    result%result=getStatus(passed)
+    result%label =trim(testName)
 
     return
   end subroutine Assert_Double_2D_Array
@@ -671,7 +671,7 @@ contains
     double precision              , dimension(:,:,:), intent(in   )           :: value1       , value2
     integer                                         , intent(in   ), optional :: compare
     double precision                                , intent(in   ), optional :: absTol       , relTol
-    type            (assertResult), pointer                                   :: thisResult
+    type            (assertResult), pointer                                   :: result
     integer                                                                   :: compareActual, iTest , jTest, kTest
     logical                                                                   :: passed
 
@@ -712,11 +712,11 @@ contains
     end select
 
     ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
+    result => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
+    result%result=getStatus(passed)
+    result%label =trim(testName)
 
     return
   end subroutine Assert_Double_3D_Array
@@ -731,7 +731,7 @@ contains
     double precision              , dimension(:,:,:,:), intent(in   )           :: value1       , value2
     integer                                           , intent(in   ), optional :: compare
     double precision                                  , intent(in   ), optional :: absTol       , relTol
-    type            (assertResult), pointer                                     :: thisResult
+    type            (assertResult), pointer                                     :: result
     integer                                                                     :: compareActual, iTest , jTest, kTest, &
          &                                                                         lTest
     logical                                                                     :: passed
@@ -775,11 +775,11 @@ contains
     end select
 
     ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
+    result => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
+    result%result=getStatus(passed)
+    result%label =trim(testName)
 
     return
   end subroutine Assert_Double_4D_Array
@@ -794,7 +794,7 @@ contains
     double precision              , dimension(:,:,:,:,:), intent(in   )           :: value1       , value2
     integer                                             , intent(in   ), optional :: compare
     double precision                                    , intent(in   ), optional :: absTol       , relTol
-    type            (assertResult), pointer                                       :: thisResult
+    type            (assertResult), pointer                                       :: result
     integer                                                                       :: compareActual, iTest , jTest, kTest, &
          &                                                                           lTest        , mTest
     logical                                                                       :: passed
@@ -840,11 +840,11 @@ contains
     end select
 
     ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
+    result => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
+    result%result=getStatus(passed)
+    result%label =trim(testName)
 
     return
   end subroutine Assert_Double_5D_Array
@@ -857,7 +857,7 @@ contains
     character(len=*       )              , intent(in   )           :: testName
     integer                , dimension(:), intent(in   )           :: value1       , value2
     integer                              , intent(in   ), optional :: compare
-    type     (assertResult), pointer                               :: thisResult
+    type     (assertResult), pointer                               :: result
     integer                                                        :: compareActual
     logical                                                        :: passed
 
@@ -888,11 +888,11 @@ contains
     end select
 
     ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
+    result => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
+    result%result=getStatus(passed)
+    result%label =trim(testName)
 
     return
   end subroutine Assert_Integer_1D_Array
@@ -905,7 +905,7 @@ contains
     character(len=*       )              , intent(in   )           :: testName
     logical                , dimension(:), intent(in   )           :: value1       , value2
     integer                              , intent(in   ), optional :: compare
-    type     (assertResult), pointer                               :: thisResult
+    type     (assertResult), pointer                               :: result
     integer                                                        :: compareActual
     logical                                                        :: passed
 
@@ -928,11 +928,11 @@ contains
     end select
 
     ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
+    result => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
+    result%result=getStatus(passed)
+    result%label =trim(testName)
 
     return
   end subroutine Assert_Logical_1D_Array
@@ -946,7 +946,7 @@ contains
     character(len=*         )              , intent(in   )           :: testName
     integer  (kind=kind_int8), dimension(:), intent(in   )           :: value1       , value2
     integer                                , intent(in   ), optional :: compare
-    type     (assertResult  ), pointer                               :: thisResult
+    type     (assertResult  ), pointer                               :: result
     integer                                                          :: compareActual
     logical                                                          :: passed
 
@@ -977,11 +977,11 @@ contains
     end select
 
     ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
+    result => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
+    result%result=getStatus(passed)
+    result%label =trim(testName)
 
     return
   end subroutine Assert_Integer8_1D_Array
@@ -994,7 +994,7 @@ contains
     character(len=*       ), intent(in   )           :: testName
     logical                , intent(in   )           :: value1       , value2
     integer                , intent(in   ), optional :: compare
-    type     (assertResult), pointer                 :: thisResult
+    type     (assertResult), pointer                 :: result
     integer                                          :: compareActual
     logical                                          :: passed
 
@@ -1017,11 +1017,11 @@ contains
     end select
 
     ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
+    result => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
+    result%result=getStatus(passed)
+    result%label =trim(testName)
 
     return
   end subroutine Assert_Logical_Scalar
@@ -1034,7 +1034,7 @@ contains
     character(len=*       )              , intent(in   )           :: testName
     character(len=*       ), dimension(:), intent(in   )           :: value1       , value2
     integer                              , intent(in   ), optional :: compare
-    type     (assertResult), pointer                               :: thisResult
+    type     (assertResult), pointer                               :: result
     integer                                                        :: compareActual
     logical                                                        :: passed
 
@@ -1065,11 +1065,11 @@ contains
     end select
 
     ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
+    result => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
+    result%result=getStatus(passed)
+    result%label =trim(testName)
 
     return
   end subroutine Assert_Character_1D_Array
@@ -1083,7 +1083,7 @@ contains
     character(len=*         )              , intent(in   )           :: testName
     type     (varying_string), dimension(:), intent(in   )           :: value1       , value2
     integer                                , intent(in   ), optional :: compare
-    type     (assertResult  ), pointer                               :: thisResult
+    type     (assertResult  ), pointer                               :: result
     integer                                                          :: compareActual
     logical                                                          :: passed
 
@@ -1114,11 +1114,11 @@ contains
     end select
 
     ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
+    result => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
+    result%result=getStatus(passed)
+    result%label =trim(testName)
 
     return
   end subroutine Assert_VarString_1D_Array
@@ -1128,21 +1128,21 @@ contains
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
     character(len=*       ), intent(in   ) :: groupName
-    type     (assertResult), pointer       :: thisResult
+    type     (assertResult), pointer       :: result
 
-    thisResult => Get_New_Assert_Result()
-    thisResult%beginGroup=.true.
-    thisResult%label     =trim(groupName)
+    result => Get_New_Assert_Result()
+    result%beginGroup=.true.
+    result%label     =trim(groupName)
     return
   end subroutine Unit_Tests_Begin_Group
 
   subroutine Unit_Tests_End_Group
     !% Marks that a unit test group has ended.
     implicit none
-    type(assertResult), pointer :: thisResult
+    type(assertResult), pointer :: result
 
-    thisResult => Get_New_Assert_Result()
-    thisResult%endGroup=.true.
+    result => Get_New_Assert_Result()
+    result%endGroup=.true.
     return
   end subroutine Unit_Tests_End_Group
 
@@ -1153,32 +1153,32 @@ contains
     use :: Memory_Management , only : Memory_Usage_Record
     use :: String_Handling   , only : operator(//)
     implicit none
-    type   (assertResult  ), pointer :: nextResult, thisResult
+    type   (assertResult  ), pointer :: nextResult, result
     integer                          :: failCount , passCount , percentage
     type   (varying_string)          :: message
 
     passCount=0
     failCount=0
-    thisResult => firstResult
-    do while (associated(thisResult))
-       if (.not.(thisResult%beginGroup.or.thisResult%endGroup)) then
-          select case (thisResult%result)
+    result => firstResult
+    do while (associated(result))
+       if (.not.(result%beginGroup.or.result%endGroup)) then
+          select case (result%result)
           case (testFailed)
              failCount=failCount+1
-             message=" FAILED: "//thisResult%label
-             if (thisResult%note /= "") message=message//" ["//thisResult%note//"]"
+             message=" FAILED: "//result%label
+             if (result%note /= "") message=message//" ["//result%note//"]"
           case (testPassed)
              passCount=passCount+1
-             message=" passed: "//thisResult%label
+             message=" passed: "//result%label
           case (testSkipped)
-             message="skipped: "//thisResult%label//" ["//thisResult%note//"]"
+             message="skipped: "//result%label//" ["//result%note//"]"
           end select
           call Galacticus_Display_Message(message)
        else
-          if (thisResult%beginGroup) call Galacticus_Display_Indent  (thisResult%label)
-          if (thisResult%endGroup  ) call Galacticus_Display_Unindent("")
+          if (result%beginGroup) call Galacticus_Display_Indent  (result%label)
+          if (result%endGroup  ) call Galacticus_Display_Unindent("")
        end if
-       thisResult => thisResult%nextResult
+       result => result%nextResult
     end do
     if (passCount+failCount > 0) then
        percentage=int(100.0d0*dble(passCount)/dble(passCount+failCount))
@@ -1198,13 +1198,13 @@ contains
     call Galacticus_Display_Message(message)
 
     ! Destroy the list of results.
-    thisResult => firstResult%nextResult
-    do while (associated(thisResult))
-       nextResult => thisResult%nextResult
-       call thisResult%label%destroy()
-       deallocate(thisResult)
-       call Memory_Usage_Record(sizeof(thisResult),addRemove=-1)
-       thisResult => nextResult
+    result => firstResult%nextResult
+    do while (associated(result))
+       nextResult => result%nextResult
+       call result%label%destroy()
+       deallocate(result)
+       call Memory_Usage_Record(sizeof(result),addRemove=-1)
+       result => nextResult
     end do
     return
   end subroutine Unit_Tests_Finish

@@ -67,8 +67,8 @@ module Merger_Tree_Timesteps
   !#    \ttfamily Evolve\_To\_Time\_Report()} function. Additionally, if the optional {\normalfont \ttfamily lockNode} and
   !#    {\normalfont \ttfamily lockType} arguments are present then additional information can be supplied to aid in diagnosing
   !#    deadlock conditions. If the current task is limiting the timestep then the {\normalfont \ttfamily lockNode} pointer should
-  !#    be set to point to whichever node is causing the limit (which may be {\normalfont \ttfamily thisNode} or some other node,
-  !#    e.g. a satellite of {\normalfont \ttfamily thisNode}, etc.), and {\normalfont \ttfamily lockType} should be set to a short
+  !#    be set to point to whichever node is causing the limit (which may be {\normalfont \ttfamily node} or some other node,
+  !#    e.g. a satellite of {\normalfont \ttfamily node}, etc.), and {\normalfont \ttfamily lockType} should be set to a short
   !#    description label identifying the type of limit.
   !#   </description>
   !#   <type>double precision</type>

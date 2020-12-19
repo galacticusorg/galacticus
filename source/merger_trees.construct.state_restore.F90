@@ -35,7 +35,7 @@
   !#     .
   !#     .
   !#     if (&lt;conditions are met&gt;) then
-  !#        call mergerTreeStateStore(thisTree,'storedTree.dat')
+  !#        call mergerTreeStateStore(tree,'storedTree.dat')
   !#        stop 'tree internal state was stored'
   !#     end if
   !#    \end{verbatim}

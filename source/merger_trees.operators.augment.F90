@@ -1259,15 +1259,15 @@ contains
     double precision                    , intent(in   )          :: tolerance
     double precision                    , intent(inout)          :: treeCurrentWorstFit
     class           (nodeComponentBasic)               , pointer :: basicNew           , basicOriginal
-    double precision                                             :: thisFit
+    double precision                                             :: fitMeasure
 
     basicNew              => nodeNew     %basic()
     basicOriginal         => nodeOriginal%basic()
-    thisFit               =  +2.0d0                                     &
+    fitMeasure            =  +2.0d0                                     &
          &                   *abs(basicNew%mass()-basicOriginal%mass()) &
          &                   /abs(basicNew%mass()+basicOriginal%mass())
-    augmentNodeComparison =  thisFit < tolerance
-    treeCurrentWorstFit   =  max(treeCurrentWorstFit,thisFit)
+    augmentNodeComparison =  fitMeasure < tolerance
+    treeCurrentWorstFit   =  max(treeCurrentWorstFit,fitMeasure)
     return
   end function augmentNodeComparison
 

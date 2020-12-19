@@ -101,7 +101,7 @@ contains
     logical                      , intent(inout)          :: interrupt
     procedure(                  ), intent(inout), pointer :: interruptProcedure
     integer                      , intent(in   )          :: propertyType
-    class    (nodeComponentBasic)               , pointer :: basicComponent
+    class    (nodeComponentBasic)               , pointer :: basic
     !$GLC attributes unused :: interrupt, interruptProcedure
 
 
@@ -110,12 +110,12 @@ contains
     ! Return immediately if this class is not in use.
     if (.not.defaultBasicComponent%nonEvolvingIsActive()) return
     ! Get the basic component.
-    basicComponent => node%basic()
+    basic => node%basic()
     ! Ensure that it is of the non-evolving class.
-    select type (basicComponent)
+    select type (basic)
     class is (nodeComponentBasicNonEvolving)
        ! Time rate of change is unity, by definition.
-       call basicComponent%timeRate(1.0d0)
+       call basic%timeRate(1.0d0)
     end select
     return
   end subroutine Node_Component_Basic_Non_Evolving_Rate_Compute
@@ -128,16 +128,16 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicNonEvolving, treeNode
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
-    double precision                    , parameter              :: timeScale     =1.0d-3
-    class           (nodeComponentBasic)               , pointer :: basicComponent
+    double precision                    , parameter              :: timeScale=1.0d-3
+    class           (nodeComponentBasic)               , pointer :: basic
 
     ! Get the basic component.
-    basicComponent => node%basic()
+    basic => node%basic()
     ! Ensure that it is of the standard class.
-    select type (basicComponent)
+    select type (basic)
     class is (nodeComponentBasicNonEvolving)
        ! Set scale for time.
-       call basicComponent%timeScale(timeScale)
+       call basic%timeScale(timeScale)
     end select
     return
   end subroutine Node_Component_Basic_Non_Evolving_Scale_Set

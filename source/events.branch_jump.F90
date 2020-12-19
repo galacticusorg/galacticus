@@ -27,7 +27,7 @@ module Node_Branch_Jumps
 
 contains
 
-  logical function Node_Branch_Jump(thisEvent,thisNode,deadlockStatus)
+  logical function Node_Branch_Jump(event,node,deadlockStatus)
     !% Moves a satellite node to a different branch of the merger tree.
     use :: Galacticus_Display                 , only : Galacticus_Display_Message   , verbosityInfo
     use :: Galacticus_Nodes                   , only : nodeEvent                    , treeNode
@@ -38,44 +38,44 @@ contains
     include 'events.branch_jump.post_process.modules.inc'
     !# </include>
     implicit none
-    class    (nodeEvent     ), intent(in   )          :: thisEvent
-    type     (treeNode      ), intent(inout), pointer :: thisNode
+    class    (nodeEvent     ), intent(in   )          :: event
+    type     (treeNode      ), intent(inout), pointer :: node
     integer                  , intent(inout)          :: deadlockStatus
     type     (treeNode      )               , pointer :: lastSatellite , newHost
     type     (varying_string)                         :: message
     character(len=12        )                         :: label
 
     ! If the node is not yet a satellite, wait until it is before peforming this task.
-    if (.not.thisNode%isSatellite()) then
+    if (.not.node%isSatellite()) then
        Node_Branch_Jump=.false.
        return
     else
        Node_Branch_Jump=.true.
     end if
     ! Report.
-    write (label,'(f12.6)') thisEvent%time
+    write (label,'(f12.6)') event%time
     message='Node ['
-    message=message//thisNode%index()//'] jumping branch to host ['//thisEvent%node%index()//'] at time '//label//' Gyr'
+    message=message//node%index()//'] jumping branch to host ['//event%node%index()//'] at time '//label//' Gyr'
     call Galacticus_Display_Message(message,verbosityInfo)
     ! Remove the satellite from its current host.
-    call thisNode%removeFromHost()
+    call node%removeFromHost()
     ! Find the new host and insert the node as a satellite in that new host.
-    newHost          => thisEvent%node
-    thisNode%sibling => null()
-    thisNode%parent  => newHost
+    newHost          => event%node
+    node%sibling => null()
+    node%parent  => newHost
     if (associated(newHost%firstSatellite)) then
        lastSatellite                => newHost %lastSatellite()
-       lastSatellite%sibling        => thisNode
+       lastSatellite%sibling        => node
     else
-       newHost      %firstSatellite => thisNode
+       newHost      %firstSatellite => node
     end if
     ! Update the host tree pointer in the node to point to its new tree.
-    thisNode%hostTree => newHost%hostTree
+    node%hostTree => newHost%hostTree
     ! Locate the paired event in the host and remove it.
-    call newHost%removePairedEvent(thisEvent)
+    call newHost%removePairedEvent(event)
     ! Allow any postprocessing of the branch jump event that may be necessary.
     !# <include directive="branchJumpPostProcess" type="functionCall" functionType="void">
-    !#  <functionArgs>thisNode</functionArgs>
+    !#  <functionArgs>node</functionArgs>
     include 'events.branch_jump.postprocess.inc'
     !# </include>
     ! Since we changed the tree, record that the tree is not deadlocked.

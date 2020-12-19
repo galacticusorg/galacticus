@@ -273,7 +273,7 @@ contains
          &                                                                                      correlationSurvey
     double precision                                                        , dimension(3  ) :: rotationAxis
     type            (varying_string                         )                                :: message
-    type            (hdf5Object                             )                                :: thisDataset          , correlationFunctionGroup
+    type            (hdf5Object                             )                                :: dataset              , correlationFunctionGroup
     type            (irate                                  )                                :: galaxyFile
     double precision                                                                         :: simulationBoxSize    , time                    , &
          &                                                                                      redshift
@@ -409,15 +409,15 @@ contains
          &                            )
     ! Write correlations to file.
     correlationFunctionGroup=galacticusOutputFile%openGroup('projectedCorrelationFunction')
-    call correlationFunctionGroup%writeDataset(separation       ,'separation'                ,commentText='Galaxy separation.'                                ,datasetReturned=thisDataset)
-    call thisDataset%writeAttribute(megaParsec,'unitsInSI')
-    call thisDataset%close         (                      )
-    call correlationFunctionGroup%writeDataset(correlation      ,'projectedCorrelation'      ,commentText='Projected correlation function from the full mock.',datasetReturned=thisDataset)
-    call thisDataset%writeAttribute(megaParsec,'unitsInSI')
-    call thisDataset%close         (                      )
-    call correlationFunctionGroup%writeDataset(correlationSurvey,'projectedCorrelationSurvey',commentText='Projected correlation function from survey region.',datasetReturned=thisDataset)
-    call thisDataset%writeAttribute(megaParsec,'unitsInSI')
-    call thisDataset%close         (                      )
+    call correlationFunctionGroup%writeDataset(separation       ,'separation'                ,commentText='Galaxy separation.'                                ,datasetReturned=dataset)
+    call dataset%writeAttribute(megaParsec,'unitsInSI')
+    call dataset%close         (                      )
+    call correlationFunctionGroup%writeDataset(correlation      ,'projectedCorrelation'      ,commentText='Projected correlation function from the full mock.',datasetReturned=dataset)
+    call dataset%writeAttribute(megaParsec,'unitsInSI')
+    call dataset%close         (                      )
+    call correlationFunctionGroup%writeDataset(correlationSurvey,'projectedCorrelationSurvey',commentText='Projected correlation function from survey region.',datasetReturned=dataset)
+    call dataset%writeAttribute(megaParsec,'unitsInSI')
+    call dataset%close         (                      )
     call correlationFunctionGroup%close()
     ! Clean up.
     deallocate(galaxyPosition)

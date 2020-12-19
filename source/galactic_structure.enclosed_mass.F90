@@ -35,7 +35,7 @@ module Galactic_Structure_Enclosed_Masses
 
 contains
 
-  double precision function Galactic_Structure_Enclosed_Mass(thisNode,radius,componentType,massType,weightBy,weightIndex)
+  double precision function Galactic_Structure_Enclosed_Mass(node,radius,componentType,massType,weightBy,weightIndex)
     !% Solve for the mass within a given radius, or the total mass if no radius is specified. Assumes that galactic structure has
     !% already been computed.
     use :: Galactic_Structure_Options, only : radiusLarge
@@ -44,7 +44,7 @@ contains
     include 'galactic_structure.enclosed_mass.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode               ), intent(inout)           :: thisNode
+    type            (treeNode               ), intent(inout)           :: node
     integer                                  , intent(in   ), optional :: componentType        , massType, weightBy, &
          &                                                                weightIndex
     double precision                         , intent(in   ), optional :: radius
@@ -61,18 +61,18 @@ contains
     end if
     ! Compute the contribution from components directly, by mapping a function over all components.
     componentEnclosedMass => Component_Enclosed_Mass
-    Galactic_Structure_Enclosed_Mass=thisNode%mapDouble0(componentEnclosedMass,reductionSummation,optimizeFor=optimizeForEnclosedMassSummation)
+    Galactic_Structure_Enclosed_Mass=node%mapDouble0(componentEnclosedMass,reductionSummation,optimizeFor=optimizeForEnclosedMassSummation)
     ! Call routines to supply the masses for all components.
     !# <include directive="enclosedMassTask" type="functionCall" functionType="function" returnParameter="componentMass">
-    !#  <functionArgs>thisNode,radiusShared,componentTypeShared,massTypeShared,weightByShared,weightIndexShared</functionArgs>
+    !#  <functionArgs>node,radiusShared,componentTypeShared,massTypeShared,weightByShared,weightIndexShared</functionArgs>
     !#  <onReturn>Galactic_Structure_Enclosed_Mass=Galactic_Structure_Enclosed_Mass+componentMass</onReturn>
     include 'galactic_structure.enclosed_mass.tasks.inc'
     !# </include>
     return
   end function Galactic_Structure_Enclosed_Mass
 
-  double precision function Galactic_Structure_Radius_Enclosing_Mass(thisNode,mass,fractionalMass,componentType,massType,weightBy,weightIndex)
-    !% Return the radius enclosing a given mass (or fractional mass) in {\normalfont \ttfamily thisNode}.
+  double precision function Galactic_Structure_Radius_Enclosing_Mass(node,mass,fractionalMass,componentType,massType,weightBy,weightIndex)
+    !% Return the radius enclosing a given mass (or fractional mass) in {\normalfont \ttfamily node}.
     use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScale       , darkMatterHaloScaleClass
     use :: Dark_Matter_Profiles      , only : darkMatterProfile         , darkMatterProfileClass
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo     , massTypeDark
@@ -83,7 +83,7 @@ contains
     use :: Root_Finder               , only : rangeExpandMultiplicative , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     use :: String_Handling           , only : operator(//)
     implicit none
-    type            (treeNode                ), intent(inout), target   :: thisNode
+    type            (treeNode                ), intent(inout), target   :: node
     integer                                   , intent(in   ), optional :: componentType                        , massType   , &
          &                                                                 weightBy                             , weightIndex
     double precision                          , intent(in   ), optional :: fractionalMass                       , mass
@@ -105,7 +105,7 @@ contains
        if (present(fractionalMass)) call Galacticus_Error_Report('only one mass or fractionalMass can be specified'//{introspection:location})
        massRoot=mass
     else if (present(fractionalMass)) then
-       massRoot=fractionalMass*Galactic_Structure_Enclosed_Mass(thisNode,componentType=componentTypeShared,massType=massTypeShared,weightBy=weightByShared,weightIndex=weightIndexShared)
+       massRoot=fractionalMass*Galactic_Structure_Enclosed_Mass(node,componentType=componentTypeShared,massType=massTypeShared,weightBy=weightByShared,weightIndex=weightIndexShared)
     else
        call Galacticus_Error_Report('either mass or fractionalMass must be specified'//{introspection:location})
     end if
@@ -113,7 +113,7 @@ contains
        Galactic_Structure_Radius_Enclosing_Mass=0.0d0
        return
     end if
-    activeNode => thisNode
+    activeNode => node
     ! If dark matter component is queried and its density profile is unaffected by baryons, compute the radius from dark
     ! matter profile. Otherwise, find the radius numerically.
     if     (                                              &
@@ -140,7 +140,7 @@ contains
        if (Enclosed_Mass_Root(0.0d0) >= 0.0d0) then
           message='Enclosed mass in galaxy (ID='
           write (massLabel,'(e10.4)') Galactic_Structure_Enclosed_Mass(activeNode,0.0d0,componentTypeShared,massTypeShared,weightByShared,weightIndexShared)
-          message=message//thisNode%index()//') seems to be finite ('//trim(massLabel)
+          message=message//node%index()//') seems to be finite ('//trim(massLabel)
           write (massLabel,'(e10.4)') massRoot
           message=message//') at zero radius (was seeking '//trim(massLabel)
           message=message//') - returning zero radius.'
@@ -148,28 +148,28 @@ contains
           Galactic_Structure_Radius_Enclosing_Mass=0.0d0
           return
        end if
-       if (thisNode%uniqueID() == uniqueIDPrevious) then
+       if (node%uniqueID() == uniqueIDPrevious) then
           radiusGuess          =  radiusPrevious
        else
           darkMatterHaloScale_ => darkMatterHaloScale              (        )
-          radiusGuess          =  darkMatterHaloScale_%virialRadius(thisNode)
+          radiusGuess          =  darkMatterHaloScale_%virialRadius(node)
        end if
        Galactic_Structure_Radius_Enclosing_Mass=finder%find(rootGuess=radiusGuess)
-       uniqueIDPrevious                        =thisNode%uniqueID()
+       uniqueIDPrevious                        =node%uniqueID()
        radiusPrevious                          =Galactic_Structure_Radius_Enclosing_Mass
     end if
     return
   end function Galactic_Structure_Radius_Enclosing_Mass
 
-  double precision function Galactic_Structure_Radius_Enclosing_Density(thisNode,density,densityContrast,componentType,massType,weightBy,weightIndex)
-    !% Return the radius enclosing a given density (or density contrast) in {\normalfont \ttfamily thisNode}.
+  double precision function Galactic_Structure_Radius_Enclosing_Density(node,density,densityContrast,componentType,massType,weightBy,weightIndex)
+    !% Return the radius enclosing a given density (or density contrast) in {\normalfont \ttfamily node}.
     use :: Cosmology_Functions    , only : cosmologyFunctions       , cosmologyFunctionsClass
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale      , darkMatterHaloScaleClass
     use :: Galacticus_Error       , only : Galacticus_Error_Report
     use :: Galacticus_Nodes       , only : nodeComponentBasic       , treeNode
     use :: Root_Finder            , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
-    type            (treeNode                ), intent(inout), target   :: thisNode
+    type            (treeNode                ), intent(inout), target   :: node
     integer                                   , intent(in   ), optional :: componentType       , massType       , weightBy, weightIndex
     double precision                          , intent(in   ), optional :: density             , densityContrast
     class           (darkMatterHaloScaleClass)               , pointer  :: darkMatterHaloScale_
@@ -186,7 +186,7 @@ contains
        densityRoot=density
     else if (present(densityContrast)) then
        cosmologyFunctions_ => cosmologyFunctions()
-       basic               => thisNode%basic    ()
+       basic               => node%basic    ()
        densityRoot=densityContrast*cosmologyFunctions_%matterDensityEpochal(time=basic%time())
     else
        call Galacticus_Error_Report('either density or densityContrast must be specified'//{introspection:location})
@@ -208,10 +208,10 @@ contains
        call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
     end if
     ! Solve for the radius.
-    activeNode           => thisNode
+    activeNode           => node
     darkMatterHaloScale_ => darkMatterHaloScale()
     massRoot             =  0.0d0
-    Galactic_Structure_Radius_Enclosing_Density=finder%find(rootGuess=darkMatterHaloScale_%virialRadius(thisNode))
+    Galactic_Structure_Radius_Enclosing_Density=finder%find(rootGuess=darkMatterHaloScale_%virialRadius(node))
     return
   end function Galactic_Structure_Radius_Enclosing_Density
 

@@ -114,20 +114,20 @@ contains
     logical                      , intent(inout)          :: interrupt
     procedure(                  ), intent(inout), pointer :: interruptProcedure
     integer                      , intent(in   )          :: propertyType
-    class    (nodeComponentBasic)               , pointer :: basicComponent
+    class    (nodeComponentBasic)               , pointer :: basic
     !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
     ! Get the basic component.
-    basicComponent => node%basic()
+    basic => node%basic()
     ! Ensure that it is of the standard class.
-    select type (basicComponent)
+    select type (basic)
     class is (nodeComponentBasicStandard)
        ! Mass rate of change is set to the accretion rate.
-       call basicComponent%massRate(basicComponent%accretionRate())
+       call basic%massRate(basic%accretionRate())
        ! Time rate of change is unity, by definition.
-       call basicComponent%timeRate(1.0d0                         )
+       call basic%timeRate(1.0d0                         )
     end select
     return
   end subroutine Node_Component_Basic_Standard_Rate_Compute
@@ -142,17 +142,17 @@ contains
     type            (treeNode          ), intent(inout), pointer :: node
     double precision                    , parameter              :: timeScale        =1.0d-3
     double precision                    , parameter              :: scaleMassRelative=1.0d-6
-    class           (nodeComponentBasic)               , pointer :: basicComponent
+    class           (nodeComponentBasic)               , pointer :: basic
 
     ! Get the basic component.
-    basicComponent => node%basic()
+    basic => node%basic()
     ! Ensure that it is of the standard class.
-    select type (basicComponent)
+    select type (basic)
     class is (nodeComponentBasicStandard)
        ! Set scale for time.
-       call basicComponent%timeScale(timeScale                              )
+       call basic%timeScale(timeScale                              )
        ! Set scale for mass.
-       call basicComponent%massScale(basicComponent%mass()*scaleMassRelative)
+       call basic%massScale(basic%mass()*scaleMassRelative)
     end select
     return
   end subroutine Node_Component_Basic_Standard_Scale_Set

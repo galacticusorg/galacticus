@@ -31,7 +31,7 @@ module Galactic_Structure_Rotation_Curves
   !$omp threadprivate(massTypeShared,componentTypeShared,radiusShared)
 contains
 
-  double precision function Galactic_Structure_Rotation_Curve(thisNode,radius,componentType,massType)
+  double precision function Galactic_Structure_Rotation_Curve(node,radius,componentType,massType)
     !% Solve for the rotation curve a given radius. Assumes that galactic structure has already been solved for.
     use :: Galactic_Structure_Options, only : componentTypeAll                 , massTypeAll
     use :: Galacticus_Nodes          , only : optimizeForRotationCurveSummation, reductionSummation, treeNode
@@ -39,7 +39,7 @@ contains
     include 'galactic_structure.rotation_curve.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode                ), intent(inout)                    :: thisNode
+    type            (treeNode                ), intent(inout)                    :: node
     integer                                   , intent(in   ), optional          :: componentType                 , massType
     double precision                          , intent(in   )                    :: radius
     procedure       (Component_Rotation_Curve)                         , pointer :: componentRotationCurveFunction
@@ -61,9 +61,9 @@ contains
     radiusShared=radius
     ! Call routines to supply the velocities for all components.
     componentRotationCurveFunction => Component_Rotation_Curve
-    rotationCurveSquared=thisNode%mapDouble0(componentRotationCurveFunction,reductionSummation,optimizeFor=optimizeForRotationCurveSummation)
+    rotationCurveSquared=node%mapDouble0(componentRotationCurveFunction,reductionSummation,optimizeFor=optimizeForRotationCurveSummation)
     !# <include directive="rotationCurveTask" type="functionCall" functionType="function" returnParameter="componentVelocity">
-    !#  <functionArgs>thisNode,radiusShared,componentTypeShared,massTypeShared</functionArgs>
+    !#  <functionArgs>node,radiusShared,componentTypeShared,massTypeShared</functionArgs>
     !#  <onReturn>rotationCurveSquared=rotationCurveSquared+componentVelocity**2</onReturn>
     include 'galactic_structure.rotation_curve.tasks.inc'
     !# </include>

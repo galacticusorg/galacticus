@@ -806,10 +806,10 @@ contains
     implicit none
     class    (inputParameters)              , intent(inout)           :: self
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames
-    type     (node           ), pointer                               :: thisNode
+    type     (node           ), pointer                               :: node_
     type     (inputParameter ), pointer                               :: currentParameter
-    type     (regEx          ), save                                  :: thisRegEx
-    !$omp threadprivate(thisRegEx)
+    type     (regEx          ), save                                  :: regEx_
+    !$omp threadprivate(regEx_)
     logical                                                           :: warningsFound                , parameterMatched    , &
          &                                                               verbose
     integer                                                           :: allowedParametersCount       , errorStatus         , &
@@ -832,7 +832,7 @@ contains
        currentParameter => self%parameters%firstChild
        do while (associated(currentParameter))
           if (currentParameter%isParameter()) then
-             thisNode => currentParameter%content
+             node_ => currentParameter%content
              ! Attempt to read the parameter value.
              call self%value(currentParameter,parameterValue,errorStatus,writeOutput=.false.)
              ! Check for a match with allowed parameter names.
@@ -844,11 +844,11 @@ contains
                 do while (.not.parameterMatched .and. j <= allowedParametersCount)
                    allowedParameterName=allowedParameterNames(j)
                    if (allowedParameterName(1:6) == "regEx:") then
-                      thisRegEx=regEx(allowedParameterName(7:len_trim(allowedParameterName)))
-                      parameterMatched=thisRegEx%matches(getNodeName(thisNode))
-                      call thisRegEx%destroy()
+                      regEx_=regEx(allowedParameterName(7:len_trim(allowedParameterName)))
+                      parameterMatched=regEx_%matches(getNodeName(node_))
+                      call regEx_%destroy()
                    else
-                      parameterMatched=(getNodeName(thisNode) == trim(allowedParameterName))
+                      parameterMatched=(getNodeName(node_) == trim(allowedParameterName))
                    end if
                    j=j+1
                 end do
@@ -872,16 +872,16 @@ contains
                 !$omp critical (FoX_DOM_Access)
                 select case (errorStatus)
                 case (inputParameterErrorStatusEmptyValue    )
-                   message='empty value for parameter ['    //getNodeName(thisNode)//']'
+                   message='empty value for parameter ['    //getNodeName(node_)//']'
                 case (inputParameterErrorStatusAmbiguousValue)
-                   message='ambiguous value for parameter ['//getNodeName(thisNode)//']'
+                   message='ambiguous value for parameter ['//getNodeName(node_)//']'
                 end select
                 !$omp end critical (FoX_DOM_Access)
                 call Galacticus_Display_Message(message)
              end if
              if (allowedParametersCount > 0 .and. .not.parameterMatched .and. verbose) then
                 !$omp critical (FoX_DOM_Access)
-                unknownName    =getNodeName(thisNode)
+                unknownName    =getNodeName(node_)
                 !$omp end critical (FoX_DOM_Access)
                 distanceMinimum=-1
                 do j=1,allowedParametersCount
@@ -996,7 +996,7 @@ contains
     character(len=*          ), intent(in   )           :: parameterName
     logical                   , intent(in   ), optional :: requireValue
     integer                   , intent(in   ), optional :: copyInstance
-    type     (node           ), pointer                 :: thisNode
+    type     (node           ), pointer                 :: node_
     integer                                             :: skipInstances
     !# <optionalArgument name="requireValue" defaultsTo=".true." />
     !# <optionalArgument name="copyInstance" defaultsTo="1"      />
@@ -1007,20 +1007,20 @@ contains
     skipInstances=copyInstance_-1
     do while (associated(inputParametersNode))
        if (.not.inputParametersNode%removed) then
-          thisNode => inputParametersNode%content
-          if (getNodeType(thisNode) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(thisNode)) then
-             if     (                                     &
-                  &   .not.hasAttribute(thisNode,'id'   ) &
-                  &  .and.                                &
-                  &   (                                   &
-                  &    .not.requireValue_                 &
-                  &    .or.                               &
-                  &        hasAttribute(thisNode,'value') &
-                  &    .or.                               &
-                  &     XML_Path_Exists(thisNode,"value") &
-                  &    .or.                               &
-                  &        hasAttribute(thisNode,"idRef") &
-                  &   )                                   &
+          node_ => inputParametersNode%content
+          if (getNodeType(node_) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(node_)) then
+             if     (                                  &
+                  &   .not.hasAttribute(node_,'id'   ) &
+                  &  .and.                             &
+                  &   (                                &
+                  &    .not.requireValue_              &
+                  &    .or.                            &
+                  &        hasAttribute(node_,'value') &
+                  &    .or.                            &
+                  &     XML_Path_Exists(node_,"value") &
+                  &    .or.                            &
+                  &        hasAttribute(node_,"idRef") &
+                  &   )                                &
                   & ) then
                 if (skipInstances > 0) then
                    skipInstances=skipInstances-1
@@ -1047,7 +1047,7 @@ contains
     class    (inputParameters), intent(in   )           :: self
     character(len=*          ), intent(in   )           :: parameterName
     logical                   , intent(in   ), optional :: requireValue
-    type     (node           ), pointer                 :: thisNode
+    type     (node           ), pointer                 :: node_
     type     (inputParameter ), pointer                 :: currentParameter
     !# <optionalArgument name="requireValue" defaultsTo=".true." />
 
@@ -1058,20 +1058,20 @@ contains
     currentParameter => self%parameters%firstChild
     do while (associated(currentParameter))
        if (.not.currentParameter%removed) then
-          thisNode => currentParameter%content
-          if (getNodeType(thisNode) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(thisNode)) then
-             if     (                                     &
-                  &   .not.hasAttribute(thisNode,'id'   ) &
-                  &  .and.                                &
-                  &   (                                   &
-                  &    .not.requireValue_                 &
-                  &    .or.                               &
-                  &        hasAttribute(thisNode,'value') &
-                  &    .or.                               &
-                  &     XML_Path_Exists(thisNode,"value") &
-                  &    .or.                               &
-                  &        hasAttribute(thisNode,"idRef") &
-                  &   )                                   &
+          node_ => currentParameter%content
+          if (getNodeType(node_) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(node_)) then
+             if     (                                  &
+                  &   .not.hasAttribute(node_,'id'   ) &
+                  &  .and.                             &
+                  &   (                                &
+                  &    .not.requireValue_              &
+                  &    .or.                            &
+                  &        hasAttribute(node_,'value') &
+                  &    .or.                            &
+                  &     XML_Path_Exists(node_,"value") &
+                  &    .or.                            &
+                  &        hasAttribute(node_,"idRef") &
+                  &   )                                &
                   & ) then
                 inputParametersIsPresent=.true.
                 exit
@@ -1094,7 +1094,7 @@ contains
     class    (inputParameters), intent(in   )           :: self
     character(len=*          ), intent(in   )           :: parameterName
     logical                   , intent(in   ), optional :: requireValue    , zeroIfNotPresent
-    type     (node           ), pointer                 :: thisNode
+    type     (node           ), pointer                 :: node_
     type     (inputParameter ), pointer                 :: currentParameter
     !# <optionalArgument name="zeroIfNotPresent" defaultsTo=".false."/>
     !# <optionalArgument name="requireValue"     defaultsTo=".true." />
@@ -1106,23 +1106,23 @@ contains
        currentParameter => self%parameters%firstChild
        do while (associated(currentParameter))
           if (.not.currentParameter%removed) then
-             thisNode => currentParameter%content
-             if (getNodeType(thisNode) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(thisNode)) then
-                if     (                                       &
-                     &   .not.requireValue_                    &
-                     &  .or.                                   &
-                     &   (                                     &
-                     &     .not.hasAttribute(thisNode,'id'   ) &
-                     &    .and.                                &
-                     &     (                                   &
-                     &          hasAttribute(thisNode,'value') &
-                     &      .or.                               &
-                     &       XML_Path_Exists(thisNode,"value") &
-                     &      .or.                               &
-                     &          hasAttribute(thisNode,"idRef") &
-                     &     )                                   &
-                     &   )                                     &
-                     & )                                       &
+             node_ => currentParameter%content
+             if (getNodeType(node_) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(node_)) then
+                if     (                                    &
+                     &   .not.requireValue_                 &
+                     &  .or.                                &
+                     &   (                                  &
+                     &     .not.hasAttribute(node_,'id'   ) &
+                     &    .and.                             &
+                     &     (                                &
+                     &          hasAttribute(node_,'value') &
+                     &      .or.                            &
+                     &       XML_Path_Exists(node_,"value") &
+                     &      .or.                            &
+                     &          hasAttribute(node_,"idRef") &
+                     &     )                                &
+                     &   )                                  &
+                     & )                                    &
                      & inputParametersCopiesCount=inputParametersCopiesCount+1
              end if
           end if
@@ -1325,7 +1325,7 @@ contains
           !$omp critical (FoX_DOM_Access)
           expression=getTextContent(valueElement)
           !$omp end critical (FoX_DOM_Access)
-         if (expression(1:1) == "=") then
+          if (expression(1:1) == "=") then
              {Type¦match¦^Double$¦if (.true.) then¦if (.false.) then}
                 ! This is an expression, and we have a scalar, floating point type - it can be evaluated.
                 !! Remove the initial "=".
@@ -1503,7 +1503,7 @@ contains
     type   (varying_string )                          :: inputParametersSerializeToString
     class  (inputParameters), intent(inout)           :: self
     logical                 , intent(in   ), optional :: hashed
-    type   (node           ), pointer                 :: thisNode
+    type   (node           ), pointer                 :: node_
     type   (inputParameter ), pointer                 :: currentParameter
     integer                                           :: errorStatus
     type   (varying_string )                          :: parameterValue
@@ -1518,12 +1518,12 @@ contains
        if (currentParameter%isParameter()) then
           if (.not.firstParameter) inputParametersSerializeToString=inputParametersSerializeToString//"_"
           call self%value(currentParameter,parameterValue,errorStatus,writeOutput=.false.)
-          thisNode => currentParameter%content
+          node_ => currentParameter%content
           inputParametersSerializeToString=inputParametersSerializeToString// &
-               &                           getNodeName(thisNode)           // &
+               &                           getNodeName(node_)              // &
                &                           ":"                             // &
                &                           adjustl(char(parameterValue))
-          subParameters=self%subParameters(getNodeName(thisNode))
+          subParameters=self%subParameters(getNodeName(node_))
           if (associated(subParameters%parameters%firstChild)) inputParametersSerializeToString=inputParametersSerializeToString // &
                &                                                                                "{"                              // &
                &                                                                                subParameters%serializeToString()// &

@@ -128,7 +128,7 @@ contains
   end subroutine exportDestructor
 
   subroutine exportOperatePreEvolution(self,tree)
-    !% Output the structure of {\normalfont \ttfamily thisTree}.
+    !% Output the structure of {\normalfont \ttfamily tree}.
     use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
     use :: Dates_and_Times                 , only : Formatted_Date_and_Time
     use :: Galacticus_Nodes                , only : defaultPositionComponent     , mergerTree            , nodeComponentBasic    , nodeComponentPosition      , &

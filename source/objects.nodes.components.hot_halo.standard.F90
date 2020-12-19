@@ -272,7 +272,7 @@ contains
     implicit none
     type(inputParameters             ), intent(inout) :: parameters_
     type(varying_string              )                :: hotHaloCoolingFromText
-    type(nodeComponentHotHaloStandard)                :: hotHaloComponent
+    type(nodeComponentHotHaloStandard)                :: hotHalo
 
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Hot_Halo_Standard_Initialize)
@@ -383,21 +383,21 @@ contains
        !#   <source>parameters_</source>
        !# </inputParameter>
        ! Bind the outer radius get function.
-       call hotHaloComponent%                  outerRadiusFunction(Node_Component_Hot_Halo_Standard_Outer_Radius              )
+       call hotHalo%                  outerRadiusFunction(Node_Component_Hot_Halo_Standard_Outer_Radius              )
        ! Bind the heat source pipe to the function that will handle heat input to the hot halo.
-       call hotHaloComponent%               heatSourceRateFunction(Node_Component_Hot_Halo_Standard_Heat_Source               )
+       call hotHalo%               heatSourceRateFunction(Node_Component_Hot_Halo_Standard_Heat_Source               )
        ! Bind outflowing material pipes to the functions that will handle input of outflowing material to the hot halo.
-       call hotHaloComponent%           outflowingMassRateFunction(Node_Component_Hot_Halo_Standard_Outflowing_Mass_Rate      )
-       call hotHaloComponent%outflowingAngularMomentumRateFunction(Node_Component_Hot_Halo_Standard_Outflowing_Ang_Mom_Rate   )
-       call hotHaloComponent%     outflowingAbundancesRateFunction(Node_Component_Hot_Halo_Standard_Outflowing_Abundances_Rate)
+       call hotHalo%           outflowingMassRateFunction(Node_Component_Hot_Halo_Standard_Outflowing_Mass_Rate      )
+       call hotHalo%outflowingAngularMomentumRateFunction(Node_Component_Hot_Halo_Standard_Outflowing_Ang_Mom_Rate   )
+       call hotHalo%     outflowingAbundancesRateFunction(Node_Component_Hot_Halo_Standard_Outflowing_Abundances_Rate)
        ! Bind a creation function.
-       call hotHaloComponent%                    createFunctionSet(Node_Component_Hot_Halo_Standard_Initializor               )
+       call hotHalo%                    createFunctionSet(Node_Component_Hot_Halo_Standard_Initializor               )
        ! Bind the mass sink function.
-       call hothaloComponent%                 massSinkRateFunction(Node_Component_Hot_Halo_Standard_Mass_Sink                 )
+       call hotHalo%                 massSinkRateFunction(Node_Component_Hot_Halo_Standard_Mass_Sink                 )
        ! Bind the outflow return function.
-       call hotHaloComponent%                outflowReturnFunction(Node_Component_Hot_Halo_Standard_Outflow_Return            )
+       call hotHalo%                outflowReturnFunction(Node_Component_Hot_Halo_Standard_Outflow_Return            )
        ! Bind the outer radius growth rate function.
-       call hotHaloComponent%        outerRadiusGrowthRateFunction(Node_Component_Hot_Halo_Standard_Outer_Radius_Growth_Rate  )
+       call hotHalo%        outerRadiusGrowthRateFunction(Node_Component_Hot_Halo_Standard_Outer_Radius_Growth_Rate  )
     end if
     !$omp end critical (Node_Component_Hot_Halo_Standard_Initialize)
     return
@@ -749,11 +749,11 @@ contains
     double precision                          , intent(in   )                    :: massRate
     logical                                   , intent(inout), optional          :: interrupt
     procedure       (interruptTask           ), intent(inout), optional, pointer :: interruptProcedure
-    type            (treeNode                )                         , pointer :: coolingFromNode
-    class           (nodeComponentHotHalo    )                         , pointer :: coolingFromHotHaloComponent, hotHalo
+    type            (treeNode                )                         , pointer :: nodeCooling
+    class           (nodeComponentHotHalo    )                         , pointer :: hotHaloCooling            , hotHalo
     type            (abundances              ), save                             :: abundancesCoolingRate
     !$omp threadprivate(abundancesCoolingRate)
-    double precision                                                             :: angularMomentumCoolingRate , infallRadius
+    double precision                                                             :: angularMomentumCoolingRate, infallRadius
 
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
@@ -771,17 +771,17 @@ contains
           ! Find the node to use for cooling calculations.
           select case (hotHaloCoolingFromNode)
           case (currentNode  )
-             coolingFromNode => node
+             nodeCooling => node
           case (formationNode)
-             coolingFromNode => node%formationNode
+             nodeCooling => node%formationNode
           case default
-             coolingFromNode => null()
+             nodeCooling => null()
              call Galacticus_Error_Report('unknown "hotHaloCoolingFromNode" - this should not happen'//{introspection:location})
           end select
           infallRadius              =coolingInfallRadius_%radius(node)
-          angularMomentumCoolingRate=massRate*coolingSpecificAngularMomentum_%angularMomentumSpecific(coolingFromNode,infallRadius)
+          angularMomentumCoolingRate=massRate*coolingSpecificAngularMomentum_%angularMomentumSpecific(nodeCooling,infallRadius)
           if (.not.gotAngularMomentumCoolingRate) then
-             angularMomentumHeatingRateRemaining=rateCooling*coolingSpecificAngularMomentum_%angularMomentumSpecific(coolingFromNode,infallRadius)
+             angularMomentumHeatingRateRemaining=rateCooling*coolingSpecificAngularMomentum_%angularMomentumSpecific(nodeCooling,infallRadius)
              gotAngularMomentumCoolingRate=.true.
           end if
           if (massRate < 0.0d0) then
@@ -798,9 +798,9 @@ contains
           if (hotHalo%hotHaloCoolingAngularMomentumRateIsAttached()) &
                & call hotHalo%hotHaloCoolingAngularMomentumRate(sign(+angularMomentumCoolingRate*(1.0d0-hotHaloAngularMomentumLossFraction),massRate),interrupt,interruptProcedure)
           ! Get the rate of change of abundances.
-          coolingFromHotHaloComponent => coolingFromNode%hotHalo()
-          abundancesCoolingRate=coolingFromHotHaloComponent%abundances()
-          abundancesCoolingRate=massRate*abundancesCoolingRate/coolingFromHotHaloComponent%mass()
+          hotHaloCooling => nodeCooling%hotHalo()
+          abundancesCoolingRate=hotHaloCooling%abundances()
+          abundancesCoolingRate=massRate*abundancesCoolingRate/hotHaloCooling%mass()
           call    hotHalo%abundancesRate       (-abundancesCoolingRate )
           ! Pipe the cooling rate to which ever component claimed it.
           if (hotHalo%hotHaloCoolingAbundancesRateIsAttached()) &
@@ -822,7 +822,7 @@ contains
     type            (abundances                  ), save          :: abundancesRates
     type            (chemicalAbundances          ), save          :: chemicalsRates
     !$omp threadprivate(abundancesRates,chemicalsRates)
-    double precision                                              :: angularMomentumRate , massRateLimited
+    double precision                                              :: angularMomentumRate, massRateLimited
 
     ! Ignore zero rates.
     if (massRate /= 0.0d0 .and. hotHalo%mass() > 0.0d0) then
@@ -854,11 +854,11 @@ contains
     implicit none
     type            (treeNode                    ), intent(inout), pointer :: node
     class           (nodeComponentHotHaloStandard)                         :: hotHalo
-    double precision                                                       :: massOuter                     , massVirial  , &
-         &                                                                    radiusOuter                   , radiusVirial
+    double precision                                                       :: massOuter  , massVirial  , &
+         &                                                                    radiusOuter, radiusVirial
 
-    radiusOuter =hotHalo%outerRadius()
-    radiusVirial=darkMatterHaloScale_%virialRadius             (node             )
+    radiusOuter =hotHalo                 %outerRadius (                 )
+    radiusVirial=darkMatterHaloScale_    %virialRadius(node             )
     massOuter   =hotHaloMassDistribution_%enclosedMass(node,radiusOuter )
     massVirial  =hotHaloMassDistribution_%enclosedMass(node,radiusVirial)
     if (massVirial > 0.0d0) then

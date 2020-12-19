@@ -32,7 +32,7 @@ module Galactic_Structure_Densities
   !$omp threadprivate(positionSphericalShared,massTypeShared,componentTypeShared,weightByShared,weightIndexShared)
 contains
 
-  double precision function Galactic_Structure_Density(thisNode,position,coordinateSystem,componentType,massType,weightBy,weightIndex)
+  double precision function Galactic_Structure_Density(node,position,coordinateSystem,componentType,massType,weightBy,weightIndex)
     !% Compute the density (of given {\normalfont \ttfamily massType}) at the specified {\normalfont \ttfamily position}. Assumes that galactic structure has already
     !% been computed.
     use :: Coordinate_Systems        , only : Coordinates_Cartesian_To_Spherical, Coordinates_Cylindrical_To_Spherical
@@ -44,7 +44,7 @@ contains
     include 'galactic_structure.density.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode         ), intent(inout)           :: thisNode
+    type            (treeNode         ), intent(inout)           :: node
     integer                            , intent(in   ), optional :: componentType              , coordinateSystem, &
          &                                                          massType                   , weightBy        , &
          &                                                          weightIndex
@@ -95,9 +95,9 @@ contains
 
     ! Call routines to supply the densities for all components.
     componentDensityFunction => Component_Density
-    Galactic_Structure_Density=thisNode%mapDouble0(componentDensityFunction,reductionSummation,optimizeFor=optimizeForDensitySummation)
+    Galactic_Structure_Density=node%mapDouble0(componentDensityFunction,reductionSummation,optimizeFor=optimizeForDensitySummation)
     !# <include directive="densityTask" type="functionCall" functionType="function" returnParameter="componentDensity">
-    !#  <functionArgs>thisNode,positionSphericalShared,componentTypeShared,massTypeShared,weightByShared,weightIndexShared</functionArgs>
+    !#  <functionArgs>node,positionSphericalShared,componentTypeShared,massTypeShared,weightByShared,weightIndexShared</functionArgs>
     !#  <onReturn>Galactic_Structure_Density=Galactic_Structure_Density+componentDensity</onReturn>
     include 'galactic_structure.density.tasks.inc'
     !# </include>

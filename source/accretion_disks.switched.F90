@@ -228,7 +228,7 @@ contains
   end function switchedPowerJet
 
   double precision function switchedRateSpinUp(self,blackHole,accretionRateMass)
-    !% Computes the spin up rate of the black hole in {\normalfont \ttfamily thisNode} due to accretion from a switched
+    !% Computes the spin up rate of the given {\normalfont \ttfamily blackHole} due to accretion from a switched
     !% (ADAF/thin) accretion disk.
     implicit none
     class           (accretionDisksSwitched), intent(inout) :: self

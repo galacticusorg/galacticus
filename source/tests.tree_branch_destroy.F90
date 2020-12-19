@@ -24,7 +24,7 @@ program Tests_Tree_Branch_Destroy
   use :: Kind_Numbers      , only : kind_int8
   use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  type   (mergerTree     ), pointer :: thisTree
+  type   (mergerTree     ), pointer :: tree
   type   (treeNodeList   )          :: nodes   (5)
   integer(kind=kind_int8 )          :: iNode
   type   (inputParameters)          :: parameters
@@ -39,14 +39,14 @@ program Tests_Tree_Branch_Destroy
   call Unit_Tests_Begin_Group("Tree branch destruction: Avoid dangling pointers")
 
   ! Create tree.
-  allocate(thisTree)
+  allocate(tree)
 
   ! Create nodes.
   do iNode=1,5
      nodes(iNode)%node => treeNode()
   end do
-  thisTree%baseNode => nodes(1)%node
-  thisTree%event    => null()
+  tree%baseNode => nodes(1)%node
+  tree%event    => null()
 
   ! Set indices of nodes.
   call nodes(1)%node%indexSet(1_kind_int8)
@@ -78,8 +78,8 @@ program Tests_Tree_Branch_Destroy
 
   ! Destroy the tree. If dangling pointers are not fixed during tree destruction, this will trigger errors when running inside
   ! Valgrind.
-  call thisTree%destroy()
-  deallocate(thisTree)
+  call tree%destroy()
+  deallocate(tree)
 
   ! End unit tests.
   call Unit_Tests_End_Group()

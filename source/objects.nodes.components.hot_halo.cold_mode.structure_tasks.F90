@@ -39,17 +39,17 @@ contains
   !# <enclosedMassTask>
   !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task</unitName>
   !# </enclosedMassTask>
-  double precision function Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task(thisNode,radius,componentType,massType,weightBy,weightIndex)
+  double precision function Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task(node,radius,componentType,massType,weightBy,weightIndex)
     !% Computes the mass within a given radius for the cold mode hot halo component.
     use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeColdHalo, massTypeAll , massTypeBaryonic, &
           &                                   massTypeGaseous        , radiusLarge          , weightByMass
     use :: Galacticus_Nodes          , only : defaultHotHaloComponent, nodeComponentHotHalo , treeNode
     implicit none
-    type            (treeNode            ), intent(inout)           :: thisNode
+    type            (treeNode            ), intent(inout)           :: node
     integer                               , intent(in   )           :: componentType, massType   , &
          &                                                             weightBy     , weightIndex
     double precision                      , intent(in   )           :: radius
-    class           (nodeComponentHotHalo)               , pointer  :: thisHotHalo
+    class           (nodeComponentHotHalo)               , pointer  :: hotHalo
     double precision                                                :: radiusOuter  , radiusCore
     !$GLC attributes unused :: weightIndex
 
@@ -60,20 +60,20 @@ contains
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeBaryonic     .or. massType == massTypeGaseous)) return
     if (.not.(weightBy      == weightByMass                                                                                )) return
     ! Get the hot halo component.
-    thisHotHalo => thisNode   %hotHalo    ()
+    hotHalo => node   %hotHalo    ()
     ! Check for total mass request.
     if (radius >= radiusLarge) then
-       Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task=thisHotHalo%massCold()
+       Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task=hotHalo%massCold()
        return
     end if
     ! Get the outer radius.
-    radiusOuter =  thisHotHalo%outerRadius()
+    radiusOuter =  hotHalo%outerRadius()
     if (radiusOuter <= 0.0d0) return
     ! Compute the enclosed mass.
     ! Find the scale length of the cold mode halo.
-    radiusCore=hotHaloColdModeCoreRadii_%radius(thisNode)
+    radiusCore=hotHaloColdModeCoreRadii_%radius(node)
     ! Initialize the mass profile
-    coldModeMassDistribution=massDistributionBetaProfile(beta=2.0d0/3.0d0,coreRadius=radiusCore,mass=thisHotHalo%massCold(),outerRadius=thisHotHalo%outerRadius())
+    coldModeMassDistribution=massDistributionBetaProfile(beta=2.0d0/3.0d0,coreRadius=radiusCore,mass=hotHalo%massCold(),outerRadius=hotHalo%outerRadius())
     ! Compute the enclosed mass.
     Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task=coldModeMassDistribution%massEnclosedBySphere(radius)
     return
@@ -145,13 +145,13 @@ contains
   !# <rotationCurveTask>
   !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Task</unitName>
   !# </rotationCurveTask>
-  double precision function Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Task(thisNode,radius,componentType,massType)
+  double precision function Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Task(node,radius,componentType,massType)
     !% Computes the rotation curve at a given radius for the hot halo density profile.
     use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
     use :: Galacticus_Nodes            , only : treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    type            (treeNode), intent(inout)           :: thisNode
+    type            (treeNode), intent(inout)           :: node
     integer                   , intent(in   )           :: componentType, massType
     double precision          , intent(in   )           :: radius
     double precision                                    :: componentMass
@@ -160,7 +160,7 @@ contains
     Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Task=0.0d0
     ! Compute if a spheroid is present.
     if (radius > 0.0d0) then
-       componentMass=Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task(thisNode,radius,componentType,massType,weightByMass,weightIndexNull)
+       componentMass=Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task(node,radius,componentType,massType,weightByMass,weightIndexNull)
        if (componentMass > 0.0d0) Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Task=sqrt(gravitationalConstantGalacticus*componentMass)/sqrt(radius)
     end if
     return
@@ -169,14 +169,14 @@ contains
   !# <rotationCurveGradientTask>
   !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Gradient_Task</unitName>
   !# </rotationCurveGradientTask>
-  double precision function Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Gradient_Task(thisNode,radius,componentType,massType)
+  double precision function Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Gradient_Task(node,radius,componentType,massType)
     !% Computes the rotation curve gradient at a given radius for the hot halo density profile.
     use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
     use :: Galacticus_Nodes            , only : treeNode
     use :: Numerical_Constants_Math    , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    type            (treeNode), intent(inout) :: thisNode
+    type            (treeNode), intent(inout) :: node
     integer                   , intent(in   ) :: componentType   , massType
     double precision          , intent(in   ) :: radius
     double precision                          :: componentDensity, componentMass
@@ -185,9 +185,9 @@ contains
     Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Gradient_Task=0.0d0
     ! Compute if a spheroid is present.
     if (radius > 0.0d0) then
-       componentMass=Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task(thisNode,radius,componentType,massType,weightByMass,weightIndexNull)
+       componentMass=Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task(node,radius,componentType,massType,weightByMass,weightIndexNull)
        if (componentMass > 0.0d0) then
-          componentDensity=Node_Component_Hot_Halo_Cold_Mode_Density_Task(thisNode,[radius,0.0d0,0.0d0],componentType,massType,weightByMass,weightIndexNull)
+          componentDensity=Node_Component_Hot_Halo_Cold_Mode_Density_Task(node,[radius,0.0d0,0.0d0],componentType,massType,weightByMass,weightIndexNull)
           Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Gradient_Task=gravitationalConstantGalacticus*(-componentMass/radius**2+4.0d0*Pi*radius&
                &*componentDensity)
        end if
@@ -198,20 +198,20 @@ contains
   !# <densityTask>
   !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Density_Task</unitName>
   !# </densityTask>
-  double precision function Node_Component_Hot_Halo_Cold_Mode_Density_Task(thisNode,positionSpherical,componentType,massType,weightBy,weightIndex)
+  double precision function Node_Component_Hot_Halo_Cold_Mode_Density_Task(node,positionSpherical,componentType,massType,weightBy,weightIndex)
     !% Computes the density at a given position for a dark matter profile.
     use :: Coordinates               , only : assignment(=)          , coordinateSpherical
     use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeColdHalo, massTypeAll, massTypeBaryonic, &
           &                                   massTypeGaseous        , weightByMass
     use :: Galacticus_Nodes          , only : defaultHotHaloComponent, nodeComponentHotHalo , treeNode
     implicit none
-    type            (treeNode            ), intent(inout)           :: thisNode
-    integer                               , intent(in   )           :: componentType             , massType   , &
-         &                                                             weightBy                 , weightIndex
+    type            (treeNode            ), intent(inout)           :: node
+    integer                               , intent(in   )           :: componentType       , massType   , &
+         &                                                             weightBy            , weightIndex
     double precision                      , intent(in   )           :: positionSpherical(3)
-    class           (nodeComponentHotHalo)               , pointer  :: thisHotHalo
+    class           (nodeComponentHotHalo)               , pointer  :: hotHalo
     type            (coordinateSpherical )                          :: position
-    double precision                                                :: radiusOuter              , radiusCore
+    double precision                                                :: radiusOuter         , radiusCore
     !$GLC attributes unused :: weightIndex
 
     Node_Component_Hot_Halo_Cold_Mode_Density_Task=0.0d0
@@ -220,15 +220,15 @@ contains
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeBaryonic     .or. massType == massTypeGaseous)) return
     if (.not.(weightBy      == weightByMass                                                                                )) return
     ! Get the hot halo component.
-    thisHotHalo => thisNode   %hotHalo    ()
+    hotHalo => node%hotHalo()
     ! Get the outer radius.
-    radiusOuter =  thisHotHalo%outerRadius()
+    radiusOuter =  hotHalo%outerRadius()
     if (radiusOuter <= 0.0d0) return
     ! Compute the enclosed mass.
     ! Find the scale length of the cold mode halo.
-    radiusCore=hotHaloColdModeCoreRadii_%radius(thisNode)
+    radiusCore=hotHaloColdModeCoreRadii_%radius(node)
     ! Initialize the mass profile
-    coldModeMassDistribution=massDistributionBetaProfile(beta=2.0d0/3.0d0,coreRadius=radiusCore,mass=thisHotHalo%massCold(),outerRadius=thisHotHalo%outerRadius())
+    coldModeMassDistribution=massDistributionBetaProfile(beta=2.0d0/3.0d0,coreRadius=radiusCore,mass=hotHalo%massCold(),outerRadius=hotHalo%outerRadius())
     ! Compute the density.
     position=[positionSpherical(1)/radiusCore,0.0d0,0.0d0]
     Node_Component_Hot_Halo_Cold_Mode_Density_Task=coldModeMassDistribution%density(position)
@@ -266,7 +266,7 @@ contains
     Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral = -density              &
          &                                                     *velocityCartesian    &
          &                                                     /velocity         **3
-    if (Xv <= XvMaximum)                                                                                    &
+    if (Xv <= XvMaximum)                                                                                                      &
          & Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral=+Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral &
          &                                                          *(                                                        &
          &                                                            +erf ( xV   )                                           &

@@ -85,9 +85,9 @@ contains
     use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, xmlNodeList       , XML_Parse, extractDataContent => extractDataContentTS
     use :: ISO_Varying_String, only : char                        , assignment(=)
     implicit none
-    type     (Node       ), pointer                   :: doc     , thisAtom, thisBond    , thisChemical, thisElement
-    type     (xmlNodeList), allocatable, dimension(:) :: atomList, bondList, chemicalList, thisList
-    integer                                           :: iAtom   , iBond   , iChemical   , ioErr       , jAtom
+    type     (Node       ), pointer                   :: doc     , atom    , bond        , chemical, element
+    type     (xmlNodeList), allocatable, dimension(:) :: atomList, bondList, chemicalList, list
+    integer                                           :: iAtom   , iBond   , iChemical   , ioErr   , jAtom
     character(len=128    )                            :: name
 
     ! Check if the chemical database is initialized.
@@ -104,28 +104,28 @@ contains
        ! Set the index for this chemical.
           chemicals(iChemical+1)%index=iChemical+1
           ! Get the chemical.
-          thisChemical => chemicalList(iChemical)%element
+          chemical => chemicalList(iChemical)%element
           ! Get the name of the chemical.
-          call XML_Get_Elements_By_Tag_Name(thisChemical,"id",thisList)
-          thisElement => thisList(0)%element
-          call extractDataContent(thisElement,name)
+          call XML_Get_Elements_By_Tag_Name(chemical,"id",list)
+          element => list(0)%element
+          call extractDataContent(element,name)
           chemicals(iChemical+1)%name=trim(name)
           ! Get the charge of the chemical.
-          call XML_Get_Elements_By_Tag_Name(thisChemical,"formalCharge",thisList)
-          thisElement => thisList(0)%element
-          call extractDataContent(thisElement,chemicals(iChemical+1)%chargeValue)
+          call XML_Get_Elements_By_Tag_Name(chemical,"formalCharge",list)
+          element => list(0)%element
+          call extractDataContent(element,chemicals(iChemical+1)%chargeValue)
           ! Get a list of atoms in the chemical.
-          call XML_Get_Elements_By_Tag_Name(thisChemical,"atom",atomList)
+          call XML_Get_Elements_By_Tag_Name(chemical,"atom",atomList)
           ! Allocate array for atoms
           allocate(chemicals(iChemical+1)%atom(size(atomList)))
           ! Loop over atoms.
           do iAtom=0,size(atomList)-1
              ! Get the atom.
-             thisAtom => atomList(iAtom)%element
+             atom => atomList(iAtom)%element
              ! Get the element type.
-             call XML_Get_Elements_By_Tag_Name(thisAtom,"elementType",thisList)
-             thisElement => thisList(0)%element
-             call extractDataContent(thisElement,name)
+             call XML_Get_Elements_By_Tag_Name(atom,"elementType",list)
+             element => list(0)%element
+             call extractDataContent(element,name)
              ! Find the element in the list of atoms.
              do jAtom=1,size(atoms)
                 if (trim(name) == trim(atoms(jAtom)%shortLabel)) chemicals(iChemical+1)%atom(iAtom+1)=atoms(jAtom)
@@ -134,7 +134,7 @@ contains
           ! Compute the mass of the chemical.
           chemicals(iChemical+1)%massValue=sum(chemicals(iChemical+1)%atom(:)%mass)
           ! Get a list of bonds in the chemical.
-          call XML_Get_Elements_By_Tag_Name(thisChemical,"bond",bondList)
+          call XML_Get_Elements_By_Tag_Name(chemical,"bond",bondList)
           ! Retrieve bonds if any were found.
           if (size(bondList) > 0) then
              ! Allocate array for bonds.
@@ -142,11 +142,11 @@ contains
              ! Loop over bond.
              do iBond=0,size(bondList)-1
                 ! Get the bond.
-                thisBond => bondList(iBond)%element
+                bond => bondList(iBond)%element
                 ! Get the atom references.
-                call XML_Get_Elements_By_Tag_Name(thisBond,"atomRefs2",thisList)
-                thisElement => thisList(0)%element
-                call extractDataContent(thisElement,chemicals(iChemical+1)%bond(iBond+1)%atom)
+                call XML_Get_Elements_By_Tag_Name(bond,"atomRefs2",list)
+                element => list(0)%element
+                call extractDataContent(element,chemicals(iChemical+1)%bond(iBond+1)%atom)
              end do
           end if
        end do
@@ -158,13 +158,13 @@ contains
     return
   end subroutine Chemical_Structure_Initialize
 
-  subroutine Chemical_Structure_Export(thisChemical,outputFile)
+  subroutine Chemical_Structure_Export(chemical,outputFile)
     !% Export a chemical structure to a chemical markup language (CML) file.
     use :: FoX_wxml          , only : xml_AddCharacters, xml_Close, xml_EndElement, xml_NewElement, &
           &                           xml_OpenFile     , xmlf_t
     use :: ISO_Varying_String, only : char
     implicit none
-    class    (chemicalStructure), intent(in   ) :: thisChemical
+    class    (chemicalStructure), intent(in   ) :: chemical
     character(len=*            ), intent(in   ) :: outputFile
     type     (xmlf_t           )                :: exportedChemicalDoc
     character(len=10           )                :: label
@@ -176,16 +176,16 @@ contains
     call xml_NewElement   (exportedChemicalDoc,"chemical")
     ! Write the chemical name.
     call xml_NewElement   (exportedChemicalDoc,"id")
-    call xml_AddCharacters(exportedChemicalDoc,char(thisChemical%name))
+    call xml_AddCharacters(exportedChemicalDoc,char(chemical%name))
     call xml_EndElement   (exportedChemicalDoc,"id")
     ! Write the charge.
     call xml_NewElement   (exportedChemicalDoc,"formalCharge")
-    call xml_AddCharacters(exportedChemicalDoc,thisChemical%chargeValue)
+    call xml_AddCharacters(exportedChemicalDoc,chemical%chargeValue)
     call xml_EndElement   (exportedChemicalDoc,"formalCharge")
     ! Begin the array of atoms.
     call xml_NewElement   (exportedChemicalDoc,"atomArray")
     ! Loop over all atoms.
-    do iAtom=1,size(thisChemical%atom)
+    do iAtom=1,size(chemical%atom)
        ! Begin the atom.
        call xml_NewElement   (exportedChemicalDoc,"atom")
        ! Write atom ID.
@@ -195,7 +195,7 @@ contains
        call xml_EndElement   (exportedChemicalDoc,"id")
        ! Write atom element type.
        call xml_NewElement   (exportedChemicalDoc,"elementType")
-       call xml_AddCharacters(exportedChemicalDoc,trim(thisChemical%atom(iAtom)%shortLabel))
+       call xml_AddCharacters(exportedChemicalDoc,trim(chemical%atom(iAtom)%shortLabel))
        call xml_EndElement   (exportedChemicalDoc,"elementType")
        ! Close the atom.
        call xml_EndElement   (exportedChemicalDoc,"atom")
@@ -203,15 +203,15 @@ contains
     ! End the atom array.
     call xml_EndElement   (exportedChemicalDoc,"atomArray")
     ! Check if we have bonds to output
-    if (allocated(thisChemical%bond)) then
+    if (allocated(chemical%bond)) then
        ! Begin the array of bonds.
        call xml_NewElement   (exportedChemicalDoc,"bondArray")
        ! Loop over all bonds.
-       do iBond=1,size(thisChemical%bond)
+       do iBond=1,size(chemical%bond)
           ! Begin the bond.
           call xml_NewElement   (exportedChemicalDoc,"bond")
           ! Write the bond atomic references.
-          write (label,'(a,i1,x,a,i1)') "a",thisChemical%bond(iBond)%atom(1),"a",thisChemical%bond(iBond)%atom(2)
+          write (label,'(a,i1,x,a,i1)') "a",chemical%bond(iBond)%atom(1),"a",chemical%bond(iBond)%atom(2)
           call xml_NewElement   (exportedChemicalDoc,"atomRefs2")
           call xml_AddCharacters(exportedChemicalDoc,trim(label))
           call xml_EndElement   (exportedChemicalDoc,"atomRefs2")
@@ -255,34 +255,34 @@ contains
     return
   end function Chemical_Database_Get_Index
 
-  subroutine Chemical_Database_Get(thisChemical,chemicalName)
+  subroutine Chemical_Database_Get(chemical,chemicalName)
     !% Find a chemical in the database and return it.
     implicit none
-    class    (chemicalStructure), intent(inout) :: thisChemical
+    class    (chemicalStructure), intent(inout) :: chemical
     character(len=*            ), intent(in   ) :: chemicalName
 
-    select type (thisChemical)
+    select type (chemical)
     type is (chemicalStructure)
-       thisChemical=chemicals(Chemical_Database_Get_Index(chemicalName))
+       chemical=chemicals(Chemical_Database_Get_Index(chemicalName))
     end select
     return
   end subroutine Chemical_Database_Get
 
-  integer function Chemical_Structure_Charge(thisChemical)
+  integer function Chemical_Structure_Charge(chemical)
     !% Return the charge on a chemical.
     implicit none
-    class(chemicalStructure), intent(in   ) :: thisChemical
+    class(chemicalStructure), intent(in   ) :: chemical
 
-    Chemical_Structure_Charge=thisChemical%chargeValue
+    Chemical_Structure_Charge=chemical%chargeValue
     return
   end function Chemical_Structure_Charge
 
-  double precision function Chemical_Structure_Mass(thisChemical)
+  double precision function Chemical_Structure_Mass(chemical)
     !% Return the mass of a chemical.
     implicit none
-    class(chemicalStructure), intent(in   ) :: thisChemical
+    class(chemicalStructure), intent(in   ) :: chemical
 
-    Chemical_Structure_Mass=thisChemical%massValue
+    Chemical_Structure_Mass=chemical%massValue
     return
   end function Chemical_Structure_Mass
 

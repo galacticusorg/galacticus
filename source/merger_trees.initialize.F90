@@ -27,7 +27,7 @@ module Merger_Trees_Initialize
 
 contains
 
-  subroutine Merger_Tree_Initialize(thisTree,endTime)
+  subroutine Merger_Tree_Initialize(tree,endTime)
     !% Walk through all nodes of a tree and call any routines that requested to perform initialization tasks.
     use :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
@@ -35,18 +35,18 @@ contains
     include 'merger_trees.initialize.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (mergerTree              ), intent(inout) :: thisTree
+    type            (mergerTree              ), intent(inout) :: tree
     double precision                          , intent(in   ) :: endTime
     type            (treeNode                ), pointer       :: node
     class           (nodeComponentBasic      ), pointer       :: basic
     type            (mergerTreeWalkerAllNodes)                :: treeWalker
 
-    if (thisTree%initializedUntil < endTime) then
-       treeWalker=mergerTreeWalkerAllNodes(thisTree,spanForest=.false.)
+    if (tree%initializedUntil < endTime) then
+       treeWalker=mergerTreeWalkerAllNodes(tree,spanForest=.false.)
        do while (treeWalker%next(node))
           ! Initialize only nodes that exist before the end time.
           basic => node%basic()
-          if (basic%time() > thisTree%initializedUntil .and. basic%time() <= endTime) then
+          if (basic%time() > tree%initializedUntil .and. basic%time() <= endTime) then
              ! Call subroutines to perform any necessary initialization of this node.
              !# <include directive="mergerTreeInitializeTask" type="functionCall" functionType="void">
              !#  <functionArgs>node</functionArgs>
@@ -54,7 +54,7 @@ contains
              !# </include>
           end if
        end do
-       thisTree%initializedUntil=endTime
+       tree%initializedUntil=endTime
     end if
     return
   end subroutine Merger_Tree_Initialize

@@ -151,11 +151,11 @@ contains
     return
   end subroutine Memory_Usage_Report
 
-  subroutine Add_Memory_Component(thisMemoryUsage,headerText,usageText,join)
+  subroutine Add_Memory_Component(memoryUsage_,headerText,usageText,join)
     !% Add a memory type to the memory reporting strings.
     use :: ISO_Varying_String, only : varying_string, trim, assignment(=), operator(//), char, len
     implicit none
-    type     (memoryUsage           ), intent(in   ) :: thisMemoryUsage
+    type     (memoryUsage           ), intent(in   ) :: memoryUsage_
     type     (varying_string        ), intent(inout) :: headerText     , usageText
     character(len=1                 ), intent(inout) :: join
     integer                                          :: spaceCount
@@ -163,18 +163,18 @@ contains
     character(len=len(headerText)+40)                :: temporaryString
     character(len=13                )                :: usageString
     
-    if (thisMemoryUsage%usage > 0) then
+    if (memoryUsage_%usage > 0) then
        !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
        !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
        !# </workaround>
 #ifdef THREADSAFEIO
        !$omp critical(gfortranInternalIO)
 #endif
-       spaceCount=max(0,11-len_trim(thisMemoryUsage%name))
+       spaceCount=max(0,11-len_trim(memoryUsage_%name))
        write (formatString,'(a,i1,a)') '(a,1x,a1,',spaceCount,'x,a)'
-       write (temporaryString,formatString) trim(char(headerText)),join,trim(thisMemoryUsage%name)
+       write (temporaryString,formatString) trim(char(headerText)),join,trim(memoryUsage_%name)
        headerText=trim(temporaryString)
-       write (usageString,'(1x,a1,1x,f7.3,a3)') join,dble(thisMemoryUsage%usage)/dble(thisMemoryUsage%divisor),thisMemoryUsage%suffix
+       write (usageString,'(1x,a1,1x,f7.3,a3)') join,dble(memoryUsage_%usage)/dble(memoryUsage_%divisor),memoryUsage_%suffix
        usageText=trim(usageText)//usageString
        join='+'
 #ifdef THREADSAFEIO
@@ -184,33 +184,33 @@ contains
     return
   end subroutine Add_Memory_Component
 
-  subroutine Set_Memory_Prefix(thisMemoryUsage)
+  subroutine Set_Memory_Prefix(memoryUsage_)
     !% Given a memory variable, sets the divisor and suffix required to put the memory usage into convenient units for output.
     implicit none
-    type            (memoryUsage   ), intent(inout) :: thisMemoryUsage
-    integer         (kind=kind_int8), parameter     :: kilo           =1024
-    double precision                , parameter     :: log10kilo      =log10(dble(kilo))
+    type            (memoryUsage   ), intent(inout) :: memoryUsage_
+    integer         (kind=kind_int8), parameter     :: kilo        =1024
+    double precision                , parameter     :: log10kilo   =log10(dble(kilo))
     integer                                         :: usageDecade
 
-    if (thisMemoryUsage%usage > 0) then
-       usageDecade=int(log10(dble(thisMemoryUsage%usage))/log10kilo+0.01d0)
+    if (memoryUsage_%usage > 0) then
+       usageDecade=int(log10(dble(memoryUsage_%usage))/log10kilo+0.01d0)
        select case (usageDecade)
        case (:0)
-          thisMemoryUsage%divisor=1
-          thisMemoryUsage%suffix='  b'
+          memoryUsage_%divisor=1
+          memoryUsage_%suffix='  b'
        case (1)
-          thisMemoryUsage%divisor=kilo
-          thisMemoryUsage%suffix='kib'
+          memoryUsage_%divisor=kilo
+          memoryUsage_%suffix='kib'
        case (2)
-          thisMemoryUsage%divisor=kilo**2
-          thisMemoryUsage%suffix='Mib'
+          memoryUsage_%divisor=kilo**2
+          memoryUsage_%suffix='Mib'
        case (3:)
-          thisMemoryUsage%divisor=kilo**3
-          thisMemoryUsage%suffix='Gib'
+          memoryUsage_%divisor=kilo**3
+          memoryUsage_%suffix='Gib'
        end select
     else
-       thisMemoryUsage%divisor=1
-       thisMemoryUsage%suffix='  b'
+       memoryUsage_%divisor=1
+       memoryUsage_%suffix='  b'
     end if
     return
   end subroutine Set_Memory_Prefix

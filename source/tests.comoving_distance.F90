@@ -33,9 +33,9 @@ program Tests_Comoving_Distance
   double precision                                , dimension(8)           , target :: distanceEdS                            =[27.9031290d0,175.6143280d0,299.7923450d0,409.9791330d0,491.8947530d0,539.9166970d0,564.9913370d0,580.4490760d0]
   double precision                                , dimension(8)           , target :: distanceOpen                           =[2.8365460d0,19.5660920d0,36.2487160d0,53.3136690d0,67.2862090d0,75.8567320d0,80.4014770d0,83.2171590d0]
   double precision                                , dimension(8)           , target :: distanceCosmologicalConstant           =[2.9291813d0,23.1267935d0,44.4897529d0,64.4722404d0,79.4221370d0,88.1893579d0,92.7669523d0,95.5884181d0]
-  double precision                                , dimension(:), pointer           :: thisDistance
+  double precision                                , dimension(:), pointer           :: distance_
   type            (cosmologyParametersSimple     )                                  :: cosmologyParametersCosmologicalConstant                                                                                                                 , cosmologyParametersOpen
-  class           (cosmologyFunctionsClass       )              , pointer           :: cosmologyFunctionsEdS                                                                                                                                   , thisCosmologyFunctions
+  class           (cosmologyFunctionsClass       )              , pointer           :: cosmologyFunctionsEdS                                                                                                                                   , cosmologyFunctions_
   type            (cosmologyFunctionsMatterLambda)                         , target :: cosmologyFunctionsCosmologicalConstant                                                                                                                  , cosmologyFunctionsOpen
   type            (varying_string                )                                  :: parameterFile
   character       (len=1024                      )                                  :: message
@@ -64,32 +64,32 @@ program Tests_Comoving_Distance
      select case (i)
      case (1)
         call Unit_Tests_Begin_Group("Einstein-de Sitter"   )
-        thisCosmologyFunctions => cosmologyFunctionsEdS
-        thisDistance           => distanceEdS
+        cosmologyFunctions_ => cosmologyFunctionsEdS
+        distance_           => distanceEdS
      case (2)
         call Unit_Tests_Begin_Group("Open universe"        )
-        thisCosmologyFunctions => cosmologyFunctionsOpen
-        thisDistance           => distanceOpen
+        cosmologyFunctions_ => cosmologyFunctionsOpen
+        distance_           => distanceOpen
      case (3)
         call Unit_Tests_Begin_Group("Cosmological constant")
-        thisCosmologyFunctions => cosmologyFunctionsCosmologicalConstant
-        thisDistance           => distanceCosmologicalConstant
+        cosmologyFunctions_ => cosmologyFunctionsCosmologicalConstant
+        distance_           => distanceCosmologicalConstant
      end select
      do iExpansion=1,size(redshift)
-        time=thisCosmologyFunctions%cosmicTime(thisCosmologyFunctions%expansionFactorFromRedshift(redshift(iExpansion)))
-        distance=thisCosmologyFunctions%distanceComoving(time)
+        time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift(iExpansion)))
+        distance=cosmologyFunctions_%distanceComoving(time)
         write (message,'(a,f6.1,a)') "comoving distance [        z=",redshift(iExpansion),"    ]"
-        call Assert(trim(message),distance,thisDistance(iExpansion),relTol=1.0d-3)
-        timeLookup=thisCosmologyFunctions%timeAtDistanceComoving(distance)
+        call Assert(trim(message),distance,distance_(iExpansion),relTol=1.0d-3)
+        timeLookup=cosmologyFunctions_%timeAtDistanceComoving(distance)
         write (message,'(a,f6.1,a)') "cosmic time       [distance =",distance            ," Mpc]"
         call Assert(trim(message),timeLookup,time,relTol=1.0d-3)
-        distance=thisCosmologyFunctions%distanceComovingConvert(distanceTypeComoving,redshift=redshift(iExpansion))
+        distance=cosmologyFunctions_%distanceComovingConvert(distanceTypeComoving,redshift=redshift(iExpansion))
         write (message,'(a,f6.1,a)') "comoving distance [direct; z=",redshift(iExpansion),"    ]"
-        call Assert(trim(message),distance,thisDistance(iExpansion),relTol=1.0d-3)
+        call Assert(trim(message),distance,distance_(iExpansion),relTol=1.0d-3)
         distanceModulus=25.0d0+5.0d0*log10(distance*(1.0d0+redshift(iExpansion)))
-        distance=thisCosmologyFunctions%distanceComovingConvert(distanceTypeComoving,distanceModulus=distanceModulus)
+        distance=cosmologyFunctions_%distanceComovingConvert(distanceTypeComoving,distanceModulus=distanceModulus)
         write (message,'(a,f6.1,a)') "comoving distance [        D=",distanceModulus     ,"    ]"
-        call Assert(trim(message),distance,thisDistance(iExpansion),relTol=1.0d-3)
+        call Assert(trim(message),distance,distance_(iExpansion),relTol=1.0d-3)
      end do
      call Unit_Tests_End_Group()
   end do

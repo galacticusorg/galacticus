@@ -45,24 +45,24 @@ contains
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Indices_Standard_Merger_Tree_Init</unitName>
   !# </mergerTreeInitializeTask>
-  subroutine Node_Component_Indices_Standard_Merger_Tree_Init(thisNode)
+  subroutine Node_Component_Indices_Standard_Merger_Tree_Init(node)
     !% Initialize the indices component by creating components in nodes and storing indices.
     use :: Galacticus_Nodes, only : defaultIndicesComponent, nodeComponentIndices, nodeComponentIndicesStandard, treeNode
     implicit none
-    type (treeNode            ), intent(inout), pointer :: thisNode
-    class(nodeComponentIndices)               , pointer :: thisIndices
+    type (treeNode            ), intent(inout), pointer :: node
+    class(nodeComponentIndices)               , pointer :: indices
 
     ! Return immediately if this class is not active.
     if (.not.defaultIndicesComponent%standardIsActive()) return
 
     ! Return immediately if this node is not a branch tip.
-    if (associated(thisNode%firstChild)                ) return
+    if (associated(node%firstChild)                    ) return
 
     ! Create an indices component and initialize it.
-    thisIndices => thisNode%indices(autoCreate=.true.)
-    select type (thisIndices)
+    indices => node%indices(autoCreate=.true.)
+    select type (indices)
     class is (nodeComponentIndicesStandard)
-       call thisIndices%branchTipSet(thisNode%index())
+       call indices%branchTipSet(node%index())
     end select
     return
   end subroutine Node_Component_Indices_Standard_Merger_Tree_Init

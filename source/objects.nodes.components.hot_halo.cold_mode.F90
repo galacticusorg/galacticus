@@ -102,7 +102,7 @@ contains
     use :: Input_Parameters    , only : inputParameter           , inputParameters
     implicit none
     type(inputParameters             ), intent(inout) :: parameters_
-    type(nodeComponentHotHaloColdMode)                :: hotHaloComponent
+    type(nodeComponentHotHaloColdMode)                :: hotHalo
 
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Hot_Halo_Cold_Mode_Initialize)
@@ -118,7 +118,7 @@ contains
        !# </inputParameter>
        ! Bind the outflow return function if outflow returns to the cold mode. (If it does not, do
        ! not bind any function and let the parent class handle this behavior.)
-       if (hotHaloOutflowToColdMode) call hotHaloComponent%outflowReturnFunction(Node_Component_Hot_Halo_Cold_Mode_Outflow_Return)
+       if (hotHaloOutflowToColdMode) call hotHalo%outflowReturnFunction(Node_Component_Hot_Halo_Cold_Mode_Outflow_Return)
     end if
     !$omp end critical (Node_Component_Hot_Halo_Cold_Mode_Initialize)
     return
@@ -340,8 +340,8 @@ contains
     class           (nodeComponentHotHaloStandard), intent(inout)          :: self
     logical                                       , intent(inout)          :: interrupt
     procedure       (interruptTask               ), intent(inout), pointer :: interruptProcedure
-    type            (treeNode                    ), pointer                :: selfNode
-    class           (nodeComponentBasic          ), pointer                :: selfBasic
+    type            (treeNode                    ), pointer                :: node
+    class           (nodeComponentBasic          ), pointer                :: basic
     double precision                                                       :: outflowedMass            , massReturnRate, &
          &                                                                    angularMomentumReturnRate, radiusVirial  , &
          &                                                                    densityAtOuterRadius     , densityMinimum, &
@@ -352,14 +352,14 @@ contains
     select type (self)
     class is (nodeComponentHotHaloColdMode)
        ! Get the hosting node.
-       selfNode => self%hostNode
+       node => self%hostNode
        ! Next tasks occur only for systems in which outflowed gas is being recycled.
        massReturnRate=0.0d0
-       if (.not.starveSatellites.or..not.selfNode%isSatellite()) then
+       if (.not.starveSatellites.or..not.node%isSatellite()) then
           outflowedMass            =self%outflowedMass()
-          massReturnRate           =hotHaloOutflowReturnRate*outflowedMass                  /darkMatterHaloScale_%dynamicalTimescale(selfNode)
-          angularMomentumReturnRate=hotHaloOutflowReturnRate*self%outflowedAngularMomentum()/darkMatterHaloScale_%dynamicalTimescale(selfNode)
-          abundancesReturnRate     =hotHaloOutflowReturnRate*self%outflowedAbundances     ()/darkMatterHaloScale_%dynamicalTimescale(selfNode)
+          massReturnRate           =hotHaloOutflowReturnRate*outflowedMass                  /darkMatterHaloScale_%dynamicalTimescale(node)
+          angularMomentumReturnRate=hotHaloOutflowReturnRate*self%outflowedAngularMomentum()/darkMatterHaloScale_%dynamicalTimescale(node)
+          abundancesReturnRate     =hotHaloOutflowReturnRate*self%outflowedAbundances     ()/darkMatterHaloScale_%dynamicalTimescale(node)
           call self%           outflowedMassRate(-           massReturnRate,interrupt,interruptProcedure)
           call self%                massColdRate(+           massReturnRate,interrupt,interruptProcedure)
           call self%outflowedAngularMomentumRate(-angularMomentumReturnRate,interrupt,interruptProcedure)
@@ -369,17 +369,17 @@ contains
        end if
        ! The outer radius must be increased as the halo fills up with gas.
        outerRadius =self%outerRadius()
-       radiusVirial=darkMatterHaloScale_%virialRadius(selfNode)
+       radiusVirial=darkMatterHaloScale_%virialRadius(node)
        if (outerRadius < radiusVirial) then
-          densityAtOuterRadius=Galactic_Structure_Density(selfNode,[outerRadius,0.0d0,0.0d0],coordinateSystemSpherical,componentTypeColdHalo,massTypeGaseous)
+          densityAtOuterRadius=Galactic_Structure_Density(node,[outerRadius,0.0d0,0.0d0],coordinateSystemSpherical,componentTypeColdHalo,massTypeGaseous)
           ! If the outer radius and density are non-zero we can expand the outer radius at a rate determined by the current
           ! density profile.
           if (outerRadius > 0.0d0 .and. densityAtOuterRadius > 0.0d0) then
              ! Limit the density at the outer radius to one third of the mean virial density (for baryons, assuming a
              ! universal baryon fraction) to prevent arbitrarily rapid growth of the outer radius in halos containing almost
              ! no gas.
-             selfBasic => selfNode%basic()
-             densityMinimum=(cosmologyParameters_%omegaBaryon()/cosmologyParameters_%omegaMatter())*selfBasic%mass()/radiusVirial**3/4.0d0/Pi
+             basic => node%basic()
+             densityMinimum=(cosmologyParameters_%omegaBaryon()/cosmologyParameters_%omegaMatter())*basic%mass()/radiusVirial**3/4.0d0/Pi
              call self%outerRadiusRate(                           &
                   &                     massReturnRate            &
                   &                    /4.0d0                     &
@@ -393,7 +393,7 @@ contains
           ! Otherwise, if we have a positive rate of mass return, simply grow the radius at the virial velocity.
           else if (massReturnRate > 0.0d0) then
              ! Force some growth here so the radius is not trapped at zero.
-             call self%outerRadiusRate(darkMatterHaloScale_%virialVelocity(selfNode)*kilo*gigaYear/megaParsec)
+             call self%outerRadiusRate(darkMatterHaloScale_%virialVelocity(node)*kilo*gigaYear/megaParsec)
           end if
        end if
     class default

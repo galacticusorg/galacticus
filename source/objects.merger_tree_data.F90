@@ -1761,8 +1761,8 @@ contains
          &                                                                               haloTrees                     , mergerTreesGroup    , &
          &                                                                               outputFile                    , particlesGroup      , &
          &                                                                               simulationGroup               , snapshotGroup       , &
-         &                                                                               thisDataset
-    integer                         , allocatable, dimension(:)                ::        nodeSnapshotIndices           , thisSnapshotIndices
+         &                                                                               dataset
+    integer                         , allocatable, dimension(:)                ::        nodeSnapshotIndices           , snapshotIndices
     integer         (c_size_t      ), allocatable, dimension(:)                ::        descendentSnapshot
     double precision                , allocatable, dimension(:)                ::        particleMass
     integer                                                                    ::        iAttribute                    , nodesOnSnapshotCount, &
@@ -1809,65 +1809,65 @@ contains
 
        ! Find those nodes which exist at this snapshot.
        nodesOnSnapshotCount=count(mergerTrees%snapshot == iSnapshot)
-       call allocateArray(thisSnapshotIndices,[nodesOnSnapshotCount])
-       call Array_Which(mergerTrees%snapshot == iSnapshot,thisSnapshotIndices)
+       call allocateArray(snapshotIndices,[nodesOnSnapshotCount])
+       call Array_Which(mergerTrees%snapshot == iSnapshot,snapshotIndices)
 
        ! Write redshift attribute.
-       if (.not.fileExists) call snapshotGroup%writeAttribute(mergerTrees%redshift(thisSnapshotIndices(1)),"Redshift")
+       if (.not.fileExists) call snapshotGroup%writeAttribute(mergerTrees%redshift(snapshotIndices(1)),"Redshift")
 
        ! Write the data.
        if (mergerTrees%hasNodeIndex               ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%nodeIndex               ,thisSnapshotIndices),"Index"          ,"The index of each halo."                                                     ,appendTo=appendActual                  )
+          call haloTrees%writeDataset(Array_Index(mergerTrees%nodeIndex               ,snapshotIndices),"Index"          ,"The index of each halo."                                                     ,appendTo=appendActual                  )
        end if
        if (mergerTrees%hasNodeMass                ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%nodeMass                ,thisSnapshotIndices),"Mass"           ,"The mass of each halo."                          ,datasetReturned=thisDataset,appendTo=appendActual                  )
-          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,thisDataset)
-          call thisDataset%close()
+          call haloTrees%writeDataset(Array_Index(mergerTrees%nodeMass                ,snapshotIndices),"Mass"           ,"The mass of each halo."                          ,datasetReturned=dataset,appendTo=appendActual                  )
+          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,dataset)
+          call dataset%close()
        end if
        if (mergerTrees%hasNodeMass200Mean         ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%nodeMass200Mean         ,thisSnapshotIndices),"Mass200Mean"    ,"The M200 mass of each halo (200 * mean density).",datasetReturned=thisDataset,appendTo=appendActual                  )
-          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,thisDataset)
-          call thisDataset%close()
+          call haloTrees%writeDataset(Array_Index(mergerTrees%nodeMass200Mean         ,snapshotIndices),"Mass200Mean"    ,"The M200 mass of each halo (200 * mean density).",datasetReturned=dataset,appendTo=appendActual                  )
+          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,dataset)
+          call dataset%close()
        end if
        if (mergerTrees%hasNodeMass200Crit         ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%nodeMass200Crit         ,thisSnapshotIndices),"Mass200Crit"    ,"The M200 mass of each halo (200 * mean density).",datasetReturned=thisDataset,appendTo=appendActual                  )
-          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,thisDataset)
-          call thisDataset%close()
+          call haloTrees%writeDataset(Array_Index(mergerTrees%nodeMass200Crit         ,snapshotIndices),"Mass200Crit"    ,"The M200 mass of each halo (200 * mean density).",datasetReturned=dataset,appendTo=appendActual                  )
+          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,dataset)
+          call dataset%close()
        end if
        if (mergerTrees%hasPositionX               ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%position    ,thisSnapshotIndices,indexOn=2),"Center"         ,"The position of each halo center."                 ,datasetReturned=thisDataset,appendTo=appendActual,appendDimension=2)
-          if (.not.appendActual) call Store_Unit_Attributes_IRATE([          unitsLength              ],mergerTrees,thisDataset)
-          call thisDataset%close()
+          call haloTrees%writeDataset(Array_Index(mergerTrees%position    ,snapshotIndices,indexOn=2),"Center"         ,"The position of each halo center."                 ,datasetReturned=dataset,appendTo=appendActual,appendDimension=2)
+          if (.not.appendActual) call Store_Unit_Attributes_IRATE([          unitsLength              ],mergerTrees,dataset)
+          call dataset%close()
        end if
        if (mergerTrees%hasVelocityX               ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%velocity   ,thisSnapshotIndices,indexOn=2),"Velocity"       ,"The velocity of each halo."                         ,datasetReturned=thisDataset,appendTo=appendActual,appendDimension=2)
-          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsVelocity                      ],mergerTrees,thisDataset)
-          call thisDataset%close()
+          call haloTrees%writeDataset(Array_Index(mergerTrees%velocity   ,snapshotIndices,indexOn=2),"Velocity"       ,"The velocity of each halo."                         ,datasetReturned=dataset,appendTo=appendActual,appendDimension=2)
+          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsVelocity                      ],mergerTrees,dataset)
+          call dataset%close()
        end if
        if (mergerTrees%hasSpinX                   ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%spin                    ,thisSnapshotIndices),"Spin"           ,"The spin of each halo."                                                      ,appendTo=appendActual                  )
+          call haloTrees%writeDataset(Array_Index(mergerTrees%spin                    ,snapshotIndices),"Spin"           ,"The spin of each halo."                                                      ,appendTo=appendActual                  )
        end if
        if (mergerTrees%hasAngularMomentumX        ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%angularMomentum         ,thisSnapshotIndices),"AngularMomentum","The angular momentum spin of each halo."         ,datasetReturned=thisDataset,appendTo=appendActual,appendDimension=2)
-          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass,unitsLength,unitsVelocity],mergerTrees,thisDataset)
-          call thisDataset%close()
+          call haloTrees%writeDataset(Array_Index(mergerTrees%angularMomentum         ,snapshotIndices),"AngularMomentum","The angular momentum spin of each halo."         ,datasetReturned=dataset,appendTo=appendActual,appendDimension=2)
+          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass,unitsLength,unitsVelocity],mergerTrees,dataset)
+          call dataset%close()
        end if
        if (mergerTrees%hasSpinMagnitude           ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%spinMagnitude           ,thisSnapshotIndices),"Spin"           ,"The spin of each halo."                                                      ,appendTo=appendActual                  )
+          call haloTrees%writeDataset(Array_Index(mergerTrees%spinMagnitude           ,snapshotIndices),"Spin"           ,"The spin of each halo."                                                      ,appendTo=appendActual                  )
        end if
        if (mergerTrees%hasAngularMomentumMagnitude) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%angularMomentumMagnitude,thisSnapshotIndices),"AngularMomentum","The angular momentum spin of each halo."         ,datasetReturned=thisDataset,appendTo=appendActual                  )
-          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass,unitsLength,unitsVelocity],mergerTrees,thisDataset)
-          call thisDataset%close()
+          call haloTrees%writeDataset(Array_Index(mergerTrees%angularMomentumMagnitude,snapshotIndices),"AngularMomentum","The angular momentum spin of each halo."         ,datasetReturned=dataset,appendTo=appendActual                  )
+          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass,unitsLength,unitsVelocity],mergerTrees,dataset)
+          call dataset%close()
        end if
        if (mergerTrees%hasHalfMassRadius          ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%halfMassRadius          ,thisSnapshotIndices),"HalfMassRadius" ,"The half mass radius of each halo."              ,datasetReturned=thisDataset,appendTo=appendActual                  )
-          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,thisDataset)
-          call thisDataset%close()
+          call haloTrees%writeDataset(Array_Index(mergerTrees%halfMassRadius          ,snapshotIndices),"HalfMassRadius" ,"The half mass radius of each halo."              ,datasetReturned=dataset,appendTo=appendActual                  )
+          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,dataset)
+          call dataset%close()
        end if
 
        ! Destroy snapshot indices.
-       call deallocateArray(thisSnapshotIndices)
+       call deallocateArray(snapshotIndices)
 
        ! Close the group for halo catalogs
        call haloTrees%close()
@@ -1919,8 +1919,8 @@ contains
 
           ! Find those particles which exist at this snapshot.
           particlesOnSnapshotCount=count(mergerTrees%particleSnapshot == iSnapshot)
-          call allocateArray(thisSnapshotIndices,[particlesOnSnapshotCount])
-          call Array_Which(mergerTrees%particleSnapshot == iSnapshot,thisSnapshotIndices)
+          call allocateArray(snapshotIndices,[particlesOnSnapshotCount])
+          call Array_Which(mergerTrees%particleSnapshot == iSnapshot,snapshotIndices)
 
           ! Find those nodes which exist at this snapshot.
           nodesOnSnapshotCount=count(mergerTrees%snapshot == iSnapshot)
@@ -1945,30 +1945,30 @@ contains
           darkParticlesGroup=particlesGroup%openGroup("Dark","Stores all data for dark matter particles.")
 
           ! Write redshift attribute.
-          if (.not.snapshotGroup%hasAttribute("Redshift")) call snapshotGroup%writeAttribute(mergerTrees%particleRedshift(thisSnapshotIndices(1)),"Redshift")
+          if (.not.snapshotGroup%hasAttribute("Redshift")) call snapshotGroup%writeAttribute(mergerTrees%particleRedshift(snapshotIndices(1)),"Redshift")
 
           ! Write the data.
           call allocateArray(particleMass,[particlesOnSnapshotCount])
           particleMass=mergerTrees%particleMass
-          call darkParticlesGroup%writeDataset(particleMass,"Mass","The mass of each particle.",datasetReturned=thisDataset,appendTo=appendActual)
-          if (.not.fileExists) call Store_Unit_Attributes_IRATE([unitsMass],mergerTrees,thisDataset)
-          call thisDataset%close()
+          call darkParticlesGroup%writeDataset(particleMass,"Mass","The mass of each particle.",datasetReturned=dataset,appendTo=appendActual)
+          if (.not.fileExists) call Store_Unit_Attributes_IRATE([unitsMass],mergerTrees,dataset)
+          call dataset%close()
           call deallocateArray(particleMass)
           if (mergerTrees%hasParticleIndex    ) then
-             call darkParticlesGroup%writeDataset(Array_Index(mergerTrees%particleIndex   ,thisSnapshotIndices),"ID"      ,"The index of each particle."                               ,appendTo=appendActual)
+             call darkParticlesGroup%writeDataset(Array_Index(mergerTrees%particleIndex   ,snapshotIndices),"ID"      ,"The index of each particle."                               ,appendTo=appendActual)
           end if
           if (mergerTrees%hasParticlePositionX) then
-             call darkParticlesGroup%writeDataset(Array_Index(mergerTrees%particlePosition,thisSnapshotIndices),"Position","The position of each particle.",datasetReturned=thisDataset,appendTo=appendActual)
-             if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsLength  ],mergerTrees,thisDataset)
-             call thisDataset%close()
+             call darkParticlesGroup%writeDataset(Array_Index(mergerTrees%particlePosition,snapshotIndices),"Position","The position of each particle.",datasetReturned=dataset,appendTo=appendActual)
+             if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsLength  ],mergerTrees,dataset)
+             call dataset%close()
           end if
           if (mergerTrees%hasParticleVelocityX) then
-             call darkParticlesGroup%writeDataset(Array_Index(mergerTrees%particleVelocity,thisSnapshotIndices),"Velocity","The velocity of each particle.",datasetReturned=thisDataset,appendTo=appendActual)
-             if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsVelocity],mergerTrees,thisDataset)
-             call thisDataset%close()
+             call darkParticlesGroup%writeDataset(Array_Index(mergerTrees%particleVelocity,snapshotIndices),"Velocity","The velocity of each particle.",datasetReturned=dataset,appendTo=appendActual)
+             if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsVelocity],mergerTrees,dataset)
+             call dataset%close()
           end if
           ! Destroy the snapshot indices.
-          call deallocateArray(thisSnapshotIndices)
+          call deallocateArray(snapshotIndices    )
           call deallocateArray(nodeSnapshotIndices)
 
           ! Close the groups.
@@ -2050,7 +2050,7 @@ contains
     return
   end subroutine Store_Unit_Attributes_Galacticus
 
-  subroutine Store_Unit_Attributes_IRATE(unitType,mergerTrees,thisDataset)
+  subroutine Store_Unit_Attributes_IRATE(unitType,mergerTrees,dataset)
     !% Store unit attributes in IRATE format files.
     use :: IO_HDF5                     , only : hdf5Object
     use :: ISO_Varying_String          , only : assignment(=), operator(//)
@@ -2058,7 +2058,7 @@ contains
     implicit none
     integer                         , dimension(:), intent(in   ) :: unitType
     class           (mergerTreeData)              , intent(in   ) :: mergerTrees
-    type            (hdf5Object    )              , intent(inout) :: thisDataset
+    type            (hdf5Object    )              , intent(inout) :: dataset
     integer                                                       :: iUnit
     double precision                                              :: cgsUnits   , hubbleExponent, scaleFactorExponent
     type            (varying_string)                              :: unitName
@@ -2087,18 +2087,18 @@ contains
     end do
 
     ! Write the attributes.
-    call thisDataset%writeAttribute(                      &
-         &                          [                     &
-         &                           cgsUnits           , &
-         &                           hubbleExponent     , &
-         &                           scaleFactorExponent  &
-         &                          ],                    &
-         &                          "unitscgs"            &
-         &                         )
-    call thisDataset%writeAttribute(                      &
-         &                           unitName,            &
-         &                          "unitname"            &
-         &                         )
+    call dataset%writeAttribute(                      &
+         &                      [                     &
+         &                       cgsUnits           , &
+         &                       hubbleExponent     , &
+         &                       scaleFactorExponent  &
+         &                      ],                    &
+         &                      "unitscgs"            &
+         &                     )
+    call dataset%writeAttribute(                      &
+         &                       unitName,            &
+         &                      "unitname"            &
+         &                     )
     return
   end subroutine Store_Unit_Attributes_IRATE
 

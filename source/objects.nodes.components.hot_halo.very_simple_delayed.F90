@@ -75,13 +75,13 @@ contains
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type(inputParameters                      ), intent(inout) :: parameters_
-    type(nodeComponentHotHaloVerySimpleDelayed)                :: hotHaloComponent
+    type(nodeComponentHotHaloVerySimpleDelayed)                :: hotHalo
 
     !$omp critical (Node_Component_Hot_Halo_Very_Simple_Delayed_Initialize)
     if (defaultHotHaloComponent%verySimpleDelayedIsActive()) then
        ! Bind outflowing material pipes to the functions that will handle input of outflowing material to the hot halo.
-       call hotHaloComponent%      outflowingMassRateFunction(Node_Component_Hot_Halo_VS_Delayed_Outflowing_Mass_Rate      )
-       call hotHaloComponent%outflowingAbundancesRateFunction(Node_Component_Hot_Halo_VS_Delayed_Outflowing_Abundances_Rate)
+       call hotHalo%      outflowingMassRateFunction(Node_Component_Hot_Halo_VS_Delayed_Outflowing_Mass_Rate      )
+       call hotHalo%outflowingAbundancesRateFunction(Node_Component_Hot_Halo_VS_Delayed_Outflowing_Abundances_Rate)
        ! Read parameters controlling the physical implementation.
        !# <inputParameter>
        !#   <name>hotHaloVerySimpleDelayedMassScaleRelative</name>
@@ -279,8 +279,8 @@ contains
     implicit none
     class(*                   ), intent(inout) :: self
     type (treeNode            ), intent(inout) :: node
-    type (treeNode            ), pointer       :: hostNode
-    class(nodeComponentHotHalo), pointer       :: hostHotHalo, hotHalo
+    type (treeNode            ), pointer       :: nodeHost
+    class(nodeComponentHotHalo), pointer       :: hotHaloHost, hotHalo
     !$GLC attributes unused :: self
 
     ! Get the hot halo component.
@@ -289,15 +289,15 @@ contains
     select type (hotHalo)
     class is (nodeComponentHotHaloVerySimpleDelayed)
        ! Find the node to merge with.
-       hostNode    => node    %mergesWith(                 )
-       hostHotHalo => hostNode%hotHalo   (autoCreate=.true.)
+       nodeHost    => node    %mergesWith(                 )
+       hotHaloHost => nodeHost%hotHalo   (autoCreate=.true.)
        ! Move the hot halo to the host.
-       call hostHotHalo%outflowedMassSet      (                                   &
-            &                                  +hostHotHalo%outflowedMass      () &
+       call hotHaloHost%outflowedMassSet      (                                   &
+            &                                  +hotHaloHost%outflowedMass      () &
             &                                  +    hotHalo%outflowedMass      () &
             &                                 )
-       call hostHotHalo%outflowedAbundancesSet(                                   &
-            &                                  +hostHotHalo%outflowedAbundances() &
+       call hotHaloHost%outflowedAbundancesSet(                                   &
+            &                                  +hotHaloHost%outflowedAbundances() &
             &                                  +    hotHalo%outflowedAbundances() &
             &                                 )
        call     hotHalo%outflowedMassSet      (                                   &
@@ -317,24 +317,24 @@ contains
     implicit none
     class(*                   ), intent(inout)          :: self
     type (treeNode            ), intent(inout), target  :: node
-    type (treeNode            )               , pointer :: parentNode
-    class(nodeComponentHotHalo)               , pointer :: parentHotHalo, hotHalo
+    type (treeNode            )               , pointer :: nodeParent
+    class(nodeComponentHotHalo)               , pointer :: hotHaloParent, hotHalo
     !$GLC attributes unused :: self
     
     hotHalo       => node      %hotHalo(                 )
-    parentNode    => node      %parent
-    parentHotHalo => parentNode%hotHalo(autoCreate=.true.)
+    nodeParent    => node      %parent
+    hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
     ! If the parent node has a hot halo component, then add it to that of this node, and perform other changes needed prior to
     ! promotion.
-    select type (parentHotHalo)
+    select type (hotHaloParent)
     class is (nodeComponentHotHaloVerySimpleDelayed)
        call hotHalo%outflowedMassSet      (                                     &
             &                              +      hotHalo%outflowedMass      () &
-            &                              +parentHotHalo%outflowedMass      () &
+            &                              +hotHaloParent%outflowedMass      () &
             &                             )
        call hotHalo%outflowedAbundancesSet(                                     &
             &                              +      hotHalo%outflowedAbundances() &
-            &                              +parentHotHalo%outflowedAbundances() &
+            &                              +hotHaloParent%outflowedAbundances() &
             &                             )
     end select
     return
@@ -347,8 +347,8 @@ contains
     implicit none
     class(*                   ), intent(inout) :: self
     type (treeNode            ), intent(inout) :: node
-    type (treeNode            ), pointer       :: parentNode
-    class(nodeComponentHotHalo), pointer       :: parentHotHalo, hotHalo
+    type (treeNode            ), pointer       :: nodeParent
+    class(nodeComponentHotHalo), pointer       :: hotHaloParent, hotHalo
     !$GLC attributes unused :: self
 
     ! Get the hot halo component.
@@ -358,13 +358,13 @@ contains
        ! Check if this node is a satellite.
        if (node%isSatellite()) then
           ! Transfer any outflowed gas to the hot halo of the parent node.
-          parentNode => node%parent
-          do while (parentNode%isSatellite())
-             parentNode => parentNode%parent
+          nodeParent => node%parent
+          do while (nodeParent%isSatellite())
+             nodeParent => nodeParent%parent
           end do
-          parentHotHalo => parentNode%hotHalo(autoCreate=.true.)
-          call parentHotHalo%outflowedMassSet      (parentHotHalo%outflowedMass      ()+hotHalo%outflowedMass      ())
-          call parentHotHalo%outflowedAbundancesSet(parentHotHalo%outflowedAbundances()+hotHalo%outflowedAbundances())
+          hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
+          call hotHaloParent%outflowedMassSet      (hotHaloParent%outflowedMass      ()+hotHalo%outflowedMass      ())
+          call hotHaloParent%outflowedAbundancesSet(hotHaloParent%outflowedAbundances()+hotHalo%outflowedAbundances())
           call       hotHalo%outflowedMassSet      (                                                            0.0d0)
           call       hotHalo%outflowedAbundancesSet(                                                   zeroAbundances)
        end if
@@ -381,8 +381,8 @@ contains
     use :: Galacticus_Nodes    , only : nodeComponentHotHalo, nodeComponentHotHaloVerySimpleDelayed, treeNode, defaultHotHaloComponent
     implicit none
     type (treeNode            ), intent(inout) :: node
-    type (treeNode            ), pointer       :: parentNode
-    class(nodeComponentHotHalo), pointer       :: parentHotHalo, hotHalo
+    type (treeNode            ), pointer       :: nodeParent
+    class(nodeComponentHotHalo), pointer       :: hotHaloParent, hotHalo
 
     ! Return immediately if this class is not in use.
     if (.not.defaultHotHaloComponent%verySimpleDelayedIsActive()) return
@@ -391,12 +391,12 @@ contains
     select type (hotHalo)
     class is (nodeComponentHotHaloVerySimpleDelayed)
        ! Find the parent node and its hot halo component.
-       parentNode    => node      %parent
-       parentHotHalo => parentNode%hotHalo(autoCreate=.true.)
+       nodeParent    => node      %parent
+       hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
        ! Move the hot halo to the parent. We leave the hot halo in place even if it is starved, since outflows will accumulate
        ! to this hot halo (and will be moved to the parent at the end of the evolution timestep).
-       call parentHotHalo%outflowedMassSet      (parentHotHalo%outflowedMass      ()+hotHalo%outflowedMass      ())
-       call parentHotHalo%outflowedAbundancesSet(parentHotHalo%outflowedAbundances()+hotHalo%outflowedAbundances())
+       call hotHaloParent%outflowedMassSet      (hotHaloParent%outflowedMass      ()+hotHalo%outflowedMass      ())
+       call hotHaloParent%outflowedAbundancesSet(hotHaloParent%outflowedAbundances()+hotHalo%outflowedAbundances())
        call       hotHalo%outflowedMassSet      (                                                            0.0d0)
        call       hotHalo%outflowedAbundancesSet(                                                   zeroAbundances)
     end select

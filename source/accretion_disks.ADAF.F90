@@ -469,7 +469,7 @@ contains
   end function adafPowerJet
 
   double precision function adafRateSpinUp(self,blackHole,accretionRateMass)
-    !% Computes the spin up rate of the black hole in {\normalfont \ttfamily thisBlackHole} due to accretion from an ADAF.
+    !% Computes the spin up rate of the black hole in {\normalfont \ttfamily blackHole} due to accretion from an ADAF.
     !% disk.
     implicit none
     class           (accretionDisksADAF    ), intent(inout) :: self

@@ -110,7 +110,7 @@ contains
 
   double precision function zhao2009Time(self,node,mass)
     !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily
-    !% thisNode} using the algorithm of \cite{zhao_accurate_2009}.
+    !% node} using the algorithm of \cite{zhao_accurate_2009}.
     use :: Galacticus_Error     , only : Galacticus_Error_Report
     use :: Galacticus_Nodes     , only : nodeComponentBasic     , treeNode
     use :: Interface_GSL        , only : GSL_Success

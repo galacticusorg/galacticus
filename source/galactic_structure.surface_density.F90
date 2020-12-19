@@ -35,7 +35,7 @@ module Galactic_Structure_Surface_Densities
 
 contains
 
-  double precision function Galactic_Structure_Surface_Density(thisNode,position,coordinateSystem,componentType,massType,weightBy,weightIndex)
+  double precision function Galactic_Structure_Surface_Density(node,position,coordinateSystem,componentType,massType,weightBy,weightIndex)
     !% Compute the density (of given {\normalfont \ttfamily massType}) at the specified {\normalfont \ttfamily position}. Assumes that galactic structure has already
     !% been computed.
     use :: Coordinate_Systems        , only : Coordinates_Cartesian_To_Cylindrical, Coordinates_Spherical_To_Cylindrical
@@ -45,7 +45,7 @@ contains
     use :: Galacticus_Nodes          , only : optimizeForSurfaceDensitySummation  , optimizeforsurfacedensitysummation  , reductionSummation         , reductionsummation       , &
           &                                   treeNode
     implicit none
-    type            (treeNode                 ), intent(inout)           :: thisNode
+    type            (treeNode                 ), intent(inout)           :: node
     integer                                    , intent(in   ), optional :: componentType                     , coordinateSystem, &
          &                                                                  massType                          , weightBy        , &
          &                                                                  weightIndex
@@ -72,7 +72,7 @@ contains
     end select
     ! Call routines to supply the densities for all components.
     componentSurfaceDensityFunction => Component_Surface_Density
-    Galactic_Structure_Surface_Density=thisNode%mapDouble0(componentSurfaceDensityFunction,reductionSummation,optimizeFor=optimizeForSurfaceDensitySummation)
+    Galactic_Structure_Surface_Density=node%mapDouble0(componentSurfaceDensityFunction,reductionSummation,optimizeFor=optimizeForSurfaceDensitySummation)
     return
   end function Galactic_Structure_Surface_Density
 
@@ -86,13 +86,13 @@ contains
     return
   end function Component_Surface_Density
 
-  double precision function Galactic_Structure_Radius_Enclosing_Surface_Density(thisNode,surfaceDensity,componentType,massType,weightBy,weightIndex)
-    !% Return the radius enclosing a given mass (or fractional mass) in {\normalfont \ttfamily thisNode}.
+  double precision function Galactic_Structure_Radius_Enclosing_Surface_Density(node,surfaceDensity,componentType,massType,weightBy,weightIndex)
+    !% Return the radius enclosing a given mass (or fractional mass) in {\normalfont \ttfamily node}.
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale      , darkMatterHaloScaleClass
     use :: Kind_Numbers           , only : kind_int8
     use :: Root_Finder            , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
-    type            (treeNode                ), intent(inout), target   :: thisNode
+    type            (treeNode                ), intent(inout), target   :: node
     integer                                   , intent(in   ), optional :: componentType                    , massType   , &
          &                                                                 weightBy                         , weightIndex
     double precision                          , intent(in   ), optional :: surfaceDensity
@@ -106,7 +106,7 @@ contains
 
     ! Set default options.
     call Galactic_Structure_Surface_Density_Defaults(componentType,massType,weightBy,weightIndex)
-    activeNode => thisNode
+    activeNode => node
     ! Initialize our root finder.
     if (.not.finder%isInitialized()) then
        call finder%rangeExpand (                                                             &
@@ -120,16 +120,16 @@ contains
        call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
     end if
     ! Solve for the radius.
-    activeNode         => thisNode
+    activeNode         => node
     surfaceDensityRoot =  surfaceDensity
-    if (thisNode%uniqueID() == uniqueIDPrevious) then
+    if (node%uniqueID() == uniqueIDPrevious) then
        radiusGuess          =  radiusPrevious
     else
        darkMatterHaloScale_ => darkMatterHaloScale              (        )
-       radiusGuess          =  darkMatterHaloScale_%virialRadius(thisNode)
+       radiusGuess          =  darkMatterHaloScale_%virialRadius(node)
     end if
     Galactic_Structure_Radius_Enclosing_Surface_Density=finder%find(rootGuess=radiusGuess)
-    uniqueIDPrevious                                   =thisNode%uniqueID()
+    uniqueIDPrevious                                   =node%uniqueID()
     radiusPrevious                                     =Galactic_Structure_Radius_Enclosing_Surface_Density
     return
   end function Galactic_Structure_Radius_Enclosing_Surface_Density

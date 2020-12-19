@@ -224,13 +224,13 @@ contains
   !#  <after>darkMatterProfile</after>
   !#  <after>spin</after>
   !# </mergerTreeInitializeTask>
-  subroutine Node_Component_Satellite_Orbiting_Tree_Initialize(thisNode)
+  subroutine Node_Component_Satellite_Orbiting_Tree_Initialize(node)
     !% Initialize the orbiting satellite component.
     use :: Galacticus_Nodes, only : treeNode
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
+    type(treeNode), pointer, intent(inout) :: node
 
-    if (thisNode%isSatellite()) call Node_Component_Satellite_Orbiting_Create(thisNode)
+    if (node%isSatellite()) call Node_Component_Satellite_Orbiting_Create(node)
     return
   end subroutine Node_Component_Satellite_Orbiting_Tree_Initialize
 
@@ -402,25 +402,25 @@ contains
     return
   end function Node_Component_Satellite_Orbiting_Virial_Orbit
   
-  subroutine Node_Component_Satellite_Orbiting_Virial_Orbit_Set(self,thisOrbit)
+  subroutine Node_Component_Satellite_Orbiting_Virial_Orbit_Set(self,orbit)
     !% Set the orbit of the satellite at the virial radius.
     use :: Coordinates     , only : assignment(=)
     use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentSatelliteOrbiting
     use :: Tensors         , only : tensorNullR2D3Sym
     implicit none
     class           (nodeComponentSatellite), intent(inout) :: self
-    type            (keplerOrbit           ), intent(in   ) :: thisOrbit
+    type            (keplerOrbit           ), intent(in   ) :: orbit
     double precision                        , dimension(3)  :: position   , velocity
     type            (keplerOrbit           )                :: virialOrbit
 
     select type (self)
     class is (nodeComponentSatelliteOrbiting)
        ! Ensure the orbit is defined.
-       call thisOrbit%assertIsDefined()
+       call orbit%assertIsDefined()
        ! Store the orbit.
-       call self%virialOrbitSetValue(thisOrbit)
+       call self%virialOrbitSetValue(orbit)
        ! Store orbitial position and velocity.
-       virialOrbit=thisOrbit
+       virialOrbit=orbit
        position   =virialOrbit%position()
        velocity   =virialOrbit%velocity()
        call self%positionSet(position)
@@ -434,33 +434,33 @@ contains
     return
   end subroutine Node_Component_Satellite_Orbiting_Virial_Orbit_Set
 
-  subroutine Node_Component_Satellite_Orbiting_Bound_Mass_Initialize(satelliteComponent,thisNode)
+  subroutine Node_Component_Satellite_Orbiting_Bound_Mass_Initialize(satellite,node)
     !% Set the initial bound mass of the satellite.
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galactic_Structure_Enclosed_Masses  , only : Galactic_Structure_Enclosed_Mass
     use :: Galacticus_Error                    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentSatellite             , nodeComponentSatelliteOrbiting, treeNode
     implicit none
-    class           (nodeComponentSatellite), intent(inout) :: satelliteComponent
-    type            (treeNode              ), intent(inout) :: thisNode
-    double precision                                        :: virialRadius      , maximumRadius, &
+    class           (nodeComponentSatellite), intent(inout) :: satellite
+    type            (treeNode              ), intent(inout) :: node
+    double precision                                        :: virialRadius , maximumRadius, &
          &                                                     satelliteMass
 
-    select type (satelliteComponent)
+    select type (satellite)
     class is (nodeComponentSatelliteOrbiting)
        select case (satelliteBoundMassInitializeType)
        case (satelliteBoundMassInitializeTypeBasicMass      )
           ! Do nothing. The bound mass of this satellite is set to the node mass by default.
        case (satelliteBoundMassInitializeTypeMaximumRadius  )
           ! Set the initial bound mass of this satellite by integrating the density profile up to a maximum radius.
-          virialRadius =darkMatterHaloScale_%virialRadius  (thisNode                         )
+          virialRadius =darkMatterHaloScale_%virialRadius  (node                         )
           maximumRadius=satelliteMaximumRadiusOverVirialRadius*virialRadius
-          satelliteMass=Galactic_Structure_Enclosed_Mass   (thisNode,maximumRadius           )
-          call satelliteComponent%boundMassSet(satelliteMass)
+          satelliteMass=Galactic_Structure_Enclosed_Mass   (node,maximumRadius           )
+          call satellite%boundMassSet(satelliteMass)
        case (satelliteBoundMassInitializeTypeDensityContrast)
           ! Set the initial bound mass of this satellite by assuming a specified density contrast.
-          satelliteMass=Dark_Matter_Profile_Mass_Definition(thisNode,satelliteDensityContrast)
-          call satelliteComponent%boundMassSet(satelliteMass)
+          satelliteMass=Dark_Matter_Profile_Mass_Definition(node,satelliteDensityContrast)
+          call satellite%boundMassSet(satelliteMass)
        case default
           call Galacticus_Error_Report('type of method to initialize the bound mass of satellites can not be recognized. Available options are "basicMass", "maximumRadius", "densityContrast"'//{introspection:location})
        end select

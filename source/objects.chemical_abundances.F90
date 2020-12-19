@@ -118,7 +118,7 @@ contains
     use :: Memory_Management  , only : allocateArray
     implicit none
     integer                    :: iChemical
-    type   (chemicalStructure) :: thisChemical
+    type   (chemicalStructure) :: chemical
 
     ! Check if this module has been initialized already.
     if (.not.chemicalAbundancesInitialized) then
@@ -148,9 +148,9 @@ contains
              chemicalNameLengthMaximum=0
              do iChemical=1,chemicalsCount
                 chemicalsIndices(iChemical)=Chemical_Database_Get_Index(char(chemicalsToTrack(iChemical)))
-                call thisChemical%retrieve(char(chemicalsToTrack(iChemical)))
-                chemicalsCharges(iChemical)=dble(thisChemical%charge())
-                chemicalsMasses (iChemical)=     thisChemical%mass  ()
+                call chemical%retrieve(char(chemicalsToTrack(iChemical)))
+                chemicalsCharges(iChemical)=dble(chemical%charge())
+                chemicalsMasses (iChemical)=     chemical%mass  ()
                 if (len(chemicalsToTrack(iChemical)) > chemicalNameLengthMaximum) chemicalNameLengthMaximum=len(chemicalsToTrack(iChemical))
              end do
           end if
