@@ -43,6 +43,7 @@
      final     ::                                       atomicCIECloudyDestructor
      procedure :: tabulate                           => atomicCIECloudyTabulate
      procedure :: coolingFunction                    => atomicCIECloudyCoolingFunction
+     procedure :: coolingFunctionFractionInBand      => atomicCIECloudyCoolingFunctionFractionInBand
      procedure :: coolingFunctionTemperatureLogSlope => atomicCIECloudyCoolingFunctionTemperatureLogSlope
      procedure :: coolingFunctionDensityLogSlope     => atomicCIECloudyCoolingFunctionDensityLogSlope
   end type coolingFunctionAtomicCIECloudy
@@ -179,6 +180,22 @@ contains
     atomicCIECloudyCoolingFunction=self%coolingFunctionCIEFile%coolingFunction(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     return
   end function atomicCIECloudyCoolingFunction
+
+  double precision function atomicCIECloudyCoolingFunctionFractionInBand(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
+    !% Return the fraction of the cooling luminosity due to emission in the given energy range as computed by
+    !% {\normalfont \scshape Cloudy}.
+    implicit none
+    class           (coolingFunctionAtomicCIECloudy), intent(inout) :: self
+    double precision                                , intent(in   ) :: numberDensityHydrogen, temperature, &
+         &                                                             energyLow            , energyHigh
+    type            (abundances                    ), intent(in   ) :: gasAbundances
+    type            (chemicalAbundances            ), intent(in   ) :: chemicalDensities
+    class           (radiationFieldClass           ), intent(inout) :: radiation
+
+    call                                         self%tabulate                                            (                                  gasAbundances                                                 )
+    atomicCIECloudyCoolingFunctionFractionInBand=self%coolingFunctionCIEFile%coolingFunctionFractionInBand(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
+    return
+  end function atomicCIECloudyCoolingFunctionFractionInBand
 
   double precision function atomicCIECloudyCoolingFunctionTemperatureLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the logarithmic slope of the cooling function with respect to temperature for

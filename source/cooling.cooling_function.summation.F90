@@ -38,6 +38,7 @@
    contains
      final     ::                                       summationDestructor
      procedure :: coolingFunction                    => summationCoolingFunction
+     procedure :: coolingFunctionFractionInBand      => summationCoolingFunctionFractionInBand
      procedure :: coolingFunctionTemperatureLogSlope => summationCoolingFunctionTemperatureLogSlope
      procedure :: coolingFunctionDensityLogSlope     => summationCoolingFunctionDensityLogSlope
      procedure :: descriptor                         => summationDescriptor
@@ -63,8 +64,8 @@ contains
     coolant => null()
     do i=1,parameters%copiesCount('coolingFunctionMethod',zeroIfNotPresent=.true.)
        if (associated(coolant)) then
-          allocate(coolant                       %next    )
-          coolant => coolant                       %next
+          allocate(coolant%next)
+          coolant => coolant%next
        else
           allocate(self%coolants)
           coolant => self%coolants
@@ -137,6 +138,58 @@ contains
     end do
     return
   end function summationCoolingFunction
+
+  double precision function summationCoolingFunctionFractionInBand(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
+    !% Return the fraction of the cooling function summed over other cooling functions due to emission in the given band.
+    use :: Abundances_Structure         , only : abundances
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances
+    use :: Radiation_Fields             , only : radiationFieldClass
+    implicit none
+    class           (coolingFunctionSummation), intent(inout) :: self
+    double precision                          , intent(in   ) :: numberDensityHydrogen, temperature          , &
+         &                                                       energyLow            , energyHigh
+    type            (abundances              ), intent(in   ) :: gasAbundances
+    type            (chemicalAbundances      ), intent(in   ) :: chemicalDensities
+    class           (radiationFieldClass     ), intent(inout) :: radiation
+    type            (coolantList             ), pointer       :: coolant
+    double precision                                          :: coolingFunctionTotal , coolingFunctionInBand, &
+         &                                                       coolingFunction      , fractionInBand
+
+    coolingFunctionTotal  =  0.0d0
+    coolingFunctionInBand =  0.0d0
+    coolant               => self%coolants
+    do while (associated(coolant))
+       coolingFunction       =coolant%coolingFunction%coolingFunction             (                       &
+            &                                                                      numberDensityHydrogen, &
+            &                                                                      temperature          , &
+            &                                                                      gasAbundances        , &
+            &                                                                      chemicalDensities    , &
+            &                                                                      radiation              &
+            &                                                                     )
+       fractionInBand       =coolant%coolingFunction%coolingFunctionFractionInBand(                       &
+            &                                                                      numberDensityHydrogen, &
+            &                                                                      temperature          , &
+            &                                                                      gasAbundances        , &
+            &                                                                      chemicalDensities    , &
+            &                                                                      radiation            , &
+            &                                                                      energyLow            , &
+            &                                                                      energyHigh             &
+            &                                                                     )
+       coolingFunctionTotal =+coolingFunctionTotal                                                        &
+            &                +coolingFunction
+       coolingFunctionInBand=+coolingFunctionInBand                                                       &
+            &                +coolingFunction                                                             &
+            &                *fractionInBand
+       coolant => coolant%next
+    end do
+    if (coolingFunctionTotal > 0.0d0) then
+       summationCoolingFunctionFractionInBand=+coolingFunctionInBand &
+            &                                 /coolingFunctionTotal
+    else
+       summationCoolingFunctionFractionInBand=+0.0d0
+    end if
+    return
+  end function summationCoolingFunctionFractionInBand
 
   double precision function summationCoolingFunctionDensityLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the logarithmic gradient with respect to density of the cooling function due to Compton scattering off of \gls{cmb}

@@ -100,6 +100,14 @@
   !#            }
   !#         }
   !#      }
+  !#      DATASET "energyContinuum" {
+  !#         DATATYPE  H5T_IEEE_F64LE
+  !#         DATASPACE  SIMPLE { ( 7 ) / ( 7 ) }
+  !#      }
+  !#      DATASET "powerEmittedFractionalCumulative" {
+  !#         DATATYPE  H5T_IEEE_F64LE
+  !#         DATASPACE  SIMPLE { ( 7, 8, 10 ) / ( 7, 8, 10 ) }
+  !#      }
   !#   }
   !#   }
   !#   \end{verbatim}
@@ -123,25 +131,33 @@
   !#   metallicity is always used between zero and the first non-zero tabulated metallicity.}
   !#   and cooling function. Otherwise, interpolation is linear in these quantities. The cooling
   !#   function is scaled assuming a quadratic dependence on hydrogen density.
+  !#
+  !#   The {\normalfont \ttfamily energyContinuum} and {\normalfont \ttfamily powerEmittedFractionalCumulative} are optional. If
+  !#   present, {\normalfont \ttfamily powerEmittedFractionalCumulative} gives the cumulative emitted power as a function of
+  !#   energy for each tabulated metallicity and temperature. The energies at which the emitted power is tabulated are given by
+  !#   {\normalfont \ttfamily energyContinuum}.
   !#  </description>
   !# </coolingFunction>
   type, extends(coolingFunctionClass) :: coolingFunctionCIEFile
      !% A cooling function class which interpolates in a tabulated cooling function read from file.
      private
-     type            (varying_string)                              :: fileName
-     double precision                                              :: metallicityMaximum        , metallicityMinimum          , &
-          &                                                           temperatureMaximum        , temperatureMinimum
-     integer                                                       :: extrapolateMetallicityHigh, extrapolateMetallicityLow   , &
-          &                                                           extrapolateTemperatureHigh, extrapolateTemperatureLow
-     logical                                                       :: firstMetallicityIsZero    , logarithmicTable
-     integer                                                       :: metallicityCount          , temperatureCount
-     double precision                                              :: firstNonZeroMetallicity
-     double precision                , allocatable, dimension(:)   :: metallicities             , temperatures
-     double precision                , allocatable, dimension(:,:) :: coolingFunctionTable
-     type            (interpolator  )                              :: interpolatorMetallicity   , interpolatorTemperature
-     double precision                                              :: temperaturePrevious       , metallicityPrevious         , &
-          &                                                           temperatureSlopePrevious  , metallicitySlopePrevious    , &
-          &                                                           coolingFunctionPrevious   , coolingFunctionSlopePrevious
+     type            (varying_string)                                :: fileName
+     double precision                                                :: metallicityMaximum              , metallicityMinimum          , &
+          &                                                             temperatureMaximum              , temperatureMinimum
+     integer                                                         :: extrapolateMetallicityHigh      , extrapolateMetallicityLow   , &
+          &                                                             extrapolateTemperatureHigh      , extrapolateTemperatureLow
+     logical                                                         :: firstMetallicityIsZero          , logarithmicTable
+     integer                                                         :: metallicityCount                , temperatureCount
+     double precision                                                :: firstNonZeroMetallicity
+     double precision                , allocatable, dimension(:    ) :: metallicities                   , temperatures                , &
+          &                                                             energyContinuum
+     double precision                , allocatable, dimension(:,:  ) :: coolingFunctionTable
+     double precision                , allocatable, dimension(:,:,:) :: powerEmittedFractionalCumulative
+     type            (interpolator  )                                :: interpolatorMetallicity         , interpolatorTemperature     , &
+          &                                                             interpolatorEnergy
+     double precision                                                :: temperaturePrevious             , metallicityPrevious         , &
+          &                                                             temperatureSlopePrevious        , metallicitySlopePrevious    , &
+          &                                                             coolingFunctionPrevious         , coolingFunctionSlopePrevious
    contains
      !# <methods>
      !#   <method description="Read the named cooling function file." method="readFile" />
@@ -154,6 +170,7 @@
      procedure :: coolingFunction                    => cieFileCoolingFunction
      procedure :: coolingFunctionTemperatureLogSlope => cieFileCoolingFunctionTemperatureLogSlope
      procedure :: coolingFunctionDensityLogSlope     => cieFileCoolingFunctionDensityLogSlope
+     procedure :: coolingFunctionFractionInBand      => cieFileCoolingFunctionFractionInBand
   end type coolingFunctionCIEFile
 
   interface coolingFunctionCIEFile
@@ -277,6 +294,94 @@ contains
          &                 *numberDensityHydrogen       **2
     return
   end function cieFileCoolingFunction
+
+  double precision function cieFileCoolingFunctionFractionInBand(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
+    !% Return the fraction of the cooling function due to emission in the given energy band by interpolating in tabulated CIE data read from a file.
+    use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances               , metallicityTypeLinearByMassSolar
+    use            :: Chemical_Abundances_Structure, only : chemicalAbundances
+    use            :: Galacticus_Error             , only : Galacticus_Error_Report
+    use, intrinsic :: ISO_C_Binding                , only : c_size_t
+    use            :: Radiation_Fields             , only : radiationFieldClass
+    use            :: Table_Labels                 , only : extrapolationTypeFix      , extrapolationTypePowerLaw, extrapolationTypeZero
+    implicit none
+    class           (coolingFunctionCIEFile), intent(inout)  :: self 
+    double precision                        , intent(in   )  :: numberDensityHydrogen, temperature        , &
+         &                                                      energyLow            , energyHigh
+    type            (abundances            ), intent(in   )  :: gasAbundances
+    type            (chemicalAbundances    ), intent(in   )  :: chemicalDensities
+    class           (radiationFieldClass   ), intent(inout)  :: radiation
+    double precision                        , dimension(0:1) :: hEnergyLow           , hEnergyHigh
+    integer         (c_size_t              )                 :: iMetallicity         , iTemperature       , &
+         &                                                      iEnergyLow           , iEnergyHigh
+    integer                                                  :: i
+    double precision                                         :: hMetallicity         , hTemperature       , &
+         &                                                      metallicityUse       , temperatureUse     , &
+         &                                                      powerCumulativeLow   , powerCumulativeHigh
+    !$GLC attributes unused :: chemicalDensities, radiation, numberDensityHydrogen
+
+    ! Abort if cumulative power is not available.
+    cieFileCoolingFunctionFractionInBand=0.0d0
+    if (.not.allocated(self%powerEmittedFractionalCumulative)) call Galacticus_Error_Report('cumulative power data is not available'//{introspection:location})
+    ! Handle out of range temperatures.
+    temperatureUse=temperature
+    if (temperatureUse < self%temperatureMinimum) then
+       select case (self%extrapolateTemperatureLow)
+       case (extrapolationTypeZero)
+          return
+       case (extrapolationTypeFix,extrapolationTypePowerLaw)
+          temperatureUse=self%temperatureMinimum
+       end select
+    end if
+    if (temperatureUse > self%temperatureMaximum) then
+       select case (self%extrapolateTemperatureHigh)
+       case (extrapolationTypeZero)
+          return
+       case (extrapolationTypeFix,extrapolationTypePowerLaw)
+          temperatureUse=self%temperatureMaximum
+       end select
+    end if
+    ! Handle out of range metallicities.
+    metallicityUse=Abundances_Get_Metallicity(gasAbundances,metallicityType=metallicityTypeLinearByMassSolar)
+    if (metallicityUse < self%metallicityMinimum) then
+       select case (self%extrapolateMetallicityLow)
+       case (extrapolationTypeZero)
+          return
+       case (extrapolationTypeFix)
+          metallicityUse=self%metallicityMinimum
+       end select
+    end if
+    if (metallicityUse > self%metallicityMaximum) then
+       select case (self%extrapolateMetallicityHigh)
+       case (extrapolationTypeZero)
+          return
+       case (extrapolationTypeFix)
+          metallicityUse=self%metallicityMaximum
+       end select
+    end if
+    ! Get the interpolation in temperature and metallicity.
+    call self%interpolatingFactors(temperatureUse,metallicityUse,iTemperature,hTemperature,iMetallicity,hMetallicity)
+    ! Get the interpolation in energy.
+    call self%interpolatorEnergy%linearFactors(energyLow ,iEnergyLow ,hEnergyLow )
+    call self%interpolatorEnergy%linearFactors(energyHigh,iEnergyHigh,hEnergyHigh)
+    ! Do the interpolation.
+    powerCumulativeLow =0.0d0
+    powerCumulativeHigh=0.0d0
+    do i=0,1
+       powerCumulativeLow =+powerCumulativeLow                                                                                                                          &
+            &              +self%powerEmittedFractionalCumulative(iMetallicity  ,iTemperature  ,iEnergyLow +i)*(1.0d0-hTemperature)*(1.0d0-hMetallicity)*hEnergyLow (i) &
+            &              +self%powerEmittedFractionalCumulative(iMetallicity+1,iTemperature  ,iEnergyLow +i)*(1.0d0-hTemperature)*(      hMetallicity)*hEnergyLow (i) &
+            &              +self%powerEmittedFractionalCumulative(iMetallicity  ,iTemperature+1,iEnergyLow +i)*(      hTemperature)*(1.0d0-hMetallicity)*hEnergyLow (i) &
+            &              +self%powerEmittedFractionalCumulative(iMetallicity+1,iTemperature+1,iEnergyLow +i)*(      hTemperature)*(      hMetallicity)*hEnergyLow (i)
+       powerCumulativeHigh=+powerCumulativeHigh                                                                                                                         &
+            &              +self%powerEmittedFractionalCumulative(iMetallicity  ,iTemperature  ,iEnergyHigh+i)*(1.0d0-hTemperature)*(1.0d0-hMetallicity)*hEnergyHigh(i) &
+            &              +self%powerEmittedFractionalCumulative(iMetallicity+1,iTemperature  ,iEnergyHigh+i)*(1.0d0-hTemperature)*(      hMetallicity)*hEnergyHigh(i) &
+            &              +self%powerEmittedFractionalCumulative(iMetallicity  ,iTemperature+1,iEnergyHigh+i)*(      hTemperature)*(1.0d0-hMetallicity)*hEnergyHigh(i) &
+            &              +self%powerEmittedFractionalCumulative(iMetallicity+1,iTemperature+1,iEnergyHigh+i)*(      hTemperature)*(      hMetallicity)*hEnergyHigh(i)
+    end do
+    cieFileCoolingFunctionFractionInBand=+powerCumulativeHigh &
+         &                               -powerCumulativeLow
+    return
+  end function cieFileCoolingFunctionFractionInBand
 
   double precision function cieFileCoolingFunctionTemperatureLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the slope of the cooling function with respect to temperature by interpolating in tabulated CIE data
@@ -475,6 +580,11 @@ contains
          &  .and.                                                         &
          &   self%extrapolateTemperatureHigh /= extrapolationTypePowerLaw &
          & ) call Galacticus_Error_Report('extrapolation type not permitted'//{introspection:location})
+    ! Read optional datasets.
+    if (coolingFunctionFile%hasDataset('energyContinuum')) then
+       call coolingFunctionFile%readDataset('energyContinuum'                 ,self%energyContinuum                 )
+       call coolingFunctionFile%readDataset('powerEmittedFractionalCumulative',self%powerEmittedFractionalCumulative)
+    end if
     ! Close the file.
     call coolingFunctionFile%close()
     call Galacticus_Display_Unindent('done',verbosityWorking)
@@ -511,8 +621,10 @@ contains
          & )                                                             &
          & call Galacticus_Error_Report('power law extrapolation not allowed in metallicity'//{introspection:location})
     ! Build interpolators.
-    self%interpolatorMetallicity=interpolator(self%metallicities)
-    self%interpolatorTemperature=interpolator(self%temperatures )
+    self       %interpolatorMetallicity=interpolator(self%metallicities  )
+    self       %interpolatorTemperature=interpolator(self%temperatures   )
+    if (allocated(self%energyContinuum)) &
+         & self%interpolatorEnergy     =interpolator(self%energyContinuum)
     return
   end subroutine cieFileReadFile
 

@@ -74,6 +74,7 @@
      !#   <method description="Compute common factors." method="commonFactors" />
      !# </methods>
      procedure :: coolingFunction                    => molecularHydrogenGalliPallaCoolingFunction
+     procedure :: coolingFunctionFractionInBand      => molecularHydrogenGalliPallaCoolingFunctionFractionInBand
      procedure :: coolingFunctionTemperatureLogSlope => molecularHydrogenGalliPallaCoolingFunctionTemperatureLogSlope
      procedure :: coolingFunctionDensityLogSlope     => molecularHydrogenGalliPallaCoolingFunctionDensityLogSlope
      procedure :: coolingFunctionH_H2                => molecularHydrogenGalliPallaCoolingFunctionH_H2
@@ -173,6 +174,26 @@ contains
     end if
     return
   end function molecularHydrogenGalliPallaCoolingFunction
+
+  double precision function molecularHydrogenGalliPallaCoolingFunctionFractionInBand(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
+    !% Return the fraction of the cooling function due to emission in the given band. This is currently unsupported.
+    use :: Abundances_Structure         , only : abundances
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances
+    use :: Galacticus_Error             , only : Galacticus_Error_Report
+    use :: Radiation_Fields             , only : radiationFieldClass
+    implicit none
+    class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout) :: self
+    double precision                                            , intent(in   ) :: numberDensityHydrogen, temperature, &
+         &                                                                         energyLow            , energyHigh
+    type            (abundances                                ), intent(in   ) :: gasAbundances
+    type            (chemicalAbundances                        ), intent(in   ) :: chemicalDensities
+    class           (radiationFieldClass                       ), intent(inout) :: radiation
+    !$GLC attributes unused :: self, numberDensityHydrogen, temperature, gasAbundances, chemicalDensities, radiation, energyLow, energyHigh
+
+    molecularHydrogenGalliPallaCoolingFunctionFractionInBand=0.0d0
+    call Galacticus_Error_Report('fraction in band is not supported'//{introspection:location})
+    return
+  end function molecularHydrogenGalliPallaCoolingFunctionFractionInBand
 
   double precision function molecularHydrogenGalliPallaCoolingFunctionDensityLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the gradient with respect to density of the cooling function due to molecular hydrogen using the cooling function
