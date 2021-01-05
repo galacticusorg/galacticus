@@ -1874,7 +1874,8 @@ contains
          &                                                                                                             errorMaximum
     integer         (c_size_t                                       )                                               :: iInterval                              , intervalCount                        , &
          &                                                                                                             i                                      , indexStart                           , &
-         &                                                                                                             indexEnd                               , indexMidpoint
+         &                                                                                                             indexEnd                               , indexMidpoint                        , &
+         &                                                                                                             integralCount
     type            (varying_string                                 )                                               :: message
     character       (len=32                                         )                                               :: label
     logical                                                                                                         :: precisionLost
@@ -1981,7 +1982,8 @@ contains
              message=message//" (converged="//adjustl(trim(label))//")"
              call Galacticus_Display_Message(message)
           end do
-          current => head
+          integralCount =  size(current%fa)
+          current       =>      head
           do while (associated(current))
              message="a/b : f(a)/f(b) ="
              write (label,'(e32.12)') current%a
@@ -2005,8 +2007,8 @@ contains
           end do
           call Galacticus_Display_Unindent('done')
           call Galacticus_Display_Indent  ('current integrals:')
-          current => head
-          do i=1,size(current%fa)
+          current => searchStart
+          do i=1,integralCount
              message="integral : error  (i="
              write (label,'(i12)') i
              message=message//adjustl(trim(label))//")"
