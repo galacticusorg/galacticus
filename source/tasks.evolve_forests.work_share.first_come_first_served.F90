@@ -25,6 +25,7 @@
   type, extends(evolveForestsWorkShareClass) :: evolveForestsWorkShareFCFS
      !% Implementation of a forest evolution work sharing class in which forests are assigned on a first-come-first-served basis.
      private
+     integer(c_size_t), allocatable, dimension(:) :: activeProcessRanks
    contains
      procedure :: forestNumber => fcfsForestNumber
      procedure :: ping         => fcfsPing
@@ -46,33 +47,59 @@ contains
     !% input.
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(evolveForestsWorkShareFCFS)                :: self
-    type(inputParameters           ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
+    type   (evolveForestsWorkShareFCFS)                              :: self
+    type   (inputParameters           ), intent(inout)               :: parameters
+    integer(c_size_t                  ), allocatable  , dimension(:) :: activeProcessRanks
 
-    self=evolveForestsWorkShareFCFS()
+    if (parameters%isPresent('activeProcessRanks')) then
+       allocate(activeProcessRanks(parameters%count('activeProcessRanks')))
+       !# <inputParameter>
+       !#   <name>activeProcessRanks</name>
+       !#   <description>A list of MPI process ranks which will be allowed to process trees---all other ranks are given no work.</description>
+       !#   <source>parameters</source>
+       !# </inputParameter>
+       self=evolveForestsWorkShareFCFS(activeProcessRanks)
+    else
+       self=evolveForestsWorkShareFCFS(                  )
+    end if
     return
   end function fcfsConstructorParameters
 
-  function fcfsConstructorInternal() result(self)
+  function fcfsConstructorInternal(activeProcessRanks) result(self)
     !% Internal constructor for the {\normalfont \ttfamily fcfs} forest evolution work sharing class.
+    use :: MPI_Utilities, only : mpiSelf
     implicit none
-    type(evolveForestsWorkShareFCFS) :: self
-    !$GLC attributes unused :: self
+    type   (evolveForestsWorkShareFCFS)                                        :: self
+    integer(c_size_t                  ), intent(in   ), dimension(:), optional :: activeProcessRanks
+    integer                                                                    :: i
 
     fcfsForestCounter=mpiCounter()
+    if (present(activeProcessRanks)) then
+       allocate(self%activeProcessRanks(size(activeProcessRanks)))
+       self%activeProcessRanks=activeProcessRanks
+    else
+       allocate(self%activeProcessRanks(mpiSelf%count()))
+       do i=0,mpiSelf%count()-1
+          self%activeProcessRanks(i)=i
+       end do
+    end if
     return
   end function fcfsConstructorInternal
 
   function fcfsForestNumber(self,utilizeOpenMPThreads)
     !% Return the number of the next forest to process.
+    use :: MPI_Utilities, only : mpiSelf
     implicit none
     integer(c_size_t                  )                :: fcfsForestNumber
     class  (evolveForestsWorkShareFCFS), intent(inout) :: self
     logical                            , intent(in   ) :: utilizeOpenMPThreads
     !$GLC attributes unused :: self, utilizeOpenMPThreads
 
-    fcfsForestNumber=fcfsForestCounter%increment()+1_c_size_t
+    if (any(self%activeProcessRanks == mpiSelf%rank())) then
+       fcfsForestNumber=fcfsForestCounter%increment()+1_c_size_t
+    else
+       fcfsForestNumber=huge(0_c_size_t)
+    end if
     return
   end function fcfsForestNumber
 
