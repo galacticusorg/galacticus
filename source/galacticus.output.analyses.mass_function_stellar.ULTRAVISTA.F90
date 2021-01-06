@@ -192,7 +192,7 @@ contains
     type            (cosmologyFunctionsMatterLambda                     )               , pointer      :: cosmologyFunctionsData
     type            (distributionOperatorList                           )               , pointer      :: distributionOperatorSequence
     double precision                                                     , parameter                   :: errorPolynomialZeroPoint                            =11.3d+0
-    type            (varying_string                                     )                              :: fileName
+    type            (varying_string                                     )                              :: fileName                                                    , description
     double precision                                                                                   :: massThreshold
 
     ! Create cosmological model in which data were analyzed.
@@ -217,28 +217,36 @@ contains
     !#  </constructor>
     !# </referenceConstruct>
     ! Determine the data file and mass threshold to use.
+    description=var_str('Stellar mass function for the Muzzin et al. (2013) ULTRAVISTA analysis, ')
     select case (redshiftInterval)
     case (0)
        fileName     ='Stellar_Mass_Function_ULTRAVISTA_2013_z0.20_0.50.hdf5'
        massThreshold=3.0d6
+       description  =description//"$z=0.2$--$0.5$"
     case (1)
        fileName     ='Stellar_Mass_Function_ULTRAVISTA_2013_z0.50_1.00.hdf5'
        massThreshold=3.0d7
+       description  =description//"$z=0.5$--$1.0$"
     case (2)
        fileName     ='Stellar_Mass_Function_ULTRAVISTA_2013_z1.00_1.50.hdf5'
        massThreshold=3.0d7
+       description  =description//"$z=1.0$--$1.5$"
     case (3)
        fileName     ='Stellar_Mass_Function_ULTRAVISTA_2013_z1.50_2.00.hdf5'
        massThreshold=3.0d8
+       description  =description//"$z=1.5$--$2.0$"
     case (4)
        fileName     ='Stellar_Mass_Function_ULTRAVISTA_2013_z2.00_2.50.hdf5'
        massThreshold=3.0d8
+       description  =description//"$z=2.0$--$2.5$"
     case (5)
        fileName     ='Stellar_Mass_Function_ULTRAVISTA_2013_z2.50_3.00.hdf5'
        massThreshold=1.0d9
+       description  =description//"$z=2.5$--$3.0$"
     case (6)
        fileName     ='Stellar_Mass_Function_ULTRAVISTA_2013_z3.00_4.00.hdf5'
        massThreshold=1.0d9
+       description  =description//"$z=3.0$--$4.0$"
     case default
        call Galacticus_Error_Report('0 ≤ redshiftInterval ≤ 6 is required'//{introspection:location})
     end select
@@ -292,7 +300,7 @@ contains
     self%outputAnalysisMassFunctionStellar=                                                                                             &
          & outputAnalysisMassFunctionStellar(                                                                                           &
          &                                   var_str('Muzzin2013ULTRAVISTAz')//redshiftInterval                                       , &
-         &                                   var_str('Stellar mass function for the Muzzin et al. (2013) ULTRAVISTA analysis')        , &
+         &                                   description                                                                              , &
          &                                   char(galacticusPath(pathTypeDataStatic)//'/observations/massFunctionsStellar/'//fileName), &
          &                                   galacticFilter_                                                                          , &
          &                                   surveyGeometry_                                                                          , &
