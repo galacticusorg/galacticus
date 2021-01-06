@@ -25,18 +25,16 @@ module Node_Component_Spheroid_Standard
   use :: Histories                       , only : history
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
   use :: Satellite_Merging_Remnant_Sizes , only : mergerRemnantSizeClass
-  use :: Satellites_Tidal_Fields         , only : satelliteTidalFieldClass
   use :: Star_Formation_Histories        , only : starFormationHistory            , starFormationHistoryClass
   use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
   implicit none
   private
-  public :: Node_Component_Spheroid_Standard_Rate_Compute       , Node_Component_Spheroid_Standard_Scale_Set                    , &
+  public :: Node_Component_Spheroid_Standard_Initialize         , Node_Component_Spheroid_Standard_Scale_Set                    , &
        &    Node_Component_Spheroid_Standard_Radius_Solver      , Node_Component_Spheroid_Standard_Star_Formation_History_Output, &
        &    Node_Component_Spheroid_Standard_Pre_Evolve         , Node_Component_Spheroid_Standard_Radius_Solver_Plausibility   , &
        &    Node_Component_Spheroid_Standard_Thread_Uninitialize, Node_Component_Spheroid_Standard_Thread_Initialize            , &
        &    Node_Component_Spheroid_Standard_State_Store        , Node_Component_Spheroid_Standard_State_Retrieve               , &
-       &    Node_Component_Spheroid_Standard_Inactive           , Node_Component_Spheroid_Standard_Post_Step                    , &
-       &    Node_Component_Spheroid_Standard_Initialize
+       &    Node_Component_Spheroid_Standard_Inactive           , Node_Component_Spheroid_Standard_Post_Step
 
   !# <component>
   !#  <class>spheroid</class>
@@ -160,11 +158,10 @@ module Node_Component_Spheroid_Standard
   ! Objects used by this component.
   class(stellarPopulationPropertiesClass), pointer :: stellarPopulationProperties_
   class(darkMatterHaloScaleClass        ), pointer :: darkMatterHaloScale_
-  class(satelliteTidalFieldClass        ), pointer :: satelliteTidalField_
   class(starFormationHistoryClass       ), pointer :: starFormationHistory_
   class(mergerMassMovementsClass        ), pointer :: mergerMassMovements_
   class(mergerRemnantSizeClass          ), pointer :: mergerRemnantSize_
-  !$omp threadprivate(stellarPopulationProperties_,darkMatterHaloScale_,satelliteTidalField_,starFormationHistory_,mergerMassMovements_,mergerRemnantSize_)
+  !$omp threadprivate(stellarPopulationProperties_,darkMatterHaloScale_,starFormationHistory_,mergerMassMovements_,mergerRemnantSize_)
 
   ! Internal count of abundances.
   integer                                     :: abundancesCount
@@ -262,7 +259,6 @@ contains
        call satelliteMergerEvent%attach(defaultSpheroidComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard',dependencies=dependencies)
        !# <objectBuilder class="stellarPopulationProperties"                                          name="stellarPopulationProperties_" source="parameters_"                    />
        !# <objectBuilder class="darkMatterHaloScale"                                                  name="darkMatterHaloScale_"         source="parameters_"                    />
-       !# <objectBuilder class="satelliteTidalField"                                                  name="satelliteTidalField_"         source="parameters_"                    />
        !# <objectBuilder class="starFormationHistory"                                                 name="starFormationHistory_"        source="parameters_"                    />
        !# <objectBuilder class="mergerMassMovements"                                                  name="mergerMassMovements_"         source="parameters_"                    />
        !# <objectBuilder class="mergerRemnantSize"                                                    name="mergerRemnantSize_"           source="parameters_"                    />
@@ -319,7 +315,6 @@ contains
        call satelliteMergerEvent%detach(defaultSpheroidComponent,satelliteMerger)
        !# <objectDestructor name="stellarPopulationProperties_"/>
        !# <objectDestructor name="darkMatterHaloScale_"        />
-       !# <objectDestructor name="satelliteTidalField_"        />
        !# <objectDestructor name="starFormationHistory_"       />
        !# <objectDestructor name="mergerMassMovements_"        />
        !# <objectDestructor name="mergerRemnantSize_"          />
@@ -605,45 +600,6 @@ contains
     end if
     return
   end subroutine Node_Component_Spheroid_Standard_Energy_Gas_Input_Rate
-
-  !# <rateComputeTask>
-  !#  <unitName>Node_Component_Spheroid_Standard_Rate_Compute</unitName>
-  !# </rateComputeTask>
-  subroutine Node_Component_Spheroid_Standard_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
-    !% Compute the standard spheroid node mass rate of change.
-    use :: Galacticus_Nodes, only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidStandard, &
-         &                          propertyTypeInactive    , treeNode
-    implicit none
-    type            (treeNode             ), intent(inout)          :: node
-    logical                                , intent(inout)          :: interrupt
-    procedure       (                     ), intent(inout), pointer :: interruptProcedure
-    integer                                , intent(in   )          :: propertyType
-    class           (nodeComponentSpheroid)               , pointer :: spheroid
-    double precision                                                :: tidalField        , tidalTorque
-    !$GLC attributes unused :: interrupt, interruptProcedure
-
-    ! Return immediately if this class is not in use or only inactive properties are to be computed.
-    if (.not.defaultSpheroidComponent%standardIsActive() .or. propertyType == propertyTypeInactive) return
-    ! Get the disk and check that it is of our class.
-    spheroid => node%spheroid()
-    select type (spheroid)
-    class is (nodeComponentSpheroidStandard)
-       ! Check for a realistic spheroid, return immediately if spheroid is unphysical.
-       if     (    spheroid%angularMomentum() < angularMomentumMinimum &
-            & .or. spheroid%radius         () <          radiusMinimum &
-            & .or. spheroid%massGas        () <            massMinimum &
-            & ) return
-
-       ! Apply tidal heating.
-       if (node%isSatellite() .and. spheroid%angularMomentum() < (spheroid%massGas()+spheroid%massStellar())*darkMatterHaloScale_%virialRadius(node)*darkMatterHaloScale_%virialVelocity(node) .and. spheroid%radius() < darkMatterHaloScale_%virialRadius(node)) then
-          tidalField =satelliteTidalField_%tidalTensorRadial(node)
-          tidalTorque=abs(tidalField)*(spheroid%massGas()+spheroid%massStellar())*spheroid%radius()**2
-          call spheroid%angularMomentumRate(+tidalTorque)
-       end if
-
-    end select
-    return
-  end subroutine Node_Component_Spheroid_Standard_Rate_Compute
 
   subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Rate(self,rate,interrupt,interruptProcedure)
     !% Adjust the rates for the star formation history.
