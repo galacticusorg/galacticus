@@ -45,12 +45,14 @@
           &                                                              massRatioLikelihoodMaximum            , rootVarianceTargetFractional
      integer         (c_size_t                             )          :: countMassRatio                        , indexOutput
      logical                                                          :: alwaysIsolatedOnly                    , covarianceDiagonalize       , &
-          &                                                              covarianceTargetOnly                  , likelihoodInLog
+          &                                                              covarianceTargetOnly                  , likelihoodInLog             , &
+          &                                                              weightsFinalized
    contains
      final     ::                     progenitorMassFunctionDestructor
      procedure :: newTree          => progenitorMassFunctionNewTree
      procedure :: reduce           => progenitorMassFunctionReduce
      procedure :: finalizeAnalysis => progenitorMassFunctionFinalizeAnalysis
+     procedure :: finalize         => progenitorMassFunctionFinalize
      procedure :: logLikelihood    => progenitorMassFunctionLogLikelihood
   end type outputAnalysisProgenitorMassFunction
 
@@ -85,7 +87,7 @@ contains
          &                                                                                 massRatioLikelihoodMinimum  , massRatioLikelihoodMaximum, &
          &                                                                                 rootVarianceTargetFractional
     integer         (c_size_t                            )                              :: countMassRatio
-    integer                                                                             :: instance
+    integer                                                                             :: indexParent                 , indexRedshift
     type            (varying_string                      )                              :: label                       , comment                   , &
          &                                                                                 targetLabel                 , fileName
     logical                                                                             :: alwaysIsolatedOnly          , covarianceDiagonalize     , &
@@ -131,6 +133,16 @@ contains
     !#   <description>The maximum mass ratio to include in likelihood calculations.</description>
     !#   <defaultValue>huge(0.0d0)</defaultValue>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>alwaysIsolatedOnly</name>
+    !#   <source>parameters</source>
+    !#   <description>If true, include only progenitors which have been always isolated halos.</description>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>redshiftParent</name>
+    !#   <source>parameters</source>
+    !#   <description>Redshift of the parent halos.</description>
+    !# </inputParameter>
     if (parameters%isPresent('fileName')) then
        !# <inputParameter>
        !#   <name>fileName</name>
@@ -138,11 +150,31 @@ contains
        !#   <description>The name of the file from which to read progenitor mass function parameters.</description>
        !# </inputParameter>
        !# <inputParameter>
-       !#   <name>instance</name>
+       !#   <name>indexParent</name>
        !#   <source>parameters</source>
-       !#   <description>The mass function instance to use from the file.</description>
+       !#   <description>The parent mass index to use from the file.</description>
        !# </inputParameter>
-       self=outputAnalysisProgenitorMassFunction(char(fileName),instance,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,likelihoodInLog,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_)
+       !# <inputParameter>
+       !#   <name>indexRedshift</name>
+       !#   <source>parameters</source>
+       !#   <description>The progenitor redshift index to use from the file.</description>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>comment</name>
+       !#   <source>parameters</source>
+       !#   <description>A comment describing this analysis.</description>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>label</name>
+       !#   <source>parameters</source>
+       !#   <description>A label for this analysis.</description>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>targetLabel</name>
+       !#   <source>parameters</source>
+       !#   <description>Label for the target dataset.</description>
+       !# </inputParameter>
+       self=outputAnalysisProgenitorMassFunction(char(fileName),label,comment,targetLabel,indexParent,indexRedshift,redshiftParent,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,likelihoodInLog,alwaysIsolatedOnly,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_)
     else
        !# <inputParameter>
        !#   <name>label</name>
@@ -185,16 +217,6 @@ contains
        !#   <name>redshiftProgenitor</name>
        !#   <source>parameters</source>
        !#   <description>Redshift of the progenitor halos.</description>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>redshiftParent</name>
-       !#   <source>parameters</source>
-       !#   <description>Redshift of the parent halos.</description>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>alwaysIsolatedOnly</name>
-       !#   <source>parameters</source>
-       !#   <description>If true, include only progenitors which have been always isolated halos.</description>
        !# </inputParameter>
        if (parameters%isPresent('targetLabel')) then
           !# <inputParameter>
@@ -266,57 +288,67 @@ contains
     return
   end function progenitorMassFunctionConstructorParameters
   
-  function progenitorMassFunctionConstructorFile(fileName,instance,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,likelihoodInLog,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_) result(self)
+  function progenitorMassFunctionConstructorFile(fileName,label,comment,targetLabel,indexParent,indexRedshift,redshiftParent,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,likelihoodInLog,alwaysIsolatedOnly,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_) result(self)
     !% Constructor for the ``progenitorMassFunction'' output analysis class which reads all required properties from file.
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: IO_HDF5                          , only : hdf5Object                , hdf5Access
     use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
+    use :: File_Utilities                   , only : File_Name_Expand
     use :: Virial_Density_Contrast          , only : virialDensityContrastClass
     implicit none
-    type            (outputAnalysisProgenitorMassFunction)                              :: self
-    character       (len=*                               ), intent(in   )               :: fileName
-    integer                                               , intent(in   )               :: instance
-    double precision                                      , intent(in   )               :: massRatioLikelihoodMinimum  , massRatioLikelihoodMaximum, &
-         &                                                                                 rootVarianceTargetFractional
-    logical                                               , intent(in   )               :: covarianceDiagonalize       , covarianceTargetOnly      , &
-         &                                                                                 likelihoodInLog
-    class           (cosmologyFunctionsClass             ), intent(inout), target       :: cosmologyFunctions_
-    class           (outputTimesClass                    ), intent(inout), target       :: outputTimes_
-    class           (virialDensityContrastClass          ), intent(in   ), target       :: virialDensityContrast_
-    class           (nbodyHaloMassErrorClass             ), intent(in   ), target       :: nbodyHaloMassError_
-    type            (varying_string                      )                              :: label                        , comment
-    double precision                                                                    :: massParentMinimum            , massParentMaximum        , &
-         &                                                                                 timeProgenitor               , timeParent               , &
-         &                                                                                 redshiftProgenitor           , redshiftParent
-    integer                                                                             :: alwaysIsolatedOnlyInteger
-    logical                                                                             :: alwaysIsolatedOnly
-    type            (varying_string                      )                              :: targetLabel
-    double precision                                      , allocatable, dimension(:  ) :: functionValueTarget          , massRatio
-    double precision                                      , allocatable, dimension(:,:) :: functionCovarianceTarget
-    type            (hdf5Object                          )                              :: dataFile                     , instanceGroup
-    character       (len=32                              )                              :: instanceGroupName
+    type            (outputAnalysisProgenitorMassFunction)                                :: self
+    character       (len=*                               ), intent(in   )                 :: fileName
+    type            (varying_string                      ), intent(in   )                 :: label                       , targetLabel               , &
+         &                                                                                   comment
+    integer                                               , intent(in   )                 :: indexParent                 , indexRedshift
+    double precision                                      , intent(in   )                 :: massRatioLikelihoodMinimum  , massRatioLikelihoodMaximum, &
+         &                                                                                   rootVarianceTargetFractional, redshiftParent
+    logical                                               , intent(in   )                 :: covarianceDiagonalize       , covarianceTargetOnly      , &
+         &                                                                                   likelihoodInLog             , alwaysIsolatedOnly
+    class           (cosmologyFunctionsClass             ), intent(inout), target         :: cosmologyFunctions_
+    class           (outputTimesClass                    ), intent(inout), target         :: outputTimes_
+    class           (virialDensityContrastClass          ), intent(in   ), target         :: virialDensityContrast_
+    class           (nbodyHaloMassErrorClass             ), intent(in   ), target         :: nbodyHaloMassError_
+    double precision                                                                      :: massParentMinimum            , massParentMaximum        , &
+         &                                                                                   timeProgenitor               , timeParent               , &
+         &                                                                                   redshiftProgenitor
+    double precision                                      , allocatable, dimension(:    ) :: functionValueTarget          , massRatio                , &
+         &                                                                                   redshiftProgenitors          , massParents
+    double precision                                      , allocatable, dimension(:,:  ) :: functionCovarianceTarget
+    double precision                                      , allocatable, dimension(:,:,:) :: functionValuesTarget
+    integer         (c_size_t                            ), allocatable, dimension(:,:,:) :: functionCountsTarget
+    type            (hdf5Object                          )                                :: dataFile                     , simulationGroup
+    integer                                                                               :: i
 
-    write (instanceGroupName,'(a,i4.4)') 'progenitorMassFunction',instance
     !$ call hdf5Access%set  ()
-    call dataFile%openFile(fileName,readOnly=.true.)
-    instanceGroup=dataFile%openGroup(instanceGroupName)
-    call instanceGroup%readDataset  ('massRatio'             ,massRatio                )
-    call instanceGroup%readDataset  ('massFunction'          ,functionValueTarget      )
-    call instanceGroup%readDataset  ('massFunctionCovariance',functionCovarianceTarget )
-    call instanceGroup%readAttribute('massParentMinimum'     ,massParentMinimum        )
-    call instanceGroup%readAttribute('massParentMaximum'     ,massParentMaximum        )
-    call instanceGroup%readAttribute('redshiftParent'        ,redshiftParent           )
-    call instanceGroup%readAttribute('redshiftProgenitor'    ,redshiftProgenitor       )
-    call instanceGroup%readAttribute('alwaysIsolatedOnly'    ,alwaysIsolatedOnlyInteger)
-    call instanceGroup%readAttribute('reference'             ,targetLabel              )
-    call instanceGroup%readAttribute('label'                 ,label                    )
-    call instanceGroup%readAttribute('comment'               ,comment                  )
-    call instanceGroup%close        (                                                  )
-    call dataFile     %close        (                                                  )
+    call dataFile%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
+    simulationGroup=dataFile%openGroup('simulation0001')
+    call simulationGroup%readDataset('massRatioProgenitor'   ,massRatio           )
+    call simulationGroup%readDataset('progenitorMassFunction',functionValuesTarget)
+    call simulationGroup%readDataset('count'                 ,functionCountsTarget)
+    call simulationGroup%readDataset('massParent'            ,massParents         )
+    call simulationGroup%readDataset('redshiftProgenitor'    ,redshiftProgenitors )
+    call simulationGroup%close      (                                             )
+    call dataFile       %close      (                                             )
     !$ call hdf5Access%unset()
-    alwaysIsolatedOnly=alwaysIsolatedOnlyInteger /= 0
+    ! Extract parent mass range and progenitor redshift.
+    massParentMinimum =massParents        (indexParent  +1)/sqrt(massParents(2)/massParents(1))
+    massParentMaximum =massParents        (indexParent  +1)*sqrt(massParents(2)/massParents(1))
+    redshiftProgenitor=redshiftProgenitors(indexRedshift+1)
+    ! Extract the target function values.
+    allocate(functionValueTarget(size(massRatio)))    
+    functionValueTarget=functionValuesTarget(indexParent+1,:,indexRedshift+1)
+    ! Compute a (diagonal) covariance matrix from the counts.
+    allocate(functionCovarianceTarget(size(functionValueTarget),size(functionValueTarget)))
+    functionCovarianceTarget=0.0d0
+    do i=1,size(functionValueTarget)
+       if (functionCountsTarget(indexParent+1,i,indexRedshift+1) > 0_c_size_t) &
+            & functionCovarianceTarget(i,i)=functionValueTarget(i)**2/dble(functionCountsTarget(indexParent+1,i,indexRedshift+1))
+    end do
+    ! Convert redshifts to times.
     timeProgenitor    =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftProgenitor))
     timeParent        =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftParent    ))
+    ! Build the object.
     self              =outputAnalysisProgenitorMassFunction(label,comment,massRatio(1),massRatio(size(massRatio)),size(massRatio,kind=c_size_t),massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,likelihoodInLog,virialDensityContrast_,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget)
     return
   end function progenitorMassFunctionConstructorFile
@@ -383,6 +415,8 @@ contains
     integer         (c_size_t                                        )                                          :: iOutput                                                , bufferCount
     !# <constructorAssign variables="massRatioMinimum, massRatioMaximum, countMassRatio, massParentMinimum, massParentMaximum, timeProgenitor, timeParent, alwaysIsolatedOnly, massRatioLikelihoodMinimum, massRatioLikelihoodMaximum, covarianceDiagonalize, covarianceTargetOnly, rootVarianceTargetFractional, likelihoodInLog"/>
 
+    ! Initialize state.
+    self%weightsFinalized=.false.
     ! Build grid of mass ratios.
     call allocateArray(massRatios,[countMassRatio])
     massRatios=Make_Range(massRatioMinimum,massRatioMaximum,int(countMassRatio),rangeType=rangeTypeLogarithmic)
@@ -592,7 +626,7 @@ contains
     implicit none
     class(outputAnalysisProgenitorMassFunction), intent(inout) :: self
     class(outputAnalysisClass                 ), intent(inout) :: reduced
-
+    
     select type (reduced)
     class is (outputAnalysisProgenitorMassFunction)
        !$ call OMP_Set_Lock(reduced%accumulateLock)
@@ -614,9 +648,10 @@ contains
     implicit none
     class(outputAnalysisProgenitorMassFunction), intent(inout) :: self
 
-    ! If already finalized, no need to do anything.
-    if (self%finalized) return
     call self%outputAnalysisVolumeFunction1D%finalizeAnalysis()
+    ! If already finalized, no need to do anything.
+    if (self%weightsFinalized) return
+    self%weightsFinalized=.true.
 #ifdef USEMPI
     ! If running under MPI, perform a summation reduction of the parent weights across all processes.
     self%weightParents=mpiSelf%sum(self%weightParents)
@@ -630,10 +665,34 @@ contains
     return
   end subroutine progenitorMassFunctionFinalizeAnalysis
 
+  subroutine progenitorMassFunctionFinalize(self)
+    !% Implement analysis finalization for progenitor mass functions. We simply normalize the accumulated weight of parent nodes.
+    use :: Galacticus_HDF5, only : galacticusOutputFile
+    use :: IO_HDF5        , only : hdf5Access          , hdf5Object
+    implicit none
+    class(outputAnalysisProgenitorMassFunction), intent(inout) :: self
+    type (hdf5Object                          )                :: analysesGroup, analysisGroup
+
+    call self                               %finalizeAnalysis()
+    call self%outputAnalysisVolumeFunction1D%finalize        ()
+    ! Add attributes giving the range of mass ratios considered. Also re-write the log-likelihood attribute here as it will have
+    ! been written as part of the "outputAnalysisVolumeFunction1D" parent class, but we need to do our own calculation.    
+    !$ call hdf5Access%set()
+    analysesGroup=galacticusOutputFile%openGroup('analyses'                         )
+    analysisGroup=analysesGroup       %openGroup(char(self%label),char(self%comment))
+    call analysisGroup%writeAttribute(self%logLikelihood             (),'logLikelihood'             )
+    call analysisGroup%writeAttribute(self%massRatioLikelihoodMinimum  ,'massRatioLikelihoodMinimum')
+    call analysisGroup%writeAttribute(self%massRatioLikelihoodMaximum  ,'massRatioLikelihoodMaximum')
+    call analysisGroup%close         (                                        )
+    call analysesGroup%close         (                                        )
+    !$ call hdf5Access%unset()
+    return
+  end subroutine progenitorMassFunctionFinalize
+
   double precision function progenitorMassFunctionLogLikelihood(self)
     !% Return the log-likelihood of the progenitor mass function.
     use, intrinsic :: ISO_C_Binding               , only : c_size_t
-    use            :: Linear_Algebra              , only : vector                 , matrix   , assignment(=), operator(*)
+    use            :: Linear_Algebra              , only : vector                 , matrix, assignment(=), operator(*)
     use            :: Galacticus_Error            , only : Galacticus_Error_Report
     use            :: Interface_GSL               , only : GSL_Success
     use            :: Models_Likelihoods_Constants, only : logImprobable
