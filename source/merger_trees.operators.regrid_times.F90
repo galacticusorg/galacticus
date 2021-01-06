@@ -63,6 +63,18 @@ contains
     logical                                                        :: dumpTrees
     double precision                                               :: snapTolerance
 
+    !# <inputParameter>
+    !#   <name>dumpTrees</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>Specifies whether or not to dump merger trees as they are regridded.</description>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>snapTolerance</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The fractional tolerance used in deciding if a node should be snapped to a time on the grid.</description>
+    !# </inputParameter>
     !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     self=mergerTreeOperatorRegridTimes(snapTolerance,dumpTrees,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
@@ -243,25 +255,6 @@ contains
              ! Get the time of this node and its parent.
              timeNow   =basic  %time()
              timeParent=basicParent%time()
-             ! Get masses of these halos.
-             massNow   =basic  %mass()
-             massParent=basicParent%mass()
-             if (node%isPrimaryProgenitor()) then
-                ! Remove the mass in any non-primary progenitors - we don't want to include
-                ! their mass in the estimated mass growth rate of this node.
-                nodeChild => node%parent%firstChild%sibling
-                do while (associated(nodeChild))
-                   basicChild => nodeChild%basic()
-                   massParent =  massParent-basicChild%mass()
-                   nodeChild  => nodeChild%sibling
-                end do
-                ! Do not let the parent mass decrease along the branch.
-                massParent=max(massParent,massNow)
-             else
-                ! Halo is not the primary progenitor of its parent. Assume that its mass does
-                ! not grow further.
-                massParent=massNow
-             end if
              ! Locate these times in the list of grid times.
              iNow   =interpolator_%locate(timeNow   )
              iParent=interpolator_%locate(timeParent)
@@ -271,6 +264,25 @@ contains
              ! If the branch from node to parent spans one or more grid times, insert new nodes
              ! at those points.
              if (iParent > iNow) then
+                ! Get masses of these halos.
+                massNow   =basic      %mass()
+                massParent=basicParent%mass()
+                if (node%isPrimaryProgenitor()) then
+                   ! Remove the mass in any non-primary progenitors - we don't want to include
+                   ! their mass in the estimated mass growth rate of this node.
+                   nodeChild => node%parent%firstChild%sibling
+                   do while (associated(nodeChild))
+                      basicChild => nodeChild%basic()
+                      massParent =  massParent-basicChild%mass()
+                      nodeChild  => nodeChild%sibling
+                   end do
+                   ! Do not let the parent mass decrease along the branch.
+                   massParent=max(massParent,massNow)
+                else
+                   ! Halo is not the primary progenitor of its parent. Assume that its mass does
+                   ! not grow further.
+                   massParent=massNow
+                end if
                 ! Create new nodes.
                 allocate(newNodes(iParent-iNow),stat=allocErr)
                 if (allocErr/=0) call Galacticus_Error_Report('unable to allocate new nodes'//{introspection:location})
@@ -360,12 +372,12 @@ contains
                    nodeChild => node%firstChild
                    ! Assign all children a parent that is the parent of the current node.
                    do while (associated(nodeChild))
-                      nodeChild%parent => node %parent
+                      nodeChild%parent => node%parent
                       if (.not.associated(nodeChild%sibling)) then
-                         nodeChild%sibling => node%sibling
-                         nodeChild             => null()
+                         nodeChild%sibling => node     %sibling
+                         nodeChild         => null()
                       else
-                         nodeChild             => nodeChild%sibling
+                         nodeChild         => nodeChild%sibling
                       end if
                    end do
                    ! Assign the current node's parent a child that is the child of the current node.
@@ -382,16 +394,15 @@ contains
                    ! Assign all children a parent that is the parent of the current node.
                    nodeChild => node%firstChild
                    do while (associated(nodeChild))
-                      nodeChild%parent => node %parent
+                      nodeChild%parent => node%parent
                       if (.not.associated(nodeChild%sibling)) then
-                         nodeChild%sibling => node%sibling
-                         nodeChild => null()
+                         nodeChild%sibling => node     %sibling
+                         nodeChild         => null()
                       else
-                         nodeChild            => nodeChild%sibling
+                         nodeChild         => nodeChild%sibling
                       end if
                    end do
-                   ! Find which sibling points the current node and link in the children of the
-                   ! current node.
+                   ! Find which sibling points to the current node and link in the children of the current node.
                    nodeSibling => node%parent%firstChild
                    do while (.not.associated(nodeSibling%sibling,node))
                       nodeSibling => nodeSibling%sibling
