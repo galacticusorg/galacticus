@@ -11,7 +11,7 @@
     <initializeNodeClassHierarchy value="true"/>
   </taskMethod>
 
-  <galacticusOutputFileName value="projects/pipeline/data/work/galacticus.hdf5"/>
+  <galacticusOutputFileName value="galacticus.hdf5"/>
   
   <!-- Cosmological parameters and options -->
   <cosmologyFunctionsMethod  value="matterLambda"/>
@@ -223,15 +223,15 @@
 
   <!-- Particle swarm optimization -->
   <posteriorSampleSimulationMethod value="particleSwarm">
-    <stepsMaximum                    value="100"                          />
-    <logFlushCount                   value="  1"                          />
-    <reportCount                     value=" 10"                          />
-    <logFileRoot                     value="projects/pipeline/data/chains"/>
-    <inertiaWeight                   value="0.720"                        />
-    <accelerationCoefficientPersonal value="1.193"                        />
-    <accelerationCoefficientGlobal   value="1.193"                        />
-    <velocityCoefficient             value="0.500"                        />
-    <velocityCoefficientInitial      value="0.000"                        />
+    <stepsMaximum                    value="100"   />
+    <logFlushCount                   value="  1"   />
+    <reportCount                     value=" 10"   />
+    <logFileRoot                     value="chains"/>
+    <inertiaWeight                   value="0.720" />
+    <accelerationCoefficientPersonal value="1.193" />
+    <accelerationCoefficientGlobal   value="1.193" />
+    <velocityCoefficient             value="0.500" />
+    <velocityCoefficientInitial      value="0.000" />
 
     <posteriorSampleStateInitializeMethod value="latinHypercube">
       <maximinTrialCount value="100"/>
