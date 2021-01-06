@@ -3,11 +3,19 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
-  <!-- Structure formation options -->
+  <!-- Halo mass function options -->
   <haloMassFunctionMethod value="shethTormen">
-    <a             value="0.0"/>
-    <p             value="0.0"/>
-    <normalization value="0.0"/>
+    <a             value="0.758359488694975"/>
+    <p             value="0.331118219117848"/>
+    <normalization value="0.289897200615808"/>
   </haloMassFunctionMethod>
+
+  <!-- Merger tree building options -->
+  <mergerTreeBranchingProbabilityMethod value="PCHPlus">
+    <G0     value="0.638281579386862"/>
+    <gamma1 value="0.343603753943584"/>
+    <gamma2 value="0.141606083101768"/>
+    <gamma3 value="0.341795281661193"/>
+  </mergerTreeBranchingProbabilityMethod>
 
 </parameters>
