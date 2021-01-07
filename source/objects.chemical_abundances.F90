@@ -204,7 +204,7 @@ contains
     use :: ISO_Varying_String, only : operator(==)
     implicit none
     character(len=*), intent(in   )           :: chemicalName
-    logical         , intent(  out), optional :: status
+    integer         , intent(  out), optional :: status
     integer                                   :: iChemical
 
     Chemicals_Index=-1 ! Indicates chemical not found.

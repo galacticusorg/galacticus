@@ -594,10 +594,9 @@ contains
     character       (len=*               ), intent(in   ) :: fileName
     double precision                      , parameter     :: metallicityLogarithmicZero=-999.0d0
     type            (varying_string      )                :: limitType
-    integer                                               :: fileFormatVersion
+    integer                                               :: fileFormatVersion                  , status
     type            (hdf5Object          )                :: chemicalStateFile                  , metallicityDataset, &
          &                                                   temperatureDataset
-    logical                                               :: status
 
     call hdf5Access%set()
     ! Parse the file.
