@@ -198,20 +198,28 @@ contains
     return
   end function Chemicals_Names
 
-  integer function Chemicals_Index(chemicalName)
+  integer function Chemicals_Index(chemicalName,status)
     !% Returns the index of a chemical in the chemical abundances structure given the {\normalfont \ttfamily chemicalName}.
+    use :: Galacticus_Error  , only : Galacticus_Error_Report, errorStatusFail, errorStatusSuccess
     use :: ISO_Varying_String, only : operator(==)
     implicit none
-    character(len=*), intent(in   ) :: chemicalName
-    integer                         :: iChemical
+    character(len=*), intent(in   )           :: chemicalName
+    logical         , intent(  out), optional :: status
+    integer                                   :: iChemical
 
     Chemicals_Index=-1 ! Indicates chemical not found.
     do iChemical=1,chemicalsCount
        if (chemicalsToTrack(iChemical) == trim(chemicalName)) then
           Chemicals_Index=iChemical
+          if (present(status)) status=errorStatusSuccess
           return
        end if
     end do
+    if (present(status)) then
+       status=errorStatusFail
+    else
+       call Galacticus_Error_Report('chemical species "'//trim(chemicalName)//'" is not available - to track this species add it to the <chemicalsToTrack> parameter'//{introspection:location})
+    end if
     return
   end function Chemicals_Index
 

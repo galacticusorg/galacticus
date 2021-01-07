@@ -113,37 +113,37 @@
 
 contains
 
-  function molecularHydrogenGalliPallaConstructorParameters(parameters)
+  function molecularHydrogenGalliPallaConstructorParameters(parameters) result(self)
     !% Constructor for the ``molecular hydrogen (Galli \& Palla)'' cooling function class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(coolingFunctionMolecularHydrogenGalliPalla)                :: molecularHydrogenGalliPallaConstructorParameters
+    type(coolingFunctionMolecularHydrogenGalliPalla)                :: self
     type(inputParameters                           ), intent(inout) :: parameters
     !$GLC attributes unused :: parameters
 
-    molecularHydrogenGalliPallaConstructorParameters=molecularHydrogenGalliPallaConstructorInternal()
+    self=coolingFunctionMolecularHydrogenGalliPalla()
     return
   end function molecularHydrogenGalliPallaConstructorParameters
 
-  function molecularHydrogenGalliPallaConstructorInternal()
+  function molecularHydrogenGalliPallaConstructorInternal() result(self)
     !% Internal constructor for the ``molecular hydrogen (Galli \& Palla)'' cooling function class.
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     implicit none
-    type(coolingFunctionMolecularHydrogenGalliPalla) :: molecularHydrogenGalliPallaConstructorInternal
+    type(coolingFunctionMolecularHydrogenGalliPalla) :: self
 
     ! Get the indices of chemicals that will be used.
-    molecularHydrogenGalliPallaConstructorInternal%electronIndex               =Chemicals_Index("Electron"               )
-    molecularHydrogenGalliPallaConstructorInternal%atomicHydrogenIndex         =Chemicals_Index("AtomicHydrogen"         )
-    molecularHydrogenGalliPallaConstructorInternal%molecularHydrogenCationIndex=Chemicals_Index("MolecularHydrogenCation")
-    molecularHydrogenGalliPallaConstructorInternal%molecularHydrogenIndex      =Chemicals_Index("MolecularHydrogen"      )
+    self%electronIndex               =Chemicals_Index("Electron"               )
+    self%atomicHydrogenIndex         =Chemicals_Index("AtomicHydrogen"         )
+    self%molecularHydrogenCationIndex=Chemicals_Index("MolecularHydrogenCation")
+    self%molecularHydrogenIndex      =Chemicals_Index("MolecularHydrogen"      )
     ! Initialized stored calculations to unphysical values.
-    molecularHydrogenGalliPallaConstructorInternal%temperaturePrevious1             =-1.0d0
-    molecularHydrogenGalliPallaConstructorInternal%temperaturePrevious2             =-1.0d0
-    molecularHydrogenGalliPallaConstructorInternal%temperaturePrevious3             =-1.0d0
-    molecularHydrogenGalliPallaConstructorInternal%temperaturePrevious4             =-1.0d0
-    molecularHydrogenGalliPallaConstructorInternal%temperatureCommonPrevious        =-1.0d0
-    molecularHydrogenGalliPallaConstructorInternal%temperatureHH2PlusPrevious       =-1.0d0
-    molecularHydrogenGalliPallaConstructorInternal%temperatureH2PlusElectronPrevious=-1.0d0
+    self%temperaturePrevious1             =-1.0d0
+    self%temperaturePrevious2             =-1.0d0
+    self%temperaturePrevious3             =-1.0d0
+    self%temperaturePrevious4             =-1.0d0
+    self%temperatureCommonPrevious        =-1.0d0
+    self%temperatureHH2PlusPrevious       =-1.0d0
+    self%temperatureH2PlusElectronPrevious=-1.0d0
     return
   end function molecularHydrogenGalliPallaConstructorInternal
 

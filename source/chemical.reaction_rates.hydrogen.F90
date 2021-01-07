@@ -140,7 +140,6 @@ contains
     !% Constructor for the {\normalfont \ttfamily hydrogenNetwork} chemical reaction rates class which takes a parameter set as
     !% input.
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
-    use :: Galacticus_Error             , only : Galacticus_Error_Report
     implicit none
     type   (chemicalReactionRateHydrogenNetwork   )                        :: self
     logical                                        , intent(in   )         :: fast
@@ -155,9 +154,6 @@ contains
        self%atomicHydrogenIndex      =Chemicals_Index("AtomicHydrogen"      )
        self%atomicHydrogenCationIndex=Chemicals_Index("AtomicHydrogenCation")
        self%electronIndex            =Chemicals_Index("Electron"            )
-       if (self%atomicHydrogenIndex       <= 0) call Galacticus_Error_Report('atomic hydrogen must be included for fast hydrogen network calculation'//{introspection:location})
-       if (self%atomicHydrogenCationIndex <= 0) call Galacticus_Error_Report('hydrogen cation must be included for fast hydrogen network calculation'//{introspection:location})
-       if (self%electronIndex             <= 0) call Galacticus_Error_Report('electrons must be included for fast hydrogen network calculation'      //{introspection:location})
     else
        ! Get actual hydrogen anion index.
        self%atomicHydrogenAnionIndex =Chemicals_Index("AtomicHydrogenAnion")

@@ -597,6 +597,7 @@ contains
     integer                                               :: fileFormatVersion
     type            (hdf5Object          )                :: chemicalStateFile                  , metallicityDataset, &
          &                                                   temperatureDataset
+    logical                                               :: status
 
     call hdf5Access%set()
     ! Parse the file.
@@ -707,14 +708,14 @@ contains
     self%interpolatorTemperature=interpolator(self%temperatures )
     self%interpolatorMetallicity=interpolator(self%metallicities)
     ! Get chemical indices.
-    self%electronChemicalIndex               =Chemicals_Index("Electron"            )
+    self%electronChemicalIndex               =Chemicals_Index("Electron"            ,status)
     if (self%gotHydrogenAtomic) then
-       self%atomicHydrogenChemicalIndex      =Chemicals_Index("AtomicHydrogen"      )
+       self%atomicHydrogenChemicalIndex      =Chemicals_Index("AtomicHydrogen"      ,status)
     else
        self%atomicHydrogenChemicalIndex      =-1
     end if
     if (self%gotHydrogenCation) then
-       self%atomicHydrogenCationChemicalIndex=Chemicals_Index("AtomicHydrogenCation")
+       self%atomicHydrogenCationChemicalIndex=Chemicals_Index("AtomicHydrogenCation",status)
     else
        self%atomicHydrogenCationChemicalIndex=-1
     end if
