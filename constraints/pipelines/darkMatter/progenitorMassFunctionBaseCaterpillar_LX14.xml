@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Parameters for Caterpillar progenitor mass function constraints -->
+<!-- 23-November-2020                                                -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+  
+  <!-- Task control -->
+  <evolveForestsWorkShareMethod value="FCFS">
+    <!-- Use only one quarter of the processes here and these trees need a lot of memory -->
+    <activeProcessRanks value="0 1 2 3"/>
+  </evolveForestsWorkShareMethod>
+  
+  <!-- Component selection -->
+  <treeNodeMethodBasic              value="standard"  />
+  <treeNodeMethodBlackHole          value="null"      />
+  <treeNodeMethodDarkMatterProfile  value="scale"     />
+  <treeNodeMethodDisk               value="null"      />
+  <treeNodeMethodHotHalo            value="null"      />
+  <treeNodeMethodSatellite          value="verySimple"/>
+  <treeNodeMethodSpheroid           value="null"      />
+  <treeNodeMethodMergingStatistics  value="standard"  />
+  <satelliteMergingTimescalesMethod value="zero"      />
+  <treeNodeMethodSpin               value="null"      />
+
+  <!-- Cosmological parameters matched to Caterpillar -->
+  <cosmologyFunctionsMethod value="matterLambda"/>
+  <cosmologyParametersMethod value="simple">
+    <HubbleConstant  value="67.110000"/>
+    <OmegaMatter     value=" 0.320000"/>
+    <OmegaDarkEnergy value=" 0.680000"/>
+    <OmegaBaryon     value=" 0.050000"/>
+    <temperatureCMB  value=" 2.725480"/>
+  </cosmologyParametersMethod>
+
+  <!-- Power spectrum options matched to MDPL2 -->
+  <transferFunctionMethod        value="CAMB"    />
+  <powerSpectrumPrimordialMethod value="powerLaw" >
+    <index               value="0.96"/>
+    <wavenumberReference value="1.00"/>
+    <running             value="0.00"/>
+  </powerSpectrumPrimordialMethod>
+  <powerSpectrumPrimordialTransferredMethod value="simple"       />
+  <cosmologicalMassVarianceMethod           value="filteredPower" >
+    <sigma_8 value="0.83"/>
+  </cosmologicalMassVarianceMethod>
+  
+  <!-- Structure formation options -->
+  <linearGrowthMethod          value="collisionlessMatter"                       />
+  <haloMassFunctionMethod      value="shethTormen"                                >
+    <a             value="+0.8745"/> <!-- Best fit values for z=0 from Benson (2017) -->
+    <p             value="-0.0306"/>
+    <normalization value="+0.3318"/>
+  </haloMassFunctionMethod>
+  <criticalOverdensityMethod   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/> <!-- Matches halo mass definition in Benson (2017) -->
+  <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+
+  <!-- Merger tree building options -->
+  <mergerTreeConstructorMethod value="build"/>
+  <mergerTreeBuilderMethod value="cole2000">
+    <accretionLimit     value="0.01"/>
+    <mergeProbability   value="0.10"/>
+    <branchIntervalStep value="true"/>
+    <redshiftMaximum    value="8.5" />
+  </mergerTreeBuilderMethod>
+  <mergerTreeBranchingProbabilityMethod value="PCHPlus">
+    <!-- Best fit values from PCH -->
+    <G0     value="+0.5700"/>
+    <gamma1 value="+0.3800"/>
+    <gamma2 value="-0.0100"/>
+    <gamma3 value="+0.0000"/>
+    <accuracyFirstOrder value="+0.10"/>
+    <cdmAssumptions value="true"/>
+  </mergerTreeBranchingProbabilityMethod>
+  <mergerTreeBuildMassesMethod value="replicate">
+    <replicationCount value="10"/>
+    <mergerTreeBuildMassesMethod value="readHDF5">
+      <fileName value="%DATASTATICPATH%/darkMatter/haloMasses_Caterpillar_LX14.hdf5"/>
+    </mergerTreeBuildMassesMethod>
+ </mergerTreeBuildMassesMethod>
+  <mergerTreeMassResolutionMethod value="fixed">
+    <!-- 1/5th of 300 times the Caterpillar LX14 particle mass - such that our resolution is well below any mass scale that we care about -->
+    <massResolution value="1.79124e6"/>
+  </mergerTreeMassResolutionMethod>
+  
+  <!-- Substructure hierarchy options -->
+  <mergerTreeNodeMergerMethod value="singleLevelHierarchy"/>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfileDMOMethod            value="isothermal"/>
+  <darkMatterProfileConcentrationMethod  value="gao2008"   />
+  <darkMatterProfileMinimumConcentration value="4"         />
+  <galacticStructureSolverMethod         value="null"      />
+  <haloSpinDistributionMethod value="bett2007">
+    <alpha   value="2.50900"/>
+    <lambda0 value="0.04326"/>
+  </haloSpinDistributionMethod>
+  <randomSpinResetMassFactor value="2.0"/>
+
+  <!-- Merger tree evolution -->
+  <mergerTreeEvolverMethod value="standard">
+    <timestepHostAbsolute value="1.0"/>
+    <timestepHostRelative value="0.1"/>
+  </mergerTreeEvolverMethod>
+  <mergerTreeNodeEvolverMethod value="standard">
+    <odeToleranceAbsolute value="0.01"/>
+    <odeToleranceRelative value="0.01"/>
+  </mergerTreeNodeEvolverMethod>
+
+  <!-- Output options -->
+  <galacticusOutputFileName  value="Caterpillar_LX14.hdf5"/>
+  <mergerTreeOutputterMethod value="analyzer">
+  </mergerTreeOutputterMethod>
+  <outputTimesMethod value="list">
+    <redshifts value="0.501276084671971 0.996007984031936 2.01023479831427 3.95785820525533 8.02527075812274"/>
+  </outputTimesMethod>
+  <mergerTreeOperatorMethod value="regridTimes">
+    <!-- Regrid the trees to massively speed up searching for parents etc. -->
+    <regridCount       value="7"                        />
+    <snapshotSpacing   value="list"                     />
+    <!--  Include one higher redshift here since otherwise the regridded halos at the earliest time may not exist precisely at the output time -->
+    <snapshotRedshifts value="0.0 0.501276084671971 0.996007984031936 2.01023479831427 3.95785820525533 8.02527075812274 8.4"/>
+  </mergerTreeOperatorMethod>
+  <outputAnalysisMethod value="multi">
+    <!-- Minimum mass ratio for likelihood is the ratio of the Caterpillar 300 particle mass limit (8.9562e6Msun) to the minimum parent
+         mass in the sample. -->
+    <outputAnalysisMethod value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_Caterpillar_LX14.hdf5"/>
+      <indexParent                  value="1"                                                                                                   />
+      <indexRedshift                value="0"                                                                                                   />
+      <massRatioLikelihoodMinimum   value="1.19e-5"                                                                                             />
+      <massRatioLikelihoodMaximum   value="1.00e+0"                                                                                             />
+      <covarianceDiagonalize        value="true"                                                                                                />
+      <covarianceTargetOnly         value="true"                                                                                                />
+      <rootVarianceTargetFractional value="0.1"                                                                                                 />
+      <alwaysIsolatedOnly           value="true"                                                                                                />
+      <redshiftParent               value="0.0"                                                                                                 />
+      <comment                      value="$11.5 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.0$; $z=0.50$; Caterpillar LX14 halos"/>
+      <label                        value="CaterpillarLX14M1Z0"                                                                                 />
+      <targetLabel                  value="Griffen et al. (2016)"                                                                               />
+    </outputAnalysisMethod>
+    <outputAnalysisMethod value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_Caterpillar_LX14.hdf5"/>
+      <indexParent                  value="2"                                                                                                   />
+      <indexRedshift                value="0"                                                                                                   />
+      <massRatioLikelihoodMinimum   value="1.19e-5"                                                                                             />
+      <massRatioLikelihoodMaximum   value="1.00e+0"                                                                                             />
+      <covarianceDiagonalize        value="true"                                                                                                />
+      <covarianceTargetOnly         value="true"                                                                                                />
+      <rootVarianceTargetFractional value="0.1"                                                                                                 />
+      <alwaysIsolatedOnly           value="true"                                                                                                />
+      <redshiftParent               value="0.0"                                                                                                 />
+      <comment                      value="$12.0 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.5$; $z=0.50$; Caterpillar LX14 halos"/>
+      <label                        value="CaterpillarLX14M2Z0"                                                                                 />
+      <targetLabel                  value="Griffen et al. (2016)"                                                                               />
+    </outputAnalysisMethod>
+    <outputAnalysisMethod value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_Caterpillar_LX14.hdf5"/>
+      <indexParent                  value="1"                                                                                                   />
+      <indexRedshift                value="1"                                                                                                   />
+      <massRatioLikelihoodMinimum   value="1.19e-5"                                                                                             />
+      <massRatioLikelihoodMaximum   value="1.00e+0"                                                                                             />
+      <covarianceDiagonalize        value="true"                                                                                                />
+      <covarianceTargetOnly         value="true"                                                                                                />
+      <rootVarianceTargetFractional value="0.1"                                                                                                 />
+      <alwaysIsolatedOnly           value="true"                                                                                                />
+      <redshiftParent               value="0.0"                                                                                                 />
+      <comment                      value="$11.5 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.0$; $z=0.99$; Caterpillar LX14 halos"/>
+      <label                        value="CaterpillarLX14M1Z1"                                                                                 />
+      <targetLabel                  value="Griffen et al. (2016)"                                                                               />
+    </outputAnalysisMethod>
+    <outputAnalysisMethod value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_Caterpillar_LX14.hdf5"/>
+      <indexParent                  value="2"                                                                                                   />
+      <indexRedshift                value="1"                                                                                                   />
+      <massRatioLikelihoodMinimum   value="1.19e-5"                                                                                             />
+      <massRatioLikelihoodMaximum   value="1.00e+0"                                                                                             />
+      <covarianceDiagonalize        value="true"                                                                                                />
+      <covarianceTargetOnly         value="true"                                                                                                />
+      <rootVarianceTargetFractional value="0.1"                                                                                                 />
+      <alwaysIsolatedOnly           value="true"                                                                                                />
+      <redshiftParent               value="0.0"                                                                                                 />
+      <comment                      value="$12.0 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.5$; $z=0.99$; Caterpillar LX14 halos"/>
+      <label                        value="CaterpillarLX14M2Z1"                                                                                 />
+      <targetLabel                  value="Griffen et al. (2016)"                                                                               />
+    </outputAnalysisMethod>
+    <outputAnalysisMethod value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_Caterpillar_LX14.hdf5"/>
+      <indexParent                  value="1"                                                                                                   />
+      <indexRedshift                value="2"                                                                                                   />
+      <massRatioLikelihoodMinimum   value="1.19e-5"                                                                                             />
+      <massRatioLikelihoodMaximum   value="1.00e+0"                                                                                             />
+      <covarianceDiagonalize        value="true"                                                                                                />
+      <covarianceTargetOnly         value="true"                                                                                                />
+      <rootVarianceTargetFractional value="0.1"                                                                                                 />
+      <alwaysIsolatedOnly           value="true"                                                                                                />
+      <redshiftParent               value="0.0"                                                                                                 />
+      <comment                      value="$11.5 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.0$; $z=2.01$; Caterpillar LX14 halos"/>
+      <label                        value="CaterpillarLX14M1Z2"                                                                                 />
+      <targetLabel                  value="Griffen et al. (2016)"                                                                               />
+    </outputAnalysisMethod>
+    <outputAnalysisMethod value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_Caterpillar_LX14.hdf5"/>
+      <indexParent                  value="2"                                                                                                   />
+      <indexRedshift                value="2"                                                                                                   />
+      <massRatioLikelihoodMinimum   value="1.19e-5"                                                                                             />
+      <massRatioLikelihoodMaximum   value="1.00e+0"                                                                                             />
+      <covarianceDiagonalize        value="true"                                                                                                />
+      <covarianceTargetOnly         value="true"                                                                                                />
+      <rootVarianceTargetFractional value="0.1"                                                                                                 />
+      <alwaysIsolatedOnly           value="true"                                                                                                />
+      <redshiftParent               value="0.0"                                                                                                 />
+      <comment                      value="$12.0 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.5$; $z=2.01$; Caterpillar LX14 halos"/>
+      <label                        value="CaterpillarLX14M2Z2"                                                                                 />
+      <targetLabel                  value="Griffen et al. (2016)"                                                                               />
+    </outputAnalysisMethod>
+    <outputAnalysisMethod value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_Caterpillar_LX14.hdf5"/>
+      <indexParent                  value="1"                                                                                                   />
+      <indexRedshift                value="3"                                                                                                   />
+      <massRatioLikelihoodMinimum   value="1.19e-5"                                                                                             />
+      <massRatioLikelihoodMaximum   value="1.00e+0"                                                                                             />
+      <covarianceDiagonalize        value="true"                                                                                                />
+      <covarianceTargetOnly         value="true"                                                                                                />
+      <rootVarianceTargetFractional value="0.1"                                                                                                 />
+      <alwaysIsolatedOnly           value="true"                                                                                                />
+      <redshiftParent               value="0.0"                                                                                                 />
+      <comment                      value="$11.5 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.0$; $z=3.96$; Caterpillar LX14 halos"/>
+      <label                        value="CaterpillarLX14M1Z3"                                                                                 />
+      <targetLabel                  value="Griffen et al. (2016)"                                                                               />
+    </outputAnalysisMethod>
+    <outputAnalysisMethod value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_Caterpillar_LX14.hdf5"/>
+      <indexParent                  value="2"                                                                                                   />
+      <indexRedshift                value="3"                                                                                                   />
+      <massRatioLikelihoodMinimum   value="1.19e-5"                                                                                             />
+      <massRatioLikelihoodMaximum   value="1.00e+0"                                                                                             />
+      <covarianceDiagonalize        value="true"                                                                                                />
+      <covarianceTargetOnly         value="true"                                                                                                />
+      <rootVarianceTargetFractional value="0.1"                                                                                                 />
+      <alwaysIsolatedOnly           value="true"                                                                                                />
+      <redshiftParent               value="0.0"                                                                                                 />
+      <comment                      value="$12.0 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.5$; $z=3.96$; Caterpillar LX14 halos"/>
+      <label                        value="CaterpillarLX14M2Z3"                                                                                 />
+      <targetLabel                  value="Griffen et al. (2016)"                                                                               />
+    </outputAnalysisMethod>
+    <outputAnalysisMethod value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_Caterpillar_LX14.hdf5"/>
+      <indexParent                  value="1"                                                                                                   />
+      <indexRedshift                value="4"                                                                                                   />
+      <massRatioLikelihoodMinimum   value="1.19e-5"                                                                                             />
+      <massRatioLikelihoodMaximum   value="1.00e+0"                                                                                             />
+      <covarianceDiagonalize        value="true"                                                                                                />
+      <covarianceTargetOnly         value="true"                                                                                                />
+      <rootVarianceTargetFractional value="0.1"                                                                                                 />
+      <alwaysIsolatedOnly           value="true"                                                                                                />
+      <redshiftParent               value="0.0"                                                                                                 />
+      <comment                      value="$11.5 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.0$; $z=8.01$; Caterpillar LX14 halos"/>
+      <label                        value="CaterpillarLX14M1Z4"                                                                                 />
+      <targetLabel                  value="Griffen et al. (2016)"                                                                               />
+    </outputAnalysisMethod>
+    <outputAnalysisMethod value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_Caterpillar_LX14.hdf5"/>
+      <indexParent                  value="2"                                                                                                   />
+      <indexRedshift                value="4"                                                                                                   />
+      <massRatioLikelihoodMinimum   value="1.19e-5"                                                                                             />
+      <massRatioLikelihoodMaximum   value="1.00e+0"                                                                                             />
+      <covarianceDiagonalize        value="true"                                                                                                />
+      <covarianceTargetOnly         value="true"                                                                                                />
+      <rootVarianceTargetFractional value="0.1"                                                                                                 />
+      <alwaysIsolatedOnly           value="true"                                                                                                />
+      <redshiftParent               value="0.0"                                                                                                 />
+      <comment                      value="$12.0 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.5$; $z=8.01$; Caterpillar LX14 halos"/>
+      <label                        value="CaterpillarLX14M2Z4"                                                                                 />
+      <targetLabel                  value="Griffen et al. (2016)"                                                                               />
+    </outputAnalysisMethod>
+  </outputAnalysisMethod>
+  <nbodyHaloMassErrorMethod value="trenti2010">
+    <massParticle                value="2.9854e4"/> <!-- Particle mass in Caterpillar LX14 -->
+    <correlationNormalization    value="1.0"     />
+    <correlationMassExponent     value="1.0"     />
+    <correlationRedshiftExponent value="0.0"     />
+  </nbodyHaloMassErrorMethod>
+  
+</parameters>

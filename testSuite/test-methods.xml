@@ -770,10 +770,10 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodeOperatorMethod value="multi">
-      <nodeOperatorMethod value="starFormationDisks"/>
-      <nodeOperatorMethod value="starFormationSpheroids"/>
+      <nodeOperatorMethod value="starFormationDisks" iterable="no"/>
+      <nodeOperatorMethod value="starFormationSpheroids" iterable="no"/>
       <!--Stellar feedback outflows-->
-      <nodeOperatorMethod value="stellarFeedbackDisks">
+      <nodeOperatorMethod value="stellarFeedbackDisks" iterable="no">
 	<stellarFeedbackOutflowsMethod value="rateLimit">
           <timescaleOutflowFractionalMinimum value="0.001"/>
           <stellarFeedbackOutflowsMethod value="powerLaw">
@@ -782,7 +782,7 @@
           </stellarFeedbackOutflowsMethod>
 	</stellarFeedbackOutflowsMethod>
       </nodeOperatorMethod>
-      <nodeOperatorMethod value="stellarFeedbackSpheroids">
+      <nodeOperatorMethod value="stellarFeedbackSpheroids" iterable="no">
 	<stellarFeedbackOutflowsMethod value="rateLimit">
           <timescaleOutflowFractionalMinimum value="0.001"/>
           <stellarFeedbackOutflowsMethod value="powerLaw">
@@ -791,7 +791,7 @@
           </stellarFeedbackOutflowsMethod>
 	</stellarFeedbackOutflowsMethod>
       </nodeOperatorMethod>
-      <nodeOperatorMethod value="tidalMassLossDisks"/>
+      <nodeOperatorMethod value="tidalMassLossDisks" iterable="no"/>
     </nodeOperatorMethod>
     <tidalStrippingMethod value="simple"/>
     <satelliteTidalFieldMethod value="sphericalSymmetry"/>
@@ -800,10 +800,10 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodeOperatorMethod value="multi">
-      <nodeOperatorMethod value="starFormationDisks"/>
-      <nodeOperatorMethod value="starFormationSpheroids"/>
+      <nodeOperatorMethod value="starFormationDisks" iterable="no"/>
+      <nodeOperatorMethod value="starFormationSpheroids" iterable="no"/>
       <!--Stellar feedback outflows-->
-      <nodeOperatorMethod value="stellarFeedbackDisks">
+      <nodeOperatorMethod value="stellarFeedbackDisks" iterable="no">
 	<stellarFeedbackOutflowsMethod value="rateLimit">
           <timescaleOutflowFractionalMinimum value="0.001"/>
           <stellarFeedbackOutflowsMethod value="powerLaw">
@@ -812,7 +812,7 @@
           </stellarFeedbackOutflowsMethod>
 	</stellarFeedbackOutflowsMethod>
       </nodeOperatorMethod>
-      <nodeOperatorMethod value="stellarFeedbackSpheroids">
+      <nodeOperatorMethod value="stellarFeedbackSpheroids" iterable="no">
 	<stellarFeedbackOutflowsMethod value="rateLimit">
           <timescaleOutflowFractionalMinimum value="0.001"/>
           <stellarFeedbackOutflowsMethod value="powerLaw">
@@ -821,7 +821,8 @@
           </stellarFeedbackOutflowsMethod>
 	</stellarFeedbackOutflowsMethod>
       </nodeOperatorMethod>
-      <nodeOperatorMethod value="tidalMassLossSpheroids"/>
+      <nodeOperatorMethod value="tidalMassLossSpheroids" iterable="no"/>
+      <nodeOperatorMethod value="tidalHeatingSpheroids" iterable="no"/>
     </nodeOperatorMethod>
     <tidalStrippingMethod value="simple"/>
     <satelliteTidalFieldMethod value="sphericalSymmetry"/>
