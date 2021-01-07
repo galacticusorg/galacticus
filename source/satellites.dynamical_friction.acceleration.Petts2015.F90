@@ -59,7 +59,7 @@ contains
     !# <inputParameter>
     !#   <name>logarithmCoulombApproximate</name>
     !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, the Coulomb logarithm term is evaluated as $\frac{1}{2}\log(1+\Lambda^2). Otherwise, it is evaluated as $\log\Lambda$ for $\Lambda \ge 1$ and set to zero otherwise.</description>
+    !#   <description>If true, the Coulomb logarithm term is evaluated as $\frac{1}{2}\log(1+\Lambda^2)$. Otherwise, it is evaluated as $\log\Lambda$ for $\Lambda \ge 1$ and set to zero otherwise.</description>
     !#   <source>parameters</source>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"  name="cosmologyParameters_"  source="parameters"/>
