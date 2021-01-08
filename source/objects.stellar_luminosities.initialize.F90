@@ -45,6 +45,7 @@ contains
     
     !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters_"/>
     outputCount=outputTimes_%count()
+    if (allocated(outputRedshifts)) deallocate(outputRedshifts)
     allocate(outputRedshifts(outputCount))
     do i=1,outputCount
        outputRedshifts(i)=outputTimes_%redshift(i)
