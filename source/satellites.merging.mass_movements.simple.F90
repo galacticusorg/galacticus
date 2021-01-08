@@ -221,7 +221,7 @@ contains
           else
              self%destinationStarsSatellite=self%destinationStarsMinorMerger
           end if
-        self%destinationGasHost       =     destinationMergerUnmoved
+          self%destinationGasHost       =     destinationMergerUnmoved
           self%destinationStarsHost     =     destinationMergerUnmoved
        end if
     end if
