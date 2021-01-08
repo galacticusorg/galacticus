@@ -23,7 +23,11 @@
   use :: Galactic_Dynamics_Bar_Instabilities, only : galacticDynamicsBarInstabilityClass
   
   !# <nodeOperator name="nodeOperatorBarInstability">
-  !#  <description>A node operator class that implements bar instabilities in disks.</description>
+  !#  <description>
+  !#   A node operator class that implements bar instabilities in disks. A fraction of the angular momentum of the material
+  !#   transferred from the disk to the spheroid is retained in the disk as suggested by numerical experiments
+  !#   \citep{klypin_cdm-based_2002}.
+  !#  </description>
   !# </nodeOperator>
   type, extends(nodeOperatorClass) :: nodeOperatorBarInstability
      !% A node operator class that implements bar instabilities in disks.
