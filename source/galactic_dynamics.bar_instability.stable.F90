@@ -52,18 +52,21 @@ contains
     return
   end function stableConstructorParameters
 
-  subroutine stableTimescale(self,node,timescale,externalDrivingSpecificTorque)
+  subroutine stableTimescale(self,node,timescale,externalDrivingSpecificTorque,fractionAngularMomentumRetained)
     !% Computes a timescale for depletion of a disk to a pseudo-bulge via bar instability based on the criterion of
     !% \cite{efstathiou_stability_1982}.
     implicit none
     class           (galacticDynamicsBarInstabilityStable), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
-    double precision                                      , intent(  out) :: externalDrivingSpecificTorque, timescale
+    double precision                                      , intent(  out) :: externalDrivingSpecificTorque  , timescale, &
+         &                                                                   fractionAngularMomentumRetained
     !$GLC attributes unused :: self, node
 
     ! Assume infinite timescale (i.e. no instability).
-    timescale                    =-1.0d0
+    timescale                      =-1.0d0
     ! Also assume no torque.
-    externalDrivingSpecificTorque=+0.0d0
+    externalDrivingSpecificTorque  =+0.0d0
+    ! Fraction of angular momentum retained is arbitrary.
+    fractionAngularMomentumRetained=+1.0d0
     return
   end subroutine stableTimescale

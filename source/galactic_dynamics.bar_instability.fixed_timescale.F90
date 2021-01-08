@@ -25,7 +25,7 @@
   type, extends(galacticDynamicsBarInstabilityClass) :: galacticDynamicsBarInstabilityFixedTimescale
      !% Implementation of a simple model for galactic disk bar instability in which the timescale is fixed.
      private
-     double precision :: timescale_
+     double precision :: timescale_, fractionAngularMomentumRetained_
    contains
      procedure :: timescale => fixedTimescaleTimescale
   end type galacticDynamicsBarInstabilityFixedTimescale
@@ -45,7 +45,7 @@ contains
     implicit none
     type            (galacticDynamicsBarInstabilityFixedTimescale)                :: self
     type            (inputParameters                             ), intent(inout) :: parameters
-    double precision                                                              :: timescale
+    double precision                                                              :: timescale , fractionAngularMomentumRetained
 
     !# <inputParameter>
     !#   <name>timescale</name>
@@ -53,30 +53,38 @@ contains
     !#   <description>The timescale for bar instability.</description>
     !#   <source>parameters</source>
     !# </inputParameter>
-    self=galacticDynamicsBarInstabilityFixedTimescale(timescale)
+    !# <inputParameter>
+    !#   <name>fractionAngularMomentumRetained</name>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>The fraction of angular momentum of material depleted from the disk by bar instability which is retained in the disk.</description>
+    !#   <source>parameters</source>
+    !# </inputParameter>
+    self=galacticDynamicsBarInstabilityFixedTimescale(timescale,fractionAngularMomentumRetained)
     !# <inputParametersValidate source="parameters"/>
     return
   end function fixedTimescaleConstructorParameters
 
-  function fixedTimescaleConstructorInternal(timescale_) result(self)
+  function fixedTimescaleConstructorInternal(timescale_,fractionAngularMomentumRetained_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily fixedTimescale} model for galactic disk bar instability class.
     implicit none
     type            (galacticDynamicsBarInstabilityFixedTimescale)                :: self
-    double precision                                              , intent(in   ) :: timescale_
-    !# <constructorAssign variables="timescale_"/>
+    double precision                                              , intent(in   ) :: timescale_, fractionAngularMomentumRetained_
+    !# <constructorAssign variables="timescale_, fractionAngularMomentumRetained_"/>
 
     return
   end function fixedTimescaleConstructorInternal
 
-  subroutine fixedTimescaleTimescale(self,node,timescale,externalDrivingSpecificTorque)
+  subroutine fixedTimescaleTimescale(self,node,timescale,externalDrivingSpecificTorque,fractionAngularMomentumRetained)
     !% Assume a constant timescale for depletion of a disk to a pseudo-bulge via bar instability.
     implicit none
     class           (galacticDynamicsBarInstabilityFixedTimescale), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node
-    double precision                                              , intent(  out) :: externalDrivingSpecificTorque, timescale
+    double precision                                              , intent(  out) :: externalDrivingSpecificTorque  , timescale, &
+         &                                                                           fractionAngularMomentumRetained
     !$GLC attributes unused :: node
 
-    timescale                    =self%timescale_
-    externalDrivingSpecificTorque=0.0d0
+    timescale                      =self%timescale_
+    fractionAngularMomentumRetained=self%fractionAngularMomentumRetained_
+    externalDrivingSpecificTorque  =0.0d0
     return
   end subroutine fixedTimescaleTimescale

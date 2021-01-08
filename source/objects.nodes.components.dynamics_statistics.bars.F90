@@ -190,7 +190,7 @@ contains
     type            (keplerOrbit                    )                         :: orbit
     double precision                                                          :: barInstabilityTimescale, barInstabilityExternalDrivingSpecificTorque, &
          &                                                                       adiabaticRatio         , velocityPericenter                         , &
-         &                                                                       radiusPericenter
+         &                                                                       radiusPericenter       , fractionAngularMomentumRetained
 
     ! Get components.
     basic              => node%basic             (                 )
@@ -203,7 +203,7 @@ contains
        hostNode  => node     %parent
        orbit     =  satellite%virialOrbit()
        call Satellite_Orbit_Extremum_Phase_Space_Coordinates(hostNode,orbit,extremumPericenter,radiusPericenter,velocityPericenter)
-       call galacticDynamicsBarInstability_%timescale(node,barInstabilityTimescale,barInstabilityExternalDrivingSpecificTorque)
+       call galacticDynamicsBarInstability_%timescale(node,barInstabilityTimescale,barInstabilityExternalDrivingSpecificTorque,fractionAngularMomentumRetained)
        if (disk%radius() > 0.0d0) then
           adiabaticRatio=(radiusPericenter/velocityPericenter)/(2.0d0*Pi*disk%radius()/disk%velocity())
        else
