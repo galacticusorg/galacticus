@@ -67,13 +67,18 @@ contains
 
   function fcfsConstructorInternal(activeProcessRanks) result(self)
     !% Internal constructor for the {\normalfont \ttfamily fcfs} forest evolution work sharing class.
+#ifdef USEMPI
     use :: MPI_Utilities, only : mpiSelf
+#endif
     implicit none
     type   (evolveForestsWorkShareFCFS)                                        :: self
     integer(c_size_t                  ), intent(in   ), dimension(:), optional :: activeProcessRanks
+#ifdef USEMPI
     integer                                                                    :: i
-
+#endif
+    
     fcfsForestCounter=mpiCounter()
+#ifdef USEMPI
     if (present(activeProcessRanks)) then
        allocate(self%activeProcessRanks(size(activeProcessRanks)))
        self%activeProcessRanks=activeProcessRanks
@@ -83,23 +88,30 @@ contains
           self%activeProcessRanks(i)=i
        end do
     end if
+#endif
     return
   end function fcfsConstructorInternal
 
   function fcfsForestNumber(self,utilizeOpenMPThreads)
     !% Return the number of the next forest to process.
+#ifdef USEMPI
     use :: MPI_Utilities, only : mpiSelf
+#endif
     implicit none
     integer(c_size_t                  )                :: fcfsForestNumber
     class  (evolveForestsWorkShareFCFS), intent(inout) :: self
     logical                            , intent(in   ) :: utilizeOpenMPThreads
     !$GLC attributes unused :: self, utilizeOpenMPThreads
 
+#ifdef USEMPI
     if (any(self%activeProcessRanks == mpiSelf%rank())) then
+#endif
        fcfsForestNumber=fcfsForestCounter%increment()+1_c_size_t
+#ifdef USEMPI
     else
        fcfsForestNumber=huge(0_c_size_t)
     end if
+#endif
     return
   end function fcfsForestNumber
 
