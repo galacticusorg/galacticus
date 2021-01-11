@@ -83,7 +83,7 @@ contains
        allocate(self%activeProcessRanks(size(activeProcessRanks)))
        self%activeProcessRanks=activeProcessRanks
     else
-       allocate(self%activeProcessRanks(mpiSelf%count()))
+       allocate(self%activeProcessRanks(0:mpiSelf%count()-1))
        do i=0,mpiSelf%count()-1
           self%activeProcessRanks(i)=i
        end do
