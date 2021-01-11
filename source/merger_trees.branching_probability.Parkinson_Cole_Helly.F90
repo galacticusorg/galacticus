@@ -186,6 +186,9 @@ contains
     class           (criticalOverdensityClass                        ), intent(in   ), target :: criticalOverdensity_
     !# <constructorAssign variables="G0, gamma1, gamma2, accuracyFirstOrder, precisionHypergeometric, hypergeometricTabulate, cdmAssumptions, *cosmologicalMassVariance_, *criticalOverdensity_"/>
 
+    ! Validate inputs.
+    if (gamma1 == 1.0d0) call Galacticus_Error_Report('γ₁=1 leads to divergent integrals'//{introspection:location})
+    ! Initialize.
     self%subresolutionHypergeometricInitialized=.false.
     self%upperBoundHypergeometricInitialized   =.false.
     self%massResolutionTabulated               =-1.0d0
