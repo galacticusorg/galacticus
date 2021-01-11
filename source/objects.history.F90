@@ -981,9 +981,9 @@ contains
   end subroutine History_Append_Epoch
 
    subroutine History_Interpolated_Increment(history_,addHistory)
-     !% Adds the data in {\normalfont \ttfamily addHistory} to that in {\normalfont \ttfamily history_}. This function is
+     !% Adds the data in {\normalfont \ttfamily addHistory} to that in {\normalfont \ttfamily history\_}. This function is
      !% designed for histories that track instantaneous rates. The rates in {\normalfont \ttfamily addHistory} are interpolated to
-     !% the times in {\normalfont \ttfamily history_} and added to the rates in {\normalfont \ttfamily history_}.
+     !% the times in {\normalfont \ttfamily history\_} and added to the rates in {\normalfont \ttfamily history\_}.
      use            :: Galacticus_Error       , only : Galacticus_Error_Report
      use, intrinsic :: ISO_C_Binding          , only : c_size_t
      use            :: Numerical_Interpolation, only : interpolator
@@ -1045,11 +1045,11 @@ contains
    end subroutine History_Interpolated_Increment
 
    subroutine History_Increment(history_,addHistory,autoExtend)
-     !% Combines the data in {\normalfont \ttfamily addHistory} with that in {\normalfont \ttfamily history_}. This function is designed for histories that
-     !% track integrated quantities (such as total mass of stars formed in a time interval for example). {\normalfont \ttfamily history_} will be
+     !% Combines the data in {\normalfont \ttfamily addHistory} with that in {\normalfont \ttfamily history\_}. This function is designed for histories that
+     !% track integrated quantities (such as total mass of stars formed in a time interval for example). {\normalfont \ttfamily history\_} will be
      !% extended if necessary to span the range of {\normalfont \ttfamily addHistory}. Then, the data from {\normalfont \ttfamily addHistory} will be added to
-     !% that in {\normalfont \ttfamily history_} by finding the fraction of each timestep in {\normalfont \ttfamily addHistory} that overlaps with each timestep
-     !% in {\normalfont \ttfamily history_} and assuming that the corresponding fraction of the data value should be added to {\normalfont \ttfamily history_}.
+     !% that in {\normalfont \ttfamily history\_} by finding the fraction of each timestep in {\normalfont \ttfamily addHistory} that overlaps with each timestep
+     !% in {\normalfont \ttfamily history\_} and assuming that the corresponding fraction of the data value should be added to {\normalfont \ttfamily history\_}.
      use            :: Arrays_Search   , only : searchArray
      use            :: Galacticus_Error, only : Galacticus_Error_Report
      use, intrinsic :: ISO_C_Binding   , only : c_size_t
@@ -1303,7 +1303,7 @@ contains
    end subroutine History_Extend
 
   subroutine History_Timesteps(history_,timeSteps)
-    !% Return an array of time intervals in {\normalfont \ttfamily history_}.
+    !% Return an array of time intervals in {\normalfont \ttfamily history\_}.
     use :: Memory_Management, only : allocateArray  , memoryTypeNodes
     use :: Numerical_Ranges , only : rangeTypeLinear, rangeTypeLogarithmic
     implicit none
