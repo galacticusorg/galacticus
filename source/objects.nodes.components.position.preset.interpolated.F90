@@ -284,7 +284,6 @@ contains
           &  .or.                                                                             &
           &   searchEvent                                                                     &
           & ) then
-
           ! Our node exists at a time beyond the end of its position history. We must check if there is some event attached to
           ! this node which connects it to another node (which we can then use for the future position).
           event => node%event
@@ -304,8 +303,6 @@ contains
              end select
              event => event%next
           end do
-
-
           if (associated(nodeJump)) then
              ! An event which causes our node to jump to some other non-hosted node or another branch was found. We assume cubic
              ! polynomial interpolation between the initial and final locations.
@@ -313,13 +310,11 @@ contains
           else
              ! No history remains, and no event exists. This is the end of the life of this node, so we do not need to compute any
              ! interpolation.
-             
              call position%interpolationCoefficientsSet(coefficientsNull)
              return
           end if
        else
- 
-    ! The current time of the node does not exceed the time in its position history. We can use logarithmic spiral
+          ! The current time of the node does not exceed the time in its position history. We can use logarithmic spiral
           ! interpolation if: a) this is a satellite node, and b) the current time matches or exceeds the first time in the node's
           ! position history.
           useSpiralInterpolation=useSpiralInterpolation .and. basic%time() >= positionHistory%time(1)
@@ -330,16 +325,12 @@ contains
           if (node%isSatellite() .and. Values_Less_Than(basic%time(),basicParent%time(),relTol=1.0d-2)) useSpiralInterpolation=.false.
        end if
     else
- 
        ! No position history is available - this must be an isolated node and so we must use cubic polynomial interpolation.
        useSpiralInterpolation=.false.
     end if
-
-             
-        ! Branch on the type of interpolation we are to compute.
+    ! Branch on the type of interpolation we are to compute.
     if (.not.useSpiralInterpolation) then
-
-        ! Cubic polynomial interpolation.
+       ! Cubic polynomial interpolation.
        !! Determine the intial and final position to use for this time interval.
        if (associated(nodeJump)) then
           ! There is a node event which will jump this node to another node. Use the position of that node as the final position.
@@ -351,7 +342,6 @@ contains
           time               (2  ) =  basicParent          %time    (                     )
           positionComoving   (2,:) =  positionParent       %position(                     )
           velocityComoving   (2,:) =  positionParent       %velocity(                     )
-
        else if (node%isPrimaryProgenitor()) then
           ! The node is the primary progenitor, so use the position of its parent as the final position.
           basicParent              => node          %parent%basic   (                     )
@@ -374,7 +364,6 @@ contains
              positionComoving(2,:) =  positionHistory       %data    (1  ,1:3             )
              velocityComoving(1,:) =  position              %velocity(                    )
              velocityComoving(2,:) =  positionHistory       %data    (1  ,4:6             )
-
           else
              ! The current time is at or after the first time in the position history. Therefore, locate the point in the position
              ! history that spans the current time.
@@ -397,8 +386,7 @@ contains
        end if
        ! Compute the interpolation only if there is a non-zero time interval over which to interpolate. Halos about to experience
        ! a node promotion or branch jump event can exist at precisely the time of the halo they are about to become.
-
-             if (time(1) < time(2)) then
+       if (time(1) < time(2)) then
           ! Get comoving position/velocity at start/end times.
           expansionFactor (1  )=                      cosmologyFunctions_%expansionFactor(time(1))
           expansionFactor (2  )=                      cosmologyFunctions_%expansionFactor(time(2))
@@ -445,11 +433,9 @@ contains
           ! Store the computed interpolation coefficients and the time to which they are valid.
           call position%interpolationCoefficientsSet(reshape(coefficientsCubic,[12]))
           call position%interpolationTimeMaximumSet (   time(                    2 ))
-
-          end if
+       end if
     else
-
-        ! Compute logarithmic spiral interpolation.
+       ! Compute logarithmic spiral interpolation.
        basic           => node    %basic          ()
        position        => node    %position       ()
        positionHistory =  position%positionHistory()
@@ -466,19 +452,13 @@ contains
           nodeParent  => nodeParent%parent
           basicParent => nodeParent%basic ()
        end do
-       ! If the parent is not (approximately) at our initial time, back up to the prior parent.
-       if (Values_Differ(basicParent%time(),time(1),relTol=1.0d-2)) then
+       ! If the parent is not (approximately) at our initial time, back up to the prior parent (if one exists).
+       if (Values_Differ(basicParent%time(),time(1),relTol=1.0d-2) .and. associated(nodeParent%firstChild)) then
           nodeParent  => nodeParent%firstChild
           basicParent => nodeParent%basic     ()
        end if
        ! Find a grand-parent which exists at (or after) the final time.
        nodeGrandparent => nodeParent%parent
-
-
-
-
-
-       
        if (associated(nodeGrandparent)) then
           basicGrandparent => nodeGrandparent%basic()
           do while (Values_Less_Than(basicGrandparent%time(),time(2),relTol=1.0d-2))
