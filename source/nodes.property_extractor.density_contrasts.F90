@@ -23,6 +23,7 @@
   use :: Cosmology_Parameters   , only : cosmologyParameters, cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
   use :: Galacticus_Nodes       , only : nodeComponentBasic , treeNode
+  use :: Root_Finder            , only : rootFinder
 
   !# <nodePropertyExtractor name="nodePropertyExtractorDensityContrasts">
   !#  <description>
@@ -42,6 +43,7 @@
      class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_ => null()
      class           (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_  => null()
      class           (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_ => null()
+     type            (rootFinder              )                            :: finder
      integer                                                               :: elementCount_                 , countDensityContrasts    , &
           &                                                                   massTypeSelected              , densityContrastRelativeTo
      logical                                                               :: darkMatterOnly
@@ -116,7 +118,8 @@ contains
 
   function densityContrastsConstructorInternal(densityContrasts,darkMatterOnly,densityContrastRelativeTo,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily densityContrasts} property extractor class.
-    use :: Galactic_Structure_Options, only : massTypeAll, massTypeDark
+    use :: Galactic_Structure_Options, only : massTypeAll              , massTypeDark
+    use :: Root_Finder               , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
     type            (nodePropertyExtractorDensityContrasts)                              :: self
     class           (cosmologyFunctionsClass              ), intent(in   ), target       :: cosmologyFunctions_
@@ -125,6 +128,7 @@ contains
     double precision                                       , intent(in   ), dimension(:) :: densityContrasts
     logical                                                , intent(in   )               :: darkMatterOnly
     integer                                                , intent(in   )               :: densityContrastRelativeTo
+    double precision                                       , parameter                   :: toleranceAbsolute        =0.0d0, toleranceRelative=1.0d-3
     !# <constructorAssign variables="densityContrasts, darkMatterOnly, densityContrastRelativeTo, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_"/>
 
     self%countDensityContrasts=  size(densityContrasts)
@@ -135,6 +139,16 @@ contains
     case (.false.)
        self%massTypeSelected=massTypeAll
     end select
+    self%finder=rootFinder(                                                             &
+         &                 rootFunction                 =densityContrastsRoot         , &
+         &                 rangeExpandDownward          =0.5d0                        , &
+         &                 rangeExpandUpward            =2.0d0                        , &
+         &                 rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+         &                 rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+         &                 rangeExpandType              =rangeExpandMultiplicative    , &
+         &                 toleranceAbsolute            =toleranceAbsolute            , &
+         &                 toleranceRelative            =toleranceRelative              &
+         &                )
     return
   end function densityContrastsConstructorInternal
 
@@ -165,34 +179,18 @@ contains
     use :: Cosmology_Functions               , only : densityCosmologicalMean         , densityCosmologicalCritical
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : componentTypeAll
-    use :: Root_Finder                       , only : rangeExpandMultiplicative       , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     double precision                                        , dimension(:) , allocatable :: densityContrastsExtract
     class           (nodePropertyExtractorDensityContrasts ), intent(inout), target      :: self
     type            (treeNode                              ), intent(inout), target      :: node
     double precision                                        , intent(in   )              :: time
     type            (multiCounter                          ), intent(inout), optional    :: instance
-    double precision                                        , parameter                  :: toleranceAbsolute      =0.0d0, toleranceRelative=1.0d-3
-    type            (rootFinder                            ), save                       :: finder
-    !$omp threadprivate(finder)
     integer                                                                              :: i
-    double precision                                                                     :: enclosedMass                 , radius                  , &
+    double precision                                                                     :: enclosedMass           , radius, &
          &                                                                                  densityReference
     !$GLC attributes unused :: time, instance
 
     allocate(densityContrastsExtract(self%elementCount_))
-    ! Initialize our root finder.
-    if (.not.finder%isInitialized()) then
-       call finder%rangeExpand (                                                             &
-            &                   rangeExpandDownward          =0.5d0                        , &
-            &                   rangeExpandUpward            =2.0d0                        , &
-            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-            &                   rangeExpandType              =rangeExpandMultiplicative      &
-            &                  )
-       call finder%rootFunction(densityContrastsRoot         )
-       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-    end if
     ! Make the self, node, and basic component available to the root finding routine.
     densityContrastsSelf  => self
     densityContrastsNode  => node
@@ -215,8 +213,8 @@ contains
          &                                    / self%cosmologyParameters_%OmegaMatter()
     ! Iterate over density contrasts.    
     do i=1,self%countDensityContrasts
-       densityTarget=self  %densityContrasts(          i                                           )*densityReference
-       radius       =finder%find            (rootGuess=self%darkMatterHaloScale_%virialRadius(node))
+       densityTarget=self       %densityContrasts(          i                                           )*densityReference
+       radius       =self%finder%find            (rootGuess=self%darkMatterHaloScale_%virialRadius(node))
        enclosedMass =Galactic_Structure_Enclosed_Mass(                                     &
             &                                                            node            , &
             &                                                            radius          , &

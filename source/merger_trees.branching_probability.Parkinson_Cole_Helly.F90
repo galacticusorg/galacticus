@@ -333,10 +333,11 @@ contains
       !% corresponding to this value.
       use :: Root_Finder, only : rootFinder, GSL_Root_fSolver_Brent
       implicit none
-      double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-9
+      double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-9
       type            (rootFinder), save      :: finder
-      !$omp threadprivate(finder)
-      double precision                        :: logMassMinimum         , logMassMaximum
+      logical                     , save      :: finderConstructed=.false.
+      !$omp threadprivate(finder,finderConstructed)
+      double precision                        :: logMassMinimum           , logMassMaximum
 
       ! Initialize global variables.
       call self%computeCommonFactors(deltaCritical,time,haloMass,node)
@@ -352,17 +353,14 @@ contains
          massBranchGeneric=0.5d0*haloMass
       else
          ! Initialize our root finder.
-         if (.not.finder%isInitialized()) then
-            call finder%rootFunction(                                  &
-                 &                   parkinsonColeHellyMassBranchRoot  &
-                 &                  )
-            call finder%tolerance   (                                  &
-                 &                   toleranceAbsolute               , &
-                 &                   toleranceRelative                 &
-                 &                  )
-            call finder%type        (                                  &
-                 &                   GSL_Root_fSolver_Brent            &
-                 &                  )
+         if (.not.finderConstructed) then
+            finder           =rootFinder(                                                    &
+                 &                       rootFunction     =parkinsonColeHellyMassBranchRoot, &
+                 &                       toleranceAbsolute=toleranceAbsolute               , &
+                 &                       toleranceRelative=toleranceRelative,                &
+                 &                       solverType       =GSL_Root_fSolver_Brent            &
+                 &                      )
+            finderConstructed=.true.
          end if
          ! Split is not binary - seek the actual mass of the smaller progenitor.
          logMassMinimum                                   =log(      massResolution)

@@ -22,6 +22,7 @@
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters   , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Root_Finder            , only : rootFinder
   use :: Tables                 , only : table1DLinearLinear
   use :: Virial_Density_Contrast, only : virialDensityContrastFixed
 
@@ -50,6 +51,7 @@
           &                                                          sigma                            , mu                           , &
           &                                                          velocityTangentialMean_          , velocityTotalRootMeanSquared_
      type            (table1DLinearLinear       ), dimension(3,3) :: voightDistributions
+     type            (rootFinder                )                 :: totalFinder                      , radialFinder
    contains
      !# <methods>
      !#   <method description="Select the parameter set to use for this satellite/host pairing." method="parametersSelect" />
@@ -181,25 +183,27 @@ contains
   function jiang2014ConstructorInternal(bRatioLow,bRatioIntermediate,bRatioHigh,gammaRatioLow,gammaRatioIntermediate,gammaRatioHigh,sigmaRatioLow,sigmaRatioIntermediate,sigmaRatioHigh,muRatioLow,muRatioIntermediate,muRatioHigh,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily jiang2014} virial orbits class.
     use :: Numerical_Integration   , only : integrator                  , GSL_Integ_Gauss61
+    use :: Root_Finder             , only : rangeExpandMultiplicative   , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     use :: Statistics_Distributions, only : distributionFunction1DVoight
     use :: Virial_Density_Contrast , only : fixedDensityTypeCritical
     implicit none
     type            (virialOrbitJiang2014        )                                :: self
-    double precision                              , intent(in   ), dimension(3  ) :: bRatioLow                          , bRatioIntermediate            , bRatioHigh                          , &
-         &                                                                           gammaRatioLow                      , gammaRatioIntermediate        , gammaRatioHigh                      , &
-         &                                                                           sigmaRatioLow                      , sigmaRatioIntermediate        , sigmaRatioHigh                      , &
+    double precision                              , intent(in   ), dimension(3  ) :: bRatioLow                          , bRatioIntermediate                   , bRatioHigh                          , &
+         &                                                                           gammaRatioLow                      , gammaRatioIntermediate               , gammaRatioHigh                      , &
+         &                                                                           sigmaRatioLow                      , sigmaRatioIntermediate               , sigmaRatioHigh                      , &
          &                                                                           muRatioLow                         , muRatioIntermediate           , muRatioHigh
     class           (darkMatterHaloScaleClass    ), intent(in   ), target         :: darkMatterHaloScale_
     class           (cosmologyParametersClass    ), intent(in   ), target         :: cosmologyParameters_
     class           (cosmologyFunctionsClass     ), intent(in   ), target         :: cosmologyFunctions_
     integer                                       , parameter                     :: tableCount                 =1000
-    integer                                                                       :: i                                  , j                             , k
+    integer                                                                       :: i                                  , j                                    , k
     type            (distributionFunction1DVoight)                                :: voightDistribution
     logical                                       , save        , dimension(3,3)  :: previousInitialized        =.false.
-    double precision                              , save        , dimension(3,3)  :: previousB                          , previousGamma                 , previousSigma                       , &
-         &                                                                           previousMu                         , previousVelocityTangentialMean, previousVelocityTotalRootMeanSquared
+    double precision                              , save        , dimension(3,3)  :: previousB                          , previousGamma                        , previousSigma                       , &
+         &                                                                           previousMu                         , previousVelocityTangentialMean       , previousVelocityTotalRootMeanSquared
     type            (table1DLinearLinear         ), save        , dimension(3,3)  :: previousVoightDistributions
-    double precision                                                              :: limitLower                         , limitUpper                    , halfWidthHalfMaximum                , &
+    double precision                              , parameter                     :: toleranceAbsolute           =0.0d+0, toleranceRelative             =1.0d-3
+    double precision                                                              :: limitLower                         , limitUpper                           , halfWidthHalfMaximum                , &
          &                                                                           fullWidthHalfMaximumLorentzian     , fullWidthHalfMaximumGaussian
     logical                                                                       :: reUse                              , limitFound
     type            (integrator                  )                                :: integratorTangential               , integratorTotal
@@ -313,7 +317,28 @@ contains
     ! Create virial density contrast definition.
     allocate(self%virialDensityContrast_)
     !# <referenceConstruct isResult="yes" owner="self" object="virialDensityContrast_" constructor="virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,2.0d0,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
-    return
+    ! Build root finders.
+    self%totalFinder =rootFinder(                                                             &
+         &                       rootFunction                 =jiang2014TotalVelocityCDF    , &
+         &                       toleranceAbsolute            =toleranceAbsolute            , &
+         &                       toleranceRelative            =toleranceRelative            , &
+         &                       rangeExpandUpward            =2.0d0                        , &
+         &                       rangeExpandDownward          =0.5d0                        , &
+         &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+         &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+         &                       rangeExpandType              =rangeExpandMultiplicative      &
+         &                      )
+    self%radialFinder=rootFinder(                                                             &
+         &                       rootFunction                 =jiang2014RadialVelocityCDF   , &
+         &                       toleranceAbsolute            =toleranceAbsolute            , &
+         &                       toleranceRelative            =toleranceRelative            , &
+         &                       rangeExpandUpward            =2.0d0                        , &
+         &                       rangeExpandDownward          =0.5d0                        , &
+         &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+         &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+         &                       rangeExpandType              =rangeExpandMultiplicative      &
+         &                      )
+     return
 
   contains
 
@@ -371,7 +396,6 @@ contains
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Error                    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
-    use :: Root_Finder                         , only : rangeExpandMultiplicative          , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     type            (keplerOrbit               )                        :: jiang2014Orbit
     class           (virialOrbitJiang2014      ), intent(inout), target :: self
@@ -381,9 +405,6 @@ contains
     class           (virialDensityContrastClass), pointer               :: virialDensityContrast_
     integer                                     , parameter             :: attemptsMaximum        =10000
     double precision                            , parameter             :: boundTolerance         =1.0d-4 !  Tolerence to ensure that orbits are sufficiently bound.
-    double precision                            , parameter             :: toleranceAbsolute      =0.0d+0
-    double precision                            , parameter             :: toleranceRelative      =1.0d-3
-    type            (rootFinder                )                        :: totalFinder                   , radialFinder
     double precision                                                    :: velocityHost                  , radiusHost                , &
          &                                                                 massHost                      , massSatellite             , &
          &                                                                 energyInternal                , radiusHostSelf            , &
@@ -405,30 +426,7 @@ contains
     !# <objectDestructor name="virialDensityContrast_"/>
     ! Select parameters appropriate for this host-satellite pair.
     call self%parametersSelect(massHost,massSatellite,jiang2014I,jiang2014J)
-    ! Configure finder objects.
-    if (.not.totalFinder %isInitialized()) then
-       call totalFinder %rootFunction(jiang2014TotalVelocityCDF          )
-       call totalFinder %tolerance   (toleranceAbsolute,toleranceRelative)
-       call totalFinder %rangeExpand (                                                             &
-            &                         rangeExpandUpward            =2.0d0                        , &
-            &                         rangeExpandDownward          =0.5d0                        , &
-            &                         rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                         rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-            &                         rangeExpandType              =rangeExpandMultiplicative      &
-            &                        )
-    end if
-    if (.not.radialFinder%isInitialized()) then
-       call radialFinder%rootFunction(jiang2014RadialVelocityCDF         )
-       call radialFinder%tolerance   (toleranceAbsolute,toleranceRelative)
-       call radialFinder%rangeExpand (                                                             &
-            &                         rangeExpandUpward            =2.0d0                        , &
-            &                         rangeExpandDownward          =0.5d0                        , &
-            &                         rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                         rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-            &                         rangeExpandType              =rangeExpandMultiplicative      &
-            &                        )
-    end if
-    ! Select an orbit.
+     ! Select an orbit.
     foundOrbit    =  .false.
     attempts      =  0
     jiang2014Self => self
@@ -441,8 +439,8 @@ contains
        call jiang2014Orbit%massesSet(massSatellite,massHost      )
        call jiang2014Orbit%radiusSet(              radiusHostSelf)
        ! Solve for the total velocity.
-       jiang2014XTotal               =node%hostTree%randomNumberGenerator_%uniformSample()
-       jiang2014VelocityTotalInternal=totalFinder %find(rootGuess=1.0d0)
+       jiang2014XTotal               =node%hostTree   %randomNumberGenerator_%uniformSample(               )
+       jiang2014VelocityTotalInternal=self%totalFinder                       %find         (rootGuess=1.0d0)
        ! If requested, check that the orbit is bound. We require it to have E<-boundTolerance to ensure that it is sufficiently
        ! bound that later rounding errors will not make it appear unbound.
        foundOrbit=.true.
@@ -459,8 +457,8 @@ contains
             &                                   +jiang2014RadialVelocityCDF(jiang2014VelocityTotalInternal) &
             &                                   -jiang2014RadialVelocityCDF(0.0d0                         ) &
             &                                  )
-       jiang2014XRadial                      =node%hostTree%randomNumberGenerator_%uniformSample()
-       velocityRadialInternal                =radialFinder%find(rootGuess=sqrt(2.0d0)*jiang2014VelocityTotalInternal)
+       jiang2014XRadial                      =node%hostTree    %randomNumberGenerator_%uniformSample(                                                    )
+       velocityRadialInternal                =self%radialFinder                       %find         (rootGuess=sqrt(2.0d0)*jiang2014VelocityTotalInternal)
        ! Compute tangential velocity.
        velocityTangentialInternal=sqrt(max(0.0d0,jiang2014VelocityTotalInternal**2-velocityRadialInternal**2))
        call jiang2014Orbit%velocityRadialSet    (velocityRadialInternal    *velocityHost)

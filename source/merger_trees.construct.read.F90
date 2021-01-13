@@ -1888,26 +1888,31 @@ contains
     class           (mergerTreeConstructorRead        ), target                       , intent(inout) :: self
     class           (nodeData                         )                 , dimension(:), intent(inout) :: nodes
     type            (treeNodeList                     )                 , dimension(:), intent(inout) :: nodeList
-    double precision                                   , parameter                                    :: scaleRadiusMaximumAllowed    =100.0d0, toleranceAbsolute  =1.0d-9, &
-         &                                                                                               toleranceRelative            =1.0d-9
-    logical                                                       , save                              :: excessiveScaleRadiiReported  =.false.
+    double precision                                   , parameter                                    :: scaleRadiusMaximumAllowed  =100.0d0, toleranceAbsolute  =1.0d-9, &
+         &                                                                                               toleranceRelative          =1.0d-9
+    logical                                                       , save                              :: excessiveScaleRadiiReported=.false.
     class           (nodeComponentBasic               ), pointer                                      :: basic
     class           (nodeComponentDarkMatterProfile   ), pointer                                      :: darkMatterProfile
-    integer                                                                                           :: iNode                                , status                     , &
+    integer                                                                                           :: iNode                              , status                    , &
          &                                                                                               messageVerbosity
     integer         (c_size_t                         )                                               :: iIsolatedNode
     double precision                                                                                  :: radiusScale
-    logical                                                                                           :: excessiveHalfMassRadii               , excessiveScaleRadii        , &
+    logical                                                                                           :: excessiveHalfMassRadii             , excessiveScaleRadii       , &
          &                                                                                               useFallbackScaleMethod
     type            (rootFinder                       )           , save                              :: finder
+    logical                                                       , save                              :: finderConstructed          =.false.
     !$omp threadprivate(finder)
     type            (varying_string                   )                                               :: message
     character       (len=16                           )                                               :: label
 
     ! Initialize our root finder.
-    if (.not.finder%isInitialized()) then
-       call finder%rootFunction(readRadiusHalfMassRoot              )
-       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+    if (.not.finderConstructed) then
+       finder           =rootFinder(                                          &
+            &                       rootFunction     =readRadiusHalfMassRoot, &
+            &                       toleranceAbsolute=toleranceAbsolute     , &
+            &                       toleranceRelative=toleranceRelative       &
+            &                      )
+       finderConstructed=.true.
     end if
     readSelf => self
     ! Find the scale radius.

@@ -62,10 +62,13 @@
   end interface darkMatterProfileConcentrationSchneider2015
 
   ! Module-scope variables for root finding.
-  class           (darkMatterProfileConcentrationSchneider2015), pointer :: schneider2015Self
-  double precision                                                       :: schneider2015MassReferencePrevious, schneider2015TimeCollapseReference            , &
-       &                                                                    schneider2015Time                 , schneider2015ReferenceCollapseMassRootPrevious
+  class           (darkMatterProfileConcentrationSchneider2015), pointer  :: schneider2015Self
+  double precision                                                        :: schneider2015MassReferencePrevious       , schneider2015TimeCollapseReference            , &
+       &                                                                     schneider2015Time                        , schneider2015ReferenceCollapseMassRootPrevious
   !$omp threadprivate(schneider2015Self,schneider2015MassReferencePrevious,schneider2015TimeCollapseReference,schneider2015Time,schneider2015ReferenceCollapseMassRootPrevious)
+
+  ! Upper limit to the reference mass used during root finding.
+  double precision                                             , parameter :: massReferenceMaximum             =1.0d20
 
 contains
 
@@ -114,16 +117,26 @@ contains
 
   function schneider2015ConstructorInternal(massFractionFormation,referenceConcentration,referenceCriticalOverdensity,referenceCosmologicalMassVariance,referenceCosmologyFunctions,criticalOverdensity_,cosmologicalMassvariance_,cosmologyFunctions_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily schneider2015} dark matter halo concentration class.
+    use :: Root_Finder, only : rangeExpandMultiplicative
     implicit none
     type            (darkMatterProfileConcentrationSchneider2015)                        :: self
     class           (darkMatterProfileConcentrationClass        ), intent(in   ), target :: referenceConcentration
-    class           (criticalOverdensityClass                   ), intent(in   ), target :: referenceCriticalOverdensity     , criticalOverdensity_
-    class           (cosmologicalMassVarianceClass              ), intent(in   ), target :: referenceCosmologicalMassVariance, cosmologicalMassvariance_
-    class           (cosmologyFunctionsClass                    ), intent(in   ), target :: referenceCosmologyFunctions      , cosmologyFunctions_
+    class           (criticalOverdensityClass                   ), intent(in   ), target :: referenceCriticalOverdensity            , criticalOverdensity_
+    class           (cosmologicalMassVarianceClass              ), intent(in   ), target :: referenceCosmologicalMassVariance       , cosmologicalMassvariance_
+    class           (cosmologyFunctionsClass                    ), intent(in   ), target :: referenceCosmologyFunctions             , cosmologyFunctions_
     double precision                                             , intent(in   )         :: massFractionFormation
+    double precision                                             , parameter             :: toleranceAbsolute                =0.0d00, toleranceRelative        =1.0d-6
     !# <constructorAssign variables="massFractionFormation, *referenceConcentration, *referenceCriticalOverdensity, *referenceCosmologicalMassVariance, *referenceCosmologyFunctions, *criticalOverdensity_, *cosmologicalMassvariance_, *cosmologyFunctions_"/>
 
-    self%finder=rootFinder()
+    self%finder=rootFinder(                                                            &
+         &                 rootFunction       =schneider2015ReferenceCollapseMassRoot, &
+         &                 toleranceAbsolute  =toleranceAbsolute                     , &
+         &                 toleranceRelative  =toleranceRelative                     , &
+         &                 rangeExpandUpward  =2.000d0                               , &
+         &                 rangeExpandDownward=0.999d0                               , &
+         &                 rangeExpandType    =rangeExpandMultiplicative             , &
+         &                 rangeUpwardLimit   =massReferenceMaximum                    &
+         &                )
     return
   end function schneider2015ConstructorInternal
 
@@ -145,18 +158,15 @@ contains
   double precision function schneider2015Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the algorithm of
     !% \cite{schneider_structure_2015}.
-    use :: Galacticus_Nodes        , only : nodeComponentBasic       , treeNode
+    use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
     use :: Numerical_Constants_Math, only : Pi
-    use :: Root_Finder             , only : rangeExpandMultiplicative
     implicit none
     class           (darkMatterProfileConcentrationSchneider2015), intent(inout), target  :: self
     type            (treeNode                                   ), intent(inout), target  :: node
     class           (nodeComponentBasic                         )               , pointer :: basic
-    double precision                                             , parameter              :: toleranceAbsolute          =0.0d00, toleranceRelative=1.0d-6, &
-         &                                                                                   massReferenceMaximum       =1.0d20
-    double precision                                                                      :: mass                                                        , &
-         &                                                                                   collapseCriticalOverdensity       , timeCollapse            , &
-         &                                                                                   massReference                     , variance                , &
+    double precision                                                                      :: mass                                            , &
+         &                                                                                   collapseCriticalOverdensity       , timeCollapse, &
+         &                                                                                   massReference                     , variance    , &
          &                                                                                   timeNow
 
     ! Get the basic component and the halo mass and time.
@@ -187,16 +197,6 @@ contains
     ! Compute time of collapse in the reference model, assuming same redshift of collapse in both models.
     schneider2015TimeCollapseReference=self%referenceCosmologyFunctions%cosmicTime(self%cosmologyFunctions_%expansionFactor(timeCollapse))
     ! Find the mass of a halo collapsing at the same time in the reference model.
-    if (.not.self%finder%isInitialized()) then
-       call self%finder%rootFunction(schneider2015ReferenceCollapseMassRoot)
-       call self%finder%tolerance   (toleranceAbsolute,toleranceRelative)
-       call self%finder%rangeExpand (                                                   &
-            &                        rangeExpandUpward  =2.000d0                      , &
-            &                        rangeExpandDownward=0.999d0                      , &
-            &                        rangeExpandType    =rangeExpandMultiplicative    , &
-            &                        rangeUpwardLimit   =massReferenceMaximum           &
-            &                       )
-    end if
     schneider2015Self                  => self
     schneider2015MassReferencePrevious =  -1.0d0
     if (schneider2015ReferenceCollapseMassRoot(massReferenceMaximum) > 0.0d0) then

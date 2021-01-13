@@ -218,19 +218,15 @@ contains
           call concentrationState_(concentrationStateCount)%basic            %timeLastIsolatedSet(basic%time())
           call concentrationState_(concentrationStateCount)%darkMatterProfile%scaleIsLimitedSet  (.false.     )
           ! The finder is initialized each time as it is allocated on the stack - this allows this function to be called recursively.
-          call finder               %tolerance          (                                                             &
-               &                                         toleranceRelative            =1.0d-3                         &
-               &                                        )
-          call finder               %rangeExpand        (                                                             &
-               &                                         rangeExpandUpward            =1.0d0*self%massRatioPrevious , &
-               &                                         rangeExpandDownward          =1.0d0/self%massRatioPrevious , &
-               &                                         rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-               &                                         rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-               &                                         rangeExpandType              =rangeExpandMultiplicative      &
-               &                                        )
-          call finder               %rootFunction       (                                                             &
-               &                                                                       concentrationMassRoot          &
-               &                                        )
+          finder=rootFinder(                                                             &
+               &            rootFunction                 =concentrationMassRoot        , &
+               &            toleranceRelative            =1.0d-3                       , &
+               &            rangeExpandUpward            =1.0d0*self%massRatioPrevious , &
+               &            rangeExpandDownward          =1.0d0/self%massRatioPrevious , &
+               &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &            rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+               &            rangeExpandType              =rangeExpandMultiplicative      &
+               &           )
           massDefinition=finder%find(rootGuess=concentrationState_(concentrationStateCount)%mass)
           ! Find the ratio of the recovered mass under the given definition to the input mass, defined to be always greater than
           ! unity. This will be used as the basis of the range expansion for the next solution.

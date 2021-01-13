@@ -28,8 +28,8 @@
      private
    contains
      !# <methods>
-     !#   <method description="Evalute a function which goes to zero at the formation time of the tree." method="formationTimeRoot" />
-     !#   <method description="Initialize a root finder object for use in finding the formation time of the tree." method="formationTimeRootFunctionSet" />
+     !#   <method description="Evalute a function which goes to zero at the formation time of the tree."           method="formationTimeRoot"           />
+     !#   <method description="Initialize a root finder object for use in finding the formation time of the tree." method="formationTimeRootFunctionSet"/>
      !# </methods>
      procedure, nopass :: formationTimeRoot            => ludlow2014FormationTimeRoot
      procedure         :: formationTimeRootFunctionSet => ludlow2014FormationTimeRootFunctionSet
@@ -79,10 +79,11 @@ contains
     double precision                                        , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-4
     !$GLC attributes unused :: self
 
-    if (.not.finder%isInitialized()) then
-       call finder%rootFunction(ludlow2014FormationTimeRoot        )
-       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-    end if
+    finder=rootFinder(                                               &
+         &            rootFunction     =ludlow2014FormationTimeRoot, &
+         &            toleranceAbsolute=toleranceAbsolute          , &
+         &            toleranceRelative=toleranceRelative            &
+         &           )
     return
   end subroutine ludlow2014FormationTimeRootFunctionSet
 

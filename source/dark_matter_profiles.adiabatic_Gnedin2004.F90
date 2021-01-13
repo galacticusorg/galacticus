@@ -26,6 +26,7 @@
   use :: Galactic_Structure_Options  , only : componentTypeAll                   , massTypeBaryonic                    , radiusLarge                  , weightByMass, &
           &                                   weightIndexNull
   use :: Math_Exponentiation         , only : fastExponentiator
+  use :: Root_Finder                 , only : rootFinder
 
   ! Number of previous radius solutions to store.
   !# <scoping>
@@ -84,6 +85,7 @@
      class           (cosmologyParametersClass ), pointer                                  :: cosmologyParameters_            => null()
      class           (darkMatterProfileDMOClass), pointer                                  :: darkMatterProfileDMO_           => null()
      integer                                                                               :: nonAnalyticSolver
+     type            (rootFinder               )                                           :: finder
      ! Parameters of the adiabatic contraction algorithm.
      double precision                                                                      :: A                                        , omega
      ! Stored solutions for reuse.
@@ -140,15 +142,16 @@
      module procedure adiabaticGnedin2004ConstructorParameters
      module procedure adiabaticGnedin2004ConstructorInternal
   end interface darkMatterProfileAdiabaticGnedin2004
-
+    
   ! Module-scope quantities used in solving the initial radius root function.
   integer                                               , parameter :: adiabaticGnedin2004ComponentType=componentTypeAll, adiabaticGnedin2004MassType   =massTypeBaryonic, &
        &                                                               adiabaticGnedin2004WeightBy     =weightByMass    , adiabaticGnedin2004WeightIndex=weightIndexNull
+  double precision                                      , parameter :: toleranceAbsolute               =0.0d0           , toleranceRelative             =1.0d-2
   type            (treeNode                            ), pointer   :: adiabaticGnedin2004Node
   class           (darkMatterProfileAdiabaticGnedin2004), pointer   :: adiabaticGnedin2004Self
   !$omp threadprivate(adiabaticGnedin2004Self,adiabaticGnedin2004Node)
-
-contains
+    
+  contains
 
   function adiabaticGnedin2004ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily adiabaticGnedin2004} dark matter halo profile class.
@@ -215,6 +218,12 @@ contains
     self%darkMatterFraction=+1.0d0                                   &
          &                  -self%cosmologyParameters_%OmegaBaryon() &
          &                  /self%cosmologyParameters_%OmegaMatter()
+    ! Construct a root finder.
+    self%finder=rootFinder(                                             &
+         &                 rootFunction     =adiabaticGnedin2004Solver, &
+         &                 toleranceAbsolute=toleranceAbsolute        , &
+         &                 toleranceRelative=toleranceRelative          &
+         &                )
     return
   end function adiabaticGnedin2004ConstructorInternal
 
@@ -546,9 +555,6 @@ contains
     class           (darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(in   ) :: radius
-    double precision                                      , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-2
-    type            (rootFinder                          ), save          :: finder
-    !$omp threadprivate(finder)
     integer                                                               :: i                      , j                       , &
          &                                                                   iMod
     double precision                                                      :: radiusUpperBound
@@ -596,11 +602,6 @@ contains
           end if
        end do
     end if
-    ! Initialize our root finder.
-    if (.not.finder%isInitialized()) then
-       call finder%rootFunction(adiabaticGnedin2004Solver                   )
-       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-    end if
     ! Find the solution for initial radius.
     if (j == -1) then
        ! No previous solution to use as an initial guess. Instead, we make an estimate of the initial radius under the
@@ -618,29 +619,29 @@ contains
             &                 )                                                                                        &
             &                /  self%initialMassFraction
        if (radiusUpperBound < radius) radiusUpperBound=radius
-       call finder%rangeExpand(                                                             &
-            &                  rangeExpandUpward            =1.1d0                        , &
-            &                  rangeExpandDownward          =0.9d0                        , &
-            &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-            &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                  rangeExpandType              =rangeExpandMultiplicative      &
-            &                 )
-       adiabaticGnedin2004RadiusInitial=finder%find(rootRange=[radius,radiusUpperBound])
+       call self%finder%rangeExpand(                                                             &
+            &                       rangeExpandUpward            =1.1d0                        , &
+            &                       rangeExpandDownward          =0.9d0                        , &
+            &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+            &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+            &                       rangeExpandType              =rangeExpandMultiplicative      &
+            &                      )
+       adiabaticGnedin2004RadiusInitial=self%finder%find(rootRange=[radius,radiusUpperBound])
     else
        ! Use previous solution as an initial guess.
-       call finder%rangeExpand(                                                                   &
-            &                  rangeExpandDownward          =1.0d0/sqrt(1.0d0+toleranceRelative), &
-            &                  rangeExpandUpward            =1.0d0*sqrt(1.0d0+toleranceRelative), &
-            &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative      , &
-            &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive      , &
-            &                  rangeExpandType              =rangeExpandMultiplicative            &
-            &                 )
-       adiabaticGnedin2004RadiusInitial=finder%find(                                                                        &
-            &                                       rootRange=[                                                             &
-            &                                                  self%radiusInitialPrevious(j)/sqrt(1.0d0+toleranceRelative), &
-            &                                                  self%radiusInitialPrevious(j)*sqrt(1.0d0+toleranceRelative)  &
-            &                                                 ]                                                             &
-            &                                      )
+       call self%finder%rangeExpand(                                                                   &
+            &                       rangeExpandDownward          =1.0d0/sqrt(1.0d0+toleranceRelative), &
+            &                       rangeExpandUpward            =1.0d0*sqrt(1.0d0+toleranceRelative), &
+            &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative      , &
+            &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive      , &
+            &                       rangeExpandType              =rangeExpandMultiplicative            &
+            &                      )
+       adiabaticGnedin2004RadiusInitial=self%finder%find(                                                                        &
+            &                                            rootRange=[                                                             &
+            &                                                       self%radiusInitialPrevious(j)/sqrt(1.0d0+toleranceRelative), &
+            &                                                       self%radiusInitialPrevious(j)*sqrt(1.0d0+toleranceRelative)  &
+            &                                                      ]                                                             &
+            &                                           )
     end if
     ! Store this solution.
     self%radiusPreviousIndex                                 =modulo(self%radiusPreviousIndex         ,adiabaticGnedin2004StoreCount)+1

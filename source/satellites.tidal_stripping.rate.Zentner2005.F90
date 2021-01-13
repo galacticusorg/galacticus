@@ -23,6 +23,7 @@
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   use :: Kind_Numbers           , only : kind_int8
+  use :: Root_Finder            , only : rootFinder
 
   !# <satelliteTidalStripping name="satelliteTidalStrippingZentner2005">
   !#  <description>
@@ -51,6 +52,7 @@
      double precision                                    :: efficiency                    , expandMultiplier, &
           &                                                 radiusTidalPrevious
      integer         (kind_int8               )          :: lastUniqueID
+     type            (rootFinder              )          :: finder
    contains
      !# <methods>
      !#   <method description="Reset memoized calculations." method="calculationReset" />
@@ -102,9 +104,15 @@ contains
     type            (satelliteTidalStrippingZentner2005)                        :: self
     class           (darkMatterHaloScaleClass          ), intent(in   ), target :: darkMatterHaloScale_
     double precision                                    , intent(in)            :: efficiency
-    !# <constructorAssign variables="efficiency, *darkMatterHaloScale_"/>
+    double precision                                    , parameter             :: toleranceAbsolute   =0.0d0 , toleranceRelative=1.0d-3
+   !# <constructorAssign variables="efficiency, *darkMatterHaloScale_"/>
 
     self%expandMultiplier=2.0d0
+    self%finder          =rootFinder(                                                &
+         &                           rootFunction     =zentner2005TidalRadiusSolver, &
+         &                           toleranceAbsolute=toleranceAbsolute           , &
+         &                           toleranceRelative=toleranceRelative             &
+         &                          )
     return
   end function zentner2005ConstructorInternal
 
@@ -162,7 +170,7 @@ contains
     use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec                    , gravitationalConstantGalacticus
     use :: Numerical_Constants_Math          , only : Pi
     use :: Numerical_Constants_Prefixes      , only : kilo
-    use :: Root_Finder                       , only : rangeExpandMultiplicative       , rangeExpandSignExpectNegative , rangeExpandSignExpectPositive   , rootFinder
+    use :: Root_Finder                       , only : rangeExpandMultiplicative       , rangeExpandSignExpectNegative , rangeExpandSignExpectPositive
     use :: Tensors                           , only : assignment(=)                   , tensorRank2Dimension3Symmetric
     use :: Vectors                           , only : Vector_Magnitude                , Vector_Product
     implicit none
@@ -170,17 +178,14 @@ contains
     type            (treeNode                          ), intent(inout), target :: node
     type            (treeNode                          ), pointer               :: nodeHost
     class           (nodeComponentSatellite            ), pointer               :: satellite
-    double precision                                    , dimension(3  )        :: position                               , velocity, &
+    double precision                                    , dimension(3  )        :: position                               , velocity                        , &
          &                                                                         tidalTensorEigenValueComponents
     double precision                                    , dimension(3,3)        :: tidalTensorComponents                  , tidalTensorEigenVectorComponents
-    double precision                                    , parameter             :: toleranceAbsolute               =0.0d0 , toleranceRelative               =1.0d-3
     double precision                                    , parameter             :: radiusZero                      =0.0d0
     double precision                                    , parameter             :: radiusTidalTinyFraction         =1.0d-6
-    type            (rootFinder                        ), save                  :: finder
-    !$omp threadprivate(finder)
-    double precision                                                            :: massSatellite                          , frequencyAngular                       , &
-         &                                                                         periodOrbital                          , radius                                 , &
-         &                                                                         tidalFieldRadial                       , radiusTidal                            , &
+    double precision                                                            :: massSatellite                          , frequencyAngular                , &
+         &                                                                         periodOrbital                          , radius                          , &
+         &                                                                         tidalFieldRadial                       , radiusTidal                     , &
          &                                                                         massOuterSatellite                     , frequencyRadial
     type            (tensorRank2Dimension3Symmetric    )                        :: tidalTensor
     type            (matrix                            )                        :: tidalTensorMatrix                      , tidalTensorEigenVectors
@@ -253,17 +258,13 @@ contains
           zentner2005MassLossRate=0.0d0
        else
           ! Find the tidal radius in the dark matter profile.
-          if (.not.finder%isInitialized()) then
-             call finder%rootFunction(zentner2005TidalRadiusSolver)
-             call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-          end if
-        call finder%rangeExpand(                                                             &
-               &                rangeExpandUpward            =1.0d0*self%expandMultiplier  , &
-               &                rangeExpandDownward          =1.0d0/self%expandMultiplier  , &
-               &                rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-               &                rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-               &                rangeExpandType              =rangeExpandMultiplicative      &
-               &               )
+          call self%finder%rangeExpand(                                                             &
+               &                       rangeExpandUpward            =1.0d0*self%expandMultiplier  , &
+               &                       rangeExpandDownward          =1.0d0/self%expandMultiplier  , &
+               &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+               &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &                       rangeExpandType              =rangeExpandMultiplicative      &
+               &                      )
           zentner2005Node => node
           ! Check for extremes.
           if (zentner2005TidalRadiusSolver(radiusTidalTinyFraction*self%radiusTidalPrevious) >  0.0d0) then
@@ -272,7 +273,7 @@ contains
              massOuterSatellite=massSatellite
           else
              ! Find the tidal radius, using the previous result as an initial guess.
-             radiusTidal       =finder%find(rootGuess=self%radiusTidalPrevious)
+             radiusTidal       =self%finder%find(rootGuess=self%radiusTidalPrevious)
              massOuterSatellite=max(                                                                  &
                   &                 massSatellite-Galactic_Structure_Enclosed_Mass(node,radiusTidal), &
                   &                 0.0d0                                                             &

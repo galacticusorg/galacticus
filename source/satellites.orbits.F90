@@ -93,15 +93,16 @@ contains
        Satellite_Orbit_Equivalent_Circular_Orbit_Radius=-1.0d0
        if (present(errorCode)) errorCode=errorCodeNoEquivalentOrbit
     else
-       call finder%rootFunction(Equivalent_Circular_Orbit_Solver   )
-       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-       call finder%rangeExpand (                                                             &
-            &                   rangeExpandUpward            =2.0d0                        , &
-            &                   rangeExpandDownward          =0.5d0                        , &
-            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-            &                   rangeExpandType              =rangeExpandMultiplicative      &
-            &                  )
+       finder=rootFinder(                                                                &
+            &            rootFunction                 =Equivalent_Circular_Orbit_Solver, &
+            &            toleranceAbsolute            =toleranceAbsolute               , &
+            &            toleranceRelative            =toleranceRelative               , &
+            &            rangeExpandUpward            =2.0d0                           , &
+            &            rangeExpandDownward          =0.5d0                           , &
+            &            rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative   , &
+            &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive   , &
+            &            rangeExpandType              =rangeExpandMultiplicative         &
+            &           )
        Satellite_Orbit_Equivalent_Circular_Orbit_Radius=finder%find(rootGuess=darkMatterHaloScale_%virialRadius(nodeHost))
        if (present(errorCode)) errorCode=errorCodeSuccess
     end if
@@ -149,11 +150,12 @@ contains
     type            (treeNode          ), intent(inout), target :: nodeHost
     type            (keplerOrbit       ), intent(inout)         :: orbit
     integer                             , intent(in   )         :: extremumType
-    double precision                    , intent(  out)         :: radius                 , velocity
+    double precision                    , intent(  out)         :: radius                   , velocity
     class           (nodeComponentBasic), pointer               :: basicHost
-    double precision                    , parameter             :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
+    double precision                    , parameter             :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
     type            (rootFinder        ), save                  :: finder
-    !$omp threadprivate(finder )
+    logical                             , save                  :: finderConstructed=.false.
+    !$omp threadprivate(finder,finderConstructed)
     type            (keplerOrbit       )                        :: orbitCurrent
     integer                                                     :: status
     double precision                                            :: potential
@@ -216,9 +218,13 @@ contains
           ! Orbit is radial, so pericenter is zero.
           radius=0.0d0
        else
-          if (.not.finder%isInitialized()) then
-             call finder%rootFunction(Extremum_Solver                    )
-             call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+          if (.not.finderConstructed) then
+             finder           =rootFinder(                                     &
+                  &                       rootFunction     =Extremum_Solver  , &
+                  &                       toleranceAbsolute=toleranceAbsolute, &
+                  &                       toleranceRelative=toleranceRelative  &
+                  &                      )
+             finderConstructed=.true.
           end if
           select case (extremumType)
           case (extremumPericenter)

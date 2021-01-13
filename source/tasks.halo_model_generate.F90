@@ -217,29 +217,21 @@ contains
          &                      )
     call Galacticus_Display_Unindent("done")
     ! Establish root finders.
-    call finderCentral  %tolerance   (                                               &
-         &                            toleranceRelative  =1.0d-6                     &
-         &                           )
-    call finderCentral  %rangeExpand (                                               &
-         &                            rangeExpandUpward  =2.0d0                    , &
-         &                            rangeExpandDownward=1.0d0                    , &
-         &                            rangeExpandType    =rangeExpandMultiplicative  &
-         &                           )
-    call finderCentral  %rootFunction(                                               &
-         &                                                centralMassRoot            &
-         &                           )
-    call finderSatellite%tolerance   (                                               &
-         &                            toleranceRelative  =1.0d-6                     &
-         &                           )
-    call finderSatellite%rangeExpand (                                               &
-         &                            rangeExpandUpward  =2.0d0                    , &
-         &                            rangeExpandDownward=1.0d0                    , &
-         &                            rangeExpandType    =rangeExpandMultiplicative  &
-         &                           )
-    call finderSatellite%rootFunction(                                               &
-         &                                                satelliteMassRoot          &
-         &                           )
-    ! Establish tree node for sampling satellite positions.
+    finderCentral  =rootFinder(                                               &
+         &                     rootFunction       =centralMassRoot          , &
+         &                     toleranceRelative  =1.0d-6                   , &
+         &                     rangeExpandUpward  =2.0d0                    , &
+         &                     rangeExpandDownward=1.0d0                    , &
+         &                     rangeExpandType    =rangeExpandMultiplicative  &
+         &                    )
+    finderSatellite=rootFinder(                                               &
+         &                     rootFunction       =satelliteMassRoot        , &
+         &                     toleranceRelative  =1.0d-6                   , &
+         &                     rangeExpandUpward  =2.0d0                    , &
+         &                     rangeExpandDownward=1.0d0                    , &
+         &                     rangeExpandType    =rangeExpandMultiplicative  &
+         &                    )
+     ! Establish tree node for sampling satellite positions.
     node    => treeNode                  (                 )
     basic   => node    %basic            (autoCreate=.true.)
     profile => node    %darkMatterProfile(autoCreate=.true.)

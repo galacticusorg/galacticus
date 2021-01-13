@@ -136,21 +136,22 @@ contains
     integer                                                                     , intent(in   ) :: calculationType
     class           (table1D                                      ), allocatable, intent(inout) :: sphericalCollapse_
     class           (linearGrowthClass                            ), pointer                    :: linearGrowth_
-    double precision                                               , parameter                  :: toleranceAbsolute              =0.0d0, toleranceRelative              =1.0d-9
+    double precision                                               , parameter                  :: toleranceAbsolute              =0.0d0  , toleranceRelative              =1.0d-9
     double precision                                               , dimension(2)               :: timeRange
-    type            (rootFinder                                   ), save                       :: finderAmplitudePerturbation          , finderExpansionMaximum
-    !$omp threadprivate(finderAmplitudePerturbation,finderExpansionMaximum)
-    integer                                                                                     :: countTimes                           , iTime                                 , &
+    type            (rootFinder                                   ), save                       :: finderAmplitudePerturbation            , finderExpansionMaximum
+    logical                                                                                     :: finderAmplitudeConstructed     =.false., finderExpansionConstructed     =.false.
+    !$omp threadprivate(finderAmplitudePerturbation,finderExpansionMaximum,finderAmplitudeConstructed,finderExpansionConstructed)
+    integer                                                                                     :: countTimes                             , iTime                                  , &
          &                                                                                         iCount
-    double precision                                                                            :: expansionFactor                      , epsilonPerturbation                   , &
-         &                                                                                         epsilonPerturbationMaximum           , epsilonPerturbationMinimum            , &
-         &                                                                                         densityContrastExpansionMaximum      , expansionFactorExpansionMaximum       , &
-         &                                                                                         radiusExpansionMaximum               , maximumExpansionTime                  , &
-         &                                                                                         normalization                        , q                                     , &
-         &                                                                                         timeEnergyFixed                      , timeInitial                           , &
-         &                                                                                         y                                    , timeMinimum                           , &
+    double precision                                                                            :: expansionFactor                        , epsilonPerturbation                    , &
+         &                                                                                         epsilonPerturbationMaximum             , epsilonPerturbationMinimum             , &
+         &                                                                                         densityContrastExpansionMaximum        , expansionFactorExpansionMaximum        , &
+         &                                                                                         radiusExpansionMaximum                 , maximumExpansionTime                   , &
+         &                                                                                         normalization                          , q                                      , &
+         &                                                                                         timeEnergyFixed                        , timeInitial                            , &
+         &                                                                                         y                                      , timeMinimum                            , &
          &                                                                                         timeMaximum
-    double complex                                                                              :: a                                    , b                                     , &
+    double complex                                                                              :: a                                      , b                                      , &
          &                                                                                         x
     type            (varying_string                               )                             :: message
     character       (len=13                                       )                             :: label
@@ -229,9 +230,13 @@ contains
           if (cllsnlssMttrDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=cllsnlssMttCsmlgclCnstntTime) >= -1.0d0/3.0d0) &
                & call Galacticus_Error_Report('ω<-⅓ required'//{introspection:location})
           ! Find the value of ε for which the perturbation just collapses at this time.
-          if (.not.finderAmplitudePerturbation%isInitialized()) then
-             call finderAmplitudePerturbation%rootFunction(cllsnlssMttrDarkEnergyRadiusPerturbation)
-             call finderAmplitudePerturbation%tolerance   (toleranceAbsolute,toleranceRelative     )
+          if (.not.finderAmplitudeConstructed) then
+             finderAmplitudePerturbation=rootFinder(                                                       &
+                  &                                 rootFunction=cllsnlssMttrDarkEnergyRadiusPerturbation, &
+                  &                                 toleranceAbsolute=toleranceAbsolute                  , &
+                  &                                 toleranceRelative=toleranceRelative                    &
+                  &                                )
+             finderAmplitudeConstructed=.true.
           end if
           epsilonPerturbation=finderAmplitudePerturbation%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
           select case (calculationType)
@@ -253,9 +258,13 @@ contains
                   &                          )
           case (cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast,cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround)
              ! Find the epoch of maximum expansion for the perturbation.
-             if (.not.finderExpansionMaximum%isInitialized()) then
-                call finderExpansionMaximum%rootFunction(cllsnlssMttrDarkEnergyExpansionRatePerturbation)
-                call finderExpansionMaximum%tolerance   (toleranceAbsolute,toleranceRelative            )
+             if (.not.finderExpansionConstructed) then
+                finderExpansionMaximum=rootFinder(                                                                   &
+                     &                            rootFunction     =cllsnlssMttrDarkEnergyExpansionRatePerturbation, &
+                     &                            toleranceAbsolute=toleranceAbsolute                              , &
+                     &                            toleranceRelative=toleranceRelative                                &
+                     &                           )
+                finderExpansionConstructed=.true.
              end if
              call finderExpansionMaximum%rangeExpand (                                                             &
                   &                                   rangeExpandDownward          =1.0d0-1.0d-2                 , &

@@ -21,6 +21,8 @@
 
   !% Implements a class for black hole binary initial separation based on tidal disruption of the satellite galaxy.
 
+  use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+
   !# <blackHoleBinaryInitialSeparation name="blackHoleBinaryInitialSeparationTidalRadius">
   !#  <description>
   !#   A black hole binary initial separation class that assumes an initial separation that corresponds to the distance at which
@@ -37,24 +39,26 @@
   type, extends(blackHoleBinaryInitialSeparationClass) :: blackHoleBinaryInitialSeparationTidalRadius
      !% A black hole binary initial separation class in which the radius is based on tidal disruption of the satellite galaxy.
      private
-   contains
+     type(rootFinder) :: finder
+  contains
      procedure :: separationInitial => tidalRadiusSeparationInitial
   end type blackHoleBinaryInitialSeparationTidalRadius
 
   interface blackHoleBinaryInitialSeparationTidalRadius
      !% Constructors for the {\normalfont \ttfamily tidalRadius} black hole binary initial radius class.
      module procedure tidalRadiusConstructorParameters
+     module procedure tidalRadiusConstructorInternal
   end interface blackHoleBinaryInitialSeparationTidalRadius
 
   ! Module-scope variables used in root finding.
-  double precision                    :: tidalRadiusMassHalf  , tidalRadiusRadiusHalfMass
+  double precision                    :: tidalRadiusMassHalf, tidalRadiusRadiusHalfMass
   type            (treeNode), pointer :: tidalRadiusNode
   !$omp threadprivate(tidalRadiusRadiusHalfMass,tidalRadiusMassHalf,tidalRadiusNode)
 
 contains
 
   function tidalRadiusConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily tidalRadius} black hole bianry recoild class which takes a parameter list as
+    !% Constructor for the {\normalfont \ttfamily tidalRadius} black hole bianry recoil class which takes a parameter list as
     !% input.
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,18 +70,33 @@ contains
     return
   end function tidalRadiusConstructorParameters
 
+  function tidalRadiusConstructorInternal() result(self)
+    !% Internal constructor for the {\normalfont \ttfamily tidalRadius} black hole bianry recoil class.
+    implicit none
+    type(blackHoleBinaryInitialSeparationTidalRadius) :: self
+
+    self%finder=rootFinder(                                                             &
+            &              rootFunction=tidalRadiusRoot                               , &
+            &              rangeExpandDownward          =0.5d+0                       , &
+            &              rangeExpandUpward            =2.0d+0                       , &
+            &              rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+            &              rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+            &              rangeExpandType              =rangeExpandMultiplicative    , &
+            &              toleranceAbsolute            =0.0d+0                       , &
+            &              toleranceRelative            =1.0d-6                         &
+            &             )
+     return
+  end function tidalRadiusConstructorInternal
+
   double precision function tidalRadiusSeparationInitial(self,node,nodeHost)
     !% Returns an initial separation for a binary black holes through tidal disruption.
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options        , only : massTypeGalactic
     use :: Galacticus_Nodes                  , only : nodeComponentBlackHole          , treeNode
-    use :: Root_Finder                       , only : rangeExpandMultiplicative       , rangeExpandSignExpectNegative           , rangeExpandSignExpectPositive, rootFinder
     implicit none
     class(blackHoleBinaryInitialSeparationTidalRadius), intent(inout)         :: self
     type (treeNode                                   ), intent(inout), target :: nodeHost , node
     class(nodeComponentBlackHole                     ), pointer               :: blackHole
-    type (rootFinder                                 ), save                  :: finder
-    !$omp threadprivate(finder)
     !$GLC attributes unused :: self
 
     ! Assume zero separation by default.
@@ -92,30 +111,15 @@ contains
     tidalRadiusMassHalf      =Galactic_Structure_Enclosed_Mass        (node,               tidalRadiusRadiusHalfMass,massType=massTypeGalactic)
     ! Return zero radius for massless galaxy.
     if (tidalRadiusRadiusHalfMass <= 0.0d0 .or. tidalRadiusMassHalf <= 0.0d0) return
-    ! Initialize our root finder.
-    if (.not.finder%isInitialized()) then
-       call finder%rootFunction(tidalRadiusRoot)
-       call finder%rangeExpand (                                                             &
-            &                   rangeExpandDownward          =0.5d+0                       , &
-            &                   rangeExpandUpward            =2.0d+0                       , &
-            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-            &                   rangeExpandType              =rangeExpandMultiplicative      &
-            &                  )
-       call finder%tolerance   (                                                             &
-            &                   toleranceAbsolute            =0.0d+0                       , &
-            &                   toleranceRelative            =1.0d-6                         &
-            &                  )
-    end if
     ! Solve for the radius around the host at which the satellite gets disrupted.
     tidalRadiusNode              => nodeHost
-    tidalRadiusSeparationInitial =  finder%find(                                                                              &
-         &                                      rootGuess=Galactic_Structure_Radius_Enclosing_Mass(                           &
-         &                                                                                         nodeHost                 , &
-         &                                                                                         fractionalMass=0.5d0     , &
-         &                                                                                         massType=massTypeGalactic  &
-         &                                                                                        )                           &
-         &                                     )
+    tidalRadiusSeparationInitial =  self%finder%find(                                                                              &
+         &                                           rootGuess=Galactic_Structure_Radius_Enclosing_Mass(                           &
+         &                                                                                              nodeHost                 , &
+         &                                                                                              fractionalMass=0.5d0     , &
+         &                                                                                              massType=massTypeGalactic  &
+         &                                                                                             )                           &
+         &                                          )
     return
   end function tidalRadiusSeparationInitial
 

@@ -46,8 +46,8 @@
           &                                                          timeFormationSeekDelta                 , densityContrast
    contains
      !# <methods>
-     !#   <method description="Evalute a function which goes to zero at the formation time of the tree." method="formationTimeRoot" />
-     !#   <method description="Initialize a root finder object for use in finding the formation time of the tree." method="formationTimeRootFunctionSet" />
+     !#   <method description="Evalute a function which goes to zero at the formation time of the tree."           method="formationTimeRoot"           />
+     !#   <method description="Initialize a root finder object for use in finding the formation time of the tree." method="formationTimeRootFunctionSet"/>
      !# </methods>
      final             ::                                 ludlow2016Destructor
      procedure         :: radius                       => ludlow2016Radius
@@ -63,13 +63,13 @@
 
   ! Array used to store state.
   type :: ludlow2016State
-     class           (darkMatterProfileScaleRadiusLudlow2016), pointer :: self
-     class           (cosmologyFunctionsClass               ), pointer :: cosmologyFunctions_
-     type            (treeNode                              ), pointer :: node
-     type            (rootFinder                            )          :: finder
-     double precision                                                  :: massHaloCharacteristic, massLimit      , &
-          &                                                               hubbleParameterPresent, densityContrast, &
-          &                                                               timePrevious
+     class           (darkMatterProfileScaleRadiusLudlow2016), pointer     :: self
+     class           (cosmologyFunctionsClass               ), pointer     :: cosmologyFunctions_
+     type            (treeNode                              ), pointer     :: node
+     type            (rootFinder                            ), allocatable :: finder
+     double precision                                                      :: massHaloCharacteristic, massLimit      , &
+          &                                                                   hubbleParameterPresent, densityContrast, &
+          &                                                                   timePrevious
   end type ludlow2016State
   type   (ludlow2016State), allocatable, dimension(:) :: ludlow2016States
   integer                 , parameter                 :: ludlow2016StatesIncrement=10
@@ -208,6 +208,8 @@ contains
        !# <deepCopyReset variables="self%cosmologyFunctions_"/>
        !# <deepCopy source="self%cosmologyFunctions_" destination="ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_"/>
        !$omp end critical(darkMatterProfilesStructureScaleLudlow2016DeepCopy)
+       allocate(ludlow2016States(ludlow2016StateCount)%finder)
+       call self%formationTimeRootFunctionSet(ludlow2016States(ludlow2016StateCount)%finder)
        ! Get the dark matter profile component of the node.
        darkMatterProfile_ => node%darkMatterProfile()
        ! Set an initial guess to the scale radius. We use the scale radius of the primary progenitor - under the assumption that the scale radius should change only slowly this should be a reasonable guess.
@@ -218,7 +220,8 @@ contains
        call darkMatterProfile_%scaleSet(radiusScalePrevious)
        call Galacticus_Calculations_Reset(node)
        ! Begin iteratively seeking a solution for the scale radius.
-       iterationCount=0
+       iterationCount     =0
+       timeFormationLatest=0.0d0
        do while (iterationCount < iterationCountMaximum)
           iterationCount=iterationCount+1
           ! Compute the characteristic halo mass, M₋₂.
@@ -257,7 +260,6 @@ contains
              radiusScalePrevious=+radiusScale
           else
              ! Find the time at which the mass in progenitors equals this characteristic halo mass.
-             call self%formationTimeRootFunctionSet(ludlow2016States(ludlow2016StateCount)%finder)
              if (iterationCount > 2) then
                 if (radiusScalePrevious2nd > radiusScalePrevious) then
                    rangeExpandFactor=radiusScalePrevious2nd/radiusScalePrevious
@@ -328,6 +330,7 @@ contains
        ludlow2016Radius    =radiusScale
        ! Decrement the state index.
        !# <objectDestructor name="ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_"/>
+       deallocate(ludlow2016States(ludlow2016StateCount)%finder)
        ludlow2016StateCount=ludlow2016StateCount-1
     end if
     return
@@ -341,11 +344,12 @@ contains
     type            (rootFinder                            ), intent(inout) :: finder
     double precision                                        , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-4
     !$GLC attributes unused :: self
-
-    if (.not.finder%isInitialized()) then
-       call finder%rootFunction(ludlow2016FormationTimeRoot        )
-       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-    end if
+    
+    finder=rootFinder(                                               &
+         &            rootFunction     =ludlow2016FormationTimeRoot, &
+         &            toleranceAbsolute=toleranceAbsolute          , &
+         &            toleranceRelative=toleranceRelative            &
+         &           )
     return
   end subroutine ludlow2016FormationTimeRootFunctionSet
 

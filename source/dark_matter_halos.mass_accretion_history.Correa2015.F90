@@ -22,6 +22,7 @@
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Linear_Growth             , only : linearGrowthClass
+  use :: Root_Finder               , only : rootFinder
 
   !# <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryCorrea2015">
   !#  <description>Dark matter halo mass accretion histories using the \cite{correa_accretion_2015} algorithm.</description>
@@ -32,6 +33,7 @@
      class(cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
      class(linearGrowthClass            ), pointer :: linearGrowth_             => null()
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
+     type (rootFinder                   )          :: finder
    contains
      final     ::                      correa2015Destructor
      procedure :: time              => correa2015Time
@@ -70,13 +72,22 @@ contains
 
   function correa2015ConstructorInternal(cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily correa2015} dark matter halo mass accretion history class.
+    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative
     implicit none
-    type (darkMatterHaloMassAccretionHistoryCorrea2015)                        :: self
-    class(cosmologyFunctionsClass                     ), intent(in   ), target :: cosmologyFunctions_
-    class(linearGrowthClass                           ), intent(in   ), target :: linearGrowth_
-    class(cosmologicalMassVarianceClass               ), intent(in   ), target :: cosmologicalMassVariance_
+    type            (darkMatterHaloMassAccretionHistoryCorrea2015)                        :: self
+    class           (cosmologyFunctionsClass                     ), intent(in   ), target :: cosmologyFunctions_
+    class           (linearGrowthClass                           ), intent(in   ), target :: linearGrowth_
+    class           (cosmologicalMassVarianceClass               ), intent(in   ), target :: cosmologicalMassVariance_
+    double precision                                              , parameter             :: toleranceRelative        =1.0d-6,toleranceAbsolute=0.0d+0
     !# <constructorAssign variables="*cosmologyFunctions_, *linearGrowth_, *cosmologicalMassVariance_"/>
-
+    
+    self%finder=rootFinder(                                                           &
+         &                 toleranceAbsolute          =toleranceAbsolute            , &
+         &                 toleranceRelative          =toleranceRelative            , &
+         &                 rangeExpandUpward          =2.0d0                        , &
+         &                 rangeExpandType            =rangeExpandMultiplicative    , &
+         &                 rangeExpandUpwardSignExpect=rangeExpandSignExpectNegative  &
+         &                )
     return
   end function correa2015ConstructorInternal
 
@@ -96,16 +107,11 @@ contains
     !% node} using the algorithm of \cite{correa_accretion_2015}.
     use :: Dark_Matter_Halos_Correa2015, only : Dark_Matter_Halo_Correa2015_Fit_Parameters
     use :: Galacticus_Nodes            , only : nodeComponentBasic                        , treeNode
-    use :: Root_Finder                 , only : rangeExpandMultiplicative                 , rangeExpandSignExpectNegative, rootFinder
     implicit none
     class           (darkMatterHaloMassAccretionHistoryCorrea2015), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node
     double precision                                              , intent(in   ) :: mass
     class           (nodeComponentBasic                          ), pointer       :: baseBasic
-    double precision                                              , parameter     :: toleranceRelative  =1.0d-6
-    double precision                                              , parameter     :: toleranceAbsolute  =0.0d0
-    type            (rootFinder                                  ), save          :: finder
-    !$omp threadprivate(finder)
     double precision                                                              :: baseRedshift               , baseTime, &
          &                                                                           baseExpansionFactor        , baseMass, &
          &                                                                           redshift                   , aTilde  , &
@@ -122,22 +128,14 @@ contains
     ! Find the a~ and b~ parameters.
     call Dark_Matter_Halo_Correa2015_Fit_Parameters(baseMass,baseExpansionFactor,self%cosmologyFunctions_,self%linearGrowth_,self%cosmologicalMassVariance_,aTilde,bTilde)
     ! Solve for the redshift corresponding to this mass.
-    if (.not.finder%isInitialized()) then
-       call finder%rootFunction(redshiftMassSolver                  )
-       call finder%tolerance   (toleranceAbsolute ,toleranceRelative)
-       call finder%rangeExpand (                                                           &
-            &                   rangeExpandUpward          =2.0d0                        , &
-            &                   rangeExpandType            =rangeExpandMultiplicative    , &
-            &                   rangeExpandUpwardSignExpect=rangeExpandSignExpectNegative  &
-            &)
-    end if
-    redshift=finder%find(rootRange=[baseRedshift,2.0d0/baseExpansionFactor-1.0d0])
+    call self%finder%rootFunction(redshiftMassSolver)
+    redshift=self%finder%find(rootRange=[baseRedshift,2.0d0/baseExpansionFactor-1.0d0])
     ! Convert redshift to time.
     correa2015Time=self%cosmologyFunctions_%cosmicTime                 (          &
          &         self%cosmologyFunctions_%expansionFactorFromRedshift (         &
          &                                                               redshift &
-         &                                                             )          &
-         &                                                            )
+         &                                                              )         &
+         &                                                             )
     return
 
   contains

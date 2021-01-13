@@ -28,6 +28,7 @@
   use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMONFW
   use :: Virial_Density_Contrast   , only : virialDensityContrastFixed
   use :: Linear_Growth             , only : linearGrowthClass
+  use :: Root_Finder               , only : rootFinder
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationDiemerJoyce2019">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{diemer_accurate_2019}.</description>
@@ -49,6 +50,7 @@
      class           (linearGrowthClass            ), pointer     :: linearGrowth_                    => null()
      type            (virialDensityContrastFixed   ), pointer     :: virialDensityContrastDefinition_ => null()
      type            (darkMatterProfileDMONFW      ), pointer     :: darkMatterProfileDMODefinition_  => null()
+     type            (rootFinder                   )              :: finder
      double precision                                             :: kappa                                     , scatter     , &
           &                                                          a0                                        , a1          , &
           &                                                          b0                                        , b1          , &
@@ -175,6 +177,7 @@ contains
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Galacticus_Error       , only : Galacticus_Error_Report
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
+    use :: Root_Finder            , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
     type            (darkMatterProfileConcentrationDiemerJoyce2019     )                         :: self
     double precision                                                    , intent(in   )          :: kappa                          , a0     , &
@@ -192,6 +195,17 @@ contains
     self%timePrevious             =-1.0d0
     self%massPrevious             =-1.0d0
     self%concentrationMeanPrevious=-1.0d0
+    self%finder                   =rootFinder(                                                             &
+         &                                    rootFunction=GRoot                                         , &
+         &                                    rangeExpandDownward          =0.5d0                        , &
+         &                                    rangeExpandUpward            =2.0d0                        , &
+         &                                    rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+         &                                    rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+         &                                    rangeExpandType              =rangeExpandMultiplicative    , &
+         &                                    rangeDownwardLimit           =1.0d0                        , &
+         &                                    toleranceAbsolute            =0.0d0                        , &
+         &                                    toleranceRelative            =1.0d-3                         &
+         &                                   )
     allocate(     darkMatterHaloScaleDefinition_  )
     allocate(self%virialDensityContrastDefinition_)
     allocate(self%darkMatterProfileDMODefinition_ )
@@ -240,10 +254,9 @@ contains
   double precision function diemerJoyce2019ConcentrationMean(self,node)
     !% Return the mean concentration of the dark matter halo profile of {\normalfont \ttfamily node}
     !% using the \cite{diemer_accurate_2019} algorithm.
-    use :: Galacticus_Nodes        , only : nodeComponentBasic       , treeNode
+    use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
     use :: Math_Exponentiation     , only : cubeRoot
     use :: Numerical_Constants_Math, only : Pi
-    use :: Root_Finder             , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (darkMatterProfileConcentrationDiemerJoyce2019), intent(inout)          :: self
     type            (treeNode                                     ), intent(inout), target  :: node
@@ -252,8 +265,6 @@ contains
          &                                                                                     alphaEffective, A       , &
          &                                                                                     B             , C       , &
          &                                                                                     GTilde
-    type            (rootFinder                                   ), save                   :: finder
-    !$omp threadprivate(finder)
 
     basic => node%basic()
     if     (                                   &
@@ -287,23 +298,10 @@ contains
             &                             +1.0d0                                                                                              &
             &                             +peakHeight**2/B                                                                                    &
             &                             )
-       ! Initialize the root finder.
-       if (.not.finder%isInitialized()) then
-          call finder%rangeExpand (                                                             &
-               &                   rangeExpandDownward          =0.5d0                        , &
-               &                   rangeExpandUpward            =2.0d0                        , &
-               &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-               &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-               &                   rangeExpandType              =rangeExpandMultiplicative    , &
-               &                   rangeDownwardLimit           =1.0d0                          &
-               &                  )
-          call finder%rootFunction(GRoot                                           )
-          call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
-       end if
        ! Initial guess of the concentration.
        if (self%concentrationMeanPrevious < 0.0d0) self%concentrationMeanPrevious=5.0d0
        ! Solve for the concentration.
-       GTilde                           = finder%find(rootGuess=self%concentrationMeanPrevious)
+       GTilde                           = self%finder%find(rootGuess=self%concentrationMeanPrevious)
        self%concentrationMeanPrevious   = C*GTilde
        self%massPrevious                = basic%mass()
        self%timePrevious                = basic%time()

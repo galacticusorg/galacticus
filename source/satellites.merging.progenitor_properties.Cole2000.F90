@@ -19,6 +19,7 @@
 
   !% Implements a merger progenitor properties class which uses the algorithm of \cite{cole_hierarchical_2000}.
 
+  use :: Root_Finder                     , only : rootFinder
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
 
   !# <mergerProgenitorProperties name="mergerProgenitorPropertiesCole2000">
@@ -60,6 +61,7 @@
      !% A merger progenitor properties class which uses the algorithm of \cite{cole_hierarchical_2000}.
      private
      class(mergerMassMovementsClass), pointer :: mergerMassMovements_ => null()
+     type (rootFinder              )          :: finder
    contains
      final     ::        cole2000Destructor
      procedure :: get => cole2000Get
@@ -140,11 +142,22 @@ contains
 
  function cole2000ConstructorInternal(mergerMassMovements_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily cole2000} merger progenitor properties class.
+    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
     type (mergerProgenitorPropertiesCole2000)                        :: self
     class(mergerMassMovementsClass          ), intent(in   ), target :: mergerMassMovements_
     !# <constructorAssign variables="*mergerMassMovements_"/>
-
+    
+    self%finder=rootFinder(                                                             &
+         &                 rootFunction                 =cole2000HalfMassRadiusRoot   , &
+         &                 toleranceAbsolute            =0.0d+0                       , &
+         &                 toleranceRelative            =1.0d-6                       , &
+         &                 rangeExpandUpward            =2.0d+0                       , &
+         &                 rangeExpandDownward          =0.5d+0                       , &
+         &                 rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+         &                 rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+         &                 rangeExpandType              =rangeExpandMultiplicative      &
+         &                )
     return
   end function cole2000ConstructorInternal
 
@@ -163,8 +176,7 @@ contains
     use :: Galactic_Structure_Options        , only : massTypeGalactic                , radiusLarge
     use :: Galacticus_Error                  , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                  , only : nodeComponentDisk               , nodeComponentSpheroid                   , treeNode
-    use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus
-    use :: Root_Finder                       , only : rangeExpandMultiplicative       , rangeExpandSignExpectNegative           , rangeExpandSignExpectPositive, rootFinder
+    use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus
     use :: Satellite_Merging_Mass_Movements  , only : destinationMergerDisk           , destinationMergerSpheroid               , destinationMergerUnmoved
     implicit none
     class           (mergerProgenitorPropertiesCole2000), intent(inout)         :: self
@@ -176,8 +188,6 @@ contains
          &                                                                         radiusSatellite                , massSpheroidSatellite
     class           (nodeComponentDisk                 ), pointer               :: diskHost                       , diskSatelite
     class           (nodeComponentSpheroid             ), pointer               :: spheroidHost                   , spheroidSatellite
-    type            (rootFinder                        ), save                  :: finder
-    !$omp threadprivate(finder)
     double precision                                                            :: massComponent                  , factorDarkMatterDiskHost         , &
          &                                                                         radiusHalfMassDiskHost         , factorDarkMatterSpheroidHost     , &
          &                                                                         radiusHalfMassSpheroidHost     , factorDarkMatterDiskSatellite    , &
@@ -189,18 +199,6 @@ contains
 
     ! Find how mass is moved by the merger.
     call self%mergerMassMovements_%get(nodeSatellite,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
-    ! Initialize our root finder.
-    if (.not.finder%isInitialized()) then
-       call finder%rootFunction(cole2000HalfMassRadiusRoot                      )
-       call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
-       call finder%rangeExpand (                                                             &
-            &                   rangeExpandUpward            =2.0d0                        , &
-            &                   rangeExpandDownward          =0.5d0                        , &
-            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-            &                   rangeExpandType              =rangeExpandMultiplicative      &
-            &                  )
-    end if
     ! Get the disk and spheroid components of host and satellite.
     diskHost          => nodeHost     %disk    ()
     spheroidHost      => nodeHost     %spheroid()
@@ -328,12 +326,12 @@ contains
        cole2000HalfMass   =  0.0d0 ! Set to zero here so that cole2000HalfMassRadiusRoot() returns the actual half mass.
        cole2000HalfMass   =  0.5d0*cole2000HalfMassRadiusRoot(radiusLarge)
        if (cole2000HalfMassRadiusRoot(0.0d0) <= 0.0d0) then
-          radiusHost=finder%find(rootGuess=Galactic_Structure_Radius_Enclosing_Mass(                                 &
-               &                                                                                   cole2000Node    , &
-               &                                                                    fractionalMass=0.50d0          , &
-               &                                                                    massType      =massTypeGalactic  &
-               &                                                                   )                                 &
-               &                )
+          radiusHost=self%finder%find(rootGuess=Galactic_Structure_Radius_Enclosing_Mass(                                 &
+               &                                                                                        cole2000Node    , &
+               &                                                                         fractionalMass=0.50d0          , &
+               &                                                                         massType      =massTypeGalactic  &
+               &                                                                        )                                 &
+               &                     )
        else
           radiusHost      =0.0d0
           massSpheroidHost=0.0d0
@@ -348,12 +346,12 @@ contains
        cole2000HalfMass   =  0.0d0 ! Set to zero here so that cole2000HalfMassRadiusRoot() returns the actual half mass.
        cole2000HalfMass   =  0.50d0*cole2000HalfMassRadiusRoot(radiusLarge)
        if (cole2000HalfMassRadiusRoot(0.0d0) <= 0.0d0) then
-          radiusSatellite=finder%find(rootGuess=Galactic_Structure_Radius_Enclosing_Mass(                                 &
-               &                                                                                        cole2000Node    , &
-               &                                                                         fractionalMass=0.50d0          , &
-               &                                                                         massType      =massTypeGalactic  &
-               &                                                                        )                                 &
-               &                     )
+          radiusSatellite=self%finder%find(rootGuess=Galactic_Structure_Radius_Enclosing_Mass(                                 &
+               &                                                                                             cole2000Node    , &
+               &                                                                              fractionalMass=0.50d0          , &
+               &                                                                              massType      =massTypeGalactic  &
+               &                                                                             )                                 &
+               &                          )
        else
           radiusSatellite      =0.0d0
           massSpheroidSatellite=0.0d0

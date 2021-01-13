@@ -100,20 +100,16 @@ contains
        call self%inclinationTable%populate(halfMassRadii)
     else
        ! Tabulate dependence of projected half-light radius on disk inclination angle.
-       call finder               %tolerance   (                                                                           &
-            &                                  toleranceRelative            =1.0d-6                                     , &
-            &                                  toleranceAbsolute            =1.0d-6                                       &
-            &                                 )
-       call finder               %rootFunction(                                                                           &
-            &                                                               diskSizeInclntnRoot                           &
-            &                                 )
-       call finder               %rangeExpand (                                                                           &
-            &                                  rangeExpandUpward            =2.0d0                                      , &
-            &                                  rangeExpandDownward          =0.5d0                                      , &
-            &                                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive              , &
-            &                                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative              , &
-            &                                  rangeExpandType              =rangeExpandMultiplicative                    &
-            &                                 )
+       finder=rootFinder(                                                             &
+            &            rootFunction                 =diskSizeInclntnRoot          , &
+            &            toleranceRelative            =1.0d-6                       , &
+            &            toleranceAbsolute            =1.0d-6                       , &
+            &            rangeExpandUpward            =2.0d0                        , &
+            &            rangeExpandDownward          =0.5d0                        , &
+            &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+            &            rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+            &            rangeExpandType              =rangeExpandMultiplicative      &
+            &           )
        diskSizeInclntnAngle =acos(self%inclinationTable%x(1))
        halfLightRadiusFaceOn=finder%find(rootGuess=1.0d0)
        call self%inclinationTable%populate(0.0d0,1)

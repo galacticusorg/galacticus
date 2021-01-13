@@ -19,13 +19,16 @@
 
   !% Implementation of a beta density 1D distibution function.
 
+  use :: Root_Finder, only : rootFinder
+
   !# <distributionFunction1D name="distributionFunction1DBeta">
   !#  <description>A beta 1D distribution function class.</description>
   !# </distributionFunction1D>
-  type, extends(distributionFunction1DClass) :: distributionFunction1DBeta
+    type, extends(distributionFunction1DClass) :: distributionFunction1DBeta
      !% Implementation of a beta 1D distibution function.
      private
-     double precision :: alpha, beta
+     double precision             :: alpha , beta
+     type            (rootFinder) :: finder
    contains
      procedure :: density    => betaDensity
      procedure :: cumulative => betaCumulative
@@ -77,10 +80,16 @@ contains
   function betaConstructorInternal(alpha,beta,randomNumberGenerator_) result(self)
     !% Constructor for ``beta'' 1D distribution function class.
     type            (distributionFunction1DBeta)                                  :: self
-    double precision                            , intent(in   )                   :: alpha                 , beta
+    double precision                            , intent(in   )                   :: alpha                        , beta
     class           (randomNumberGeneratorClass), intent(in   ), target, optional :: randomNumberGenerator_
+    double precision                            , parameter                       :: toleranceAbsolute     =1.0d-6, toleranceRelative=0.0d+0
     !# <constructorAssign variables="alpha, beta, *randomNumberGenerator_"/>
-
+    
+    self%finder=rootFinder(                                     &
+         &                 rootFunction     =betaRoot         , &
+         &                 toleranceAbsolute=toleranceAbsolute, &
+         &                 toleranceRelative=toleranceRelative  &
+         &                )
     return
   end function betaConstructorInternal
 
@@ -121,13 +130,9 @@ contains
   double precision function betaInverse(self,p)
     !% Return the inverse of a beta distribution.
     use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Root_Finder     , only : rootFinder
     implicit none
     class           (distributionFunction1DBeta), intent(inout), target :: self
     double precision                            , intent(in   )         :: p
-    double precision                            , parameter             :: toleranceAbsolute=1.0d-6, toleranceRelative=0.0d+0
-    type            (rootFinder                ), save                  :: finder
-    !$omp threadprivate(finder)
 
     if      (                                                    &
          &    p < 0.0d0                                          &
@@ -140,13 +145,9 @@ contains
             &                       {introspection:location}     &
             &                      )
     else
-       if (.not.finder%isInitialized()) then
-          call finder%rootFunction(betaRoot                           )
-          call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-       end if
        betaSelf    => self
        betaP       =  p
-       betaInverse =  finder%find(rootRange=[0.0d0,1.0d0])
+       betaInverse =  self%finder%find(rootRange=[0.0d0,1.0d0])
     end if
     return
   end function betaInverse

@@ -256,6 +256,17 @@ contains
        if (darkMatterProfile%scale() <= 0.0d0) then
           ! Get the resolution of the tree.
           massResolution=mergerTreeMassResolution_%resolution(node%hostTree)
+          ! Build a root finder to find scale radii.
+          finder=rootFinder(                                                             &
+               &            rootFunction                 =radiusScaleRoot              , &
+               &            toleranceAbsolute            =1.0d-6                       , &
+               &            toleranceRelative            =1.0d-3                       , &
+               &            rangeExpandDownward          =0.5d+0                       , &
+               &            rangeExpandUpward            =2.0d+0                       , &
+               &            rangeExpandType              =rangeExpandMultiplicative    , &
+               &            rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+               &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &
+               &           )
           ! Perform our own depth-first tree walk to set scales in all nodes of the tree. This is necessary as we require access
           ! to the parent scale to set scale growth rates, but must initialize scales in a strictly depth-first manner as some
           ! algorithms rely on knowing the progenitor structure of the tree to compute scale radii.
@@ -404,18 +415,7 @@ contains
                 ! Convert energy back to scale radius.
                 nodeActive              => nodeWork
                 darkMatterProfileActive => darkMatterProfile
-                if (.not.finder%isInitialized()) then
-                   call finder%rootFunction(radiusScaleRoot                                  )
-                   call finder%tolerance   (toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
-                   call finder%rangeExpand (                                                             &
-                        &                   rangeExpandDownward          =0.5d0                        , &
-                        &                   rangeExpandUpward            =2.0d0                        , &
-                        &                   rangeExpandType              =rangeExpandMultiplicative    , &
-                        &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-                        &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &
-                        &                  )
-                end if
-                radiusScale=finder%find(rootGuess=radiusScaleChild)
+                radiusScale             =  finder%find(rootGuess=radiusScaleChild)
              end if
              call darkMatterProfile%scaleSet(radiusScale)             
           end do

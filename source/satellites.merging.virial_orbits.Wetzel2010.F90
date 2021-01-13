@@ -131,8 +131,11 @@ contains
     !# <constructorAssign variables="*darkMatterHaloScale_, *cosmologyFunctions_, *criticalOverdensity_"/>
 
     ! Initialize root finder.
-    call self%finder%rootFunction(wetzel2010CircularityRoot          )
-    call self%finder%tolerance   (toleranceAbsolute,toleranceRelative)
+    self%finder=rootFinder(                                             &
+         &                 rootFunction     =wetzel2010CircularityRoot, &
+         &                 toleranceAbsolute=toleranceAbsolute        , &
+         &                 toleranceRelative=toleranceRelative          &
+         &                )
     ! Construct a look-up table for the pericentric radius distribution.
     ! Determine number of points to use in the tabulation.
     self%pericentricRadiusCount=int(log10(wetzel2010PericentricRadiusMaximum/wetzel2010PericentricRadiusMinimum)*dble(wetzel2010PericentricRadiusPointsPerDecade))+1

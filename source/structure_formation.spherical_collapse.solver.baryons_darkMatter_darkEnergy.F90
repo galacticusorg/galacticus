@@ -148,22 +148,23 @@ contains
     integer                                                                          , intent(in   ) :: calculationType
     class           (table1D                                           ), allocatable, intent(inout) :: sphericalCollapse_
     class           (linearGrowthClass                                 ), pointer                    :: linearGrowth_
-    double precision                                                    , parameter                  :: toleranceAbsolute              =0.0d0, toleranceRelative              =1.0d-12
+    double precision                                                    , parameter                  :: toleranceAbsolute              =0.0d0  , toleranceRelative              =1.0d-12
     double precision                                                    , dimension(2)               :: timeRange
-    type            (rootFinder                                        ), save                       :: finderPerturbationInitial            , finderExpansionMaximum
-    !$omp threadprivate(finderPerturbationInitial,finderExpansionMaximum)
-    integer                                                                                          :: countTimes                           , iTime                                  , &
+    type            (rootFinder                                        ), save                       :: finderPerturbationInitial              , finderExpansionMaximum
+    logical                                                             , save                       :: finderPerturbationConstructed  =.false., finderExpansionConstructed     =.false.
+    !$omp threadprivate(finderPerturbationInitial,finderExpansionMaximum,finderPerturbationConstructed,finderExpansionConstructed)
+    integer                                                                                          :: countTimes                             , iTime                                  , &
          &                                                                                              iCount
-    double precision                                                                                 :: expansionFactor                      , epsilonPerturbation                    , &
-         &                                                                                              epsilonPerturbationMaximum           , epsilonPerturbationMinimum             , &
-         &                                                                                              densityContrastExpansionMaximum      , expansionFactorExpansionMaximum        , &
-         &                                                                                              radiusExpansionMaximum               , timeExpansionMaximum                   , &
-         &                                                                                              normalization                        , q                                      , &
-         &                                                                                              timeEnergyFixed                      , timeInitial                            , &
-         &                                                                                              y                                    , timeMinimum                            , &
-         &                                                                                              timeMaximum                          , r                                      , &
-         &                                                                                              z                                    , fractionDarkMatter
-    double complex                                                                                   :: a                                    , b                                      , &
+    double precision                                                                                 :: expansionFactor                        , epsilonPerturbation                    , &
+         &                                                                                              epsilonPerturbationMaximum             , epsilonPerturbationMinimum             , &
+         &                                                                                              densityContrastExpansionMaximum        , expansionFactorExpansionMaximum        , &
+         &                                                                                              radiusExpansionMaximum                 , timeExpansionMaximum                   , &
+         &                                                                                              normalization                          , q                                      , &
+         &                                                                                              timeEnergyFixed                        , timeInitial                            , &
+         &                                                                                              y                                      , timeMinimum                            , &
+         &                                                                                              timeMaximum                            , r                                      , &
+         &                                                                                              z                                      , fractionDarkMatter
+    double complex                                                                                   :: a                                      , b                                      , &
          &                                                                                              x
     type            (varying_string                                    )                             :: message
     character       (len=13                                            )                             :: label
@@ -250,13 +251,15 @@ contains
           if (cllsnlssMttrDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=cllsnlssMttCsmlgclCnstntTime) >= -1.0d0/3.0d0) &
                & call Galacticus_Error_Report('ω<-⅓ required'//{introspection:location})
           ! Find the value of epsilon for which the perturbation just collapses at this time.
-          if (.not.finderPerturbationInitial%isInitialized()) then
-             call finderPerturbationInitial%rootFunction(baryonsDarkMatterDarkEnergyRadiusPerturbation)
-             call finderPerturbationInitial%tolerance   (toleranceAbsolute,toleranceRelative)
-             call finderPerturbationInitial%rangeExpand (                                             &
-                  &                                      rangeExpandUpward=2.0d0                    , &
-                  &                                      rangeExpandType  =rangeExpandMultiplicative  &
-                  &                                     )
+          if (.not.finderPerturbationConstructed) then
+             finderPerturbationInitial=rootFinder(                                                                 &
+                  &                               rootFunction     =baryonsDarkMatterDarkEnergyRadiusPerturbation, &
+                  &                               toleranceAbsolute=toleranceAbsolute                            , &
+                  &                               toleranceRelative=toleranceRelative                            , &
+                  &                               rangeExpandUpward=2.0d0                                        , &
+                  &                               rangeExpandType  =rangeExpandMultiplicative                      &
+                  &                              )
+             finderPerturbationConstructed=.true.
           end if
           epsilonPerturbation=finderPerturbationInitial%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
           select case (calculationType)
@@ -275,9 +278,13 @@ contains
                   &                          )
           case (cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast,cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround)
              ! Find the epoch of maximum expansion for the perturbation.
-             if (.not.finderExpansionMaximum%isInitialized()) then
-                call finderExpansionMaximum%rootFunction(baryonsDarkMatterDarkEnergyExpansionRatePerturbation)
-                call finderExpansionMaximum%tolerance   (toleranceAbsolute,toleranceRelative       )
+             if (.not.finderExpansionConstructed) then
+                finderExpansionMaximum=rootFinder(                                                                   &
+                     &                            rootFunction=baryonsDarkMatterDarkEnergyExpansionRatePerturbation, &
+                     &                            toleranceAbsolute=toleranceAbsolute                              , &
+                     &                            toleranceRelative=toleranceRelative                                &
+                     &                           )
+                finderExpansionConstructed=.true.
              end if
              call finderExpansionMaximum%rangeExpand (                                                             &
                   &                                   rangeExpandDownward          =1.0d0-1.0d-2                 , &

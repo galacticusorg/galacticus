@@ -23,6 +23,7 @@
   use :: Kind_Numbers        , only : kind_int8
   use :: Math_Exponentiation , only : fastExponentiator
   use :: Tables              , only : table1DLinearLinear
+  use :: Root_Finder         , only : rootFinder
 
   !# <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksKrumholz2009">
   !#  <description>
@@ -71,6 +72,7 @@
           &                                                    sigmaMolecularComplexNormalization, clumpingFactorMolecularComplex, &
           &                                                    frequencyStarFormation
      logical                                                :: assumeMonotonicSurfaceDensity     , molecularFractionFast
+     type            (rootFinder         )                  :: finder
      type            (fastExponentiator  )                  :: surfaceDensityExponentiator
      type            (table1DLinearLinear)                  :: molecularFraction
      procedure       (double precision   ), nopass, pointer :: molecularFraction_
@@ -153,6 +155,7 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily krumholz2009} star formation surface density rate from disks class.
     use :: Abundances_Structure, only : unitAbundances
     use :: Table_Labels        , only : extrapolationTypeFix
+    use :: Root_Finder         , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
     type            (starFormationRateSurfaceDensityDisksKrumholz2009)                :: self
     double precision                                                  , intent(in   ) :: frequencyStarFormation      , clumpingFactorMolecularComplex
@@ -180,6 +183,17 @@ contains
     end do
     ! Initialize exponentiator.
     self%surfaceDensityExponentiator=fastExponentiator(1.0d0,100.0d0,0.33d0,100.0d0,.false.)
+    ! Build root finder.
+    self%finder=rootFinder(                                                               &
+         &                 rootFunction                 =krumholz2009CriticalDensityRoot, &
+         &                 toleranceAbsolute            =0.0d+0                         , &
+         &                 toleranceRelative            =1.0d-4                         , &
+         &                 rangeExpandUpward            =2.0d0                          , &
+         &                 rangeExpandDownward          =0.5d0                          , &
+         &                 rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  , &
+         &                 rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  , &
+         &                 rangeExpandType              =rangeExpandMultiplicative        &
+         &                )
     return
   end function krumholz2009ConstructorInternal
 
@@ -376,14 +390,11 @@ contains
 
   function krumholz2009Intervals(self,node,radiusInner,radiusOuter)
     !% Returns intervals to use for integrating the \cite{krumholz_star_2009} star formation rate over a galactic disk.
-    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout), target         :: self
     double precision                                                  , allocatable  , dimension(:,:) :: krumholz2009Intervals
     type            (treeNode                                        ), intent(inout), target         :: node
     double precision                                                  , intent(in   )                 :: radiusInner          , radiusOuter
-    type            (rootFinder                                      ), save                          :: finder
-    !$omp threadprivate(finder)
     double precision                                                                                  :: surfaceDensityGas    , surfaceDensityGasDimensionless, &
          &                                                                                               radiusCritical
 
@@ -407,20 +418,9 @@ contains
           else
              ! The disk transitions the critical surface density - attempt to locate the radius at which this happens and use two
              ! intervals split at this point.
-             if (.not.finder%isInitialized()) then
-                call finder%rootFunction(krumholz2009CriticalDensityRoot)
-                call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=1.0d-4)
-                call finder%rangeExpand(                                                             &
-                     &                  rangeExpandUpward            =2.0d0                        , &
-                     &                  rangeExpandDownward          =0.5d0                        , &
-                     &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-                     &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-                     &                  rangeExpandType              =rangeExpandMultiplicative      &
-                     &                 )
-             end if
              krumholz2009Self => self
              krumholz2009Node => node
-             radiusCritical   =  finder%find(rootRange=[radiusInner,radiusOuter])
+             radiusCritical   =  self%finder%find(rootRange=[radiusInner,radiusOuter])
              allocate(krumholz2009Intervals(2,2))
              krumholz2009Intervals=reshape([radiusInner,radiusCritical,radiusCritical,radiusOuter],[2,2])
           end if

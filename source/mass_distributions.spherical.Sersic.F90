@@ -340,12 +340,13 @@ contains
     double precision                        , parameter               :: coefficientTolerance   =1.0d-6
     double precision                        , parameter               :: coefficientGuess       =7.67d0
     type            (rootFinder            ), save                    :: finder
-    !$omp threadprivate(finder)
-    logical                                                           :: rebuildTable                  , tableHasSufficientExtent
+    logical                                 , save                    :: finderConstructed      =.false.
+    !$omp threadprivate(finder,finderConstructed)
+    logical                                                           :: rebuildTable                   , tableHasSufficientExtent
     integer                                                           :: iRadius
-    double precision                                                  :: deltaRadius                   , integrand                , &
-         &                                                               massPrevious                  , previousIntegrand        , &
-         &                                                               radiusActual                  , radiusInfinity
+    double precision                                                  :: deltaRadius                    , integrand                , &
+         &                                                               massPrevious                   , previousIntegrand        , &
+         &                                                               radiusActual                   , radiusInfinity
     type            (integrator            )                          :: integrator_
     type            (interpolator          )                          :: interpolator_
 
@@ -368,14 +369,16 @@ contains
        ! Set a module-scope pointer to self.
        sersicActive => self
        ! Initialize our root finder.
-       if (.not.finder%isInitialized()) then
-          call finder%rootFunction(sersicCoefficientRoot                                         )
-          call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=coefficientTolerance)
-          call finder%rangeExpand (                                               &
-               &                   rangeExpandDownward=0.5d0                    , &
-               &                   rangeExpandUpward  =2.0d0                    , &
-               &                   rangeExpandType    =rangeExpandMultiplicative  &
-               &                  )
+       if (.not.finderConstructed) then
+          finder           =rootFinder(                                               &
+               &                       rootFunction       =sersicCoefficientRoot    , &
+               &                       toleranceAbsolute  =0.0d0                    , &
+               &                       toleranceRelative  =coefficientTolerance     , &
+               &                       rangeExpandDownward=0.5d0                    , &
+               &                       rangeExpandUpward  =2.0d0                    , &
+               &                       rangeExpandType    =rangeExpandMultiplicative  &
+               &                      )
+          finderConstructed=.true.
        end if
        ! Try building the table until it has sufficient extent to encompass the requested radius.
        tableHasSufficientExtent=.false.

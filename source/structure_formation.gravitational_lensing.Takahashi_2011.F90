@@ -366,18 +366,16 @@ contains
              !$ call hdf5Access%unset()
           else
              ! Create a root-finder to solve the parameters.
-             call finder%rootFunction(convergencePdfParameterSolver)
-             call finder%tolerance   (                                        &
-                  &                   convergenceParametersToleranceAbsolute, &
-                  &                   convergenceParametersToleranceRelative  &
-                  &                  )
-             call finder%rangeExpand (                                                             &
-                  &                   rangeExpandUpward            =2.0d0                        , &
-                  &                   rangeExpandDownward          =0.5d0                        , &
-                  &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-                  &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-                  &                   rangeExpandType              =rangeExpandMultiplicative      &
-                  &                  )
+             finder=rootFinder(&
+                  &            rootFunction                 =convergencePdfParameterSolver         , &
+                  &            toleranceAbsolute            =convergenceParametersToleranceAbsolute, &
+                  &            toleranceRelative            =convergenceParametersToleranceRelative, &
+                  &            rangeExpandUpward            =2.0d0                                 , &
+                  &            rangeExpandDownward          =0.5d0                                 , &
+                  &            rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive         , &
+                  &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative         , &
+                  &            rangeExpandType              =rangeExpandMultiplicative               &
+                  &           )
              ! Construct a range of omega_kappa values.
              tableOmegaKappa=Make_Range(                      &
                   &                     omegaKappaMinimum   , &

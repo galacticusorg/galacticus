@@ -355,17 +355,13 @@ contains
     ! Make an initial guess at the halo radius.
     radiusHalo=(mass/4.0d0/Pi/state(stateCount)%boundingDensity)**(1.0d0/3.0d0)
     ! Find the corresponding halo radius.
-    call finder   %tolerance          (                                               &
-         &                             toleranceRelative  =1.0d-3                     &
-         &                            )
-    call finder   %rangeExpand        (                                               &
-         &                             rangeExpandUpward  =2.0d0                    , &
-         &                             rangeExpandDownward=0.5d0                    , &
-         &                             rangeExpandType    =rangeExpandMultiplicative  &
-         &                            )
-    call finder   %rootFunction       (                                               &
-         &                                                 haloRadiusRootFunction     &
-         &                            )
+    finder=rootFinder(                                               &
+         &            rootFunction       =haloRadiusRootFunction   , &
+         &            toleranceRelative  =1.0d-3                   , &
+         &            rangeExpandUpward  =2.0d+0                   , &
+         &            rangeExpandDownward=0.5d+0                   , &
+         &            rangeExpandType    =rangeExpandMultiplicative  &
+         &           )
     radiusHalo=finder%find(rootGuess=radiusHalo)
     call state(stateCount)%workNode%destroy()
     deallocate(state(stateCount)%workNode)

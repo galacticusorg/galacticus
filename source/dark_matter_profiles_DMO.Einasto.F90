@@ -20,6 +20,7 @@
   !% An implementation of ``Einasto'' dark matter halo profiles.
 
   use :: Numerical_Interpolation, only : interpolator
+  use :: Root_Finder            , only : rootFinder
 
   !# <darkMatterProfileDMO name="darkMatterProfileDMOEinasto">
   !#  <description>
@@ -95,6 +96,8 @@
      double precision              , allocatable, dimension(:,:,:) :: fourierProfileTable
      type            (interpolator), allocatable                   :: fourierProfileTableAlphaInterpolator          , fourierProfileTableConcentrationInterpolator   , &
           &                                                           fourierProfileTableWavenumberInterpolator
+     ! Root finders.
+     type            (rootFinder  )                                :: finderEnclosedDensity                         , finderVelocityPeak
    contains
      !# <methods>
      !#   <method description="Returns the density (in units such that the virial mass and scale length are unity) in an Einasto dark matter profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="densityScaleFree" />
@@ -161,8 +164,8 @@
   ! Module-scope variables used in root finding.
   class           (darkMatterProfileDMOEinasto), pointer :: einastoSelf
   type            (treeNode                   ), pointer :: einastoNode
-  double precision                                       :: einastoDensityEnclosed
-  !$omp threadprivate(einastoSelf,einastoNode,einastoDensityEnclosed)
+  double precision                                       :: einastoDensityEnclosed, einastoAlpha
+  !$omp threadprivate(einastoSelf,einastoNode,einastoDensityEnclosed,einastoAlpha)
 
 contains
 
@@ -186,39 +189,59 @@ contains
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Galacticus_Error, only : Galacticus_Component_List        , Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
-    implicit none
-    type (darkMatterProfileDMOEinasto)                        :: self
-    class(darkMatterHaloScaleClass   ), intent(in   ), target :: darkMatterHaloScale_
+     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
+   implicit none
+    type            (darkMatterProfileDMOEinasto)                        :: self
+    class           (darkMatterHaloScaleClass   ), intent(in   ), target :: darkMatterHaloScale_
+    double precision                             , parameter             :: toleranceAbsolute   =0.0d0, toleranceRelative=1.0d-3
     !# <constructorAssign variables="*darkMatterHaloScale_"/>
 
     ! Initialize table states.
-    self%angularMomentumTableRadiusMinimum                    = 1.0d-3
-    self%angularMomentumTableRadiusMaximum                    =20.0d+0
-    self%angularMomentumTableAlphaMinimum                     = 0.1d+0
-    self%angularMomentumTableAlphaMaximum                     = 0.3d+0
-    self%angularMomentumTableInitialized                      =.false.
-    self%freefallRadiusTableRadiusMinimum                     = 1.0d-3
-    self%freefallRadiusTableRadiusMaximum                     =20.0d+0
-    self%freefallRadiusTableAlphaMinimum                      = 0.1d+0
-    self%freefallRadiusTableAlphaMaximum                      = 0.3d+0
-    self%freefallRadiusTableInitialized                       =.false.
-    self%energyTableConcentrationMinimum                      = 2.0d0
-    self%energyTableConcentrationMaximum                      =20.0d0
-    self%energyTableAlphaMinimum                              = 0.1d0
-    self%energyTableAlphaMaximum                              = 0.3d0
-    self%energyTableInitialized                               =.false.
-    self%fourierProfileTableConcentrationMinimum              = 2.0d0
-    self%fourierProfileTableConcentrationMaximum              =20.0d0
-    self%fourierProfileTableWavenumberMinimum                 = 1.0d-3
-    self%fourierProfileTableWavenumberMaximum                 = 1.0d+3
-    self%fourierProfileTableAlphaMinimum                      = 0.1d+0
-    self%fourierProfileTableAlphaMaximum                      = 0.3d+0
-    self%fourierProfileTableInitialized                       =.false.
-    self%radialVelocityDispersionRadiusMinimum                = 1.0d-3
-    self%radialVelocityDispersionRadiusMaximum                =20.0d+0
-    self%radialVelocityDispersionAlphaMinimum                 = 0.1d+0
-    self%radialVelocityDispersionAlphaMaximum                 = 0.3d+0
-    self%radialVelocityDispersionTableInitialized             =.false.
+    self%angularMomentumTableRadiusMinimum       = 1.0d-3
+    self%angularMomentumTableRadiusMaximum       =20.0d+0
+    self%angularMomentumTableAlphaMinimum        = 0.1d+0
+    self%angularMomentumTableAlphaMaximum        = 0.3d+0
+    self%angularMomentumTableInitialized         =.false.
+    self%freefallRadiusTableRadiusMinimum        = 1.0d-3
+    self%freefallRadiusTableRadiusMaximum        =20.0d+0
+    self%freefallRadiusTableAlphaMinimum         = 0.1d+0
+    self%freefallRadiusTableAlphaMaximum         = 0.3d+0
+    self%freefallRadiusTableInitialized          =.false.
+    self%energyTableConcentrationMinimum         = 2.0d0
+    self%energyTableConcentrationMaximum         =20.0d0
+    self%energyTableAlphaMinimum                 = 0.1d0
+    self%energyTableAlphaMaximum                 = 0.3d0
+    self%energyTableInitialized                  =.false.
+    self%fourierProfileTableConcentrationMinimum = 2.0d0
+    self%fourierProfileTableConcentrationMaximum =20.0d0
+    self%fourierProfileTableWavenumberMinimum    = 1.0d-3
+    self%fourierProfileTableWavenumberMaximum    = 1.0d+3
+    self%fourierProfileTableAlphaMinimum         = 0.1d+0
+    self%fourierProfileTableAlphaMaximum         = 0.3d+0
+    self%fourierProfileTableInitialized          =.false.
+    self%radialVelocityDispersionRadiusMinimum   = 1.0d-3
+    self%radialVelocityDispersionRadiusMaximum   =20.0d+0
+    self%radialVelocityDispersionAlphaMinimum    = 0.1d+0
+    self%radialVelocityDispersionAlphaMaximum    = 0.3d+0
+    self%radialVelocityDispersionTableInitialized=.false.
+    ! Initialize root finders.
+    self%finderEnclosedDensity=rootFinder(                                                                 &
+         &                                rootFunction                 =einastoRadiusEnclosingDensityRoot, &
+         &                                toleranceAbsolute            =toleranceAbsolute                , &
+         &                                toleranceRelative            =toleranceRelative                , &
+         &                                rangeExpandUpward            =2.0d0                            , &
+         &                                rangeExpandDownward          =0.5d0                            , &
+         &                                rangeExpandType              =rangeExpandMultiplicative        , &
+         &                                rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative    , &
+         &                                rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive      &
+         &                               )
+    self%finderVelocityPeak   =rootFinder(&
+         &                                rootFunction                 =einastoCircularVelocityPeakRadius, &
+         &                                toleranceRelative            =toleranceRelative                , &
+         &                                rangeExpandUpward            =2.0d0                            , &
+         &                                rangeExpandDownward          =0.5d0                            , &
+         &                                rangeExpandType              =rangeExpandMultiplicative          &
+         &                               )
     ! Ensure that the dark matter profile component supports both "scale" and "shape" properties. Since we've been called with
     ! a treeNode to process, it should have been initialized by now.
     if     (                                                                                                                 &
@@ -409,70 +432,53 @@ contains
 
   double precision function einastoCircularVelocityMaximum(self,node)
     !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
-    use :: Galacticus_Nodes, only : nodeComponentBasic       , nodeComponentDarkMatterProfile, treeNode
-    use :: Root_Finder     , only : rangeExpandMultiplicative, rootFinder
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
-    double precision                                , parameter     :: toleranceRelative=1.0d-3
-    double precision                                                :: alpha                   , radiusScale, &
+    double precision                                                :: alpha            , radiusScale, &
          &                                                             radiusPeak
-    type            (rootFinder                    )                :: finder
 
     ! Get the shape parameter for this halo.
     darkMatterProfile => node                 %darkMatterProfile(autoCreate=.true.)
     alpha             =  darkMatterProfile%shape            (                 )
     radiusScale       =  darkMatterProfile%scale            (                 )
     ! Solve for the radius (in units of the scale radius) at which the rotation curve peaks.
-    call finder%tolerance   (                                                       &
-         &                   toleranceRelative  =toleranceRelative                  &
-         &                  )
-    call finder%rangeExpand (                                                       &
-         &                   rangeExpandUpward  =2.0d0                            , &
-         &                   rangeExpandDownward=0.5d0                            , &
-         &                   rangeExpandType    =rangeExpandMultiplicative          &
-         &                  )
-    call finder%rootFunction(                                                       &
-         &                                       einastoCircularVelocityPeakRadius  &
-         &                  )
-    radiusPeak=finder%find(rootGuess=radiusScale)
+    einastoAlpha=alpha
+    radiusPeak  =self%finderVelocityPeak%find(rootGuess=radiusScale)
     ! Find the peak velocity.
     einastoCircularVelocityMaximum=self%circularVelocity(node,radiusPeak*radiusScale)
     return
-
-  contains
-
-    double precision function einastoCircularVelocityPeakRadius(radius)
-      !% Computes the derivative of the square of circular velocity for an Einasto density profile.
-      use :: Gamma_Functions, only : Gamma_Function, Gamma_Function_Incomplete_Complementary
-      implicit none
-      double precision, intent(in   ) :: radius
-
-      einastoCircularVelocityPeakRadius=                                         &
-           & +        2.0d0               **(      +3.0d0/alpha)                 &
-           & *        radius              **(-2.0d0+      alpha)                 &
-           & *(       radius**alpha/alpha)**(-1.0d0+3.0d0/alpha)                 &
-           & * exp(                                                              &
-           &       -(                                                            &
-           &         +2.0d0                                                      &
-           &         *radius**alpha                                              &
-           &        )                                                            &
-           &       /alpha                                                        &
-           &      )                                                              &
-           & /Gamma_Function                         (                           &
-           &                                          3.0d0              /alpha  &
-           &                                         )                           &
-           & -Gamma_Function_Incomplete_Complementary(                           &
-           &                                          3.0d0              /alpha, &
-           &                                          2.0d0*radius**alpha/alpha  &
-           &                                         )                           &
-           & /       radius              **  2
-     return
-    end function einastoCircularVelocityPeakRadius
-
   end function einastoCircularVelocityMaximum
-
+  
+  double precision function einastoCircularVelocityPeakRadius(radius)
+    !% Computes the derivative of the square of circular velocity for an Einasto density profile.
+    use :: Gamma_Functions, only : Gamma_Function, Gamma_Function_Incomplete_Complementary
+    implicit none
+    double precision, intent(in   ) :: radius
+    
+    einastoCircularVelocityPeakRadius=+        2.0d0                             **(      +3.0d0/einastoAlpha)          &
+         &                            *        radius                            **(-2.0d0+      einastoAlpha)          &
+         &                            *(       radius**einastoAlpha/einastoAlpha)**(-1.0d0+3.0d0/einastoAlpha)          &
+         &                            * exp(                                                                            &
+         &                                  -(                                                                          &
+         &                                    +2.0d0                                                                    &
+         &                                    *radius**einastoAlpha                                                     &
+         &                                   )                                                                          &
+         &                                  /einastoAlpha                                                               &
+         &                                 )                                                                            &
+         &                            /Gamma_Function                         (                                         &
+         &                                                                     3.0d0                     /einastoAlpha  &
+         &                                                                    )                                         &
+         &                            -Gamma_Function_Incomplete_Complementary(                                         &
+         &                                                                     3.0d0                     /einastoAlpha, &
+         &                                                                     2.0d0*radius**einastoAlpha/einastoAlpha  &
+         &                                                                    )                                         &
+         &                            /       radius              **  2
+    return
+  end function einastoCircularVelocityPeakRadius
+  
   double precision function einastoRadialVelocityDispersion(self,node,radius)
     !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
@@ -1504,31 +1510,15 @@ contains
   double precision function einastoRadiusEnclosingDensity(self,node,density)
     !% Implementation of function to compute the radius enclosing a given density for Einasto dark matter halo profiles. This
     !% function uses a numerical root finder to find the enclosing radius---this is likely not the most efficient solution\ldots
-    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout), target :: self
     type            (treeNode                   ), intent(inout), target :: node
     double precision                             , intent(in   )         :: density
-    type            (rootFinder                 ), save                  :: finder
-    double precision                             , parameter             :: toleranceAbsolute=0.0d0
-    double precision                             , parameter             :: toleranceRelative=1.0d-3
-    !$omp threadprivate(finder)
 
-    if (.not.finder%isInitialized()) then
-       call finder%rootFunction(einastoRadiusEnclosingDensityRoot  )
-       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-       call finder%rangeExpand (                                                             &
-            &                   rangeExpandUpward            =2.0d0                        , &
-            &                   rangeExpandDownward          =0.5d0                        , &
-            &                   rangeExpandType              =rangeExpandMultiplicative    , &
-            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
-            &                  )
-    end if
     einastoDensityEnclosed        =  density
     einastoNode                   => node
     einastoSelf                   => self
-    einastoRadiusEnclosingDensity =  finder%find(rootGuess=self%darkMatterHaloScale_%virialRadius(node))
+    einastoRadiusEnclosingDensity =  self%finderEnclosedDensity%find(rootGuess=self%darkMatterHaloScale_%virialRadius(node))
     return
   end function einastoRadiusEnclosingDensity
 

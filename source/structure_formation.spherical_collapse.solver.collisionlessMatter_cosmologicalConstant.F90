@@ -205,18 +205,19 @@ contains
     double precision                                                               , intent(in   ) :: time
     integer                                                                        , intent(in   ) :: calculationType
     class           (table1D                                         ), allocatable, intent(inout) :: sphericalCollapse_
-    double precision                                                  , parameter                  :: toleranceAbsolute         =0.0d+0, toleranceRelative         =1.0d-9
+    double precision                                                  , parameter                  :: toleranceAbsolute         =0.0d+0 , toleranceRelative         =1.0d-9
     type            (rootFinder                                      ), save                       :: finder
-    !$omp threadprivate(finder)
-    integer                                                                                        :: countTimes                       , i
-    double precision                                                                               :: expansionFactor                  , epsilonPerturbation              , &
-         &                                                                                            epsilonPerturbationMaximum       , epsilonPerturbationMinimum       , &
-         &                                                                                            eta                              , normalization                    , &
-         &                                                                                            radiiRatio                       , radiusMaximum                    , &
-         &                                                                                            timeBigCrunch                    , timeMinimum                      , &
+    logical                                                           , save                       :: finderConstructed         =.false.
+    !$omp threadprivate(finder,finderConstructed)
+    integer                                                                                        :: countTimes                        , i
+    double precision                                                                               :: expansionFactor                   , epsilonPerturbation              , &
+         &                                                                                            epsilonPerturbationMaximum        , epsilonPerturbationMinimum       , &
+         &                                                                                            eta                               , normalization                    , &
+         &                                                                                            radiiRatio                        , radiusMaximum                    , &
+         &                                                                                            timeBigCrunch                     , timeMinimum                      , &
          &                                                                                            timeMaximum
-    double complex                                                                                 :: a                                , b                                , &
-         &                                                                                            c                                , d                                , &
+    double complex                                                                                 :: a                                 , b                                , &
+         &                                                                                            c                                 , d                                , &
          &                                                                                            Delta
 
     ! Find minimum and maximum times to tabulate.
@@ -272,16 +273,18 @@ contains
           cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal=    self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
           cllsnlssMttCsmlgclCnstntHubbleTimeEpochal     =abs(self%cosmologyFunctions_%expansionRate         (                expansionFactor))
           ! Find the value of ε for which the perturbation just collapses at this time.
-          if (.not.finder%isInitialized()) then
-             call finder%rootFunction(cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot)
-             call finder%tolerance   (toleranceAbsolute,toleranceRelative )
-             call finder%rangeExpand (                                                             &
-                  &                   rangeExpandUpward            =0.5d0                        , &
-                  &                   rangeExpandDownward          =2.0d0                        , &
-                  &                   rangeExpandType              =rangeExpandMultiplicative    , &
-                  &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-                  &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
-                  &                  )
+          if (.not.finderConstructed) then
+             finder=rootFinder(                                                                                &
+                  &            rootFunction                 =cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot, &
+                  &            toleranceAbsolute            =toleranceAbsolute                               , &
+                  &            toleranceRelative            =toleranceRelative                               , &
+                  &            rangeExpandUpward            =0.5d0                                           , &
+                  &            rangeExpandDownward          =2.0d0                                           , &
+                  &            rangeExpandType              =rangeExpandMultiplicative                       , &
+                  &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive                   , &
+                  &            rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative                     &
+                  &           )
+             finderConstructed=.true.
           end if
           epsilonPerturbation=finder%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
           ! Compute the required quantity for this perturbation.
@@ -366,16 +369,17 @@ contains
     use :: Root_Finder, only : rootFinder
     implicit none
     double precision            , intent(in   ) :: epsilonPerturbation
-    double precision            , parameter     :: toleranceAbsolute               =0.0d0, toleranceRelative               =1.0d-9
+    double precision            , parameter     :: toleranceAbsolute               =0.0d0  , toleranceRelative               =1.0d-9
     type            (rootFinder), save          :: finder
-    !$omp threadprivate(finder)
-    double precision                            :: expansionFactorTurnaroundMaximum      , expansionFactorTurnaroundMinimum
+    logical                     , save          :: finderConstructed               =.false.
+    !$omp threadprivate(finder,finderConstructed)
+    double precision                            :: expansionFactorTurnaroundMaximum        , expansionFactorTurnaroundMinimum
 
 
     if (cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal == 0.0d0) then
        ! No cosmological constant - use the simple analytic solution.
        cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum=-cllsnlssMttCsmlgclCnstntOmegaMatterEpochal &
-            &                                 /epsilonPerturbation
+            &                                            /epsilonPerturbation
     else
        ! Cosmological constant - use root finder.
        cllsnlssMttCsmlgclCnstntAmplitudePerturbation=+epsilonPerturbation
@@ -397,9 +401,13 @@ contains
           ! for the expansion factor at turnaround is very close to the actual root.
           cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum=expansionFactorTurnaroundMinimum
        else
-          if (.not.finder%isInitialized()) then
-             call finder%rootFunction(cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot)
-             call finder%tolerance   (toleranceAbsolute,toleranceRelative      )
+          if (.not.finderConstructed) then
+             finder=rootFinder(                                                                         &
+                  &            rootFunction     =cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot, &
+                  &            toleranceAbsolute=toleranceAbsolute                                    , &
+                  &            toleranceRelative=toleranceRelative                                      &
+                  &           )
+             finderConstructed=.true.
           end if
           cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum=finder%find(rootRange=[expansionFactorTurnaroundMinimum,expansionFactorTurnaroundMaximum])
        end if
@@ -412,11 +420,11 @@ contains
     !% of the perturbation which must be zero at the maximum radius.
     double precision, intent(in   ) :: radiusMaximum
 
-    cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot=+cllsnlssMttCsmlgclCnstntOmegaMatterEpochal &
-         &                                    /radiusMaximum                                          &
-         &                                    +cllsnlssMttCsmlgclCnstntAmplitudePerturbation          &
-         &                                    +cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal         &
-         &                                    *radiusMaximum**2
+    cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot=+cllsnlssMttCsmlgclCnstntOmegaMatterEpochal     &
+         &                                                /radiusMaximum                                  &
+         &                                                +cllsnlssMttCsmlgclCnstntAmplitudePerturbation  &
+         &                                                +cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal &
+         &                                                *radiusMaximum**2
     return
   end function cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot
 
@@ -502,26 +510,27 @@ contains
     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt), intent(inout)              :: self
     double precision                                                  , intent(in   )              :: time
     class           (table2DLinLinLin                                ), intent(inout)              :: linearNonlinearMap_
-    integer                                                           , parameter                  :: tableIncrement          =100
-    integer                                                           , parameter                  :: timesPerDecade          = 10
-    integer                                                           , parameter                  :: overdensityLinearCount  =500
-    double precision                                                  , parameter                  :: numericalLimitEpsilon   =  1.0d-4
-    double precision                                                  , parameter                  :: toleranceAbsolute       =  0.0d+0, toleranceRelative         =1.0d-9
-    double precision                                                  , parameter                  :: expansionFactorMinimum  =  1.0d-2, expansionFactorMaximum    =1.0d+0
-    double precision                                                  , parameter                  :: overdensityLinearMinimum= -5.0d+0, overdensityLinearMaximum  =2.0d+0
-    double precision                                                  , allocatable, dimension(:)  :: overdensityLinear                , overdensityNonlinear             , &
-         &                                                                                            overdensityLinearTmp             , overdensityNonLinearTmp          , &
-         &                                                                                            times                            , overdensitiesLinear
-    double precision                                                                               :: expansionFactor                  , epsilonPerturbationMaximum       , &
-         &                                                                                            epsilonPerturbationCollapsed     , radiusNow                        , &
-         &                                                                                            epsilonPerturbation              , epsilonPerturbationMinimum       , &
-         &                                                                                            timeMaximum                      , radiusUpperLimit                 , &
-         &                                                                                            normalization                    , overdensityNonlinear_            , &
-         &                                                                                            timesMinimum                     , timesMaximum
+    integer                                                           , parameter                  :: tableIncrement               =100
+    integer                                                           , parameter                  :: timesPerDecade               = 10
+    integer                                                           , parameter                  :: overdensityLinearCount       =500
+    double precision                                                  , parameter                  :: numericalLimitEpsilon        =  1.0d-4
+    double precision                                                  , parameter                  :: toleranceAbsolute            =  0.0d+0, toleranceRelative         =1.0d-9
+    double precision                                                  , parameter                  :: expansionFactorMinimum       =  1.0d-2, expansionFactorMaximum    =1.0d+0
+    double precision                                                  , parameter                  :: overdensityLinearMinimum     = -5.0d+0, overdensityLinearMaximum  =2.0d+0
+    double precision                                                  , allocatable, dimension(:)  :: overdensityLinear                     , overdensityNonlinear              , &
+         &                                                                                            overdensityLinearTmp                  , overdensityNonLinearTmp           , &
+         &                                                                                            times                                 , overdensitiesLinear
+    double precision                                                                               :: expansionFactor                       , epsilonPerturbationMaximum        , &
+         &                                                                                            epsilonPerturbationCollapsed          , radiusNow                         , &
+         &                                                                                            epsilonPerturbation                   , epsilonPerturbationMinimum        , &
+         &                                                                                            timeMaximum                           , radiusUpperLimit                  , &
+         &                                                                                            normalization                         , overdensityNonlinear_             , &
+         &                                                                                            timesMinimum                          , timesMaximum
     type            (integrator                                      )                             :: integrator_
-    type            (rootFinder                                      )                             :: finderPerturbation               , finderRadius
-    integer                                                                                        :: i                                , timeCount                        , &
-         &                                                                                            iOverdensityLinear               , iOverdensity                     , &
+    type            (rootFinder                                      )                             :: finderPerturbation                    , finderRadius
+    logical                                                                                        :: finderPerturbationConstructed=.false. , finderRadiusConstructed   =.false.
+    integer                                                                                        :: i                                     , timeCount                         , &
+         &                                                                                            iOverdensityLinear                    , iOverdensity                      , &
          &                                                                                            iTime
 
     ! Check that we have a linear growth object.
@@ -558,16 +567,18 @@ contains
        cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal=self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
        cllsnlssMttCsmlgclCnstntHubbleTimeEpochal     =self%cosmologyFunctions_%expansionRate         (                expansionFactor)
        ! Find the value of epsilon for which the perturbation just collapses at this time.
-       if (.not.finderPerturbation%isInitialized()) then
-          call finderPerturbation%rootFunction(cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot)
-          call finderPerturbation%tolerance   (toleranceAbsolute,toleranceRelative )
-          call finderPerturbation%rangeExpand (                                                             &
-               &                               rangeExpandUpward            =0.5d0                        , &
-               &                               rangeExpandDownward          =2.0d0                        , &
-               &                               rangeExpandType              =rangeExpandMultiplicative    , &
-               &                               rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-               &                               rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
-               &                              )
+       if (.not.finderPerturbationConstructed) then
+          finderPerturbation=rootFinder(                                                                                &
+               &                        rootFunction                 =cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot, &
+               &                        toleranceAbsolute            =toleranceAbsolute                               , &
+               &                        toleranceRelative            =toleranceRelative                               , &
+               &                        rangeExpandUpward            =0.5d0                                           , &
+               &                        rangeExpandDownward          =2.0d0                                           , &
+               &                        rangeExpandType              =rangeExpandMultiplicative                       , &
+               &                        rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive                   , &
+               &                        rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative                     &
+               &                       )
+          finderPerturbationConstructed=.true.
        end if
        epsilonPerturbationCollapsed=finderPerturbation%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
        ! For non-collapsed regions, epsilon will be greater then that for a collapsed perturbation. Step through values until
@@ -621,16 +632,18 @@ contains
              end if
           end if
           ! Solve for the radius at the present time.
-          if (.not.finderRadius%isInitialized()) then
-             call finderRadius%rootFunction(cllsnlssMttCsmlgclCnstntRadiusRoot )
-             call finderRadius%tolerance   (toleranceAbsolute,toleranceRelative)
-             call finderRadius%rangeExpand (                                                             &
-                  &                         rangeExpandDownward          =0.5d0                        , &
-                  &                         rangeExpandUpward            =2.0d0                        , &
-                  &                         rangeExpandType              =rangeExpandMultiplicative    , &
-                  &                         rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-                  &                         rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
-                  &                        )
+          if (.not.finderRadiusConstructed) then
+             finderRadius=rootFinder(                                                                  &
+                  &                  rootFunction                 =cllsnlssMttCsmlgclCnstntRadiusRoot, &
+                  &                  toleranceAbsolute            =toleranceAbsolute                 , &
+                  &                  toleranceRelative            =toleranceRelative                 , &
+                  &                  rangeExpandDownward          =0.5d0                             , &
+                  &                  rangeExpandUpward            =2.0d0                             , &
+                  &                  rangeExpandType              =rangeExpandMultiplicative         , &
+                  &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative     , &
+                  &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive       &
+                  &                 )
+             finderRadiusConstructed=.true.
           end if
           if (epsilonPerturbation <= epsilonPerturbationMaximum .and. cllsnlssMttCsmlgclCnstntRadiusRoot(cllsnlssMttCsmlgclCnstntRadiusMaximum) < 0.0d0) then
              ! Perturbation is close to maximum radius. Adopt this as the solution.

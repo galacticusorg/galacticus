@@ -24,6 +24,7 @@
   use :: Cosmology_Parameters      , only : cosmologyParametersClass
   use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMONFW
   use :: Virial_Density_Contrast   , only : virialDensityContrast        , virialDensityContrastClass, virialDensityContrastFixed
+  use :: Root_Finder               , only : rootFinder
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationNFW1996">
   !#  <description>
@@ -62,6 +63,7 @@
      class           (virialDensityContrastClass   ), pointer :: virialDensityContrast_           => null()
      type            (virialDensityContrastFixed   ), pointer :: virialDensityContrastDefinition_ => null()
      type            (darkMatterProfileDMONFW      ), pointer :: darkMatterProfileDMODefinition_  => null()
+     type            (rootFinder                   )          :: finder
      double precision                                         :: f                                         , C
    contains
      final     ::                                   nfw1996Destructor
@@ -133,17 +135,27 @@ contains
     !% concentration class.
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
+    use :: Root_Finder            , only : rangeExpandMultiplicative
     implicit none
     type            (darkMatterProfileConcentrationNFW1996             )                         :: self
-    double precision                                                    , intent(in   )          :: f                         , C
+    double precision                                                    , intent(in   )          :: f                                   , C
     class           (cosmologyParametersClass                          ), intent(in   ), target  :: cosmologyParameters_
     class           (cosmologyFunctionsClass                           ), intent(in   ), target  :: cosmologyFunctions_
     class           (criticalOverdensityClass                          ), intent(in   ), target  :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass                     ), intent(in   ), target  :: cosmologicalMassVariance_
     class           (virialDensityContrastClass                        ), intent(in   ), target  :: virialDensityContrast_
     type            (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
+    double precision                                                    , parameter              :: toleranceAbsolute             =0.0d0, toleranceRelative=1.0d-6
     !# <constructorAssign variables="f, C, *cosmologyParameters_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *virialDensityContrast_"/>
-
+    
+    self%finder=rootFinder(                                               &
+         &                 rootFunction       =nfw1996ConcentrationRoot , &
+         &                 rangeExpandDownward=0.5d0                    , &
+         &                 rangeExpandUpward  =2.0d0                    , &
+         &                 rangeExpandType    =rangeExpandMultiplicative, &
+         &                 toleranceAbsolute  =toleranceAbsolute        , &
+         &                 toleranceRelative  =toleranceRelative          &
+         &                )
     allocate(self%virialDensityContrastDefinition_)
     allocate(     darkMatterHaloScaleDefinition_  )
     allocate(self%darkMatterProfileDMODefinition_ )
@@ -172,16 +184,12 @@ contains
   double precision function nfw1996Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
     !% using the \cite{navarro_structure_1996} algorithm.
-    use :: Galacticus_Nodes, only : nodeComponentBasic       , treeNode
-    use :: Root_Finder     , only : rangeExpandMultiplicative, rootFinder
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (darkMatterProfileConcentrationNFW1996), intent(inout), target  :: self
     type            (treeNode                             ), intent(inout), target  :: node
     double precision                                       , parameter              :: fitParameterNuHalf         =0.47693628d0
-    double precision                                       , parameter              :: toleranceAbsolute          =0.0d0       , toleranceRelative      =1.0d-6
     class           (nodeComponentBasic                   )               , pointer :: basic
-    type            (rootFinder                           ), save                   :: finder
-    !$omp threadprivate(finder)
     double precision                                                                :: collapseCriticalOverdensity             , collapseExpansionFactor       , &
          &                                                                             collapseMass                            , collapseOverdensity           , &
          &                                                                             collapseTime                            , expansionFactor               , &
@@ -220,18 +228,8 @@ contains
     collapseOverdensity        =self%C*(expansionFactor/collapseExpansionFactor)**3
     ! Find the ratio of this overdensity to that at for the present node.
     nfw1996RootTarget          =collapseOverdensity/self%virialDensityContrast_%densityContrast(nodeMass,nodeTime)
-    ! Initialize our root finder.
-    if (.not.finder%isInitialized()) then
-       call finder%rangeExpand (                                               &
-            &                   rangeExpandDownward=0.5d0                    , &
-            &                   rangeExpandUpward  =2.0d0                    , &
-            &                   rangeExpandType    =rangeExpandMultiplicative  &
-            &                  )
-       call finder%rootFunction(nfw1996ConcentrationRoot           )
-       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-    end if
-    ! Find the concentration.
-    nfw1996Concentration=finder%find(rootRange=[1.0d0,20.0d0])
+     ! Find the concentration.
+    nfw1996Concentration=self%finder%find(rootRange=[1.0d0,20.0d0])
     return
   end function nfw1996Concentration
 

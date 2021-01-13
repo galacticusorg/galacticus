@@ -26,7 +26,8 @@
   use :: Atomic_Rates_Recombination_Radiative        , only : atomicRecombinationRateRadiativeClass
   use :: Atomic_Rates_Recombination_Radiative_Cooling, only : atomicRecombinationRateRadiativeCoolingClass
   use :: Mass_Distributions                          , only : massDistributionClass
-  
+  use :: Root_Finder                                 , only : rootFinder
+
   !# <radiativeTransferMatter name="radiativeTransferMatterAtomic">
   !#  <description>A task which performs radiative transfer.</description>
   !# </radiativeTransferMatter>
@@ -42,6 +43,7 @@
      class           (atomicIonizationPotentialClass              ), pointer                     :: atomicIonizationPotential_               => null()
      class           (atomicExcitationRateCollisionalClass        ), pointer                     :: atomicExcitationRateCollisional_         => null()
      class           (gauntFactorClass                            ), pointer                     :: gauntFactor_                             => null()
+     type            (rootFinder                                  )                              :: finder
      integer                                                                                     :: indexAbundancePattern                             , iterationAverageCount       , &
           &                                                                                         countElements                                     , indexHydrogen
      integer         (c_size_t                                    )                              :: countOutputs_                                     , countStatesConvergence
@@ -116,7 +118,9 @@
 
   ! Tolerance parameters.
   double precision                                         , parameter                   :: atomicIonizationStateFractionToleranceAbsolute=1.0d-12, atomicIonizationStateFractionToleranceRelative=1.0d-2
-  
+  double precision                                         , parameter                   :: temperatureToleranceRelative                  =1.0d-02, temperatureToleranceAbsolute                  =1.0d+0
+  double precision                                         , parameter                   :: temperatureMaximum                            =1.0d+10
+
 contains
 
   function atomicConstructorParameters(parameters) result(self)
@@ -219,13 +223,14 @@ contains
 
   function atomicConstructorInternal(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,outputRates,outputAbsorptionCoefficients,convergencePercentile,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily atomic} radiative transfer matter class.
-    use :: Abundances_Structure            , only : abundances              , metallicityTypeLinearByMassSolar, adjustElementsReset, Abundances_Index_From_Name
-    use :: Atomic_Data                     , only : Abundance_Pattern_Lookup, Atomic_Abundance                , Atomic_Mass        , Atomic_Number
+    use :: Abundances_Structure            , only : abundances               , metallicityTypeLinearByMassSolar, adjustElementsReset          , Abundances_Index_From_Name
+    use :: Atomic_Data                     , only : Abundance_Pattern_Lookup , Atomic_Abundance                , Atomic_Mass                  , Atomic_Number
     use :: ISO_Varying_String              , only : char
-    use :: Numerical_Constants_Astronomical, only : massSolar               , megaParsec                      , metallicitySolar
+    use :: Numerical_Constants_Astronomical, only : massSolar                , megaParsec                      , metallicitySolar
     use :: Numerical_Constants_Atomic      , only : atomicMassUnit
     use :: Numerical_Constants_Prefixes    , only : centi
-    use :: String_Handling                 , only : String_Count_Words      , String_Split_Words
+    use :: Root_Finder                     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative   , rangeExpandSignExpectPositive
+    use :: String_Handling                 , only : String_Count_Words       , String_Split_Words
     implicit none
     type            (radiativeTransferMatterAtomic               )                              :: self
     integer                                                       , intent(in   )               :: iterationAverageCount
@@ -299,8 +304,21 @@ contains
     self%countStatesConvergence=min(int(dble(countIonizationStates)*(1.0d0-convergencePercentile),c_size_t)+1_c_size_t,countIonizationStates)
     ! Initialize photoionization cross section memoization.
     allocate(self%crossSectionPhotoIonizationPrevious(self%countElements,0:maxval(self%elementAtomicNumbers)-1))
-    self%wavelengthPrevious                  =-1.0d0
+    self%wavelengthPrevious                 =-1.0d0
     self%crossSectionPhotoIonizationPrevious=-1.0d0
+    ! Build a root finder for thermal state.
+    self%finder=rootFinder(                                                                  &
+         &                 rootFunction                 =     atomicStateThermalBalance    , &
+         &                 toleranceRelative            =     temperatureToleranceRelative , &
+         &                 toleranceAbsolute            =     temperatureToleranceAbsolute , &
+         &                 rangeExpandUpward            =     2.0d0                        , &
+         &                 rangeExpandDownward          =     0.5d0                        , &
+         &                 rangeExpandUpwardSignExpect  =     rangeExpandSignExpectNegative, &
+         &                 rangeExpandDownwardSignExpect=     rangeExpandSignExpectPositive, &
+         &                 rangeUpwardLimit             =     temperatureMaximum           , &
+         &                 rangeDownwardLimit           =self%temperatureMinimum           , &
+         &                 rangeExpandType              =     rangeExpandMultiplicative      &
+         &                )
     return
   end function atomicConstructorInternal
 
@@ -703,20 +721,17 @@ contains
   subroutine atomicStateSolve(self,properties,status)
     !% Solve for the state of the matter.
     use :: Atomic_Rates_Recombination_Radiative, only : recombinationCaseA       , recombinationCaseB
-    use :: Galacticus_Display                  , only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Message   , verbosityStandard
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report  , errorStatusSuccess         , errorStatusFail              , errorStatusOutOfRange
-    use :: Root_Finder                         , only : rangeExpandMultiplicative, rootFinder                 , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
+    use :: Galacticus_Display                  , only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Message, verbosityStandard
+    use :: Galacticus_Error                    , only : Galacticus_Error_Report  , errorStatusSuccess         , errorStatusFail           , errorStatusOutOfRange
     use :: Numerical_Roman_Numerals            , only : Roman_Numerals
     implicit none
     class           (radiativeTransferMatterAtomic    ), intent(inout) , target      :: self
     class           (radiativeTransferPropertiesMatter), intent(inout) , target      :: properties
     integer                                            , intent(  out) , optional    :: status
     double precision                                   , dimension(2)                :: temperaturePrevious                             , densityElectronsPrevious
-    double precision                                   , parameter                   :: temperatureToleranceRelative            =1.0d-02, temperatureToleranceAbsolute =1.0d+0
     integer                                            , parameter                   :: countIterationMaximum                   =1000   , temperatureOscillatingCounts =30    , &
          &                                                                              electronsOscillatingCounts              =30
     double precision                                   , parameter                   :: degreesOfFreedom                        =3.0d+00
-    double precision                                   , parameter                   :: temperatureMaximum                      =1.0d+10
     type            (element                          ), dimension( : ), allocatable :: elementsPrevious                                , elementsReference
     double precision                                                                 :: rateRecombinationRadiative                      , rateRecombinationDielectronic       , &
          &                                                                              temperatureChangePrevious                       , temperatureEquilibrium              , &
@@ -728,8 +743,6 @@ contains
          &                                                                              temperatureOscillatingCount                     , j                                   , &
          &                                                                              electronsOscillatingCount                       , statusTemperature                   , &
          &                                                                              exponentIonizationStateFractionMaximum          , exponentIonizationState
-    type            (rootFinder                       ), save                        :: finder
-    !$omp threadprivate(finder)
 #ifdef RADTRANSDEBUG
     integer                                                                          :: handlerPrevious
 #endif
@@ -744,25 +757,6 @@ contains
        ! Set module-scope pointers to self and properties.
        atomicSelf       => self
        atomicProperties => properties
-       ! Initialize root finder.
-       if (.not.finder%isInitialized()) then
-          call finder   %tolerance          (                                                                  &
-               &                             toleranceRelative            =     temperatureToleranceRelative , &
-               &                             toleranceAbsolute            =     temperatureToleranceAbsolute   &
-               &                            )
-          call finder   %rangeExpand        (                                                                  &
-               &                             rangeExpandUpward            =     2.0d0                        , &
-               &                             rangeExpandDownward          =     0.5d0                        , &
-               &                             rangeExpandUpwardSignExpect  =     rangeExpandSignExpectNegative, &
-               &                             rangeExpandDownwardSignExpect=     rangeExpandSignExpectPositive, &
-               &                             rangeUpwardLimit             =     temperatureMaximum           , &
-               &                             rangeDownwardLimit           =self%temperatureMinimum           , &
-               &                             rangeExpandType              =     rangeExpandMultiplicative      &
-               &                            )
-          call finder   %rootFunction       (                                                                  &
-               &                                                                atomicStateThermalBalance      &
-               &                            )
-       end if
        ! Append the accumulated photoionization/photoheating rates to the history arrays, compute the average over those
        ! histories, and replace the photoionization/photoheating rates with those averages.
        if (self%iterationAverageCount > 1) then
@@ -965,7 +959,7 @@ contains
                 end do
              end do
              ! Solve for temperature - updating only if we find a solution in range.
-             temperatureEquilibrium=finder%find(rootGuess=properties%temperature,status=statusTemperature)
+             temperatureEquilibrium=self%finder%find(rootGuess=properties%temperature,status=statusTemperature)
              if (statusTemperature == errorStatusSuccess) then
                 properties%temperature=temperatureEquilibrium
              else

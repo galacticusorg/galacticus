@@ -19,6 +19,8 @@
 
   !% An implementation of heated dark matter halo profiles.
 
+  use :: Root_Finder, only : rootFinder
+    
   !# <darkMatterProfileDMO name="darkMatterProfileDMOHeated">
   !#  <description>
   !#   A dark matter profile DMO class in which dark matter halos start out with a density profile defined by another {\normalfont
@@ -49,10 +51,11 @@
      integer         (kind=kind_int8               )          :: lastUniqueID
      double precision                                         :: radiusFinalPrevious                , radiusInitialPrevious
      integer                                                  :: nonAnalyticSolver
+     type            (rootFinder                   )          :: finder
    contains
      !# <methods>
-     !#   <method description="Reset memoized calculations." method="calculationReset" />
-     !#   <method description="Return the initial radius corresponding to the given final radius in a heated dark matter halo density profile." method="radiusInitial" />
+     !#   <method description="Reset memoized calculations."                                                                                    method="calculationReset"/>
+     !#   <method description="Return the initial radius corresponding to the given final radius in a heated dark matter halo density profile." method="radiusInitial"   />
      !# </methods>
      final     ::                                      heatedDestructor
      procedure :: autoHook                          => heatedAutoHook
@@ -128,6 +131,7 @@ contains
     class  (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
     class  (darkMatterProfileHeatingClass), intent(in   ), target :: darkMatterProfileHeating_
     integer                               , intent(in   )         :: nonAnalyticSolver
+    double precision                      , parameter             :: toleranceAbsolute        =0.0d0, toleranceRelative=1.0d-6
     !# <constructorAssign variables="nonAnalyticSolver, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileHeating_"/>
 
     ! Validate.
@@ -135,6 +139,11 @@ contains
     ! Construct the object.
     self%lastUniqueID       =-1_kind_int8
     self%radiusFinalPrevious=-huge(0.0d0)
+    self%finder             =rootFinder(                                           &
+         &                              rootFunction     =heatedRadiusInitialRoot, &
+         &                              toleranceAbsolute=toleranceAbsolute      , &
+         &                              toleranceRelative=toleranceRelative        &
+         &                             )
     return
   end function heatedConstructorInternal
 
@@ -311,15 +320,12 @@ contains
   double precision function heatedRadiusInitial(self,node,radiusFinal)
     !% Find the initial radius corresponding to the given {\normalfont \ttfamily radiusFinal} in
     !% the heated dark matter profile.
-    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout), target  :: self
     type            (treeNode                  ), intent(inout), target  :: node
     double precision                            , intent(in   )          :: radiusFinal
-    double precision                            , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
-    type            (rootFinder                ), save                   :: finder
     double precision                                                     :: factorExpand
-    !$omp threadprivate(finder)
 
     ! If profile is unheated, the initial radius equals the final radius.
     if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfileDMO_)) then
@@ -333,21 +339,17 @@ contains
        heatedSelf        => self
        heatedNode        => node
        heatedRadiusFinal =  radiusFinal
-       if (.not.finder%isInitialized()) then
-          call finder%rootFunction(heatedRadiusInitialRoot                  )
-          call finder%tolerance   (toleranceAbsolute      ,toleranceRelative)
-       end if
-       if (self%radiusFinalPrevious <= -huge(0.0d0) .or. radiusFinal < self%radiusInitialPrevious) then
+        if (self%radiusFinalPrevious <= -huge(0.0d0) .or. radiusFinal < self%radiusInitialPrevious) then
           ! No previous solution is available, or the requested final radius is smaller than the previous initial radius. In this
           ! case, our guess for the initial radius is the final radius, and we expand the range downward to find a solution.
-          call finder%rangeExpand (                                                             &
-               &                   rangeExpandUpward            =1.01d0                       , &
-               &                   rangeExpandDownward          =0.50d0                       , &
-               &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-               &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-               &                   rangeExpandType              =rangeExpandMultiplicative      &
-               &                  )
-          self%radiusInitialPrevious=finder%find(rootGuess=radiusFinal)
+          call self%finder%rangeExpand(                                                             &
+               &                       rangeExpandUpward            =1.01d0                       , &
+               &                       rangeExpandDownward          =0.50d0                       , &
+               &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+               &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &                       rangeExpandType              =rangeExpandMultiplicative      &
+               &                      )
+          self%radiusInitialPrevious=self%finder%find(rootGuess=radiusFinal)
        else
           ! Previous solution exists, and the requested final radius is larger than the previous initial radius. Use the previous
           ! initial radius as a guess for the solution, with range expansion in steps determined by the relative values of the
@@ -358,14 +360,14 @@ contains
           else
              factorExpand=self%radiusFinalPrevious/     radiusFinal
           end if
-          call finder%rangeExpand (                                                             &
-               &                   rangeExpandUpward            =1.0d0*factorExpand           , &
-               &                   rangeExpandDownward          =1.0d0/factorExpand           , &
-               &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-               &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-               &                   rangeExpandType              =rangeExpandMultiplicative      &
-               &                  )
-          self%radiusInitialPrevious=finder%find(rootGuess=self%radiusInitialPrevious)
+          call self%finder%rangeExpand(                                                             &
+               &                       rangeExpandUpward            =1.0d0*factorExpand           , &
+               &                       rangeExpandDownward          =1.0d0/factorExpand           , &
+               &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+               &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &                       rangeExpandType              =rangeExpandMultiplicative      &
+               &                      )
+          self%radiusInitialPrevious=self%finder%find(rootGuess=self%radiusInitialPrevious)
        end if
        self%radiusFinalPrevious=radiusFinal
     end if

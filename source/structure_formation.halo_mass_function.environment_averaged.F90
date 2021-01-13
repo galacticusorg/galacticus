@@ -137,20 +137,16 @@ contains
        call basic%massSet(mass)
        call basic%timeSet(time)
        ! Find the range of overdensities over which to integrate.
-       call finder%tolerance   (                                                                                     &
-            &                   toleranceRelative            = 1.0d-6                                                &
-            &                  )
-       call finder%rangeExpand (                                                                                     &
-            &                   rangeExpandUpward            =+rangeExpandStep                                     , &
-            &                   rangeExpandDownward          =-rangeExpandStep                                     , &
-            &                   rangeExpandUpwardSignExpect  =                      rangeExpandSignExpectPositive  , &
-            &                   rangeExpandDownwardSignExpect=                      rangeExpandSignExpectNegative  , &
-            &                   rangeUpwardLimit             =self%haloEnvironment_%overdensityLinearMaximum     (), &
-            &                   rangeExpandType              =                      rangeExpandAdditive              &
-            &                  )
-       call finder%rootFunction(                                                                                     &
-            &                                                                       environmentAveragedRoot          &
-            &                  )
+       finder=rootFinder(                                                                                     &
+            &            rootFunction                 =environmentAveragedRoot                              , &
+            &            toleranceRelative            = 1.0d-6                                              , &
+            &            rangeExpandUpward            =+rangeExpandStep                                     , &
+            &            rangeExpandDownward          =-rangeExpandStep                                     , &
+            &            rangeExpandUpwardSignExpect  =                      rangeExpandSignExpectPositive  , &
+            &            rangeExpandDownwardSignExpect=                      rangeExpandSignExpectNegative  , &
+            &            rangeUpwardLimit             =self%haloEnvironment_%overdensityLinearMaximum     (), &
+            &            rangeExpandType              =                      rangeExpandAdditive              &
+            &           )
        cdfTarget                  =+0.0+overdensityCDFFraction
        environmentOverdensityLower=finder%find(rootGuess=0.0d0)
        cdfTarget                  =+1.0-overdensityCDFFraction

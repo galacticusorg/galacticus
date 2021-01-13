@@ -90,7 +90,8 @@ contains
     class           (darkMatterHaloScaleClass), pointer                 :: darkMatterHaloScale_
     class           (darkMatterProfileClass  ), pointer                 :: darkMatterProfile_
     type            (rootFinder              ), save                    :: finder
-    !$omp threadprivate(finder)
+    logical                                   , save                    :: finderConstructed       =.false.
+    !$omp threadprivate(finder,finderConstructed)
     double precision                          , save                    :: radiusPrevious          =-huge(0.0d0)
     integer         (kind_int8               ), save                    :: uniqueIDPrevious        =-1_kind_int8
     !$omp threadprivate(radiusPrevious,uniqueIDPrevious)
@@ -125,16 +126,18 @@ contains
        Galactic_Structure_Radius_Enclosing_Mass=darkMatterProfile_%radiusEnclosingMass(activeNode,massRoot)
     else
        ! Initialize our root finder.
-       if (.not.finder%isInitialized()) then
-          call finder%rangeExpand (                                                             &
-               &                   rangeExpandDownward          =0.5d0                        , &
-               &                   rangeExpandUpward            =2.0d0                        , &
-               &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-               &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-               &                   rangeExpandType              =rangeExpandMultiplicative      &
-               &                  )
-          call finder%rootFunction(Enclosed_Mass_Root                              )
-          call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
+       if (.not.finderConstructed) then
+          finder           =rootFinder(                                                             &
+               &                       rootFunction                 =Enclosed_Mass_Root           , &
+               &                       rangeExpandDownward          =0.5d0                        , &
+               &                       rangeExpandUpward            =2.0d0                        , &
+               &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+               &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &                       rangeExpandType              =rangeExpandMultiplicative    , &
+               &                       toleranceAbsolute            =0.0d+0                       , &
+               &                       toleranceRelative            =1.0d-6                         &
+               &                      )
+          finderConstructed=.true.
        end if
        ! Solve for the radius.
        if (Enclosed_Mass_Root(0.0d0) >= 0.0d0) then
@@ -170,13 +173,14 @@ contains
     use :: Root_Finder            , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     type            (treeNode                ), intent(inout), target   :: node
-    integer                                   , intent(in   ), optional :: componentType       , massType       , weightBy, weightIndex
-    double precision                          , intent(in   ), optional :: density             , densityContrast
+    integer                                   , intent(in   ), optional :: componentType               , massType       , weightBy, weightIndex
+    double precision                          , intent(in   ), optional :: density                     , densityContrast
     class           (darkMatterHaloScaleClass)               , pointer  :: darkMatterHaloScale_
     class           (cosmologyFunctionsClass )               , pointer  :: cosmologyFunctions_
     class           (nodeComponentBasic      )               , pointer  :: basic
     type            (rootFinder              ), save                    :: finder
-    !$omp threadprivate(finder)
+    logical                                   , save                    :: finderConstructed   =.false.
+    !$omp threadprivate(finder,finderConstructed)
 
     ! Set default options.
     call Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex)
@@ -196,16 +200,18 @@ contains
        return
     end if
     ! Initialize our root finder.
-    if (.not.finder%isInitialized()) then
-       call finder%rangeExpand (                                                             &
-            &                   rangeExpandDownward          =0.5d0                        , &
-            &                   rangeExpandUpward            =2.0d0                        , &
-            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-            &                   rangeExpandType              =rangeExpandMultiplicative      &
-            &                  )
-       call finder%rootFunction(Enclosed_Density_Root                           )
-       call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
+    if (.not.finderConstructed) then
+       finder           =rootFinder(                                                             &
+            &                       rootFunction                 =Enclosed_Density_Root        , &
+            &                       rangeExpandDownward          =0.5d0                        , &
+            &                       rangeExpandUpward            =2.0d0                        , &
+            &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+            &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+            &                       rangeExpandType              =rangeExpandMultiplicative    , &
+            &                       toleranceAbsolute            =0.0d+0                       , &
+            &                       toleranceRelative            =1.0d-6                         &
+            &                      )
+       finderConstructed=.true.
     end if
     ! Solve for the radius.
     activeNode           => node

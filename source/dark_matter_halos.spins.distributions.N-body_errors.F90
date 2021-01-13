@@ -24,6 +24,7 @@
   use :: Dark_Matter_Profile_Scales       , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
   use :: Dark_Matter_Profiles_DMO         , only : darkMatterProfileDMOClass
   use :: Halo_Mass_Functions              , only : haloMassFunctionClass
+  use :: Root_Finder                      , only : rootFinder
   use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
 
   !# <haloSpinDistribution name="haloSpinDistributionNbodyErrors">
@@ -42,6 +43,7 @@
      class           (darkMatterHaloScaleClass         ), pointer                     :: darkMatterHaloScale_          => null()
      class           (darkMatterProfileDMOClass        ), pointer                     :: darkMatterProfileDMO_         => null()
      class           (darkMatterProfileScaleRadiusClass), pointer                     :: darkMatterProfileScaleRadius_ => null()
+     type            (rootFinder                       )                              :: finder
      double precision                                                                 :: massParticle                           , time       , &
           &                                                                              logNormalRange
      logical                                                                          :: fixedPoint
@@ -173,6 +175,7 @@ contains
 
   function nbodyErrorsConstructorInternal(distributionIntrinsic,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,logNormalRange,time,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily nbodyErrors} dark matter halo spin distribution class.
+    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
     type            (haloSpinDistributionNbodyErrors  )                        :: self
     class           (haloSpinDistributionClass        ), intent(in   ), target :: distributionIntrinsic
@@ -193,7 +196,17 @@ contains
     self%spinMaximum=nbodyErrorsSpinMaximum
     self%massMinimum=nbodyErrorsMassMinimum
     self%massMaximum=nbodyErrorsMassMaximum
-    return
+    ! Build a root finder.
+    self%finder=rootFinder(                                                                      &
+         &                 rootFunction                 =nbodyErrorsNonCentralChiSquareModeRoot, &
+         &                 toleranceRelative            =1.0d-3                                , &
+         &                 rangeExpandUpward            =2.0d0                                 , &
+         &                 rangeExpandDownward          =0.5d0                                 , &
+         &                 rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive         , &
+         &                 rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative         , &
+         &                 rangeExpandType              =rangeExpandMultiplicative               &
+         &                )
+     return
   end function nbodyErrorsConstructorInternal
 
   subroutine nbodyErrorsTabulate(self,massRequired,spinRequired,massFixed,spinFixed,spinFixedMeasuredMinimum,spinFixedMeasuredMaximum)
@@ -605,6 +618,16 @@ contains
       return
     end function spinErrorIntegral
 
+    double precision function nbodyErrorsNonCentralChiSquareMode(chi)
+      !% Computes the mode of the degree-3 non-central chi-squared distribution function for given $\chi$.
+      implicit none
+      double precision, intent(in   ) :: chi
+      
+      nbodyErrorsNonCentralChiSquareChi =                                     chi
+      nbodyErrorsNonCentralChiSquareMode=self%finder%find(rootGuess=max(1.0d0,chi))
+      return
+    end function nbodyErrorsNonCentralChiSquareMode
+
     double precision function productDistributionIntegral(logSpinUnscaled)
       !% Product distribution integrand.
       implicit none
@@ -847,37 +870,12 @@ contains
     call Galacticus_Calculations_Reset(node)
     return
   end function nbodyErrorsDistributionAveraged
-
-  double precision function nbodyErrorsNonCentralChiSquareMode(chi)
-    !% Computes the mode of the degree-3 non-central chi-squared distribution function for given $\chi$.
-    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
-    implicit none
-    double precision            , intent(in   ) :: chi
-    type            (rootFinder)                :: finder
-
-    call finder%tolerance   (                                                                     &
-         &                   toleranceRelative            =1.0d-3                                 &
-         &                  )
-    call finder%rangeExpand (                                                                     &
-         &                   rangeExpandUpward            =2.0d0                                , &
-         &                   rangeExpandDownward          =0.5d0                                , &
-         &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive        , &
-         &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative        , &
-         &                   rangeExpandType              =rangeExpandMultiplicative              &
-         &                  )
-    call finder%rootFunction(                                                                     &
-         &                                                 nbodyErrorsNonCentralChiSquareModeRoot &
-         &                  )
-    nbodyErrorsNonCentralChiSquareChi =                                chi
-    nbodyErrorsNonCentralChiSquareMode=finder%find(rootGuess=max(1.0d0,chi))
-    return
-  end function nbodyErrorsNonCentralChiSquareMode
-
+  
   double precision function nbodyErrorsNonCentralChiSquareModeRoot(x)
     !% Root function used in finding the mode of the degree-3 non-central chi-squared distribution function.
     implicit none
     double precision, intent(in   ) :: x
-
+    
     nbodyErrorsNonCentralChiSquareModeRoot=+      sqrt(                                   &
          &                                             +x                                 &
          &                                             *nbodyErrorsNonCentralChiSquareChi &

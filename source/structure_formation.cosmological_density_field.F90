@@ -82,24 +82,27 @@ module Cosmological_Density_Field
   !#   <argument>type            (treeNode), intent(inout), optional, target :: node                       </argument>
   !#   <modules>Root_Finder Galacticus_Error</modules>
   !#   <code>
-  !#    double precision                               , parameter :: massGuess           =1.0d+13, toleranceAbsolute=0.0d+00, &amp;
-  !#         &amp;                                                    toleranceRelative   =1.0d-06, massTiny         =1.0d-30
-  !#    type            (rootFinder                   ), save      :: finder
-  !#    !$omp threadprivate(finder)
+  !#    double precision            , parameter :: massGuess        =1.0d+13, toleranceAbsolute=0.0d+00, &amp;
+  !#         &amp;                                 toleranceRelative=1.0d-06, massTiny         =1.0d-30
+  !#    type            (rootFinder), save      :: finder
+  !#    logical                     , save      :: finderInitialized=.false.
+  !#    !$omp threadprivate(finder,finderInitialized)
   !#    integer                                                    :: status
   !#    double precision                                           :: collapseTime
   !#    call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=collapseTime)
-  !#    if (.not.finder%isInitialized()) then
-  !#       call finder%rootFunction(collapsingMassRoot                 )
-  !#       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-  !#       call finder%rangeExpand (                                                                 &amp;
-  !#            &amp;                   rangeExpandUpward            =2.0d0                        , &amp;
-  !#            &amp;                   rangeExpandDownward          =0.5d0                        , &amp;
-  !#            &amp;                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &amp;
-  !#            &amp;                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &amp;
-  !#            &amp;                   rangeDownwardLimit           =massTiny                     , &amp;
-  !#            &amp;                   rangeExpandType              =rangeExpandMultiplicative      &amp;
-  !#            &amp;                  )
+  !#    if (.not.finderInitialized) then
+  !#       finder=rootFinder(                                                             &amp;
+  !#            &amp;        rootFunction                 =collapsingMassRoot           , &amp;
+  !#            &amp;        toleranceAbsolute            =toleranceAbsolute            , &amp;
+  !#            &amp;        toleranceRelative            =toleranceRelative            , &amp;
+  !#            &amp;        rangeExpandUpward            =2.0d0                        , &amp;
+  !#            &amp;        rangeExpandDownward          =0.5d0                        , &amp;
+  !#            &amp;        rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &amp;
+  !#            &amp;        rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &amp;
+  !#            &amp;        rangeDownwardLimit           =massTiny                     , &amp;
+  !#            &amp;        rangeExpandType              =rangeExpandMultiplicative      &amp;
+  !#            &amp;       )
+  !#       finderInitialized=.true.
   !#    end if
   !#    globalSelf                           => self
   !#    self      %time                      =  collapseTime
@@ -344,8 +347,7 @@ contains
           self%lastUniqueID=-1_kind_int8
        end if
        self%criticalOverdensityPrevious=criticalOverdensity
-       call finder%rootFunction(collapseTimeRoot                   )
-       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+       finder=rootFinder(rootFunction=collapseTimeRoot,toleranceAbsolute=toleranceAbsolute,toleranceRelative=toleranceRelative)
        if (self%timeNow < 0.0d0) self%timeNow=self%cosmologyFunctions_%cosmicTime(1.0d0)
        timeBigCrunch=self%cosmologyFunctions_%timeBigCrunch()
        if (timeBigCrunch < 0.0d0) then

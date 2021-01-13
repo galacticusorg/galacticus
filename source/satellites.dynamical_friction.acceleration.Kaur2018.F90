@@ -138,7 +138,7 @@ contains
          &                                                                   ]                                                                                                                       , &
          &                                                 extrapolationType=extrapolationTypeExtrapolate                                                                                              &
          &                                                )
-  self%radiusDimensionlessMaximum            =1.371915d0
+    self%radiusDimensionlessMaximum            =1.371915d0
     return
   end function kaur2018ConstructorInternal
 
@@ -188,15 +188,16 @@ contains
     if (logSlopeDensityProfileDarkMatterHost < 0.0d0) return
     ! Find the stalling radius.
     densityHostCentral=Galactic_Structure_Density(nodeHost,[0.0d0,0.0d0,0.0d0],coordinateSystemCartesian)
-    call finder%rootFunction(radiusStallingRoot)
-    call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-    call finder%rangeExpand (                                                             &
-         &                   rangeExpandDownward          =0.5d0                        , &
-         &                   rangeExpandUpward            =2.0d0                        , &
-         &                   rangeExpandType              =rangeExpandMultiplicative    , &
-         &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-         &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
-         &                  )
+    finder=rootFinder(                                                             &
+         &            rootFunction                 =radiusStallingRoot           , &
+         &            toleranceAbsolute            =toleranceAbsolute            , &
+         &            toleranceRelative            =toleranceRelative            , &
+         &            rangeExpandDownward          =0.5d0                        , &
+         &            rangeExpandUpward            =2.0d0                        , &
+         &            rangeExpandType              =rangeExpandMultiplicative    , &
+         &            rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+         &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
+         &           )
     radiusStalling=finder%find(rootGuess=radiusOrbital)
     ! Compute the suppression factor.
     radiusDimensionless=+radiusOrbital  &

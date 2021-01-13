@@ -23,6 +23,7 @@
   use :: Cosmology_Functions            , only : cosmologyFunctionsClass
   use :: Excursion_Sets_First_Crossings , only : excursionSetFirstCrossingClass
   use :: Merger_Tree_Branching_Modifiers, only : mergerTreeBranchingProbabilityModifierClass
+  use :: Root_Finder                    , only : rootFinder
 
   !# <mergerTreeBranchingProbability name="mergerTreeBranchingProbabilityGnrlzdPrssSchchtr">
   !#  <description>
@@ -53,36 +54,37 @@
   type, extends(mergerTreeBranchingProbabilityClass) :: mergerTreeBranchingProbabilityGnrlzdPrssSchchtr
      !% A merger tree branching probability class using a generalized Press-Schechter approach.
      private
-     class           (cosmologicalMassVarianceClass              ), pointer :: cosmologicalMassVariance_               => null()
-     class           (criticalOverdensityClass                   ), pointer :: criticalOverdensity_                    => null()
-     class           (cosmologyFunctionsClass                    ), pointer :: cosmologyFunctions_                     => null()
-     class           (excursionSetFirstCrossingClass             ), pointer :: excursionSetFirstCrossing_              => null()
-     class           (mergerTreeBranchingProbabilityModifierClass), pointer :: mergerTreeBranchingProbabilityModifier_ => null()
+     class           (cosmologicalMassVarianceClass              ), pointer :: cosmologicalMassVariance_                  => null()
+     class           (criticalOverdensityClass                   ), pointer :: criticalOverdensity_                       => null()
+     class           (cosmologyFunctionsClass                    ), pointer :: cosmologyFunctions_                        => null()
+     class           (excursionSetFirstCrossingClass             ), pointer :: excursionSetFirstCrossing_                 => null()
+     class           (mergerTreeBranchingProbabilityModifierClass), pointer :: mergerTreeBranchingProbabilityModifier_    => null()
+     type            (rootFinder                                 )          :: finder
      ! Parent halo shared variables.
-     double precision                                          :: parentDTimeDDeltaCritical                  , parentDelta           , &
-          &                                                       parentHaloMass                             , parentSigma           , &
-          &                                                       parentSigmaSquared                         , parentTime            , &
-          &                                                       probabilityMinimumMass                     , probabilitySeek
+     double precision                                                       :: parentDTimeDDeltaCritical                           , parentDelta           , &
+          &                                                                    parentHaloMass                                      , parentSigma           , &
+          &                                                                    parentSigmaSquared                                  , parentTime            , &
+          &                                                                    probabilityMinimumMass                              , probabilitySeek
      ! Record of mass resolution.
-     double precision                                          :: resolutionSigma                            , massResolutionPrevious
+     double precision                                                       :: resolutionSigma                                     , massResolutionPrevious
      ! Accuracy parameter to ensure that steps in critical overdensity do not become too large.
-     double precision                                          :: deltaStepMaximum
+     double precision                                                       :: deltaStepMaximum
      ! The maximum sigma that we expect to find.
-     double precision                                          :: sigmaMaximum
+     double precision                                                       :: sigmaMaximum
      ! Record of whether we have tested the excursion set routines.
-     logical                                                   :: excursionSetsTested
+     logical                                                                :: excursionSetsTested
      ! Control for inclusion of smooth accretion rates.
-     logical                                                   :: smoothAccretion
+     logical                                                                :: smoothAccretion
      ! Record of issued warnings.
-     logical                                                   :: subresolutionFractionIntegrandFailureWarned
+     logical                                                                :: subresolutionFractionIntegrandFailureWarned
      ! Minimum mass to which subresolution fractions will be integrated.
-     double precision                                          :: massMinimum
+     double precision                                                       :: massMinimum
      ! Current epoch.
-     double precision                                          :: timeNow
+     double precision                                                       :: timeNow
    contains
      !# <methods>
-     !#   <method description="Compute common factors needed for the calculations." method="computeCommonFactors" />
-     !#   <method description="Compute common factors needed for the calculations." method="excursionSetTest" />
+     !#   <method description="Compute common factors needed for the calculations." method="computeCommonFactors"/>
+     !#   <method description="Compute common factors needed for the calculations." method="excursionSetTest"    />
      !# </methods>
      final     ::                          generalizedPressSchechterDestructor
      procedure :: probability           => generalizedPressSchechterProbability
@@ -170,15 +172,21 @@ contains
     class           (cosmologyFunctionsClass                        ), intent(in   ), target :: cosmologyFunctions_
     class           (excursionSetFirstCrossingClass                 ), intent(in   ), target :: excursionSetFirstCrossing_
     class           (mergerTreeBranchingProbabilityModifierClass    ), intent(in   ), target :: mergerTreeBranchingProbabilityModifier_
-    double precision                                                 , intent(in   )         :: deltaStepMaximum                       , massMinimum
+    double precision                                                 , intent(in   )         :: deltaStepMaximum                              , massMinimum
     logical                                                          , intent(in   )         :: smoothAccretion
+    double precision                                                 , parameter             :: toleranceAbsolute                      =0.0d+0, toleranceRelative=1.0d-9
     !# <constructorAssign variables="deltaStepMaximum, massMinimum, smoothAccretion, *criticalOverdensity_, *cosmologicalMassVariance_, *cosmologyFunctions_, *excursionSetFirstCrossing_, *mergerTreeBranchingProbabilityModifier_"/>
 
     self%excursionSetsTested                        =.false.
     self%subresolutionFractionIntegrandFailureWarned=.false.
     self%massResolutionPrevious                     =-1.0d0
     self%timeNow                                    =self%cosmologyFunctions_%cosmicTime(1.0d0)
-  return
+    self%finder                                     =rootFinder(                                                           &
+         &                                                      rootFunction     =generalizedPressSchechterMassBranchRoot, &
+         &                                                      toleranceAbsolute=toleranceAbsolute                      , &
+         &                                                      toleranceRelative=toleranceRelative                        &
+         &                                                     )
+    return
   end function generalizedPressSchechterConstructorInternal
 
   subroutine generalizedPressSchechterDestructor(self)
@@ -221,20 +229,16 @@ contains
     use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityWarn
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : varying_string
-    use :: Root_Finder       , only : rootFinder
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
-    double precision                                                 , intent(in   )         :: deltaCritical                  , haloMass                , &
-         &                                                                                      massResolution                 , probabilityFraction     , &
+    double precision                                                 , intent(in   )         :: deltaCritical                  , haloMass           , &
+         &                                                                                      massResolution                 , probabilityFraction, &
          &                                                                                      time
     class           (randomNumberGeneratorClass                     ), intent(inout)         :: randomNumberGenerator_
     type            (treeNode                                       ), intent(inout), target :: node
-    double precision                                                 , parameter             :: toleranceAbsolute       =0.0d+0, toleranceRelative=1.0d-9
     double precision                                                 , parameter             :: smallProbabilityFraction=1.0d-3
     type            (varying_string                                 )                        :: message
     character       (len=26                                         )                        :: label
-    type            (rootFinder                                     ), save                  :: finder
-    !$omp threadprivate(finder)
     !$GLC attributes unused :: randomNumberGenerator_
 
     ! Ensure excursion set calculations have sufficient range in sigma.
@@ -244,11 +248,6 @@ contains
     self%probabilityMinimumMass   =  massResolution
     self%probabilitySeek          =  probabilityFraction
     call self%computeCommonFactors(node,haloMass,deltaCritical,time)
-    ! Initialize our root finder.
-    if (.not.finder%isInitialized()) then
-       call finder%rootFunction(generalizedPressSchechterMassBranchRoot)
-       call finder%tolerance   (toleranceAbsolute,toleranceRelative    )
-    end if
     ! Check that the root is bracketed.
     if     (                                                           &
          &     generalizedPressSchechterMassBranchRoot(massResolution) &
@@ -287,7 +286,7 @@ contains
        end if
     end if
     ! Find the branch mass.
-    generalizedPressSchechterMassBranch=finder%find(rootRange=[massResolution,0.5d0*haloMass])
+    generalizedPressSchechterMassBranch=self%finder%find(rootRange=[massResolution,0.5d0*haloMass])
     return
   end function generalizedPressSchechterMassBranch
 

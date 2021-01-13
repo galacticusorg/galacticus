@@ -352,13 +352,11 @@ contains
        ! Build array of overdensityies.
        self%overdensityScaled         =Make_Range(overdensityMaximumScaled,overdensityMinimumScaled,countRadii,rangeTypeLogarithmic)
        ! Build a root finder which will be used for finding the time at half the turnaround radius.
-       call finder%rootFunction(                                            &
-            &                                     halfRadiusTurnAroundRoot  &
-            &                  )
-       call finder%tolerance   (                                            &
-            &                   toleranceAbsolute=0.0d+0                  , &
-            &                   toleranceRelative=1.0d-3                    &
-            &                  )
+       finder=rootFinder(                                            &
+            &            rootFunction     =halfRadiusTurnAroundRoot, &
+            &            toleranceAbsolute=0.0d+0                  , &
+            &            toleranceRelative=1.0d-3                    &
+            &           )
        ! Find turnaround radius and mass as a function of time, along with epoch at which half the turnaround radius is
        ! reached. This is all in scale-free units.
        do i=1,countRadii

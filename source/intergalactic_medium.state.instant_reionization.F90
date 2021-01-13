@@ -159,23 +159,17 @@ contains
             &                                                                  reionizationRedshiftCanonical &
             &                                                                 )                              &
             &                                                                )
-       if (.not.finder%isInitialized()) then
-          call finder%rootFunction(                                                             &
-               &                   opticalDepth                                                 &
-               &                  )
-          call finder%tolerance   (                                                             &
-               &                   toleranceAbsolute            =1.0d-3                       , &
-               &                   toleranceRelative            =1.0d-3                         &
-               &                  )
-          call finder%rangeExpand (                                                             &
-               &                   rangeExpandDownward          =0.5d0                        , &
-               &                   rangeExpandUpward            =2.0d0                        , &
-               &                   rangeExpandType              =rangeExpandMultiplicative    , &
-               &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-               &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-               &                   rangeUpwardLimit             =timePresent                    &
-               &                  )
-       end if
+       finder=rootFinder(                                                             &
+            &            rootFunction                 =opticalDepth                 , &
+            &            toleranceAbsolute            =1.0d-3                       , &
+            &            toleranceRelative            =1.0d-3                       , &
+            &            rangeExpandDownward          =0.5d0                        , &
+            &            rangeExpandUpward            =2.0d0                        , &
+            &            rangeExpandType              =rangeExpandMultiplicative    , &
+            &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+            &            rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+            &            rangeUpwardLimit             =timePresent                    &
+            &           )
        self%reionizationTime=finder%find(rootGuess=timeReionizationGuess)
        ! Unset electron scattering table initialization state to force it to be recomputed now that we have the correct
        ! reionization epoch.
