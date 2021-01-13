@@ -364,7 +364,7 @@
     <chemicalReactionRateMethod value="hydrogenNetwork">
       <fast value="true"/>
     </chemicalReactionRateMethod>
-    <chemicalsToTrack value="AtomicHydrogen AtomicHydrogenCation MolecularHydrogen Electron"/>
+    <chemicalsToTrack value="AtomicHydrogen AtomicHydrogenCation MolecularHydrogen Electron MolecularHydrogenCation AtomicHydrogenAnion"/>
     <coolingFunctionMethod value="summation">
       <coolingFunctionMethod value="atomicCIECloudy" iterable="no"/>
       <coolingFunctionMethod value="CMBCompton" iterable="no"/>
