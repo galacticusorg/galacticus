@@ -129,9 +129,9 @@ sub function1DPlot {
     $data->{'yDatasetTarget'} = $data->{'yDataset'}->copy()
 	unless ( $haveTarget );
     # Determine non-zero entries.
-    my $nonZero       = which( $data->{'yDataset'      } != 0.0)                                      ;
-    my $nonZeroTarget = which(                                      $data->{'yDatasetTarget'} != 0.0) ;
-    my $nonZeroBoth   = which(($data->{'yDataset'      } != 0.0) | ($data->{'yDatasetTarget'} != 0.0));
+    my $nonZero       = which( $data->{'yDataset'      } > 0.0)                                     ;
+    my $nonZeroTarget = which(                                     $data->{'yDatasetTarget'} > 0.0) ;
+    my $nonZeroBoth   = which(($data->{'yDataset'      } > 0.0) | ($data->{'yDatasetTarget'} > 0.0));
     # Determine plot ranges.
     my $yErrorLower      ;
     my $yErrorUpper      ;
