@@ -251,4 +251,15 @@ module Cosmology_Functions
   ! A recommended relative time tolerance to which other functions should approach the Big Crunch.
   double precision, parameter, public :: timeToleranceRelativeBigCrunch=1.0d-4
 
+  ! Enumeration for different cosmological densities.
+  !# <enumeration>
+  !#  <name>densityCosmological</name>
+  !#  <description>Enumeration of different cosmological densities.</description>
+  !#  <visibility>public</visibility>
+  !#  <validator>yes</validator>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <entry label="critical" />
+  !#  <entry label="mean"     />
+  !# </enumeration>
+
 end module Cosmology_Functions
