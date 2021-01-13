@@ -214,10 +214,6 @@ contains
     type            (integrator                             )                          :: integrator_
     double precision                                                                   :: radiusOuter              , time, &
          &                                                                                distanceAngular
-
-    !! AJB HACK
-    class(nodeComponentDisk), pointer :: d
-    class(nodeComponentSpheroid), pointer :: s
     
     ! Initialize radiation field.
     allocate(radiation_)
