@@ -30,7 +30,7 @@
   !#   An intracluster medium Sunyaev-Zeldovich Compton-$y$ parameter property extractor class. Specifically, the quantity
   !#   extracted is
   !#   \begin{equation}
-  !#    Y = {\sigma_\mathrm{T} \over \mathrm{m}_\mathrm{e} \mathrm{c}^2} \int_0^R_\mathrm{outer} n_\mathrm{e}(R) \mathrm{k}_\mathrm{B} T(r) {4 \pi R^2 \mathrm{d} R \over D_\mathrm{A}^2},
+  !#    Y = {\sigma_\mathrm{T} \over \mathrm{m}_\mathrm{e} \mathrm{c}^2} \int_0^{R_\mathrm{outer}} n_\mathrm{e}(R) \mathrm{k}_\mathrm{B} T(r) {4 \pi R^2 \mathrm{d} R \over D_\mathrm{A}^2},
   !#   \end{equation}
   !#   where $D_\mathrm{A}$ is the angular diameter distance to the halo, and the result is expressed in units of square
   !#   arminutes. The angular diameter distance is, by default, computed from the epoch of the halo. Alternatively, a fixed
