@@ -34,7 +34,8 @@
   !#   The normalization of the mass variance is specified via the {\normalfont \ttfamily [sigma\_8]} parameter, which defines the
   !#   linear theory root-variance of the density field in spheres of radii $8h^{-1}$Mpc. Note that when computing the
   !#   normalization of the power spectrum to match the specified value of $\sigma_8$ a top-hat real-space window function is
-  !#   \emph{always} used (as per the definition of $\sigma_8$).
+  !#   used (as per the definition of $\sigma_8$), unless a different window function is explicitly defined via the {\normalfont
+  !#   \ttfamily [powerSpectrumWindowFunctionTopHat]} parameter.
   !#
   !#   The mass variance, $\sigma(M)$, is found by integration over the linear theory power spectrum, with the specified power
   !#   spectrum window function. The fractional tolerance for this integration can be set via the {\normalfont \ttfamily
@@ -49,18 +50,12 @@
   !#   \ttfamily [monotonicInterpolation]}={\normalfont \ttfamily true}. This causes a monotonic spline interpolator to be used
   !#   instead which gaurantees monotonicity.
   !#  </description>
-  !#  <deepCopy>
-  !#   <functionClass variables="powerSpectrumWindowFunctionTopHat_"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="powerSpectrumWindowFunctionTopHat_"/>
-  !#  </stateStorable>
   !# </cosmologicalMassVariance>
   use :: Cosmology_Functions                 , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters                , only : cosmologyParametersClass
   use :: Linear_Growth                       , only : linearGrowthClass
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredClass
-  use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionClass       , powerSpectrumWindowFunctionTopHat
+  use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionClass
   use :: Tables                              , only : table1DLinearCSpline
 
   !# <stateStorable class="uniqueTable"/>
@@ -79,13 +74,12 @@
      class           (cosmologyFunctionsClass                ), pointer                   :: cosmologyFunctions_                 => null()
      class           (powerSpectrumPrimordialTransferredClass), pointer                   :: powerSpectrumPrimordialTransferred_ => null()
      class           (linearGrowthClass                      ), pointer                   :: linearGrowth_                       => null()
-     class           (powerSpectrumWindowFunctionClass       ), pointer                   :: powerSpectrumWindowFunction_        => null()
-     type            (powerSpectrumWindowFunctionTopHat      ), pointer                   :: powerSpectrumWindowFunctionTopHat_  => null()
+     class           (powerSpectrumWindowFunctionClass       ), pointer                   :: powerSpectrumWindowFunction_        => null(), powerSpectrumWindowFunctionTopHat_  => null()
      logical                                                                              :: initialized                                  , nonMonotonicIsFatal
-     double precision                                                                     :: tolerance                                    , toleranceTopHat            , &
-          &                                                                                  sigma8Value                                  , sigmaNormalization         , &
-          &                                                                                  massMinimum                                  , massMaximum                , &
-          &                                                                                  timeMinimum                                  , timeMaximum                , &
+     double precision                                                                     :: tolerance                                    , toleranceTopHat                              , &
+          &                                                                                  sigma8Value                                  , sigmaNormalization                           , &
+          &                                                                                  massMinimum                                  , massMaximum                                  , &
+          &                                                                                  timeMinimum                                  , timeMaximum                                  , &
           &                                                                                  timeMinimumLogarithmic                       , timeLogarithmicDeltaInverse
      double precision                                         , allocatable, dimension(:) :: times
      class           (table1DLinearCSpline                   ), allocatable, dimension(:) :: rootVarianceTable
@@ -124,7 +118,7 @@
   end interface cosmologicalMassVarianceFilteredPower
 
   ! Number of points per decade to use in tabulation of σ(M).
-  integer                         , parameter :: filteredPowerTablePointsPerDecade=10     , filteredPowerTimePointsPerDecade=100
+  integer                         , parameter :: filteredPowerTablePointsPerDecade=10, filteredPowerTimePointsPerDecade=100
 
   ! Module-scope time used in integrals.
   double precision                            :: filteredPowerTime
@@ -141,9 +135,9 @@ contains
     class           (cosmologyParametersClass               ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
     class           (powerSpectrumPrimordialTransferredClass), pointer       :: powerSpectrumPrimordialTransferred_
-    class           (powerSpectrumWindowFunctionClass       ), pointer       :: powerSpectrumWindowFunction_
+    class           (powerSpectrumWindowFunctionClass       ), pointer       :: powerSpectrumWindowFunction_       , powerSpectrumWindowFunctionTopHat_
     class           (linearGrowthClass                      ), pointer       :: linearGrowth_
-    double precision                                                         :: sigma8Value                        , tolerance          , &
+    double precision                                                         :: sigma8Value                        , tolerance                         , &
          &                                                                      toleranceTopHat
     logical                                                                  :: monotonicInterpolation             , nonMonotonicIsFatal
 
@@ -180,40 +174,57 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true use a monotonic cubic spline interpolator to interpolate in the $\sigma(M)$ table. Otherwise use a standard cubic spline interpoltor. Use of the monotionic interpolator can be helpful is $\sigma(M)$ must be strictly monotonic but becomes a very weak function of $M$ at low masses.</description>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"/>
-    !# <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_" source="parameters"/>
-    !# <objectBuilder class="powerSpectrumWindowFunction"        name="powerSpectrumWindowFunction_"        source="parameters"/>
-    !# <objectBuilder class="linearGrowth"                       name="linearGrowth_"                       source="parameters"/>
-    ! Construct the instance.
-    self=filteredPowerConstructorInternal(sigma8Value,tolerance,toleranceTopHat,nonMonotonicIsFatal,monotonicInterpolation,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
+    !# <objectBuilder    class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"                                                  />
+    !# <objectBuilder    class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"                                                  />
+    !# <objectBuilder    class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_" source="parameters"                                                  />
+    !# <objectBuilder    class="powerSpectrumWindowFunction"        name="powerSpectrumWindowFunction_"        source="parameters"                                                  />
+    !# <objectBuilder    class="linearGrowth"                       name="linearGrowth_"                       source="parameters"                                                  />
+    if (parameters%isPresent('powerSpectrumWindowFunctionTopHat')) then
+       !# <objectBuilder class="powerSpectrumWindowFunction"        name="powerSpectrumWindowFunctionTopHat_"  source="parameters" parameterName="powerSpectrumWindowFunctionTopHat"/>
+    else
+       nullify(powerSpectrumWindowFunctionTopHat_)
+    end if
+    !# <conditionalCall>
+    !#  <call>self=filteredPowerConstructorInternal(sigma8Value,tolerance,toleranceTopHat,nonMonotonicIsFatal,monotonicInterpolation,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_{conditions})</call>
+    !#  <argument name="powerSpectrumWindowFunctionTopHat_" value="powerSpectrumWindowFunctionTopHat_" parameterPresent="parameters" parameterName="powerSpectrumWindowFunctionTopHat"/>
+    !# </conditionalCall>
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"               />
-    !# <objectDestructor name="cosmologyFunctions_"                />
-    !# <objectDestructor name="linearGrowth_"                      />
-    !# <objectDestructor name="powerSpectrumPrimordialTransferred_"/>
-    !# <objectDestructor name="powerSpectrumWindowFunction_"       />
+    !# <objectDestructor    name="cosmologyParameters_"               />
+    !# <objectDestructor    name="cosmologyFunctions_"                />
+    !# <objectDestructor    name="linearGrowth_"                      />
+    !# <objectDestructor    name="powerSpectrumPrimordialTransferred_"/>
+    !# <objectDestructor    name="powerSpectrumWindowFunction_"       />
+    if (parameters%isPresent('powerSpectrumWindowFunctionTopHat')) then
+       !# <objectDestructor name="powerSpectrumWindowFunctionTopHat_" />
+    end if
     return
   end function filteredPowerConstructorParameters
 
-  function filteredPowerConstructorInternal(sigma8,tolerance,toleranceTopHat,nonMonotonicIsFatal,monotonicInterpolation,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_) result(self)
+  function filteredPowerConstructorInternal(sigma8,tolerance,toleranceTopHat,nonMonotonicIsFatal,monotonicInterpolation,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_,powerSpectrumWindowFunctionTopHat_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
-    use :: File_Utilities  , only : Directory_Make, File_Path
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataDynamic
+    use :: File_Utilities                 , only : Directory_Make                   , File_Path
+    use :: Galacticus_Paths               , only : galacticusPath                   , pathTypeDataDynamic
+    use :: Power_Spectrum_Window_Functions, only : powerSpectrumWindowFunctionTopHat
     implicit none
-    type            (cosmologicalMassVarianceFilteredPower  )                        :: self
-    double precision                                         , intent(in   )         :: tolerance                          , toleranceTopHat       , &
-         &                                                                              sigma8
-    logical                                                  , intent(in   )         :: nonMonotonicIsFatal                , monotonicInterpolation
-    class           (cosmologyParametersClass               ), intent(in   ), target :: cosmologyParameters_
-    class           (cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
-    class           (powerSpectrumPrimordialTransferredClass), intent(in   ), target :: powerSpectrumPrimordialTransferred_
-    class           (powerSpectrumWindowFunctionClass       ), intent(in   ), target :: powerSpectrumWindowFunction_
-    class           (linearGrowthClass                      ), intent(in   ), target :: linearGrowth_
-    !# <constructorAssign variables="tolerance, toleranceTopHat, nonMonotonicIsFatal, monotonicInterpolation, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *powerSpectrumPrimordialTransferred_, *powerSpectrumWindowFunction_"/>
+    type            (cosmologicalMassVarianceFilteredPower  )                                  :: self
+    double precision                                         , intent(in   )                   :: tolerance                          , toleranceTopHat                   , &
+         &                                                                                        sigma8
+    logical                                                  , intent(in   )                   :: nonMonotonicIsFatal                , monotonicInterpolation
+    class           (cosmologyParametersClass               ), intent(in   ), target           :: cosmologyParameters_
+    class           (cosmologyFunctionsClass                ), intent(in   ), target           :: cosmologyFunctions_
+    class           (powerSpectrumPrimordialTransferredClass), intent(in   ), target           :: powerSpectrumPrimordialTransferred_
+    class           (powerSpectrumWindowFunctionClass       ), intent(in   ), target           :: powerSpectrumWindowFunction_
+    class           (powerSpectrumWindowFunctionClass       ), intent(in   ), target, optional :: powerSpectrumWindowFunctionTopHat_
+    class           (linearGrowthClass                      ), intent(in   ), target           :: linearGrowth_
+    !# <constructorAssign variables="tolerance, toleranceTopHat, nonMonotonicIsFatal, monotonicInterpolation, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *powerSpectrumPrimordialTransferred_, *powerSpectrumWindowFunction_, *powerSpectrumWindowFunctionTopHat_"/>
 
-    allocate(self%powerSpectrumWindowFunctionTopHat_)
-    !# <referenceConstruct isResult="yes" owner="self" object="powerSpectrumWindowFunctionTopHat_" constructor="powerSpectrumWindowFunctionTopHat(cosmologyParameters_)"/>
+    if (.not.present(powerSpectrumWindowFunctionTopHat_)) then
+       allocate(powerSpectrumWindowFunctionTopHat :: self%powerSpectrumWindowFunctionTopHat_)
+       select type (powerSpectrumWindowFunctionTopHat__ => self%powerSpectrumWindowFunctionTopHat_)
+       type is (powerSpectrumWindowFunctionTopHat)
+          !# <referenceConstruct isResult="yes" object="powerSpectrumWindowFunctionTopHat__" constructor="powerSpectrumWindowFunctionTopHat(cosmologyParameters_)"/>  
+       end select
+    end if
     self%sigma8Value           =sigma8
     self%initialized           =.false.
     self%growthIsMassDependent_=self%powerSpectrumPrimordialTransferred_%growthIsWavenumberDependent()
