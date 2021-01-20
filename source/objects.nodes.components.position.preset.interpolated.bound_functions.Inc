@@ -19,8 +19,49 @@
 
 !% Contains custom functions for the preset position component.
 
+subroutine PositionPresetInterpolatedCheck(self,node,time)
+  !% Check that the requested time does not exceed the maximum time for the current interpolation.
+  use :: Galacticus_Error  , only : Galacticus_Warn, Galacticus_Error_Report
+  use :: ISO_Varying_String, only : varying_string , operator(//)           , assignment(=), char
+  use :: String_Handling   , only : operator(//)
+  implicit none
+  class           (nodeComponentPositionPresetInterpolated), intent(inout) :: self
+  type            (treeNode                               ), intent(in   ) :: node
+  double precision                                         , intent(in   ) :: time
+  logical                                                  , save          :: warned       =.false.
+  double precision                                         , parameter     :: toleranceTime=1.0d-2
+  character       (len=12                                 )                :: label
+  type            (varying_string                         )                :: message
+  
+  ! Check that the time is within the allowable range.
+  if (size(self%interpolationCoefficientsData) > 0 .and. time > self%interpolationTimeMaximumData) then
+     if (.not.warned .or. time > self%interpolationTimeMaximumData*(1.0d0+toleranceTime)) then
+        message='time ('
+        write (label,'(f12.9)') time
+        message=message//trim(adjustl(label))//') exceeds maximum for interpolation ( '
+        write (label,'(f12.9)') self%interpolationTimeMaximumData
+        message=message//trim(adjustl(label))//') in node '
+        message=message//node%index()
+     end if
+     if (time > self%interpolationTimeMaximumData*(1.0d0+toleranceTime)) then
+        call Galacticus_Error_Report(message//{introspection:location})
+     else
+        if (.not.warned) then
+           !$omp critical(positionPresetInterpolatedWarn)
+           if (.not.warned) then
+              call Galacticus_Warn(message//' (further warnings suppressed)')
+              warned=.true.
+           end if
+           !$omp end critical(positionPresetInterpolatedWarn)
+        end if
+     end if
+  end if
+  return
+end subroutine PositionPresetInterpolatedCheck
+
 function PositionPresetInterpolatedPosition(self) result(position)
   !% Return the position of the node.
+  use :: Galacticus_Error                                , only : Galacticus_Warn
   use :: Node_Component_Position_Preset_Interpolated_Data, only : cosmologyFunctions_, positionPresetBoxLength, isPeriodic
   use :: Numerical_Interpolation                         , only : interpolator
   implicit none
@@ -41,11 +82,12 @@ function PositionPresetInterpolatedPosition(self) result(position)
   logical                                                                                     :: usingHistory
   type            (interpolator                           )                                   :: interpolator_
   type            (history                                )                                   :: history_
-  
+ 
   allocate(position(3))
   node  => self %host ()
   basic => node %basic()
   time  =  basic%time ()
+  call PositionPresetInterpolatedCheck(self,node,time)
   ! Use the size of the interpolation coefficient array to determine the type of interpolation. A more elegant/robust solution
   ! would be preferable.
   if (size(self%interpolationCoefficientsData) == 0) then
@@ -71,7 +113,7 @@ function PositionPresetInterpolatedPosition(self) result(position)
              &      +coefficientsCubic(4,i)
      end do
      ! Convert from comoving back to physical position.
-     position=position*cosmologyFunctions_%expansionFactor(time)     
+     position=position*cosmologyFunctions_%expansionFactor(time)
   else if (size(self%interpolationCoefficientsData) == 20) then
      ! Use logarithmic spiral interoplation in physical position.
      coefficientsSpiral   = self%interpolationCoefficients()
@@ -92,7 +134,7 @@ function PositionPresetInterpolatedPosition(self) result(position)
      call basicParent%timeSet(time      )
      position=+               position   &
           &   +positionParent%position()
-     call basicParent%timeSet(timeParent)     
+     call basicParent%timeSet(timeParent)
   end if
   ! Handle periodic boundaries.
   if (isPeriodic) then
@@ -112,6 +154,7 @@ end function PositionPresetInterpolatedPosition
 function PositionPresetInterpolatedVelocity(self) result (velocity)
   !% Return the velocity of the node.
   use :: Node_Component_Position_Preset_Interpolated_Data, only : cosmologyFunctions_
+  use :: Numerical_Constants_Astronomical                , only : Mpc_per_km_per_s_To_Gyr
   use :: Numerical_Interpolation                         , only : interpolator
   implicit none
   double precision                                         , allocatable  , dimension(:     ) :: velocity
@@ -130,11 +173,12 @@ function PositionPresetInterpolatedVelocity(self) result (velocity)
   logical                                                                                     :: usingHistory
   type            (interpolator                           )                                   :: interpolator_
   type            (history                                )                                   :: history_
-  
+
   allocate(velocity(3))
   node  => self %host ()
   basic => node %basic()
   time  =  basic%time ()
+  call PositionPresetInterpolatedCheck(self,node,time)
   ! Use the size of the interpolation coefficient array to determine the type of interpolation. A more elegant/robust solution
   ! would be preferable.
   if (size(self%interpolationCoefficientsData) == 0) then
@@ -158,8 +202,10 @@ function PositionPresetInterpolatedVelocity(self) result (velocity)
              &      +2.0d0*coefficientsCubic(2,i)*time    &
              &      +      coefficientsCubic(3,i)
      end do
-     ! Convert from comoving back to physical velocity.
-     velocity=velocity*cosmologyFunctions_%expansionFactor(time)     
+     ! Convert from comoving back to physical velocity, and to km/s.
+     velocity=+velocity                                  &
+          &   *cosmologyFunctions_%expansionFactor(time) &
+          &   *Mpc_per_km_per_s_To_Gyr 
   else if (size(self%interpolationCoefficientsData) == 20) then
      ! Use logarithmic spiral interoplation in physical velocity.
      coefficientsSpiral   = self%interpolationCoefficients()
