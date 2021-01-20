@@ -107,19 +107,18 @@ contains
     return
   end subroutine multiDestructor
 
-  subroutine multiOutput(self,tree,indexOutput,time,isLastOutput)
+  subroutine multiOutput(self,tree,indexOutput,time)
     !% Output from all outputters.
     implicit none
-    class           (mergerTreeOutputterMulti), intent(inout)           :: self
-    type            (multiOutputterList      ), pointer                 :: outputter_
-    type            (mergerTree              ), intent(inout), target   :: tree
-    integer         (c_size_t                ), intent(in   )           :: indexOutput
-    double precision                          , intent(in   )           :: time
-    logical                                   , intent(in   ), optional :: isLastOutput
+    class           (mergerTreeOutputterMulti), intent(inout)         :: self
+    type            (multiOutputterList      ), pointer               :: outputter_
+    type            (mergerTree              ), intent(inout), target :: tree
+    integer         (c_size_t                ), intent(in   )         :: indexOutput
+    double precision                          , intent(in   )         :: time
 
     outputter_ => self%outputters
     do while (associated(outputter_))
-       call outputter_%outputter_%output(tree,indexOutput,time,isLastOutput)
+       call outputter_%outputter_%output(tree,indexOutput,time)
        outputter_ => outputter_%next
     end do
     return

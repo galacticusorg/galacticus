@@ -49,15 +49,14 @@ contains
     return
   end function nullConstructorParameters
 
-  subroutine nullOutput(self,tree,indexOutput,time,isLastOutput)
+  subroutine nullOutput(self,tree,indexOutput,time)
     !% Perform no output.
     implicit none
-    class           (mergerTreeOutputterNull), intent(inout)           :: self
-    type            (mergerTree             ), intent(inout), target   :: tree
-    integer         (c_size_t               ), intent(in   )           :: indexOutput
-    double precision                         , intent(in   )           :: time
-    logical                                  , intent(in   ), optional :: isLastOutput
-    !$GLC attributes unused :: self, tree, indexOutput, time, isLastOutput
+    class           (mergerTreeOutputterNull), intent(inout)         :: self
+    type            (mergerTree             ), intent(inout), target :: tree
+    integer         (c_size_t               ), intent(in   )         :: indexOutput
+    double precision                         , intent(in   )         :: time
+    !$GLC attributes unused :: self, tree, indexOutput, time
 
     return
   end subroutine nullOutput

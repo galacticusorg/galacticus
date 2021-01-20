@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements evolution of merger trees.
+!% Contains a module which provides a class that implements outputting of node data in a merger tree.
 
 module Merger_Tree_Outputters
   !% Provides a class that implements evolution of merger trees.
@@ -34,10 +34,9 @@ module Merger_Tree_Outputters
   !#   <description>Output a merger tree.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (mergerTree), intent(inout), target   :: tree        </argument>
-  !#   <argument>integer         (c_size_t  ), intent(in   )           :: indexOutput </argument>
-  !#   <argument>double precision            , intent(in   )           :: time        </argument>
-  !#   <argument>logical                     , intent(in   ), optional :: isLastOutput</argument>
+  !#   <argument>type            (mergerTree), intent(inout), target :: tree       </argument>
+  !#   <argument>integer         (c_size_t  ), intent(in   )         :: indexOutput</argument>
+  !#   <argument>double precision            , intent(in   )         :: time       </argument>
   !#  </method>
   !#  <method name="finalize" >
   !#   <description>Finalize output of merger trees.</description>

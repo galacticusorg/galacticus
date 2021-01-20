@@ -77,22 +77,20 @@ contains
     return
   end subroutine analyzerDestructor
 
-  subroutine analyzerOutput(self,tree,indexOutput,time,isLastOutput)
+  subroutine analyzerOutput(self,tree,indexOutput,time)
     !% Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
     use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
     use :: Galacticus_Nodes              , only : mergerTree                   , nodeComponentBasic, treeNode
     use :: Merger_Tree_Walkers           , only : mergerTreeWalkerAllNodes
     implicit none
-    class           (mergerTreeOutputterAnalyzer), intent(inout)           :: self
-    type            (mergerTree                 ), intent(inout), target   :: tree
-    integer         (c_size_t                   ), intent(in   )           :: indexOutput
-    double precision                             , intent(in   )           :: time
-    logical                                      , intent(in   ), optional :: isLastOutput
-    type            (treeNode                   )               , pointer  :: node
-    class           (nodeComponentBasic         )               , pointer  :: basic
-    type            (mergerTree                 )               , pointer  :: treeCurrent
-    type            (mergerTreeWalkerAllNodes   )                          :: treeWalker
-    !$GLC attributes unused :: isLastOutput
+    class           (mergerTreeOutputterAnalyzer), intent(inout)          :: self
+    type            (mergerTree                 ), intent(inout), target  :: tree
+    integer         (c_size_t                   ), intent(in   )          :: indexOutput
+    double precision                             , intent(in   )          :: time
+    type            (treeNode                   )               , pointer :: node
+    class           (nodeComponentBasic         )               , pointer :: basic
+    type            (mergerTree                 )               , pointer :: treeCurrent
+    type            (mergerTreeWalkerAllNodes   )                         :: treeWalker
 
     ! Iterate over trees.
     treeCurrent => tree

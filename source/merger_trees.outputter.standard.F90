@@ -73,15 +73,15 @@
      class           (nodePropertyExtractorClass  ), pointer                     :: nodePropertyExtractor_  => null()
    contains
      !# <methods>
-     !#   <method description="Make an group in the \glc\ file in which to store {\normalfont \ttfamily tree}." method="makeGroup" />
-     !#   <method description="Dump the contents of the integer properties buffer to the \glc\ output file." method="dumpIntegerBuffer" />
-     !#   <method description="Dump the contents of the double properties buffer to the \glc\ output file." method="dumpDoubleBuffer" />
-     !#   <method description="Extend the size of the integer buffer." method="extendIntegerBuffer" />
-     !#   <method description="Extend the size of the double buffer." method="extendDoubleBuffer" />
-     !#   <method description="Count up the number of properties that will be output." method="propertiesCount" />
-     !#   <method description="Allocate buffers for storage of properties." method="buffersAllocate" />
-     !#   <method description="Set names for the properties." method="propertyNamesEstablish" />
-     !#   <method description="Create a group in which to store this output." method="outputGroupCreate" />
+     !#   <method description="Make an group in the \glc\ file in which to store {\normalfont \ttfamily tree}." method="makeGroup"             />
+     !#   <method description="Dump the contents of the integer properties buffer to the \glc\ output file."    method="dumpIntegerBuffer"     />
+     !#   <method description="Dump the contents of the double properties buffer to the \glc\ output file."     method="dumpDoubleBuffer"      />
+     !#   <method description="Extend the size of the integer buffer."                                          method="extendIntegerBuffer"   />
+     !#   <method description="Extend the size of the double buffer."                                           method="extendDoubleBuffer"    />
+     !#   <method description="Count up the number of properties that will be output."                          method="propertiesCount"       />
+     !#   <method description="Allocate buffers for storage of properties."                                     method="buffersAllocate"       />
+     !#   <method description="Set names for the properties."                                                   method="propertyNamesEstablish"/>
+     !#   <method description="Create a group in which to store this output."                                   method="outputGroupCreate"     />
      !# </methods>
      final     ::                           standardDestructor
      procedure :: output                 => standardOutput
@@ -176,7 +176,7 @@ contains
     return
   end subroutine standardDestructor
 
-  subroutine standardOutput(self,tree,indexOutput,time,isLastOutput)
+  subroutine standardOutput(self,tree,indexOutput,time)
     !% Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
     use            :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
     use            :: Galacticus_Error              , only : Galacticus_Error_Report
@@ -191,22 +191,21 @@ contains
     include 'galacticus.output.merger_tree.tasks.modules.inc'
     !# </include>
     implicit none
-    class           (mergerTreeOutputterStandard), intent(inout)           :: self
-    type            (mergerTree                 ), intent(inout), target   :: tree
-    integer         (c_size_t                   ), intent(in   )           :: indexOutput
-    double precision                             , intent(in   )           :: time
-    logical                                      , intent(in   ), optional :: isLastOutput
-    type            (treeNode                   )               , pointer  :: node
-    integer         (kind=hsize_t               ), dimension(1)            :: referenceLength , referenceStart
-    class           (nodeComponentBasic         )               , pointer  :: basic
-    type            (mergerTree                 )               , pointer  :: currentTree
-    type            (mergerTreeWalkerAllNodes   )                          :: treeWalker
-    integer                                                                :: doubleProperty  , integerProperty, &
-         &                                                                    iProperty
-    integer         (c_size_t                   )                          :: iGroup
-    logical                                                                :: nodePassesFilter
-    type            (hdf5Object                 )                          :: toDataset
-    type            (multiCounter               )                          :: instance
+    class           (mergerTreeOutputterStandard), intent(inout)          :: self
+    type            (mergerTree                 ), intent(inout), target  :: tree
+    integer         (c_size_t                   ), intent(in   )          :: indexOutput
+    double precision                             , intent(in   )          :: time
+    type            (treeNode                   )               , pointer :: node
+    integer         (kind=hsize_t               ), dimension(1)           :: referenceLength , referenceStart
+    class           (nodeComponentBasic         )               , pointer :: basic
+    type            (mergerTree                 )               , pointer :: currentTree
+    type            (mergerTreeWalkerAllNodes   )                         :: treeWalker
+    integer                                                               :: doubleProperty  , integerProperty, &
+         &                                                                   iProperty
+    integer         (c_size_t                   )                         :: iGroup
+    logical                                                               :: nodePassesFilter
+    type            (hdf5Object                 )                         :: toDataset
+    type            (multiCounter               )                         :: instance
 
     ! Main output block.
     !$omp critical(mergerTreeOutputterStandard)
@@ -352,21 +351,6 @@ contains
        ! Skip to the next tree.
        currentTree => currentTree%nextTree
     end do
-    ! Close down if this is the final output.
-    if (present(isLastOutput)) then
-       if (isLastOutput) then
-          ! Close any open output groups.
-          !$ call hdf5Access%set()
-          do iGroup=1,self%outputGroupsCount
-             if (self%outputGroups(iGroup)%opened) then
-                if (self%outputGroups(iGroup)%nodeDataGroup%isOpen()) call self%outputGroups(iGroup)%nodeDataGroup%close()
-                if (self%outputGroups(iGroup)%hdf5Group    %isOpen()) call self%outputGroups(iGroup)%hdf5Group    %close()
-             end if
-          end do
-          if (self%outputsGroup%isOpen()) call self%outputsGroup%close()
-          !$ call hdf5Access%unset()
-       end if
-    end if
     !$omp end critical(mergerTreeOutputterStandard)
     return
   end subroutine standardOutput
