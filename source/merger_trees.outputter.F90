@@ -30,7 +30,7 @@ module Merger_Tree_Outputters
   !#  <descriptiveName>Merger Tree Outputters</descriptiveName>
   !#  <description>Class providing outputters for merger trees.</description>
   !#  <default>standard</default>
-  !#  <method name="output" >
+  !#  <method name="outputTree" >
   !#   <description>Output a merger tree.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>

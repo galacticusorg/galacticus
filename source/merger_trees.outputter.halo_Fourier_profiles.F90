@@ -64,9 +64,9 @@
      double precision                           , allocatable, dimension(:) :: wavenumber
      type            (hdf5Object               )                            :: outputGroup
    contains
-     final     ::             haloFourierProfilesDestructor
-     procedure :: output   => haloFourierProfilesOutput
-     procedure :: finalize => haloFourierProfilesFinalize
+     final     ::               haloFourierProfilesDestructor
+     procedure :: outputTree => haloFourierProfilesOutputTree
+     procedure :: finalize   => haloFourierProfilesFinalize
   end type mergerTreeOutputterHaloFourierProfiles
 
   interface mergerTreeOutputterHaloFourierProfiles
@@ -161,7 +161,7 @@ contains
     return
   end subroutine haloFourierProfilesFinalize
   
-  subroutine haloFourierProfilesOutput(self,tree,indexOutput,time)
+  subroutine haloFourierProfilesOutputTree(self,tree,indexOutput,time)
     !% Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
     use    :: Galacticus_HDF5                 , only : galacticusOutputFile
     use    :: Galacticus_Nodes                , only : treeNode                , nodeComponentBasic
@@ -223,5 +223,5 @@ contains
     call                         outputGroup%close()
     !$ call hdf5Access%unset()
     return
-  end subroutine haloFourierProfilesOutput
+  end subroutine haloFourierProfilesOutputTree
 

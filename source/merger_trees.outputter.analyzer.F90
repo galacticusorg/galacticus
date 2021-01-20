@@ -29,10 +29,10 @@
      private
      class(outputAnalysisClass), pointer :: outputAnalysis_ => null()
    contains
-     final     ::             analyzerDestructor
-     procedure :: output   => analyzerOutput
-     procedure :: finalize => analyzerFinalize
-     procedure :: reduce   => analyzerReduce
+     final     ::               analyzerDestructor
+     procedure :: outputTree => analyzerOutputTree
+     procedure :: finalize   => analyzerFinalize
+     procedure :: reduce     => analyzerReduce
   end type mergerTreeOutputterAnalyzer
 
   interface mergerTreeOutputterAnalyzer
@@ -77,7 +77,7 @@ contains
     return
   end subroutine analyzerDestructor
 
-  subroutine analyzerOutput(self,tree,indexOutput,time)
+  subroutine analyzerOutputTree(self,tree,indexOutput,time)
     !% Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
     use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
     use :: Galacticus_Nodes              , only : mergerTree                   , nodeComponentBasic, treeNode
@@ -111,7 +111,7 @@ contains
        treeCurrent => treeCurrent%nextTree
     end do
     return
-  end subroutine analyzerOutput
+  end subroutine analyzerOutputTree
 
   subroutine analyzerReduce(self,reduced)
     !% Reduce over the outputter.

@@ -82,9 +82,10 @@
      !#   <method description="Allocate buffers for storage of properties."                                     method="buffersAllocate"       />
      !#   <method description="Set names for the properties."                                                   method="propertyNamesEstablish"/>
      !#   <method description="Create a group in which to store this output."                                   method="outputGroupCreate"     />
+     !#   <method description="Perform output of a single node."                                                method="output"                />
      !# </methods>
      final     ::                           standardDestructor
-     procedure :: output                 => standardOutput
+     procedure :: outputTree             => standardOutputTree
      procedure :: finalize               => standardFinalize
      procedure :: makeGroup              => standardMakeGroup
      procedure :: dumpIntegerBuffer      => standardDumpIntegerBuffer
@@ -95,6 +96,7 @@
      procedure :: buffersAllocate        => standardBuffersAllocate
      procedure :: propertyNamesEstablish => standardPropertyNamesEstablish
      procedure :: outputGroupCreate      => standardOutputGroupCreate
+     procedure :: output                 => standardOutput
   end type mergerTreeOutputterStandard
 
   interface mergerTreeOutputterStandard
@@ -176,20 +178,13 @@ contains
     return
   end subroutine standardDestructor
 
-  subroutine standardOutput(self,tree,indexOutput,time)
+  subroutine standardOutputTree(self,tree,indexOutput,time)
     !% Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
-    use            :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
-    use            :: Galacticus_Error              , only : Galacticus_Error_Report
-    use            :: Galacticus_Nodes              , only : mergerTree                   , nodeComponentBasic       , treeNode
-    use            :: IO_HDF5                       , only : hdf5Access                   , hdf5Object
-    use, intrinsic :: ISO_C_Binding                 , only : c_size_t
-    use            :: Merger_Tree_Walkers           , only : mergerTreeWalkerAllNodes
-    use            :: Multi_Counters                , only : multiCounter
-    use            :: Node_Property_Extractors      , only : elementTypeDouble            , elementTypeInteger       , nodePropertyExtractorIntegerScalar, nodePropertyExtractorIntegerTuple, &
-          &                                                  nodePropertyExtractorMulti   , nodePropertyExtractorNull, nodePropertyExtractorScalar       , nodePropertyExtractorTuple
-    !# <include directive="mergerTreeOutputTask" type="moduleUse">
-    include 'galacticus.output.merger_tree.tasks.modules.inc'
-    !# </include>
+    use            :: Galacticus_Error   , only : Galacticus_Error_Report
+    use            :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
+    use            :: IO_HDF5            , only : hdf5Access              , hdf5Object
+    use, intrinsic :: ISO_C_Binding      , only : c_size_t
+    use            :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     implicit none
     class           (mergerTreeOutputterStandard), intent(inout)          :: self
     type            (mergerTree                 ), intent(inout), target  :: tree
@@ -200,12 +195,8 @@ contains
     class           (nodeComponentBasic         )               , pointer :: basic
     type            (mergerTree                 )               , pointer :: currentTree
     type            (mergerTreeWalkerAllNodes   )                         :: treeWalker
-    integer                                                               :: doubleProperty  , integerProperty, &
-         &                                                                   iProperty
-    integer         (c_size_t                   )                         :: iGroup
-    logical                                                               :: nodePassesFilter
+    integer                                                               :: iProperty
     type            (hdf5Object                 )                         :: toDataset
-    type            (multiCounter               )                         :: instance
 
     ! Main output block.
     !$omp critical(mergerTreeOutputterStandard)
@@ -232,74 +223,7 @@ contains
           do while (treeWalker%next(node))
              ! Get the basic component.
              basic => node%basic()
-             if (basic%time() == time) then
-                ! Reset calculations (necessary in case the last node to be evolved is the first one we output, in which case
-                ! calculations would not be automatically reset because the node unique ID will not have changed).
-                call Galacticus_Calculations_Reset (node)
-                ! Test whether this node passes all output filters.
-                nodePassesFilter=self%galacticFilter_%passes(node)
-                if (nodePassesFilter) then
-                   ! Initialize the instance counter.
-                   instance=multiCounter([1_c_size_t])
-                   call self%nodePropertyExtractor_%addInstances(node,instance)
-                   do while (instance%increment())
-                      if (self%integerPropertyCount > 0) then
-                         integerProperty=0
-                         self%integerBufferCount=self%integerBufferCount+1
-                      end if
-                      if (self%doublePropertyCount > 0) then
-                         doubleProperty=0
-                         self%doubleBufferCount=self%doubleBufferCount+1
-                      end if
-                      ! Populate the output buffers with properties. We first populate with any "extra" properites that may be
-                      ! being computed, and then call the standard treeNode output method to populate with all "standard"
-                      ! properties.
-                      !# <include directive="mergerTreeOutputTask" type="functionCall" functionType="void">
-                      !#  <functionArgs>node,integerProperty,self%integerBufferCount,self%integerBuffer,doubleProperty,self%doubleBufferCount,self%doubleBuffer,time,instance</functionArgs>
-                      include 'galacticus.output.merger_tree.tasks.inc'
-                      !# </include>
-                      call node%output(integerProperty,self%integerBufferCount,self%integerBuffer,doubleProperty,self%doubleBufferCount,self%doubleBuffer,time,instance)
-                      ! Handle any extracted properties.
-                      select type (extractor_ => self%nodePropertyExtractor_)
-                      type is (nodePropertyExtractorNull)
-                         ! Null extractor - simply ignore.
-                      class is (nodePropertyExtractorScalar       )
-                         ! Scalar property extractor - extract and store the value.
-                         self%doubleBuffer (self%doubleBufferCount ,doubleProperty+1                                                                  )=extractor_      %extract       (                  node     ,instance)
-                         doubleProperty                                                                                                                =+doubleProperty                                                       &
-                              &                                                                                                                         +1
-                      class is (nodePropertyExtractorTuple        )
-                         ! Tuple property extractor - extract and store the values.
-                         self%doubleBuffer (self%doubleBufferCount ,doubleProperty+1 :doubleProperty+extractor_%elementCount(                    time))= extractor_     %extract       (                  node,time,instance)
-                         doubleProperty                                                                                                                =+doubleProperty                                                       &
-                              &                                                                                                                         +extractor_     %elementCount  (                       time         )
-                      class is (nodePropertyExtractorIntegerScalar)
-                         ! Integer scalar property extractor - extract and store the value.
-                         self%integerBuffer(self%integerBufferCount,integerProperty+1                                                                 )=extractor_      %extract       (                  node,time,instance)
-                         integerProperty                                                                                                               =+integerProperty                                                      &
-                              &                                                                                                                         +1
-                      class is (nodePropertyExtractorIntegerTuple )
-                         ! Integer tuple property extractor - extract and store the values.
-                         self%integerBuffer(self%integerBufferCount,integerProperty+1:integerProperty+extractor_%elementCount(                   time))= extractor_     %extract       (                  node,time,instance)
-                         integerProperty                                                                                                               =+integerProperty                                                      &
-                              &                                                                                                                         +extractor_     %elementCount  (                       time         )
-                       class is (nodePropertyExtractorMulti        )
-                         ! Multi property extractor - extract and store the values.
-                         self%doubleBuffer (self%doubleBufferCount ,doubleProperty +1:doubleProperty +extractor_%elementCount(elementTypeDouble ,time))=extractor_      %extractDouble (                  node,time,instance)
-                         doubleProperty                                                                                                                =+doubleProperty                                                       &
-                              &                                                                                                                         +extractor_     %elementCount  (elementTypeDouble,     time         )
-                         self%integerBuffer(self%integerBufferCount,integerProperty+1:integerProperty+extractor_%elementCount(elementTypeInteger,time))=extractor_      %extractInteger(                  node,time,instance)
-                         integerProperty                                                                                                               =+integerProperty                                                      &
-                              &                                                                                                                         +extractor_     %elementCount  (elementTypeInteger,    time         )
-                      class default
-                         call Galacticus_Error_Report('unsupported property extractor class'//{introspection:location})
-                      end select
-                      ! If buffer is full, dump it to file.
-                      if (self%integerBufferCount == self%integerBufferSize) call self%extendIntegerBuffer()
-                      if (self% doubleBufferCount == self% doubleBufferSize) call self%extendDoubleBuffer ()
-                   end do
-                end if
-             end if
+             if (basic%time() == time) call self%output(node,time)
           end do
           ! Finished output.
           if (self%integerPropertyCount > 0 .and. self%integerBufferCount > 0) call self%dumpIntegerBuffer(indexOutput)
@@ -353,8 +277,93 @@ contains
     end do
     !$omp end critical(mergerTreeOutputterStandard)
     return
-  end subroutine standardOutput
+  end subroutine standardOutputTree
 
+  subroutine standardOutput(self,node,time)
+    !% Output the provided node.
+    use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
+    use :: Multi_Counters                , only : multiCounter
+    use :: Node_Property_Extractors      , only : elementTypeDouble            , elementTypeInteger       , nodePropertyExtractorIntegerScalar, nodePropertyExtractorIntegerTuple, &
+          &                                       nodePropertyExtractorMulti   , nodePropertyExtractorNull, nodePropertyExtractorScalar       , nodePropertyExtractorTuple
+    !# <include directive="mergerTreeOutputTask" type="moduleUse">
+    include 'galacticus.output.merger_tree.tasks.modules.inc'
+    !# </include>
+    implicit none
+    class           (mergerTreeOutputterStandard), intent(inout) :: self
+    type            (treeNode                   ), intent(inout) :: node
+    double precision                             , intent(in   ) :: time
+    integer                                                      :: doubleProperty  , integerProperty
+    logical                                                      :: nodePassesFilter
+    type            (multiCounter               )                :: instance
+
+    ! Reset calculations (necessary in case the last node to be evolved is the first one we output, in which case
+    ! calculations would not be automatically reset because the node unique ID will not have changed).
+    call Galacticus_Calculations_Reset (node)
+    ! Test whether this node passes all output filters.
+    nodePassesFilter=self%galacticFilter_%passes(node)
+    if (.not.nodePassesFilter) return
+    ! Initialize the instance counter.
+    instance=multiCounter([1_c_size_t])
+    call self%nodePropertyExtractor_%addInstances(node,instance)
+    do while (instance%increment())
+       if (self%integerPropertyCount > 0) then
+          integerProperty=0
+          self%integerBufferCount=self%integerBufferCount+1
+       end if
+       if (self%doublePropertyCount > 0) then
+          doubleProperty=0
+          self%doubleBufferCount=self%doubleBufferCount+1
+       end if
+       ! Populate the output buffers with properties. We first populate with any "extra" properites that may be
+       ! being computed, and then call the standard treeNode output method to populate with all "standard"
+       ! properties.
+       !# <include directive="mergerTreeOutputTask" type="functionCall" functionType="void">
+       !#  <functionArgs>node,integerProperty,self%integerBufferCount,self%integerBuffer,doubleProperty,self%doubleBufferCount,self%doubleBuffer,time,instance</functionArgs>
+       include 'galacticus.output.merger_tree.tasks.inc'
+       !# </include>
+       call node%output(integerProperty,self%integerBufferCount,self%integerBuffer,doubleProperty,self%doubleBufferCount,self%doubleBuffer,time,instance)
+       ! Handle any extracted properties.
+       select type (extractor_ => self%nodePropertyExtractor_)
+       type is (nodePropertyExtractorNull)
+          ! Null extractor - simply ignore.
+       class is (nodePropertyExtractorScalar       )
+          ! Scalar property extractor - extract and store the value.
+          self%doubleBuffer (self%doubleBufferCount ,doubleProperty+1                                                                  )=extractor_      %extract       (                  node     ,instance)
+          doubleProperty                                                                                                                =+doubleProperty                                                       &
+               &                                                                                                                         +1
+       class is (nodePropertyExtractorTuple        )
+          ! Tuple property extractor - extract and store the values.
+          self%doubleBuffer (self%doubleBufferCount ,doubleProperty+1 :doubleProperty+extractor_%elementCount(                    time))= extractor_     %extract       (                  node,time,instance)
+          doubleProperty                                                                                                                =+doubleProperty                                                       &
+               &                                                                                                                         +extractor_     %elementCount  (                       time         )
+       class is (nodePropertyExtractorIntegerScalar)
+          ! Integer scalar property extractor - extract and store the value.
+          self%integerBuffer(self%integerBufferCount,integerProperty+1                                                                 )=extractor_      %extract       (                  node,time,instance)
+          integerProperty                                                                                                               =+integerProperty                                                      &
+               &                                                                                                                         +1
+       class is (nodePropertyExtractorIntegerTuple )
+          ! Integer tuple property extractor - extract and store the values.
+          self%integerBuffer(self%integerBufferCount,integerProperty+1:integerProperty+extractor_%elementCount(                   time))= extractor_     %extract       (                  node,time,instance)
+          integerProperty                                                                                                               =+integerProperty                                                      &
+               &                                                                                                                         +extractor_     %elementCount  (                       time         )
+       class is (nodePropertyExtractorMulti        )
+          ! Multi property extractor - extract and store the values.
+          self%doubleBuffer (self%doubleBufferCount ,doubleProperty +1:doubleProperty +extractor_%elementCount(elementTypeDouble ,time))=extractor_      %extractDouble (                  node,time,instance)
+          doubleProperty                                                                                                                =+doubleProperty                                                       &
+               &                                                                                                                         +extractor_     %elementCount  (elementTypeDouble,     time         )
+          self%integerBuffer(self%integerBufferCount,integerProperty+1:integerProperty+extractor_%elementCount(elementTypeInteger,time))=extractor_      %extractInteger(                  node,time,instance)
+          integerProperty                                                                                                               =+integerProperty                                                      &
+               &                                                                                                                         +extractor_     %elementCount  (elementTypeInteger,    time         )
+       class default
+          call Galacticus_Error_Report('unsupported property extractor class'//{introspection:location})
+       end select
+       ! If buffer is full, dump it to file.
+       if (self%integerBufferCount == self%integerBufferSize) call self%extendIntegerBuffer()
+       if (self% doubleBufferCount == self% doubleBufferSize) call self%extendDoubleBuffer ()
+    end do
+    return
+  end subroutine standardOutput
+  
   subroutine standardFinalize(self)
     !% Finalize merger tree output by closing any open groups.
     use :: IO_HDF5, only : hdf5Access

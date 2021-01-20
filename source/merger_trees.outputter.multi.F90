@@ -35,10 +35,10 @@
      private
      type(multiOutputterList), pointer :: outputters => null()
    contains
-     final     ::             multiDestructor
-     procedure :: output   => multiOutput
-     procedure :: finalize => multiFinalize
-     procedure :: reduce   => multiReduce
+     final     ::               multiDestructor
+     procedure :: outputTree => multiOutputTree
+     procedure :: finalize   => multiFinalize
+     procedure :: reduce     => multiReduce
   end type mergerTreeOutputterMulti
 
   interface mergerTreeOutputterMulti
@@ -107,7 +107,7 @@ contains
     return
   end subroutine multiDestructor
 
-  subroutine multiOutput(self,tree,indexOutput,time)
+  subroutine multiOutputTree(self,tree,indexOutput,time)
     !% Output from all outputters.
     implicit none
     class           (mergerTreeOutputterMulti), intent(inout)         :: self
@@ -118,11 +118,11 @@ contains
 
     outputter_ => self%outputters
     do while (associated(outputter_))
-       call outputter_%outputter_%output(tree,indexOutput,time)
+       call outputter_%outputter_%outputTree(tree,indexOutput,time)
        outputter_ => outputter_%next
     end do
     return
-  end subroutine multiOutput
+  end subroutine multiOutputTree
 
   subroutine multiFinalize(self)
     !% Finalize all outputters.

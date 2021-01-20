@@ -26,8 +26,8 @@
      !% Implementation of a merger tree outputter which does no output.
      private
    contains
-     procedure :: output   => nullOutput
-     procedure :: finalize => nullFinalize
+     procedure :: outputTree => nullOutputTree
+     procedure :: finalize   => nullFinalize
   end type mergerTreeOutputterNull
 
   interface mergerTreeOutputterNull
@@ -49,7 +49,7 @@ contains
     return
   end function nullConstructorParameters
 
-  subroutine nullOutput(self,tree,indexOutput,time)
+  subroutine nullOutputTree(self,tree,indexOutput,time)
     !% Perform no output.
     implicit none
     class           (mergerTreeOutputterNull), intent(inout)         :: self
@@ -59,7 +59,7 @@ contains
     !$GLC attributes unused :: self, tree, indexOutput, time
 
     return
-  end subroutine nullOutput
+  end subroutine nullOutputTree
 
   subroutine nullFinalize(self)
     !% Finalize merger tree output.

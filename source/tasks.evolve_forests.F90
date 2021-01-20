@@ -745,7 +745,7 @@ contains
                    write (label,'(f7.2)') evolveToTime
                    message="Output tree data at t="//trim(label)//" Gyr"
                    call Galacticus_Display_Message(message)
-                   call evolveForestsMergerTreeOutputter_%output(tree,iOutput,evolveToTime)
+                   call evolveForestsMergerTreeOutputter_%outputTree(tree,iOutput,evolveToTime)
                    ! Perform any extra output and post-output processing on nodes.
                    treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
                    do while (treeWalkerAll%next(node))

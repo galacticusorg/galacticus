@@ -356,7 +356,7 @@ contains
     use :: Multi_Counters  , only : multiCounter
     implicit none
     double precision                    , intent(in   )               :: time
-    type            (treeNode          ), intent(inout), pointer      :: node
+    type            (treeNode          ), intent(inout)               :: node
     integer                             , intent(inout)               :: doubleBufferCount          , doubleProperty, integerBufferCount, &
          &                                                               integerProperty
     integer         (kind=kind_int8    ), intent(inout)               :: integerBuffer         (:,:)
