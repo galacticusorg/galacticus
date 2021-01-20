@@ -155,6 +155,7 @@ contains
        call position%                 velocitySet(positionParent%velocity                 ())
        call position%          positionHistorySet(positionParent%positionHistory          ())
        call position%interpolationCoefficientsSet(positionParent%interpolationCoefficients())
+       call position% interpolationTimeMaximumSet(positionParent%interpolationTimeMaximum ())
     end select
     return
   end subroutine nodePromotion
@@ -328,6 +329,9 @@ contains
        ! No position history is available - this must be an isolated node and so we must use cubic polynomial interpolation.
        useSpiralInterpolation=.false.
     end if
+    ! Nullify the position interpolation for this node before attempting to compute the new interpolation. This ensures that we do
+    ! not attempt to interpolate the position of this node outside the allowed range of the previous interpolation.
+    call position%interpolationCoefficientsSet(coefficientsNull)
     ! Branch on the type of interpolation we are to compute.
     if (.not.useSpiralInterpolation) then
        ! Cubic polynomial interpolation.
@@ -380,7 +384,7 @@ contains
        else
           ! We have no means to determine the start/end points for this interval. This node must have no future, and so we can
           ! safely set a null interpolation infinitely far into the future.
-         call position%interpolationCoefficientsSet(coefficientsNull)
+          call position%interpolationCoefficientsSet(coefficientsNull)
           call position%interpolationTimeMaximumSet (huge(0.0d0))
           return
        end if
@@ -570,14 +574,12 @@ contains
           coefficientsSpiral(17:20)=reshape(coefficientsLogRadius,[ 4])
           call position%interpolationCoefficientsSet(coefficientsSpiral   )
           call position%interpolationTimeMaximumSet (time              (2))
-          
        else
           ! No grandparent halo exists. This can occur in a tree which ceases to exist. Use a null interpolation to ensure that
           ! the fixed-at-snapshot position will be used for the node. Set the maximum time for the interpolation to infinity to
           ! avoid an infinite loop of attempting to compute this interpolation.
           call position%interpolationCoefficientsSet(coefficientsNull)
           call position%interpolationTimeMaximumSet (huge(0.0d0))
-
        end if
    end if
 
