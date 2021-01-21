@@ -64,13 +64,15 @@
      !#   <description>Determine if, and how many times, the given node appears in the ``lightcone'', and choose positions for each instance.</description>
      !#  </method>
      !# </methods>
-     final     ::                     cylindricalDestructor
-     procedure :: isInLightcone    => cylindricalIsInLightcone
-     procedure :: replicationCount => cylindricalReplicationCount
-     procedure :: solidAngle       => cylindricalSolidAngle
-     procedure :: position         => cylindricalPosition
-     procedure :: velocity         => cylindricalVelocity
-     procedure :: sampleNode       => cylindricalSampleNode
+     final     ::                              cylindricalDestructor
+     procedure :: isInLightcone             => cylindricalIsInLightcone
+     procedure :: replicationCount          => cylindricalReplicationCount
+     procedure :: solidAngle                => cylindricalSolidAngle
+     procedure :: position                  => cylindricalPosition
+     procedure :: velocity                  => cylindricalVelocity
+     procedure :: timeLightconeCrossing     => cylindricalTimeLightconeCrossing
+     procedure :: positionLightconeCrossing => cylindricalPositionLightconeCrossing
+     procedure :: sampleNode                => cylindricalSampleNode
   end type geometryLightconeCylindrical
 
   interface geometryLightconeCylindrical
@@ -555,6 +557,34 @@ contains
     return
   end function cylindricalVelocity
 
+  double precision function cylindricalTimeLightconeCrossing(self,node,timeEnd)
+    !% Return the time of the next lightcone crossing for this node.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class           (geometryLightconeCylindrical), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    double precision                              , intent(in   ) :: timeEnd
+    !$GLC attributes unused :: self, node, timeEnd
+
+    cylindricalTimeLightconeCrossing=0.0d0
+    call Galacticus_Error_Report('not implemented'//{introspection:location})
+    return
+  end function cylindricalTimeLightconeCrossing
+  
+  function cylindricalPositionLightconeCrossing(self,node)
+    !% Return the position at the next lightcone crossing for this node.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    double precision                              , dimension(3)  :: cylindricalPositionLightconeCrossing
+    class           (geometryLightconeCylindrical), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    !$GLC attributes unused :: self, node
+
+    cylindricalPositionLightconeCrossing=0.0d0
+    call Galacticus_Error_Report('not implemented'//{introspection:location})
+    return
+  end function cylindricalPositionLightconeCrossing
+  
   subroutine cylindricalSampleNode(self,node)
     !% Determine how many times the given node appears in the ``lightcone''.
     use :: Numerical_Constants_Math, only : Pi

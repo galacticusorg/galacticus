@@ -64,6 +64,25 @@ module Geometry_Lightcones
   !#   <argument>type   (treeNode), intent(inout) :: node</argument>
   !#   <argument>integer(c_size_t), intent(in   ) :: instance</argument>
   !#  </method>
+  !#  <method name="timeLightconeCrossing" >
+  !#   <description>Returns the next time in the interval from the current node time to {\normalfont \ttfamily timeEnd} at which any replicant of this node will cross the lightcone. If no crossing occurs during this interval a very large value is returned instead.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode), intent(inout) :: node   </argument>
+  !#   <argument>double precision          , intent(in   ) :: timeEnd</argument>
+  !#  </method>
+  !#  <method name="positionLightconeCrossing" >
+  !#   <description>Returns the position of the node at the time of lightcone crossing---which must have been previously identified via the {\normalfont \ttfamily timeLightconeCrossing} method.</description>
+  !#   <type>double precision, dimension(3)</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#  </method>
+  !#  <method name="velocityLightconeCrossing" >
+  !#   <description>Returns the velocity of the node at the time of lightcone crossing---which must have been previously identified via the {\normalfont \ttfamily timeLightconeCrossing} method.</description>
+  !#   <type>double precision, dimension(3)</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#  </method>
   !# </functionClass>
 
 end module Geometry_Lightcones
