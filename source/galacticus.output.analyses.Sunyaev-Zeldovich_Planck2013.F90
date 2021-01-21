@@ -208,9 +208,6 @@ contains
     do iBin=1,binCount
        outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,cosmologyFunctions_,outputTimes_,masses(iBin),allowSingleEpoch=.true.)
     end do
-
-    !! AJB: Need a parameter that sets a background level for S-Z.
-    
     ! Build a filter which select galaxies with stellar mass above some coarse lower limit suitable for this sample.
     allocate(galacticFilterCentrals_        )
     allocate(galacticFilterStellarMass_     )

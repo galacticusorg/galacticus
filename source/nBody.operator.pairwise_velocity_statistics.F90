@@ -244,7 +244,7 @@ contains
     separationSquaredMinimumBin=(separationCentralBin/sqrt(separationCentralBin(2)/separationCentralBin(1)))**2
     separationSquaredMaximumBin=(separationCentralBin*sqrt(separationCentralBin(2)/separationCentralBin(1)))**2
     ! Iterate over simulations.
-    do iSimulation=2_c_size_t,2_c_size_t !! AJB HACK 1_c_size_t,size(simulations)
+    do iSimulation=1_c_size_t,size(simulations)
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
