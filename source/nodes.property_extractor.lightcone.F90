@@ -56,7 +56,8 @@
      integer         (c_size_t               )                            :: instanceIndex
      type            (varying_string         ), allocatable, dimension(:) :: names_                  , descriptions_
      double precision                         , allocatable, dimension(:) :: unitsInSI_
-     logical                                                              :: includeObservedRedshift , includeAngularCoordinates
+     logical                                                              :: includeObservedRedshift , includeAngularCoordinates, &
+          &                                                                  atCrossing
    contains
      final     ::                 lightconeDestructor
      procedure :: elementCount => lightconeElementCount
@@ -84,7 +85,8 @@ contains
     type   (inputParameters               ), intent(inout) :: parameters
     class  (cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
     class  (geometryLightconeClass        ), pointer       :: geometryLightcone_
-    logical                                                :: includeObservedRedshift, includeAngularCoordinates
+    logical                                                :: includeObservedRedshift, includeAngularCoordinates, &
+         &                                                    atCrossing
 
     !# <inputParameter>
     !#   <name>includeObservedRedshift</name>
@@ -98,25 +100,32 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true output angular coordinates in the lightcone.</description>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>atCrossing</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true output positions/velocities at the time of lightcone crossing. Otherwise, output positions at the output time.</description>
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !# <objectBuilder class="geometryLightcone"  name="geometryLightcone_"  source="parameters"/>
-    self=nodePropertyExtractorLightcone(includeObservedRedshift,includeAngularCoordinates,cosmologyFunctions_,geometryLightcone_)
+    self=nodePropertyExtractorLightcone(includeObservedRedshift,includeAngularCoordinates,atCrossing,cosmologyFunctions_,geometryLightcone_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"/>
     !# <objectDestructor name="geometryLightcone_" />
     return
   end function lightconeConstructorParameters
 
-  function lightconeConstructorInternal(includeObservedRedshift,includeAngularCoordinates,cosmologyFunctions_,geometryLightcone_) result(self)
+  function lightconeConstructorInternal(includeObservedRedshift,includeAngularCoordinates,atCrossing,cosmologyFunctions_,geometryLightcone_) result(self)
     !% Internal constructor for the ``lightcone'' output extractor property extractor class.
     use :: Numerical_Constants_Astronomical, only : degreesToRadians, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     type   (nodePropertyExtractorLightcone)                        :: self
-    logical                                , intent(in   )         :: includeObservedRedshift, includeAngularCoordinates
+    logical                                , intent(in   )         :: includeObservedRedshift, includeAngularCoordinates, &
+         &                                                            atCrossing
     class  (cosmologyFunctionsClass       ), intent(in   ), target :: cosmologyFunctions_
     class  (geometryLightconeClass        ), intent(in   ), target :: geometryLightcone_
-    !# <constructorAssign variables="includeObservedRedshift, includeAngularCoordinates, *cosmologyFunctions_, *geometryLightcone_"/>
+    !# <constructorAssign variables="includeObservedRedshift, includeAngularCoordinates, atCrossing, *cosmologyFunctions_, *geometryLightcone_"/>
 
     self%elementCount_=8
     if (includeObservedRedshift) then
@@ -206,23 +215,23 @@ contains
     type            (multiCounter                  ), intent(inout), optional    :: instance
     !$GLC attributes unused :: time
 
-    if (.not.present(instance)) call Galacticus_Error_Report('instance is required'//{introspection:location})
+    if (.not.present(instance).and..not.self%atCrossing) call Galacticus_Error_Report('instance is required'//{introspection:location})
     allocate(lightconeExtract(self%elementCount_))
-    lightconeExtract(1:3)=self%geometryLightcone_%position(node,instance%state(self%instanceIndex))
-    lightconeExtract(4:6)=self%geometryLightcone_%velocity(node,instance%state(self%instanceIndex))
-    lightconeExtract(7  )=self%cosmologyFunctions_   %redshiftFromExpansionFactor(     &
-         &                 self%cosmologyFunctions_  %expansionFactor             (    &
-         &                  self%cosmologyFunctions_ %timeAtDistanceComoving       (   &
-         &                   Vector_Magnitude                                       (  &
-         &                    self%geometryLightcone_%position                       ( &
-         &                     node                         ,                          &
-         &                     instance%state(self%instanceIndex)                      &
-         &                                                                           ) &
-         &                                                                          )  &
-         &                                                                         )   &
-         &                                                                        )    &
-         &                                                                       )
-    lightconeExtract(8  )=self%geometryLightcone_%solidAngle()/degreesToRadians**2
+    if (self%atCrossing) then
+       lightconeExtract(1:3)=self%geometryLightcone_%positionLightconeCrossing(node                                   )
+       lightconeExtract(4:6)=self%geometryLightcone_%velocityLightconeCrossing(node                                   )
+    else
+       lightconeExtract(1:3)=self%geometryLightcone_%position                 (node,instance%state(self%instanceIndex))
+       lightconeExtract(4:6)=self%geometryLightcone_%velocity                 (node,instance%state(self%instanceIndex))
+    end if
+    lightconeExtract   (7  )=self%cosmologyFunctions_   %redshiftFromExpansionFactor(                          &
+         &                    self%cosmologyFunctions_  %expansionFactor             (                         &
+         &                     self%cosmologyFunctions_ %timeAtDistanceComoving       (                        &
+         &                      Vector_Magnitude                                       (lightconeExtract(1:3)) &
+         &                                                                            )                        &
+         &                                                                           )                         &
+         &                                                                          )
+    lightconeExtract   (8  )=self%geometryLightcone_%solidAngle()/degreesToRadians**2
     if (self%includeObservedRedshift) then
        lightconeExtract(self%redshiftObservedOffset  +1)=+                                       lightconeExtract(7  )  &
             &                                            +Dot_Product     (lightconeExtract(4:6),lightconeExtract(1:3)) &
@@ -258,18 +267,22 @@ contains
     type     (varying_string                )                :: message
     character(len=5                         )                :: label
 
-    replicationCount=self%geometryLightcone_%replicationCount(node)
-    if (replicationCount < 1_c_size_t) then
-       if (self%geometryLightcone_%isInLightcone(node,atPresentEpoch=.true.)) then
-          label="true"
-       else
-          label="false"
+    if (self%atCrossing) then
+       replicationCount=1_c_size_t
+    else
+       replicationCount=self%geometryLightcone_%replicationCount(node)
+       if (replicationCount < 1_c_size_t) then
+          if (self%geometryLightcone_%isInLightcone(node,atPresentEpoch=.true.)) then
+             label="true"
+          else
+             label="false"
+          end if
+          message=var_str("Node ")//node%index()//" of tree "//node%hostTree%index//" appears in "//replicationCount//"(<1) replicants - this should not happen - lightcone intersection reports '"//trim(label)//"'"
+          call Galacticus_Error_Report(message//{introspection:location})
        end if
-       message=var_str("Node ")//node%index()//" of tree "//node%hostTree%index//" appears in "//replicationCount//"(<1) replicants - this should not happen - lightcone intersection reports '"//trim(label)//"'"
-       call Galacticus_Error_Report(message//{introspection:location})
+       call instance%append(replicationCount)
+       self%instanceIndex=instance%count()
     end if
-    call instance%append(replicationCount)
-    self%instanceIndex=instance%count()
     return
   end subroutine lightconeAddInstances
 
