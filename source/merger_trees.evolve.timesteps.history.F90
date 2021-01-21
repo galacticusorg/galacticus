@@ -192,7 +192,7 @@ contains
     return
   end subroutine historyDestructor
 
-  double precision function historyTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
+  double precision function historyTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
     !% Determine a suitable timestep for {\normalfont \ttfamily node} using the history method.
     use            :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
     use            :: Galacticus_Nodes      , only : nodeComponentBasic   , treeNode
@@ -200,6 +200,7 @@ contains
     use            :: ISO_Varying_String    , only : varying_string
     implicit none
     class           (mergerTreeEvolveTimestepHistory), intent(inout), target            :: self
+    double precision                                 , intent(in   )                    :: timeEnd
     type            (treeNode                       ), intent(inout), target            :: node
     procedure       (timestepTask                   ), intent(  out), pointer           :: task
     class           (*                              ), intent(  out), pointer           :: taskSelf
@@ -209,6 +210,7 @@ contains
     class           (nodeComponentBasic             )               , pointer           :: basic
     integer         (c_size_t                       )                                   :: timeIndex
     double precision                                                                    :: time
+    !$GLC attributes unused :: timeEnd
 
     ! Determine how long until next available timestep.
     basic     => node %basic()

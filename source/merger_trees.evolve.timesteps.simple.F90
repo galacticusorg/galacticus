@@ -99,7 +99,7 @@ contains
     return
   end subroutine simpleDestructor
 
-  double precision function simpleTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
+  double precision function simpleTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
     !% Determine a suitable timestep for {\normalfont \ttfamily node} using the simple method. This simply selects the smaller of {\normalfont \ttfamily
     !% timeStepAbsolute} and {\normalfont \ttfamily timeStepRelative}$H^{-1}(t)$.
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
@@ -107,6 +107,7 @@ contains
     use :: ISO_Varying_String    , only : varying_string
     implicit none
     class           (mergerTreeEvolveTimestepSimple), intent(inout), target            :: self
+    double precision                                , intent(in   )                    :: timeEnd
     type            (treeNode                      ), intent(inout), target            :: node
     procedure       (timestepTask                  ), intent(  out), pointer           :: task
     class           (*                             ), intent(  out), pointer           :: taskSelf
@@ -116,6 +117,7 @@ contains
     class           (nodeComponentBasic            )               , pointer           :: basic
     double precision                                                                   :: expansionFactor, timescaleExpansion, &
          &                                                                                time
+    !$GLC attributes unused :: timeEnd
 
     ! Find current expansion timescale.
     basic => node%basic()

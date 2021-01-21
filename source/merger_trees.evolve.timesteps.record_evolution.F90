@@ -163,7 +163,7 @@ contains
     return
   end subroutine recordEvolutionDestructor
 
-  double precision function recordEvolutionTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
+  double precision function recordEvolutionTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
     !% Determines the timestep to go to the next tabulation point for galaxy evolution storage.
     use            :: Evolve_To_Time_Reports , only : Evolve_To_Time_Report
     use            :: Galacticus_Nodes       , only : nodeComponentBasic   , treeNode
@@ -171,6 +171,7 @@ contains
     use            :: ISO_Varying_String     , only : varying_string
     implicit none
     class           (mergerTreeEvolveTimestepRecordEvolution), intent(inout), target            :: self
+    double precision                                         , intent(in   )                    :: timeEnd
     type            (treeNode                               ), intent(inout), target            :: node
     procedure       (timestepTask                           ), intent(  out), pointer           :: task
     class           (*                                      ), intent(  out), pointer           :: taskSelf
@@ -180,6 +181,7 @@ contains
     class           (nodeComponentBasic                     )               , pointer           :: basic
     integer         (c_size_t                               )                                   :: indexTime
     double precision                                                                            :: time
+    !$GLC attributes unused :: timeEnd
 
     recordEvolutionTimeEvolveTo =  huge(0.0d0)
     if (present(lockNode)) lockNode => null()

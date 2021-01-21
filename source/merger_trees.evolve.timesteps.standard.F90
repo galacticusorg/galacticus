@@ -102,13 +102,14 @@ contains
     return
   end subroutine standardDestructor
 
-  double precision function standardTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
+  double precision function standardTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
     !% Determine a suitable timestep for {\normalfont \ttfamily node} by combining the {\normalfont \ttfamily simple},
     !% {\normalfont \ttfamily satellite}, and {\normalfont \ttfamily satelliteDestruction} timesteps.
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : varying_string
     implicit none
     class           (mergerTreeEvolveTimestepStandard), intent(inout), target            :: self
+    double precision                                  , intent(in   )                    :: timeEnd
     type            (treeNode                        ), intent(inout), target            :: node
     procedure       (timestepTask                    ), intent(  out), pointer           :: task
     class           (*                               ), intent(  out), pointer           :: taskSelf
@@ -125,13 +126,13 @@ contains
     !$GLC attributes initialized :: lockNodeSimple, lockNodeSatellite, lockNodeSatelliteDestruction
 
     ! Find all timesteps.
-    timeEvolveToSimple              =self%simple              %timeEvolveTo(node,taskSimple              ,taskSelfSimple              ,report,lockNode,lockType)
+    timeEvolveToSimple              =self%simple              %timeEvolveTo(timeEnd,node,taskSimple              ,taskSelfSimple              ,report,lockNode,lockType)
     if (present(lockNode)) lockNodeSimple               => lockNode
     if (present(lockType)) lockTypeSimple               =  lockType
-    timeEvolveToSatellite           =self%satellite           %timeEvolveTo(node,taskSatellite           ,taskSelfSatellite           ,report,lockNode,lockType)
+    timeEvolveToSatellite           =self%satellite           %timeEvolveTo(timeEnd,node,taskSatellite           ,taskSelfSatellite           ,report,lockNode,lockType)
     if (present(lockNode)) lockNodeSatellite            => lockNode
     if (present(lockType)) lockTypeSatellite            =  lockType
-    timeEvolveToSatelliteDestruction=self%satelliteDestruction%timeEvolveTo(node,taskSatelliteDestruction,taskSelfSatelliteDestruction,report,lockNode,lockType)
+    timeEvolveToSatelliteDestruction=self%satelliteDestruction%timeEvolveTo(timeEnd,node,taskSatelliteDestruction,taskSelfSatelliteDestruction,report,lockNode,lockType)
     if (present(lockNode)) lockNodeSatelliteDestruction => lockNode
     if (present(lockType)) lockTypeSatelliteDestruction =  lockType
     ! Find the minimum timestep.

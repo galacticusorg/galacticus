@@ -33,12 +33,13 @@ module Merger_Tree_Timesteps
   !#  <default>standard</default>
   !#  <method name="timeEvolveTo">
   !#   <description>
-  !#    Return the time to which the node can be evolved. Optionally, the procedure pointer {\normalfont \ttfamily task} can be set
-  !#    to point to a subroutine which will be called after the node is evolved to the end of the timestep. It is acceptable for
-  !#    this pointer to be null. The {\normalfont \ttfamily taskSelf} pointer may be set to point to the timestep object and will
-  !#    be made available to the timestep task subroutine. Note that the {\normalfont \ttfamily task} will only be called for the
-  !#    task which provided the shortest timestep---other tasks can always request to be called again when the next timestep is
-  !#    determined. The subroutine to be called at the end of the timestep must have the form:
+  !#    Return the time to which the {\normalfont \ttfamily node} can be evolved. The current limiting time is provided as
+  !#    {\normalfont \tfamily timeEnd}. Optionally, the procedure pointer {\normalfont \ttfamily task} can be set !# to point to a
+  !#    subroutine which will be called after the node is evolved to the end of the timestep. It is acceptable for !# this pointer to be
+  !#    null. The {\normalfont \ttfamily taskSelf} pointer may be set to point to the timestep object and will !# be made available to
+  !#    the timestep task subroutine. Note that the {\normalfont \ttfamily task} will only be called for the !# task which provided the
+  !#    shortest timestep---other tasks can always request to be called again when the next timestep is !# determined. The subroutine to
+  !#    be called at the end of the timestep must have the form:
   !#    \begin{verbatim}
   !#      subroutine timestepTask(self,tree,node,deadlockStatus)
   !#        implicit none
@@ -74,12 +75,13 @@ module Merger_Tree_Timesteps
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <selfTarget>yes</selfTarget>
-  !#   <argument>type     (treeNode      ), intent(inout)          , target  :: node    </argument>
-  !#   <argument>procedure(timestepTask  ), intent(  out)          , pointer :: task    </argument>
-  !#   <argument>class    (*             ), intent(  out)          , pointer :: taskSelf</argument>
-  !#   <argument>logical                  , intent(in   )                    :: report  </argument>
-  !#   <argument>type     (treeNode      ), intent(  out), optional, pointer :: lockNode</argument>
-  !#   <argument>type     (varying_string), intent(  out), optional          :: lockType</argument>
+  !#   <argument>double precision                , intent(in   )                    :: timeEnd </argument>
+  !#   <argument>type            (treeNode      ), intent(inout)          , target  :: node    </argument>
+  !#   <argument>procedure       (timestepTask  ), intent(  out)          , pointer :: task    </argument>
+  !#   <argument>class           (*             ), intent(  out)          , pointer :: taskSelf</argument>
+  !#   <argument>logical                         , intent(in   )                    :: report  </argument>
+  !#   <argument>type            (treeNode      ), intent(  out), optional, pointer :: lockNode</argument>
+  !#   <argument>type            (varying_string), intent(  out), optional          :: lockType</argument>
   !#  </method>
   !# </functionClass>
 

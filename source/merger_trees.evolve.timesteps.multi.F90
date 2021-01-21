@@ -105,10 +105,11 @@ contains
     return
   end subroutine multiDestructor
 
-  double precision function multiTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
+  double precision function multiTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
     !% Perform all mergerTreeEvolveTimesteps.
     implicit none
     class           (mergerTreeEvolveTimestepMulti    ), intent(inout), target            :: self
+    double precision                                   , intent(in   )                    :: timeEnd
     type            (treeNode                         ), intent(inout), target            :: node
     procedure       (timestepTask                     ), intent(  out), pointer           :: task
     class           (*                                ), intent(  out), pointer           :: taskSelf
@@ -131,7 +132,7 @@ contains
     do while (associated(mergerTreeEvolveTimestep_))
        timeEvolveTo=huge(0.0d0)
        !# <conditionalCall>
-       !#  <call>timeEvolveTo=mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_%timeEvolveTo(node,task_,taskSelf_,report{conditions})</call>
+       !#  <call>timeEvolveTo=mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_%timeEvolveTo(timeEnd,node,task_,taskSelf_,report{conditions})</call>
        !#  <argument name="lockNode" value="lockNode_" condition="present(lockNode)"/>
        !#  <argument name="lockType" value="lockType_" condition="present(lockType)"/>
        !# </conditionalCall>

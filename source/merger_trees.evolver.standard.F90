@@ -811,7 +811,7 @@ contains
     if (evolveToTime == timeNode) return
     ! Also ensure that the timestep taken does not exceed the allowed timestep for this specific node.
     if (report) call Galacticus_Display_Indent("timestepping criteria")
-    evolveToTimeStep=self%mergerTreeEvolveTimestep_%timeEvolveTo(node,timestepTaskInternal,timestepSelf,report,nodeLock,lockType)
+    evolveToTimeStep=self%mergerTreeEvolveTimestep_%timeEvolveTo(evolveToTime,node,timestepTaskInternal,timestepSelf,report,nodeLock,lockType)
     if (evolveToTimeStep <= evolveToTime) then
        evolveToTime  =  evolveToTimeStep
        timestepTask_ => timestepTaskInternal
