@@ -37,6 +37,7 @@
    contains
      final     ::               multiDestructor
      procedure :: outputTree => multiOutputTree
+     procedure :: outputNode => multiOutputNode
      procedure :: finalize   => multiFinalize
      procedure :: reduce     => multiReduce
   end type mergerTreeOutputterMulti
@@ -111,10 +112,10 @@ contains
     !% Output from all outputters.
     implicit none
     class           (mergerTreeOutputterMulti), intent(inout)         :: self
-    type            (multiOutputterList      ), pointer               :: outputter_
     type            (mergerTree              ), intent(inout), target :: tree
     integer         (c_size_t                ), intent(in   )         :: indexOutput
     double precision                          , intent(in   )         :: time
+    type            (multiOutputterList      ), pointer               :: outputter_
 
     outputter_ => self%outputters
     do while (associated(outputter_))
@@ -123,6 +124,22 @@ contains
     end do
     return
   end subroutine multiOutputTree
+
+  subroutine multiOutputNode(self,node,indexOutput)
+    !% Output from all outputters.
+    implicit none
+    class  (mergerTreeOutputterMulti), intent(inout) :: self
+    type   (treeNode                ), intent(inout) :: node
+    integer(c_size_t                ), intent(in   ) :: indexOutput
+    type   (multiOutputterList      ), pointer       :: outputter_
+
+    outputter_ => self%outputters
+    do while (associated(outputter_))
+       call outputter_%outputter_%outputNode(node,indexOutput)
+       outputter_ => outputter_%next
+    end do
+    return
+  end subroutine multiOutputNode
 
   subroutine multiFinalize(self)
     !% Finalize all outputters.

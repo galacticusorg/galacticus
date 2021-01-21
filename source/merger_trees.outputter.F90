@@ -38,6 +38,13 @@ module Merger_Tree_Outputters
   !#   <argument>integer         (c_size_t  ), intent(in   )         :: indexOutput</argument>
   !#   <argument>double precision            , intent(in   )         :: time       </argument>
   !#  </method>
+  !#  <method name="outputNode" >
+  !#   <description>Output a single node.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type   (treeNode), intent(inout) :: node       </argument>
+  !#   <argument>integer(c_size_t), intent(in   ) :: indexOutput</argument>
+  !#  </method>
   !#  <method name="finalize" >
   !#   <description>Finalize output of merger trees.</description>
   !#   <type>void</type>

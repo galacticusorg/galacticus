@@ -31,6 +31,7 @@
    contains
      final     ::               analyzerDestructor
      procedure :: outputTree => analyzerOutputTree
+     procedure :: outputNode => analyzerOutputNode
      procedure :: finalize   => analyzerFinalize
      procedure :: reduce     => analyzerReduce
   end type mergerTreeOutputterAnalyzer
@@ -112,6 +113,19 @@ contains
     end do
     return
   end subroutine analyzerOutputTree
+
+  subroutine analyzerOutputNode(self,node,indexOutput)
+    !% Perform no output.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class  (mergerTreeOutputterAnalyzer), intent(inout) :: self
+    type   (treeNode                   ), intent(inout) :: node
+    integer(c_size_t                   ), intent(in   ) :: indexOutput
+    !$GLC attributes unused :: self, node, indexOutput
+
+    call Galacticus_Error_Report('output of single nodes is not supported'//{introspection:location})
+    return
+  end subroutine analyzerOutputNode
 
   subroutine analyzerReduce(self,reduced)
     !% Reduce over the outputter.

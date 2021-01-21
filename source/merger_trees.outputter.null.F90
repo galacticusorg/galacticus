@@ -27,6 +27,7 @@
      private
    contains
      procedure :: outputTree => nullOutputTree
+     procedure :: outputNode => nullOutputNode
      procedure :: finalize   => nullFinalize
   end type mergerTreeOutputterNull
 
@@ -60,6 +61,17 @@ contains
 
     return
   end subroutine nullOutputTree
+
+  subroutine nullOutputNode(self,node,indexOutput)
+    !% Perform no output.
+    implicit none
+    class           (mergerTreeOutputterNull), intent(inout) :: self
+    type            (treeNode               ), intent(inout) :: node
+    integer         (c_size_t               ), intent(in   ) :: indexOutput
+    !$GLC attributes unused :: self, node, indexOutput
+
+    return
+  end subroutine nullOutputNode
 
   subroutine nullFinalize(self)
     !% Finalize merger tree output.

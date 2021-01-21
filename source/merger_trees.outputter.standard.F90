@@ -86,6 +86,7 @@
      !# </methods>
      final     ::                           standardDestructor
      procedure :: outputTree             => standardOutputTree
+     procedure :: outputNode             => standardOutputNode
      procedure :: finalize               => standardFinalize
      procedure :: makeGroup              => standardMakeGroup
      procedure :: dumpIntegerBuffer      => standardDumpIntegerBuffer
@@ -279,6 +280,40 @@ contains
     return
   end subroutine standardOutputTree
 
+  subroutine standardOutputNode(self,node,indexOutput)
+    !% Output a single node.
+    use :: Galacticus_Nodes, only : nodeComponentBasic
+    implicit none
+    class  (mergerTreeOutputterStandard), intent(inout) :: self
+    type   (treeNode                   ), intent(inout) :: node
+    integer(c_size_t                   ), intent(in   ) :: indexOutput
+    class(nodeComponentBasic), pointer :: basic
+    
+    !$omp critical(mergerTreeOutputterStandard)
+
+    ! If indexOutput is unchanged, check that property count is unchanged also.
+    ! Can we only dump buffers if the indexOutput changes (and in finalization?)
+    
+    ! Create an output group.
+    basic => node%basic()
+    call self%outputGroupCreate(indexOutput,basic%time())
+    ! Initialize output buffers.
+    ! Count up the number of properties to be output.
+    call self%propertiesCount        (basic%time(),node)
+    ! Ensure buffers are allocated for temporary property storage.
+    call self%buffersAllocate        (indexOutput      )
+    ! Get names for all properties to be output.
+    call self%propertyNamesEstablish(basic%time(),node)
+    self%integerPropertiesWritten=0
+    self%doublePropertiesWritten =0
+    call self%output(node,basic%time())
+    ! Finished output.
+    if (self%integerPropertyCount > 0 .and. self%integerBufferCount > 0) call self%dumpIntegerBuffer(indexOutput)
+    if (self% doublePropertyCount > 0 .and. self% doubleBufferCount > 0) call self%dumpDoubleBuffer (indexOutput)
+    !$omp end critical(mergerTreeOutputterStandard)
+    return
+  end subroutine standardOutputNode
+
   subroutine standardOutput(self,node,time)
     !% Output the provided node.
     use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
@@ -357,7 +392,7 @@ contains
        class default
           call Galacticus_Error_Report('unsupported property extractor class'//{introspection:location})
        end select
-       ! If buffer is full, dump it to file.
+       ! If buffer is full, extend it.
        if (self%integerBufferCount == self%integerBufferSize) call self%extendIntegerBuffer()
        if (self% doubleBufferCount == self% doubleBufferSize) call self%extendDoubleBuffer ()
     end do
