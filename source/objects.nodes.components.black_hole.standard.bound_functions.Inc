@@ -19,37 +19,6 @@
 
 !% Contains custom functions for the standard black hole component.
 
-double precision function Node_Component_Black_Hole_Standard_Seed_Mass(self)
-  !% Return the seed mass for standard black holes.
-  use :: Input_Parameters, only : globalParameters, inputParameter
-  implicit none
-  class           (nodeComponentBlackHoleStandard), intent(inout) :: self
-  logical                                         , save          :: functionInitialized=.false.
-  double precision                                , save          :: blackHoleSeedMass
-  !$GLC attributes unused :: self
-
-  if (.not.functionInitialized) then
-     !$omp critical (Node_Component_Black_Hole_Standard_Seed_Mass)
-     if (.not.functionInitialized) then
-        ! Get the black hole seed mass.
-        !# <inputParameter>
-        !#   <name>blackHoleSeedMass</name>
-        !#   <source>globalParameters</source>
-        !#   <defaultValue>100.0d0</defaultValue>
-        !#   <description>The mass of the seed black hole placed at the center of each newly formed galaxy.</description>
-        !#   <type>real</type>
-        !#   <cardinality>1</cardinality>
-        !# </inputParameter>
-        ! Record that the function is now initialized.
-        functionInitialized=.true.
-     end if
-     !$omp end critical (Node_Component_Black_Hole_Standard_Seed_Mass)
-  end if
-  ! Return the seed mass.
-  Node_Component_Black_Hole_Standard_Seed_Mass=blackHoleSeedMass
-  return
-end function Node_Component_Black_Hole_Standard_Seed_Mass
-
 double precision function Node_Component_Black_Hole_Standard_Seed_Spin(self)
   !% Return the seed spin for standard black holes.
   implicit none

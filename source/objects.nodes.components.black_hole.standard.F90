@@ -77,8 +77,7 @@ module Node_Component_Black_Hole_Standard
   !#     <name>massSeed</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
-  !#     <getFunction>Node_Component_Black_Hole_Standard_Seed_Mass</getFunction>
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" isDeferred="get"  />
   !#   </property>
   !#   <property>
   !#     <name>spinSeed</name>
@@ -128,6 +127,9 @@ module Node_Component_Black_Hole_Standard
   ! Control for hot mode only accretion.
   logical          :: bondiHoyleAccretionHotModeOnly
 
+  ! Seed mass for black holes.
+  double precision :: blackHoleSeedMass
+
   ! Feedback parameters.
   double precision :: blackHoleWindEfficiency                       , blackHoleRadioModeFeedbackEfficiency
   logical          :: blackHoleHeatsHotHalo                         , blackHoleWindEfficiencyScalesWithRadiativeEfficiency
@@ -153,6 +155,17 @@ contains
     type(inputParameters               ), intent(inout) :: parameters_
     type(nodeComponentBlackHoleStandard)                :: blackHoleStandardComponent
 
+    ! Bind deferred functions.
+    call blackHoleStandardComponent%massSeedFunction(Node_Component_Black_Hole_Standard_Seed_Mass)
+    ! Get the seed mass
+    !# <inputParameter>
+    !#   <name>blackHoleSeedMass</name>
+    !#   <source>parameters_</source>
+    !#   <defaultValue>100.0d0</defaultValue>
+    !#   <description>The mass of the seed black hole placed at the center of each newly formed galaxy.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
     ! Get accretion rate enhancement factors.
     !# <inputParameter>
     !#   <name>bondiHoyleAccretionEnhancementSpheroid</name>
@@ -754,7 +767,7 @@ contains
     ! Set to the seed mass.
     call blackHole%          massSet(blackHole%massSeed())
     call blackHole%          spinSet(blackHole%spinSeed())
-    call blackHole%radialPositionSet(                            0.0d0)
+    call blackHole%radialPositionSet(               0.0d0)
     return
   end subroutine Node_Component_Black_Hole_Standard_Create
 
@@ -1096,5 +1109,16 @@ contains
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Post_Evolve
+
+  double precision function Node_Component_Black_Hole_Standard_Seed_Mass(self)
+    !% Return the seed mass for standard black holes.
+    use :: Galacticus_Nodes, only : nodeComponentBlackHoleStandard
+    implicit none
+    class(nodeComponentBlackHoleStandard), intent(inout) :: self
+    !$GLC attributes unused :: self
+    
+    Node_Component_Black_Hole_Standard_Seed_Mass=blackHoleSeedMass
+    return
+  end function Node_Component_Black_Hole_Standard_Seed_Mass
 
 end module Node_Component_Black_Hole_Standard
