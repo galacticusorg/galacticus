@@ -25,6 +25,7 @@
   use :: Merger_Tree_Operators          , only : mergerTreeOperatorClass
   use :: Merger_Tree_Outputters         , only : mergerTreeOutputter        , mergerTreeOutputterClass
   use :: Merger_Trees_Evolve            , only : mergerTreeEvolver          , mergerTreeEvolverClass
+  use :: Merger_Tree_Initialization     , only : mergerTreeInitializorClass
   use :: Output_Times                   , only : outputTimesClass
   use :: Task_Evolve_Forests_Work_Shares, only : evolveForestsWorkShareClass
   use :: Universe_Operators             , only : universeOperator           , universeOperatorClass
@@ -51,6 +52,7 @@
      class           (mergerTreeOperatorClass    ), pointer :: mergerTreeOperator_           => null()
      class           (mergerTreeEvolverClass     ), pointer :: mergerTreeEvolver_            => null()
      class           (mergerTreeOutputterClass   ), pointer :: mergerTreeOutputter_          => null()
+     class           (mergerTreeInitializorClass ), pointer :: mergerTreeInitializor_        => null()
      class           (galacticFilterClass        ), pointer :: galacticFilter_               => null()
      class           (evolveForestsWorkShareClass), pointer :: evolveForestsWorkShare_       => null()
      class           (outputTimesClass           ), pointer :: outputTimes_                  => null()
@@ -84,11 +86,12 @@
 
   ! Copies of objects used by each thread.
   class(mergerTreeOutputterClass  ), pointer :: evolveForestsMergerTreeOutputter_   => null()
+  class(mergerTreeInitializorClass), pointer :: evolveForestsMergerTreeInitializor_ => null()
   class(mergerTreeEvolverClass    ), pointer :: evolveForestsMergerTreeEvolver_     => null()
   class(mergerTreeConstructorClass), pointer :: evolveForestsMergerTreeConstructor_ => null()
   class(mergerTreeOperatorClass   ), pointer :: evolveForestsMergerTreeOperator_    => null()
   class(galacticFilterClass       ), pointer :: evolveForestsGalacticFilter_        => null()
-  !$omp threadprivate(evolveForestsMergerTreeOutputter_,evolveForestsMergerTreeEvolver_,evolveForestsMergerTreeConstructor_,evolveForestsMergerTreeOperator_,evolveForestsGalacticFilter_)
+  !$omp threadprivate(evolveForestsMergerTreeOutputter_,evolveForestsMergerTreeInitializor_,evolveForestsMergerTreeEvolver_,evolveForestsMergerTreeConstructor_,evolveForestsMergerTreeOperator_,evolveForestsGalacticFilter_)
 
 contains
 
@@ -107,6 +110,7 @@ contains
     class           (universeOperatorClass      ), pointer               :: universeOperator_
     class           (mergerTreeEvolverClass     ), pointer               :: mergerTreeEvolver_
     class           (mergerTreeOutputterClass   ), pointer               :: mergerTreeOutputter_
+    class           (mergerTreeInitializorClass ), pointer               :: mergerTreeInitializor_
     class           (galacticFilterClass        ), pointer               :: galacticFilter_
     type            (inputParameters            ), pointer               :: parametersRoot
     logical                                                              :: evolveSingleForest           , suspendToRAM
@@ -172,11 +176,12 @@ contains
     !# <objectBuilder class="universeOperator"       name="universeOperator_"       source="parameters"/>
     !# <objectBuilder class="mergerTreeEvolver"      name="mergerTreeEvolver_"      source="parameters"/>
     !# <objectBuilder class="mergerTreeOutputter"    name="mergerTreeOutputter_"    source="parameters"/>
+    !# <objectBuilder class="mergerTreeInitializor"  name="mergerTreeInitializor_"  source="parameters"/>
     !# <objectBuilder class="galacticFilter"         name="galacticFilter_"         source="parameters"/>
     if (associated(parametersRoot)) then
-       self=taskEvolveForests(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,walltimeMaximum,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,galacticFilter_,parametersRoot)
+       self=taskEvolveForests(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,walltimeMaximum,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,galacticFilter_,parametersRoot)
     else
-       self=taskEvolveForests(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,walltimeMaximum,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,galacticFilter_,parameters    )
+       self=taskEvolveForests(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,walltimeMaximum,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,galacticFilter_,parameters    )
     end if
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="mergerTreeConstructor_" />
@@ -186,11 +191,12 @@ contains
     !# <objectDestructor name="universeOperator_"      />
     !# <objectDestructor name="mergerTreeEvolver_"     />
     !# <objectDestructor name="mergerTreeOutputter_"   />
+    !# <objectDestructor name="mergerTreeInitializor_" />
     !# <objectDestructor name="galacticFilter_"        />
     return
   end function evolveForestsConstructorParameters
 
-  function evolveForestsConstructorInternal(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,walltimeMaximum,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,galacticFilter_,parameters) result(self)
+  function evolveForestsConstructorInternal(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,walltimeMaximum,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,galacticFilter_,parameters) result(self)
     !% Internal constructor for the {\normalfont \ttfamily evolveForests} task class.
     implicit none
     type            (taskEvolveForests          )                        :: self
@@ -206,9 +212,10 @@ contains
     class           (universeOperatorClass      ), intent(in   ), target :: universeOperator_
     class           (mergerTreeEvolverClass     ), intent(in   ), target :: mergerTreeEvolver_
     class           (mergerTreeOutputterClass   ), intent(in   ), target :: mergerTreeOutputter_
+    class           (mergerTreeInitializorClass ), intent(in   ), target :: mergerTreeInitializor_
     class           (galacticFilterClass        ), intent(in   ), target :: galacticFilter_
     type            (inputParameters            ), intent(in   ), target :: parameters
-    !# <constructorAssign variables="evolveSingleForest, evolveSingleForestSections, evolveSingleForestMassMinimum, walltimeMaximum, suspendToRAM, suspendPath, *mergerTreeConstructor_, *mergerTreeOperator_, *evolveForestsWorkShare_, *outputTimes_, *universeOperator_, *mergerTreeEvolver_, *mergerTreeOutputter_, *galacticFilter_"/>
+    !# <constructorAssign variables="evolveSingleForest, evolveSingleForestSections, evolveSingleForestMassMinimum, walltimeMaximum, suspendToRAM, suspendPath, *mergerTreeConstructor_, *mergerTreeOperator_, *evolveForestsWorkShare_, *outputTimes_, *universeOperator_, *mergerTreeEvolver_, *mergerTreeOutputter_, *mergerTreeInitializor_, *galacticFilter_"/>
 
     self%parameters=inputParameters(parameters)
     call self%parameters%parametersGroupCopy(parameters)
@@ -240,6 +247,7 @@ contains
     call evolveForestsMergerTreeOperator_   %stateStore(stateFile,gslStateFile,stateOperationID)
     call evolveForestsMergerTreeEvolver_    %stateStore(stateFile,gslStateFile,stateOperationID)
     call evolveForestsMergerTreeOutputter_  %stateStore(stateFile,gslStateFile,stateOperationID)
+    call evolveForestsMergerTreeInitializor_%stateStore(stateFile,gslStateFile,stateOperationID)
     return
   end subroutine evolveForestsStateStore
 
@@ -257,6 +265,7 @@ contains
     call evolveForestsMergerTreeOperator_   %stateRestore(stateFile,gslStateFile,stateOperationID)
     call evolveForestsMergerTreeEvolver_    %stateRestore(stateFile,gslStateFile,stateOperationID)
     call evolveForestsMergerTreeOutputter_  %stateRestore(stateFile,gslStateFile,stateOperationID)
+    call evolveForestsMergerTreeInitializor_%stateRestore(stateFile,gslStateFile,stateOperationID)
     return
   end subroutine evolveForestsStateRestore
 
@@ -274,6 +283,7 @@ contains
     !# <objectDestructor name="self%universeOperator_"      />
     !# <objectDestructor name="self%mergerTreeEvolver_"     />
     !# <objectDestructor name="self%mergerTreeOutputter_"   />
+    !# <objectDestructor name="self%mergerTreeInitializor_" />
     !# <objectDestructor name="self%galacticFilter_"        />
     if (associated(self%universeWaiting  )) deallocate(self%universeWaiting  )
     if (associated(self%universeProcessed)) deallocate(self%universeProcessed)
@@ -294,7 +304,6 @@ contains
     
     use               :: Memory_Management                   , only : Memory_Usage_Record                , memoryTypeNodes
     use               :: Merger_Tree_Walkers                 , only : mergerTreeWalkerAllNodes           , mergerTreeWalkerIsolatedNodes
-    use               :: Merger_Trees_Initialize             , only : Merger_Tree_Initialize
     use               :: Node_Components                     , only : Node_Components_Thread_Initialize  , Node_Components_Thread_Uninitialize
     use               :: Node_Events_Inter_Tree              , only : Inter_Tree_Event_Post_Evolve
     !$ use            :: OMP_Lib                             , only : omp_lock_kind                      , OMP_Init_Lock                      , OMP_Get_Thread_Num         , OMP_Destroy_Lock
@@ -400,14 +409,16 @@ contains
     ! Begin parallel processing of trees until all work is done.
     !$omp parallel copyin(finished)
     allocate(evolveForestsMergerTreeOutputter_  ,mold=self%mergerTreeOutputter_  )
+    allocate(evolveForestsMergerTreeInitializor_  ,mold=self%mergerTreeInitializor_  )
     allocate(evolveForestsMergerTreeEvolver_    ,mold=self%mergerTreeEvolver_    )
     allocate(evolveForestsMergerTreeConstructor_,mold=self%mergerTreeConstructor_)
     allocate(evolveForestsMergerTreeOperator_   ,mold=self%mergerTreeOperator_   )
     allocate(evolveForestsGalacticFilter_       ,mold=self%galacticFilter_       )
     !$omp critical(evolveForestsDeepCopy)
-    !# <deepCopyReset variables="self%mergerTreeEvolver_ self%mergerTreeOutputter_ self%mergerTreeConstructor_ self%mergerTreeOperator_ self%galacticFilter_"/>
+    !# <deepCopyReset variables="self%mergerTreeEvolver_ self%mergerTreeOutputter_ self%mergerTreeInitializor_ self%mergerTreeConstructor_ self%mergerTreeOperator_ self%galacticFilter_"/>
     !# <deepCopy source="self%mergerTreeEvolver_"     destination="evolveForestsMergerTreeEvolver_"    />
     !# <deepCopy source="self%mergerTreeOutputter_"   destination="evolveForestsMergerTreeOutputter_"  />
+    !# <deepCopy source="self%mergerTreeInitializor_" destination="evolveForestsMergerTreeInitializor_"/>
     !# <deepCopy source="self%mergerTreeConstructor_" destination="evolveForestsMergerTreeConstructor_"/>
     !# <deepCopy source="self%mergerTreeOperator_"    destination="evolveForestsMergerTreeOperator_"   />
     !# <deepCopy source="self%galacticFilter_"        destination="evolveForestsGalacticFilter_"       />
@@ -586,7 +597,7 @@ contains
                          if (associated(currentTree%baseNode)) then
                             do while (associated(currentTree))
                                basic => currentTree%baseNode%basic()
-                               call Merger_Tree_Initialize(currentTree,basic%time())
+                               call evolveForestsMergerTreeInitializor_%initialize(currentTree,basic%time())
                                currentTree => currentTree%nextTree
                             end do
                          end if
@@ -925,6 +936,7 @@ contains
     call Node_Components_Thread_Uninitialize()
     call Galacticus_Function_Classes_Destroy()
     !# <objectDestructor name="evolveForestsMergerTreeOutputter_"  />
+    !# <objectDestructor name="evolveForestsMergerTreeInitializor_"/>
     !# <objectDestructor name="evolveForestsMergerTreeEvolver_"    />
     !# <objectDestructor name="evolveForestsMergerTreeConstructor_"/>
     !# <objectDestructor name="evolveForestsMergerTreeOperator_"   />

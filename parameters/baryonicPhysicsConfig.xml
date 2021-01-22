@@ -660,7 +660,7 @@
   <treeNodeMethodPosition           value="traceDarkMatter"/>
   <treeNodeMethodSatellite          value="standard"       />
   <treeNodeMethodSpheroid           value="standard"       />
-  <treeNodeMethodSpin               value="random"         />
+  <treeNodeMethodSpin               value="scalar"         />
   <treeNodeMethodAgeStatistics      value="null"           />
   <treeNodeMethodDynamicsStatistics value="null"           />
   <treeNodeMethodFormationTime      value="null"           />

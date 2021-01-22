@@ -17,46 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements initialization of merger tree structures.
+!% Contains a module which provides a class that implements initialization of merger trees.
 
-module Merger_Trees_Initialize
-  !% Implements initialization of merger tree structures.
-  implicit none
+module Merger_Tree_Initialization
+  !% Provides a class that implements initialization of merger trees.
+  use :: Galacticus_Nodes, only : mergerTree
   private
-  public :: Merger_Tree_Initialize
 
-contains
+  !# <functionClass>
+  !#  <name>mergerTreeInitializor</name>
+  !#  <descriptiveName>Merger Tree Initializors</descriptiveName>
+  !#  <description>Class providing initialization of merger trees.</description>
+  !#  <default>standard</default>
+  !#  <method name="initialize" >
+  !#   <description>Initialize the given tree.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type            (mergerTree), intent(inout) :: tree   </argument>
+  !#   <argument>double precision            , intent(in   ) :: timeEnd</argument>
+  !#  </method>
+  !# </functionClass>
 
-  subroutine Merger_Tree_Initialize(tree,endTime)
-    !% Walk through all nodes of a tree and call any routines that requested to perform initialization tasks.
-    use :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
-    use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
-    !# <include directive="mergerTreeInitializeTask" type="moduleUse">
-    include 'merger_trees.initialize.tasks.modules.inc'
-    !# </include>
-    implicit none
-    type            (mergerTree              ), intent(inout) :: tree
-    double precision                          , intent(in   ) :: endTime
-    type            (treeNode                ), pointer       :: node
-    class           (nodeComponentBasic      ), pointer       :: basic
-    type            (mergerTreeWalkerAllNodes)                :: treeWalker
-
-    if (tree%initializedUntil < endTime) then
-       treeWalker=mergerTreeWalkerAllNodes(tree,spanForest=.false.)
-       do while (treeWalker%next(node))
-          ! Initialize only nodes that exist before the end time.
-          basic => node%basic()
-          if (basic%time() > tree%initializedUntil .and. basic%time() <= endTime) then
-             ! Call subroutines to perform any necessary initialization of this node.
-             !# <include directive="mergerTreeInitializeTask" type="functionCall" functionType="void">
-             !#  <functionArgs>node</functionArgs>
-             include 'merger_trees.initialize.tasks.inc'
-             !# </include>
-          end if
-       end do
-       tree%initializedUntil=endTime
-    end if
-    return
-  end subroutine Merger_Tree_Initialize
-
-end module Merger_Trees_Initialize
+end module Merger_Tree_Initialization

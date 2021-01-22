@@ -13,7 +13,7 @@
   <treeNodeMethodDisk value="verySimpleSize"/>
   <treeNodeMethodSatellite value="null"/>
   <treeNodeMethodSpheroid value="null"/>
-  <treeNodeMethodSpin value="preset"/>
+  <treeNodeMethodSpin value="scalar"/>
   <diskMassDistribution value="exponentialDisk">
     <dimensionless value="true"/>
   </diskMassDistribution>
@@ -95,6 +95,9 @@
 
   <!-- Node evolution and physics -->
   <nodeOperatorMethod value="multi">
+    <!-- Halo spins -->
+    <nodeOperatorMethod value="haloSpinInterpolate"/>
+    <!-- Star formation -->
     <nodeOperatorMethod value="starFormationDisks"/>
     <nodeOperatorMethod value="stellarFeedbackDisks">
       <stellarFeedbackOutflowsMethod value="rateLimit">

@@ -19,14 +19,18 @@
 
   !% Implements a non-evolving class for evolving merger trees.
 
+  use :: Merger_Tree_Initialization     , only : mergerTreeInitializorClass
+  
   !# <mergerTreeEvolver name="mergerTreeEvolverNonEvolving">
   !#  <description>A non-evolving merger tree evolver.</description>
   !# </mergerTreeEvolver>
   type, extends(mergerTreeEvolverClass) :: mergerTreeEvolverNonEvolving
      !% Implementation of a non-evolving  merger tree evolver.
      private
-     logical :: pruneTree
+     class  (mergerTreeInitializorClass), pointer :: mergerTreeInitializor_ => null()
+     logical                                      :: pruneTree
    contains
+     final     ::           nonEvolvingDestructor
      procedure :: evolve => nonEvolvingEvolve
   end type mergerTreeEvolverNonEvolving
 
@@ -45,6 +49,7 @@ contains
     type   (mergerTreeEvolverNonEvolving)                :: self
     type   (inputParameters             ), intent(inout) :: parameters
     logical                                              :: pruneTree
+    class  (mergerTreeInitializorClass  ), pointer       :: mergerTreeInitializor_
 
     !# <inputParameter>
     !#   <name>pruneTree</name>
@@ -52,27 +57,38 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, prune the tree to the evolve-to-time after each evolution.</description>
     !# </inputParameter>
-    self=mergerTreeEvolverNonEvolving(pruneTree)
+    !# <objectBuilder class="mergerTreeInitializor"  name="mergerTreeInitializor_"  source="parameters"/>
+    self=mergerTreeEvolverNonEvolving(pruneTree,mergerTreeInitializor_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="mergerTreeInitializor_" />
     return
   end function nonEvolvingConstructorParameters
 
-  function nonEvolvingConstructorInternal(pruneTree) result(self)
+  function nonEvolvingConstructorInternal(pruneTree,mergerTreeInitializor_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily nonEvolving} merger tree evolver class.
     implicit none
-    type   (mergerTreeEvolverNonEvolving)                :: self
-    logical                              , intent(in   ) :: pruneTree
-    !# <constructorAssign variables="pruneTree"/>
+    type   (mergerTreeEvolverNonEvolving)                        :: self
+    class  (mergerTreeInitializorClass  ), intent(in   ), target :: mergerTreeInitializor_
+    logical                              , intent(in   )         :: pruneTree
+    !# <constructorAssign variables="pruneTree, *mergerTreeInitializor_"/>
 
     return
   end function nonEvolvingConstructorInternal
 
+  subroutine nonEvolvingDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily nonEvolving} merger tree evolver class.
+    implicit none
+    type(mergerTreeEvolverNonEvolving), intent(inout) :: self
+
+    !# <objectDestructor name="self%mergerTreeInitializor_"/>
+    return
+  end subroutine nonEvolvingDestructor
+
   subroutine nonEvolvingEvolve(self,tree,timeEnd,treeDidEvolve,suspendTree,deadlockReporting,systemClockMaximum,initializationLock,status)
     !% Evolves all properties of a merger tree to the specified time.
-    use    :: Galacticus_Error       , only : errorStatusSuccess
-    use    :: Merger_Trees_Initialize, only : Merger_Tree_Initialize
-    use    :: Merger_Tree_Operators  , only : mergerTreeOperatorPruneByTime
-    !$ use :: OMP_Lib                , only : OMP_Set_Lock                 , OMP_Unset_Lock, omp_lock_kind
+    use    :: Galacticus_Error     , only : errorStatusSuccess
+    use    :: Merger_Tree_Operators, only : mergerTreeOperatorPruneByTime
+    !$ use :: OMP_Lib              , only : OMP_Set_Lock                 , OMP_Unset_Lock, omp_lock_kind
     implicit none
     class           (mergerTreeEvolverNonEvolving )                   , intent(inout) :: self
     integer                                        , optional         , intent(  out) :: status
@@ -95,7 +111,7 @@ contains
     do while (associated(currentTree))
        if (associated(currentTree%baseNode)) then
           !$ if (present(initializationLock)) call OMP_Set_Lock  (initializationLock)
-          call Merger_Tree_Initialize(currentTree,timeEnd)
+          call self%mergerTreeInitializor_%initialize(currentTree,timeEnd)
           !$ if (present(initializationLock)) call OMP_Unset_Lock(initializationLock)
           if (self%pruneTree) call pruner%operatePreEvolution(currentTree)
        end if

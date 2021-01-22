@@ -34,6 +34,11 @@
 
   <!-- Node evolution and physics -->
   <nodeOperatorMethod value="multi">
+    <!-- Halo spins -->
+    <nodeOperatorMethod value="haloSpinRandom">
+      <factorReset value="2.0"/>
+    </nodeOperatorMethod>
+    <!-- Star formation -->
     <nodeOperatorMethod value="starFormationDisks"/>
     <nodeOperatorMethod value="starFormationSpheroids"/>
     <!--Stellar feedback outflows-->
@@ -193,7 +198,7 @@
   <coolingRateMethod value="whiteFrenk1991">
     <velocityCutOff value="10000"/>
   </coolingRateMethod>
-  <treeNodeMethodSpin value="random"/>
+  <treeNodeMethodSpin value="scalar"/>
   <mergerTreeBuilderMethod value="cole2000">
     <mergeProbability value="0.1"/>
     <accretionLimit value="0.1"/>
@@ -203,7 +208,6 @@
   </outputTimesMethod>
 
   <coolingRadiusMethod value="simple"/>
-  <randomSpinResetMassFactor value="2"/>
   <blackHoleBinaryMergersMethod value="rezzolla2008"/>
   <galacticStructureSolverMethod value="equilibrium"/>
   <mergerTreeConstructorMethod value="build">

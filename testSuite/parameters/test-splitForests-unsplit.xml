@@ -21,7 +21,7 @@
   <treeNodeMethodHotHalo value="null"/>
   <treeNodeMethodSatellite value="preset"/>
   <treeNodeMethodSpheroid value="null"/>
-  <treeNodeMethodSpin value="preset"/>
+  <treeNodeMethodSpin value="scalar"/>
   <treeNodeMethodPosition value="preset"/>
 
   <!-- Cosmological parameters and options -->
@@ -208,6 +208,9 @@
 
   <!-- Node evolution and physics -->
   <nodeOperatorMethod value="multi">
+    <!-- Halo spins -->
+    <nodeOperatorMethod value="haloSpinInterpolate"/>
+    <!-- Star formation -->
     <nodeOperatorMethod value="starFormationDisks"/>
     <nodeOperatorMethod value="starFormationSpheroids"/>
     <!--Stellar feedback outflows-->

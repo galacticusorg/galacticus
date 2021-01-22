@@ -150,7 +150,6 @@
       <wavenumberReference value="1.0"/>
     </powerSpectrumPrimordialMethod>
     <powerSpectrumPrimordialTransferredMethod value="simple"/>
-    <randomSpinResetMassFactor value="2.0"/>
     <mergerMassMovementsMethod value="verySimple"/>
     <mergerRemnantSizeMethod value="null"/>
     <satelliteMergingTimescalesMethod value="jiang2008">
@@ -195,7 +194,7 @@
     <treeNodeMethodHotHalo value="verySimpleDelayed"/>
     <treeNodeMethodSatellite value="verySimple"/>
     <treeNodeMethodSpheroid value="null"/>
-    <treeNodeMethodSpin value="random"/>
+    <treeNodeMethodSpin value="scalar"/>
     <virialDensityContrastMethod value="percolation">
       <linkingLength value="0.2"/>
     </virialDensityContrastMethod>
@@ -210,6 +209,11 @@
 
     <!-- Node evolution and physics -->
     <nodeOperatorMethod value="multi">
+    <!-- Halo spins -->
+    <nodeOperatorMethod value="haloSpinRandom">
+      <factorReset value="2.0"/>
+    </nodeOperatorMethod>
+    <!-- Star formation -->
       <nodeOperatorMethod value="starFormationDisks" iterable="no"/>
       <nodeOperatorMethod value="stellarFeedbackDisks" iterable="no">
 	<stellarFeedbackOutflowsMethod value="rateLimit">

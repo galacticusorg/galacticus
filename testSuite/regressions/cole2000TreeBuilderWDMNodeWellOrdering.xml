@@ -15,7 +15,7 @@
   <treeNodeMethodDisk value="null"/>
   <treeNodeMethodSatellite value="standard"/>
   <treeNodeMethodSpheroid value="null"/>
-  <treeNodeMethodSpin value="random"/>
+  <treeNodeMethodSpin value="scalar"/>
   <spheroidMassDistribution value="hernquist"/>
   <satelliteDynamicalFrictionMethod value="zero"/>
   <satelliteTidalStrippingMethod value="zero"/>
@@ -201,6 +201,10 @@
 
   <!--Stellar feedback outflows-->
   <nodeOperatorMethod value="stellarFeedbackDisks">
+    <!-- Halo spins -->
+    <nodeOperatorMethod value="haloSpinRandom">
+      <factorReset value="2.0"/>
+    </nodeOperatorMethod>
     <stellarFeedbackOutflowsMethod value="rateLimit">
       <timescaleOutflowFractionalMinimum value="0.001"/>
       <stellarFeedbackOutflowsMethod value="powerLaw">

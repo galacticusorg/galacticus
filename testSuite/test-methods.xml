@@ -710,6 +710,11 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodeOperatorMethod value="multi">
+      <!-- Halo spins -->
+      <nodeOperatorMethod value="haloSpinRandom">
+	<factorReset value="2.0"/>
+      </nodeOperatorMethod>
+      <!-- Star formation -->
       <nodeOperatorMethod value="starFormationDisks"/>
       <nodeOperatorMethod value="starFormationSpheroids"/>
       <!--Stellar feedback outflows-->
@@ -954,7 +959,7 @@
     <spheroidMassDistribution value="hernquist">
       <dimensionless value="true"/>
     </spheroidMassDistribution>
-    <treeNodeMethodSpin value="random"/>
+    <treeNodeMethodSpin value="scalar"/>
     <nodeOperatorMethod value="multi" >
       <nodeOperatorMethod value="satelliteOrbit"                   />
       <nodeOperatorMethod value="satelliteDynamicalFriction"       />
@@ -1027,7 +1032,6 @@
       <alpha value="2.509"/>
       <lambda0 value="0.04326"/>
     </haloSpinDistributionMethod>
-    <randomSpinResetMassFactor value="2.0"/>
     <accretionHaloMethod value="simple">
       <redshiftReionization value="10.5"/>
       <velocitySuppressionReionization value="35.0"/>

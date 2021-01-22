@@ -13,7 +13,7 @@
   <treeNodeMethodDisk value="verySimpleSize"/>
   <treeNodeMethodSatellite value="null"/>
   <treeNodeMethodSpheroid value="null"/>
-  <treeNodeMethodSpin value="preset"/>
+  <treeNodeMethodSpin value="scalar"/>
   <diskMassDistribution value="exponentialDisk">
     <dimensionless value="true"/>
   </diskMassDistribution>
@@ -82,8 +82,13 @@
   </stellarPopulationMethod>
 
   <!-- Node evolution and physics -->
-  <nodeOperatorMethod value="starFormationDisks"/>
-
+  <nodeOperatorMethod value="multi">
+    <!-- Halo spins -->
+    <nodeOperatorMethod value="haloSpinInterpolate"/>
+    <!-- Star formation -->
+    <nodeOperatorMethod value="starFormationDisks"/>
+  </nodeOperatorMethod>
+  
   <!-- Numerical tolerances -->
   <mergerTreeNodeEvolverMethod value="standard">
     <odeToleranceAbsolute value="1.0e-6"/>

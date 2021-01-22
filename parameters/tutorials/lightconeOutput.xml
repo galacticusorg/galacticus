@@ -19,7 +19,7 @@
   <spheroidMassDistribution value="hernquist">
     <dimensionless value="true"/>
   </spheroidMassDistribution>
-  <treeNodeMethodSpin value="preset3D"/>
+  <treeNodeMethodSpin value="vector"/>
   <treeNodeMethodNBody value="generic"/>
 
   <diskMassDistribution value="exponentialDisk">
@@ -231,6 +231,9 @@
 
   <!-- Node evolution and physics -->
   <nodeOperatorMethod value="multi">
+    <!-- Halo spin -->
+    <nodeOperatorMethod value="haloSpinInterpolate">
+    <!-- Star formation -->
     <nodeOperatorMethod value="starFormationDisks"/>
     <nodeOperatorMethod value="starFormationSpheroids"/>
     <!--Stellar feedback outflows-->

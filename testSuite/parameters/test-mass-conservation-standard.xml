@@ -31,7 +31,7 @@
     <diskMassDistribution value="exponentialDisk">
       <dimensionless value="true"/>
     </diskMassDistribution>
-    <treeNodeMethodSpin value="random"/>
+    <treeNodeMethodSpin value="scalar"/>
     <treeNodeMethodPosition value="null"/>
     <treeNodeMethodAgeStatistics value="null"/>
     <treeNodeMethodIndices value="null"/>
@@ -134,7 +134,6 @@
       <alpha value="2.5094130785911624"/>
       <lambda0 value="4.3325030697269937E-002"/>
     </haloSpinDistributionMethod>
-    <randomSpinResetMassFactor value="2.0"/>
 
     <!-- Halo accretion options -->
     <accretionHaloMethod value="naozBarkana2007">
@@ -268,6 +267,11 @@
 
     <!-- Node evolution and physics -->
     <nodeOperatorMethod value="multi">
+    <!-- Halo spins -->
+    <nodeOperatorMethod value="haloSpinRandom">
+      <factorReset value="2.0"/>
+    </nodeOperatorMethod>
+    <!-- Star formation -->
       <nodeOperatorMethod value="starFormationDisks" iterable="no"/>
       <nodeOperatorMethod value="starFormationSpheroids" iterable="no"/>
       <!--Stellar feedback outflows-->

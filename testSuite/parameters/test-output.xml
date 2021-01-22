@@ -23,7 +23,7 @@
   <spheroidMassDistribution value="hernquist">
     <dimensionless value="true"/>
   </spheroidMassDistribution>
-  <treeNodeMethodSpin value="random"/>
+  <treeNodeMethodSpin value="scalar"/>
 
   <diskMassDistribution value="exponentialDisk">
     <dimensionless value="true"/>
@@ -84,7 +84,6 @@
     <alpha value="2.509"/>
     <lambda0 value="0.04326"/>
   </haloSpinDistributionMethod>
-  <randomSpinResetMassFactor value="2.0"/>
 
   <!-- Halo accretion options -->
   <accretionHaloMethod value="simple">
@@ -212,6 +211,11 @@
 
   <!-- Node evolution and physics -->
   <nodeOperatorMethod value="multi">
+    <!-- Halo spins -->
+    <nodeOperatorMethod value="haloSpinRandom">
+      <factorReset value="2.0"/>
+    </nodeOperatorMethod>
+    <!-- Star formation -->
     <nodeOperatorMethod value="starFormationDisks"/>
     <nodeOperatorMethod value="starFormationSpheroids"/>
     <!--Stellar feedback outflows-->

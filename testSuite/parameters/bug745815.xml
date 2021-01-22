@@ -114,7 +114,6 @@
   <randomNumberGeneratorMethod value="GSL">
     <seed value="228"/>
   </randomNumberGeneratorMethod>
-  <randomSpinResetMassFactor value="2"/>
   <mergerMassMovementsMethod value="simple">
     <massRatioMajorMerger value="0.1"/>
     <destinationGasMinorMerger value="spheroid"/>
@@ -171,7 +170,7 @@
   <spheroidMassDistribution value="hernquist">
     <dimensionless value="true"/>
   </spheroidMassDistribution>
-  <treeNodeMethodSpin value="random"/>
+  <treeNodeMethodSpin value="scalar"/>
   <verbosityLevel value="1"/>
   <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   <virialOrbitMethod value="benson2005"/>
@@ -182,6 +181,11 @@
 
   <!-- Node evolution and physics -->
   <nodeOperatorMethod value="multi">
+    <!-- Halo spins -->
+    <nodeOperatorMethod value="haloSpinRandom">
+      <factorReset value="2.0"/>
+    </nodeOperatorMethod>
+    <!-- Star formation -->
     <nodeOperatorMethod value="starFormationDisks"/>
     <nodeOperatorMethod value="starFormationSpheroids"/>
     <!--Stellar feedback outflows-->

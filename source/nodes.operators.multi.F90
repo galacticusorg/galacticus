@@ -36,6 +36,7 @@
      type(multiProcessList), pointer :: processes => null()
    contains
      final     ::                                        multiDestructor
+     procedure :: nodeInitialize                      => multiNodeInitialize
      procedure :: nodePromote                         => multiNodePromote
      procedure :: galaxiesMerge                       => multiGalaxiesMerge
      procedure :: differentialEvolutionPre            => multiDifferentialEvolutionPre
@@ -109,6 +110,21 @@ contains
     end if
     return
   end subroutine multiDestructor
+
+  subroutine multiNodeInitialize(self,node)
+    !% Perform node initialization.
+    implicit none
+    class(nodeOperatorMulti), intent(inout)          :: self
+    type (treeNode         ), intent(inout), target  :: node
+    type (multiProcessList )               , pointer :: process_
+
+    process_ => self%processes
+    do while (associated(process_))
+       call process_%process_%nodeInitialize(node)
+       process_ => process_%next
+    end do
+    return
+  end subroutine multiNodeInitialize
 
   subroutine multiNodePromote(self,node)
     !% Act on a node promotion event.

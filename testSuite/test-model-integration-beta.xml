@@ -71,7 +71,7 @@
   <treeNodeMethodHotHalo value="verySimpleDelayed"/>
   <treeNodeMethodSatellite value="verySimple"/>
   <treeNodeMethodSpheroid value="null"/>
-  <treeNodeMethodSpin value="random"/>
+  <treeNodeMethodSpin value="scalar"/>
   <nodeComponentBasicExtendedSphericalCollapseType value="bryanNorman"/>
 
   <!-- Merger tree construction -->
@@ -132,7 +132,6 @@
     <alpha value="2.5051096022584427"/>
     <lambda0 value="4.3249047072217509E-002"/>
   </haloSpinDistributionMethod>
-  <randomSpinResetMassFactor value="2.0"/>
 
   <!-- Satellite orbits -->
   <virialOrbitMethod value="fixed">
@@ -244,6 +243,11 @@
 
   <!-- Node evolution and physics -->
   <nodeOperatorMethod value="multi">
+    <!-- Halo spins -->
+    <nodeOperatorMethod value="haloSpinRandom">
+      <factorReset value="2.0"/>
+    </nodeOperatorMethod>
+    <!-- Star formation -->
     <nodeOperatorMethod value="starFormationDisks"/>
     <nodeOperatorMethod value="stellarFeedbackDisks">
       <stellarFeedbackOutflowsMethod value="rateLimit">
