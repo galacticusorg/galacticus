@@ -85,28 +85,28 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Vrl_Thrm_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Initialize(globalParameters_)
+  subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Initialize(parameters_)
     !% Initializes the ``virialTheorem'' implementation of the dark matter profile component.
     use Input_Parameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
     !# <inputParameter>
     !#   <name>darkMatterProfileScaleVirialTheoremEnergyBoost</name>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <description>A boost to the energy</description>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>darkMatterProfileScaleVirialTheoremMassExponent</name>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <description>The exponent of mass ratio appearing in the orbital energy term in the ``virial theorem'' dark matter profile scale model.</description>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>darkMatterProfileScaleVirialTheoremUnresolvedEnergy</name>
     !#   <defaultValue>1.0d0</defaultValue>
-    !#   <source>globalParameters_</source>
+    !#   <source>parameters_</source>
     !#   <description>Factor multiplying the estimate of the internal energy of unresolved accretion in the ``virial theorem'' dark matter profile scale model.</description>
     !# </inputParameter>
    return
