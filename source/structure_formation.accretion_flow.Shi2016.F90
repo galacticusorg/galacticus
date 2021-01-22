@@ -71,7 +71,7 @@
           &                                                                                  scaleFactorVelocity
    contains
      !# <methods>
-     !#   <method description="Solve for the structurr of the accretion flow." method="solve" />
+     !#   <method description="Solve for the structure of the accretion flow." method="solve" />
      !# </methods>
      final     ::              shi2016Destructor
      procedure :: density   => shi2016Density
