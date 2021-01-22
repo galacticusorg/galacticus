@@ -34,11 +34,11 @@ module Merger_Tree_Timesteps
   !#  <method name="timeEvolveTo">
   !#   <description>
   !#    Return the time to which the {\normalfont \ttfamily node} can be evolved. The current limiting time is provided as
-  !#    {\normalfont \tfamily timeEnd}. Optionally, the procedure pointer {\normalfont \ttfamily task} can be set !# to point to a
-  !#    subroutine which will be called after the node is evolved to the end of the timestep. It is acceptable for !# this pointer to be
-  !#    null. The {\normalfont \ttfamily taskSelf} pointer may be set to point to the timestep object and will !# be made available to
-  !#    the timestep task subroutine. Note that the {\normalfont \ttfamily task} will only be called for the !# task which provided the
-  !#    shortest timestep---other tasks can always request to be called again when the next timestep is !# determined. The subroutine to
+  !#    {\normalfont \ttfamily timeEnd}. Optionally, the procedure pointer {\normalfont \ttfamily task} can be set to point to a
+  !#    subroutine which will be called after the node is evolved to the end of the timestep. It is acceptable for this pointer to be
+  !#    null. The {\normalfont \ttfamily taskSelf} pointer may be set to point to the timestep object and will be made available to
+  !#    the timestep task subroutine. Note that the {\normalfont \ttfamily task} will only be called for the task which provided the
+  !#    shortest timestep---other tasks can always request to be called again when the next timestep is determined. The subroutine to
   !#    be called at the end of the timestep must have the form:
   !#    \begin{verbatim}
   !#      subroutine timestepTask(self,tree,node,deadlockStatus)
