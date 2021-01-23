@@ -711,14 +711,14 @@
     <version>0.9.4</version>
     <nodeOperatorMethod value="multi">
       <!-- Halo spins -->
-      <nodeOperatorMethod value="haloSpinRandom">
+      <nodeOperatorMethod value="haloSpinRandom" iterable="no">
 	<factorReset value="2.0"/>
       </nodeOperatorMethod>
       <!-- Star formation -->
-      <nodeOperatorMethod value="starFormationDisks"/>
-      <nodeOperatorMethod value="starFormationSpheroids"/>
+      <nodeOperatorMethod value="starFormationDisks" iterable="no"/>
+      <nodeOperatorMethod value="starFormationSpheroids" iterable="no"/>
       <!--Stellar feedback outflows-->
-      <nodeOperatorMethod value="stellarFeedbackDisks">
+      <nodeOperatorMethod value="stellarFeedbackDisks" iterable="no">
 	<stellarFeedbackOutflowsMethod value="rateLimit">
           <timescaleOutflowFractionalMinimum value="0.001"/>
           <stellarFeedbackOutflowsMethod value="powerLaw">
@@ -727,7 +727,7 @@
           </stellarFeedbackOutflowsMethod>
 	</stellarFeedbackOutflowsMethod>
       </nodeOperatorMethod>
-      <nodeOperatorMethod value="stellarFeedbackSpheroids">
+      <nodeOperatorMethod value="stellarFeedbackSpheroids" iterable="no">
 	<stellarFeedbackOutflowsMethod value="rateLimit">
           <timescaleOutflowFractionalMinimum value="0.001"/>
           <stellarFeedbackOutflowsMethod value="powerLaw">
@@ -736,7 +736,7 @@
           </stellarFeedbackOutflowsMethod>
 	</stellarFeedbackOutflowsMethod>
       </nodeOperatorMethod>
-      <nodeOperatorMethod value="ramPressureMassLossDisks"/>
+      <nodeOperatorMethod value="ramPressureMassLossDisks" iterable="no"/>
     </nodeOperatorMethod>
     <ramPressureStrippingMethod value="simpleCylindrical"/>
   </parameters>
@@ -744,10 +744,15 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodeOperatorMethod value="multi">
-      <nodeOperatorMethod value="starFormationDisks"/>
-      <nodeOperatorMethod value="starFormationSpheroids"/>
+      <!-- Halo spins -->
+      <nodeOperatorMethod value="haloSpinRandom" iterable="no">
+	<factorReset value="2.0"/>
+      </nodeOperatorMethod>
+      <!-- Star formation -->
+      <nodeOperatorMethod value="starFormationDisks" iterable="no"/>
+      <nodeOperatorMethod value="starFormationSpheroids" iterable="no"/>
       <!--Stellar feedback outflows-->
-      <nodeOperatorMethod value="stellarFeedbackDisks">
+      <nodeOperatorMethod value="stellarFeedbackDisks" iterable="no">
 	<stellarFeedbackOutflowsMethod value="rateLimit">
           <timescaleOutflowFractionalMinimum value="0.001"/>
           <stellarFeedbackOutflowsMethod value="powerLaw">
@@ -756,7 +761,7 @@
           </stellarFeedbackOutflowsMethod>
 	</stellarFeedbackOutflowsMethod>
       </nodeOperatorMethod>
-      <nodeOperatorMethod value="stellarFeedbackSpheroids">
+      <nodeOperatorMethod value="stellarFeedbackSpheroids" iterable="no">
 	<stellarFeedbackOutflowsMethod value="rateLimit">
           <timescaleOutflowFractionalMinimum value="0.001"/>
           <stellarFeedbackOutflowsMethod value="powerLaw">
@@ -765,7 +770,7 @@
           </stellarFeedbackOutflowsMethod>
 	</stellarFeedbackOutflowsMethod>
       </nodeOperatorMethod>
-      <nodeOperatorMethod value="ramPressureMassLossSpheroids"/>
+      <nodeOperatorMethod value="ramPressureMassLossSpheroids" iterable="no"/>
     </nodeOperatorMethod>
     <ramPressureStrippingMethod value="simpleSpherical"/>
   </parameters>
@@ -775,6 +780,11 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodeOperatorMethod value="multi">
+      <!-- Halo spins -->
+      <nodeOperatorMethod value="haloSpinRandom" iterable="no">
+	<factorReset value="2.0"/>
+      </nodeOperatorMethod>
+      <!-- Star formation -->
       <nodeOperatorMethod value="starFormationDisks" iterable="no"/>
       <nodeOperatorMethod value="starFormationSpheroids" iterable="no"/>
       <!--Stellar feedback outflows-->
@@ -805,6 +815,11 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodeOperatorMethod value="multi">
+      <!-- Halo spins -->
+      <nodeOperatorMethod value="haloSpinRandom" iterable="no">
+	<factorReset value="2.0"/>
+      </nodeOperatorMethod>
+      <!-- Star formation -->
       <nodeOperatorMethod value="starFormationDisks" iterable="no"/>
       <nodeOperatorMethod value="starFormationSpheroids" iterable="no"/>
       <!--Stellar feedback outflows-->
@@ -961,14 +976,17 @@
     </spheroidMassDistribution>
     <treeNodeMethodSpin value="scalar"/>
     <nodeOperatorMethod value="multi" >
-      <nodeOperatorMethod value="satelliteOrbit"                   />
-      <nodeOperatorMethod value="satelliteDynamicalFriction"       />
-      <nodeOperatorMethod value="satelliteTidalMassLoss"           />
-      <nodeOperatorMethod value="satelliteTidalHeating"            />
-      <nodeOperatorMethod value="satelliteMergingRadiusTrigger"     >
+      <nodeOperatorMethod value="haloSpinRandom" iterable="no">
+	<factorReset value="2.0"/>
+      </nodeOperatorMethod>
+      <nodeOperatorMethod value="satelliteOrbit"                    iterable="no"/>
+      <nodeOperatorMethod value="satelliteDynamicalFriction"        iterable="no"/>
+      <nodeOperatorMethod value="satelliteTidalMassLoss"            iterable="no"/>
+      <nodeOperatorMethod value="satelliteTidalHeating"             iterable="no"/>
+      <nodeOperatorMethod value="satelliteMergingRadiusTrigger"     iterable="no" >
 	<radiusVirialFraction      value="0.01"/>
       </nodeOperatorMethod>
-      <nodeOperatorMethod value="satelliteDestructionMassThreshold" >
+      <nodeOperatorMethod value="satelliteDestructionMassThreshold" iterable="no" >
 	<massDestruction           value="0.00"/>
 	<massDestructionFractional value="0.01"/>
       </nodeOperatorMethod>
