@@ -1263,6 +1263,13 @@ contains
     {Type¦intrinsic}                            , intent(  out)              :: parameterValue
     integer                                     , intent(  out), optional    :: errorStatus
     logical                                     , intent(in   ), optional    :: writeOutput
+#ifdef MATHEVALAVAIL
+    integer         (kind_int8                 )                             :: evaluator
+    ! Declarations of GNU libmatheval procedures used.
+    integer         (kind_int8                 ), external                   :: Evaluator_Create_
+    double precision                            , external                   :: Evaluator_Evaluate_
+    external                                                                 :: Evaluator_Destroy_
+#endif
     type            (inputParameter            )               , pointer     :: sibling
     type            (node                      )               , pointer     :: valueElement
     type            (inputParameters           )               , pointer     :: rootParameters     , subParameters  , &
@@ -1278,14 +1285,6 @@ contains
          &                                                                      workText           , content
     type            (varying_string            )                             :: attributeName
     double precision                                                         :: workValue
-#ifdef MATHEVALAVAIL
-    integer         (kind_int8                 )                             :: evaluator
-    ! Declarations of GNU libmatheval procedures used.
-    integer         (kind_int8                 ), external                   :: Evaluator_Create_
-    double precision                            , external                   :: Evaluator_Evaluate_
-    external                                                                 :: Evaluator_Destroy_
-#endif
-
     {Type¦match¦^Long.*¦character(len=parameterLengthMaximum) :: parameterText¦}
     {Type¦match¦^(Character|VarStr)Rank1$¦type(varying_string) :: parameterText¦}
     !# <optionalArgument name="writeOutput" defaultsTo=".true." />
