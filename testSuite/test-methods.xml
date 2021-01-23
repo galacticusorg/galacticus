@@ -229,6 +229,9 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
+    <outputTimesMethod value="list">
+      <redshifts value="0.0 0.1"/>
+    </outputTimesMethod>
     <luminosityFilter value="RGO_I SDSS_g SDSS_r SDSS_i"/>
     <luminosityRedshift value="0.0 0.1 0.1 0.1"/>
     <luminosityType value="rest observed observed observed"/>
@@ -630,15 +633,15 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
+    <outputTimesMethod value="list">
+      <redshifts value="0.0 0.1"/>
+    </outputTimesMethod>
     <luminosityFilter value="RGO_I SDSS_g SDSS_r SDSS_i"/>
     <luminosityType value="rest observed observed observed"/>
     <luminosityRedshift value="0.0 0.1 0.1 0.1"/>
-    
-  <initialMassFunctionMethod value="chabrier2001"/>
-    
-  <initialMassFunctionMethod value="kroupa2001"/>
-    
-  <initialMassFunctionMethod value="salpeter1955"/>
+    <initialMassFunctionMethod value="chabrier2001"/>
+    <initialMassFunctionMethod value="kroupa2001"/>
+    <initialMassFunctionMethod value="salpeter1955"/>
   </parameters>
 
   <!-- Calculation of luminosities at all output redshifts -->
@@ -649,9 +652,8 @@
     <luminosityType value="rest observed observed observed"/>
     <luminosityRedshift value="all all all all"/>
     <outputTimesMethod value="list">
-    <redshifts value="0.064 0.041 0.020 0.000"/>
-  </outputTimesMethod>
-
+      <redshifts value="0.064 0.041 0.020 0.000"/>
+    </outputTimesMethod>
   </parameters>
 
   <!-- Calculation of luminosities with top-hat filters -->
@@ -662,9 +664,8 @@
     <luminosityType value="rest rest rest rest"/>
     <luminosityRedshift value="0.0 0.0 0.0 0.0"/>
     <outputTimesMethod value="list">
-    <redshifts value="0.0"/>
-  </outputTimesMethod>
-
+      <redshifts value="0.0"/>
+    </outputTimesMethod>
   </parameters>
 
   <!-- Calculation of luminosities with array of top-hat filters -->
@@ -675,9 +676,8 @@
     <luminosityType value="rest"/>
     <luminosityRedshift value="0.0"/>
     <outputTimesMethod value="list">
-    <redshifts value="0.0"/>
-  </outputTimesMethod>
-
+      <redshifts value="0.0"/>
+    </outputTimesMethod>
   </parameters>
 
   <!-- Black hole wind efficiencies -->
