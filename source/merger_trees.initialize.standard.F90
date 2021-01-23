@@ -97,12 +97,14 @@ contains
        ! Initialize only nodes that exist before the end time.
        basic => node%basic()
        if (basic%time() > tree%initializedUntil .and. basic%time() <= timeEnd) then
+          ! Initialize using node operators first as we need, for example, spin to be initialized before some initialization
+          ! within node components.
+          call self%nodeOperator_%nodeInitialize(node)
           ! Call subroutines to perform any necessary initialization of this node.
           !# <include directive="mergerTreeInitializeTask" type="functionCall" functionType="void">
           !#  <functionArgs>node</functionArgs>
 	  include 'merger_trees.initialize.tasks.inc'
           !# </include>
-          call self%nodeOperator_%nodeInitialize(node)
        end if
     end do
     tree%initializedUntil=timeEnd

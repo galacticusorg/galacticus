@@ -441,7 +441,6 @@ contains
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Tree_Initialize</unitName>
-  !#  <after>spin</after>
   !#  <after>darkMatterProfile</after>
   !#  <after>Node_Component_Hot_Halo_Standard_Tree_Initialize</after>
   !# </mergerTreeInitializeTask>
