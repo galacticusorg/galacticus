@@ -28,6 +28,7 @@ program Test_Nodes
           &                         nodeComponentPosition         , propertyTypeAll             , treeNode
   use :: ISO_Varying_String, only : varying_string                , assignment(=)               , char
   use :: Input_Parameters  , only : inputParameters
+  use :: Node_Components   , only : Node_Components_Initialize    , Node_Components_Uninitialize
   use :: Test_Nodes_Tasks  , only : Test_Node_Task
   use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group      , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
@@ -53,7 +54,8 @@ program Test_Nodes
 
   ! Initialize the Galacticus nodes objects module.
   call nodeClassHierarchyInitialize(parameters)
-
+  call Node_Components_Initialize  (parameters)
+  
   ! Ensure tree node has the correct type.
   call Assert('Node has type "treeNode"',char(node%type()),'treeNode')
 
@@ -146,7 +148,8 @@ program Test_Nodes
 
   ! Finalize the objects module. (Not strictly necessary, but it cleans up some allocations which otherwise get reported by
   ! Valgrind.)
-  call nodeClassHierarchyFinalize()
+  call Node_Components_Uninitialize()
+  call nodeClassHierarchyFinalize  ()
 
   ! Clean up allocations to avoid them being reported by Valgrind.
   call parameterFile%destroy()
