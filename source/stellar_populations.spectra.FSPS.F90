@@ -92,7 +92,8 @@ contains
 
   subroutine fspsReadFile(self)
     !% Ensure that the requested stellar population has been generated.
-    use :: File_Utilities , only : File_Exists                 , File_Lock , File_Unlock, lockDescriptor
+    use :: File_Utilities , only : File_Exists                 , File_Lock     , File_Unlock, lockDescriptor, &
+         &                         File_Path                   , Directory_Make
     use :: IO_HDF5        , only : hdf5Access                  , hdf5Object
     use :: Interfaces_FSPS, only : Interface_FSPS_SSPs_Tabulate
     use :: Tables         , only : table1D
@@ -109,6 +110,7 @@ contains
        ! Check if the file exists and has the correct version.
        remakeFile=.false.
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+       call Directory_Make(char(File_Path(char(self%fileName))))
        call File_Lock(char(self%fileName),fileLock,lockIsShared=.false.)
        if (File_Exists(char(self%fileName))) then
           !$ call hdf5Access%set()
