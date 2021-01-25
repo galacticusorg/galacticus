@@ -71,6 +71,8 @@
   <nodeOperatorMethod value="multi">
     <!-- Halo spin -->
     <nodeOperatorMethod value="haloSpinInterpolate">
+      <factorReset value="2.0"/>
+    </nodeOperatorMethod>
     <!-- Star formation -->
     <nodeOperatorMethod value="starFormationDisks"/>
     <nodeOperatorMethod value="starFormationSpheroids"/>
