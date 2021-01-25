@@ -199,27 +199,4 @@
   <!-- Output file -->
   <galacticusOutputFileName value="testSuite/outputs/regressions/cole2000TreeBuilderWDMNodeWellOrdering.hdf5"/>
 
-  <!--Stellar feedback outflows-->
-  <nodeOperatorMethod value="stellarFeedbackDisks">
-    <!-- Halo spins -->
-    <nodeOperatorMethod value="haloSpinRandom">
-      <factorReset value="2.0"/>
-    </nodeOperatorMethod>
-    <stellarFeedbackOutflowsMethod value="rateLimit">
-      <timescaleOutflowFractionalMinimum value="0.001"/>
-      <stellarFeedbackOutflowsMethod value="powerLaw">
-        <velocityCharacteristic value="250.0"/>
-        <exponent value="3.5"/>
-      </stellarFeedbackOutflowsMethod>
-    </stellarFeedbackOutflowsMethod>
-  </nodeOperatorMethod>
-  <nodeOperatorMethod value="stellarFeedbackSpheroids">
-    <stellarFeedbackOutflowsMethod value="rateLimit">
-      <timescaleOutflowFractionalMinimum value="0.001"/>
-      <stellarFeedbackOutflowsMethod value="powerLaw">
-        <velocityCharacteristic value="250.0"/>
-        <exponent value="3.5"/>
-      </stellarFeedbackOutflowsMethod>
-    </stellarFeedbackOutflowsMethod>
-  </nodeOperatorMethod>
 </parameters>
