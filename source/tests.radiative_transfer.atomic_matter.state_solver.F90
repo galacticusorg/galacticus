@@ -66,7 +66,6 @@ program Test_Radiative_Transfer_State_Solver
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
   ! Initialize parameters.
   parameters=inputParameters(var_str('testSuite/parameters/test-radiativeTransfer-atomicMatterStateSolver.xml'))
-  call parameters%markGlobal()
   ! Construct atomic matter.
   allocate(atomicCrossSectionIonizationPhoto_            )
   allocate(atomicIonizationPotential_                    )

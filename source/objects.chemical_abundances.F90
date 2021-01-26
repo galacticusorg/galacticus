@@ -24,7 +24,8 @@ module Chemical_Abundances_Structure
   use :: ISO_Varying_String, only : varying_string
   implicit none
   private
-  public :: chemicalAbundances, Chemicals_Names, Chemicals_Index, Chemicals_Property_Count, operator(*)
+  public :: chemicalAbundances      , Chemical_Abundances_Initialize, Chemicals_Names, Chemicals_Index, &
+       &    Chemicals_Property_Count, operator(*)
 
   ! Interface to multiplication operators with chemical abundances objects as their second argument.
   interface operator(*)
@@ -102,68 +103,59 @@ module Chemical_Abundances_Structure
   ! Net charge and mass (in atomic units) of chemicals.
   double precision                    , allocatable, dimension(:) :: chemicalsCharges                     , chemicalsMasses
 
-  ! Flag indicating if this module has been initialized.
-  logical                                                         :: chemicalAbundancesInitialized=.false.
-
   ! Unit and zero chemical abundances objects.
   type            (chemicalabundances), public                    :: unitChemicalAbundances               , zeroChemicalAbundances
 
 contains
 
-  subroutine Chemical_Abundances_Initialize
+  !# <nodeComponentInitializationTask>
+  !#  <unitName>Chemical_Abundances_Initialize</unitName>
+  !# </nodeComponentInitializationTask>
+   subroutine Chemical_Abundances_Initialize(parameters_)
     !% Initialize the {\normalfont \ttfamily chemicalAbundanceStructure} object module. Determines which chemicals are to be tracked.
     use :: Chemical_Structures, only : Chemical_Database_Get_Index, chemicalStructure
-    use :: Input_Parameters   , only : globalParameters           , inputParameter
+    use :: Input_Parameters   , only : inputParameters
     use :: ISO_Varying_String , only : len                        , char
     use :: Memory_Management  , only : allocateArray
     implicit none
-    integer                    :: iChemical
-    type   (chemicalStructure) :: chemical
+    type   (inputParameters  ), intent(inout) :: parameters_
+    integer                                   :: iChemical
+    type   (chemicalStructure)                :: chemical
 
-    ! Check if this module has been initialized already.
-    if (.not.chemicalAbundancesInitialized) then
-       !$omp critical (Chemical_Abundances_Module_Initialize)
-       if (.not.chemicalAbundancesInitialized) then
-
-          ! Determine how many elements we are required to track.
-          if (globalParameters%isPresent('chemicalsToTrack')) then
-             chemicalsCount=globalParameters%count('chemicalsToTrack')
-          else
-             chemicalsCount=0
-          end if
-          ! Number of properties to track is the same as the number of chemicals.
-          propertyCount=chemicalsCount
-          ! If tracking chemicals, read names of which ones to track.
-          if (chemicalsCount > 0) then
-             allocate(chemicalsToTrack(chemicalsCount))
-             call allocateArray(chemicalsIndices,[chemicalsCount])
-             call allocateArray(chemicalsCharges,[chemicalsCount])
-             call allocateArray(chemicalsMasses ,[chemicalsCount])
-             !# <inputParameter>
-             !#   <name>chemicalsToTrack</name>
-             !#   <description>The names of the chemicals to be tracked.</description>
-             !#   <source>globalParameters</source>
-             !# </inputParameter>
-             ! Validate the input names by looking them up in the list of chemical names.
-             chemicalNameLengthMaximum=0
-             do iChemical=1,chemicalsCount
-                chemicalsIndices(iChemical)=Chemical_Database_Get_Index(char(chemicalsToTrack(iChemical)))
-                call chemical%retrieve(char(chemicalsToTrack(iChemical)))
-                chemicalsCharges(iChemical)=dble(chemical%charge())
-                chemicalsMasses (iChemical)=     chemical%mass  ()
-                if (len(chemicalsToTrack(iChemical)) > chemicalNameLengthMaximum) chemicalNameLengthMaximum=len(chemicalsToTrack(iChemical))
-             end do
-          end if
-          ! Create zero and unit chemical abundances objects.
-          call allocateArray(zeroChemicalAbundances%chemicalValue,[propertyCount])
-          call allocateArray(unitChemicalAbundances%chemicalValue,[propertyCount])
-          zeroChemicalAbundances%chemicalValue=0.0d0
-          unitChemicalAbundances%chemicalValue=1.0d0
-          ! Flag that this module is now initialized.
-          chemicalAbundancesInitialized=.true.
-       end if
-       !$omp end critical (Chemical_Abundances_Module_Initialize)
+    ! Determine how many elements we are required to track.
+    if (parameters_%isPresent('chemicalsToTrack')) then
+       chemicalsCount=parameters_%count('chemicalsToTrack')
+    else
+       chemicalsCount=0
     end if
+    ! Number of properties to track is the same as the number of chemicals.
+    propertyCount=chemicalsCount
+    ! If tracking chemicals, read names of which ones to track.
+    if (chemicalsCount > 0) then
+       allocate(chemicalsToTrack(chemicalsCount))
+       call allocateArray(chemicalsIndices,[chemicalsCount])
+       call allocateArray(chemicalsCharges,[chemicalsCount])
+       call allocateArray(chemicalsMasses ,[chemicalsCount])
+       !# <inputParameter>
+       !#   <name>chemicalsToTrack</name>
+       !#   <description>The names of the chemicals to be tracked.</description>
+       !#   <source>parameters_</source>
+       !# </inputParameter>
+       ! Validate the input names by looking them up in the list of chemical names.
+       chemicalNameLengthMaximum=0
+       do iChemical=1,chemicalsCount
+          chemicalsIndices(iChemical)=Chemical_Database_Get_Index(char(chemicalsToTrack(iChemical)))
+          call chemical%retrieve(char(chemicalsToTrack(iChemical)))
+          chemicalsCharges(iChemical)=dble(chemical%charge())
+          chemicalsMasses (iChemical)=     chemical%mass  ()
+          if (len(chemicalsToTrack(iChemical)) > chemicalNameLengthMaximum) chemicalNameLengthMaximum=len(chemicalsToTrack(iChemical))
+       end do
+    end if
+    ! Create zero and unit chemical abundances objects.
+    call allocateArray(zeroChemicalAbundances%chemicalValue,[propertyCount])
+    call allocateArray(unitChemicalAbundances%chemicalValue,[propertyCount])
+    zeroChemicalAbundances%chemicalValue=0.0d0
+    unitChemicalAbundances%chemicalValue=1.0d0
     return
   end subroutine Chemical_Abundances_Initialize
 
@@ -171,9 +163,6 @@ contains
     !% Return the number of properties required to track chemicals. This is equal to the number of chemicals tracked, {\normalfont \ttfamily
     !% chemicalsCount}.
     implicit none
-
-    ! Ensure module is initialized.
-    call Chemical_Abundances_Initialize
 
     Chemicals_Property_Count=propertyCount
     return
@@ -186,9 +175,6 @@ contains
     implicit none
     type   (varying_string)                :: Chemicals_Names
     integer                , intent(in   ) :: index
-
-    ! Ensure module is initialized.
-    call Chemical_Abundances_Initialize
 
     if (index >= 1 .and. index <= chemicalsCount) then
        Chemicals_Names=trim(chemicalsToTrack(index))
@@ -229,8 +215,6 @@ contains
     class(chemicalAbundances), intent(inout) :: self
     class(chemicalAbundances), intent(in   ) :: increment
 
-    ! Ensure module is initialized.
-    call Chemical_Abundances_Initialize
     self%chemicalValue=self%chemicalValue+increment%chemicalValue
     return
   end subroutine Chemical_Abundances_Increment
@@ -240,8 +224,6 @@ contains
     implicit none
     class(chemicalAbundances), intent(in   ) :: self
 
-    ! Ensure module is initialized.
-    call Chemical_Abundances_Initialize()
     ! Detect if all chemical abundances are zero.
     Chemicals_Abundances_Is_Zero=all(self%chemicalValue == 0.0d0)
     return
@@ -254,8 +236,6 @@ contains
     class(chemicalAbundances), intent(in   )           :: abundances1
     class(chemicalAbundances), intent(in   ), optional :: abundances2
 
-    ! Ensure module is initialized.
-    call Chemical_Abundances_Initialize
     if (chemicalsCount == 0) then
        Chemical_Abundances_Add=zeroChemicalAbundances
     else
@@ -275,8 +255,6 @@ contains
     class(chemicalAbundances), intent(in   )           :: abundances1
     class(chemicalAbundances), intent(in   ), optional :: abundances2
 
-    ! Ensure module is initialized.
-    call Chemical_Abundances_Initialize
     if (chemicalsCount == 0) then
        Chemical_Abundances_Subtract=zeroChemicalAbundances
     else
@@ -296,8 +274,6 @@ contains
     class           (chemicalAbundances), intent(in   ) :: abundances1
     double precision                    , intent(in   ) :: multiplier
 
-    ! Ensure module is initialized.
-    call Chemical_Abundances_Initialize
     if (chemicalsCount == 0) then
        Chemical_Abundances_Multiply=zeroChemicalAbundances
     else
@@ -313,8 +289,6 @@ contains
     double precision                    , intent(in   ) :: multiplier
     class           (chemicalAbundances), intent(in   ) :: abundances1
 
-    ! Ensure module is initialized.
-    call Chemical_Abundances_Initialize
     if (chemicalsCount == 0) then
        Chemical_Abundances_Multiply_Switched=zeroChemicalAbundances
     else
@@ -330,8 +304,6 @@ contains
     class           (chemicalAbundances), intent(in   ) :: abundances1
     double precision                    , intent(in   ) :: divisor
 
-    ! Ensure module is initialized.
-    call Chemical_Abundances_Initialize
     if (chemicalsCount == 0) then
        Chemical_Abundances_Divide=zeroChemicalAbundances
     else
@@ -544,9 +516,6 @@ contains
     class           (chemicalAbundances)              , intent(inout) :: chemicals
     double precision                    , dimension(:), intent(in   ) :: chemicalAbundancesArray
 
-    ! Ensure module is initialized.
-    call Chemical_Abundances_Initialize
-
     ! Ensure values array exists.
     call Chemical_Abundances_Allocate_Values(chemicals)
     ! Extract chemical values from array.
@@ -562,9 +531,6 @@ contains
     implicit none
     double precision                    , dimension(:), intent(  out) :: chemicalAbundancesArray(:)
     class           (chemicalAbundances)              , intent(in   ) :: chemicals
-
-    ! Ensure module is initialized.
-    call Chemical_Abundances_Initialize
 
     ! Place elemental values into arrays.
     if (allocated(chemicals%chemicalValue)) then

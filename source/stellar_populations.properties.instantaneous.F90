@@ -19,9 +19,10 @@
 
   !% Implements a stellar population properties class based on the instantaneous recycling approximation.
 
-  use, intrinsic :: ISO_C_Binding                 , only : c_size_t
-  use            :: Stellar_Luminosities_Structure, only : stellarLuminosities
-  use            :: Stellar_Population_Selectors  , only : stellarPopulationSelectorClass
+  use, intrinsic :: ISO_C_Binding                             , only : c_size_t
+  use            :: Stellar_Luminosities_Structure            , only : stellarLuminosities
+  use            :: Stellar_Population_Selectors              , only : stellarPopulationSelectorClass
+  use            :: Stellar_Population_Broad_Band_Luminosities, only : stellarPopulationBroadBandLuminositiesClass
 
   !# <stellarPopulationProperties name="stellarPopulationPropertiesInstantaneous">
   !#  <description>
@@ -41,12 +42,13 @@
   type, extends(stellarPopulationPropertiesClass) :: stellarPopulationPropertiesInstantaneous
      !% A stellar population properties class based on the instantaneous recycling approximation.
      private
-     class           (stellarPopulationSelectorClass), pointer      :: stellarPopulationSelector_    => null()
-     type            (stellarLuminosities           ), dimension(2) :: rateLuminosityStellarPrevious
-     double precision                                , dimension(2) :: rateStarFormationPrevious              , fuelMetallicityPrevious, &
-          &                                                            timePrevious
-     integer         (c_size_t                      ), dimension(2) :: populationIDPrevious
-     integer                                                        :: abundanceIndex
+     class           (stellarPopulationSelectorClass             ), pointer      :: stellarPopulationSelector_              => null()
+     class           (stellarPopulationBroadBandLuminositiesClass), pointer      :: stellarPopulationBroadBandLuminosities_ => null()
+     type            (stellarLuminosities                        ), dimension(2) :: rateLuminosityStellarPrevious
+     double precision                                             , dimension(2) :: rateStarFormationPrevious                        , fuelMetallicityPrevious, &
+          &                                                                         timePrevious
+     integer         (c_size_t                                   ), dimension(2) :: populationIDPrevious
+     integer                                                                     :: abundanceIndex
    contains
      final     ::                  instantaneousDestructor
      procedure :: rates         => instantaneousRates
@@ -68,24 +70,28 @@ contains
     !% as input.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (stellarPopulationPropertiesInstantaneous)                :: self
-    type (inputParameters                         ), intent(inout) :: parameters
-    class(stellarPopulationSelectorClass          ), pointer       :: stellarPopulationSelector_
+    type (stellarPopulationPropertiesInstantaneous   )                :: self
+    type (inputParameters                            ), intent(inout) :: parameters
+    class(stellarPopulationSelectorClass             ), pointer       :: stellarPopulationSelector_
+    class(stellarPopulationBroadBandLuminositiesClass), pointer       :: stellarPopulationBroadBandLuminosities_
 
-    !# <objectBuilder class="stellarPopulationSelector" name="stellarPopulationSelector_" source="parameters"/>
-    self=stellarPopulationPropertiesInstantaneous(stellarPopulationSelector_)
+    !# <objectBuilder class="stellarPopulationSelector"              name="stellarPopulationSelector_"              source="parameters"/>
+    !# <objectBuilder class="stellarPopulationBroadBandLuminosities" name="stellarPopulationBroadBandLuminosities_" source="parameters"/>
+    self=stellarPopulationPropertiesInstantaneous(stellarPopulationSelector_,stellarPopulationBroadBandLuminosities_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="stellarPopulationSelector_"/>
+    !# <objectDestructor name="stellarPopulationSelector_"             />
+    !# <objectDestructor name="stellarPopulationBroadBandLuminosities_"/>
     return
   end function instantaneousConstructorParameters
 
-  function instantaneousConstructorInternal(stellarPopulationSelector_) result(self)
+  function instantaneousConstructorInternal(stellarPopulationSelector_,stellarPopulationBroadBandLuminosities_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily instantaneous} stellar population properties class.
     use :: Atomic_Data, only : Abundance_Pattern_Lookup
     implicit none
-    type (stellarPopulationPropertiesInstantaneous)                        :: self
-    class(stellarPopulationSelectorClass          ), intent(in   ), target :: stellarPopulationSelector_
-    !# <constructorAssign variables="*stellarPopulationSelector_"/>
+    type (stellarPopulationPropertiesInstantaneous   )                        :: self
+    class(stellarPopulationSelectorClass             ), intent(in   ), target :: stellarPopulationSelector_
+    class(stellarPopulationBroadBandLuminositiesClass), intent(in   ), target :: stellarPopulationBroadBandLuminosities_
+    !# <constructorAssign variables="*stellarPopulationSelector_, *stellarPopulationBroadBandLuminosities_"/>
 
     self%abundanceIndex           =Abundance_Pattern_Lookup(abundanceName="solar")
     self%rateStarFormationPrevious=-huge(0.0d0)
@@ -102,7 +108,8 @@ contains
     implicit none
     type(stellarPopulationPropertiesInstantaneous), intent(inout) :: self
 
-    !# <objectDestructor name="self%stellarPopulationSelector_"/>
+    !# <objectDestructor name="self%stellarPopulationSelector_"             />
+    !# <objectDestructor name="self%stellarPopulationBroadBandLuminosities_"/>
     return
   end subroutine instantaneousDestructor
 
@@ -178,7 +185,7 @@ contains
                &  .or.                                                                 &
                &   fuelMetallicity   /= self%  fuelMetallicityPrevious(componentIndex) &
                & ) then
-             call self%rateLuminosityStellarPrevious(componentIndex)%setLuminosities(rateStarFormation,stellarPopulation_,time,abundancesFuel)
+             call self%rateLuminosityStellarPrevious(componentIndex)%setLuminosities(rateStarFormation,stellarPopulation_,self%stellarPopulationBroadBandLuminosities_,time,abundancesFuel)
              self%populationIDPrevious     (componentIndex)=populationID
              self%rateStarFormationPrevious(componentIndex)=rateStarFormation
              self%timePrevious             (componentIndex)=time
@@ -186,7 +193,7 @@ contains
           end if
           rateLuminosityStellar=self%rateLuminosityStellarPrevious(componentIndex)
        case default
-          call rateLuminosityStellar%setLuminosities(rateStarFormation,stellarPopulation_,time,abundancesFuel)
+          call rateLuminosityStellar%setLuminosities(rateStarFormation,stellarPopulation_,self%stellarPopulationBroadBandLuminosities_,time,abundancesFuel)
        end select
     end if
     return

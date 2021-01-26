@@ -27,7 +27,7 @@ module Galacticus_State
   use            :: ISO_Varying_String, only : varying_string
   implicit none
   private
-  public :: Galacticus_State_Store, Galacticus_State_Retrieve
+  public :: Galacticus_State_Store, Galacticus_State_Retrieve, Galacticus_State_Initialize
 
   ! Flag indicating if we have retrieved the internal state already.
   logical                 :: stateHasBeenRetrieved=.false.
@@ -37,9 +37,6 @@ module Galacticus_State
 
   ! Active status of store and retrieve.
   logical                 :: stateStoreActive               , stateRetrieveActive
-
-  ! Flag indicating if module has been initialized.
-  logical                 :: stateInitialized     =.false.
 
   ! Counter which tracks state operators, used to ensure objects are stored to file only once per operation.
   integer(c_size_t      ) :: stateOperatorID      =0_c_size_t
@@ -72,9 +69,6 @@ contains
     type   (c_ptr         )                          :: gslStateFile
     type   (varying_string)                          :: fileName        , fileNameGSL, &
          &                                              fileNameLog
-
-    ! Ensure that module is initialized.
-    call State_Initialize
 
     ! Check if state store is active.
     if (stateStoreActive) then
@@ -187,9 +181,6 @@ contains
     ! Check if we have already retrieved the internal state.
     if (.not.stateHasBeenRetrieved) then
 
-       ! Ensure that module is initialized.
-       call State_Initialize
-
        ! Check if state retrieve is active.
        if (stateRetrieveActive) then
 
@@ -250,39 +241,42 @@ contains
     return
   end subroutine Galacticus_State_Retrieve
 
-  subroutine State_Initialize
+  !# <nodeComponentInitializationTask>
+  !#  <unitName>Galacticus_State_Initialize</unitName>
+  !#  <useGlobal>yes</useGlobal>
+  !# </nodeComponentInitializationTask>
+  !# <functionGlobal>
+  !#  <unitName>Galacticus_State_Initialize</unitName>
+  !#  <type>void</type>
+  !#  <module>Input_Parameters  , only : inputParameters</module>
+  !#  <arguments>type(inputParameters), intent(inout) :: parameters_</arguments>
+  !# </functionGlobal>
+  subroutine Galacticus_State_Initialize(parameters_)
     !% Initialize the state module by getting the name of the file to which states should be stored and whether or not we are to
     !% retrieve a state.
-    use :: Input_Parameters  , only : globalParameters, inputParameter
-    use :: ISO_Varying_String, only : var_str         , operator(/=)
+    use :: Input_Parameters  , only : inputParameters
+    use :: ISO_Varying_String, only : var_str        , operator(/=)
     implicit none
+    type(inputParameters), intent(inout) :: parameters_
 
-    if (.not.stateInitialized) then
-       !$omp critical(Galacticus_State_Initialize)
-       if (.not.stateInitialized) then
-          ! Get the base name of the state files.
-          !# <inputParameter>
-          !#   <name>stateFileRoot</name>
-          !#   <defaultValue>var_str('none')</defaultValue>
-          !#   <description>The root name of files to which the internal state is written (to permit restarts).</description>
-          !#   <source>globalParameters</source>
-          !# </inputParameter>
-          ! Get the base name of the files to retrieve from.
-          !# <inputParameter>
-          !#   <name>stateRetrieveFileRoot</name>
-          !#   <defaultValue>var_str('none')</defaultValue>
-          !#   <description>The root name of files to which the internal state is retrieved from (to restart).</description>
-          !#   <source>globalParameters</source>
-          !# </inputParameter>
-          ! Record active status of store and retrieve.
-          stateStoreActive   =(stateFileRoot         /= "none")
-          stateRetrieveActive=(stateRetrieveFileRoot /= "none")
-          ! Flag that module is now initialized.
-          stateInitialized=.true.
-       end if
-       !$omp end critical(Galacticus_State_Initialize)
-    end if
+    ! Get the base name of the state files.
+    !# <inputParameter>
+    !#   <name>stateFileRoot</name>
+    !#   <defaultValue>var_str('none')</defaultValue>
+    !#   <description>The root name of files to which the internal state is written (to permit restarts).</description>
+    !#   <source>parameters_</source>
+    !# </inputParameter>
+    ! Get the base name of the files to retrieve from.
+    !# <inputParameter>
+    !#   <name>stateRetrieveFileRoot</name>
+    !#   <defaultValue>var_str('none')</defaultValue>
+    !#   <description>The root name of files to which the internal state is retrieved from (to restart).</description>
+    !#   <source>parameters_</source>
+    !# </inputParameter>
+    ! Record active status of store and retrieve.
+    stateStoreActive   =(stateFileRoot         /= "none")
+    stateRetrieveActive=(stateRetrieveFileRoot /= "none")
     return
-  end subroutine State_Initialize
+  end subroutine Galacticus_State_Initialize
 
 end module Galacticus_State

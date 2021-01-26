@@ -29,6 +29,7 @@ program Test_Concentrations
           &                                           darkMatterProfileConcentrationPrada2011
   use :: Events_Hooks                        , only : eventsHooksInitialize
   use :: File_Utilities                      , only : Count_Lines_in_File
+  use :: Functions_Global_Utilities          , only : Functions_Global_Set
   use :: Galacticus_Calculations_Resets      , only : Galacticus_Calculations_Reset
   use :: Galacticus_Display                  , only : Galacticus_Verbosity_Level_Set          , verbosityStandard
   use :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
@@ -82,6 +83,7 @@ program Test_Concentrations
   ! Initialize.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
   call eventsHooksInitialize()
+  call Functions_Global_Set ()
   ! Specify all models to run.
   modelName           (1)='Diemer & Kravtsov (2015)'
   modelLabel          (1)='diemer15_orig_200c'

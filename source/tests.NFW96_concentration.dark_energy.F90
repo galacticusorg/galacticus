@@ -27,6 +27,7 @@ program Test_NFW96_Concentration_Dark_Energy
   use :: Cosmology_Parameters                , only : cosmologyParameters                , cosmologyParametersClass           , hubbleUnitsLittleH
   use :: Dark_Matter_Profiles_Concentration  , only : darkMatterProfileConcentration     , darkMatterProfileConcentrationClass
   use :: Events_Hooks                        , only : eventsHooksInitialize
+  use :: Functions_Global_Utilities          , only : Functions_Global_Set
   use :: Galacticus_Display                  , only : Galacticus_Verbosity_Level_Set     , verbosityStandard
   use :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
   use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize       , nodeComponentBasic                 , treeNode
@@ -59,6 +60,7 @@ program Test_NFW96_Concentration_Dark_Energy
   parameters=inputParameters(parameterFile)
   call parameters%markGlobal()
   call eventsHooksInitialize()
+  call Functions_Global_Set             (          )
   call nodeClassHierarchyInitialize     (parameters)
   call Node_Components_Initialize       (parameters)
   call Node_Components_Thread_Initialize(parameters)

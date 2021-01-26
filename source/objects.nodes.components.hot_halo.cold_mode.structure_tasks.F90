@@ -23,6 +23,7 @@ module Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks
   !% Implements structure tasks for the cold mode hot halo component.
   use :: Hot_Halo_Cold_Mode_Density_Core_Radii, only : hotHaloColdModeCoreRadiiClass
   use :: Mass_Distributions                   , only : massDistributionBetaProfile
+  use :: Dark_Matter_Halo_Scales              , only : darkMatterHaloScaleClass
   implicit none
   private
   public :: Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task          , Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Task, &
@@ -32,7 +33,8 @@ module Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks
 
   type (massDistributionBetaProfile  ), public          :: coldModeMassDistribution
   class(hotHaloColdModeCoreRadiiClass), public, pointer :: hotHaloColdModeCoreRadii_
-  !$omp threadprivate(coldModeMassDistribution,hotHaloColdModeCoreRadii_)
+  class(darkMatterHaloScaleClass     ), public, pointer :: darkMatterHaloScale_
+  !$omp threadprivate(coldModeMassDistribution,hotHaloColdModeCoreRadii_,darkMatterHaloScale_)
 
 contains
 
@@ -245,17 +247,15 @@ contains
     use :: Galacticus_Nodes          , only : treeNode
     use :: Numerical_Constants_Math  , only : Pi
     implicit none
-    double precision                                         , dimension(3) :: Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral
-    type            (treeNode                ), intent(inout)               :: node
-    integer                                   , intent(in   )               :: componentType                                                  , massType
-    double precision                          , intent(in   ), dimension(3) :: positionCartesian                                              , velocityCartesian
-    double precision                                         , dimension(3) :: positionSpherical
-    class           (darkMatterHaloScaleClass), pointer                     :: darkMatterHaloScale_
-    double precision                          , parameter                   :: XvMaximum                                               =10.0d0
-    double precision                                                        :: radius                                                         , velocity         , &
-         &                                                                     density                                                        , xV
+    double precision                         , dimension(3) :: Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral
+    type            (treeNode), intent(inout)               :: node
+    integer                   , intent(in   )               :: componentType                                                  , massType
+    double precision          , intent(in   ), dimension(3) :: positionCartesian                                              , velocityCartesian
+    double precision                         , dimension(3) :: positionSpherical
+    double precision          , parameter                   :: XvMaximum                                               =10.0d0
+    double precision                                        :: radius                                                         , velocity         , &
+         &                                                     density                                                        , xV
     
-    darkMatterHaloScale_                                     => darkMatterHaloScale()
     radius                                                   =  sqrt(sum(positionCartesian**2))
     velocity                                                 =  sqrt(sum(velocityCartesian**2))
     positionSpherical                                        =  [radius,0.0d0,0.0d0]

@@ -28,6 +28,7 @@ program Test_Biases
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
   use :: Events_Hooks                        , only : eventsHooksInitialize
   use :: File_Utilities                      , only : Count_Lines_in_File
+  use :: Functions_Global_Utilities          , only : Functions_Global_Set
   use :: Galacticus_Calculations_Resets      , only : Galacticus_Calculations_Reset
   use :: Galacticus_Display                  , only : Galacticus_Verbosity_Level_Set          , verbosityStandard
   use :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
@@ -81,6 +82,7 @@ program Test_Biases
   ! Initialize.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
   call eventsHooksInitialize()
+  call Functions_Global_Set ()
   ! Specify all models to run.
   modelName           (1)='Press-Schechter'
   modelLabel          (1)='cole89_NA'

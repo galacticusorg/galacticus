@@ -28,6 +28,7 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
           &                                   darkMatterProfileDMOTruncated , darkMatterProfileDMOTruncatedExponential, darkMatterProfileHeatingTidal
   use :: Dark_Matter_Profiles_Generic, only : nonAnalyticSolversFallThrough
   use :: Events_Hooks                , only : eventsHooksInitialize
+  use :: Functions_Global_Utilities  , only : Functions_Global_Set
   use :: Galacticus_Display          , only : Galacticus_Verbosity_Level_Set, verbosityStandard
   use :: Galacticus_Nodes            , only : nodeClassHierarchyFinalize    , nodeClassHierarchyInitialize            , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
           &                                   nodeComponentSatellite        , treeNode
@@ -71,8 +72,9 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   parameterFile='testSuite/parameters/darkMatterHaloRadiusEnclosingMass.xml'
   parameters=inputParameters(parameterFile)
   call parameters%markGlobal()
-  ! Initialize event hooks.
+  ! Initialize event hooks and global functions.
   call eventsHooksInitialize()
+  call Functions_Global_Set ()
   ! Initialize node components.
   call nodeClassHierarchyInitialize     (parameters)
   call Node_Components_Initialize       (parameters)

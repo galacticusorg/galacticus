@@ -22,10 +22,12 @@
 program Test_Stellar_Populations
   !% Tests of stellar populations.
   use :: Abundances_Structure                      , only : abundances
+  use :: Functions_Global_Utilities                , only : Functions_Global_Set
   use :: Galacticus_Display                        , only : Galacticus_Verbosity_Level_Set         , verbosityWorking
   use :: Galacticus_Paths                          , only : galacticusPath                         , pathTypeDataStatic
   use :: Input_Parameters                          , only : inputParameters
   use :: ISO_Varying_String                        , only : char
+  use :: Node_Components                           , only : Node_Components_Initialize
   use :: Numerical_Constants_Astronomical          , only : metallicitySolar
   use :: Stellar_Astrophysics                      , only : stellarAstrophysics                    , stellarAstrophysicsFile
   use :: Stellar_Astrophysics_Tracks               , only : stellarTracksFile
@@ -54,7 +56,9 @@ program Test_Stellar_Populations
 
   call Galacticus_Verbosity_Level_Set(verbosityWorking)
   parameters=inputParameters()
-  call parameters %markGlobal    (                )
+  call parameters%markGlobal()
+  call Functions_Global_Set      (          )
+  call Node_Components_Initialize(parameters)
   call abundances_%metallicitySet(metallicitySolar)
   initialMassFunction_     =initialMassFunctionChabrier2001        (                                                                                                                                        &
        &                                                            massLower                          =+0.10d0                                                                                           , &

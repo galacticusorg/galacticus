@@ -19,12 +19,12 @@
 
   !% Implements a stellar population properties class based on the noninstantaneous recycling approximation.
 
-  use :: Output_Times                , only : outputTimesClass
-  use :: Stellar_Population_Selectors, only : stellarPopulationSelectorClass
+  use :: Output_Times                              , only : outputTimesClass
+  use :: Stellar_Population_Selectors              , only : stellarPopulationSelectorClass
+  use :: Stellar_Population_Broad_Band_Luminosities, only : stellarPopulationBroadBandLuminositiesClass
 
   !# <stellarPopulationProperties name="stellarPopulationPropertiesNoninstantaneous">
   !#  <description>
-
   !#   A stellar population properties class based on the noninstantaneous recycling approximation---fully non-instantaneous
   !#   recycling and metal enrichment are used. Recycling and metal production rates from simple stellar populations are computed,
   !#   for any given \gls{imf}, from stellar evolution models. The rates of change are then:
@@ -43,18 +43,19 @@
   type, extends(stellarPopulationPropertiesClass) :: stellarPopulationPropertiesNoninstantaneous
      !% A stellar population properties class based on the noninstantaneous recycling approximation.
      private
-     class (stellarPopulationSelectorClass), pointer :: stellarPopulationSelector_ => null()
-     class (outputTimesClass              ), pointer :: outputTimes_ => null()
+     class (stellarPopulationSelectorClass             ), pointer :: stellarPopulationSelector_              => null()
+     class (stellarPopulationBroadBandLuminositiesClass), pointer :: stellarPopulationBroadBandLuminosities_ => null()
+     class (outputTimesClass                           ), pointer :: outputTimes_                            => null()
      ! Count of number of elements (plus total metals) that are to be tracked.
-     integer                                         :: elementsCount
+     integer                                                      :: elementsCount
      ! Count of the number of histories required by this implementation.
-     integer                                         :: historyCount_
+     integer                                                      :: historyCount_
      ! Indices for histories.
-     integer                                         :: recycledRateIndex          , rateEnergyInputIndex     , &
-          &                                             returnedMetalRateBeginIndex, metalYieldRateBeginIndex , &
-          &                                             metalYieldRateEndIndex     , returnedMetalRateEndIndex
+     integer                                                      :: recycledRateIndex                                , rateEnergyInputIndex     , &
+          &                                                          returnedMetalRateBeginIndex                      , metalYieldRateBeginIndex , &
+          &                                                          metalYieldRateEndIndex                           , returnedMetalRateEndIndex
      ! Number of times to store in histories.
-     integer                                         :: countHistoryTimes
+     integer                                                      :: countHistoryTimes
    contains
      final     ::                  noninstantaneousDestructor
      procedure :: rates         => noninstantaneousRates
@@ -79,6 +80,7 @@ contains
     type   (stellarPopulationPropertiesNoninstantaneous)                :: self
     type   (inputParameters                            ), intent(inout) :: parameters
     class  (stellarPopulationSelectorClass             ), pointer       :: stellarPopulationSelector_
+    class  (stellarPopulationBroadBandLuminositiesClass), pointer       :: stellarPopulationBroadBandLuminosities_
     class  (outputTimesClass                           ), pointer       :: outputTimes_
     integer                                                             :: countHistoryTimes
 
@@ -88,24 +90,27 @@ contains
     !#   <description>The number of times at which a galaxy's stellar properties history is stored.</description>
     !#   <source>parameters</source>
     !# </inputParameter>
-    !# <objectBuilder class="outputTimes"               name="outputTimes_"               source="parameters"/>
-    !# <objectBuilder class="stellarPopulationSelector" name="stellarPopulationSelector_" source="parameters"/>
-    self=stellarPopulationPropertiesNoninstantaneous(countHistoryTimes,stellarPopulationSelector_,outputTimes_)
+    !# <objectBuilder class="outputTimes"                            name="outputTimes_"                            source="parameters"/>
+    !# <objectBuilder class="stellarPopulationSelector"              name="stellarPopulationSelector_"              source="parameters"/>
+    !# <objectBuilder class="stellarPopulationBroadBandLuminosities" name="stellarPopulationBroadBandLuminosities_" source="parameters"/>
+    self=stellarPopulationPropertiesNoninstantaneous(countHistoryTimes,stellarPopulationSelector_,stellarPopulationBroadBandLuminosities_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="outputTimes_"              />
-    !# <objectDestructor name="stellarPopulationSelector_"/>
-    return
+    !# <objectDestructor name="outputTimes_"                           />
+    !# <objectDestructor name="stellarPopulationSelector_"             />
+    !# <objectDestructor name="stellarPopulationBroadBandLuminosities_"/>
+   return
   end function noninstantaneousConstructorParameters
 
-  function noninstantaneousConstructorInternal(countHistoryTimes,stellarPopulationSelector_,outputTimes_) result(self)
+  function noninstantaneousConstructorInternal(countHistoryTimes,stellarPopulationSelector_,stellarPopulationBroadBandLuminosities_,outputTimes_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily noninstantaneous} stellar population properties class.
     use :: Abundances_Structure, only : Abundances_Property_Count
     implicit none
     type   (stellarPopulationPropertiesNoninstantaneous)                        :: self
     integer                                             , intent(in   )         :: countHistoryTimes
     class  (stellarPopulationSelectorClass             ), intent(in   ), target :: stellarPopulationSelector_
+    class  (stellarPopulationBroadBandLuminositiesClass), intent(in   ), target :: stellarPopulationBroadBandLuminosities_
     class  (outputTimesClass                           ), intent(in   ), target :: outputTimes_
-    !# <constructorAssign variables="countHistoryTimes, *stellarPopulationSelector_, *outputTimes_"/>
+    !# <constructorAssign variables="countHistoryTimes, *stellarPopulationSelector_, *stellarPopulationBroadBandLuminosities_, *outputTimes_"/>
 
     ! Get a count of the number of elements (plus total metals) that will be tracked.
     self%elementsCount=Abundances_Property_Count()
@@ -127,8 +132,9 @@ contains
     implicit none
     type(stellarPopulationPropertiesNoninstantaneous), intent(inout) :: self
 
-    !# <objectDestructor name="self%stellarPopulationSelector_"/>
-    !# <objectDestructor name="self%outputTimes_"              />
+    !# <objectDestructor name="self%stellarPopulationSelector_"             />
+    !# <objectDestructor name="self%stellarPopulationBroadBandLuminosities_"/>
+    !# <objectDestructor name="self%outputTimes_"                           />
     return
   end subroutine noninstantaneousDestructor
 
@@ -199,7 +205,7 @@ contains
        ! Get the stellar population.
        stellarPopulation_ => self%stellarPopulationSelector_%select(rateStarFormation,abundancesFuel,component)
        ! Set luminosity rates of change.
-       if (computeRateLuminosityStellar) call rateLuminosityStellar%setLuminosities(rateStarFormation,stellarPopulation_,currentTime,abundancesFuel)
+       if (computeRateLuminosityStellar) call rateLuminosityStellar%setLuminosities(rateStarFormation,stellarPopulation_,self%stellarPopulationBroadBandLuminosities_,currentTime,abundancesFuel)
        ! Set rates of change in the stellar populations properties future history.
        do iHistory=1,size(history_%time)-1
           ! Find the age of the forming stellar population at the future time. We average over the time between successive timesteps

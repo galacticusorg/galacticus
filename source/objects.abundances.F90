@@ -23,8 +23,9 @@ module Abundances_Structure
   !% Defines the abundances structure used for describing elemental abundances in \glc.
   implicit none
   private
-  public :: abundances, Abundances_Names, Abundances_Index_From_Name, Abundances_Atomic_Index, Abundances_Property_Count, Abundances_Get_Metallicity&
-       &, Abundances_Mass_To_Mass_Fraction, operator(*), max, abs
+  public :: Abundances_Initialize    , Abundances_Names          , Abundances_Index_From_Name      , Abundances_Atomic_Index, &
+       &    Abundances_Property_Count, Abundances_Get_Metallicity, Abundances_Mass_To_Mass_Fraction, abundances             , &
+       &    operator(*)              , max                       , abs
 
   ! Interface to multiplication operators with abundances objects as their second argument.
   interface operator(*)
@@ -117,7 +118,7 @@ module Abundances_Structure
   end interface abundances
 
   ! Count of the number of elements being tracked.
-  integer                                                                    :: elementsCount        =0
+  integer                                                                    :: elementsCount     =0
   integer                                                                    :: propertyCount
 
   ! Names (two-letter labels) of elements to track.
@@ -127,13 +128,10 @@ module Abundances_Structure
   integer                                        , allocatable, dimension(:) :: elementsIndices
 
   ! Value used to indicate a zero metallicity on logarithmic scales.
-  double precision            , parameter, public                            :: logMetallicityZero   =-99.0d0
-
-  ! Flag indicating if this module has been initialized.
-  logical                                                                    :: abundancesInitialized=.false.
+  double precision            , parameter, public                            :: logMetallicityZero=-99.0d0
 
   ! Unit and zero abundances objects.
-  type            (abundances)           , public                            :: unitAbundances               , zeroAbundances
+  type            (abundances)           , public                            :: unitAbundances            , zeroAbundances
 
   ! Enumeration specifying type of metallicity/abundance measure required.
   !# <enumeration>
@@ -163,48 +161,43 @@ module Abundances_Structure
 
 contains
 
-  subroutine Abundances_Initialize
+  !# <nodeComponentInitializationTask>
+  !#  <unitName>Abundances_Initialize</unitName>
+  !# </nodeComponentInitializationTask>
+  subroutine Abundances_Initialize(parameters_)
     !% Initialize the {\normalfont \ttfamily abundanceStructure} object module. Determines which abundances are to be tracked.
     use :: Atomic_Data      , only : Atom_Lookup
-    use :: Input_Parameters , only : globalParameters, inputParameter
+    use :: Input_Parameters , only : inputParameters
     use :: Memory_Management, only : allocateArray
     implicit none
-    integer :: iElement
-
-    ! Check if this module has been initialized already.
-    if (.not.abundancesInitialized) then
-       !$omp critical (Abundances_Module_Initialize)
-       if (.not.abundancesInitialized) then
-          ! Determine how many elements we are required to track.
-          elementsCount=globalParameters%count('elementsToTrack',zeroIfNotPresent=.true.)
-          ! Number of properties to track is one greater, as we always track total metallicity.
-          propertyCount=elementsCount+1
-          ! If tracking elements, read names of which ones to track.
-          if (elementsCount > 0) then
-             call allocateArray(elementsToTrack,[elementsCount])
-             call allocateArray(elementsIndices,[elementsCount])
-             !# <inputParameter>
-             !#   <name>elementsToTrack</name>
-             !#   <description>The names of the elements to be tracked.</description>
-             !#   <source>globalParameters</source>
-             !# </inputParameter>
-             ! Validate the input names by looking them up in the list of atomic names.
-             do iElement=1,elementsCount
-                elementsIndices(iElement)=Atom_Lookup(shortLabel=elementsToTrack(iElement))
-             end do
-          end if
-          ! Create zero and unit abundances objects.
-          call allocateArray(zeroAbundances%elementalValue,[elementsCount])
-          call allocateArray(unitAbundances%elementalValue,[elementsCount])
-          zeroAbundances%metallicityValue=0.0d0
-          zeroAbundances%  elementalValue=0.0d0
-          unitAbundances%metallicityValue=1.0d0
-          unitAbundances%  elementalValue=1.0d0
-          ! Flag that this module is now initialized.
-          abundancesInitialized=.true.
-       end if
-       !$omp end critical (Abundances_Module_Initialize)
+    type   (inputParameters), intent(inout) :: parameters_
+    integer                                 :: iElement
+    
+    ! Determine how many elements we are required to track.
+    elementsCount=parameters_%count('elementsToTrack',zeroIfNotPresent=.true.)
+    ! Number of properties to track is one greater, as we always track total metallicity.
+    propertyCount=elementsCount+1
+    ! If tracking elements, read names of which ones to track.
+    if (elementsCount > 0) then
+       call allocateArray(elementsToTrack,[elementsCount])
+       call allocateArray(elementsIndices,[elementsCount])
+       !# <inputParameter>
+       !#   <name>elementsToTrack</name>
+       !#   <description>The names of the elements to be tracked.</description>
+       !#   <source>parameters_</source>
+       !# </inputParameter>
+       ! Validate the input names by looking them up in the list of atomic names.
+       do iElement=1,elementsCount
+          elementsIndices(iElement)=Atom_Lookup(shortLabel=elementsToTrack(iElement))
+       end do
     end if
+    ! Create zero and unit abundances objects.
+    call allocateArray(zeroAbundances%elementalValue,[elementsCount])
+    call allocateArray(unitAbundances%elementalValue,[elementsCount])
+    zeroAbundances%metallicityValue=0.0d0
+    zeroAbundances%  elementalValue=0.0d0
+    unitAbundances%metallicityValue=1.0d0
+    unitAbundances%  elementalValue=1.0d0    
     return
   end subroutine Abundances_Initialize
 
@@ -213,7 +206,6 @@ contains
     implicit none
     type(abundances) :: self
 
-    call Abundances_Initialize()
     self=zeroAbundances
     return
   end function abundancesConstructorZero
@@ -269,9 +261,6 @@ contains
     character(len=22        )                :: label
     type     (varying_string)                :: message
 
-    ! Ensure module is initialized.
-    call Abundances_Initialize
-
     write (label,'(e22.16)') self%metallicityValue
     message='metallicity: '//label
     call Galacticus_Display_Message(message)
@@ -291,9 +280,6 @@ contains
     class  (abundances    ), intent(in   ) :: self
     integer                , intent(in   ) :: fileHandle
 
-    ! Ensure module is initialized.
-    call Abundances_Initialize
-    ! Dump the content.
     write (fileHandle) self%metallicityValue
     if (elementsCount > 0) write (fileHandle) self%elementalValue
     return
@@ -305,9 +291,6 @@ contains
     class  (abundances    ), intent(inout) :: self
     integer                , intent(in   ) :: fileHandle
 
-    ! Ensure module is initialized.
-    call Abundances_Initialize
-    ! Read the content.
     read (fileHandle) self%metallicityValue
     if (elementsCount > 0) read (fileHandle) self%elementalValue
     return
@@ -318,10 +301,6 @@ contains
     implicit none
     class(abundances), intent(inout) :: self
 
-    ! Ensure module is initialized.
-    call Abundances_Initialize
-
-    ! Zero all properties.
     call self%metallicitySet(0.0d0,adjustElements=adjustElementsReset)
     return
   end subroutine Abundances_Reset
@@ -331,8 +310,6 @@ contains
     implicit none
     class(abundances), intent(inout) :: self
 
-    ! Ensure module is initialized.
-    call Abundances_Initialize
     ! Ensure object is initialized.
     call Abundances_Allocate_Elemental_Values(self)
     ! Set values to unity.
@@ -345,9 +322,6 @@ contains
     !% Test whether an abundances object is zero.
     implicit none
     class(abundances), intent(in   ) :: self
-
-    ! Ensure module is initialized.
-    call Abundances_Initialize
 
     ! Detect if all abundances are zero.
     Abundances_Is_Zero=.true.
@@ -365,8 +339,6 @@ contains
     class(abundances), intent(in   )           :: abundances1
     class(abundances), intent(in   ), optional :: abundances2
 
-    ! Ensure module is initialized.
-    call Abundances_Initialize
     if (present(abundances2)) then
        Abundances_Add                       %metallicityValue=abundances1%metallicityValue+abundances2%metallicityValue
        if (elementsCount > 0) Abundances_Add%  elementalValue=abundances1%  elementalValue+abundances2%  elementalValue
@@ -383,9 +355,6 @@ contains
     class(abundances), intent(inout) :: self
     class(abundances), intent(in   ) :: increment
 
-    ! Ensure module is initialized.
-    call Abundances_Initialize
-
     self                       %metallicityValue=self%metallicityValue+increment%metallicityValue
     if (elementsCount > 0) self%elementalValue  =self%elementalValue  +increment%elementalValue
     return
@@ -398,8 +367,6 @@ contains
     class(abundances), intent(in   )           :: abundances1
     class(abundances), intent(in   ), optional :: abundances2
 
-    ! Ensure module is initialized.
-    call Abundances_Initialize
     if (present(abundances2)) then
        Abundances_Subtract                       %metallicityValue= abundances1%metallicityValue-abundances2%metallicityValue
        if (elementsCount > 0) Abundances_Subtract%  elementalValue= abundances1%  elementalValue-abundances2%  elementalValue
@@ -417,8 +384,6 @@ contains
     class           (abundances), intent(in   ) :: abundances1
     double precision            , intent(in   ) :: multiplier
 
-    ! Ensure module is initialized.
-    call Abundances_Initialize
     Abundances_Multiply                       %metallicityValue=abundances1%metallicityValue*multiplier
     if (elementsCount > 0) Abundances_Multiply%  elementalValue=abundances1%  elementalValue*multiplier
     return
@@ -464,8 +429,6 @@ contains
     class           (abundances), intent(in   ) :: abundances1
     double precision            , intent(in   ) :: divisor
 
-    ! Ensure module is initialized.
-    call Abundances_Initialize
     Abundances_Divide                       %metallicityValue=abundances1%metallicityValue/divisor
     if (elementsCount > 0) Abundances_Divide%  elementalValue=abundances1%  elementalValue/divisor
     return
@@ -475,9 +438,6 @@ contains
     !% Return the number of properties required to track abundances. This is equal to the number of elements tracked, {\normalfont \ttfamily
     !% elementsCount}, plus one since we always track a total metallicity.
     implicit none
-
-    ! Ensure module is initialized.
-    call Abundances_Initialize
 
     Abundances_Property_Count=propertyCount
     return
@@ -490,9 +450,6 @@ contains
     implicit none
     type   (varying_string)                :: Abundances_Names
     integer                , intent(in   ) :: index
-
-    ! Ensure module is initialized.
-    call Abundances_Initialize
 
     select case (index)
     case (1)
@@ -532,9 +489,6 @@ contains
     implicit none
     integer, intent(in   ) :: index
 
-    ! Ensure module is initialized.
-    call Abundances_Initialize
-
     select case (index)
     case (1)
        Abundances_Atomic_Index=0 ! Total metallicity.
@@ -567,8 +521,6 @@ contains
     class           (abundances)              , intent(inout) :: self
     double precision            , dimension(:), intent(in   ) :: abundancesArray
 
-    ! Ensure module is initialized.
-    call Abundances_Initialize
     ! Extract metallicity from array.
     self%metallicityValue=abundancesArray(1)
     ! If no individual elements are tracked, our work is done.
@@ -585,9 +537,6 @@ contains
     implicit none
     double precision            , dimension(:), intent(  out) :: abundancesArray(:)
     class           (abundances)              , intent(in   ) :: self
-
-    ! Ensure module is initialized.
-    call Abundances_Initialize
 
     ! Place metallicity into array.
     abundancesArray(1)=self%metallicityValue
@@ -610,9 +559,6 @@ contains
     class  (abundances), intent(in   )           :: self
     integer            , intent(in   ), optional :: metallicityType
     integer                                      :: metallicityTypeActual
-
-    ! Ensure module is initialized.
-    call Abundances_Initialize
 
     Abundances_Get_Metallicity=self%metallicityValue
 
@@ -653,8 +599,6 @@ contains
     integer                                               :: adjustElementsActual, iElement
     double precision                                      :: metallicityPrevious
 
-    ! Ensure module is initialized.
-    call Abundances_Initialize
     ! Store the current metallicity.
     metallicityPrevious        =self%metallicityValue
 
@@ -723,9 +667,6 @@ contains
     class           (abundances), intent(inout) :: self
     double precision            , intent(in   ) :: mass
 
-    ! Ensure module is initialized.
-    call Abundances_Initialize
-
     ! Scale metallicity first.
     if      (self%metallicityValue >  mass ) then
        self%metallicityValue=1.0d0
@@ -772,9 +713,6 @@ contains
     class           (abundances), intent(in   ) :: self
     double precision            , parameter     :: massFractionMinimum=0.7d0
 
-    ! Ensure module is initialized.
-    call Abundances_Initialize
-
     Abundances_Hydrogen_Mass_Fraction=max((self%metallicityValue/metallicitySolar)*(hydrogenByMassSolar&
          &-hydrogenByMassPrimordial)+hydrogenByMassPrimordial,massFractionMinimum)
     return
@@ -785,9 +723,6 @@ contains
     use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial, heliumByMassSolar, metallicitySolar
     implicit none
     class(abundances), intent(in   ) :: self
-
-    ! Ensure module is initialized.
-    call Abundances_Initialize
 
     Abundances_Helium_Mass_Fraction=(self%metallicityValue/metallicitySolar)*(heliumByMassSolar-heliumByMassPrimordial)&
          &+heliumByMassPrimordial
@@ -801,9 +736,6 @@ contains
     class           (abundances), intent(in   ) :: self
     double precision                            :: numberHelium, numberHydrogen
 
-    ! Ensure module is initialized.
-    call Abundances_Initialize
-
     numberHydrogen=Abundances_Hydrogen_Mass_Fraction(self)/atomicMassHydrogen
     numberHelium  =Abundances_Helium_Mass_Fraction  (self)/atomicMassHelium
     Abundances_Hydrogen_Number_Fraction=numberHydrogen/(numberHydrogen+numberHelium)
@@ -816,9 +748,6 @@ contains
     implicit none
     class           (abundances), intent(in   ) :: self
     double precision                            :: numberHelium, numberHydrogen
-
-    ! Ensure module is initialized.
-    call Abundances_Initialize
 
     numberHydrogen=Abundances_Hydrogen_Mass_Fraction(self)/atomicMassHydrogen
     numberHelium  =Abundances_Helium_Mass_Fraction  (self)/atomicMassHelium
