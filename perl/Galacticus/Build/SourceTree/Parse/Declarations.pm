@@ -231,6 +231,8 @@ sub AddAttributes {
 		    last;
 		}
 	    }
+	    last
+		if ( $declarationFound );
 	}
  	$childNode = $childNode->{'sibling'};
     }
