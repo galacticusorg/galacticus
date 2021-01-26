@@ -94,10 +94,10 @@
   type, public :: element
      !% Type used to store elemental states.
      double precision                              :: densityNumber
-     double precision, dimension(:,:), allocatable :: photoIonizationRateHistory , photoHeatingRateHistory , &
+     double precision, dimension(:,:), allocatable :: photoIonizationRateHistory    , photoHeatingRateHistory , &
           &                                           ionizationStateFractionHistory
-     double precision, dimension(:  ), allocatable :: photoIonizationRate        , photoHeatingRate        , &
-          &                                           photoIonizationRatePrevious, photoHeatingRatePrevious, &
+     double precision, dimension(:  ), allocatable :: photoIonizationRate           , photoHeatingRate        , &
+          &                                           photoIonizationRatePrevious   , photoHeatingRatePrevious, &
           &                                           ionizationStateFraction
   end type element
   
@@ -118,7 +118,7 @@
 
   ! Tolerance parameters.
   double precision                                         , parameter                   :: atomicIonizationStateFractionToleranceAbsolute=1.0d-12, atomicIonizationStateFractionToleranceRelative=1.0d-2
-  double precision                                         , parameter                   :: temperatureToleranceRelative                  =1.0d-02, temperatureToleranceAbsolute                  =1.0d+0
+  double precision                                         , parameter                   :: temperatureToleranceRelative                  =1.0d-03, temperatureToleranceAbsolute                  =1.0d+0
   double precision                                         , parameter                   :: temperatureMaximum                            =1.0d+10
 
 contains
@@ -961,7 +961,12 @@ contains
              ! Solve for temperature - updating only if we find a solution in range.
              temperatureEquilibrium=self%finder%find(rootGuess=properties%temperature,status=statusTemperature)
              if (statusTemperature == errorStatusSuccess) then
-                properties%temperature=temperatureEquilibrium
+                if (countIteration > 1 .and. abs(log10(properties%temperature/temperatureEquilibrium)) > 3.0d0) then
+                   ! If a large change in temperature occurs, geometrically bisect with the previous temperature.
+                   properties%temperature=sqrt(temperatureEquilibrium*properties%temperature)
+                else
+                   properties%temperature=     temperatureEquilibrium
+                end if
              else
                 ! Temperature solution failed. Attempt to adjust the temperature slightly to allow us to find a solution on
                 ! subsequent iterations.
