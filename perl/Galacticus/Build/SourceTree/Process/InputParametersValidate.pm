@@ -36,15 +36,18 @@ sub Process_InputParametersValidate {
 	    # Record that this directive has been processed.
 	    $node->{'directive'}->{'processed'} =  1;
 	    # Determine the parameter source.
-	    my $source = exists($node->{'directive'}->{'source'}) ? $node->{'directive'}->{'source'} : "globalParameters";
+	    die("Galacticus::Build::SourceTree::Process::InputParametersValidate::Process_InputParametersValidate(): no source given")
+		unless ( exists($node->{'directive'}->{'source'}) );
+	    my $source = $node->{'directive'}->{'source'};
 	    # Step through sibling nodes looking for input parameter directives.
 	    my @objectBuilders;
 	    my $sibling = $node->{'parent'}->{'firstChild'};
 	    while ( $sibling ) {
 		if ( $sibling->{'type'} eq "objectBuilder" ) {
-		    my $objectBuilderSource = exists($sibling->{'directive'}->{'source'}) ? $sibling->{'directive'}->{'source'} : "globalParameters";
+		    die("Galacticus::Build::SourceTree::Process::InputParametersValidate::Process_InputParametersValidate(): no source given")
+			unless ( exists($sibling->{'directive'}->{'source'}) );
 		    push(@objectBuilders,$sibling->{'directive'})
-			if ( $objectBuilderSource eq $source );
+			if ( $sibling->{'directive'}->{'source'} eq $source );
 		}
 		$sibling = $sibling->{'sibling'};
 	    }
