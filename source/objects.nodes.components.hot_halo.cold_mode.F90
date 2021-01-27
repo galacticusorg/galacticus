@@ -699,7 +699,7 @@ contains
     class(nodeComponentHotHalo), pointer       :: hotHaloParent, hotHalo
     !$GLC attributes unused :: self
 
-    hotHalo       => node      %hotHalo(                 )
+    hotHalo       => node      %hotHalo(autoCreate=.true.)
     nodeParent    => node      %parent
     hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
     ! If the parent node has a hot halo component, then add its cold mode to that of this node,
