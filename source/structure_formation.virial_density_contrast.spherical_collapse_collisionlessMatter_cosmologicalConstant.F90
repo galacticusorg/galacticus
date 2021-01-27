@@ -84,8 +84,8 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseClsnlssMttrCsmlgclCnstnt} dark matter halo virial density contrast class.
     implicit none
     type   (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)                        :: self
-    class  (cosmologyFunctionsClass                                        ), intent(in   ), target :: cosmologyFunctions_
-    logical                                                                 , intent(in   )         :: tableStore
+    class  (cosmologyFunctionsClass                                       ), intent(in   ), target :: cosmologyFunctions_
+    logical                                                                , intent(in   )         :: tableStore
     !# <constructorAssign variables="tableStore, *cosmologyFunctions_"/>
 
     self%tableInitialized     =.false.
