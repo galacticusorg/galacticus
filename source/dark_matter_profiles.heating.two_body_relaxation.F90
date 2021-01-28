@@ -94,9 +94,8 @@ contains
     !% circular velocity at $r$. The Coulomb logarithm is given by $\log\Lambda=\hbox{max}(\epsilon,b_{90})$ where $\epsilon$ is
     !% the softening length, $b_{90}=2\mathrm{G}m_\mathrm{p}/V^2(r)$, and $m_\mathrm{p}$ is the particle mass. Finally, the
     !% specific energy is assumed to be $\sigma^2(r)/2\approx V^2(r)/4$.
-    use :: Galacticus_Nodes                , only : nodeComponentBasic             , treeNode
-    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
-    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
+    use :: Galacticus_Nodes                , only : nodeComponentBasic, treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear          , megaParsec, gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (darkMatterProfileHeatingTwoBodyRelaxation), intent(inout) :: self
@@ -148,7 +147,7 @@ contains
 
   double precision function twoBodyRelaxationSpecificEnergyGradient(self,node,darkMatterProfileDMO_,radius)
     !% Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
-    use :: Galacticus_Nodes            , only : nodeComponentBasic             , treeNode
+    use :: Galacticus_Nodes                , only : nodeComponentBasic             , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileHeatingTwoBodyRelaxation), intent(inout) :: self
