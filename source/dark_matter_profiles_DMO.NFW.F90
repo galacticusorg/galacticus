@@ -344,13 +344,14 @@ contains
     double precision                                                :: radiusOverScaleRadius         , scaleRadius, &
          &                                                             virialRadiusOverScaleRadius
 
-    basic             => node%basic            (                 )
-    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
-    scaleRadius                    =darkMatterProfile%scale()
-    radiusOverScaleRadius          =radius                       /scaleRadius
-    virialRadiusOverScaleRadius    =self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
-    nfwDensity=self%densityScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius)&
-         &*basic%mass()/scaleRadius**3
+    basic                          => node             %basic            (                 )
+    darkMatterProfile              => node             %darkMatterProfile(autoCreate=.true.)
+    scaleRadius                    =  darkMatterProfile%scale            (                 )
+    radiusOverScaleRadius          =                                    radius      /scaleRadius
+    virialRadiusOverScaleRadius    =   self %darkMatterHaloScale_%virialRadius(node)/scaleRadius
+    nfwDensity                     =  +self %densityScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius) &
+         &                            *basic%mass            (                                                 ) &
+         &                            /      scaleRadius**3
     return
   end function nfwDensity
 
@@ -424,17 +425,19 @@ contains
       double precision, intent(in   ) :: radius
 
       if (Values_Agree(moment,0.0d0,absTol=1.0d-6)) then
-         nfwRadialMomentScaleFree=+1.0d0/     (1.0d0+      radius) &
-              &                   -2.0d0*atanh(1.0d0+2.0d0*radius)
+         ! Take the real part of this improper integral. The imaginary parts must cancel when taking differences to compute a
+         ! proper integral.
+         nfwRadialMomentScaleFree=+1.0d0/                 (1.0d0+      radius        ) &
+              &                   -2.0d0*real(atanh(dcmplx(1.0d0+2.0d0*radius,0.0d0)))
       else if (Values_Agree(moment,1.0d0,absTol=1.0d-6)) then
-         nfwRadialMomentScaleFree=-1.0d0/     (1.0d0      +radius)
+         nfwRadialMomentScaleFree=-1.0d0/                 (1.0d0      +radius        )
       else if (Values_Agree(moment,2.0d0,absTol=1.0d-6)) then
-         nfwRadialMomentScaleFree=+1.0d0/     (1.0d0      +radius) &
-              &                   +      log  (1.0d0      +radius)
+         nfwRadialMomentScaleFree=+1.0d0/                 (1.0d0      +radius        ) &
+              &                   +      log              (1.0d0      +radius        )
       else if (Values_Agree(moment,3.0d0,absTol=1.0d-6)) then
-         nfwRadialMomentScaleFree=+                        radius  &
-              &                   -1.0d0/     (1.0d0      +radius) &
-              &                   -2.0d0*log  (1.0d0      +radius)
+         nfwRadialMomentScaleFree=+                                    radius          &
+              &                   -1.0d0/                 (1.0d0      +radius        ) &
+              &                   -2.0d0*log              (1.0d0      +radius        )
       else
          nfwRadialMomentScaleFree=+(1.0d0+radius)**(moment-1.0d0)                                                     &
               &                   /moment                                                                             &
