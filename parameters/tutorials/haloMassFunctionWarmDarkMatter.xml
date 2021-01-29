@@ -9,6 +9,11 @@
     <haloMassMinimum value="1.0e7"/>    
   </taskMethod>
 
+  <!-- Component selection -->
+  <treeNodeMethodBasic             value="standard"/>
+  <treeNodeMethodDarkMatterProfile value="scale"   />
+  <darkMatterProfileMinimumConcentration value="1.0"/>
+
   <!-- Use a thermal WDM particle - mass is in keV -->
   <darkMatterParticleMethod value="WDMThermal">
     <degreesOfFreedomEffective value="1.5" />

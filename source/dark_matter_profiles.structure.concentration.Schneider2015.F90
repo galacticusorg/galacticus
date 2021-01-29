@@ -62,10 +62,11 @@
   end interface darkMatterProfileConcentrationSchneider2015
 
   ! Module-scope variables for root finding.
-  class           (darkMatterProfileConcentrationSchneider2015), pointer  :: schneider2015Self
-  double precision                                                        :: schneider2015MassReferencePrevious       , schneider2015TimeCollapseReference            , &
-       &                                                                     schneider2015Time                        , schneider2015ReferenceCollapseMassRootPrevious
-  !$omp threadprivate(schneider2015Self,schneider2015MassReferencePrevious,schneider2015TimeCollapseReference,schneider2015Time,schneider2015ReferenceCollapseMassRootPrevious)
+  class           (darkMatterProfileConcentrationSchneider2015), pointer  :: self_
+  double precision                                                        :: massReferencePrevious, timeCollapseReference            , &
+       &                                                                     time_                , referenceCollapseMassRootPrevious, &
+       &                                                                     timeNowReference
+  !$omp threadprivate(self_,massReferencePrevious,timeCollapseReference,time_,timeNowReference,referenceCollapseMassRootPrevious)
 
   ! Upper limit to the reference mass used during root finding.
   double precision                                             , parameter :: massReferenceMaximum             =1.0d20
@@ -164,48 +165,51 @@ contains
     class           (darkMatterProfileConcentrationSchneider2015), intent(inout), target  :: self
     type            (treeNode                                   ), intent(inout), target  :: node
     class           (nodeComponentBasic                         )               , pointer :: basic
-    double precision                                                                      :: mass                                            , &
-         &                                                                                   collapseCriticalOverdensity       , timeCollapse, &
-         &                                                                                   massReference                     , variance    , &
+    double precision                                                                      :: mass                                     , &
+         &                                                                                   collapseCriticalOverdensity, timeCollapse, &
+         &                                                                                   massReference              , variance    , &
          &                                                                                   timeNow
 
     ! Get the basic component and the halo mass and time.
-    basic             => node %basic()
-    mass              =  basic%mass ()
-    schneider2015Time =  basic%time ()
+    basic => node %basic()
+    mass  =  basic%mass ()
+    time_ =  basic%time ()
     ! Find critical overdensity at collapse for this node. The critical overdensity at collapse is scaled by a factor
-    ! σ(M,t₀)/σ(M,t) because the definition of critical overdensity in Galacticus does not include the 1/D(t) factor that is
-    ! included in the definition used by Schneider et al. (2015).
-    timeNow =self%cosmologyFunctions_%cosmicTime(1.0d0)
-    variance=max(                                                                                                    &
-         &       +0.0d0                                                                                            , &
-         &       +self%cosmologicalMassVariance_%rootVariance(mass*self%massFractionFormation,schneider2015Time)**2  &
-         &       -self%cosmologicalMassVariance_%rootVariance(mass                           ,schneider2015Time)**2  &
-         &      )
-    collapseCriticalOverdensity=+(                                                                               &
-         &                        +sqrt(                                                                         &
-         &                              +Pi                                                                      &
-         &                              /2.0d0                                                                   &
-         &                              *variance                                                                &
-         &                             )                                                                         &
-         &                        +self%criticalOverdensity_     %value       (time=schneider2015Time,mass=mass) &
-         &                       )                                                                               &
-         &                      *  self%cosmologicalMassVariance_%rootVariance(time=timeNow          ,mass=mass) &
-         &                      /  self%cosmologicalMassVariance_%rootVariance(time=schneider2015Time,mass=mass)
+    ! σ(M,t₀)/σ(M,t), as the "timeOfCollapse" function expects a critical overdensity divided by the linear growth factor. (This
+    ! is because the definition of critical overdensity in Galacticus does not include the 1/D(t) factor that is included in the
+    ! definition used by Schneider et al. (2015).)
+    timeNow                    =     self%cosmologyFunctions_        %cosmicTime  (1.0d0                                )
+    timeNowReference           =     self%referenceCosmologyFunctions%cosmicTime  (1.0d0                                )
+    variance                   =max(                                                                                          &
+         &                          +0.0d0                                                                                  , &
+         &                          +self%cosmologicalMassVariance_  %rootVariance(mass*self%massFractionFormation,time_)**2  &
+         &                          -self%cosmologicalMassVariance_  %rootVariance(mass                           ,time_)**2  &
+         &                         )
+    collapseCriticalOverdensity=+(                                                                         &
+         &                        +sqrt(                                                                   &
+         &                              +Pi                                                                &
+         &                              /2.0d0                                                             &
+         &                              *variance                                                          &
+         &                             )                                                                   &
+         &                        +  self%criticalOverdensity_       %value       (time=time_  ,mass=mass) &
+         &                       )                                                                         &
+         &                      *    self%cosmologicalMassVariance_  %rootVariance(time=timeNow,mass=mass) &
+         &                      /    self%cosmologicalMassVariance_  %rootVariance(time=time_  ,mass=mass)
+
     ! Compute the corresponding epoch of collapse.
-    timeCollapse                      =self%criticalOverdensity_%timeOfCollapse(collapseCriticalOverdensity,mass)
+    timeCollapse         =self%criticalOverdensity_%timeOfCollapse(collapseCriticalOverdensity,mass)
     ! Compute time of collapse in the reference model, assuming same redshift of collapse in both models.
-    schneider2015TimeCollapseReference=self%referenceCosmologyFunctions%cosmicTime(self%cosmologyFunctions_%expansionFactor(timeCollapse))
+    timeCollapseReference=self%referenceCosmologyFunctions%cosmicTime(self%cosmologyFunctions_%expansionFactor(timeCollapse))
     ! Find the mass of a halo collapsing at the same time in the reference model.
-    schneider2015Self                  => self
-    schneider2015MassReferencePrevious =  -1.0d0
+    self_                  => self
+    massReferencePrevious =  -1.0d0
     if (schneider2015ReferenceCollapseMassRoot(massReferenceMaximum) > 0.0d0) then
        ! No solution can be found even at the maximum allowed mass. Simply set the reference mass to the maximum allowed mass -
        ! the choice shouldn't matter too much as the abundances of such halos should be hugely suppressed.
        massReference        =massReferenceMaximum
     else
        massReference        =self%finder%find(rootGuess=mass)
-    end if
+    end if    
     ! Compute the concentration of a node of this mass in the reference model.
     call basic%massSet(massReference)
     schneider2015Concentration=self%referenceConcentration%concentration(node)
@@ -219,24 +223,34 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: massReference
-    double precision                :: variance
+    double precision                :: variance     , collapseCriticalOverdensity
 
-    if (massReference /= schneider2015MassReferencePrevious) then
-       schneider2015MassReferencePrevious            =+massReference
-       variance                                      =max(                                                                                                                                               &
-            &                                             +0.0d0                                                                                                                                       , &
-            &                                             +schneider2015Self%referenceCosmologicalMassVariance%rootVariance(massReference*schneider2015Self%massFractionFormation,schneider2015Time)**2  &
-            &                                             -schneider2015Self%referenceCosmologicalMassVariance%rootVariance(massReference                                        ,schneider2015Time)**2  &
-            &                                            )
-       schneider2015ReferenceCollapseMassRootPrevious=+sqrt(                                                                                                                                             &
-            &                                               +Pi                                                                                                                                          &
-            &                                               /2.0d0                                                                                                                                       &
-            &                                               *variance                                                                                                                                    &
-            &                                              )                                                                                                                                             &
-            &                                         +schneider2015Self%referenceCriticalOverdensity%value(time=schneider2015Time                 ,mass=massReference)                                  &
-            &                                         -schneider2015Self%referenceCriticalOverdensity%value(time=schneider2015TimeCollapseReference,mass=massReference)
+    if (massReference /= massReferencePrevious) then
+       massReferencePrevious            =+massReference
+       variance                         =max(                                                                                                           &
+            &                                +0.0d0                                                                                                   , &
+            &                                +self_%referenceCosmologicalMassVariance%rootVariance(massReference*self_%massFractionFormation,time_)**2  &
+            &                                -self_%referenceCosmologicalMassVariance%rootVariance(massReference                            ,time_)**2  &
+            &                               )
+       ! Find critical overdensity at collapse for this node. The critical overdensity at collapse is scaled by a factor
+       ! σ(M,t₀)/σ(M,t), as the "timeOfCollapse" function expects a critical overdensity divided by the linear growth factor. (This
+       ! is because the definition of critical overdensity in Galacticus does not include the 1/D(t) factor that is included in the
+       ! definition used by Schneider et al. (2015).)
+       collapseCriticalOverdensity=+(                                                                                                &
+            &                        +sqrt(                                                                                          &
+            &                              +Pi                                                                                       &
+            &                              /2.0d0                                                                                    &
+            &                              *variance                                                                                 &
+            &                             )                                                                                          &
+            &                        +self_%referenceCriticalOverdensity     %value       (time=time_           ,mass=massReference) &
+            &                       )                                                                                                &
+            &                      *  self_%referenceCosmologicalMassVariance%rootVariance(time=timeNowReference,mass=massReference) &
+            &                      /  self_%referenceCosmologicalMassVariance%rootVariance(time=time_           ,mass=massReference)
+       ! Construct the root to get collapse at the required collapse time in the reference model.
+       referenceCollapseMassRootPrevious=-self_%referenceCriticalOverdensity%timeOfCollapse       (collapseCriticalOverdensity,massReference) &
+            &                            +                                   timeCollapseReference
     end if
-    schneider2015ReferenceCollapseMassRoot=schneider2015ReferenceCollapseMassRootPrevious
+    schneider2015ReferenceCollapseMassRoot=referenceCollapseMassRootPrevious    
     return
   end function schneider2015ReferenceCollapseMassRoot
 
