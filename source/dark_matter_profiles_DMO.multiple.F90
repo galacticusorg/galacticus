@@ -22,7 +22,10 @@
   !% An implementation of multiple dark matter halo profiles which allow different profiles for the host and the satellite.
 
   !# <darkMatterProfileDMO name="darkMatterProfileDMOMultiple">
-  !#  <description>Multiple dark matter halo profiles.</description>
+  !#  <description>
+  !#   A dark matter profile DMO class in which the density profiles of the host halo and the satellite halo can be set separately
+  !#   to any other {\normalfont \ttfamily darkMatterProfileMethod} available.
+  !#  </description>
   !# </darkMatterProfileDMO>
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOMultiple
      !% A dark matter halo profile class implementing multiple dark matter halos which allow different profiles for the host and the satellite.
