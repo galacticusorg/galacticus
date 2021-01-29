@@ -267,7 +267,7 @@
     <!-- Node evolution and physics -->
     <nodeOperatorMethod value="multi">
       <!-- Halo spins -->
-      <nodeOperatorMethod value="haloSpinRandom">
+      <nodeOperatorMethod value="haloSpinRandom" iterable="no">
 	<factorReset value="2.0"/>
       </nodeOperatorMethod>
       <!-- Star formation -->

@@ -10,6 +10,11 @@
 
   <!-- Node evolution and physics -->
   <nodeOperatorMethod value="multi">
+    <!-- Halo spins -->
+    <nodeOperatorMethod value="haloSpinRandom">
+      <factorReset value="2.0"/>
+    </nodeOperatorMethod>
+    <!-- Star formation -->
     <nodeOperatorMethod value="starFormationDisks"/>
     <nodeOperatorMethod value="starFormationSpheroids"/>
     <!--Stellar feedback outflows-->

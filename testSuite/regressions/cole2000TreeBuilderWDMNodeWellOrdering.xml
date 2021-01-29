@@ -196,6 +196,11 @@
     <mergerTreeEvolveTimestepMethod value="satellite"/>
   </mergerTreeEvolveTimestepMethod>
 
+  <!-- Node physics -->
+  <nodeOperatorMethod value="haloSpinRandom">
+    <factorReset value="2.0"/>
+  </nodeOperatorMethod>
+
   <!-- Output file -->
   <galacticusOutputFileName value="testSuite/outputs/regressions/cole2000TreeBuilderWDMNodeWellOrdering.hdf5"/>
 
