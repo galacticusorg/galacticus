@@ -29,6 +29,9 @@
 
   <!-- Node evolution and physics -->
   <nodeOperatorMethod value="multi">
+    <nodeOperatorMethod value="haloSpinRandom">
+      <factorReset value="2.0"/>
+    </nodeOperatorMethod>
     <nodeOperatorMethod value="starFormationDisks"/>
     <nodeOperatorMethod value="starFormationSpheroids"/>
     <!--Stellar feedback outflows-->
