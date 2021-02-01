@@ -293,7 +293,7 @@
         </stellarFeedbackOutflowsMethod>
       </nodeOperatorMethod>
       <!-- Bar instability in galactic disks -->
-      <nodeOperatorMethod value="barInstability">
+      <nodeOperatorMethod value="barInstability" iterable="no">
 	<galacticDynamicsBarInstabilityMethod value="efstathiou1982">
 	  <stabilityThresholdGaseous value="0.7"/>
 	  <stabilityThresholdStellar value="1.1"/>
