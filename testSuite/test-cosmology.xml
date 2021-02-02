@@ -22,26 +22,6 @@
       <OmegaDarkEnergy value="0.75"/>
       <OmegaDarkEnergy value="0.00"/>
     </cosmologyParametersMethod>
-    <nodeOperatorMethod value="multi"><!--Stellar feedback outflows-->
-      <nodeOperatorMethod value="stellarFeedbackDisks">
-        <stellarFeedbackOutflowsMethod value="rateLimit">
-          <timescaleOutflowFractionalMinimum value="0.001"/>
-          <stellarFeedbackOutflowsMethod value="powerLaw">
-            <velocityCharacteristic value="250.0"/>
-            <exponent value="3.5"/>
-          </stellarFeedbackOutflowsMethod>
-        </stellarFeedbackOutflowsMethod>
-      </nodeOperatorMethod>
-      <nodeOperatorMethod value="stellarFeedbackSpheroids">
-        <stellarFeedbackOutflowsMethod value="rateLimit">
-          <timescaleOutflowFractionalMinimum value="0.001"/>
-          <stellarFeedbackOutflowsMethod value="powerLaw">
-            <velocityCharacteristic value="250.0"/>
-            <exponent value="3.5"/>
-          </stellarFeedbackOutflowsMethod>
-        </stellarFeedbackOutflowsMethod>
-      </nodeOperatorMethod>
-    </nodeOperatorMethod>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
@@ -51,25 +31,5 @@
       <OmegaMatter value="1.25"/>
       <OmegaDarkEnergy value="0.00"/>
     </cosmologyParametersMethod>
-    <nodeOperatorMethod value="multi"><!--Stellar feedback outflows-->
-      <nodeOperatorMethod value="stellarFeedbackDisks">
-        <stellarFeedbackOutflowsMethod value="rateLimit">
-          <timescaleOutflowFractionalMinimum value="0.001"/>
-          <stellarFeedbackOutflowsMethod value="powerLaw">
-            <velocityCharacteristic value="250.0"/>
-            <exponent value="3.5"/>
-          </stellarFeedbackOutflowsMethod>
-        </stellarFeedbackOutflowsMethod>
-      </nodeOperatorMethod>
-      <nodeOperatorMethod value="stellarFeedbackSpheroids">
-        <stellarFeedbackOutflowsMethod value="rateLimit">
-          <timescaleOutflowFractionalMinimum value="0.001"/>
-          <stellarFeedbackOutflowsMethod value="powerLaw">
-            <velocityCharacteristic value="250.0"/>
-            <exponent value="3.5"/>
-          </stellarFeedbackOutflowsMethod>
-        </stellarFeedbackOutflowsMethod>
-      </nodeOperatorMethod>
-    </nodeOperatorMethod>
   </parameters>
 </parameterGrid>
