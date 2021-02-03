@@ -963,7 +963,7 @@ contains
           message=message//" : "//label
           write (label,'(e12.6)') yError                           (i)
           message=message//" : "//label
-          if (yTolerance(i) /= 0.0d0) then
+          if (exponent(yError(i))-exponent(yTolerance(i)) < maxExponent(0.0d0)) then
              stepFactor=abs(yError(i))/yTolerance(i)
              write (label,'(e12.6)') stepFactor
           else
