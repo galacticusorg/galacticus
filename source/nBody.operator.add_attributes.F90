@@ -78,9 +78,9 @@ contains
 
   subroutine addAttributesOperate(self,simulations)
     !% Add attributes to the simulations.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent , Galacticus_Display_Unindent, verbosityStandard
+    use :: Display      , only : displayIndent, displayUnindent, verbosityLevelStandard
 #ifdef USEMPI
-    use :: MPI_Utilities     , only : mpiSelf
+    use :: MPI_Utilities, only : mpiSelf
 #endif
     implicit none
     class  (nbodyOperatorAddAttributes), intent(inout)               :: self
@@ -90,7 +90,7 @@ contains
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Indent('add attributes',verbosityStandard)
+       call displayIndent('add attributes',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif
@@ -102,7 +102,7 @@ contains
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Unindent('done',verbosityStandard)
+       call displayUnindent('done',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif

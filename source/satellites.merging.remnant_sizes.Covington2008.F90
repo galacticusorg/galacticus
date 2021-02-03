@@ -19,8 +19,8 @@
 
   !% Implements a merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.
 
-  use :: Kind_Numbers                           , only : kind_int8
   use :: Dark_Matter_Halo_Scales                , only : darkMatterHaloScaleClass
+  use :: Kind_Numbers                           , only : kind_int8
   use :: Satellite_Merging_Progenitor_Properties, only : mergerProgenitorPropertiesClass
 
   !# <mergerRemnantSize name="mergerRemnantSizeCovington2008">
@@ -121,7 +121,7 @@ contains
 
   subroutine covington2008AutoHook(self)
     !% Attach to the calculation reset event.
-    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels, satelliteMergerEvent
     implicit none
     class(mergerRemnantSizeCovington2008), intent(inout) :: self
 
@@ -180,11 +180,11 @@ contains
   
   subroutine covington2008Get(self,node,radius,velocityCircular,angularMomentumSpecific)
     !% Compute the size of the merger remnant for {\normalfont \ttfamily node} using the \cite{covington_predicting_2008} algorithm.
-    use :: Galacticus_Display          , only : Galacticus_Display_Message     , Galacticus_Verbosity_Level, verbosityWarn
-    use :: Galacticus_Error            , only : Galacticus_Error_Report        , Galacticus_Warn
-    use :: Numerical_Comparison        , only : Values_Agree
+    use :: Display                         , only : displayMessage                 , displayVerbosity, verbosityLevelWarn
+    use :: Galacticus_Error                , only : Galacticus_Error_Report        , Galacticus_Warn
+    use :: Numerical_Comparison            , only : Values_Agree
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: String_Handling             , only : operator(//)
+    use :: String_Handling                 , only : operator(//)
     implicit none
     class           (mergerRemnantSizeCovington2008), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -263,7 +263,7 @@ contains
                 joinString=", "
              end if
              message=message//' (radius:mass:spheroidMass='//trim(dataString)//')'
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
              errorCondition=.true.
           end if
           if     (                                             &
@@ -293,7 +293,7 @@ contains
                 joinString=", "
              end if
              message=message//' (radius:mass:spheroidMass='//trim(dataString)//')'
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
              errorCondition=.true.
           end if
           if (errorCondition) then
@@ -330,7 +330,7 @@ contains
              self%velocityCircular=sqrt(gravitationalConstantGalacticus*(massSpheroidSatellite+massSpheroidHost)/self%radius)
              self%angularMomentumSpecific=self%radius*self%velocityCircular*factorAngularMomentum
              ! Check that the specific angular momentum is reasonable.
-             if (.not.self%warningIssued.and.Galacticus_Verbosity_Level() >= verbosityWarn) then
+             if (.not.self%warningIssued.and.displayVerbosity() >= verbosityLevelWarn) then
                 radiusVirial  =self%darkMatterHaloScale_%virialRadius  (nodeHost)
                 velocityVirial=self%darkMatterHaloScale_%virialVelocity(nodeHost)
                 if (angularMomentumSpecific < fractionAngularMomentumSpecificSmall*radiusVirial*velocityVirial) then

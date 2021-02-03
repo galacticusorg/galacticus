@@ -5,7 +5,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
-  <verbosityLevel value="2"/>
+  <verbosityLevel value="working"/>
   <taskMethod value="AGNSpectraHopkins2008BuildFile"/>
 
   <nodeOperatorMethod value="multi"><!--Stellar feedback outflows-->

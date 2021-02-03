@@ -32,9 +32,9 @@ contains
 
   subroutine Test_Node_Task(node)
     !% Implements simple tests of mapping functions over all components in a \gls{node}.
-    use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
-    use :: Galacticus_Nodes  , only : nodeComponent                 , nodeComponentBlackHole, reductionSummation, treeNode
-    use :: Unit_Tests        , only : Assert
+    use :: Display         , only : displayVerbositySet, verbosityLevelStandard
+    use :: Galacticus_Nodes, only : nodeComponent      , nodeComponentBlackHole, reductionSummation, treeNode
+    use :: Unit_Tests      , only : Assert
     implicit none
     type            (treeNode       ), intent(inout) :: node
     procedure       (testVoidFunc   ), pointer       :: myFuncVoid    => testVoidFunc
@@ -43,7 +43,7 @@ contains
     double precision                                 :: mapResult
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
     ! Create a black hole component.
     component => node%blackHole(autoCreate=.true.)

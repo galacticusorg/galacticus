@@ -75,7 +75,7 @@ contains
 
   subroutine maximumLikelihoodInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
     !% Initialize simulation state by drawing at random from the parameter priors.
-    use :: Galacticus_Display          , only : Galacticus_Display_Message
+    use :: Display                     , only : displayMessage
     use :: Galacticus_Error            , only : Galacticus_Error_Report
     use :: MPI_Utilities               , only : mpiSelf
     use :: Models_Likelihoods_Constants, only : logImpossible
@@ -146,7 +146,7 @@ contains
                &  ' -> value   = '       //trim(labelValue  )                             //char(10)// &
                &  ' -> minimum = '       //trim(labelMinimum)                             //char(10)// &
                &  ' -> maximum = '       //trim(labelMaximum)
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end if
     end do
     ! Deallocate the state vector.

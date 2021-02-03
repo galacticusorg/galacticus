@@ -122,11 +122,11 @@ contains
 
   double precision function zhangHuiProbability(self,variance,time,node)
     !% Return the excursion set barrier at the given variance and time.
-    use            :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-          &                                      verbosityWorking
-    use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: Memory_Management , only : allocateArray             , deallocateArray
-    use            :: Numerical_Ranges  , only : Make_Range                , rangeTypeLinear                 , rangeTypeLogarithmic
+    use            :: Display          , only : displayCounter       , displayCounterClear, displayIndent       , displayUnindent, &
+          &                                     verbosityLevelWorking
+    use, intrinsic :: ISO_C_Binding    , only : c_size_t
+    use            :: Memory_Management, only : allocateArray        , deallocateArray
+    use            :: Numerical_Ranges , only : Make_Range           , rangeTypeLinear    , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout)  :: self
     double precision                                   , intent(in   )  :: variance         , time
@@ -169,10 +169,10 @@ contains
        self%varianceTableStep=+self%varianceTable(1) &
             &                 -self%varianceTable(0)
        ! Loop through the table and solve for the first crossing distribution.
-       call Galacticus_Display_Indent("solving for excursion set barrier crossing probabilities",verbosityWorking)
+       call displayIndent("solving for excursion set barrier crossing probabilities",verbosityLevelWorking)
        do iTime=1,self%timeTableCount
           do i=0,self%varianceTableCount
-             call Galacticus_Display_Counter(int(100.0d0*dble(i+(iTime-1)*self%varianceTableCount)/dble(self%varianceTableCount*self%timeTableCount)),i==0 .and. iTime==1,verbosityWorking)
+             call displayCounter(int(100.0d0*dble(i+(iTime-1)*self%varianceTableCount)/dble(self%varianceTableCount*self%timeTableCount)),i==0 .and. iTime==1,verbosityLevelWorking)
              if      (i  > 2) then
                 summedProbability=0.0d0
                 do j=1,i-1
@@ -215,8 +215,8 @@ contains
              end if
           end do
        end do
-       call Galacticus_Display_Counter_Clear(verbosityWorking)
-       call Galacticus_Display_Unindent("done",verbosityWorking)
+       call displayCounterClear(verbosityLevelWorking)
+       call displayUnindent("done",verbosityLevelWorking)
        ! Build the interpolators.
        if (allocated(self%interpolatorVariance)) deallocate(self%interpolatorVariance)
        if (allocated(self%interpolatorTime    )) deallocate(self%interpolatorTime    )
@@ -345,7 +345,7 @@ contains
   double precision function zhangHuiG2Integrated(self,variance,deltaVariance,time,node)
     !% Integrated function $g_2(S,S^\prime)$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
     use :: Numerical_Comparison , only : Values_Differ
-    use :: Numerical_Integration, only : integrator   , GSL_Integ_Gauss15
+    use :: Numerical_Integration, only : GSL_Integ_Gauss15, integrator
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout) :: self
     double precision                                   , intent(in   ) :: deltaVariance                 , time           , &

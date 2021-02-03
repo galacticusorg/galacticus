@@ -19,8 +19,8 @@
 
 !% Contains a module which implements an N-body data operator which exports N-body data to IRATE format.
 
-  use :: Cosmology_Parameters, only : cosmologyParametersClass
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <nbodyOperator name="nbodyOperatorExportIRATE">
   !#  <description>An N-body data operator which exports N-body data to IRATE format.</description>
@@ -108,9 +108,9 @@ contains
 
   subroutine exportIRATEOperate(self,simulations)
     !% Output simulation data to an IRATE-format file.
-    use :: Galacticus_Display              , only : Galacticus_Display_Indent, Galacticus_Display_Unindent, verbosityStandard
+    use :: Display                         , only : displayIndent          , displayUnindent, verbosityLevelStandard
     use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: IO_HDF5                         , only : hdf5Object, hdf5Access
+    use :: IO_HDF5                         , only : hdf5Access             , hdf5Object
     use :: IO_IRATE                        , only : irate
     use :: ISO_Varying_String              , only : char
     use :: Numerical_Constants_Astronomical, only : massSolar
@@ -129,7 +129,7 @@ contains
     integer                                                                   :: i
     type            (varying_string          )                                :: datasetDescription, unitName
 
-    call Galacticus_Display_Indent('export simulation to IRATE file',verbosityStandard)
+    call displayIndent('export simulation to IRATE file',verbosityLevelStandard)
     if (size(simulations) /= 1) call Galacticus_Error_Report('precisely 1 simulation should be supplied'//{introspection:location})
     irate_=irate(char(self%fileName),self%cosmologyParameters_,self%cosmologyFunctions_)
     position    => null()
@@ -218,6 +218,6 @@ contains
        call irateFile    %close()
        !$ call hdf5Access%unset()
     end if
-    call Galacticus_Display_Unindent('done',verbosityStandard)
+    call displayUnindent('done',verbosityLevelStandard)
     return
   end subroutine exportIRATEOperate

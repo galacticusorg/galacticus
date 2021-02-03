@@ -21,12 +21,12 @@
 
 program Test_Interpolation
   !% Tests that numerical interpolation code works correctly.
-  use, intrinsic :: ISO_C_Binding, only : c_size_t
-  use :: Galacticus_Display      , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: Numerical_Interpolation , only : interpolator
-  use :: Table_Labels            , only : extrapolationTypeExtrapolate  , extrapolationTypeFix
-  use :: Unit_Tests              , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish, &
-       &                                  compareLessThan               , compareGreaterThan
+  use            :: Display                , only : displayVerbositySet         , verbosityLevelStandard
+  use, intrinsic :: ISO_C_Binding          , only : c_size_t
+  use            :: Numerical_Interpolation, only : interpolator
+  use            :: Table_Labels           , only : extrapolationTypeExtrapolate, extrapolationTypeFix
+  use            :: Unit_Tests             , only : Assert                      , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish, &
+          &                                         compareGreaterThan          , compareLessThan
   implicit none
   type            (interpolator), allocatable   :: interpolator_
   double precision              , dimension(10) :: xArray       =[1.0d0,3.0d0,3.3d0,4.3d0,6.7d0,7.2d0,8.9d0,9.1d0,12.0d0,13.0d0]
@@ -35,7 +35,7 @@ program Test_Interpolation
   integer         (c_size_t    )                :: i
   
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Numerical interpolation")

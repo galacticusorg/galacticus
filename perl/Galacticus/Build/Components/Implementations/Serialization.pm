@@ -40,7 +40,7 @@ sub Implementation_Serialize_ASCII {
 	description => "Serialize the contents of a ".$code::member->{'name'}." implementation of the ".$code::class->{'name'}." component to ASCII.",
 	modules     =>
 	    [
-	     "Galacticus_Display",
+	     "Display",
 	     "ISO_Varying_String",
 	     "String_Handling"
 	    ],
@@ -103,7 +103,7 @@ CODE
 	}
 	$code::padding = " " x ($fullyQualifiedNameLengthMax-length($code::class->{'name'}));
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-call Galacticus_Display_Indent('{$class->{'name'}}: {$padding.$member->{'name'}}')
+call displayIndent('{$class->{'name'}}: {$padding.$member->{'name'}}')
 CODE
 	foreach $code::property ( map {! $_->{'attributes'}->{'isVirtual'} ? $_ : ()} &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
 	    $code::padding = " " x ($implementationPropertyNameLengthMax-length($code::property->{'name'}));
@@ -112,14 +112,14 @@ CODE
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 write (label,{$formatLabel{$property->{'data'}->{'type'}}}) self%{$property->{'name'}}Data
 message='{$property->{'name'}}: {$padding}'//label
-call Galacticus_Display_Message(message)
+call displayMessage(message)
 CODE
 		} else {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 message='{$property->{'name'}}:'
-call Galacticus_Display_Indent(message)
+call displayIndent(message)
 call self%{$property->{'name'}}Data%dump()
-call Galacticus_Display_Unindent('end')
+call displayUnindent('end')
 CODE
 		}
 	    } elsif ( $code::property->{'data'}->{'rank'} == 1 ) {
@@ -130,7 +130,7 @@ do i=1,size(self%{$property->{'name'}}Data)
    message='{$property->{'name'}}: {$padding} '//trim(label)
    write (label,{$formatLabel{$property->{'data'}->{'type'}}}) self%{$property->{'name'}}Data(i)
    message=message//': '//label
-   call Galacticus_Display_Message(message)
+   call displayMessage(message)
 end do
 CODE
 		} else {
@@ -138,9 +138,9 @@ CODE
 do i=1,size(self%{$property->{'name'}}Data)
    write (label,'(i3)') i
    message='{$property->{'name'}}: {$padding} '//trim(label)
-   call Galacticus_Display_Indent(message)
+   call displayIndent(message)
    call self%{$property->{'name'}}Data(i)%dump()
-   call Galacticus_Display_Unindent('end')
+   call displayUnindent('end')
 end do
 CODE
 		}
@@ -148,7 +148,7 @@ CODE
 	}
     }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-call Galacticus_Display_Unindent('done')
+call displayUnindent('done')
 CODE
     # Insert a type-binding for this function.
     push(

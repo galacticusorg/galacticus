@@ -22,7 +22,7 @@
 program Test_Coordinate_Systems
   !% Tests of coordinate system functions.
   use :: Coordinate_Systems      , only : Coordinates_Cartesian_To_Cylindrical, Coordinates_Cartesian_To_Spherical, Coordinates_Cylindrical_To_Spherical, Coordinates_Spherical_To_Cylindrical
-  use :: Galacticus_Display      , only : Galacticus_Verbosity_Level_Set      , verbosityStandard
+  use :: Display                 , only : displayVerbositySet                 , verbosityLevelStandard
   use :: Numerical_Constants_Math, only : Pi
   use :: Unit_Tests              , only : Assert                              , Unit_Tests_Begin_Group            , Unit_Tests_End_Group                , Unit_Tests_Finish
   implicit none
@@ -33,7 +33,7 @@ program Test_Coordinate_Systems
   character       (len=43)                 :: groupName
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Coordinate systems")

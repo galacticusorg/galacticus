@@ -504,12 +504,12 @@ contains
 
   subroutine cieFileReadFile(self,fileName)
     !% Read in data from a cooling function file.
+    use :: Display           , only : displayIndent                     , displayUnindent     , verbosityLevelWorking
     use :: File_Utilities    , only : File_Name_Expand
-    use :: Galacticus_Display, only : Galacticus_Display_Indent         , Galacticus_Display_Unindent, verbosityWorking
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: IO_HDF5           , only : hdf5Access                        , hdf5Object
     use :: ISO_Varying_String, only : varying_string
-    use :: Table_Labels      , only : enumerationExtrapolationTypeEncode, extrapolationTypeFix       , extrapolationTypePowerLaw, extrapolationTypeZero
+    use :: Table_Labels      , only : enumerationExtrapolationTypeEncode, extrapolationTypeFix, extrapolationTypePowerLaw, extrapolationTypeZero
     implicit none
     class           (coolingFunctionCIEFile), intent(inout) :: self
     type            (varying_string        ), intent(in   ) :: fileName
@@ -521,7 +521,7 @@ contains
 
     call hdf5Access%set()
     ! Read the file.
-    call Galacticus_Display_Indent('Reading file: '//char(fileName),verbosityWorking)
+    call displayIndent('Reading file: '//char(fileName),verbosityLevelWorking)
     call coolingFunctionFile%openFile(char(File_Name_Expand(char(fileName))),readOnly=.true.)
     ! Check the file format version of the file.
     call coolingFunctionFile%readAttribute('fileFormat',fileFormatVersion)
@@ -587,7 +587,7 @@ contains
     end if
     ! Close the file.
     call coolingFunctionFile%close()
-    call Galacticus_Display_Unindent('done',verbosityWorking)
+    call displayUnindent('done',verbosityLevelWorking)
     call hdf5Access%unset()
     ! Store table ranges for convenience.
     self%metallicityMinimum=self%metallicities(                    1)

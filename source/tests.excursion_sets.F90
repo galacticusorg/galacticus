@@ -23,11 +23,11 @@ program Tests_Excursion_Sets
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters                , only : cosmologyParametersSimple
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
+  use :: Display                             , only : displayVerbositySet                            , verbosityLevelStandard
   use :: Events_Hooks                        , only : eventsHooksInitialize
   use :: Excursion_Sets_Barriers             , only : excursionSetBarrierCriticalOverdensity
-  use :: Excursion_Sets_First_Crossings      , only : excursionSetFirstCrossingClass                 , excursionSetFirstCrossingFarahi                              , excursionSetFirstCrossingFarahiMidpoint, excursionSetFirstCrossingLinearBarrier, &
+  use :: Excursion_Sets_First_Crossings      , only : excursionSetFirstCrossingClass                 , excursionSetFirstCrossingFarahi                             , excursionSetFirstCrossingFarahiMidpoint, excursionSetFirstCrossingLinearBarrier, &
           &                                           excursionSetFirstCrossingZhangHui              , excursionSetFirstCrossingZhangHuiHighOrder
-  use :: Galacticus_Display                  , only : Galacticus_Verbosity_Level_Set                 , verbosityStandard
   use :: Galacticus_Nodes                    , only : treeNode
   use :: ISO_Varying_String                  , only : var_str
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
@@ -37,7 +37,7 @@ program Tests_Excursion_Sets
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionSharpKSpace
   use :: Transfer_Functions                  , only : transferFunctionIdentity
-  use :: Unit_Tests                          , only : Assert                                         , Unit_Tests_Begin_Group                                       , Unit_Tests_End_Group                   , Unit_Tests_Finish
+  use :: Unit_Tests                          , only : Assert                                         , Unit_Tests_Begin_Group                                      , Unit_Tests_End_Group                   , Unit_Tests_Finish
   implicit none
   type            (cosmologyParametersSimple                                    )               :: cosmologyParametersSimple_
   type            (cosmologyFunctionsMatterLambda                               )               :: cosmologyFunctionsMatterLambda_
@@ -68,7 +68,7 @@ program Tests_Excursion_Sets
   logical                                                                                       :: testRates
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   call eventsHooksInitialize()
   ! Build all objects needed for these tests.
   darkMatterParticleCDM_                                        =darkMatterParticleCDM                                        (                                                                                                        &

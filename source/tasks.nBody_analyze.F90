@@ -116,7 +116,7 @@ contains
 
   subroutine nbodyAnalyzePerform(self,status)
     !% Compute and output the halo mass function.
-    use :: Galacticus_Display   , only : Galacticus_Display_Indent        , Galacticus_Display_Unindent
+    use :: Display              , only : displayIndent                    , displayUnindent
     use :: Galacticus_Error     , only : errorStatusSuccess
     use :: Galacticus_HDF5      , only : galacticusOutputFile
     use :: IO_HDF5              , only : hdf5Access
@@ -129,7 +129,7 @@ contains
     integer                                                  :: i
     character(len=32          )                              :: label
     
-    call Galacticus_Display_Indent('Begin task: N-body analyze')
+    call displayIndent('Begin task: N-body analyze')
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
     call Node_Components_Thread_Initialize(self%parameters)
     ! Import N-body data.
@@ -156,7 +156,7 @@ contains
     ! Done.
     call Node_Components_Thread_Uninitialize()
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: N-body analyze' )
+    call displayUnindent('Done task: N-body analyze' )
     return
   end subroutine nbodyAnalyzePerform
 

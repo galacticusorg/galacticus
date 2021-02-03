@@ -21,10 +21,10 @@
 
 module Galacticus_Error
   !% Implements error reporting for the {\normalfont \scshape Galacticus} package.
-  use            :: Interface_GSL     , only : GSL_Success   , GSL_Failure , GSL_eDom, GSL_eRange, &
-       &                                       GSL_eZeroDiv  , GSL_eUndrFlw
   use, intrinsic :: ISO_C_Binding     , only : c_int
   use            :: ISO_Varying_String, only : varying_string
+  use            :: Interface_GSL     , only : GSL_Failure   , GSL_Success , GSL_eDom, GSL_eRange, &
+          &                                    GSL_eUndrFlw  , GSL_eZeroDiv
   implicit none
   private
   public :: Galacticus_Error_Report               , Galacticus_Error_Handler_Register    , &
@@ -91,10 +91,10 @@ contains
 
   subroutine Galacticus_Error_Report_Char(message)
     !% Display an error message.
-    !$ use :: OMP_Lib   , only : OMP_In_Parallel        , OMP_Get_Thread_Num
 #ifndef UNCLEANEXIT
-    use    :: HDF5      , only : H5Close_F
+    use    :: HDF5   , only : H5Close_F
 #endif
+    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_In_Parallel
     implicit none
     character(len=*), intent(in   ) :: message
     integer                         :: error
@@ -131,18 +131,18 @@ contains
 
   subroutine Galacticus_Warn_Char(message)
     !% Display a warning message.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityWarn
+    use :: Display           , only : displayMessage, displayVerbosity, verbosityLevelWarn
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
     character(len=*  ), intent(in   ) :: message
     type     (warning), pointer       :: newWarning
 
     ! Display the message.
-    call Galacticus_Display_Message(message,verbosity=verbosityWarn)
+    call displayMessage(message,verbosity=verbosityLevelWarn)
     ! Add this warning message to the list of warnings in case we need to display them on an
     ! error condition.
     !$omp critical (Galacticus_Warn)
-    if (Galacticus_Verbosity_Level() < verbosityWarn) then
+    if (displayVerbosity() < verbosityLevelWarn) then
        if (.not.warningsFound) then
           allocate(warningList)
           newWarning => warningList
@@ -203,13 +203,13 @@ contains
 
   subroutine Galacticus_Signal_Handler_SIGINT()
     !% Handle {\normalfont \ttfamily SIGINT} signals, by flushing all data and then aborting.
-#ifdef USEMPI
-    use    :: MPI       , only : MPI_COmm_Rank           , MPI_Comm_World
-#endif
-    !$ use :: OMP_Lib   , only : OMP_In_Parallel        , OMP_Get_Thread_Num
 #ifndef UNCLEANEXIT
-    use    :: HDF5      , only : H5Close_F
+    use    :: HDF5   , only : H5Close_F
 #endif
+#ifdef USEMPI
+    use    :: MPI    , only : MPI_COmm_Rank     , MPI_Comm_World
+#endif
+    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_In_Parallel
     implicit none
     integer            :: error
 #ifdef USEMPI
@@ -250,13 +250,13 @@ contains
 
   subroutine Galacticus_Signal_Handler_SIGSEGV()
     !% Handle {\normalfont \ttfamily SIGSEGV} signals, by flushing all data and then aborting.
-#ifdef USEMPI
-    use    :: MPI       , only : MPI_Comm_Rank          , MPI_Comm_World
-#endif
-    !$ use :: OMP_Lib   , only : OMP_In_Parallel        , OMP_Get_Thread_Num
 #ifndef UNCLEANEXIT
-    use    :: HDF5      , only : H5Close_F
+    use    :: HDF5   , only : H5Close_F
 #endif
+#ifdef USEMPI
+    use    :: MPI    , only : MPI_Comm_Rank     , MPI_Comm_World
+#endif
+    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_In_Parallel
     implicit none
     integer            :: error
 #ifdef USEMPI
@@ -297,13 +297,13 @@ contains
 
   subroutine Galacticus_Signal_Handler_SIGFPE()
     !% Handle {\normalfont \ttfamily SIGFPE} signals, by flushing all data and then aborting.
-#ifdef USEMPI
-    use    :: MPI       , only : MPI_Comm_Rank          , MPI_Comm_World
-#endif
-    !$ use :: OMP_Lib   , only : OMP_In_Parallel        , OMP_Get_Thread_Num
 #ifndef UNCLEANEXIT
-    use    :: HDF5      , only : H5Close_F
+    use    :: HDF5   , only : H5Close_F
 #endif
+#ifdef USEMPI
+    use    :: MPI    , only : MPI_Comm_Rank     , MPI_Comm_World
+#endif
+    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_In_Parallel
     implicit none
     integer            :: error
 #ifdef USEMPI
@@ -344,13 +344,13 @@ contains
 
   subroutine Galacticus_Signal_Handler_SIGBUS()
     !% Handle {\normalfont \ttfamily SIGBUS} signals, by flushing all data and then aborting.
-#ifdef USEMPI
-    use    :: MPI    , only : MPI_Comm_Rank          , MPI_Comm_World
-#endif
-    !$ use :: OMP_Lib, only : OMP_In_Parallel        , OMP_Get_Thread_Num
 #ifndef UNCLEANEXIT
     use    :: HDF5   , only : H5Close_F
 #endif
+#ifdef USEMPI
+    use    :: MPI    , only : MPI_Comm_Rank     , MPI_Comm_World
+#endif
+    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_In_Parallel
     implicit none
     integer            :: error
 #ifdef USEMPI
@@ -391,13 +391,13 @@ contains
 
   subroutine Galacticus_Signal_Handler_SIGILL()
     !% Handle {\normalfont \ttfamily SIGILL} signals, by flushing all data and then aborting.
-#ifdef USEMPI
-    use    :: MPI    , only : MPI_Comm_Rank  , MPI_Comm_World
-#endif
-    !$ use :: OMP_Lib, only : OMP_In_Parallel, OMP_Get_Thread_Num
 #ifndef UNCLEANEXIT
     use    :: HDF5   , only : H5Close_F
 #endif
+#ifdef USEMPI
+    use    :: MPI    , only : MPI_Comm_Rank     , MPI_Comm_World
+#endif
+    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_In_Parallel
     implicit none
     integer            :: error
 #ifdef USEMPI
@@ -456,16 +456,16 @@ contains
 
   subroutine Galacticus_GSL_Error_Handler(reason,file,line,errorNumber) bind(c)
     !% Handle errors from the GSL library, by flushing all data and then aborting.
-    use   , intrinsic :: ISO_C_Binding     , only : c_char
-#ifdef USEMPI
-    use               :: MPI               , only : MPI_Initialized    , MPI_Comm_Rank     , MPI_Comm_World
-#endif
-    !$ use            :: OMP_Lib           , only : OMP_In_Parallel    , OMP_Get_Thread_Num
 #ifndef UNCLEANEXIT
     use               :: HDF5              , only : H5Close_F
 #endif
-    use               :: String_Handling   , only : String_C_To_Fortran
+    use   , intrinsic :: ISO_C_Binding     , only : c_char
     use               :: ISO_Varying_String, only : char
+#ifdef USEMPI
+    use               :: MPI               , only : MPI_Comm_Rank      , MPI_Comm_World , MPI_Initialized
+#endif
+    !$ use            :: OMP_Lib           , only : OMP_Get_Thread_Num , OMP_In_Parallel
+    use               :: String_Handling   , only : String_C_To_Fortran
     character(c_char), dimension(*) :: file       , reason
     integer  (c_int ), value        :: errorNumber, line
     integer                         :: error
@@ -537,7 +537,7 @@ contains
 
   function Galacticus_Component_List(className,componentList)
     !% Construct a message describing which implementations of a component class provide required functionality.
-    use :: ISO_Varying_String, only : operator(//), assignment(=)
+    use :: ISO_Varying_String, only : assignment(=), operator(//)
     use :: String_Handling   , only : String_Join
     implicit none
     type     (varying_string)                                           :: Galacticus_Component_List

@@ -197,14 +197,14 @@ contains
   subroutine sussingASCIIOpen(self,fileName)
     !% Validate a {\normalfont \ttfamily sussing} ASCII format merger tree file.
     use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
+    use :: Display                         , only : displayMessage         , verbosityLevelWarn
     use :: File_Utilities                  , only : Count_Lines_in_File
-    use :: Galacticus_Display              , only : Galacticus_Display_Message, verbosityWarn
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Memory_Management               , only : allocateArray
     use :: Numerical_Comparison            , only : Values_Differ
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Regular_Expressions             , only : regEx
-    use :: String_Handling                 , only : String_Strip              , operator(//)
+    use :: String_Handling                 , only : String_Strip           , operator(//)
     implicit none
     class           (mergerTreeImporterSussingASCII), intent(inout) :: self
     type            (varying_string                ), intent(in   ) :: fileName
@@ -282,7 +282,7 @@ contains
                 if (self%fatalMismatches) then
                    call Galacticus_Error_Report(message//{introspection:location})
                 else
-                   call Galacticus_Display_Message(message,verbosityWarn)
+                   call displayMessage(message,verbosityLevelWarn)
                 end if
              end if
           case ('Omega0' )
@@ -296,7 +296,7 @@ contains
                 if (self%fatalMismatches) then
                    call Galacticus_Error_Report(message//{introspection:location})
                 else
-                   call Galacticus_Display_Message(message,verbosityWarn)
+                   call displayMessage(message,verbosityLevelWarn)
                 end if
              end if
           case ('OmegaDE')
@@ -310,7 +310,7 @@ contains
                 if (self%fatalMismatches) then
                    call Galacticus_Error_Report(message//{introspection:location})
                 else
-                   call Galacticus_Display_Message(message,verbosityWarn)
+                   call displayMessage(message,verbosityLevelWarn)
                 end if
              end if
           case ('B')
@@ -329,17 +329,17 @@ contains
   subroutine sussingASCIILoad(self,nodeSelfIndices,nodeIndexRanks,nodeDescendentLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
     !% Load a {\normalfont \ttfamily sussing} ASCII format merger tree data.
     use            :: Array_Utilities                 , only : Array_Reverse
-    use            :: Arrays_Search                   , only : searchArray               , searchIndexed
-    use            :: File_Utilities                  , only : Count_Lines_in_File        , File_Exists
-    use            :: Galacticus_Display              , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
-          &                                                    Galacticus_Display_Unindent, verbosityWorking
+    use            :: Arrays_Search                   , only : searchArray            , searchIndexed
+    use            :: Display                         , only : displayCounter         , displayCounterClear  , displayIndent, displayMessage, &
+          &                                                    displayUnindent        , verbosityLevelWorking
+    use            :: File_Utilities                  , only : Count_Lines_in_File    , File_Exists
     use            :: Galacticus_Error                , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Kind_Numbers                    , only : kind_int8
-    use            :: Memory_Management               , only : allocateArray              , deallocateArray
-    use            :: Numerical_Constants_Astronomical, only : kiloParsec                 , massSolar
+    use            :: Memory_Management               , only : allocateArray          , deallocateArray
+    use            :: Numerical_Constants_Astronomical, only : kiloParsec             , massSolar
     use            :: Numerical_Constants_Prefixes    , only : kilo
-    use            :: Sorting                         , only : sort                       , sortIndex
+    use            :: Sorting                         , only : sort                   , sortIndex
     use            :: String_Handling                 , only : operator(//)
     implicit none
     class    (mergerTreeImporterSussingASCII), intent(inout)                              :: self
@@ -411,7 +411,7 @@ contains
                &                                                                             Ygroup                       , Zgroup
 
     ! Display counter.
-    call Galacticus_Display_Indent ('Parsing "Sussing Merger Trees" format merger tree file',verbosityWorking)
+    call displayIndent ('Parsing "Sussing Merger Trees" format merger tree file',verbosityLevelWorking)
     ! If a forest field is provided, scan it now to find the ranges to read from subsequent files.
     forestHaloCountFirst=0
     forestHaloCountLast =0
@@ -467,7 +467,7 @@ contains
        end if
     end if
     ! Read header information.
-    call Galacticus_Display_Message('Reading header',verbosityWorking)
+    call displayMessage('Reading header',verbosityLevelWorking)
     if (mergerTreeFileIsBinary) then
        read     (fileUnit         ,ioStat=ioStat) fileFormatVersion
        read     (fileUnit         ,ioStat=ioStat) nodeCount
@@ -491,11 +491,11 @@ contains
     call allocateArray(nodesInSubvolume,[nodeCountSubVolume])
     call allocateArray(hostsInSubvolume,[nodeCountSubVolume])
     ! Read snapshot halo catalogs.
-    call Galacticus_Display_Indent('Finding halos in subvolume from AHF format snapshot halo catalogs',verbosityWorking)
+    call displayIndent('Finding halos in subvolume from AHF format snapshot halo catalogs',verbosityLevelWorking)
     j                 =0
     nodeCountSubVolume=0
     do i=1,size(self%snapshotFileName)
-       call Galacticus_Display_Message(self%snapshotFileName(i),verbosityWorking)
+       call displayMessage(self%snapshotFileName(i),verbosityLevelWorking)
        doBinaryConversion=.false.
        readBinary        =.false.
        if (File_Exists(self%snapshotFileName(i)//".bin")) then
@@ -812,26 +812,26 @@ contains
           end if
           ! Update the counter.
           j=j+1
-          call Galacticus_Display_Counter(int(100.0d0*dble(j)/dble(nodeCount)),j == 1,verbosityWorking)
+          call displayCounter(int(100.0d0*dble(j)/dble(nodeCount)),j == 1,verbosityLevelWorking)
           ! If all required forests are processed, exit.
           if (self%useForestFile .and. iCount == forestSnapshotHaloCountLast(i)) exit
        end do
        close                        (snapshotUnit   )
        if (doBinaryConversion) close(snapshotOutUnit)
     end do
-    call Galacticus_Display_Counter_Clear(verbosityWorking)
+    call displayCounterClear(verbosityLevelWorking)
     call sort(nodesInSubvolume(1:nodeCountSubvolume),hostsInSubvolume(1:nodeCountSubvolume))
     message='Found '
     message=message//nodeCountSubvolume//' nodes in subvolume [from '//nodeCount//' total nodes]'
-    call Galacticus_Display_Message(message,verbosityWorking)
+    call displayMessage(message,verbosityLevelWorking)
     ! Allocate workspaces for merger trees.
     call allocateArray(nodeSelfIndices,[nodeCountSubvolume])
     ! Read node indices.
-    call Galacticus_Display_Message("Reading node indices",verbosityWorking)
+    call displayMessage("Reading node indices",verbosityLevelWorking)
     i     =0
     iCount=0
     ioStat=0
-    call Galacticus_Display_Counter(0,.true.,verbosityWorking)
+    call displayCounter(0,.true.,verbosityLevelWorking)
     do while (ioStat == 0)
        if (mergerTreeFileIsBinary) then
           read         (fileUnit         ,ioStat=ioStat) nodeIndex,progenitorCount
@@ -862,7 +862,7 @@ contains
           i                 =i+1
           nodeSelfIndices(i)=nodeIndex
        end if
-       call Galacticus_Display_Counter(int(50.0d0*dble(i)/dble(nodeCountSubvolume)),.false.,verbosityWorking)
+       call displayCounter(int(50.0d0*dble(i)/dble(nodeCountSubvolume)),.false.,verbosityLevelWorking)
        if (i      == nodeCount          ) exit
        iCount=iCount+1
        if (self%useForestFile .and. iCount == forestHaloCountLast) exit
@@ -874,7 +874,7 @@ contains
     if (nodeCountTrees < nodeCountSubvolume) then
        message='Found '
        message=message//nodeCountTrees//' nodes in subvolume trees [from '//nodeCountSubvolume//' total nodes in subvolume]'
-       call Galacticus_Display_Message(message,verbosityWorking)
+       call displayMessage(message,verbosityLevelWorking)
        call Move_Alloc(nodeSelfIndices,nodesTmp)
        call allocateArray(nodeSelfIndices,[nodeCountTrees])
        nodeSelfIndices(1:nodeCountTrees)=nodesTmp(1:nodeCountTrees)
@@ -884,7 +884,7 @@ contains
     call allocateArray(nodeDescendentLocations,[nodeCountTrees])
     call allocateArray(nodeIncomplete         ,[nodeCountTrees])
     ! Get a sorted index into the list of nodes.
-    call Galacticus_Display_Message('Building node index',verbosityWorking)
+    call displayMessage('Building node index',verbosityLevelWorking)
     nodeIndexRanks=sortIndex(nodeSelfIndices)
     ! Re-open the merger tree file.
     mergerTreeFileIsBinary=File_Exists(char(self%mergerTreeFile//".bin"))
@@ -895,7 +895,7 @@ contains
     end if
     if (ioStat /= 0) call Galacticus_Error_Report('failed to open merger tree file "'//char(self%mergerTreeFile)//'"'//{introspection:location})
     ! Read progenitor indices and make links.
-    call Galacticus_Display_Message('Reading trees',verbosityWorking)
+    call displayMessage('Reading trees',verbosityLevelWorking)
     if (mergerTreeFileIsBinary) then
        read (fileUnit  ,ioStat=ioStat) fileFormatVersion
        read (fileUnit  ,ioStat=ioStat) nodeCount
@@ -929,7 +929,7 @@ contains
           ! This line represents a node in the tree.
           i                 =i+1
           nodeSelfIndices(i)=nodeIndex
-          call Galacticus_Display_Counter(int(50.0d0+50.0d0*dble(i)/dble(nodeCountTrees)),.false.,verbosityWorking)
+          call displayCounter(int(50.0d0+50.0d0*dble(i)/dble(nodeCountTrees)),.false.,verbosityLevelWorking)
        end if
        do j=1,progenitorCount
           if (mergerTreeFileIsBinary) then
@@ -967,7 +967,7 @@ contains
                             ! Host halo is in subvolume, but not in trees. Add it to the trees now.
                             message='host halo ['
                             message=message//hostHalo//'] in subvolume but not in trees - adding it now'
-                            call Galacticus_Display_Message(message,verbosityWorking)
+                            call displayMessage(message,verbosityLevelWorking)
                             ! Expand arrays.
                             call Move_Alloc   (nodeSelfIndices        ,nodesTmp          )
                             call allocateArray  (nodeSelfIndices        ,[nodeCountTrees+1])
@@ -1008,8 +1008,8 @@ contains
     ! Close the merger tree file.
     close(fileUnit)
     ! Clear counter.
-    call Galacticus_Display_Counter_Clear(       verbosityWorking)
-    call Galacticus_Display_Unindent     ('done',verbosityWorking)
+    call displayCounterClear(       verbosityLevelWorking)
+    call displayUnindent     ('done',verbosityLevelWorking)
     ! Transfer tree structure to nodes array.
     allocate(self%nodes(nodeCountTrees))
     do i=1,nodeCountTrees
@@ -1021,11 +1021,11 @@ contains
        end if
     end do
     ! Read snapshot halo catalogs.
-    call Galacticus_Display_Indent('Parsing AHF format snapshot halo catalogs',verbosityWorking)
+    call displayIndent('Parsing AHF format snapshot halo catalogs',verbosityLevelWorking)
     call allocateArray(nodeTreeIndices,[nodeCountTrees])
     j=0
     do i=1,size(self%snapshotFileName)
-       call Galacticus_Display_Message(self%snapshotFileName(i),verbosityWorking)
+       call displayMessage(self%snapshotFileName(i),verbosityLevelWorking)
        readBinary=.false.
        if (File_Exists(self%snapshotFileName(i)//".bin")) then
           ! A binary version of this file exists, use it.
@@ -1316,7 +1316,7 @@ contains
                 self   %nodes(l)%velocity          =[VXc,VYc,VZc]
                 ! Update the counter.
                 j=j+1
-                call Galacticus_Display_Counter(int(100.0d0*dble(j)/dble(nodeCountTrees)),j == 1,verbosityWorking)
+                call displayCounter(int(100.0d0*dble(j)/dble(nodeCountTrees)),j == 1,verbosityLevelWorking)
              end if
           end if
           ! If all required forests are processed, exit.
@@ -1334,8 +1334,8 @@ contains
     lengthUnits  =importerUnits(.true.,kiloParsec,-1,+1)
     velocityUnits=importerUnits(.true.,kilo      , 0, 0)
     ! Clean up display.
-    call Galacticus_Display_Counter_Clear(       verbosityWorking)
-    call Galacticus_Display_Unindent     ('done',verbosityWorking)
+    call displayCounterClear(       verbosityLevelWorking)
+    call displayUnindent     ('done',verbosityLevelWorking)
     return
   end subroutine sussingASCIILoad
 

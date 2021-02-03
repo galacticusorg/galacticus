@@ -28,9 +28,9 @@ program Test_Dark_Matter_Profiles_Generic
   use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMOBurkert  , darkMatterProfileDMOEinasto             , darkMatterProfileDMOIsothermal     , darkMatterProfileDMONFW       , &
           &                                   darkMatterProfileDMOTruncated, darkMatterProfileDMOTruncatedExponential
   use :: Dark_Matter_Profiles_Generic, only : nonAnalyticSolversNumerical
+  use :: Display                     , only : displayMessage               , displayVerbositySet                     , verbosityLevelStandard
   use :: Events_Hooks                , only : eventsHooksInitialize
   use :: Functions_Global_Utilities  , only : Functions_Global_Set
-  use :: Galacticus_Display          , only : Galacticus_Display_Message   , Galacticus_Verbosity_Level_Set          , verbosityStandard
   use :: Galacticus_Nodes            , only : nodeClassHierarchyFinalize   , nodeClassHierarchyInitialize            , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
           &                                   treeNode
   use :: Input_Parameters            , only : inputParameters
@@ -72,7 +72,7 @@ program Test_Dark_Matter_Profiles_Generic
        &                                                                      densityLogSlopeNumerical                         , densityLogSlope
   double precision                                          , dimension(9) :: scaleFractional=[0.01d0,0.03d0,0.10d0,0.30d0,1.00d0,3.00d0,10.0d0,30.0d0,100.0d0]
 
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   call Unit_Tests_Begin_Group("Generic dark matter profiles")
   parameters=inputParameters('testSuite/parameters/darkMatterProfilesGeneric.xml')
   call parameters%markGlobal()

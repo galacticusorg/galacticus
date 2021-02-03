@@ -24,8 +24,7 @@
 module Stellar_Luminosities_Structure
   !% Defines the stellar luminosities object.
   use :: ISO_Varying_String                    , only : varying_string
-  use :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorList
-  use :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorBuilderClass
+  use :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorBuilderClass, stellarPopulationSpectraPostprocessorList
   implicit none
   private
   public :: stellarLuminosities                    , max                                      , &
@@ -158,17 +157,17 @@ contains
   !# </nodeComponentInitializationTask>
   subroutine Stellar_Luminosities_Initializor(parameters_)
     !% Initialize the {\normalfont \ttfamily stellarLuminositiesStructure} object module. Determines which stellar luminosities are to be tracked.
-    use            :: Array_Utilities                       , only : Array_Reverse
-    use            :: Cosmology_Functions                   , only : cosmologyFunctions                          , cosmologyFunctionsClass
-    use            :: Galacticus_Error                      , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding                         , only : c_size_t
-    use            :: ISO_Varying_String                    , only : assignment(=)                               , char                                             , operator(//), operator(/=), &
-          &                                                          operator(==)                                , var_str
-    use            :: Input_Parameters                      , only : inputParameters
-    use            :: Instruments_Filters                   , only : Filter_Get_Index
-    use            :: Memory_Management                     , only : Memory_Usage_Record                         , allocateArray
-    use            :: Sorting                               , only : sortIndex                                   , sortByIndex
-    use            :: String_Handling                       , only : operator(//)
+    use            :: Array_Utilities    , only : Array_Reverse
+    use            :: Cosmology_Functions, only : cosmologyFunctions     , cosmologyFunctionsClass
+    use            :: Galacticus_Error   , only : Galacticus_Error_Report
+    use, intrinsic :: ISO_C_Binding      , only : c_size_t
+    use            :: ISO_Varying_String , only : assignment(=)          , char                   , operator(//), operator(/=), &
+          &                                       operator(==)           , var_str
+    use            :: Input_Parameters   , only : inputParameters
+    use            :: Instruments_Filters, only : Filter_Get_Index
+    use            :: Memory_Management  , only : Memory_Usage_Record    , allocateArray
+    use            :: Sorting            , only : sortByIndex            , sortIndex
+    use            :: String_Handling    , only : operator(//)
     implicit none
     type            (inputParameters                                  ), intent(inout)             :: parameters_
     class           (cosmologyFunctionsClass                          ), pointer                   :: cosmologyFunctions_
@@ -416,7 +415,7 @@ contains
 
   subroutine Stellar_Luminosities_Dump(self)
     !% Dump a stellar luminosities object.
-    use :: Galacticus_Display, only : Galacticus_Display_Message
+    use :: Display           , only : displayMessage
     use :: ISO_Varying_String, only : operator(//)
     implicit none
     class    (stellarLuminosities), intent(in   ) :: self
@@ -433,7 +432,7 @@ contains
              label="pruned"
           end if
           message=luminosityName(i)//':          '//label
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end do
     end if
     return
@@ -1085,10 +1084,10 @@ contains
     !% Modify the input list of luminosities for special cases.
     use            :: Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
     use            :: HII_Region_Emission_Lines , only : emissionLineWavelength
-    use            :: Input_Parameters          , only : inputParameters
     use, intrinsic :: ISO_C_Binding             , only : c_size_t
     use            :: ISO_Varying_String        , only : assignment(=)           , char                         , extract, operator(==), &
           &                                              var_str
+    use            :: Input_Parameters          , only : inputParameters
     use            :: Memory_Management         , only : deallocateArray
     use            :: Stellar_Luminosities_Data , only : outputCount             , outputRedshifts
     use            :: Stellar_Population_Spectra, only : stellarPopulationSpectra, stellarPopulationSpectraClass
@@ -1564,9 +1563,9 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Stellar_Luminosities_State_Store(stateFile,gslStateFile,stateOperationID)
     !% Write the luminosities state to file.
-    use            :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, verbosityWorking
-    use, intrinsic :: ISO_C_Binding     , only : c_size_t                 , c_ptr
-    use            :: ISO_Varying_String, only : operator(//)             , var_str
+    use            :: Display           , only : displayIndent, displayMessage, displayUnindent, verbosityLevelWorking
+    use, intrinsic :: ISO_C_Binding     , only : c_ptr        , c_size_t
+    use            :: ISO_Varying_String, only : operator(//) , var_str
     use            :: String_Handling   , only : operator(//)
     implicit none
     integer          , intent(in   ) :: stateFile
@@ -1575,8 +1574,8 @@ contains
     integer                          :: i
     !$GLC attributes unused :: gslStateFile, stateOperationID
 
-    call Galacticus_Display_Indent  (var_str('storing state for "stellar luminosities" [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
-    call Galacticus_Display_Message(var_str('storing "luminosityCount" [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
+    call displayIndent  (var_str('storing state for "stellar luminosities" [position: ')//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
+    call displayMessage(var_str('storing "luminosityCount" [position: ')//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
     !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
     !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
     !# </workaround>
@@ -1587,7 +1586,7 @@ contains
 #ifdef THREADSAFEIO
     !$omp end critical(gfortranInternalIO)
 #endif
-    call Galacticus_Display_Message(var_str('storing luminosities [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
+    call displayMessage(var_str('storing luminosities [position: ')//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
     !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
     !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
     !# </workaround>
@@ -1599,13 +1598,13 @@ contains
     !$omp end critical(gfortranInternalIO)
 #endif
     do i=1,luminosityCount
-       call Galacticus_Display_Message(var_str('storing luminosity ')//i//' of '//luminosityCount//' [position: '//FTell(stateFile)//']',verbosity=verbosityWorking)
+       call displayMessage(var_str('storing luminosity ')//i//' of '//luminosityCount//' [position: '//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
        call luminosityName          (i)%stateStore(stateFile)
        call luminosityType          (i)%stateStore(stateFile)
        call luminosityFilter        (i)%stateStore(stateFile)
        call luminosityPostprocessSet(i)%stateStore(stateFile)
     end do
-    call Galacticus_Display_Unindent(var_str('done [position: ')//FTell(stateFile)//']'                                    ,verbosity=verbosityWorking)
+    call displayUnindent(var_str('done [position: ')//FTell(stateFile)//']'                                    ,verbosity=verbosityLevelWorking)
    return
   end subroutine Stellar_Luminosities_State_Store
 
@@ -1614,9 +1613,9 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Stellar_Luminosities_State_Restore(stateFile,gslStateFile,stateOperationID)
     !% Retrieve the luminosities state from the file.
-    use            :: Galacticus_Display , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, verbosityWorking
-    use, intrinsic :: ISO_C_Binding      , only : c_size_t                 , c_ptr
-    use            :: ISO_Varying_String , only : operator(//)             , var_str
+    use            :: Display            , only : displayIndent   , displayMessage, displayUnindent, verbosityLevelWorking
+    use, intrinsic :: ISO_C_Binding      , only : c_ptr           , c_size_t
+    use            :: ISO_Varying_String , only : operator(//)    , var_str
     use            :: Instruments_Filters, only : Filter_Get_Index
     use            :: String_Handling    , only : operator(//)
     implicit none
@@ -1626,7 +1625,7 @@ contains
     integer                          :: i
     !$GLC attributes unused :: gslStateFile, stateOperationID
 
-    call Galacticus_Display_Indent  (var_str('restoring state for "stellar luminosities" [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
+    call displayIndent  (var_str('restoring state for "stellar luminosities" [position: ')//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
     if (allocated(luminosityFilterIndex                  )) deallocate(luminosityFilterIndex                  )
     if (allocated(luminosityIndex                        )) deallocate(luminosityIndex                        )
     if (allocated(luminosityPostprocessor                )) deallocate(luminosityPostprocessor                )
@@ -1639,7 +1638,7 @@ contains
     if (allocated(luminosityPostprocessSet               )) deallocate(luminosityPostprocessSet               )
     if (allocated(unitStellarLuminosities%luminosityValue)) deallocate(unitStellarLuminosities%luminosityValue)
     if (allocated(zeroStellarLuminosities%luminosityValue)) deallocate(zeroStellarLuminosities%luminosityValue)
-    call Galacticus_Display_Message(var_str('restoring "luminosityCount" [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
+    call displayMessage(var_str('restoring "luminosityCount" [position: ')//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
     !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
     !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
     !# </workaround>
@@ -1664,7 +1663,7 @@ contains
     allocate(zeroStellarLuminosities%luminosityValue(luminosityCount))
     unitStellarLuminosities%luminosityValue=1.0d0
     zeroStellarLuminosities%luminosityValue=0.0d0
-    call Galacticus_Display_Message(var_str('restoring luminosities [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
+    call displayMessage(var_str('restoring luminosities [position: ')//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
     !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
     !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
     !# </workaround>
@@ -1676,7 +1675,7 @@ contains
     !$omp end critical(gfortranInternalIO)
 #endif
     do i=1,luminosityCount
-       call Galacticus_Display_Message(var_str('restoring luminosity ')//i//' of '//luminosityCount//' [position: '//FTell(stateFile)//']',verbosity=verbosityWorking)
+       call displayMessage(var_str('restoring luminosity ')//i//' of '//luminosityCount//' [position: '//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
        call luminosityName          (i)%stateRestore(stateFile)
        call luminosityType          (i)%stateRestore(stateFile)
        call luminosityFilter        (i)%stateRestore(stateFile)
@@ -1684,7 +1683,7 @@ contains
        luminosityFilterIndex  (i)                                        =  Filter_Get_Index                                    (luminosityFilter        (i))
        luminosityPostprocessor(i)%stellarPopulationSpectraPostprocessor_ => stellarPopulationSpectraPostprocessorBuilder__%build(luminosityPostprocessSet(i))
     end do
-    call Galacticus_Display_Unindent(var_str('done [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
+    call displayUnindent(var_str('done [position: ')//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
     return
   end subroutine Stellar_Luminosities_State_Restore
 

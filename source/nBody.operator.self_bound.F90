@@ -117,10 +117,10 @@ contains
   
   subroutine selfBoundOperate(self,simulations)
     !% Determine the subset of N-body particles which are self-bound.
-    use :: Galacticus_Display          , only : Galacticus_Display_Message
-    use :: Galacticus_Error            , only : Galacticus_Error_Report
-    use :: ISO_Varying_String          , only : varying_string
-    use :: Memory_Management           , only : allocateArray                  , deallocateArray
+    use :: Display                         , only : displayMessage
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: ISO_Varying_String              , only : varying_string
+    use :: Memory_Management               , only : allocateArray                  , deallocateArray
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (nbodyOperatorSelfBound), intent(inout)                          :: self
@@ -206,7 +206,7 @@ contains
     call allocateArray(isConverged            ,[                         self%bootstrapSampleCount])
     ! Iterate over bootstrap samplings.
     message='Performing self-bound analysis on bootstrap samples.'
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     ! If previous bound status is available, read in the self-bound status and sampling weights. If not, generate new values.
     if (previous > 0) then
        ! Get the self-bound status from the previous snapshot.

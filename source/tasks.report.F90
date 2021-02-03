@@ -49,8 +49,8 @@ contains
 
   subroutine reportPerform(self,status)
     !% Builds the tabulation.
+    use :: Display              , only : displayIndent            , displayMessage, displayUnindent
     use :: Galacticus_Build     , only : Galacticus_Build_String
-    use :: Galacticus_Display   , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
     use :: Galacticus_Error     , only : errorStatusSuccess
     use :: Galacticus_Versioning, only : Galacticus_Version_String
     implicit none
@@ -58,10 +58,10 @@ contains
     integer            , intent(  out), optional :: status
     !$GLC attributes unused :: self
 
-    call Galacticus_Display_Indent  ('Begin task: report'                               )
-    call Galacticus_Display_Message ('This is Galacticus: '//Galacticus_Version_String())
-    call Galacticus_Display_Message ('Built with: '        //Galacticus_Build_String  ())
-    call Galacticus_Display_Unindent('Done task: report'                                )
+    call displayIndent  ('Begin task: report'                               )
+    call displayMessage ('This is Galacticus: '//Galacticus_Version_String())
+    call displayMessage ('Built with: '        //Galacticus_Build_String  ())
+    call displayUnindent('Done task: report'                                )
     if (present(status)) status=errorStatusSuccess
     return
   end subroutine reportPerform

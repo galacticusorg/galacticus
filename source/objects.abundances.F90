@@ -253,8 +253,8 @@ contains
 
   subroutine Abundances_Dump(self)
     !% Reset an abundances object.
-    use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: ISO_Varying_String, only : varying_string            , assignment(=), operator(//)
+    use :: Display           , only : displayMessage
+    use :: ISO_Varying_String, only : assignment(=) , operator(//), varying_string
     implicit none
     class    (abundances    ), intent(in   ) :: self
     integer                                  :: i
@@ -263,12 +263,12 @@ contains
 
     write (label,'(e22.16)') self%metallicityValue
     message='metallicity: '//label
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     if (elementsCount > 0) then
        do i=1,elementsCount
           write (label,'(e22.16)') self%elementalValue(i)
           message=elementsToTrack(i)//':          '//label
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end do
     end if
     return
@@ -446,7 +446,7 @@ contains
   function Abundances_Names(index)
     !% Return a name for the specified entry in the abundances structure.
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : varying_string         , assignment(=)
+    use :: ISO_Varying_String, only : assignment(=)          , varying_string
     implicit none
     type   (varying_string)                :: Abundances_Names
     integer                , intent(in   ) :: index

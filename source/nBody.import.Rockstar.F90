@@ -230,12 +230,12 @@ contains
   subroutine rockstarImport(self,simulations)
     !% Import data from a Rockstar file.
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
-    use :: Galacticus_Display  , only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                              verbosityStandard
-    use :: Memory_Management   , only : allocateArray            , deallocateArray
+    use :: Display             , only : displayCounter        , displayCounterClear     , displayIndent     , displayUnindent         , &
+          &                             verbosityLevelStandard
     use :: File_Utilities      , only : Count_Lines_in_File
-    use :: Hashes              , only : rank1IntegerSizeTPtrHash , rank1DoublePtrHash         , integerSizeTHash          , doubleHash                      , &
-         &                              rank2IntegerSizeTPtrHash , rank2DoublePtrHash
+    use :: Hashes              , only : doubleHash            , integerSizeTHash        , rank1DoublePtrHash, rank1IntegerSizeTPtrHash, &
+          &                             rank2DoublePtrHash    , rank2IntegerSizeTPtrHash
+    use :: Memory_Management   , only : allocateArray         , deallocateArray
     implicit none
     class           (nbodyImporterRockstar     ), intent(inout)                                 :: self
     type            (nBodyData                 ), intent(  out), dimension( :    ), allocatable :: simulations
@@ -255,7 +255,7 @@ contains
     logical                                                                                     :: isComment
     double precision                                                                            :: boxSize
 
-    call Galacticus_Display_Indent('import simulation from Rockstar file',verbosityStandard)
+    call displayIndent('import simulation from Rockstar file',verbosityLevelStandard)
     allocate(simulations(1))
     simulations(1)%label=self%label
     ! Count lines in file. (Subtract 1 since one lines gives the number of distinct trees.)
@@ -320,9 +320,9 @@ contains
           ! Extract box size.
           read (line(17:len_trim(line)),*) boxSize
        end if
-       call Galacticus_Display_Counter(int(100.0d0*dble(i)/dble(countHalos)),verbosity=verbosityStandard,isNew=i == 1_c_size_t)
+       call displayCounter(int(100.0d0*dble(i)/dble(countHalos)),verbosity=verbosityLevelStandard,isNew=i == 1_c_size_t)
     end do
-    call Galacticus_Display_Counter_Clear(verbosityStandard)
+    call displayCounterClear(verbosityLevelStandard)
     close(file)
     ! Convert positions to internal units (physical Mpc).
     jReal=0
@@ -413,7 +413,7 @@ contains
        if (self%havePosition) call simulations(1)%propertiesRealRank1%set('position',position)
        if (self%haveVelocity) call simulations(1)%propertiesRealRank1%set('velocity',velocity)
     end if
-    call Galacticus_Display_Unindent('done',verbosityStandard)
+    call displayUnindent('done',verbosityLevelStandard)
     return
   end subroutine rockstarImport
 

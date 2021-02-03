@@ -224,14 +224,14 @@ contains
 
   subroutine excursionSetsPerform(self,status)
     !% Compute and output the halo mass function.
-    use :: Galacticus_Display      , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
+    use :: Display                 , only : displayIndent       , displayUnindent
     use :: Galacticus_Error        , only : errorStatusSuccess
     use :: Galacticus_HDF5         , only : galacticusOutputFile
     use :: Galacticus_Nodes        , only : treeNode
     use :: IO_HDF5                 , only : hdf5Object
-    use :: Memory_Management       , only : allocateArray            , deallocateArray
+    use :: Memory_Management       , only : allocateArray       , deallocateArray
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Ranges        , only : Make_Range               , rangeTypeLogarithmic
+    use :: Numerical_Ranges        , only : Make_Range          , rangeTypeLogarithmic
     implicit none
     class           (taskExcursionSets), intent(inout), target           :: self
     integer                            , intent(  out), optional         :: status
@@ -248,7 +248,7 @@ contains
     double precision                                                     :: varianceProgenitor
     type            (hdf5Object       )                                  :: outputGroup
 
-    call Galacticus_Display_Indent('Begin task: excursion sets')
+    call displayIndent('Begin task: excursion sets')
 #ifdef USEMPI
     ! Indicate that all MPI processes are coordinated in their work.
     call self%excursionSetFirstCrossing_%coordinatedMPI(.true.)
@@ -321,6 +321,6 @@ contains
     call deallocateArray(powerSpectrumValue      )
     call deallocateArray(firstCrossingRate       )
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: excursion sets' )
+    call displayUnindent('Done task: excursion sets' )
     return
   end subroutine excursionSetsPerform

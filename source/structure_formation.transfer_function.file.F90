@@ -200,8 +200,8 @@ contains
   subroutine fileReadFile(self,fileName)
     !% Internal constructor for the file transfer function class.
     use :: Cosmology_Parameters   , only : cosmologyParametersSimple
+    use :: Display                , only : displayMessage
     use :: File_Utilities         , only : File_Name_Expand
-    use :: Galacticus_Display     , only : Galacticus_Display_Message
     use :: Galacticus_Error       , only : Galacticus_Error_Report
     use :: IO_HDF5                , only : hdf5Access                        , hdf5Object
     use :: Numerical_Comparison   , only : Values_Differ
@@ -243,15 +243,15 @@ contains
        call parametersObject%readAttribute('temperatureCMB' ,temperatureCMB )
        cosmologyParametersFile=cosmologyParametersSimple(OmegaMatter,OmegaBaryon,OmegaDarkEnergy,temperatureCMB,HubbleConstant)
        if (Values_Differ(cosmologyParametersFile%OmegaBaryon    (),self%cosmologyParameters_%OmegaBaryon    (),absTol=1.0d-3)) &
-            & call Galacticus_Display_Message('OmegaBaryon from transfer function file does not match internal value'    )
+            & call displayMessage('OmegaBaryon from transfer function file does not match internal value'    )
        if (Values_Differ(cosmologyParametersFile%OmegaMatter    (),self%cosmologyParameters_%OmegaMatter    (),absTol=1.0d-3)) &
-            & call Galacticus_Display_Message('OmegaMatter from transfer function file does not match internal value'    )
+            & call displayMessage('OmegaMatter from transfer function file does not match internal value'    )
        if (Values_Differ(cosmologyParametersFile%OmegaDarkEnergy(),self%cosmologyParameters_%OmegaDarkEnergy(),absTol=1.0d-3)) &
-            & call Galacticus_Display_Message('OmegaDarkEnergy from transfer function file does not match internal value')
+            & call displayMessage('OmegaDarkEnergy from transfer function file does not match internal value')
        if (Values_Differ(cosmologyParametersFile%HubbleConstant (),self%cosmologyParameters_%HubbleConstant (),relTol=1.0d-3)) &
-            & call Galacticus_Display_Message('HubbleConstant from transfer function file does not match internal value' )
+            & call displayMessage('HubbleConstant from transfer function file does not match internal value' )
        if (Values_Differ(cosmologyParametersFile%temperatureCMB (),self%cosmologyParameters_%temperatureCMB (),relTol=1.0d-3)) &
-            & call Galacticus_Display_Message('temperatureCMB from transfer function file does not match internal value' )
+            & call displayMessage('temperatureCMB from transfer function file does not match internal value' )
     end select
     deallocate(cosmologyParametersFile)
     call parametersObject%close()

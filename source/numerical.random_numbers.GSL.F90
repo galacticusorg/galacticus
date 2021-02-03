@@ -164,8 +164,8 @@ contains
   function gslConstructorInternal(seed,ompThreadOffset,mpiRankOffset) result(self)
     !% Internal constructor for the {\normalfont \ttfamily gsl} random number generator class.
 #ifdef USEMPI
-    use :: MPI, only : MPI_Comm_Rank, MPI_Comm_World
-#endif   
+    use    :: MPI    , only : MPI_Comm_Rank     , MPI_Comm_World
+#endif
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
     implicit none
     type   (randomNumberGeneratorGSL)                          :: self
@@ -284,13 +284,13 @@ contains
   
   subroutine gslStateStore(self,stateFile,gslStateFile,stateOperationID)
     !% Store the state of this object to file.
+    use            :: Display           , only : displayIndent          , displayMessage, displayUnindent, displayVerbosity, &
+          &                                      verbosityLevelWorking
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
+    use            :: ISO_Varying_String, only : var_str
     use            :: Interface_GSL     , only : gsl_success
     use            :: String_Handling   , only : operator(//)
-    use            :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Message, Galacticus_Verbosity_Level, &
-         &                                       verbosityWorking
-    use            :: Galacticus_Error  , only : Galacticus_Error_Report
-    use            :: ISO_Varying_String, only : var_str
     implicit none
     class    (randomNumberGeneratorGSL), intent(inout) :: self
     integer                            , intent(in   ) :: stateFile
@@ -299,41 +299,41 @@ contains
     character(len=16                  )                :: label
     integer                                            :: status
 
-    call Galacticus_Display_Indent(var_str('storing state for "randomNumberGenerator" [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
+    call displayIndent(var_str('storing state for "randomNumberGenerator" [position: ')//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
     if (self%stateOperationID == stateOperationID) then
-       call Galacticus_Display_Unindent('skipping - already stored',verbosity=verbosityWorking)
+       call displayUnindent('skipping - already stored',verbosity=verbosityLevelWorking)
        return
     end if
     self%stateOperationID=stateOperationID
-    call Galacticus_Display_Message('object type "randomNumberGeneratorGSL"',verbosity=verbosityWorking)
-    if (Galacticus_Verbosity_Level() >= verbosityWorking) then
+    call displayMessage('object type "randomNumberGeneratorGSL"',verbosity=verbosityLevelWorking)
+    if (displayVerbosity() >= verbosityLevelWorking) then
        write (label,'(i16)') sizeof(self%seed)
-       call Galacticus_Display_Message('storing "seed" with size '//trim(adjustl(label))//' bytes')
+       call displayMessage('storing "seed" with size '//trim(adjustl(label))//' bytes')
     end if
-    if (Galacticus_Verbosity_Level() >= verbosityWorking) then
+    if (displayVerbosity() >= verbosityLevelWorking) then
        write (label,'(i16)') sizeof(self%ompthreadoffset)
-       call Galacticus_Display_Message('storing "ompthreadoffset" with size '//trim(adjustl(label))//' bytes')
+       call displayMessage('storing "ompthreadoffset" with size '//trim(adjustl(label))//' bytes')
     end if
-    if (Galacticus_Verbosity_Level() >= verbosityWorking) then
+    if (displayVerbosity() >= verbosityLevelWorking) then
        write (label,'(i16)') sizeof(self%mpirankoffset)
-       call Galacticus_Display_Message('storing "mpirankoffset" with size '//trim(adjustl(label))//' bytes')
+       call displayMessage('storing "mpirankoffset" with size '//trim(adjustl(label))//' bytes')
     end if
     write (stateFile) self%seed,self%ompThreadOffset,self%mpiRankOffset
     status=GSL_Rng_FWrite(gslStateFile,self%gslRandomNumberGenerator)
     if (status /= GSL_Success) call Galacticus_Error_Report('failed to store GSL random number generator state'//{introspection:location})
-    call Galacticus_Display_Unindent('done',verbosity=verbosityWorking)
+    call displayUnindent('done',verbosity=verbosityLevelWorking)
     return
   end subroutine gslStateStore
 
   subroutine gslStateRestore(self,stateFile,gslStateFile,stateOperationID)
     !% Restore the state of this object from file.
+    use            :: Display           , only : displayIndent          , displayMessage, displayUnindent, displayVerbosity, &
+          &                                      verbosityLevelWorking
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
+    use            :: ISO_Varying_String, only : var_str
     use            :: Interface_GSL     , only : gsl_success
     use            :: String_Handling   , only : operator(//)
-    use            :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Message, Galacticus_Verbosity_Level, &
-         &                                       verbosityWorking
-    use            :: Galacticus_Error  , only : Galacticus_Error_Report
-    use            :: ISO_Varying_String, only : var_str
     implicit none
     class  (randomNumberGeneratorGSL), intent(inout) :: self
     integer                          , intent(in   ) :: stateFile
@@ -341,19 +341,19 @@ contains
     integer(c_size_t                ), intent(in   ) :: stateOperationID
     integer                                          :: status
 
-    call Galacticus_Display_Indent(var_str('restoring state for "randomNumberGenerator" [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
+    call displayIndent(var_str('restoring state for "randomNumberGenerator" [position: ')//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
     if (self%stateOperationID == stateOperationID) then
-       call Galacticus_Display_Unindent('skipping - already restored',verbosity=verbosityWorking)
+       call displayUnindent('skipping - already restored',verbosity=verbosityLevelWorking)
        return
     end if
     self%stateOperationID=stateOperationID
-    call Galacticus_Display_Message('object type "randomNumberGeneratorGSL"',verbosity=verbosityWorking)
-    call Galacticus_Display_Message('restoring "seed"'                      ,verbosity=verbosityWorking)
-    call Galacticus_Display_Message('restoring "ompthreadoffset"'           ,verbosity=verbosityWorking)
-    call Galacticus_Display_Message('restoring "mpirankoffset"'             ,verbosity=verbosityWorking)
+    call displayMessage('object type "randomNumberGeneratorGSL"',verbosity=verbosityLevelWorking)
+    call displayMessage('restoring "seed"'                      ,verbosity=verbosityLevelWorking)
+    call displayMessage('restoring "ompthreadoffset"'           ,verbosity=verbosityLevelWorking)
+    call displayMessage('restoring "mpirankoffset"'             ,verbosity=verbosityLevelWorking)
     read (stateFile) self%seed,self%ompThreadOffset,self%mpiRankOffset
     status=GSL_Rng_FRead(gslStateFile,self%gslRandomNumberGenerator)
     if (status /= GSL_Success) call Galacticus_Error_Report('failed to store GSL random number generator state'//{introspection:location})
-    call Galacticus_Display_Unindent('done',verbosity=verbosityWorking)
+    call displayUnindent('done',verbosity=verbosityLevelWorking)
     return
   end subroutine gslStateRestore

@@ -25,7 +25,7 @@
 module IO_HDF5
   !% Implements simple and convenient interfaces to a variety of HDF5 functionality.
   use            :: HDF5              , only : hid_t         , hsize_t, size_t
-  use, intrinsic :: ISO_C_Binding     , only : c_char        , c_ptr  , c_size_t, c_int
+  use, intrinsic :: ISO_C_Binding     , only : c_char        , c_int  , c_ptr , c_size_t
   use            :: ISO_Varying_String, only : varying_string
   use            :: Locks             , only : ompLock
   implicit none
@@ -523,12 +523,12 @@ contains
 
   subroutine IO_HDF5_Close(self)
     !% Close an HDF5 object.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, verbositySilent
+    use :: Display           , only : displayIndent          , displayMessage  , displayUnindent, verbosityLevelSilent
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: HDF5              , only : H5F_OBJ_ALL_F            , h5aclose_f                , h5dclose_f                 , h5fclose_f     , &
-          &                           h5fget_obj_count_f       , h5fget_obj_ids_f          , h5gclose_f                 , h5iget_name_f  , &
-          &                           hid_t                    , size_t
-    use :: ISO_Varying_String, only : assignment(=)            , operator(//)
+    use :: HDF5              , only : H5F_OBJ_ALL_F          , h5aclose_f      , h5dclose_f     , h5fclose_f          , &
+          &                           h5fget_obj_count_f     , h5fget_obj_ids_f, h5gclose_f     , h5iget_name_f       , &
+          &                           hid_t                  , size_t
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
     class    (hdf5Object               ), intent(inout)               :: self
@@ -546,7 +546,7 @@ contains
     ! Check that the object is open.
     if (.not.self%isOpenValue) then
        message="Attempt to close unopen HDF5 object '"//self%objectName//"'"
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
        return
     end if
 
@@ -580,8 +580,8 @@ contains
        if (nonRootOpenObjectCount > 0 .and. openObjectCount-nonRootOpenObjectCount == 1) then
           message=""
           message=message//nonRootOpenObjectCount//" open object(s) remain in file object '"//self%objectName//"'"
-          call Galacticus_Display_Indent('Problem closing HDF5 file',verbositySilent)
-          call Galacticus_Display_Message(message,verbositySilent)
+          call displayIndent('Problem closing HDF5 file',verbosityLevelSilent)
+          call displayMessage(message,verbosityLevelSilent)
           do i=1,openObjectCount
              call h5iget_name_f(openObjectIDs(i),objectName,objectNameSizeMaximum,objectNameSize,errorCode)
              if (errorCode /= 0) then
@@ -590,9 +590,9 @@ contains
              end if
              message="Object: "//trim(objectName)//" ["
              message=message//openObjectIDs(i)//"]"
-             if (trim(objectName) /= "/") call Galacticus_Display_Message(message,verbositySilent)
+             if (trim(objectName) /= "/") call displayMessage(message,verbosityLevelSilent)
           end do
-          call Galacticus_Display_Unindent('done',verbositySilent)
+          call displayUnindent('done',verbosityLevelSilent)
        end if
        call h5fclose_f(self%objectID,errorCode)
        if (errorCode /= 0) then
@@ -631,10 +631,10 @@ contains
 
   subroutine IO_HDF5_Flush(self)
     !% Flush an HDF5 file to disk.
-    use :: Galacticus_Display, only : Galacticus_Display_Message
+    use :: Display           , only : displayMessage
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: HDF5              , only : H5F_Scope_Local_F         , h5fflush_f
-    use :: ISO_Varying_String, only : assignment(=)             , operator(//)
+    use :: HDF5              , only : H5F_Scope_Local_F      , h5fflush_f
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
     implicit none
     class  (hdf5Object    ), intent(inout) :: self
     type   (varying_string)                :: message
@@ -646,7 +646,7 @@ contains
     ! Check that the object is open.
     if (.not.self%isOpenValue) then
        message="Attempt to flush unopen HDF5 object '"//self%objectName//"'"
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
        return
     end if
 
@@ -661,10 +661,10 @@ contains
 
   subroutine IO_HDF5_Remove(self,objectName)
     !% Remove the named object.
-    use :: Galacticus_Display, only : Galacticus_Display_Message
+    use :: Display           , only : displayMessage
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: HDF5              , only : h5ldelete_f
-    use :: ISO_Varying_String, only : assignment(=)             , operator(//)
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
     implicit none
     class    (hdf5Object    ), intent(inout) :: self
     character(len=*         ), intent(in   ) :: objectName
@@ -676,7 +676,7 @@ contains
     ! Check that the object is open.
     if (.not.self%isOpenValue) then
        message="Attempt to remove object from unopen HDF5 object '"//self%objectName//"'"
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
        return
     end if
     ! Remove the object.
@@ -735,7 +735,7 @@ contains
           &                           h5fopen_f              , h5pclose_f            , h5pcreate_f           , h5pset_cache_f         , &
           &                           h5pset_fapl_stdio_f    , h5pset_fclose_degree_f, h5pset_libver_bounds_f, h5pset_sieve_buf_size_f, &
           &                           hid_t                  , hsize_t               , size_t
-    use :: ISO_Varying_String, only : assignment(=)          , operator(//)          , len
+    use :: ISO_Varying_String, only : assignment(=)          , len                   , operator(//)
     implicit none
     class    (hdf5Object    ), intent(inout)           :: fileObject
     character(len=*         ), intent(in   ), optional :: fileName
@@ -894,7 +894,7 @@ contains
     !% not provided, will be taken from the stored object name in {\normalfont \ttfamily groupObject}. The location at which to open the group is
     !% taken from either {\normalfont \ttfamily inObject} or {\normalfont \ttfamily inPath}.
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: HDF5              , only : HID_T                  , h5gcreate_f, h5gopen_f, h5gset_comment_f, &
+    use :: HDF5              , only : HID_T                  , h5gcreate_f , h5gopen_f, h5gset_comment_f, &
           &                           hsize_t
     use :: ISO_Varying_String, only : assignment(=)          , operator(//)
     implicit none
@@ -1435,8 +1435,8 @@ contains
     !% Open and write an integer 1-D array attribute in {\normalfont \ttfamily self}.
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use            :: HDF5              , only : H5T_NATIVE_INTEGER_8   , HSIZE_T
-    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)   , trim
     use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)   , trim
     use            :: Kind_Numbers      , only : kind_int8
     use            :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
@@ -2306,8 +2306,8 @@ contains
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use            :: HDF5              , only : H5T_NATIVE_INTEGER_8   , HID_T                      , HSIZE_T, h5aget_space_f, &
           &                                      h5sclose_f             , h5sget_simple_extent_dims_f
-    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
     use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
     use            :: Kind_Numbers      , only : kind_int8
     implicit none
     integer  (kind=kind_int8)              , intent(  out)          , target :: attributeValue
@@ -2422,11 +2422,11 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Integer8_1D_Array_Allocatable(self,attributeName,attributeValue)
     !% Open and read an integer scalar attribute in {\normalfont \ttfamily self}.
-    use            :: Galacticus_Error ,  only : Galacticus_Error_Report
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use            :: HDF5              , only : H5T_NATIVE_INTEGER_8   , HID_T                      , HSIZE_T, h5aget_space_f, &
-                     &                           h5sclose_f             , h5sget_simple_extent_dims_f
-    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
+          &                                      h5sclose_f             , h5sget_simple_extent_dims_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
     use            :: Kind_Numbers      , only : kind_int8
     use            :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
@@ -2525,7 +2525,7 @@ contains
     !% Open and read an integer scalar attribute in {\normalfont \ttfamily self}.
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use            :: HDF5              , only : H5T_NATIVE_INTEGER_8   , HID_T                      , HSIZE_T, h5aget_space_f, &
-                     &                           h5sclose_f             , h5sget_simple_extent_dims_f
+          &                                      h5sclose_f             , h5sget_simple_extent_dims_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)          , operator(//)               , trim
     use            :: Kind_Numbers      , only : kind_int8
@@ -4167,7 +4167,7 @@ contains
     !% Return a list of all datasets present within {\normalfont \ttfamily self}.
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: HDF5              , only : h5g_dataset_f          , h5gget_obj_info_idx_f, h5gn_members_f, hid_t
-    use :: ISO_Varying_String, only : assignment(=)          , operator(//)         , trim          , char
+    use :: ISO_Varying_String, only : assignment(=)          , char                 , operator(//)  , trim
     use :: String_Handling   , only : operator(//)
     implicit none
     type     (varying_string), intent(inout), allocatable, dimension(:) :: datasetNames
@@ -4238,9 +4238,9 @@ contains
 
   subroutine IO_HDF5_Assert_Dataset_Type(datasetObject,datasetAssertedType,datasetAssertedRank,status)
     !% Asserts that an dataset is of a certain type and rank.
-    use :: Galacticus_Error  , only : Galacticus_Error_Report     , errorStatusSuccess, errorStatusFail
-    use :: HDF5              , only : HID_T                       , h5dget_space_f    , h5dget_type_f  , h5sclose_f, &
-          &                           h5sget_simple_extent_ndims_f, h5tclose_f        , h5tequal_f
+    use :: Galacticus_Error  , only : Galacticus_Error_Report     , errorStatusFail, errorStatusSuccess
+    use :: HDF5              , only : HID_T                       , h5dget_space_f , h5dget_type_f     , h5sclose_f, &
+          &                           h5sget_simple_extent_ndims_f, h5tclose_f     , h5tequal_f
     use :: ISO_Varying_String, only : assignment(=)               , operator(//)
     implicit none
     class  (hdf5Object    )              , intent(in   ) :: datasetObject
@@ -14723,7 +14723,7 @@ contains
           &                                      h5dget_space_f         , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
           &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
-    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)     , trim            , char
+    use            :: ISO_Varying_String, only : assignment(=)          , char             , operator(//)    , trim
     implicit none
     class    (hdf5Object       )              , intent(inout)         :: fromGroup
     type     (hdf5Object       )              , intent(inout)         :: toDataset
@@ -14842,7 +14842,7 @@ contains
           &                                      h5dget_space_f         , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
           &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
-    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)     , trim            , char
+    use            :: ISO_Varying_String, only : assignment(=)          , char             , operator(//)    , trim
     implicit none
     class    (hdf5Object       )              , intent(inout)         :: fromGroup
     type     (hdf5Object       )              , intent(inout)         :: toDataset
@@ -14955,13 +14955,13 @@ contains
 
   subroutine IO_HDF5_Create_Reference_Scalar_To_3D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
     !% Create a scalar reference to the 3-D {\normalfont \ttfamily toDataset} in the HDF5 group {\normalfont \ttfamily fromGroup}.
-    use            :: Galacticus_Error , only : Galacticus_Error_Report
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F          , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
           &                                      HID_T                  , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
           &                                      h5dget_space_f         , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
           &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
-    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)     , trim            , char
+    use            :: ISO_Varying_String, only : assignment(=)          , char             , operator(//)    , trim
     implicit none
     class    (hdf5Object       )              , intent(inout)         :: fromGroup
     type     (hdf5Object       )              , intent(inout)         :: toDataset
@@ -15080,7 +15080,7 @@ contains
           &                                      h5dget_space_f         , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
           &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
-    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)     , trim            , char
+    use            :: ISO_Varying_String, only : assignment(=)          , char             , operator(//)    , trim
     implicit none
     class    (hdf5Object       )              , intent(inout)         :: fromGroup
     type     (hdf5Object       )              , intent(inout)         :: toDataset
@@ -15199,7 +15199,7 @@ contains
           &                                      h5dget_space_f         , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
           &                                      h5sselect_hyperslab_f  , hdset_reg_ref_t_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
-    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)     , trim            , char
+    use            :: ISO_Varying_String, only : assignment(=)          , char             , operator(//)    , trim
     implicit none
     class    (hdf5Object       )              , intent(inout)         :: fromGroup
     type     (hdf5Object       )              , intent(inout)         :: toDataset
@@ -15313,7 +15313,7 @@ contains
   logical function IO_HDF5_Is_Reference(dataset)
     !% Return true if the input dataset is a scalar reference.
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: HDF5              , only : H5T_STD_REF_DSETREG    , HID_T, h5dget_type_f, h5tclose_f, &
+    use :: HDF5              , only : H5T_STD_REF_DSETREG    , HID_T       , h5dget_type_f, h5tclose_f, &
           &                           h5tequal_f
     use :: ISO_Varying_String, only : assignment(=)          , operator(//)
     implicit none

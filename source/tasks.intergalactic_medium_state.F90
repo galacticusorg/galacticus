@@ -117,12 +117,12 @@ contains
 
   subroutine intergalacticMediumStatePerform(self,status)
     !% Output \gls{igm} state to the \glc\ output file.
-    use            :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent
-    use            :: Galacticus_Error  , only : errorStatusSuccess
-    use            :: Galacticus_HDF5   , only : galacticusOutputFile
-    use            :: IO_HDF5           , only : hdf5Access               , hdf5Object
-    use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: String_Handling   , only : operator(//)
+    use            :: Display         , only : displayIndent       , displayUnindent
+    use            :: Galacticus_Error, only : errorStatusSuccess
+    use            :: Galacticus_HDF5 , only : galacticusOutputFile
+    use            :: IO_HDF5         , only : hdf5Access          , hdf5Object
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
+    use            :: String_Handling , only : operator(//)
     implicit none
     class           (taskIntergalacticMediumState), intent(inout), target       :: self
     integer                                       , intent(  out), optional     :: status
@@ -134,7 +134,7 @@ contains
          &                                                                         containerGroup
     type            (varying_string              )                              :: groupName      , commentText
 
-    call Galacticus_Display_Indent('Begin task: intergalactic medium state')
+    call displayIndent('Begin task: intergalactic medium state')
     ! Get the requested output redshifts.
     outputCount=self%outputTimes_%count()
     allocate(time           (outputCount))
@@ -178,6 +178,6 @@ contains
     if (containerGroup%isOpen()) call containerGroup%close()
     call hdf5Access%unset()
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: intergalactic medium state' )
+    call displayUnindent('Done task: intergalactic medium state' )
     return
   end subroutine intergalacticMediumStatePerform

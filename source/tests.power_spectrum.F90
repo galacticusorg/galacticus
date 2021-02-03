@@ -25,8 +25,8 @@ program Tests_Power_Spectrum
   use :: Cosmology_Functions                 , only : cosmologyFunctions                      , cosmologyFunctionsClass
   use :: Cosmology_Parameters                , only : cosmologyParameters                     , cosmologyParametersClass     , hubbleUnitsLittleH
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
-  use :: Galacticus_Display                  , only : Galacticus_Verbosity_Level_Set          , verbosityStandard
-  use :: ISO_Varying_String                  , only : varying_string                          , assignment(=)
+  use :: Display                             , only : displayVerbositySet                     , verbosityLevelStandard
+  use :: ISO_Varying_String                  , only : assignment(=)                           , varying_string
   use :: Input_Parameters                    , only : inputParameters
   use :: Linear_Growth                       , only : linearGrowth                            , linearGrowthClass
   use :: Numerical_Constants_Math            , only : Pi
@@ -71,7 +71,7 @@ program Tests_Power_Spectrum
        &                                                                      sigma
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Read parameters.
   parameterFile='testSuite/parameters/powerSpectrum.xml'
   parameters=inputParameters(parameterFile)

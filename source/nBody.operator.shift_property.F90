@@ -76,14 +76,14 @@ contains
 
   subroutine shiftPropertyOperate(self,simulations)
     !% Select particles matching a list of integer properties. 
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Message, verbosityStandard
+    use :: Display, only : displayIndent, displayMessage, displayUnindent, verbosityLevelStandard
     implicit none
     class  (nbodyOperatorShiftProperty), intent(inout)               :: self
     type   (nBodyData                 ), intent(inout), dimension(:) :: simulations
     integer(c_size_t                  ), pointer      , dimension(:) :: propertyInteger
     integer                                                          :: i
     
-    call Galacticus_Display_Indent('shift a property values',verbosityStandard)
+    call displayIndent('shift a property values',verbosityLevelStandard)
     do i=1,size(simulations)
        if (simulations(i)%propertiesInteger%exists(self%propertyName)) then
           propertyInteger =>  simulations(i)%propertiesInteger%value(self%propertyName)
@@ -94,6 +94,6 @@ contains
           call Galacticus_Error_Report('property "'//self%propertyName//'"does not exist'//{introspection:location})
        end if
     end do
-    call Galacticus_Display_Unindent('done',verbosityStandard)
+    call displayUnindent('done',verbosityLevelStandard)
     return
   end subroutine shiftPropertyOperate

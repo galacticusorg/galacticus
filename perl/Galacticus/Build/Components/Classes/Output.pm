@@ -42,7 +42,7 @@ sub Class_Dump_ASCII {
 	description => "Dump the content of a {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
 	modules     =>
 	    [
-	     "Galacticus_Display",
+	     "Display",
 	     "ISO_Varying_String"
 	    ],
 	variables   =>
@@ -58,8 +58,8 @@ sub Class_Dump_ASCII {
     $code::padding = " " x ($fullyQualifiedNameLengthMax-length($code::class->{'name'}));
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self
-call Galacticus_Display_Indent('{$class->{'name'}}: {$padding}generic')
-call Galacticus_Display_Unindent('done')
+call displayIndent('{$class->{'name'}}: {$padding}generic')
+call displayUnindent('done')
 CODE
     # Insert a type-binding for this function.
     push(

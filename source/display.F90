@@ -19,29 +19,39 @@
 
 !% Contains a module which implements outputting of formatted, indented messages at various vebosity levels from \glc.
 
-! Specify an explicit dependence on the C interface files.
-!: $(BUILDPATH)/isatty.o
-
-module Galacticus_Display
+module Display
   !% Implements outputting of formatted, indented messages at various vebosity levels from \glc.
   use, intrinsic :: ISO_C_Binding, only : c_int
   implicit none
   private
-  public :: Galacticus_Display_Message,Galacticus_Display_Indent,Galacticus_Display_Unindent,Galacticus_Verbosity_Level&
-       &,Galacticus_Verbosity_Level_Set, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear
+  public :: displayMessage     , displayIndent , displayUnindent    , displayVerbosity, &
+       &    displayVerbositySet, displayCounter, displayCounterClear
+
+  !# <enumeration>
+  !#  <name>verbosityLevel</name>
+  !#  <description>Verbosity levels for message display.</description>
+  !#  <indexing>0</indexing>
+  !#  <visibility>public</visibility>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <errorValue>-1</errorValue>
+  !#  <validator>yes</validator>
+  !#  <entry label="silent"  />
+  !#  <entry label="standard"/>
+  !#  <entry label="working" />
+  !#  <entry label="warn"    />
+  !#  <entry label="info"    />
+  !#  <entry label="debug"   />
+  !# </enumeration>
 
   integer                                      :: maxThreads
   integer          , allocatable, dimension(:) :: indentationLevel
   character(len=10), allocatable, dimension(:) :: indentationFormat
   character(len=10), allocatable, dimension(:) :: indentationFormatNoNewLine
 
-  character(len=20)                            :: threadFormat                              , masterFormat
+  character(len=20)                            :: threadFormat                                   , masterFormat
 
-  logical                                      :: displayInitialized        =.false.
-  integer          , parameter  , public       :: verbosityDebug            =5              , verbosityInfo   =4, &
-       &                                          verbosityWarn             =3              , verbosityWorking=2, &
-       &                                          verbosityStandard         =1              , verbositySilent =0
-  integer                                      :: verbosityLevel            =verbositySilent
+  logical                                      :: displayInitialized        =.false.             , verbositySet=.false.
+  integer                                      :: verbosityLevel            =verbosityLevelSilent
 
   ! Progress bar state.
   logical                                      :: barVisible                =.false.
@@ -50,54 +60,54 @@ module Galacticus_Display
   ! Output type.
   logical                                      :: stdOutIsFile
   
-  interface Galacticus_Display_Message
-     module procedure Galacticus_Display_Message_Char
-     module procedure Galacticus_Display_Message_VarStr
-  end interface Galacticus_Display_Message
+  interface displayMessage
+     module procedure displayMessageChar
+     module procedure displayMessageVarStr
+  end interface displayMessage
 
-  interface Galacticus_Display_Indent
-     module procedure Galacticus_Display_Indent_Char
-     module procedure Galacticus_Display_Indent_VarStr
-  end interface Galacticus_Display_Indent
+  interface displayIndent
+     module procedure displayIndentChar
+     module procedure displayIndentVarStr
+  end interface displayIndent
 
-  interface Galacticus_Display_Unindent
-     module procedure Galacticus_Display_Unindent_Char
-     module procedure Galacticus_Display_Unindent_VarStr
-  end interface Galacticus_Display_Unindent
-
-  interface
-     function stdOutIsATTY() bind(c,name='stdOutIsATTY')
-       !% Template for a C function that determines if stdout is a TTY.
-       import
-       integer(c_int) :: stdOutIsATTY
-     end function stdOutIsATTY
-  end interface
+  interface displayUnindent
+     module procedure displayUnindentChar
+     module procedure displayUnindentVarStr
+  end interface displayUnindent
 
 contains
 
-  integer function Galacticus_Verbosity_Level()
-    !% Returns the verbositly level in \glc.
+  integer function displayVerbosity()
+    !% Returns the verbosity level in \glc.
     implicit none
 
-    Galacticus_Verbosity_Level=verbosityLevel
+    displayVerbosity=verbosityLevel
     return
-  end function Galacticus_Verbosity_Level
+  end function displayVerbosity
 
-  subroutine Galacticus_Verbosity_Level_Set(verbosityLevelNew)
+  subroutine displayVerbositySet(verbosityLevelNew)
     !% Set the verbosity level.
     implicit none
     integer, intent(in   ) :: verbosityLevelNew
 
-    verbosityLevel=verbosityLevelNew
+    if (enumerationVerbosityLevelIsValid(verbosityLevelNew)) then
+       ! Requested value is valid, set it.
+       verbosityLevel=verbosityLevelNew
+       verbositySet  =.true.
+    else if (.not.verbositySet) then
+       ! Verbosity has not been set, and the requested value is invalid. Use standard verbosity.
+       verbosityLevel=verbosityLevelStandard
+    end if
     return
-  end subroutine Galacticus_Verbosity_Level_Set
+  end subroutine displayVerbositySet
 
-  subroutine Initialize_Display
+  subroutine initialize()
     !% Initialize the module by determining the requested verbosity level.
 #ifdef USEMPI
-    use    :: MPI    , only : MPI_Comm_Size      , MPI_Comm_Rank, MPI_Comm_World
+    use    :: MPI          , only : MPI_Comm_Size      , MPI_Comm_Rank, MPI_Comm_World
 #endif
-    !$ use :: OMP_Lib, only : OMP_Get_Max_Threads
+    !$ use :: OMP_Lib      , only : OMP_Get_Max_Threads
+    use    :: System_Output, only : stdOutIsATTY
     implicit none
     integer           :: ompDigitsMaximum
 #ifdef USEMPI
@@ -107,7 +117,7 @@ contains
 #endif
 
     if (.not.displayInitialized) then
-       !$omp critical (Initialize_Display)
+       !$omp critical (displayInitialize)
        if (.not.displayInitialized) then
           ! For OpenMP runs, create an array of indentation levels, and formats.
           maxThreads=1
@@ -154,43 +164,37 @@ contains
 #endif
 #endif
           ! Determine if stdout is connected to a file or pipe.
-          stdOutIsFile=stdOutIsATTY() /= 1
+          stdOutIsFile=.not.stdOutIsATTY()
           ! Mark display as initialized.
           displayInitialized=.true.
        end if
-       !$omp end critical (Initialize_Display)
+       !$omp end critical (displayInitialize)
     end if
     return
-  end subroutine Initialize_Display
+  end subroutine initialize
 
-  subroutine Galacticus_Display_Indent_VarStr(message,verbosity)
+  subroutine displayIndentVarStr(message,verbosity)
     !% Increase the indentation level and display a message.
     use :: ISO_Varying_String, only : varying_string, char
     implicit none
     type   (varying_string), intent(in   )           :: message
     integer                , intent(in   ), optional :: verbosity
 
-    call Galacticus_Display_Indent_Char(char(message),verbosity)
+    call displayIndentChar(char(message),verbosity)
     return
-  end subroutine Galacticus_Display_Indent_VarStr
+  end subroutine displayIndentVarStr
 
-  subroutine Galacticus_Display_Indent_Char(message,verbosity)
+  subroutine displayIndentChar(message,verbosity)
     !% Increase the indentation level and display a message.
     !$ use :: OMP_Lib, only : OMP_In_Parallel, OMP_Get_Thread_Num
     implicit none
     character(len=*), intent(in   )           :: message
     integer         , intent(in   ), optional :: verbosity
-    logical                                   :: showMessage
     integer                                   :: threadNumber
 
     !$omp critical(Galacticus_Message_Lock)
-    call Initialize_Display
-    if (present(verbosity)) then
-       showMessage=(verbosity       <= verbosityLevel)
-    else
-       showMessage=(verbositySilent <  verbosityLevel)
-    end if
-    if (showMessage) then
+    call initialize()
+    if (showMessage(verbosity)) then
        !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
        !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
        !# </workaround>
@@ -214,46 +218,40 @@ contains
        !$ else
              indentationLevel=indentationLevel+1
        !$ end if
-       call Create_Indentation_Format
+       call formatIndentationCreate()
     end if
     !$omp end critical(Galacticus_Message_Lock)
     return
-  end subroutine Galacticus_Display_Indent_Char
+  end subroutine displayIndentChar
 
-  subroutine Galacticus_Display_Unindent_VarStr(message,verbosity)
+  subroutine displayUnindentVarStr(message,verbosity)
     !% Decrease the indentation level and display a message.
     use :: ISO_Varying_String, only : varying_string, char
     implicit none
     type   (varying_string), intent(in   )           :: message
     integer                , intent(in   ), optional :: verbosity
 
-    call Galacticus_Display_Unindent_Char(char(message),verbosity)
+    call displayUnindentChar(char(message),verbosity)
     return
-  end subroutine Galacticus_Display_Unindent_VarStr
+  end subroutine displayUnindentVarStr
 
-  subroutine Galacticus_Display_Unindent_Char(message,verbosity)
+  subroutine displayUnindentChar(message,verbosity)
     !% Decrease the indentation level and display a message.
     !$ use :: OMP_Lib, only : OMP_In_Parallel, OMP_Get_Thread_Num
     implicit none
     character(len=*), intent(in   )           :: message
     integer         , intent(in   ), optional :: verbosity
     integer                                   :: threadNumber
-    logical                                   :: showMessage
 
     !$omp critical(Galacticus_Message_Lock)
-    call Initialize_Display
-    if (present(verbosity)) then
-       showMessage=(verbosity       <= verbosityLevel)
-    else
-       showMessage=(verbositySilent <  verbosityLevel)
-    end if
-    if (showMessage) then
+    call initialize()
+    if (showMessage(verbosity)) then
        !$ if (omp_in_parallel()) then
        !$    indentationLevel(omp_get_thread_num()+1)=max(indentationLevel(omp_get_thread_num()+1)-1,0)
        !$ else
        indentationLevel=max(indentationLevel-1,0)
        !$ end if
-       call Create_Indentation_Format
+       call formatIndentationCreate()
        !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
        !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
        !# </workaround>
@@ -275,26 +273,20 @@ contains
     end if
     !$omp end critical(Galacticus_Message_Lock)
     return
-  end subroutine Galacticus_Display_Unindent_Char
+  end subroutine displayUnindentChar
 
-  subroutine Galacticus_Display_Message_Char(message,verbosity)
+  subroutine displayMessageChar(message,verbosity)
     !% Display a message (input as a {\normalfont \ttfamily character} variable).
     !$ use :: OMP_Lib, only : OMP_In_Parallel, OMP_Get_Thread_Num
     implicit none
     character(len=*), intent(in   )           :: message
     integer         , intent(in   ), optional :: verbosity
     integer                                   :: threadNumber
-    logical                                   :: showMessage
 
     !$omp critical(Galacticus_Message_Lock)
-    call Initialize_Display
-    if (present(verbosity)) then
-       showMessage=(verbosity       <= verbosityLevel)
-    else
-       showMessage=(verbositySilent <  verbosityLevel)
-    end if
-    if (showMessage) then
-       if (barVisible) call Galacticus_Display_Counter_Clear_Lockless()
+    call initialize()
+    if (showMessage(verbosity)) then
+       if (barVisible) call counterClearLockless()
        !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
        !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
        !# </workaround>
@@ -312,13 +304,13 @@ contains
 #ifdef THREADSAFEIO
        !$omp end critical(gfortranInternalIO)
 #endif
-       if (barVisible) call Galacticus_Display_Counter_Lockless(barPercentage,.true.)
+       if (barVisible) call displayCounterLockless(barPercentage,.true.)
     end if
     !$omp end critical(Galacticus_Message_Lock)
     return
-  end subroutine Galacticus_Display_Message_Char
+  end subroutine displayMessageChar
 
-  subroutine Galacticus_Display_Message_VarStr(message,verbosity)
+  subroutine displayMessageVarStr(message,verbosity)
     !% Display a message (input as a {\normalfont \ttfamily varying\_string} variable).
     !$ use :: OMP_Lib           , only : OMP_In_Parallel, OMP_Get_Thread_Num
     use    :: ISO_Varying_String, only : varying_string , char
@@ -326,17 +318,11 @@ contains
     type   (varying_string), intent(in   )           :: message
     integer                , intent(in   ), optional :: verbosity
     integer                                          :: threadNumber
-    logical                                          :: showMessage
 
     !$omp critical(Galacticus_Message_Lock)
-    call Initialize_Display
-    if (present(verbosity)) then
-       showMessage=(verbosity       <= verbosityLevel)
-    else
-       showMessage=(verbositySilent <  verbosityLevel)
-    end if
-    if (showMessage) then
-       if (barVisible) call Galacticus_Display_Counter_Clear_Lockless()
+    call initialize()
+    if (showMessage(verbosity)) then
+       if (barVisible) call counterClearLockless()
        !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
        !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
        !# </workaround>
@@ -354,13 +340,13 @@ contains
 #ifdef THREADSAFEIO
        !$omp end critical(gfortranInternalIO)
 #endif
-       if (barVisible) call Galacticus_Display_Counter_Lockless(barPercentage,.true.)
+       if (barVisible) call displayCounterLockless(barPercentage,.true.)
     end if
     !$omp end critical(Galacticus_Message_Lock)
     return
-  end subroutine Galacticus_Display_Message_VarStr
+  end subroutine displayMessageVarStr
 
-  subroutine Create_Indentation_Format
+  subroutine formatIndentationCreate()
     !% Create a format for indentation.
     !$ use :: OMP_Lib, only : OMP_In_Parallel, OMP_Get_Thread_Num
     implicit none
@@ -395,9 +381,9 @@ contains
     !$    indentationFormatNoNewLine=indentationFormatNoNewLine(1)
     !$ end if
     return
-  end subroutine Create_Indentation_Format
+  end subroutine formatIndentationCreate
 
-  subroutine Galacticus_Display_Counter(percentageComplete,isNew,verbosity)
+  subroutine displayCounter(percentageComplete,isNew,verbosity)
     !% Displays a percentage counter and bar to show progress.
     implicit none
     integer, intent(in   )           :: percentageComplete
@@ -405,12 +391,12 @@ contains
     integer, intent(in   ), optional :: verbosity
 
     !$omp critical(Galacticus_Message_Lock)
-    call Galacticus_Display_Counter_Lockless(percentageComplete,isNew,verbosity)
+    call displayCounterLockless(percentageComplete,isNew,verbosity)
     !$omp end critical(Galacticus_Message_Lock)
     return
-  end subroutine Galacticus_Display_Counter
+  end subroutine displayCounter
 
-  subroutine Galacticus_Display_Counter_Lockless(percentageComplete,isNew,verbosity)
+  subroutine displayCounterLockless(percentageComplete,isNew,verbosity)
     !% Displays a percentage counter and bar to show progress.
     implicit none
     integer          , intent(in   )           :: percentageComplete
@@ -418,17 +404,11 @@ contains
     integer          , intent(in   ), optional :: verbosity
     character(len=50)                          :: bar
     integer                                    :: majorCount        , minorCount, percentage
-    logical                                    :: showMessage
 
-    call Initialize_Display
-    if (present(verbosity)) then
-       showMessage=(verbosity       <= verbosityLevel)
-    else
-       showMessage=(verbositySilent <  verbosityLevel)
-    end if
-    if (showMessage) then
+    call initialize()
+    if (showMessage(verbosity)) then
        if (percentageComplete == barPercentage .and. .not.isNew) return
-       if (.not.isNew) call Galacticus_Display_Counter_Clear_Lockless()
+       if (.not.isNew) call counterClearLockless()
        percentage=max(0,min(percentageComplete,100))
        majorCount=percentage/2
        minorCount=percentage-majorCount*2
@@ -449,36 +429,30 @@ contains
        barPercentage=percentageComplete
     end if
     return
-  end subroutine Galacticus_Display_Counter_Lockless
+  end subroutine displayCounterLockless
 
-  subroutine Galacticus_Display_Counter_Clear(verbosity)
+  subroutine displayCounterClear(verbosity)
     !% Clears a percentage counter.
     implicit none
     integer, intent(in   ), optional :: verbosity
 
     !$omp critical(Galacticus_Message_Lock)
-    call Galacticus_Display_Counter_Clear_Lockless(verbosity)
+    call counterClearLockless(verbosity)
     barVisible   =.false.
     barPercentage=0
     !$omp end critical(Galacticus_Message_Lock)
     return
-  end subroutine Galacticus_Display_Counter_Clear
+  end subroutine displayCounterClear
 
-  subroutine Galacticus_Display_Counter_Clear_Lockless(verbosity)
+  subroutine counterClearLockless(verbosity)
     !% Clears a percentage counter.
     implicit none
     integer, intent(in   ), optional :: verbosity
-    logical                          :: showMessage
 
-    call Initialize_Display()
+    call initialize()
     ! If output is to a file we do not attempt to clear the bar (which is useful only on a TTY).
     if (stdOutIsFile) return
-    if (present(verbosity)) then
-       showMessage=(verbosity       <= verbosityLevel)
-    else
-       showMessage=(verbositySilent <  verbosityLevel)
-    end if
-    if (showMessage) then
+    if (showMessage(verbosity)) then
        !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
        !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
        !# </workaround>
@@ -493,6 +467,19 @@ contains
 #endif
     end if
     return
-  end subroutine Galacticus_Display_Counter_Clear_Lockless
+  end subroutine counterClearLockless
 
-end module Galacticus_Display
+  logical function showMessage(verbosity)
+    !% Return true if the message should be displayed at the current verbosity level.
+    implicit none
+    integer, intent(in   ), optional :: verbosity
+
+    if (present(verbosity)) then
+       showMessage=(verbosity            <= verbosityLevel)
+    else
+       showMessage=(verbosityLevelSilent <  verbosityLevel)
+    end if
+    return
+  end function showMessage
+  
+end module Display

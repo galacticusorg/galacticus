@@ -103,8 +103,8 @@ contains
 
   subroutine multipleImport(self,simulations)
     !% Import data using multiple importers.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, verbosityStandard
-    use :: Hashes            , only : rank1IntegerSizeTPtrHash , rank2IntegerSizeTPtrHash   , rank1DoublePtrHash, rank2DoublePtrHash
+    use :: Display, only : displayIndent     , displayUnindent         , verbosityLevelStandard
+    use :: Hashes , only : rank1DoublePtrHash, rank1IntegerSizeTPtrHash, rank2DoublePtrHash    , rank2IntegerSizeTPtrHash
     implicit none
     class  (nbodyImporterMultiple), intent(inout)                            :: self
     type   (nBodyData            ), intent(  out), allocatable, dimension(:) :: simulations
@@ -112,7 +112,7 @@ contains
     integer                                                                  :: i
     integer(c_size_t             )                                           :: countSimulations
 
-    call Galacticus_Display_Indent('merging imported data',verbosityStandard)
+    call displayIndent('merging imported data',verbosityLevelStandard)
     countSimulations =  0_c_size_t
     importer_        => self%importers
     do while (associated(importer_))
@@ -143,7 +143,7 @@ contains
        end do
        importer_ => importer_%next
     end do
-    call Galacticus_Display_Unindent('done',verbosityStandard)
+    call displayUnindent('done',verbosityLevelStandard)
     return
   end subroutine multipleImport
 

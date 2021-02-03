@@ -20,12 +20,12 @@
 program Tests_Linear_Growth_Dark_Energy
   !% Tests linear growth calculations for a dark energy Universe. Growth rates are compared to Figure 1 of Linder and Jenkins
   !% (2003; MNRAS; 346; 573; http://adsabs.harvard.edu/abs/2003MNRAS.346..573L).
-  use :: Cosmology_Functions, only : cosmologyFunctions            , cosmologyFunctionsClass
-  use :: Galacticus_Display , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: ISO_Varying_String , only : varying_string                , assignment(=)
+  use :: Cosmology_Functions, only : cosmologyFunctions , cosmologyFunctionsClass
+  use :: Display            , only : displayVerbositySet, verbosityLevelStandard
+  use :: ISO_Varying_String , only : assignment(=)      , varying_string
   use :: Input_Parameters   , only : inputParameters
-  use :: Linear_Growth      , only : componentDarkMatter           , linearGrowth           , linearGrowthClass   , normalizeMatterDominated
-  use :: Unit_Tests         , only : Assert                        , Unit_Tests_Begin_Group , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Linear_Growth      , only : componentDarkMatter, linearGrowth           , linearGrowthClass   , normalizeMatterDominated
+  use :: Unit_Tests         , only : Assert             , Unit_Tests_Begin_Group , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision                         , dimension(13), parameter :: redshift                 =[0.000000d0,0.052632d0,0.149425d0,0.265823d0,0.449275d0,0.666667d0,1.000000d0,1.325580d0,1.857140d0,2.846150d0,4.555560d0,8.090910d0,17.867900d0]
   double precision                         , dimension(13), parameter :: growthFactorDarkEnergy   =[0.73d0,0.75d0,0.78d0,0.81d0,0.85d0,0.88d0,0.92d0,0.94d0,0.96d0,0.98d0,0.99d0,1.00d0,1.00d0]
@@ -38,7 +38,7 @@ program Tests_Linear_Growth_Dark_Energy
   type            (inputParameters        )                           :: parameters
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Linear growth: dark energy cosmology")
 

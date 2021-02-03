@@ -164,12 +164,12 @@ contains
 
   function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,binCountMinimum,errorModel,massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceUnconditioned_,criticalOverdensityUnconditioned_,darkMatterHaloScale_,darkMatterProfileDMO_,haloEnvironment_) result(self)
     !% Constructor for ``haloMassFunction'' posterior sampling likelihood class.
-    use :: File_Utilities    , only : File_Name_Expand
-    use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: IO_HDF5           , only : hdf5Access                , hdf5Object
-    use :: Linear_Algebra    , only : assignment(=)
-    use :: Memory_Management , only : allocateArray
+    use :: Display          , only : displayMessage
+    use :: File_Utilities   , only : File_Name_Expand
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: IO_HDF5          , only : hdf5Access             , hdf5Object
+    use :: Linear_Algebra   , only : assignment(=)
+    use :: Memory_Management, only : allocateArray
     implicit none
     type            (posteriorSampleLikelihoodHaloMassFunction)                                :: self
     character       (len=*                                    ), intent(in   )                 :: fileName
@@ -273,7 +273,7 @@ contains
     allocate(eigenValueArray(size(self%mass)))
     call self%covariance%eigenSystem(eigenVectors,eigenValues)
     eigenValueArray=eigenValues
-    if (any(eigenValueArray < 0.0d0)) call Galacticus_Display_Message('WARNING: inverse covariance matrix is not semi-positive definite')
+    if (any(eigenValueArray < 0.0d0)) call displayMessage('WARNING: inverse covariance matrix is not semi-positive definite')
     deallocate(eigenValueArray               )
     deallocate(massOriginal                  )
     deallocate(massFunctionOriginal          )

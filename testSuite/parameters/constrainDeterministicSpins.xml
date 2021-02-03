@@ -2,7 +2,7 @@
 <parameters formatVersion="2" version="0.9.4">
 
   <!-- Logging -->
-  <verbosityLevel value="1"/>
+  <verbosityLevel value="standard"/>
 
   <taskMethod value="evolveForests">
     <evolveSingleForest value="false"/>

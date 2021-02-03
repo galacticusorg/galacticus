@@ -77,7 +77,7 @@ contains
 
   subroutine selectPropertiesOperate(self,simulations)
     !% Select particles matching a list of integer properties. 
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Message, verbosityStandard
+    use :: Display, only : displayIndent, displayMessage, displayUnindent, verbosityLevelStandard
     implicit none
     class           (nbodyOperatorSelectProperties), intent(inout)                 :: self
     type            (nBodyData                    ), intent(inout), dimension(  :) :: simulations
@@ -90,7 +90,7 @@ contains
          &                                                                            k
     integer         (c_size_t                     )                                :: countFiltered
     
-    call Galacticus_Display_Indent('select on property values',verbosityStandard)
+    call displayIndent('select on property values',verbosityLevelStandard)
     do i=1,size(simulations)
        if (simulations(i)%propertiesInteger%exists(self%propertyName)) then
           propertyInteger => simulations(i)%propertiesInteger%value(self%propertyName)
@@ -146,6 +146,6 @@ contains
        end do
        deallocate(mask)
     end do
-    call Galacticus_Display_Unindent('done',verbosityStandard)
+    call displayUnindent('done',verbosityLevelStandard)
     return
   end subroutine selectPropertiesOperate

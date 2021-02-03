@@ -21,11 +21,11 @@
 
 program Test_Sort
   !% Tests of sorting functions.
-  use            :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use, intrinsic :: ISO_C_Binding     , only : c_size_t
-  use            :: Kind_Numbers      , only : kind_int8
-  use            :: Sorting           , only : sort                    , sortIndex         , sortByIndex
-  use            :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use            :: Display      , only : displayVerbositySet, verbosityLevelStandard
+  use, intrinsic :: ISO_C_Binding, only : c_size_t
+  use            :: Kind_Numbers , only : kind_int8
+  use            :: Sorting      , only : sort               , sortByIndex           , sortIndex
+  use            :: Unit_Tests   , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   integer         (kind=c_size_t ), dimension(19) :: indexArray
   integer                         , dimension(19) :: integerArray
@@ -33,7 +33,7 @@ program Test_Sort
   double precision                , dimension(19) :: doubleArray
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Sorting")

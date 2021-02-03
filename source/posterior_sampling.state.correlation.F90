@@ -191,8 +191,8 @@ contains
 
   subroutine correlationCorrelationLengthCompute(self,outlierMask)
     !% Compute correlation lengths.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
-    use :: ISO_Varying_String, only : assignment(=)            , operator(//)              , varying_string
+    use :: Display           , only : displayIndent, displayMessage, displayUnindent
+    use :: ISO_Varying_String, only : assignment(=), operator(//)  , varying_string
     use :: MPI_Utilities     , only : mpiSelf
     use :: String_Handling   , only : operator(//)
     implicit none
@@ -204,7 +204,7 @@ contains
     type            (varying_string                 )                                           :: message
 
     ! Compute correlation lengths.
-    if (mpiSelf%isMaster()) call Galacticus_Display_Indent("Computing correlation lengths")
+    if (mpiSelf%isMaster()) call displayIndent("Computing correlation lengths")
     stateMean              =sum(self%states(:,1:self%storedStateCount),dim=2)/dble(self%storedStateCount)
     self%correlationLengths=-1
     do i=1,size(stateMean)
@@ -224,8 +224,8 @@ contains
           message=message//self%correlationLengths(i)
           if (i < size(stateMean)) message=message//", "
        end do
-       call Galacticus_Display_Message (message)
-       call Galacticus_Display_Unindent("done" )
+       call displayMessage (message)
+       call displayUnindent("done" )
     end if
     return
   end subroutine correlationCorrelationLengthCompute

@@ -49,7 +49,7 @@ contains
 
   subroutine localGroupDatabasePerform(self,status)
     !% Update the database.
-    use :: Galacticus_Display      , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
+    use :: Display                 , only : displayIndent     , displayUnindent
     use :: Galacticus_Error        , only : errorStatusSuccess
     use :: Interface_Local_Group_DB, only : localGroupDB
     implicit none
@@ -58,10 +58,10 @@ contains
     type   (localGroupDB          )                          :: database
     !$GLC attributes unused :: self
 
-    call Galacticus_Display_Indent  ('Begin task: localGroupDatabase')
+    call displayIndent  ('Begin task: localGroupDatabase')
     database=localGroupDB()
     call database%update()
-    call Galacticus_Display_Unindent('Done task: localGroupDatabase' )
+    call displayUnindent('Done task: localGroupDatabase' )
     if (present(status)) status=errorStatusSuccess
     return
   end subroutine localGroupDatabasePerform

@@ -23,7 +23,7 @@ program Tests_Spherical_Collapse_NonLinear
   !% Tests nonlinear collapse solution in an Einstein-de Sitter cosmology.
   use :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters      , only : cosmologyParametersSimple
-  use :: Galacticus_Display        , only : Galacticus_Verbosity_Level_Set                  , verbosityStandard
+  use :: Display                   , only : displayVerbositySet                             , verbosityLevelStandard
   use :: Linear_Growth             , only : linearGrowthCollisionlessMatter
   use :: Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
   use :: Tables                    , only : table2DLinLinLin
@@ -42,7 +42,7 @@ program Tests_Spherical_Collapse_NonLinear
   integer                                                                                     :: i
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Initialize cosmology.
   cosmologyParameters_    =cosmologyParametersSimple                       (                                      &
        &                                                                    OmegaMatter    = 1.00d0             , &

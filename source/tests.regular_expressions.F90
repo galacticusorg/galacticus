@@ -21,14 +21,14 @@
 
 program Tests_Regular_Expressions
   !% Tests regular expression functionality.
-  use :: Galacticus_Display , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Display            , only : displayVerbositySet, verbosityLevelStandard
   use :: Regular_Expressions, only : regEx
-  use :: Unit_Tests         , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests         , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type(regEx) :: regEx_
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Regular expressions")

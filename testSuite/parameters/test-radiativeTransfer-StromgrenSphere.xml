@@ -2,7 +2,7 @@
 <parameters>
   <!-- Radiative transfer model for a Stromgren sphere -->
 
-  <verbosityLevel value="2"/>
+  <verbosityLevel value="working"/>
 
   <galacticusOutputFileName value="testSuite/outputs/radiativeTransfer-StromgrenSphere.hdf5"/>
 

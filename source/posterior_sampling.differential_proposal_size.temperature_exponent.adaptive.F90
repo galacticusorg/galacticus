@@ -125,8 +125,8 @@ contains
 
 double precision function adaptiveExponent(self,temperedStates,temperatures,simulationState,simulationConvergence)
   !% Return the adaptive differential evolution proposal size temperature exponent.
-  use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-          &                         verbosityInfo
+  use :: Display           , only : displayIndent     , displayMessage, displayUnindent, displayVerbosity, &
+          &                         verbosityLevelInfo
   use :: ISO_Varying_String, only : varying_string
   use :: MPI_Utilities     , only : mpiSelf
   use :: String_Handling   , only : operator(//)
@@ -171,37 +171,37 @@ double precision function adaptiveExponent(self,temperedStates,temperatures,simu
           &            /dble(levelCount        )                      &
           &          )
      ! Report.
-     if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+     if (mpiSelf%rank() == 0 .and. displayVerbosity() >= verbosityLevelInfo) then
         message='Tempered acceptance rate report after '
         message=message//temperedStates(levelCount)%count()//' tempered steps:'
-        call Galacticus_Display_Indent(message)
-        call Galacticus_Display_Message('Temperature Acceptance Rate')
-        call Galacticus_Display_Message('---------------------------')
+        call displayIndent(message)
+        call displayMessage('Temperature Acceptance Rate')
+        call displayMessage('---------------------------')
         do i=1,levelCount
            write (label,'(f8.1)') temperatures   (i)
            message="   "//trim(label)
            write (label,'(f5.3)') acceptanceRates(i)
            message=message//"           "//trim(label)
-           call Galacticus_Display_Message(message)
+           call displayMessage(message)
         end do
-        call Galacticus_Display_Message('---------------------------')
+        call displayMessage('---------------------------')
         write (label,'(f8.3)') gradient
         message="Gradient [dR/dln(T)] = "//trim(label)
-        call Galacticus_Display_Message(message)
-        call Galacticus_Display_Unindent('done')
+        call displayMessage(message)
+        call displayUnindent('done')
      end if
      ! If the gradient is out of range, adjust the exponent.
      if      (gradient > self%gradientMaximum .and. self%exponentCurrent < self%exponentMaximum) then
          self%exponentCurrent=min(self%exponentCurrent+self%exponentAdjustFactor,self%exponentMaximum)
-         if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+         if (mpiSelf%rank() == 0 .and. displayVerbosity() >= verbosityLevelInfo) then
             write (label,'(f8.5)') self%exponentCurrent
-            call Galacticus_Display_Message('Adjusting exponent up to '//label)
+            call displayMessage('Adjusting exponent up to '//label)
          end if
      else if (gradient < self%gradientMinimum .and. self%exponentCurrent > self%exponentMinimum) then
          self%exponentCurrent=max(self%exponentCurrent-self%exponentAdjustFactor,self%exponentMinimum)
-         if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+         if (mpiSelf%rank() == 0 .and. displayVerbosity() >= verbosityLevelInfo) then
             write (label,'(f8.5)') self%exponentCurrent
-            call Galacticus_Display_Message('Adjusting exponent down to '//label)
+            call displayMessage('Adjusting exponent down to '//label)
          end if
       end if
   end if

@@ -249,7 +249,7 @@ contains
 
   subroutine catalogProjectedCorrelationFunctionPerform(self,status)
     !% Compute the projected correlation function from a galaxy catalog.
-    use :: Galacticus_Display              , only : Galacticus_Display_Indent        , Galacticus_Display_Message        , Galacticus_Display_Unindent
+    use :: Display                         , only : displayIndent                    , displayMessage                     , displayUnindent
     use :: Galacticus_Error                , only : Galacticus_Error_Report          , errorStatusSuccess
     use :: Galacticus_HDF5                 , only : galacticusOutputFile
     use :: IO_HDF5                         , only : hdf5Object
@@ -258,7 +258,7 @@ contains
     use :: Memory_Management               , only : allocateArray                    , deallocateArray
     use :: Node_Components                 , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use :: Numerical_Constants_Astronomical, only : megaParsec
-    use :: Points                          , only : Points_Prune                     , Points_Replicate                   , Points_Rotate              , Points_Survey_Geometry, &
+    use :: Points                          , only : Points_Prune                     , Points_Replicate                   , Points_Rotate  , Points_Survey_Geometry, &
           &                                         Points_Translate
     use :: Statistics_Points_Correlations  , only : Statistics_Points_Correlation
     use :: String_Handling                 , only : operator(//)
@@ -281,11 +281,11 @@ contains
          &                                                                                      i                    , j                       , &
          &                                                                                      replicatedGalaxyCount
 
-    call Galacticus_Display_Indent('Begin task: catalog projected correlation function')
+    call displayIndent('Begin task: catalog projected correlation function')
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
     call Node_Components_Thread_Initialize(self%parameters)
     ! Read the galaxy catalog.
-    call Galacticus_Display_Indent("Reading galaxy catalog")
+    call displayIndent("Reading galaxy catalog")
     galaxyFile=irate(char(self%galaxyCatalogFileName),self%cosmologyParameters_,self%cosmologyFunctions_)
     call galaxyFile%readHalos     (                            &
          &                         snapshot=1                , &
@@ -299,8 +299,8 @@ contains
          &                         )
     message="Read "
     message=message//size(galaxyPosition,dim=2)//" galaxies"
-    call Galacticus_Display_Message(message)
-    call Galacticus_Display_Unindent("done")
+    call displayMessage(message)
+    call displayUnindent("done")
     ! Copy data.
     allocate(galaxyPosition(size(galaxyPosition_,dim=1),size(galaxyPosition_,dim=2)))
     allocate(galaxyVelocity(size(galaxyVelocity_,dim=1),size(galaxyVelocity_,dim=2)))
@@ -315,7 +315,7 @@ contains
     call Points_Prune(galaxyVelocity,galaxyMass >= self%massMinimum .and. galaxyMass < self%massMaximum)
     message="Pruned on mass leaving "
     message=message//size(galaxyPosition,dim=2)//" galaxies"
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     ! Generate random points.
     select case (self%randomSampleCountType)
     case (randomSampleCountTypeFixed         )
@@ -354,7 +354,7 @@ contains
     call Points_Replicate(galaxyPosition,simulationBoxSize,-replications*[1,1,1],+replications*[1,1,1])
     message="Replicated to cover survey volume giving "
     message=message//size(galaxyPosition,dim=2)//" galaxies"
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     replicatedGalaxyCount=size(galaxyPosition,dim=2)
     ! Shift points into redshift space.
     call pointsToRedshiftSpace()
@@ -369,7 +369,7 @@ contains
     call Points_Survey_Geometry(galaxyPosition,self%surveyGeometry_,self%massMaximum)
     message="Pruned on survey geometry leaving "
     message=message//size(galaxyPosition,dim=2)//" galaxies"
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     ! Generate random points.
     select case (self%randomSampleCountType)
     case (randomSampleCountTypeFixed         )
@@ -389,11 +389,11 @@ contains
     end do
     message="Generated "
     message=message//size(randomPosition,dim=2)//" random points"
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     call Points_Survey_Geometry(randomPosition,self%surveyGeometry_,self%massMaximum)
     message="Pruned on survey geometry leaving "
     message=message//size(randomPosition,dim=2)//" random points"
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     ! Compute the correlation function.
     call Statistics_Points_Correlation(                                                                       &
          &                             galaxyPosition                                                       , &
@@ -425,7 +425,7 @@ contains
     deallocate(galaxyMass    )
     call Node_Components_Thread_Uninitialize()
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: catalog projected correlation function' )
+    call displayUnindent('Done task: catalog projected correlation function' )
 
   contains
 

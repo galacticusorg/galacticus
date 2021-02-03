@@ -23,12 +23,12 @@ program Test_Correa2015_MAH
   !% Tests the \cite{correa_accretion_2015} halo mass formation history algorithm.
   use :: Cosmology_Functions                      , only : cosmologyFunctions                 , cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistory , darkMatterHaloMassAccretionHistoryClass
+  use :: Display                                  , only : displayVerbositySet                , verbosityLevelStandard
   use :: Events_Hooks                             , only : eventsHooksInitialize
   use :: Functions_Global_Utilities               , only : Functions_Global_Set
-  use :: Galacticus_Display                       , only : Galacticus_Verbosity_Level_Set     , verbosityStandard
   use :: Galacticus_Function_Classes_Destroys     , only : Galacticus_Function_Classes_Destroy
   use :: Galacticus_Nodes                         , only : nodeClassHierarchyInitialize       , nodeComponentBasic                     , treeNode
-  use :: ISO_Varying_String                       , only : varying_string                     , assignment(=)
+  use :: ISO_Varying_String                       , only : assignment(=)                      , varying_string
   use :: Input_Parameters                         , only : inputParameters
   use :: Node_Components                          , only : Node_Components_Initialize         , Node_Components_Thread_Initialize      , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
   use :: Unit_Tests                               , only : Assert                             , Unit_Tests_Begin_Group                 , Unit_Tests_End_Group               , Unit_Tests_Finish
@@ -44,7 +44,7 @@ program Test_Correa2015_MAH
   type            (inputParameters                        )               :: parameters
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Correa et al. 2015 mass accretion history algorithms")
   ! Test Correa et al. 2015 algorithm.

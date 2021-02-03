@@ -301,12 +301,12 @@ contains
     !% Perform a particulation operation on a merger tree (i.e. create a particle representation of the tree).
     use    :: Coordinates                       , only : assignment(=)                    , coordinateCartesian                     , coordinateSpherical
     use    :: Cosmology_Parameters              , only : hubbleUnitsLittleH
+    use    :: Display                           , only : displayCounter                   , displayCounterClear                     , verbosityLevelStandard, verbosityLevelWorking
     use    :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass , Galactic_Structure_Radius_Enclosing_Mass
     use    :: Galactic_Structure_Options        , only : massTypeDark
     use    :: Galacticus_Calculations_Resets    , only : Galacticus_Calculations_Reset
-    use    :: Galacticus_Display                , only : Galacticus_Display_Counter       , Galacticus_Display_Counter_Clear        , verbosityStandard    , verbosityWorking
     use    :: Galacticus_Error                  , only : Galacticus_Error_Report
-    use    :: Galacticus_Nodes                  , only : mergerTree                       , nodeComponentBasic                      , nodeComponentPosition, nodeComponentSatellite, &
+    use    :: Galacticus_Nodes                  , only : mergerTree                       , nodeComponentBasic                      , nodeComponentPosition , nodeComponentSatellite, &
           &                                              treeNode
     use    :: IO_HDF5                           , only : hdf5Access                       , hdf5Object
     use    :: ISO_Varying_String                , only : varying_string
@@ -462,7 +462,7 @@ contains
           !$omp do reduction(+: positionRandomOffset, velocityRandomOffset)
           do i=1,particleCountActual
              !$ if (OMP_Get_Thread_Num() == 0) then
-                call Galacticus_Display_Counter(max(1,int(100.0d0*dble(i-1)/dble(particleCountActual))),isNew=isNew,verbosity=verbosityStandard)
+                call displayCounter(max(1,int(100.0d0*dble(i-1)/dble(particleCountActual))),isNew=isNew,verbosity=verbosityLevelStandard)
                 isNew=.false.
              !$ end if
              ! Sample particle positions from the halo density distribution. Currently, we assume that halos are spherically
@@ -625,7 +625,7 @@ contains
           call Node_Components_Thread_Uninitialize()
           deallocate(particulateSelf)
           !$omp end parallel
-          call Galacticus_Display_Counter_Clear(verbosity=verbosityWorking)
+          call displayCounterClear(verbosity=verbosityLevelWorking)
           ! Subtract random offsets of the center-of-mass postion and velocity.
           positionRandomOffset = positionRandomOffset/particleCountActual
           velocityRandomOffset = velocityRandomOffset/particleCountActual

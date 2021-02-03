@@ -5,7 +5,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
-  <verbosityLevel value="2"/>
+  <verbosityLevel value="working"/>
 
   <!-- Specify output file name -->
   <galacticusOutputFileName value="trees.hdf5"/>

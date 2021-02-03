@@ -470,8 +470,8 @@ contains
   subroutine filteredPowerRetabulate(self,mass,time)
     !% Tabulate the cosmological mass variance.
     use :: Cosmology_Parameters    , only : hubbleUnitsLittleH
+    use :: Display                 , only : displayIndent            , displayMessage                   , displayUnindent, verbosityLevelWorking
     use :: File_Utilities          , only : File_Lock                , File_Unlock                      , lockDescriptor
-    use :: Galacticus_Display      , only : Galacticus_Display_Indent, Galacticus_Display_Message       , Galacticus_Display_Unindent, verbosityWorking
     use :: Galacticus_Error        , only : Galacticus_Error_Report  , Galacticus_Warn
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Ranges        , only : Make_Range               , rangeTypeLogarithmic
@@ -619,7 +619,7 @@ contains
           else
              allocate(table1DLogarithmicCSpline         :: self%rootVarianceTable(rootVarianceTimeCount))
           end if
-          call Galacticus_Display_Indent("retabulating σ(M)",verbosityWorking)
+          call displayIndent("retabulating σ(M)",verbosityLevelWorking)
           write    (labelLow   ,'(e9.2)') self%massMinimum
           write    (labelHigh  ,'(e9.2)') self%massMaximum
           if (present(mass)) then
@@ -627,7 +627,7 @@ contains
           else
              labelTarget="unspecified"
           end if
-          call Galacticus_Display_Message("mass range: "//labelLow//" < "//labelTarget//" < "//labelHigh//" M☉" ,verbosityWorking)
+          call displayMessage("mass range: "//labelLow//" < "//labelTarget//" < "//labelHigh//" M☉" ,verbosityLevelWorking)
           write    (labelLow   ,'(f9.4)') self%timeMinimum
           write    (labelHigh  ,'(f9.4)') self%timeMaximum
           if (present(time)) then
@@ -635,7 +635,7 @@ contains
           else
              labelTarget="unspecified"
           end if
-          call Galacticus_Display_Message("time range: "//labelLow//" < "//labelTarget//" < "//labelHigh//" Gyr",verbosityWorking)
+          call displayMessage("time range: "//labelLow//" < "//labelTarget//" < "//labelHigh//" Gyr",verbosityLevelWorking)
           do k=1,rootVarianceTimeCount
              call self%rootVarianceTable(k)%create(self%massMinimum,self%massMaximum,rootVarianceTableCount)
              allocate(rootVarianceIsUnique(rootVarianceTableCount))
@@ -689,7 +689,7 @@ contains
                 end if
              end if
           end do
-          call Galacticus_Display_Unindent("done",verbosityWorking)
+          call displayUnindent("done",verbosityLevelWorking)
           ! Table is now initialized.
           self%initialized=.true.
           ! Store file.
@@ -704,7 +704,7 @@ contains
     double precision function rootVariance(time_,useTopHat)
       !% Compute the root-variance of mass in spheres enclosing the given {\normalfont \ttfamily mass} from the power spectrum.
       use :: Numerical_Constants_Math, only : Pi
-      use :: Numerical_Integration   , only : integrator, GSL_Integ_Gauss15
+      use :: Numerical_Integration   , only : GSL_Integ_Gauss15, integrator
       implicit none
       double precision            , intent(in   ) :: time_
       logical                     , intent(in   ) :: useTopHat
@@ -834,10 +834,10 @@ contains
 
   subroutine filteredPowerFileRead(self)
     !% Read tabulated data on mass variance from file.
-    use :: File_Utilities    , only : File_Exists
-    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
-    use :: IO_HDF5           , only : hdf5Access                , hdf5Object
-    use :: Tables            , only : table1DLogarithmicCSpline , table1DLogarithmicMonotoneCSpline
+    use :: Display       , only : displayMessage           , verbosityLevelWorking
+    use :: File_Utilities, only : File_Exists
+    use :: IO_HDF5       , only : hdf5Access               , hdf5Object
+    use :: Tables        , only : table1DLogarithmicCSpline, table1DLogarithmicMonotoneCSpline
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
     double precision                                       , dimension(:  ), allocatable :: massTmp        , timesTmp
@@ -849,7 +849,7 @@ contains
 
     ! Return immediately if the file does not exist.
     if (.not.File_Exists(char(self%fileName))) return
-    call Galacticus_Display_Message('reading σ(M) data from: '//self%fileName,verbosityWorking)
+    call displayMessage('reading σ(M) data from: '//self%fileName,verbosityLevelWorking)
     !$ call hdf5Access%set()
     call dataFile%openFile     (char(self%fileName)          ,overWrite                       =.false.)
     call dataFile%readDataset  ('times'                      ,     timesTmp                           )
@@ -898,9 +898,9 @@ contains
 
   subroutine filteredPowerFileWrite(self)
     !% Write tabulated data on mass variance to file.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
-    use :: HDF5              , only : hsize_t
-    use :: IO_HDF5           , only : hdf5Access                , hdf5Object
+    use :: Display, only : displayMessage, verbosityLevelWorking
+    use :: HDF5   , only : hsize_t
+    use :: IO_HDF5, only : hdf5Access    , hdf5Object
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
     double precision                                       , dimension(:  ), allocatable :: massTmp
@@ -910,7 +910,7 @@ contains
     type            (hdf5Object                           )                              :: dataFile
     integer                                                                              :: i
 
-    call Galacticus_Display_Message('writing σ(M) data to: '//self%fileName,verbosityWorking)
+    call displayMessage('writing σ(M) data to: '//self%fileName,verbosityLevelWorking)
     ! Prepare data.
     allocate(massTmp              (self%rootVarianceTable(1)%size()                 ))
     allocate(rootVarianceTmp      (self%rootVarianceTable(1)%size(),size(self%times)))

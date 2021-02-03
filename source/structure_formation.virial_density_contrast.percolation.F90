@@ -21,7 +21,8 @@
 
   use    :: Cosmology_Functions, only : cosmologyFunctionsClass
   use    :: Kind_Numbers       , only : kind_int8
-  !$ use :: OMP_Lib            , only : OMP_Destroy_Lock       , OMP_Init_Lock, OMP_Set_Lock, OMP_Unset_Lock, omp_lock_kind
+  !$ use :: OMP_Lib            , only : OMP_Destroy_Lock       , OMP_Init_Lock, OMP_Set_Lock, OMP_Unset_Lock, &
+!$          &                             omp_lock_kind
   use    :: Tables             , only : table2DLogLogLin
 
   !# <virialDensityContrast name="virialDensityContrastPercolation" recursive="yes">
@@ -223,10 +224,10 @@ contains
 
   subroutine percolationTabulate(self,mass,time,mustRetabulate)
     !% Tabulate virial density contrast as a function of mass and time for the {\normalfont \ttfamily percolation} density contrast class.
-    use :: Functions_Global  , only : Virial_Density_Contrast_Percolation_Solver_
-    use :: Galacticus_Display, only : Galacticus_Display_Counter                 , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-          &                           verbosityWorking
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Display         , only : displayCounter                             , displayCounterClear, displayIndent, displayUnindent, &
+          &                         verbosityLevelWorking
+    use :: Functions_Global, only : Virial_Density_Contrast_Percolation_Solver_
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (virialDensityContrastPercolation), intent(inout)           :: self
     double precision                                  , intent(in   )           :: mass          , time
@@ -291,19 +292,19 @@ contains
                &                                self%densityContrastTableTimeCount    &
                &                               )
           ! Tabulate the density contrast.
-          call Galacticus_Display_Indent('Tabulating virial density contrasts for percolation class',verbosity=verbosityWorking)
+          call displayIndent('Tabulating virial density contrasts for percolation class',verbosity=verbosityLevelWorking)
           iCount=0
           do iMass=1,self%densityContrastTableMassCount
              tableMass=self%densityContrastTable%x(iMass)
              do iTime=1,self%densityContrastTableTimeCount
                 tableTime=self%densityContrastTable%y(iTime)
                 iCount=iCount+1
-                call Galacticus_Display_Counter(int(100.0d0*dble(iCount)/dble(self%densityContrastTableMassCount*self%densityContrastTableTimeCount)),isNew=(iCount==1),verbosity=verbosityWorking)
+                call displayCounter(int(100.0d0*dble(iCount)/dble(self%densityContrastTableMassCount*self%densityContrastTableTimeCount)),isNew=(iCount==1),verbosity=verbosityLevelWorking)
                 call self%densityContrastTable%populate(Virial_Density_Contrast_Percolation_Solver_(tableMass,tableTime,self%linkingLength,percolationDensityContrastCurrent,self%percolationObjects_,self),iMass,iTime)
              end do
           end do
-          call Galacticus_Display_Counter_Clear(verbosity=verbosityWorking)
-          call Galacticus_Display_Unindent('done',verbosity=verbosityWorking)
+          call displayCounterClear(verbosity=verbosityLevelWorking)
+          call displayUnindent('done',verbosity=verbosityLevelWorking)
           ! Flag that the table is now initialized.
           self%densityContrastTableInitialized=.true.
           ! Store the table.
@@ -560,7 +561,8 @@ contains
 
   subroutine percolationStoreTable(self)
     !% Store the table to file.
-    use :: File_Utilities    , only : Directory_Make, File_Lock     ,  File_Path, File_Unlock, lockDescriptor
+    use :: File_Utilities    , only : Directory_Make, File_Lock     , File_Path, File_Unlock, &
+          &                           lockDescriptor
     use :: IO_HDF5           , only : hdf5Access    , hdf5Object
     use :: ISO_Varying_String, only : char          , varying_string
     implicit none

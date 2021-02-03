@@ -162,10 +162,10 @@ contains
   subroutine haloModelGeneratePerform(self,status)
     !% Generate a mock galaxy catalog using a simple halo model approach.
     use :: Conditional_Mass_Functions        , only : haloModelGalaxyTypeCentral              , haloModelGalaxyTypeSatellite
+    use :: Display                           , only : displayIndent                           , displayMessage                     , displayUnindent
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options        , only : massTypeDark
     use :: Galacticus_Calculations_Resets    , only : Galacticus_Calculations_Reset
-    use :: Galacticus_Display                , only : Galacticus_Display_Indent               , Galacticus_Display_Message         , Galacticus_Display_Unindent
     use :: Galacticus_Error                  , only : errorStatusSuccess
     use :: Galacticus_Nodes                  , only : nodeComponentBasic                      , nodeComponentDarkMatterProfile     , treeNode
     use :: IO_IRATE                          , only : irate
@@ -199,11 +199,11 @@ contains
     type            (rootFinder                    )                                :: finderCentral        , finderSatellite
     character       (len=6                         )                                :: label
 
-    call Galacticus_Display_Indent('Begin task: halo model generate')
+    call displayIndent('Begin task: halo model generate')
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
     call Node_Components_Thread_Initialize(self%parameters)
     ! Read the halo catalog.
-    call Galacticus_Display_Indent("Reading halo catalog")
+    call displayIndent("Reading halo catalog")
     haloFile=irate(char(self%haloCatalogFileName),self%cosmologyParameters_,self%cosmologyFunctions_)
     call haloFile%readHalos     (                            &
          &                       snapshot=1                , &
@@ -215,7 +215,7 @@ contains
     call haloFile%readSimulation(                            &
          &                       boxSize =simulationBoxSize  &
          &                      )
-    call Galacticus_Display_Unindent("done")
+    call displayUnindent("done")
     ! Establish root finders.
     finderCentral  =rootFinder(                                               &
          &                     rootFunction       =centralMassRoot          , &
@@ -238,7 +238,7 @@ contains
     call basic%timeSet            (self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift)))
     call basic%timeLastIsolatedSet(self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift)))
     ! Iterate over halos.
-    call Galacticus_Display_Indent("Populating halos")
+    call displayIndent("Populating halos")
     galaxyCount             =     0
     populatedHaloMassMinimum=huge(0.0d0)
     do iHalo=1,size(haloMass)
@@ -309,11 +309,11 @@ contains
     end do
     message="Created "
     message=message//galaxyCount//" galaxies"
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     write (label,'(f5.2)') log10(populatedHaloMassMinimum)
     message="Lowest mass halo populated has log₁₀(Mₕₐₗₒ/M☉)="//trim(adjustl(label))
-    call Galacticus_Display_Message(message)
-    call Galacticus_Display_Unindent("done")
+    call displayMessage(message)
+    call displayUnindent("done")
     ! Output galaxy catalog.
     galaxyFile=irate(char(self%galaxyCatalogFileName),self%cosmologyParameters_,self%cosmologyFunctions_)
     call haloFile%copyCosmology (galaxyFile)
@@ -325,7 +325,7 @@ contains
     deallocate(haloMass    )
     call Node_Components_Thread_Uninitialize()
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: halo model generate' )
+    call displayUnindent('Done task: halo model generate' )
 
   contains
 

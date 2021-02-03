@@ -258,6 +258,7 @@ module Cosmology_Functions
   !#  <visibility>public</visibility>
   !#  <validator>yes</validator>
   !#  <encodeFunction>yes</encodeFunction>
+  !#  <decodeFunction>yes</decodeFunction>
   !#  <entry label="critical" />
   !#  <entry label="mean"     />
   !# </enumeration>

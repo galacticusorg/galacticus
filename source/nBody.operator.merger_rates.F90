@@ -48,8 +48,8 @@ contains
 
   function mergerRatesConstructorParameters(parameters) result (self)
     !% Constructor for the {\normalfont \ttfamily mergerRates} N-body operator class which takes a parameter set as input.
-    use :: Input_Parameters  , only : inputParameters
     use :: ISO_Varying_String, only : operator(/=)
+    use :: Input_Parameters  , only : inputParameters
     implicit none
     type            (nbodyOperatorMergerRates)                :: self
     type            (inputParameters         ), intent(inout) :: parameters
@@ -152,16 +152,16 @@ contains
   
   subroutine mergerRatesOperate(self,simulations)
     !% Compute the merger rate at a given snapshot.
-    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
-    use    :: Arrays_Search     , only : searchIndexed
-    use    :: Galacticus_Display, only : Galacticus_Display_Indent , Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                               Galacticus_Display_Message, verbosityStandard
-    use    :: Galacticus_Error  , only : Galacticus_Error_Report
-    use    :: Sorting           , only : sortIndex
-    use    :: IO_HDF5           , only : hdf5Access
+    use    :: Arrays_Search   , only : searchIndexed
+    use    :: Display         , only : displayCounter         , displayCounterClear   , displayIndent, displayMessage, &
+          &                            displayUnindent        , verbosityLevelStandard
+    use    :: Galacticus_Error, only : Galacticus_Error_Report
+    use    :: IO_HDF5         , only : hdf5Access
 #ifdef USEMPI
-    use    :: MPI_Utilities     , only : mpiSelf
+    use    :: MPI_Utilities   , only : mpiSelf
 #endif
+    !$ use :: OMP_Lib         , only : OMP_Get_Thread_Num
+    use    :: Sorting         , only : sortIndex
     implicit none
     class           (nbodyOperatorMergerRates), intent(inout)               :: self
     type            (nBodyData               ), intent(inout), dimension(:) :: simulations
@@ -184,7 +184,7 @@ contains
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-    call Galacticus_Display_Indent('compute merger rates',verbosityStandard)
+    call displayIndent('compute merger rates',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif
@@ -192,7 +192,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Message(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityStandard)
+       call displayMessage(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityLevelStandard)
 #ifdef USEMPI
        end if
 #endif
@@ -222,7 +222,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Counter(0,.true.)
+          call displayCounter(0,.true.)
 #ifdef USEMPI
        end if
 #endif
@@ -305,7 +305,7 @@ contains
 #ifdef USEMPI
           if (mpiSelf%isMaster()) then
 #endif
-             call Galacticus_Display_Counter(int(100.0d0*dble(i)/dble(size(particleID))),verbosity=verbosityStandard,isNew=i == 1_c_size_t)
+             call displayCounter(int(100.0d0*dble(i)/dble(size(particleID))),verbosity=verbosityLevelStandard,isNew=i == 1_c_size_t)
 #ifdef USEMPI
           end if
 #endif
@@ -315,7 +315,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Counter_Clear()
+          call displayCounterClear()
 #ifdef USEMPI
        end if
 #endif
@@ -379,7 +379,7 @@ contains
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Unindent('done',verbosityStandard)
+       call displayUnindent('done',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif

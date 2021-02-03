@@ -226,7 +226,7 @@ contains
     !% \ttfamily probabilityFraction}. Typically, {\normalfont \ttfamily probabilityFraction} is found by multiplying {\normalfont \ttfamily
     !% Generalized\_Press\_Schechter\_Branching\_Probability()} by a random variable drawn in the interval 0--1 if a halo
     !% branches. This routine then finds the progenitor mass corresponding to this value.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityWarn
+    use :: Display           , only : displayMessage         , displayVerbosity, verbosityLevelWarn
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : varying_string
     implicit none
@@ -256,18 +256,18 @@ contains
          &    0.0d0                                                    &
          & ) then
        ! Warn about this situation.
-       if (Galacticus_Verbosity_Level() >= verbosityWarn) then
+       if (displayVerbosity() >= verbosityLevelWarn) then
           message="halo branching mass root is not bracketed in generalizedPressSchechterMassBranch()"
-          call Galacticus_Display_Message(message,verbosityWarn)
+          call displayMessage(message,verbosityLevelWarn)
           write (label,'(e12.6,a1,e12.6)') massResolution,":",generalizedPressSchechterMassBranchRoot(massResolution)
           message=" => massMinimum:rootFunction(massMinimum) = "//trim(label)
-          call Galacticus_Display_Message(message,verbosityWarn)
+          call displayMessage(message,verbosityLevelWarn)
           write (label,'(e12.6,a1,e12.6)') 0.5d0*haloMass,":",generalizedPressSchechterMassBranchRoot(0.5d0*haloMass)
           message=" => massMaximum:rootFunction(massMaximum) = "//trim(label)
-          call Galacticus_Display_Message(message,verbosityWarn)
+          call displayMessage(message,verbosityLevelWarn)
           write (label,'(e12.6)') probabilityFraction
           message=" =>                           probability = "//trim(label)
-          call Galacticus_Display_Message(message,verbosityWarn)
+          call displayMessage(message,verbosityLevelWarn)
        end if
        ! If the root function is positive at half of the parent halo mass then we have a binary split.
        if (generalizedPressSchechterMassBranchRoot(0.5d0*haloMass) >= 0.0d0) then
@@ -292,7 +292,7 @@ contains
 
   double precision function generalizedPressSchechterMassBranchRoot(massMaximum)
     !% Root function used in solving for the branch mass.
-    use :: Numerical_Integration, only : integrator, GSL_Integ_Gauss15
+    use :: Numerical_Integration, only : GSL_Integ_Gauss15, integrator
     implicit none
     double precision            , intent(in   ) :: massMaximum
     type            (integrator)                :: integrator_
@@ -343,7 +343,7 @@ contains
     !% Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at
     !% time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont
     !% \ttfamily massResolution}.
-    use :: Numerical_Integration, only : integrator, GSL_Integ_Gauss15
+    use :: Numerical_Integration, only : GSL_Integ_Gauss15, integrator
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
     double precision                                                 , intent(in   )         :: deltaCritical , haloMass   , &
@@ -377,9 +377,9 @@ contains
   double precision function generalizedPressSchechterFractionSubresolution(self,haloMass,deltaCritical,time,massResolution,node)
     !% Return the fraction of mass accreted in subresolution halos, i.e. those below {\normalfont \ttfamily massResolution}, per unit change in
     !% $\delta_\mathrm{crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}. The integral is computed numerically.
-    use :: Galacticus_Error     , only : Galacticus_Warn, errorStatusSuccess
+    use :: Galacticus_Error     , only : Galacticus_Warn  , errorStatusSuccess
     use :: ISO_Varying_String   , only : varying_string
-    use :: Numerical_Integration, only : integrator     , GSL_Integ_Gauss15
+    use :: Numerical_Integration, only : GSL_Integ_Gauss15, integrator
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
     double precision                                                 , intent(in   )         :: deltaCritical                                 , haloMass   , &

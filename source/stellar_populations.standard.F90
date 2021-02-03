@@ -205,7 +205,7 @@ contains
 
   function standardConstructorInternal(instantaneousRecyclingApproximation,massLongLived,ageEffective,recycledFraction,metalYield,initialMassFunction_,stellarAstrophysics_,stellarFeedback_,supernovaeTypeIa_,stellarPopulationSpectra_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily standard} stellar population.
-    use :: Abundances_Structure, only : Abundances_Property_Count, Abundances_Names
+    use :: Abundances_Structure, only : Abundances_Names, Abundances_Property_Count
     implicit none
     type            (stellarPopulationStandard    )                          :: self
     logical                                        , intent(in   )           :: instantaneousRecyclingApproximation
@@ -307,10 +307,10 @@ contains
     !% useful as computation of the table is relatively slow.
     use            :: Abundances_Structure            , only : Abundances_Get_Metallicity
     use            :: Dates_and_Times                 , only : Formatted_Date_and_Time
-    use            :: File_Utilities                  , only : Directory_Make                   , File_Exists                        , File_Lock                , File_Unlock                , &
-          &                                                    File_Path                        , lockDescriptor
-    use            :: Galacticus_Display              , only : Galacticus_Display_Counter       , Galacticus_Display_Counter_Clear   , Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-         &                                                     verbosityWorking
+    use            :: Display                         , only : displayCounter                   , displayCounterClear , displayIndent, displayUnindent, &
+          &                                                    verbosityLevelWorking
+    use            :: File_Utilities                  , only : Directory_Make                   , File_Exists         , File_Lock    , File_Path      , &
+          &                                                    File_Unlock                      , lockDescriptor
     use            :: Galacticus_Error                , only : Galacticus_Error_Report
     use            :: Galacticus_Paths                , only : galacticusPath                   , pathTypeDataDynamic
     use            :: IO_HDF5                         , only : hdf5Access                       , hdf5Object
@@ -352,14 +352,14 @@ contains
        call File_Lock(char(fileName),lock,lockIsShared=.false.)
        if (File_Exists(fileName)) then
           ! Open the file containing cumulative property data.
-          call Galacticus_Display_Indent('Reading file: '//fileName,verbosityWorking)
+          call displayIndent('Reading file: '//fileName,verbosityLevelWorking)
           !$ call hdf5Access%set()
           call file%openFile(char(fileName))
           call file%readAttribute('fileFormat',fileFormat)
           if (fileFormat /= standardFileFormatCurrent) then
              makeFile=.true.
              call file%close()
-             call Galacticus_Display_Unindent('done',verbosityWorking)
+             call displayUnindent('done',verbosityLevelWorking)
           end if
           !$ call hdf5Access%unset()
        else
@@ -373,7 +373,7 @@ contains
           call file%readDataset(char(property%label),property%property   )
           call file%close      (                                         )
           call hdf5Access%unset()
-          call Galacticus_Display_Unindent('done',verbosityWorking)
+          call displayUnindent('done',verbosityLevelWorking)
        else
           call allocateArray(property%age        ,[standardTableAgeCount                              ])
           call allocateArray(property%metallicity,[                      standardTableMetallicityCount])
@@ -400,8 +400,8 @@ contains
           call dataset%close()
           call hdf5Access%unset()
           ! Loop over ages and metallicities and compute the property.
-          call Galacticus_Display_Indent('Tabulating property: '//char(property%label),verbosityWorking)
-          call Galacticus_Display_Counter(0,.true.,verbosityWorking)
+          call displayIndent('Tabulating property: '//char(property%label),verbosityLevelWorking)
+          call displayCounter(0,.true.,verbosityLevelWorking)
           loopCountTotal=  +standardTableMetallicityCount &
                &           *standardTableAgeCount
           loopCount     =   0
@@ -440,10 +440,10 @@ contains
              ! Update the counter.
              !$omp atomic
              loopCount=loopCount+1
-             call Galacticus_Display_Counter(                                                   &
+             call displayCounter(                                                   &
                   &                          int(100.0d0*dble(loopCount)/dble(loopCountTotal)), &
                   &                          .false.                                          , &
-                  &                          verbosityWorking                                   &
+                  &                          verbosityLevelWorking                                   &
                   &                         )
           end do
           !$omp end do
@@ -464,8 +464,8 @@ contains
                      &       )
              end do
           end do
-          call Galacticus_Display_Counter_Clear(           verbosityWorking)
-          call Galacticus_Display_Unindent     ('finished',verbosityWorking)
+          call displayCounterClear(           verbosityLevelWorking)
+          call displayUnindent     ('finished',verbosityLevelWorking)
           call hdf5Access%set()
           call file%writeDataset(property%property,char(property%label))
           call file%close()

@@ -106,7 +106,7 @@ contains
 
   subroutine satelliteDestructionDestructionProcess(self,tree,node,deadlockStatus)
     !% Process a satellite node which has undergone a merger with its host node.
-    use :: Galacticus_Display                 , only : Galacticus_Display_Message   , Galacticus_Verbosity_Level, verbosityInfo
+    use :: Display                            , only : displayMessage               , displayVerbosity, verbosityLevelInfo
     use :: Galacticus_Error                   , only : Galacticus_Error_Report
     use :: ISO_Varying_String                 , only : varying_string
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
@@ -121,10 +121,10 @@ contains
     !$GLC attributes unused :: self, tree
 
     ! Report if necessary.
-    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+    if (displayVerbosity() >= verbosityLevelInfo) then
        message='Satellite node ['
        message=message//node%index()//'] is being destroyed'
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     ! Any mergees of the merging node must become mergees of its merge target.
     mergee => node%firstMergee

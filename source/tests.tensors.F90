@@ -21,14 +21,14 @@
 
 program Test_Tensors
   !% Tests of coordinate system functions.
-  use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: Tensors           , only : assignment(=)                 , operator(*)           , tensorIdentityR2D3Sym, tensorNullR2D3Sym, &
-          &                         tensorRank2Dimension3Symmetric
-  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group , Unit_Tests_Finish
+  use :: Display   , only : displayVerbositySet           , verbosityLevelStandard
+  use :: Tensors   , only : assignment(=)                 , operator(*)           , tensorIdentityR2D3Sym, tensorNullR2D3Sym, &
+          &                 tensorRank2Dimension3Symmetric
+  use :: Unit_Tests, only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group , Unit_Tests_Finish
   type(tensorRank2Dimension3Symmetric) :: tensorR2D3Sym,resultTensor
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Tensors")

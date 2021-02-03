@@ -69,8 +69,8 @@ contains
 
   subroutine deletePropertiesOperate(self,simulations)
     !% Identify and flag particles which have been always isolated.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Message, verbosityStandard
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Display         , only : displayIndent          , displayMessage, displayUnindent, verbosityLevelStandard
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (nbodyOperatorDeleteProperties), intent(inout)                 :: self
     type            (nBodyData                    ), intent(inout), dimension(  :) :: simulations
@@ -81,7 +81,7 @@ contains
     logical                                                                        :: propertyFound
     integer                                                                        :: i            , j
 
-    call Galacticus_Display_Indent('delete named properties',verbosityStandard)
+    call displayIndent('delete named properties',verbosityLevelStandard)
     do i=1,size(self%propertyNames)
        do j=1,size(simulations)
           propertyFound=.false.
@@ -110,12 +110,12 @@ contains
              call simulations(j)%propertiesRealRank1   %delete(self%propertyNames(i))
           end if
           if (propertyFound) then
-             call Galacticus_Display_Message('deleted "' //self%propertyNames(i)//'"'                                    )
+             call displayMessage('deleted "' //self%propertyNames(i)//'"'                                    )
           else
              call Galacticus_Error_Report   ('property "'//self%propertyNames(i)//'" not found'//{introspection:location})
           end if
        end do
     end do
-    call Galacticus_Display_Unindent('done',verbosityStandard)
+    call displayUnindent('done',verbosityLevelStandard)
     return
   end subroutine deletePropertiesOperate

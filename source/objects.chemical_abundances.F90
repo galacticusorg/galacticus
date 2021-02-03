@@ -114,8 +114,8 @@ contains
    subroutine Chemical_Abundances_Initialize(parameters_)
     !% Initialize the {\normalfont \ttfamily chemicalAbundanceStructure} object module. Determines which chemicals are to be tracked.
     use :: Chemical_Structures, only : Chemical_Database_Get_Index, chemicalStructure
+    use :: ISO_Varying_String , only : char                       , len
     use :: Input_Parameters   , only : inputParameters
-    use :: ISO_Varying_String , only : len                        , char
     use :: Memory_Management  , only : allocateArray
     implicit none
     type   (inputParameters  ), intent(inout) :: parameters_
@@ -390,8 +390,8 @@ contains
 
   subroutine Chemicals_Dump(chemicals)
     !% Dump all chemical values.
-    use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: ISO_Varying_String, only : len                       , operator(//)
+    use :: Display           , only : displayMessage
+    use :: ISO_Varying_String, only : len           , operator(//)
     implicit none
     class    (chemicalAbundances), intent(in   ) :: chemicals
     integer                                      :: i
@@ -402,7 +402,7 @@ contains
        do i=1,chemicalsCount
           write (label,'(e22.16)') chemicals%chemicalValue(i)
           message=chemicalsToTrack(i)//': '//repeat(" ",chemicalNameLengthMaximum-len(chemicalsToTrack(i)))//label
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end do
     end if
     return

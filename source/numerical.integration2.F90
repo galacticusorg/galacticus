@@ -1841,11 +1841,11 @@ contains
 
   function multiVectorizedCompositeTrapezoidal1DEvaluate(self,a,b,status) result(integral)
     !% Evaluate a one-dimension integral using a numerical composite trapezoidal rule.
-    use            :: Galacticus_Display, only : Galacticus_Display_Indent     , Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-          &                                      Galacticus_Verbosity_Level_Set, verbosityStandard
-    use            :: Galacticus_Error  , only : Galacticus_Error_Report       , errorStatusFail           , errorStatusSuccess
+    use            :: Display           , only : displayIndent          , displayMessage        , displayUnindent   , displayVerbosity, &
+          &                                      displayVerbositySet    , verbosityLevelStandard
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report, errorStatusFail       , errorStatusSuccess
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: ISO_Varying_String, only : assignment(=)                 , operator(//)              , varying_string
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)          , varying_string
     use            :: Sorting           , only : sortIndex
     implicit none
     class           (integratorMultiVectorizedCompositeTrapezoidal1D), intent(inout)                                :: self
@@ -1953,9 +1953,9 @@ contains
             &  .or.                 &
             &   midpoint==current%b &
             & ) then
-          if (Galacticus_Verbosity_Level() < verbosityStandard .and. .not.present(status)) call Galacticus_Verbosity_Level_Set(verbosityStandard)
-          call Galacticus_Display_Indent('integration failure:')
-          call Galacticus_Display_Indent('current intervals:')
+          if (displayVerbosity() < verbosityLevelStandard .and. .not.present(status)) call displayVerbositySet(verbosityLevelStandard)
+          call displayIndent('integration failure:')
+          call displayIndent('current intervals:')
           message="a/b/(b-a)       ="
           write (label,'(e32.12)') a
           message=message//" "  //label
@@ -1963,13 +1963,13 @@ contains
           message=message//"/"  //label
           write (label,'(e32.12)') b-a
           message=message//"/(" //label//")"
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
           message="a/b : f(a)/f(b) ="
           write (label,'(e32.12)') current%a
           message=message//" "  //label
           write (label,'(e32.12)') current%b
           message=message//"/"  //label
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
           do i=1,size(current%fa)
              message="  (i="
              write (label,'(i12)') i
@@ -1980,7 +1980,7 @@ contains
              message=message//"/"  //label
              write (label,'(l1)') converged(i)
              message=message//" (converged="//adjustl(trim(label))//")"
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
           end do
           integralCount =  size(current%fa)
           current       =>      head
@@ -1990,7 +1990,7 @@ contains
              message=message//" "  //label
              write (label,'(e32.12)') current%b
              message=message//"/"  //label
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
              do i=1,size(current%fa)
                 message="  (i="
                 write (label,'(i12)') i
@@ -2001,12 +2001,12 @@ contains
                 message=message//"/"  //label
                 write (label,'(l1)') converged(i)
                 message=message//" (converged="//adjustl(trim(label))//")"
-                call Galacticus_Display_Message(message)
+                call displayMessage(message)
              end do
              current  => current%next
           end do
-          call Galacticus_Display_Unindent('done')
-          call Galacticus_Display_Indent  ('current integrals:')
+          call displayUnindent('done')
+          call displayIndent  ('current integrals:')
           current => searchStart
           do i=1,integralCount
              message="integral : error  (i="
@@ -2018,10 +2018,10 @@ contains
              message=message//"/"  //label
              write (label,'(l1)'    ) converged(i)
              message=message//" (converged="//adjustl(trim(label))//")"
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
           end do
-          call Galacticus_Display_Unindent('done')
-          call Galacticus_Display_Unindent('done')
+          call displayUnindent('done')
+          call displayUnindent('done')
           ! Force exit.
           precisionLost=.true.
           exit          

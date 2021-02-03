@@ -47,7 +47,7 @@
   </nodePropertyExtractorMethod>
   <mergerTreeOperatorMethod value="massAccretionHistory"/>
   <hotHaloAngularMomentumAlwaysGrows value="true"/>
-  <verbosityLevel value="1"/>
+  <verbosityLevel value="standard"/>
   <nodePromotionIndexShift value="false"/>
   <outputTimesMethod value="list">
     <redshifts value="0.000"/>

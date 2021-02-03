@@ -161,11 +161,11 @@ contains
 
   double precision function zhangHuiHighOrderProbability(self,variance,time,node)
     !% Return the excursion set barrier at the given variance and time.
-    use            :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-          &                                      verbosityWorking
-    use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: Memory_Management , only : allocateArray             , deallocateArray
-    use            :: Numerical_Ranges  , only : Make_Range                , rangeTypeLinear                 , rangeTypeLogarithmic
+    use            :: Display          , only : displayCounter       , displayCounterClear, displayIndent       , displayUnindent, &
+          &                                     verbosityLevelWorking
+    use, intrinsic :: ISO_C_Binding    , only : c_size_t
+    use            :: Memory_Management, only : allocateArray        , deallocateArray
+    use            :: Numerical_Ranges , only : Make_Range           , rangeTypeLinear    , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingZhangHuiHighOrder), intent(inout)                 :: self
     double precision                                            , intent(in   )                 :: variance                             , time
@@ -228,10 +228,10 @@ contains
           call deallocateArray(firstCrossingProbabilityTablePrevious)
        end if
        ! Loop through the table and solve for the first crossing distribution.
-       call Galacticus_Display_Indent("solving for excursion set barrier crossing probabilities",verbosityWorking)
+       call displayIndent("solving for excursion set barrier crossing probabilities",verbosityLevelWorking)
        do iTime=1,self%timeTableCount
           do i=varianceTableCountPrevious+1,self%varianceTableCount
-             call Galacticus_Display_Counter(                                                                                      &
+             call displayCounter(                                                                                      &
                   &                           int(                                                                                 &
                   &                                100.0d0                                                                         &
                   &                               *dble(                                                                           &
@@ -242,7 +242,7 @@ contains
                   &                                     self%timeTableCount*(self%varianceTableCount-varianceTableCountPrevious-1) &
                   &                                    )                                                                           &
                   &                              )                                                                                 &
-                  &                          ,i==varianceTableCountPrevious+1 .and. iTime==1,verbosityWorking                      &
+                  &                          ,i==varianceTableCountPrevious+1 .and. iTime==1,verbosityLevelWorking                      &
                   &                         )
 
              if (i  > 3) then
@@ -345,8 +345,8 @@ contains
              end if
           end do
        end do
-       call Galacticus_Display_Counter_Clear(verbosityWorking)
-       call Galacticus_Display_Unindent("done",verbosityWorking)
+       call displayCounterClear(verbosityLevelWorking)
+       call displayUnindent("done",verbosityLevelWorking)
        ! Build the interpolators.
        if (allocated(self%interpolatorVariance)) deallocate(self%interpolatorVariance)
        if (allocated(self%interpolatorTime    )) deallocate(self%interpolatorTime    )

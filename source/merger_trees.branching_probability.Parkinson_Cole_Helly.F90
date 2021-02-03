@@ -331,7 +331,7 @@ contains
       !% \ttfamily probability}. Typically, {\normalfont \ttfamily probabilityFraction} is found by multiplying {\normalfont \ttfamily probability}
       !% by a random variable drawn in the interval 0--1 if a halo branches. This routine then finds the progenitor mass
       !% corresponding to this value.
-      use :: Root_Finder, only : rootFinder, GSL_Root_fSolver_Brent
+      use :: Root_Finder, only : GSL_Root_fSolver_Brent, rootFinder
       implicit none
       double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-9
       type            (rootFinder), save      :: finder
@@ -393,7 +393,7 @@ contains
 
   double precision function parkinsonColeHellyMassBranchRoot(logMassMaximum)
     !% Used to find the mass of a merger tree branching event.
-    use :: Numerical_Integration, only : integrator, GSL_Integ_Gauss15
+    use :: Numerical_Integration, only : GSL_Integ_Gauss15, integrator
     implicit none
     double precision            , intent(in   ) :: logMassMaximum
     type            (integrator)                :: integrator_
@@ -491,7 +491,7 @@ contains
   double precision function parkinsonColeHellyProbability(self,haloMass,deltaCritical,time,massResolution,node)
     !% Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time
     !% {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
-    use :: Numerical_Integration, only : integrator, GSL_Integ_Gauss15
+    use :: Numerical_Integration, only : GSL_Integ_Gauss15, integrator
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout), target :: self
     double precision                                                  , intent(in   )         :: deltaCritical , haloMass   , &
@@ -605,10 +605,10 @@ contains
     !% Return a bound on the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily
     !% haloMass} at time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than
     !% {\normalfont \ttfamily massResolution}.
-    use, intrinsic :: ISO_C_Binding           , only : c_int
-    use            :: Galacticus_Display      , only : Galacticus_Display_Message, verbosityWarn
+    use            :: Display                 , only : displayMessage         , verbosityLevelWarn
     use            :: Galacticus_Error        , only : Galacticus_Error_Report
     use            :: Hypergeometric_Functions, only : Hypergeometric_2F1
+    use, intrinsic :: ISO_C_Binding           , only : c_int
     use            :: Interface_GSL           , only : GSL_Success
     use            :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -709,11 +709,11 @@ contains
                       if (usingCDMAssumptions) then
                          if (.not.self%hypergeometricFailureWarned) then
                             self%hypergeometricFailureWarned=.true.
-                            call Galacticus_Display_Message(                                                                                &
+                            call displayMessage(                                                                                &
                                  &                          'WARNING: hypergeometric function evaluation failed when computing'//char(10)// &
                                  &                          'merger tree branching probability bounds - will revert to more'   //char(10)// &
                                  &                          'robust (but less stringent) bound in this and future cases'                 ,  &
-                                 &                          verbosityWarn                                                                   &
+                                 &                          verbosityLevelWarn                                                                   &
                                  &                         )
                          end if
                          cycle
@@ -739,11 +739,11 @@ contains
                       if (usingCDMAssumptions) then
                          if (.not.self%hypergeometricFailureWarned) then
                             self%hypergeometricFailureWarned=.true.
-                            call Galacticus_Display_Message(                                                                                &
+                            call displayMessage(                                                                                &
                                  &                          'WARNING: hypergeometric function evaluation failed when computing'//char(10)// &
                                  &                          'merger tree branching probability bounds - will revert to more'   //char(10)// &
                                  &                          'robust (but less stringent) bound in this and future cases'                 ,  &
-                                 &                          verbosityWarn                                                                   &
+                                 &                          verbosityLevelWarn                                                                   &
                                  &                         )
                          end if
                          cycle

@@ -33,8 +33,8 @@
 
 module Numerical_ODE_Solvers
   !% Implements an ODE solver class.
-  use, intrinsic :: ISO_C_Binding         , only : c_ptr                      , c_funptr, c_size_t, c_int, &
-       &                                           c_double
+  use, intrinsic :: ISO_C_Binding         , only : c_double                   , c_funptr, c_int, c_ptr, &
+          &                                        c_size_t
   use            :: Numerical_Integration2, only : integratorMultiVectorized1D
   implicit none
   private
@@ -266,8 +266,8 @@ contains
 
   function odeSolverConstructor(dim,derivatives,jacobian,integrator,integrands,integratorErrorTolerant,stepperType,toleranceAbsolute,toleranceRelative,hStart,dydtScale,yScale,scale,finalState,postStep,errorAnalyzer,errorHandler) result(self)
     !% Constructor for {\normalfont \ttfamily odeSolver} obejcts.
-    use, intrinsic :: ISO_C_Binding   , only : c_funloc               , c_null_funptr
     use            :: Galacticus_Error, only : Galacticus_Error_Report
+    use, intrinsic :: ISO_C_Binding   , only : c_funloc               , c_null_funptr
     implicit none
     type            (odeSolver                  )                                        :: self
     integer         (c_size_t                   ), intent(in   )                         :: dim
@@ -340,11 +340,11 @@ contains
 
   subroutine odeSolverSolve(self,x0,x1,y,z,xStep,status)
     !% Solve the ODE system.
-    use, intrinsic :: ISO_C_Binding         , only : c_null_ptr             , c_null_funptr, c_funloc
     use            :: Galacticus_Error      , only : Galacticus_Error_Report
-    use            :: Interface_GSL         , only : GSL_Success            , GSL_Failure
-    use            :: ISO_Varying_String    , only : var_str                , operator(//)
-    use            :: ODE_Solver_Error_Codes, only : odeSolverInterrupt     , interruptedAtX
+    use, intrinsic :: ISO_C_Binding         , only : c_funloc               , c_null_funptr     , c_null_ptr
+    use            :: ISO_Varying_String    , only : operator(//)           , var_str
+    use            :: Interface_GSL         , only : GSL_Failure            , GSL_Success
+    use            :: ODE_Solver_Error_Codes, only : interruptedAtX         , odeSolverInterrupt
     use            :: String_Handling       , only : operator(//)
     implicit none
     class           (odeSolver ), intent(inout), target                        :: self
@@ -482,8 +482,8 @@ contains
 
     subroutine latentIntegrator(x)
       !% Wrapper function which performs integration of latent variables.
-      use :: Galacticus_Display, only : Galacticus_Display_Message
-      use :: Galacticus_Error  , only : Galacticus_Error_Report   , errorStatusSuccess
+      use :: Display         , only : displayMessage
+      use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusSuccess
       implicit none
       double precision, intent(in   )       :: x
       double precision, dimension(self%dim) :: y
@@ -500,7 +500,7 @@ contains
       x0Step =+                                x
       if (status /= errorStatusSuccess) then
          if (self%integratorErrorTolerant) then
-            call Galacticus_Display_Message('integration of latent variables failed - ignoring'                          )
+            call displayMessage('integration of latent variables failed - ignoring'                          )
          else
             call Galacticus_Error_Report   ('integration of latent variables failed'           //{introspection:location})
          end if

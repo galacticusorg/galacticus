@@ -24,12 +24,12 @@ program Test_Stellar_Populations_Luminosities
   use :: Abundances_Structure                      , only : abs                                           , abundances                               , max
   use :: Cosmology_Functions                       , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters                      , only : cosmologyParametersSimple
+  use :: Display                                   , only : displayVerbositySet                           , verbosityLevelWorking
   use :: Events_Hooks                              , only : eventsHooksInitialize
   use :: File_Utilities                            , only : File_Exists
-  use :: Galacticus_Display                        , only : Galacticus_Verbosity_Level_Set                , verbosityWorking
   use :: Galacticus_Output_Open                    , only : Galacticus_Output_Close_File                  , Galacticus_Output_Open_File
   use :: Galacticus_Paths                          , only : galacticusPath                                , pathTypeDataDynamic                      , pathTypeDataStatic
-  use :: ISO_Varying_String                        , only : var_str                                       , char                                     , operator(//)
+  use :: ISO_Varying_String                        , only : char                                          , operator(//)                             , var_str
   use :: Input_Parameters                          , only : inputParameters
   use :: Instruments_Filters                       , only : Filter_Get_Index
   use :: Stellar_Astrophysics                      , only : stellarAstrophysics                           , stellarAstrophysicsFile
@@ -76,7 +76,7 @@ program Test_Stellar_Populations_Luminosities
   parameters=inputParameters()
   call parameters%markGlobal()
   call eventsHooksInitialize()
-  call Galacticus_Verbosity_Level_Set(verbosityWorking)
+  call displayVerbositySet(verbosityLevelWorking)
   call Galacticus_Output_Open_File   (parameters      )
   ! Ensure that we have the required stellar population spectra file.
   if (File_Exists(char(galacticusPath(pathTypeDataDynamic))//'stellarPopulations/SSP_Spectra_BC2003_lowResolution_imfSalpeter.hdf5')) then

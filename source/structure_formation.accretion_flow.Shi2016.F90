@@ -21,9 +21,9 @@
   
   use :: Cosmology_Functions                      , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters                     , only : cosmologyParametersClass
-  use :: Numerical_Interpolation                  , only : interpolator                           , gsl_interp_cspline
   use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistoryClass
   use :: Dark_Matter_Halo_Scales                  , only : darkMatterHaloScaleClass
+  use :: Numerical_Interpolation                  , only : gsl_interp_cspline                     , interpolator
   use :: Spherical_Collapse_Solvers               , only : sphericalCollapseSolverClass
   
   ! Note: Throughout this class the following acronyms are used:
@@ -225,20 +225,20 @@ contains
   
   subroutine shi2016Solve(self,node)
     !% Solve the accretion flow.
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: Galacticus_Display              , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent    , Galacticus_Display_Unindent, &
-         &                                          verbosityWorking
-    use :: Galacticus_Nodes                , only : nodeComponentBasic
-    use :: Elliptic_Integrals              , only : Elliptic_Integral_K       , Elliptic_Integral_Pi
-    use :: Numerical_Constants_Astronomical, only : megaParsec                , gigaYear
-    use :: Numerical_Constants_Prefixes    , only : kilo
-    use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Ranges                , only : Make_Range                , rangeTypeLogarithmic
-    use :: Root_Finder                     , only : rangeExpandMultiplicative , rangeExpandSignExpectNegative   , rangeExpandSignExpectPositive, rootFinder
     use :: Array_Utilities                 , only : Array_Reverse
-    use :: Sorting                         , only : sortIndex
-    use :: Numerical_Comparison            , only : Values_Differ
+    use :: Display                         , only : displayCounter           , displayCounterClear          , displayIndent                , displayUnindent, &
+          &                                         verbosityLevelWorking
+    use :: Elliptic_Integrals              , only : Elliptic_Integral_K      , Elliptic_Integral_Pi
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                , only : nodeComponentBasic
     use :: ISO_Varying_String              , only : var_str
+    use :: Numerical_Comparison            , only : Values_Differ
+    use :: Numerical_Constants_Astronomical, only : gigaYear                 , megaParsec
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Numerical_Ranges                , only : Make_Range               , rangeTypeLogarithmic
+    use :: Root_Finder                     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Sorting                         , only : sortIndex
     use :: String_Handling                 , only : operator(//)
     use :: Tables                          , only : table1D
     implicit none
@@ -444,10 +444,10 @@ contains
        multistreamConverged=.false.
        do while (iteration < iterationMaximum .and. .not.multistreamConverged)
           iteration=iteration+1
-          call Galacticus_Display_Indent(var_str('multistream mass profile iteration ')//iteration,verbosity=verbosityWorking)
+          call displayIndent(var_str('multistream mass profile iteration ')//iteration,verbosity=verbosityLevelWorking)
           ! Iterate over all overdensity shells solving for their radial position and velocity at the present epoch.
           do i=1,countRadii
-             call Galacticus_Display_Counter(int(100.0d0*dble(i-1)/dble(countRadii)),isNew=i==1,verbosity=verbosityWorking)
+             call displayCounter(int(100.0d0*dble(i-1)/dble(countRadii)),isNew=i==1,verbosity=verbosityLevelWorking)
              ! Solve the dynamical ODEs to get the scaled radius at the final time.
              radiusComovingInitialOriginal=self%radiusComovingInitialOriginal(i)
              massEnclosedInitialOriginal  =self%massEnclosedInitialOriginal  (i)
@@ -462,7 +462,7 @@ contains
                   &                        *asinh(                                               expansionFactorScaledInitial **1.5d0)
              call radiusScaledSolver(timeInitialScaled,self%timeNowScaled,radiusInitialScaled,radiusGrowthRateInitialScaled,self%radiusScaled(i),self%radiusGrowthRateScaled(i))
           end do
-          call Galacticus_Display_Counter_Clear(verbosity=verbosityWorking)
+          call displayCounterClear(verbosity=verbosityLevelWorking)
           ! Build an interpolator for the scaled radius as a function of overdensity.
           if (allocated(self%interpolatorRadiusScaled)) deallocate(self%interpolatorRadiusScaled)
           allocate(self%interpolatorRadiusScaled)
@@ -527,7 +527,7 @@ contains
           self%radiusMultistreamMinimumScaledHRTA         =self%radiusOrderedOriginal(         1)/self%radiusHRTANowOriginal
           self%radiusMultistreamMaximumScaledHRTA         =self%radiusOrderedOriginal(countRadii)/self%radiusHRTANowOriginal
           write (label,'(e8.2)') changeRelativeMaximum
-          call Galacticus_Display_Unindent(var_str('done [fractional change = ')//trim(adjustl(label))//']',verbosity=verbosityWorking)
+          call displayUnindent(var_str('done [fractional change = ')//trim(adjustl(label))//']',verbosity=verbosityLevelWorking)
        end do
        if (.not.multistreamConverged) call Galacticus_Error_Report('failed to reach convergence in the multistream region'//{introspection:location})
     end if
@@ -671,8 +671,8 @@ contains
   
   subroutine radiusScaledSolver(timeInitialScaled,timeFinalScaled,radiusInitialScaled,radiusGrowthRateInitialScaled,radiusScaled,radiusGrowthRateScaled)
     !% Compute the scaled radius (and its growth rate) as a function of the initial state and final time.
-    use :: Numerical_ODE_Solvers, only : odeSolver
     use :: Interface_GSL        , only : GSL_Success
+    use :: Numerical_ODE_Solvers, only : odeSolver
     implicit none
     double precision           , intent(in   ) :: timeInitialScaled         , timeFinalScaled                      , &
          &                                        radiusInitialScaled       , radiusGrowthRateInitialScaled

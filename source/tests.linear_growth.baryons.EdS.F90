@@ -21,7 +21,7 @@ program Tests_Linear_Growth_EdS_Baryons
   !% Tests linear growth calculations.
   use :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters      , only : cosmologyParametersSimple
-  use :: Galacticus_Display        , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Display                   , only : displayVerbositySet           , verbosityLevelStandard
   use :: Intergalactic_Medium_State, only : intergalacticMediumStateSimple
   use :: Linear_Growth             , only : componentDarkMatter           , linearGrowthBaryonsDarkMatter
   use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group       , Unit_Tests_End_Group, Unit_Tests_Finish
@@ -37,7 +37,7 @@ program Tests_Linear_Growth_EdS_Baryons
        &                                                                       exponent                                                  , linearGrowthFactorExpected
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Construct model.
   cosmologyParameters_=cosmologyParametersSimple          (                                                      &
        &                                                   OmegaMatter               = 1.00d0                  , &

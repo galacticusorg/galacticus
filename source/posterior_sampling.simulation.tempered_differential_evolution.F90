@@ -204,8 +204,8 @@ contains
 
   subroutine temperedDifferentialEvolutionUpdate(self,stateVector)
     !% Update the differential evolution simulator state.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-          &                           verbosityInfo
+    use :: Display           , only : displayIndent     , displayMessage, displayUnindent, displayVerbosity, &
+          &                           verbosityLevelInfo
     use :: ISO_Varying_String, only : varying_string
     use :: MPI_Utilities     , only : mpiSelf
     use :: String_Handling   , only : operator(//)
@@ -253,19 +253,19 @@ contains
     end if
     ! Check for change in level.
     if (levelChanged) then
-       if (mpiSelf%isMaster().and.Galacticus_Verbosity_Level() >= verbosityInfo) then
+       if (mpiSelf%isMaster().and.displayVerbosity() >= verbosityLevelInfo) then
           write (label,'(f8.1)') self%temperature()
           message='Tempering state: level='
           message=message//self%level()//'; temperature='//trim(label)
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end if
        if (self%temperingLevelMonotonic == 0) then
           ! We've just returned to the untempered level. Report on acceptance rates in tempered levels.
-          if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+          if (displayVerbosity() >= verbosityLevelInfo) then
              if (mpiSelf%isMaster()) then
-                call Galacticus_Display_Indent('Acceptance rates in tempered levels')
-                call Galacticus_Display_Message('Level Temperature  Gamma  Rate')
-                call Galacticus_Display_Message('------------------------------')
+                call displayIndent('Acceptance rates in tempered levels')
+                call displayMessage('Level Temperature  Gamma  Rate')
+                call displayMessage('------------------------------')
              end if
              ! Store the current tempering level so that we can restore it below.
              temperingLevelSaved=self%temperingLevelMonotonic
@@ -277,10 +277,10 @@ contains
                 stepSize       =                self                  %stepSize      (forceAcceptance)
                 if (mpiSelf%isMaster())  then
                    write (label,'(2x,i3,4x,f8.1,1x,f6.3,1x,f5.3)') i,temperature,stepSize,acceptanceRate
-                   call Galacticus_Display_Message(label)
+                   call displayMessage(label)
                 end if
              end do
-             if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('done')
+             if (mpiSelf%isMaster()) call displayUnindent('done')
              ! Restore the tempering level to the original.
              self%temperingLevelMonotonic=temperingLevelSaved
           end if

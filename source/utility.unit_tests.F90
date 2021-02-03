@@ -163,7 +163,7 @@ contains
   subroutine Assert_Double_Scalar(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about double precision arguments.
     use :: Galacticus_Error    , only : Galacticus_Error_Report
-    use :: ISO_Varying_String  , only : operator(//)           , assignment(=)
+    use :: ISO_Varying_String  , only : assignment(=)          , operator(//)
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
     character       (len=*       ), intent(in   )           :: testName
@@ -371,7 +371,7 @@ contains
 
   subroutine Assert_VarString_Scalar(testName,value1,value2,compare)
     !% Assess and record an assertion about character arguments.
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : operator(==)           , operator(/=), operator(<)  , operator(>), &
          &                            operator(>=)           , operator(<=), assignment(=)
     implicit none
@@ -1076,7 +1076,7 @@ contains
 
   subroutine Assert_VarString_1D_Array(testName,value1,value2,compare)
     !% Assess and record an assertion about character arguments.
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : operator(==)           , operator(/=), operator(<)  , operator(>), &
          &                            operator(>=)           , operator(<=), assignment(=)
     implicit none
@@ -1148,8 +1148,8 @@ contains
 
   subroutine Unit_Tests_Finish
     !% Write out the results of unit testing.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
-    use :: ISO_Varying_String, only : assignment(=)            , operator(//)              , operator(/=)
+    use :: Display           , only : displayIndent      , displayMessage, displayUnindent
+    use :: ISO_Varying_String, only : assignment(=)      , operator(//)  , operator(/=)
     use :: Memory_Management , only : Memory_Usage_Record
     use :: String_Handling   , only : operator(//)
     implicit none
@@ -1173,10 +1173,10 @@ contains
           case (testSkipped)
              message="skipped: "//result%label//" ["//result%note//"]"
           end select
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        else
-          if (result%beginGroup) call Galacticus_Display_Indent  (result%label)
-          if (result%endGroup  ) call Galacticus_Display_Unindent("")
+          if (result%beginGroup) call displayIndent  (result%label)
+          if (result%endGroup  ) call displayUnindent("")
        end if
        result => result%nextResult
     end do
@@ -1187,7 +1187,7 @@ contains
     end if
     message="Tests passed: "
     message=message//passCount//" ("//percentage//"%)"
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     if (passCount+failCount > 0) then
        percentage=int(100.0d0*dble(failCount)/dble(passCount+failCount))
     else
@@ -1195,7 +1195,7 @@ contains
     end if
     message="Tests failed: "
     message=message//failCount//" ("//percentage//"%)"
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
 
     ! Destroy the list of results.
     result => firstResult%nextResult

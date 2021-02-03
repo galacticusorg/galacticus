@@ -246,9 +246,9 @@ contains
 
   subroutine augmentOperatePreEvolution(self,tree)
     !% Augment the resolution of a merger tree by inserting high resolution branches.
-    use            :: Galacticus_Display , only : Galacticus_Display_Indent    , Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-          &                                       verbosityWorking
-    use            :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic        , treeNode                   , treeNodeList
+    use            :: Display            , only : displayIndent                , displayMessage    , displayUnindent, displayVerbosity, &
+          &                                       verbosityLevelWorking
+    use            :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, treeNode       , treeNodeList
     use, intrinsic :: ISO_C_Binding      , only : c_size_t
     use            :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
     use            :: Sorting            , only : sortIndex
@@ -276,16 +276,16 @@ contains
          &                                                                          nodeBranches
 
     ! Iterate over all linked trees in this forest.
-    call Galacticus_Display_Indent('Augmenting merger tree',verbosityWorking)
+    call displayIndent('Augmenting merger tree',verbosityLevelWorking)
     treeCurrent => tree
     do while (associated(treeCurrent))
        ! Allocate array of original anchor nodes from which new high-resolution branches will be built.
        nodeCount=augmentTreeStatistics(treeCurrent,treeStatisticNodeCount)
        if (nodeCount > 1 .or. self%useOneNodeTrees) then
-          if (Galacticus_Verbosity_Level() >= verbosityWorking) then
+          if (displayVerbosity() >= verbosityLevelWorking) then
              message="Number of nodes in tree: "
              message=message//nodeCount
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
           end if
           allocate(anchorNodes(nodeCount))
           allocate(anchorTimes(nodeCount))
@@ -326,10 +326,10 @@ contains
              ! Determine if the node branches.
              nodeBranches=associated(node%firstChild).and.associated(node%firstChild%sibling)
              ! Begin building trees from this node, searching for an acceptable tree.
-             if (Galacticus_Verbosity_Level() >= verbosityWorking) then
+             if (displayVerbosity() >= verbosityLevelWorking) then
                 message="Building tree from node: "
                 message=message//node%index()
-                call Galacticus_Display_Indent(message)
+                call displayIndent(message)
              end if
              do while (                                            &
                   &     treeBuilt         /= treeBuildSuccess      & ! Exit if tree successfully built.
@@ -360,7 +360,7 @@ contains
                    tolerance   =tolerance   *(1.0d0+self%toleranceScale)
                    ! Check for exhaustion of rescaling attempts.
                    rescaleCount=rescaleCount+1
-                   if (rescaleCount > self%rescaleMaximum) call Galacticus_Display_Message('Node build attempts exhausted',verbosityWorking)
+                   if (rescaleCount > self%rescaleMaximum) call displayMessage('Node build attempts exhausted',verbosityLevelWorking)
                    newRescale = .true.
                 else
                    newRescale = .false.
@@ -413,7 +413,7 @@ contains
              end if
              ! Move on to the next node.
              i=i+1
-             call Galacticus_Display_Unindent('Finished building tree',verbosityWorking)
+             call displayUnindent('Finished building tree',verbosityLevelWorking)
           end do
           deallocate(anchorNodes)
           deallocate(anchorIndex)
@@ -421,14 +421,14 @@ contains
        ! Move to the next tree.
        treeCurrent => treeCurrent%nextTree
     end do
-    call Galacticus_Display_Unindent('done',verbosityWorking)
+    call displayUnindent('done',verbosityLevelWorking)
     return
   end subroutine augmentOperatePreEvolution
 
   recursive integer function augmentBuildTreeFromNode(self,node,extendingEndNode,tolerance,timeEarliestIn,treeBest,treeBestWorstFit,treeBestOverride,massCutoffScale,massOvershootScale,treeNewHasNodeAboveResolution,treeBestHasNodeAboveResolution,newRescale)
     use            :: Arrays_Search       , only : searchArrayClosest
-    use            :: Galacticus_Error    , only : Galacticus_Error_Report , errorStatusSuccess
-    use            :: Galacticus_Nodes    , only : mergerTree              , nodeComponentBasic, treeNode
+    use            :: Galacticus_Error    , only : Galacticus_Error_Report, errorStatusSuccess
+    use            :: Galacticus_Nodes    , only : mergerTree             , nodeComponentBasic, treeNode
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
     use            :: Numerical_Comparison, only : Values_Agree
     use            :: String_Handling     , only : operator(//)
@@ -689,8 +689,8 @@ contains
 
   recursive integer function augmentAcceptTree(self,node,tree,nodeChildCount,extendingEndNode,tolerance,treeBest,treeBestWorstFit,treeBestOverride,massCutoffScale,massOvershootScale,treeNewHasNodeAboveResolution,treeBestHasNodeAboveResolution,newTreeBest,primaryProgenitorNode,primaryProgenitorIsClone)
     !% Determine whether a trial tree is an acceptable match to the original tree structure.
-    use :: Galacticus_Display , only : Galacticus_Display_Message   , Galacticus_Verbosity_Level, verbosityWorking
-    use :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic        , treeNode        , treeNodeList
+    use :: Display            , only : displayMessage               , displayVerbosity  , verbosityLevelWorking
+    use :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, treeNode             , treeNodeList
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
     implicit none
     class           (mergerTreeOperatorAugment    ), intent(inout)                      :: self
@@ -760,10 +760,10 @@ contains
                          ! Test if the node being lost from the end of the list is above the mass resolution.
                          basicSort      => endNodes(nodeChildCount)%node%basic()
                          if (basicSort%mass() > self%massCutOff*massCutoffScale) then
-                            if (Galacticus_Verbosity_Level() >= verbosityWorking) then
+                            if (displayVerbosity() >= verbosityLevelWorking) then
                                write (label,'(e12.6)') basicSort%mass()
                                message="Nonoverlap failure at mass: "//trim(label)
-                               call Galacticus_Display_Message(message)
+                               call displayMessage(message)
                             end if
                             ! Node being lost from end of list is above the mass resolution - record that we therefore have a new,
                             ! non-overlapping node which is above the mass resolution.
@@ -791,10 +791,10 @@ contains
                       ! The list of end nodes is full - this node can not be inserted into the list.
                       nodeNonOverlap => nodeCurrent
                       if (basicCurrent%mass() > self%massCutOff*massCutoffScale) then
-                         if (Galacticus_Verbosity_Level() >= verbosityWorking) then
+                         if (displayVerbosity() >= verbosityLevelWorking) then
                             write (label,'(e12.6)') basicCurrent%mass()
                             message="Nonoverlap failure at mass: "//trim(label)
-                            call Galacticus_Display_Message(message)
+                            call displayMessage(message)
                          end if
                          treeNewHasNodeAboveResolution=.true.
                       end if
@@ -805,10 +805,10 @@ contains
              ! No overlap nodes are being sought - so this node is automatically a non-overlap node.
              nodeNonOverlap => nodeCurrent
              if (basicCurrent%mass() > self%massCutOff*massCutoffScale) then
-                if (Galacticus_Verbosity_Level() >= verbosityWorking) then
+                if (displayVerbosity() >= verbosityLevelWorking) then
                    write (label,'(e12.6)') basicCurrent%mass()
                    message="Nonoverlap failure at mass: "//trim(label)
-                   call Galacticus_Display_Message(message)
+                   call displayMessage(message)
                 end if
                 treeNewHasNodeAboveResolution=.true.
              end if

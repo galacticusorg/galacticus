@@ -24,15 +24,15 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Two_Thirds
   !% Tests spherical collapse calculations for a dark energy Universe, specifically using a flat, $\omega=-2/3$
   !% cosmology. Compares results to the fitting function of
   !% \citeauthor{weinberg_constraining_2003}~(\citeyear{weinberg_constraining_2003}; eqn.~18).
-  use :: Cosmological_Density_Field, only : criticalOverdensity           , criticalOverdensityClass
-  use :: Cosmology_Functions       , only : cosmologyFunctions            , cosmologyFunctionsClass
+  use :: Cosmological_Density_Field, only : criticalOverdensity  , criticalOverdensityClass
+  use :: Cosmology_Functions       , only : cosmologyFunctions   , cosmologyFunctionsClass
+  use :: Display                   , only : displayVerbositySet  , verbosityLevelStandard
   use :: Events_Hooks              , only : eventsHooksInitialize
-  use :: Galacticus_Display        , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: ISO_Varying_String        , only : varying_string                , assignment(=)
+  use :: ISO_Varying_String        , only : assignment(=)        , varying_string
   use :: Input_Parameters          , only : inputParameters
-  use :: Linear_Growth             , only : linearGrowth                  , linearGrowthClass
+  use :: Linear_Growth             , only : linearGrowth         , linearGrowthClass
   use :: Numerical_Constants_Math  , only : Pi
-  use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group  , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests                , only : Assert               , Unit_Tests_Begin_Group  , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision                          , dimension(7) :: redshift                 =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
   class           (cosmologyFunctionsClass ), pointer      :: cosmologyFunctions_
@@ -46,7 +46,7 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Two_Thirds
   type            (inputParameters         )               :: parameters
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Initialize event hooks.
   call eventsHooksInitialize()
 

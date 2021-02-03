@@ -10,7 +10,7 @@
     <suspendToRAM value="false"/>
   </taskMethod>
   <!-- Output control -->
-  <verbosityLevel value="1"/>
+  <verbosityLevel value="standard"/>
   <galacticusOutputFileName value="testSuite/outputs/test-splitForests/unsplit.hdf5"/>
 
   <!-- Component selection -->

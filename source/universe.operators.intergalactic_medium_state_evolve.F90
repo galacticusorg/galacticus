@@ -367,12 +367,12 @@ contains
    logical function intergalacticMediumStateEvolveUpdate(event,universe_) result (success)
      !% Update the properties for a given universe.
      use            :: Arrays_Search           , only : searchArrayClosest
-     use            :: Galacticus_Display      , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
+     use            :: Display                 , only : displayIndent          , displayMessage, displayUnindent
      use            :: Galacticus_Error        , only : Galacticus_Error_Report
      use            :: Galacticus_HDF5         , only : galacticusOutputFile
-     use            :: Galacticus_Nodes        , only : mergerTree               , mergerTreeList            , nodeComponentBasic         , treeNode, &
-          &                                             universe                 , universeEvent
-     use            :: IO_HDF5                 , only : hdf5Access               , hdf5Object
+     use            :: Galacticus_Nodes        , only : mergerTree             , mergerTreeList, nodeComponentBasic, treeNode, &
+          &                                             universe               , universeEvent
+     use            :: IO_HDF5                 , only : hdf5Access             , hdf5Object
      use, intrinsic :: ISO_C_Binding           , only : c_size_t
      use            :: ISO_Varying_String      , only : varying_string
      use            :: Numerical_Constants_Math, only : Pi
@@ -407,7 +407,7 @@ contains
         ! Display message.
         write (label,'(f6.3)') event%time
         message = "Evolving IGM properties to time "//trim(label)//" Gyr"
-        call Galacticus_Display_Indent(message)
+        call displayIndent(message)
         ! Find the current timestep.
         iNow = searchArrayClosest(self%time,event%time)
         ! Evolve the properties up to this timestep.
@@ -443,7 +443,7 @@ contains
            propertyScales( 9  )=self%opticalDepth (iNow-1)
            propertyScales(10  )=self%massFiltering(iNow-1)
            ! Display message
-           call Galacticus_Display_Message('Solving properties evolution')
+           call displayMessage('Solving properties evolution')
            timeCurrent=self%time(iNow-1)
            solver     =odeSolver(propertyCount,intergalacticMediumStateEvolveODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative,scale=propertyScales)    
            call solver%solve(timeCurrent,self%time(iNow),properties)
@@ -517,7 +517,7 @@ contains
         ! Store the past history to the default IGM state class.
         call self%stateSet(iNow)
         ! Display message.
-        call Galacticus_Display_Unindent('done')
+        call displayUnindent('done')
         class default
         call Galacticus_Error_Report('incorrect class'//{introspection:location})
      end select
@@ -533,8 +533,8 @@ contains
      use :: Numerical_Constants_Astronomical     , only : gigaYear
      use :: Numerical_Constants_Atomic           , only : massHeliumAtom    , massHydrogenAtom
      use :: Numerical_Constants_Math             , only : Pi
-     use :: Numerical_Constants_Physical         , only : boltzmannsConstant, electronMass     , electronRadius            , fineStructure      , &
-          &                                               plancksConstant   , radiationConstant, speedLight                , thomsonCrossSection
+     use :: Numerical_Constants_Physical         , only : boltzmannsConstant, electronMass     , electronRadius, fineStructure      , &
+          &                                               plancksConstant   , radiationConstant, speedLight    , thomsonCrossSection
      use :: Numerical_Constants_Prefixes         , only : centi
      use :: Numerical_Constants_Units            , only : angstromsPerMeter , electronVolt
      use :: Numerical_Integration                , only : integrator

@@ -25,19 +25,19 @@ module Galacticus_Nodes
   use            :: Abundances_Structure            , only : abundances
   use            :: Chemical_Abundances_Structure   , only : chemicalAbundances
   use            :: Galacticus_Error                , only : Galacticus_Error_Report
-  use            :: Hashes                          , only : doubleHash                    , genericHash
-  use            :: Histories                       , only : history                       , longIntegerHistory
+  use            :: Hashes                          , only : doubleHash                , genericHash
+  use            :: Histories                       , only : history                   , longIntegerHistory
   use            :: IO_HDF5                         , only : hdf5Object
   use, intrinsic :: ISO_C_Binding                   , only : c_size_t
   use            :: ISO_Varying_String              , only : varying_string
   use            :: Kepler_Orbits                   , only : keplerOrbit
   use            :: Kind_Numbers                    , only : kind_int8
-  use            :: Memory_Management               , only : Memory_Usage_Record           , memoryTypeNodes
-  use            :: Numerical_Constants_Astronomical, only : gigaYear                      , luminosityZeroPointAB, massSolar, megaParsec
+  use            :: Memory_Management               , only : Memory_Usage_Record       , memoryTypeNodes
+  use            :: Numerical_Constants_Astronomical, only : gigaYear                  , luminosityZeroPointAB         , massSolar, megaParsec
   use            :: Numerical_Constants_Prefixes    , only : kilo
   use            :: Numerical_Random_Numbers        , only : randomNumberGeneratorClass
   use            :: Stellar_Luminosities_Structure  , only : stellarLuminosities
-  use            :: Tensors                         , only : tensorRank2Dimension3Symmetric, tensorNullR2D3Sym
+  use            :: Tensors                         , only : tensorNullR2D3Sym         , tensorRank2Dimension3Symmetric
   private
   public :: nodeClassHierarchyInitialize, nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask, nodeEventBuildFromRaw
   
@@ -623,9 +623,9 @@ module Galacticus_Nodes
 
   subroutine Tree_Node_Remove_From_Host(self)
     !% Remove {\normalfont \ttfamily self} from the linked list of its host node's satellites.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
+    use :: Display           , only : displayMessage         , displayVerbosity, verbosityLevelInfo
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)             , operator(//)
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
     class(treeNode      ), intent(in   ), target :: self
@@ -642,10 +642,10 @@ module Galacticus_Nodes
 
     ! Remove from the parent node satellite list.
     nodeHost => selfActual%parent
-    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+    if (displayVerbosity() >= verbosityLevelInfo) then
        message='Satellite node ['
        message=message//selfActual%index()//'] being removed from host node ['//nodeHost%index()//']'
-       call Galacticus_Display_Message(message,verbosityInfo)
+       call displayMessage(message,verbosityLevelInfo)
     end if
     if (associated(nodeHost%firstSatellite,selfActual)) then
        ! This is the first satellite, unlink it, and link to any sibling.
@@ -668,9 +668,9 @@ module Galacticus_Nodes
 
   subroutine Tree_Node_Remove_from_Mergee(self)
     !% Remove {\normalfont \ttfamily self} from the linked list of its host node's satellites.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityInfo
+    use :: Display           , only : displayMessage         , verbosityLevelInfo
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)             , operator(//)
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
     class(treeNode      ), intent(in   ), target :: self
@@ -690,7 +690,7 @@ module Galacticus_Nodes
        nodeHost => selfActual%mergeTarget
        message='Mergee node ['
        message=message//selfActual%index()//'] being removed from merge target ['//nodeHost%index()//']'
-       call Galacticus_Display_Message(message,verbosityInfo)
+       call displayMessage(message,verbosityLevelInfo)
        if (associated(nodeHost%firstMergee,selfActual)) then
           ! This is the first mergee, unlink it, and link to any sibling.
           nodeHost%firstMergee => selfActual%siblingMergee

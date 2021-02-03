@@ -23,9 +23,9 @@
   use :: Galactic_Structure_Solvers, only : galacticStructureSolver   , galacticStructureSolverClass
   use :: Galacticus_Nodes          , only : treeNode
   use :: Kind_Numbers              , only : kind_int8
+  use :: Merger_Tree_Initialization, only : mergerTreeInitializorClass
   use :: Merger_Tree_Timesteps     , only : mergerTreeEvolveTimestep  , mergerTreeEvolveTimestepClass
   use :: Merger_Trees_Evolve_Node  , only : mergerTreeNodeEvolver     , mergerTreeNodeEvolverClass
-  use :: Merger_Tree_Initialization, only : mergerTreeInitializorClass
 
   ! Structure used to store list of nodes for deadlock reporting.
   type :: deadlockList
@@ -244,14 +244,14 @@ contains
 
   subroutine standardEvolve(self,tree,timeEnd,treeDidEvolve,suspendTree,deadlockReporting,systemClockMaximum,initializationLock,status)
     !% Evolves all properties of a merger tree to the specified time.
-    use    :: Galacticus_Display                 , only : Galacticus_Display_Indent   , Galacticus_Display_Message        , Galacticus_Display_Unindent, Galacticus_Verbosity_Level
+    use    :: Display                            , only : displayIndent               , displayMessage                    , displayUnindent          , displayVerbosity
     use    :: Galacticus_Error                   , only : Galacticus_Error_Report     , errorStatusSuccess
-    use    :: Galacticus_Nodes                   , only : interruptTask               , mergerTree                        , nodeComponentBasic         , nodeEvent                  , &
+    use    :: Galacticus_Nodes                   , only : interruptTask               , mergerTree                        , nodeComponentBasic       , nodeEvent                  , &
           &                                               nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, treeNode
     use    :: Merger_Tree_Timesteps              , only : timestepTask
     use    :: Merger_Tree_Walkers                , only : mergerTreeWalkerAllNodes
     use    :: Merger_Trees_Dump                  , only : Merger_Tree_Dump
-    use    :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsDeadlocked  , deadlockStatusIsNotDeadlocked     , deadlockStatusIsReporting  , deadlockStatusIsSuspendable
+    use    :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsDeadlocked  , deadlockStatusIsNotDeadlocked     , deadlockStatusIsReporting, deadlockStatusIsSuspendable
     !$ use :: OMP_Lib                            , only : OMP_Set_Lock                , OMP_Unset_Lock                    , omp_lock_kind
     use    :: String_Handling                    , only : operator(//)
     implicit none
@@ -398,7 +398,7 @@ contains
        ! Enter loop for deadlock reporting.
        deadlock : do while (statusDeadlock /= deadlockStatusIsNotDeadlocked)
           ! Post a deadlocking message.
-          if (statusDeadlock == deadlockStatusIsReporting) call Galacticus_Display_Indent("Deadlock report follows")
+          if (statusDeadlock == deadlockStatusIsReporting) call displayIndent("Deadlock report follows")
           ! Iterate through all trees.
           currentTree => tree
           treesLoop: do while (associated(currentTree))
@@ -412,7 +412,7 @@ contains
                 if (statusDeadlock == deadlockStatusIsReporting) then
                    vMessage="tree "
                    vMessage=vMessage//currentTree%index
-                   call Galacticus_Display_Indent(vMessage)
+                   call displayIndent(vMessage)
                 end if
                 ! Point to the base of the tree.
                 node => currentTree%baseNode
@@ -507,9 +507,9 @@ contains
                             vMessage=vMessage//node%index()//" (current:target times = "//label
                             write (label,'(e12.6)') timeEnd
                             vMessage=vMessage//":"//label//")"
-                            call Galacticus_Display_Indent(vMessage)
+                            call displayIndent(vMessage)
                             timeEndThisNode=self%timeEvolveTo(node,timeEnd,timestepTask_,timestepSelf,report=.true. ,nodeLock=nodeLock,lockType=lockType)
-                            call Galacticus_Display_Unindent("end node")
+                            call displayUnindent("end node")
                             call self%deadlockAddNode(node,currentTree%index,nodeLock,lockType)
                          else
                             timeEndThisNode=self%timeEvolveTo(node,timeEnd,timestepTask_,timestepSelf,report=.false.                                    )
@@ -590,8 +590,8 @@ contains
                          vMessage=vMessage//node%index()//" (current:target times = "//label
                          write (label,'(e12.6)') timeEnd
                          vMessage=vMessage//":"//label//")"
-                         call Galacticus_Display_Indent(vMessage)
-                         call Galacticus_Display_Unindent("end node")
+                         call displayIndent(vMessage)
+                         call displayUnindent("end node")
                          ! Determine why this node could not be evolved. We check the "has child" condition first as it's the only
                          ! one that provides additional connection between nodes, so leads to the most informative deadlock graph.
                          if      (associated(node%firstChild)) then
@@ -642,7 +642,7 @@ contains
                 end do treeWalkLoop
                 ! Output tree progress information.
                 if (treeWalkCount > int(treeWalkCountPreviousOutput*1.1d0)+1) then
-                   if (Galacticus_Verbosity_Level() >= verbosityLevel) then
+                   if (displayVerbosity() >= verbosityLevel) then
                       !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
                       !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
                       !# </workaround>
@@ -653,7 +653,7 @@ contains
 #ifdef THREADSAFEIO
                       !$omp end critical(gfortranInternalIO)
 #endif
-                      call Galacticus_Display_Indent(message,verbosityLevel)
+                      call displayIndent(message,verbosityLevel)
 #ifdef THREADSAFEIO
                       !$omp critical(gfortranInternalIO)
 #endif
@@ -661,7 +661,7 @@ contains
 #ifdef THREADSAFEIO
                       !$omp end critical(gfortranInternalIO)
 #endif
-                      call Galacticus_Display_Message(message,verbosityLevel)
+                      call displayMessage(message,verbosityLevel)
 #ifdef THREADSAFEIO
                       !$omp critical(gfortranInternalIO)
 #endif
@@ -669,7 +669,7 @@ contains
 #ifdef THREADSAFEIO
                       !$omp end critical(gfortranInternalIO)
 #endif
-                      call Galacticus_Display_Message(message,verbosityLevel)
+                      call displayMessage(message,verbosityLevel)
 #ifdef THREADSAFEIO
                       !$omp critical(gfortranInternalIO)
 #endif
@@ -677,13 +677,13 @@ contains
 #ifdef THREADSAFEIO
                       !$omp end critical(gfortranInternalIO)
 #endif
-                      call Galacticus_Display_Message(message,verbosityLevel)
-                      call Galacticus_Display_Unindent('done',verbosityLevel)
+                      call displayMessage(message,verbosityLevel)
+                      call displayUnindent('done',verbosityLevel)
                       treeWalkCountPreviousOutput=treeWalkCount
                    end if
                 end if
                 ! Report on current tree if deadlocked.
-                if (statusDeadlock == deadlockStatusIsReporting) call Galacticus_Display_Unindent('end tree')
+                if (statusDeadlock == deadlockStatusIsReporting) call displayUnindent('end tree')
              end if
              ! Move to the next tree.
              currentTree => currentTree%nextTree
@@ -693,7 +693,7 @@ contains
           ! Check deadlocking.
           if (didEvolve .and. statusDeadlock /= deadlockStatusIsNotDeadlocked) then
              if (statusDeadlock == deadlockStatusIsReporting) then
-                call Galacticus_Display_Unindent("report done")
+                call displayUnindent("report done")
                 call self%deadlockOutputTree(timeEnd)
                 if (.not.deadlockReporting) then
                    call Galacticus_Error_Report('merger tree appears to be deadlocked (see preceding report) - check timestep criteria'//{introspection:location})
@@ -724,11 +724,11 @@ contains
 
   recursive function standardTimeEvolveTo(self,node,timeEnd,timestepTask_,timestepSelf,report,nodeLock,lockType) result(evolveToTime)
     !% Determine the time to which {\normalfont \ttfamily node} should be evolved.
+    use :: Display               , only : displayIndent                     , displayMessage        , displayUnindent, verbosityLevelInfo
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
-    use :: Galacticus_Display    , only : Galacticus_Display_Indent         , Galacticus_Display_Message, Galacticus_Display_Unindent, verbosityInfo
     use :: Galacticus_Error      , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes      , only : nodeComponentBasic                , nodeComponentSatellite    , nodeEvent                  , nodeEventBranchJumpInterTree, &
-          &                               nodeEventSubhaloPromotionInterTree, treeEvent                 , treeNode
+    use :: Galacticus_Nodes      , only : nodeComponentBasic                , nodeComponentSatellite, nodeEvent      , nodeEventBranchJumpInterTree, &
+          &                               nodeEventSubhaloPromotionInterTree, treeEvent             , treeNode
     use :: Merger_Tree_Timesteps , only : timestepTask
     use :: String_Handling       , only : operator(//)
     implicit none
@@ -816,7 +816,7 @@ contains
     ! Return early if the timestep is already zero.
     if (evolveToTime == timeNode) return
     ! Also ensure that the timestep taken does not exceed the allowed timestep for this specific node.
-    if (report) call Galacticus_Display_Indent("timestepping criteria")
+    if (report) call displayIndent("timestepping criteria")
     evolveToTimeStep=self%mergerTreeEvolveTimestep_%timeEvolveTo(evolveToTime,node,timestepTaskInternal,timestepSelf,report,nodeLock,lockType)
     if (evolveToTimeStep <= evolveToTime) then
        evolveToTime  =  evolveToTimeStep
@@ -825,7 +825,7 @@ contains
        timestepTask_ => null()
        timestepSelf  => null()
     end if
-    if (report) call Galacticus_Display_Unindent("done")
+    if (report) call displayUnindent("done")
     if (evolveToTime == timeNode) return
     ! Ensure that this node is not evolved beyond the time of any of its current satellites.
     nodeSatellite => node%firstSatellite
@@ -966,7 +966,7 @@ contains
        else
           ! End time is before current time, but only by a small amount, simply reset the current time to the end time.
           message=message//' Gyr) - this should happen infrequently'
-          call Galacticus_Display_Message(message,verbosityInfo)
+          call displayMessage(message,verbosityLevelInfo)
           call basic%timeSet(evolveToTime)
        end if
     end if

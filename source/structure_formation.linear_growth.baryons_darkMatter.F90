@@ -205,9 +205,9 @@ contains
   subroutine baryonsDarkMatterRetabulate(self,time,wavenumber)
     !% Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
     !% $D(1)=1$ for a baryonsDarkMatter matter plus cosmological constant cosmology.
-    use    :: Interface_GSL        , only : GSL_Success
     use    :: File_Utilities       , only : File_Lock                       , File_Unlock
     use    :: Galacticus_Error     , only : Galacticus_Error_Report
+    use    :: Interface_GSL        , only : GSL_Success
     use    :: Interfaces_CAMB      , only : Interface_CAMB_Transfer_Function
     use    :: Numerical_ODE_Solvers, only : odeSolver
     !$ use :: OMP_Lib              , only : omp_lock_kind
@@ -542,10 +542,10 @@ contains
 
   subroutine baryonsDarkMatterFileRead(self)
     !% Read tabulated data on linear growth factor from file.
-    use :: File_Utilities    , only : File_Exists
-    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
-    use :: IO_HDF5           , only : hdf5Access                , hdf5Object
-    use :: Table_Labels      , only : extrapolationTypeAbort    , extrapolationTypeFix
+    use :: Display       , only : displayMessage        , verbosityLevelWorking
+    use :: File_Utilities, only : File_Exists
+    use :: IO_HDF5       , only : hdf5Access            , hdf5Object
+    use :: Table_Labels  , only : extrapolationTypeAbort, extrapolationTypeFix
     implicit none
     class           (linearGrowthBaryonsDarkMatter), intent(inout)               :: self
     double precision                               , dimension(:,:), allocatable :: growthFactorDarkMatter, growthFactorBaryons
@@ -553,7 +553,7 @@ contains
 
     ! Return immediately if the file does not exist.
     if (.not.File_Exists(char(self%fileName))) return
-    call Galacticus_Display_Message('reading D(k,t) data from: '//self%fileName,verbosityWorking)
+    call displayMessage('reading D(k,t) data from: '//self%fileName,verbosityLevelWorking)
     if (self%tableInitialized) call self%growthFactor%destroy()
     !$ call hdf5Access%set()
     call dataFile%openFile     (char(self%fileName),overWrite=.false.                          )
@@ -582,15 +582,15 @@ contains
 
   subroutine baryonsDarkMatterFileWrite(self)
     !% Write tabulated data on linear growth factor to file.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
-    use :: HDF5              , only : hsize_t
-    use :: IO_HDF5           , only : hdf5Access                , hdf5Object
+    use :: Display, only : displayMessage, verbosityLevelWorking
+    use :: HDF5   , only : hsize_t
+    use :: IO_HDF5, only : hdf5Access    , hdf5Object
     implicit none
     class(linearGrowthBaryonsDarkMatter), intent(inout) :: self
     type (hdf5Object                   )                :: dataFile
 
     ! Open the data file.
-    call Galacticus_Display_Message('writing D(k,t) data to: '//self%fileName,verbosityWorking)
+    call displayMessage('writing D(k,t) data to: '//self%fileName,verbosityLevelWorking)
     !$ call hdf5Access%set()
     call dataFile%openFile      (char   (self%fileName                                                                                                                  ),overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
     call dataFile%writeDataset  (reshape(self%growthFactor          %zs(table=baryonsDarkMatterDarkMatter),[self%growthFactor%size(dim=1),self%growthFactor%size(dim=2)]),          'growthFactorDarkMatter'                       )

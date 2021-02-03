@@ -21,14 +21,14 @@
 
 program Test_Files
   !% Tests that file functions work.
+  use :: Display           , only : displayVerbositySet, verbosityLevelStandard
   use :: File_Utilities    , only : File_Exists
-  use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: Galacticus_Paths  , only : galacticusPath                , pathTypeExec
+  use :: Galacticus_Paths  , only : galacticusPath     , pathTypeExec
   use :: ISO_Varying_String, only : operator(//)
-  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group  , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
  
-  call Galacticus_Verbosity_Level_Set(verbosityStandard                                                                                 )
+  call displayVerbositySet(verbosityLevelStandard                                                                                 )
   call Unit_Tests_Begin_Group        ("File utilities"                                                                                  )
   call Assert                        ('file exists'        ,File_Exists(galacticusPath(pathTypeExec)//'source/tests.files.F90' ),.true. )
   call Assert                        ('file does not exist',File_Exists(galacticusPath(pathTypeExec)//'source/tests.bork.crump'),.false.)

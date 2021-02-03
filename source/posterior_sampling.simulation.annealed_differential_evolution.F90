@@ -143,7 +143,7 @@ contains
 
   subroutine annealedDifferentialEvolutionUpdate(self,stateVector)
     !% Update the differential evolution simulator state.
-    use :: Galacticus_Display, only : Galacticus_Display_Message
+    use :: Display           , only : displayMessage
     use :: ISO_Varying_String, only : varying_string
     use :: MPI_Utilities     , only : mpiSelf
     use :: String_Handling   , only : operator(//)
@@ -170,7 +170,7 @@ contains
           write (label,'(f7.2)') self%temperature()
           message="Annealing temperature is now "//label//" (level "
           message=message//self%temperatureLevelCurrent//" of "//self%temperatureLevelCount//")"
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end if
     end if
     ! Update the simulation state.

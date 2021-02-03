@@ -81,9 +81,9 @@ contains
 
   function baryonsDarkMatterDarkEnergyConstructorInternal(baryonsCluster,energyFixedAt,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily baryonsDarkMatterDarkEnergy} spherical collapse solver class.
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath                 , pathTypeDataDynamic
     use :: ISO_Varying_String, only : operator(//)
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Linear_Growth     , only : linearGrowthCollisionlessMatter, linearGrowthNonClusteringBaryonsDarkMatter
     implicit none
     type   (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy)                        :: self
@@ -137,11 +137,11 @@ contains
 
   subroutine baryonsDarkMatterDarkEnergyTabulate(self,time,sphericalCollapse_,calculationType)
     !% Tabulate spherical collapse solutions for $\delta_\mathrm{crit}$, $\Delta_\mathrm{vir}$, or $R_\mathrm{ta}/R_\mathrm{vir}$ vs. time.
-    use :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent    , Galacticus_Display_Unindent, &
-          &                           verbosityWorking
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Root_Finder       , only : rangeExpandMultiplicative , rangeExpandSignExpectNegative   , rangeExpandSignExpectPositive, rootFinder
-    use :: Tables            , only : table1DLogarithmicLinear
+    use :: Display         , only : displayCounter           , displayCounterClear          , displayIndent                , displayUnindent, &
+          &                         verbosityLevelWorking
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Root_Finder     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Tables          , only : table1DLogarithmicLinear
     implicit none
     class           (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy)             , intent(inout) :: self
     double precision                                                                 , intent(in   ) :: time
@@ -202,12 +202,12 @@ contains
        message=message//trim(adjustl(label))//" ≤ t/Gyr ≤ "
        write (label,'(e12.6)') timeMaximum
        message=message//trim(adjustl(label))
-       call Galacticus_Display_Indent(message,verbosity=verbosityWorking)
+       call displayIndent(message,verbosity=verbosityLevelWorking)
        iCount=0
-       call Galacticus_Display_Counter(                            &
+       call displayCounter(                            &
             &                                    iCount          , &
             &                          isNew    =.true.          , &
-            &                          verbosity=verbosityWorking  &
+            &                          verbosity=verbosityLevelWorking  &
             &                         )
        !$omp parallel private(expansionFactor,epsilonPerturbationMaximum,epsilonPerturbationMinimum,epsilonPerturbation,timeInitial,timeRange,timeExpansionMaximum,expansionFactorExpansionMaximum,q,y,r,z,timeEnergyFixed,a,b,x,linearGrowth_)
        allocate(cllsnlssMttrDarkEnergyCosmologyFunctions_,mold=self%cosmologyFunctions_)
@@ -222,10 +222,10 @@ contains
        !$omp end critical(sphericalCollapseSolverBrynsDrkMttrDrkEnrgyDeepCopy)
        !$omp do schedule(dynamic)
        do iTime=1,countTimes
-          call Galacticus_Display_Counter(                                              &
+          call displayCounter(                                              &
                &                          int(100.0d0*dble(iCount-1)/dble(countTimes)), &
                &                          isNew=.false.                               , &
-               &                          verbosity=verbosityWorking                    &
+               &                          verbosity=verbosityLevelWorking                    &
                &                         )
           ! Get the current expansion factor.
           expansionFactor=cllsnlssMttrDarkEnergyCosmologyFunctions_%expansionFactor(sphericalCollapse_%x(iTime))
@@ -386,8 +386,8 @@ contains
           !# <objectDestructor name="linearGrowth_"                      />
        end if
        !$omp end parallel
-       call Galacticus_Display_Counter_Clear(       verbosity=verbosityWorking)
-       call Galacticus_Display_Unindent     ('done',verbosity=verbosityWorking)
+       call displayCounterClear(       verbosity=verbosityLevelWorking)
+       call displayUnindent     ('done',verbosity=verbosityLevelWorking)
     end select
     return
   end subroutine baryonsDarkMatterDarkEnergyTabulate

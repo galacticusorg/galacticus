@@ -21,7 +21,7 @@
 
 program Test_Initial_Mass_Functions
   !% Tests of stellar initial mass functions.
-  use :: Galacticus_Display                        , only : Galacticus_Verbosity_Level_Set  , verbosityStandard
+  use :: Display                                   , only : displayVerbositySet             , verbosityLevelStandard
   use :: Numerical_Integration2                    , only : integratorCompositeTrapezoidal1D
   use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunctionBPASS        , initialMassFunctionBaugh2005TopHeavy, initialMassFunctionChabrier2001   , initialMassFunctionClass            , &
           &                                                 initialMassFunctionKennicutt1983, initialMassFunctionKroupa2001       , initialMassFunctionMillerScalo1979, initialMassFunctionPiecewisePowerLaw, &
@@ -41,7 +41,7 @@ program Test_Initial_Mass_Functions
   type            (integratorCompositeTrapezoidal1D    )          :: integrator_
   double precision                                                :: massInInitialMassFunction
 
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   call Unit_Tests_Begin_Group("Stellar initial mass functions")
   call integrator_%initialize  (24           )
   call integrator_%toleranceSet(1.0d-7,1.0d-7)

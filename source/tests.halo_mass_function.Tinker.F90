@@ -23,17 +23,17 @@
 program Tests_Halo_Mass_Function_Tinker
   !% Tests the \cite{tinker_towardhalo_2008} mass function by comparing to Jeremy Tinker's
   !% \href{https://cosmo.nyu.edu/~tinker/massfunction/MF_code.tar}{code}.
-  use :: Cosmological_Density_Field, only : criticalOverdensity           , criticalOverdensityClass
-  use :: Cosmology_Functions       , only : cosmologyFunctions            , cosmologyFunctionsClass
-  use :: Cosmology_Parameters      , only : cosmologyParameters           , cosmologyParametersClass, hubbleUnitsLittleH
+  use :: Cosmological_Density_Field, only : criticalOverdensity  , criticalOverdensityClass
+  use :: Cosmology_Functions       , only : cosmologyFunctions   , cosmologyFunctionsClass
+  use :: Cosmology_Parameters      , only : cosmologyParameters  , cosmologyParametersClass, hubbleUnitsLittleH
+  use :: Display                   , only : displayVerbositySet  , verbosityLevelStandard
   use :: Events_Hooks              , only : eventsHooksInitialize
   use :: File_Utilities            , only : Count_Lines_In_File
-  use :: Galacticus_Display        , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: Halo_Mass_Functions       , only : haloMassFunction              , haloMassFunctionClass
-  use :: ISO_Varying_String        , only : varying_string                , assignment(=)
+  use :: Halo_Mass_Functions       , only : haloMassFunction     , haloMassFunctionClass
+  use :: ISO_Varying_String        , only : assignment(=)        , varying_string
   use :: Input_Parameters          , only : inputParameters
-  use :: Memory_Management         , only : allocateArray                 , deallocateArray
-  use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group  , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Memory_Management         , only : allocateArray        , deallocateArray
+  use :: Unit_Tests                , only : Assert               , Unit_Tests_Begin_Group  , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (varying_string          )                                     :: parameterFile
   integer                                                                        :: fUnit                    , i           , &
@@ -49,7 +49,7 @@ program Tests_Halo_Mass_Function_Tinker
   type            (inputParameters         )                                     :: parameters
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Initialize event hooks.
   call eventsHooksInitialize()
   ! Begin unit tests.

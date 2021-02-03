@@ -110,7 +110,7 @@ contains
   function fixedOrbit(self,node,host,acceptUnboundOrbits)
     !% Return fixed orbital parameters for a satellite.
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Galacticus_Display                  , only : Galacticus_Display_Indent          , Galacticus_Verbosity_Level_Set, verbosityStandard
+    use :: Display                             , only : displayIndent                      , displayVerbositySet, verbosityLevelStandard
     use :: Galacticus_Error                    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     use :: ISO_Varying_String                  , only : varying_string
@@ -145,12 +145,12 @@ contains
        call fixedOrbit%propagate(radiusHost,infalling=.true.)
        call fixedOrbit%massesSet(min(basic%mass(),hostBasic%mass()),hostBasic%mass())
     else
-       call Galacticus_Verbosity_Level_Set(verbosityStandard)
-       call Galacticus_Display_Indent('Satellite node')
+       call displayVerbositySet(verbosityLevelStandard)
+       call displayIndent('Satellite node')
        call node%serializeASCII()
-       call Galacticus_Display_Indent('Host node'     )
+       call displayIndent('Host node'     )
        call host%serializeASCII()
-       call Galacticus_Display_Indent('Host node'     )
+       call displayIndent('Host node'     )
        message="orbit does not reach halo radius"               //char(10)
        write (label,'(e12.6)') massSatellite
        message=message//"      satellite mass = "//label//" M☉" //char(10)
@@ -274,7 +274,7 @@ contains
     !% Return the mean energy of the orbits.
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
-    use :: Numerical_Constants_Astronomical        , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
     implicit none
     class           (virialOrbitFixed  ), intent(inout) :: self
     type            (treeNode          ), intent(inout) :: node        , host

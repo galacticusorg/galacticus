@@ -65,7 +65,7 @@
   <treeNodeMethodSatellite value="preset"/>
   <treeNodeMethodSpheroid value="standard"/>
   <treeNodeMethodSpin value="vector"/>
-  <verbosityLevel value="1"/>
+  <verbosityLevel value="standard"/>
   <galacticusOutputFileName value="testSuite/outputs/deadlockMergeTargetInDescendentOfMergee2.hdf5"/>
 
   <!-- Node evolution and physics -->

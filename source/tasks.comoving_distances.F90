@@ -82,12 +82,12 @@ contains
 
   subroutine comovingDistancesPerform(self,status)
     !% Compute and output the comoving distances to each output.
-    use            :: Galacticus_Display              , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
-    use            :: Galacticus_Error                , only : errorStatusSuccess
-    use            :: Galacticus_HDF5                 , only : galacticusOutputFile
-    use            :: IO_HDF5                         , only : hdf5Object
-    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use            :: String_Handling                 , only : operator(//)
+    use            :: Display         , only : displayIndent       , displayUnindent
+    use            :: Galacticus_Error, only : errorStatusSuccess
+    use            :: Galacticus_HDF5 , only : galacticusOutputFile
+    use            :: IO_HDF5         , only : hdf5Object
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
+    use            :: String_Handling , only : operator(//)
     implicit none
     class  (taskComovingDistances), intent(inout), target   :: self
     integer                       , intent(  out), optional :: status
@@ -95,7 +95,7 @@ contains
     type   (hdf5Object           )                          :: outputsGroup, outputGroup
     type   (varying_string       )                          :: groupName   , commentText
 
-    call Galacticus_Display_Indent('Begin task: comoving distances')
+    call displayIndent('Begin task: comoving distances')
     ! Open the group for output time information.
     outputsGroup  =galacticusOutputFile%openGroup('Outputs','Group containing datasets relating to output times.')
     ! Iterate over output times and output data.
@@ -110,6 +110,6 @@ contains
     end do
     call outputsGroup%close()
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: comoving distances')
+    call displayUnindent('Done task: comoving distances')
     return
  end subroutine comovingDistancesPerform

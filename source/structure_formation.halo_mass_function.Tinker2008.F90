@@ -25,6 +25,7 @@
   !#  <name>tinker2008Parameter</name>
   !#  <description>Enumeration of parameters for the {\normalfont \ttfamily tinker2008} halo mass function class.</description>
   !#  <encodeFunction>yes</encodeFunction>
+  !#  <decodeFunction>yes</decodeFunction>
   !#  <validator>yes</validator>
   !#  <entry label="a"            />
   !#  <entry label="b"            />

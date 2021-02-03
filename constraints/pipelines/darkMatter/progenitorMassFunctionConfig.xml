@@ -6,7 +6,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
-  <verbosityLevel value="1"/>
+  <verbosityLevel value="standard"/>
   <errorWaitTime  value="0"/>
 
   <taskMethod value="posteriorSample">

@@ -19,21 +19,21 @@
 
 program Tests_Spherical_Collapse_Baryons_Dark_Matter
   !% Tests linear growth calculations.
-  use :: Cosmological_Density_Field           , only : cosmologicalMassVarianceFilteredPower                     , criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy       , criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
+  use :: Cosmological_Density_Field           , only : cosmologicalMassVarianceFilteredPower                     , criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy      , criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Cosmology_Functions                  , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters                 , only : cosmologyParametersSimple
   use :: Dark_Matter_Particles                , only : darkMatterParticleCDM
+  use :: Display                              , only : displayVerbositySet                                       , verbosityLevelStandard
   use :: Events_Hooks                         , only : eventsHooksInitialize
-  use :: Galacticus_Display                   , only : Galacticus_Verbosity_Level_Set                            , verbosityStandard
   use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMassGnedin2000
   use :: Intergalactic_Medium_State           , only : intergalacticMediumStateSimple
-  use :: Linear_Growth                        , only : componentDarkMatter                                       , linearGrowthBaryonsDarkMatter                                  , linearGrowthCollisionlessMatter
+  use :: Linear_Growth                        , only : componentDarkMatter                                       , linearGrowthBaryonsDarkMatter                                 , linearGrowthCollisionlessMatter
   use :: Power_Spectra_Primordial             , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred , only : powerSpectrumPrimordialTransferredSimple
   use :: Power_Spectrum_Window_Functions      , only : powerSpectrumWindowFunctionSharpKSpace
   use :: Spherical_Collapse_Solvers           , only : cllsnlssMttrDarkEnergyFixedAtTurnaround
   use :: Transfer_Functions                   , only : transferFunctionIdentity
-  use :: Unit_Tests                           , only : Assert                                                    , Unit_Tests_Begin_Group                                         , Unit_Tests_End_Group                                         , Unit_Tests_Finish
+  use :: Unit_Tests                           , only : Assert                                                    , Unit_Tests_Begin_Group                                        , Unit_Tests_End_Group                                        , Unit_Tests_Finish
   use :: Virial_Density_Contrast              , only : virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy, virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
   implicit none
   double precision                                                                 , dimension(5), parameter :: redshift                                                   =[0.0d0,1.0d0,3.0d0,9.0d0,30.0d0]
@@ -65,7 +65,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
        &                                                                                                        fractionBaryons
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Get argument.
   if (Command_Argument_Count() > 0) then
      call Get_Command_Argument(1,outputFractions)

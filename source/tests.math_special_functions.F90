@@ -21,14 +21,14 @@
 
 program Test_Math_Special_Functions
   !% Tests of mathematical special functions.
-  use :: Bessel_Functions        , only : Bessel_Function_I0               , Bessel_Function_I1                             , Bessel_Function_K0                     , Bessel_Function_K1        , &
-       &                                  Bessel_Function_J0               , Bessel_Function_J1                             , Bessel_Function_Jn                     , Bessel_Function_J0_Zero   , &
-       &                                  Bessel_Function_J1_Zero          , Bessel_Function_Jn_Zero
+  use :: Bessel_Functions        , only : Bessel_Function_I0               , Bessel_Function_I1                             , Bessel_Function_J0                     , Bessel_Function_J0_Zero   , &
+          &                               Bessel_Function_J1               , Bessel_Function_J1_Zero                        , Bessel_Function_Jn                     , Bessel_Function_Jn_Zero   , &
+          &                               Bessel_Function_K0               , Bessel_Function_K1
   use :: Binomial_Coefficients   , only : Binomial_Coefficient
+  use :: Display                 , only : displayVerbositySet              , verbosityLevelStandard
   use :: Error_Functions         , only : Error_Function
   use :: Exponential_Integrals   , only : Cosine_Integral                  , Sine_Integral
   use :: Factorials              , only : Factorial                        , Logarithmic_Double_Factorial
-  use :: Galacticus_Display      , only : Galacticus_Verbosity_Level_Set   , verbosityStandard
   use :: Gamma_Functions         , only : Gamma_Function                   , Gamma_Function_Incomplete                      , Gamma_Function_Incomplete_Complementary, Gamma_Function_Logarithmic, &
           &                               Inverse_Gamma_Function_Incomplete, Inverse_Gamma_Function_Incomplete_Complementary
   use :: Hypergeometric_Functions, only : Hypergeometric_1F1               , Hypergeometric_2F1                             , Hypergeometric_pFq
@@ -53,7 +53,7 @@ program Test_Math_Special_Functions
   integer                         :: i
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Math: special functions")

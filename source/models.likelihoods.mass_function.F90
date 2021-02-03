@@ -149,11 +149,11 @@ contains
 
   function massFunctionConstructorInternal(haloMassMinimum,haloMassMaximum,redshiftMinimum,redshiftMaximum,useSurveyLimits,massFunctionFileName,modelSurfaceBrightness,surfaceBrightnessLimit,cosmologyFunctions_,haloMassFunction_,surveyGeometry_) result(self)
     !% Constructor for ``massFunction'' posterior sampling likelihood class.
-    use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: Galacticus_Paths  , only : galacticusPath            , pathTypeDataStatic
-    use :: IO_HDF5           , only : hdf5Access                , hdf5Object
-    use :: Linear_Algebra    , only : assignment(=)
-    use :: Memory_Management , only : allocateArray             , deallocateArray
+    use :: Display          , only : displayMessage
+    use :: Galacticus_Paths , only : galacticusPath, pathTypeDataStatic
+    use :: IO_HDF5          , only : hdf5Access    , hdf5Object
+    use :: Linear_Algebra   , only : assignment(=)
+    use :: Memory_Management, only : allocateArray , deallocateArray
     type            (posteriorSampleLikelihoodMassFunction)                              :: self
     double precision                                       , intent(in   )               :: redshiftMinimum        , redshiftMaximum       , &
          &                                                                                  haloMassMinimum        , haloMassMaximum       , &
@@ -229,7 +229,7 @@ contains
     allocate(eigenValueArray(size(self%mass)))
     call self%covariance%eigenSystem(eigenVectors,eigenValues)
     eigenValueArray=eigenValues
-    if (any(eigenValueArray < 0.0d0)) call Galacticus_Display_Message('WARNING: inverse covariance matrix is not semi-positive definite')
+    if (any(eigenValueArray < 0.0d0)) call displayMessage('WARNING: inverse covariance matrix is not semi-positive definite')
     deallocate(eigenValueArray)
     return
   end function massFunctionConstructorInternal

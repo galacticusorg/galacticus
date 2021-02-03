@@ -23,19 +23,19 @@
 
 program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   !% Tests the calculation of dark matter halo radius enclosing a given mass.
-  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScale           , darkMatterHaloScaleClass
-  use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMOBurkert   , darkMatterProfileDMOClass               , darkMatterProfileDMOHeated         , darkMatterProfileDMONFW       , &
-          &                                   darkMatterProfileDMOTruncated , darkMatterProfileDMOTruncatedExponential, darkMatterProfileHeatingTidal
+  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScale          , darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMOBurkert  , darkMatterProfileDMOClass               , darkMatterProfileDMOHeated         , darkMatterProfileDMONFW       , &
+          &                                   darkMatterProfileDMOTruncated, darkMatterProfileDMOTruncatedExponential, darkMatterProfileHeatingTidal
   use :: Dark_Matter_Profiles_Generic, only : nonAnalyticSolversFallThrough
+  use :: Display                     , only : displayVerbositySet          , verbosityLevelStandard
   use :: Events_Hooks                , only : eventsHooksInitialize
   use :: Functions_Global_Utilities  , only : Functions_Global_Set
-  use :: Galacticus_Display          , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: Galacticus_Nodes            , only : nodeClassHierarchyFinalize    , nodeClassHierarchyInitialize            , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
-          &                                   nodeComponentSatellite        , treeNode
-  use :: ISO_Varying_String          , only : varying_string                , assignment(=)
+  use :: Galacticus_Nodes            , only : nodeClassHierarchyFinalize   , nodeClassHierarchyInitialize            , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
+          &                                   nodeComponentSatellite       , treeNode
+  use :: ISO_Varying_String          , only : assignment(=)                , varying_string
   use :: Input_Parameters            , only : inputParameters
-  use :: Node_Components             , only : Node_Components_Initialize    , Node_Components_Thread_Initialize       , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
-  use :: Unit_Tests                  , only : Assert                        , Unit_Tests_Begin_Group                  , Unit_Tests_End_Group               , Unit_Tests_Finish
+  use :: Node_Components             , only : Node_Components_Initialize   , Node_Components_Thread_Initialize       , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use :: Unit_Tests                  , only : Assert                       , Unit_Tests_Begin_Group                  , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
   type            (treeNode                                )               :: node
   class           (nodeComponentBasic                      ), pointer      :: basic
@@ -65,7 +65,7 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   logical                                                                  :: limitToVirialRadius
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group('Dark matter halo radius enclosing a give mass')
   ! Read in controlling parameters.

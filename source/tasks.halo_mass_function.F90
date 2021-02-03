@@ -280,8 +280,8 @@ contains
 
   subroutine haloMassFunctionPerform(self,status)
     !% Compute and output the halo mass function.
+    use            :: Display                         , only : displayIndent                    , displayUnindent
     use            :: Galacticus_Calculations_Resets  , only : Galacticus_Calculations_Reset
-    use            :: Galacticus_Display              , only : Galacticus_Display_Indent        , Galacticus_Display_Unindent
     use            :: Galacticus_Error                , only : errorStatusSuccess
     use            :: Galacticus_HDF5                 , only : galacticusOutputFile
     use            :: Galacticus_Nodes                , only : mergerTree                       , nodeComponentBasic                 , nodeComponentDarkMatterProfile, treeNode
@@ -292,7 +292,7 @@ contains
     use            :: Numerical_Constants_Astronomical, only : massSolar                        , megaParsec
     use            :: Numerical_Constants_Math        , only : Pi
     use            :: Numerical_Constants_Prefixes    , only : kilo
-    use            :: Numerical_Integration           , only : integrator                       , GSL_Integ_Gauss15
+    use            :: Numerical_Integration           , only : GSL_Integ_Gauss15                , integrator
     use            :: Numerical_Ranges                , only : Make_Range                       , rangeTypeLogarithmic
     use            :: String_Handling                 , only : operator(//)
     implicit none
@@ -331,7 +331,7 @@ contains
     integer                                                                         :: statusHalfModeMass
     type            (varying_string                )                                :: groupName                                            , commentText
 
-    call Galacticus_Display_Indent('Begin task: halo mass function')
+    call displayIndent('Begin task: halo mass function')
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
     call Node_Components_Thread_Initialize(self%parameters)
     ! Get the requested output redshifts.
@@ -531,7 +531,7 @@ contains
     if (containerGroup%isOpen()) call containerGroup%close()
     if (present(status)) status=errorStatusSuccess
     call Node_Components_Thread_Uninitialize()
-    call Galacticus_Display_Unindent('Done task: halo mass function' )
+    call displayUnindent('Done task: halo mass function' )
     return
 
   contains

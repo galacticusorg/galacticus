@@ -50,7 +50,7 @@ contains
   subroutine agnSpectraHopkins2008BuildFilePerform(self,status)
     !% Builds the tabulation.
     use :: Accretion_Disk_Spectra, only : accretionDiskSpectraHopkins2007
-    use :: Galacticus_Display    , only : Galacticus_Display_Indent      , Galacticus_Display_Unindent
+    use :: Display               , only : displayIndent                  , displayUnindent
     use :: Galacticus_Error      , only : errorStatusSuccess
     implicit none
     class  (taskAGNSpectraHopkins2008BuildFile), intent(inout), target   :: self
@@ -58,10 +58,10 @@ contains
     type   (accretionDiskSpectraHopkins2007   )                          :: accretionDiskSpectra_
     !$GLC attributes unused :: self
 
-    call Galacticus_Display_Indent  ('Begin task: hopkins2007 AGN spectra file build')
+    call displayIndent  ('Begin task: hopkins2007 AGN spectra file build')
     accretionDiskSpectra_=accretionDiskSpectraHopkins2007()
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: hopkins2007 AGN spectra file build')
+    call displayUnindent('Done task: hopkins2007 AGN spectra file build')
     return
   end subroutine agnSpectraHopkins2008BuildFilePerform
 

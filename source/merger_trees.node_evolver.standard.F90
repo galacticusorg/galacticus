@@ -219,9 +219,9 @@ contains
 
    function standardConstructorInternal(odeToleranceAbsolute,odeToleranceRelative,odeAlgorithm,odeAlgorithmNonJacobian,odeJacobianStepSizeRelative,odeLatentIntegratorType,odeLatentIntegratorOrder,odeLatentIntegratorIntervalsMaximum,profileOdeEvolver,reuseODEStepSize,mergerTreeNodeMerger_,nodeOperator_,mergerTreeEvolveProfiler_) result(self)
      !% Internal constructor for the {\normalfont \ttfamily standard} merger tree node evolver class.
+     use :: Galacticus_Error     , only : Galacticus_Error_Report
      use :: Numerical_ODE_Solvers, only : GSL_ODEIV2_Step_RK2    , GSL_ODEIV2_Step_RK4    , GSL_ODEIV2_Step_RK8PD, GSL_ODEIV2_Step_RKCK       , &
           &                               GSL_ODEIV2_Step_RKF45  , GSL_ODEIV2_Step_msAdams, GSL_ODEIV2_step_BSimp, GSL_ODEIV2_step_MSBDFActive
-     use :: Galacticus_Error     , only : Galacticus_Error_Report
      implicit none
      type            (mergerTreeNodeEvolverStandard)                        :: self
      integer                                        , intent(in   )         :: odeLatentIntegratorType            , odeLatentIntegratorOrder, &
@@ -285,7 +285,7 @@ contains
 
   subroutine standardAutoHook(self)
     !% Attach to various event hooks.
-    use :: Events_Hooks, only : subhaloPromotionEvent, openMPThreadBindingAtLevel
+    use :: Events_Hooks, only : openMPThreadBindingAtLevel, subhaloPromotionEvent
     implicit none
     class(mergerTreeNodeEvolverStandard), intent(inout) :: self
 
@@ -295,7 +295,7 @@ contains
 
   subroutine standardDestructor(self)
     !% Destructor for the {\normalfont \ttfamily standard} merger tree node evolver class.
-    use :: Events_Hooks , only : subhaloPromotionEvent
+    use :: Events_Hooks, only : subhaloPromotionEvent
     implicit none
     type(mergerTreeNodeEvolverStandard), intent(inout) :: self
 
@@ -308,8 +308,8 @@ contains
 
   subroutine standardEvolve(self,tree,node,timeEnd,interrupted,functionInterrupt,galacticStructureSolver__,systemClockMaximum,status)
     !% Evolves {\normalfont \ttfamily node} to time {\normalfont \ttfamily timeEnd}, or until evolution is interrupted.
+    use            :: Display                       , only : displayIndent                , displayMessage                                  , displayUnindent
     use            :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
-    use            :: Galacticus_Display            , only : Galacticus_Display_Indent    , Galacticus_Display_Message                      , Galacticus_Display_Unindent
     use            :: Galacticus_Error              , only : Galacticus_Error_Report      , Galacticus_Warn                                 , errorStatusFail                                , errorStatusSuccess, &
           &                                                  errorStatusXCPU
     use            :: Galacticus_Nodes              , only : interruptTask                , mergerTree                                      , nodeComponentBasic                             , propertyTypeActive, &
@@ -494,15 +494,15 @@ contains
           if (any(self%propertyScalesActive(1:self%propertyCountActive) == 0.0d0)) then
              message='WARNING: Zero entry in ODE system scales for node'
              call Galacticus_Warn          (message)
-             call Galacticus_Display_Indent(message)
+             call displayIndent(message)
              lengthMaximum=0
              do i=1,self%propertyCountActive
                 lengthMaximum=max(lengthMaximum,len(node%nameFromIndex(int(i),self%propertyTypeODE)))
              end do
              line=repeat("―",lengthMaximum)//repeat("―――――――――――――――",2)
-             call Galacticus_Display_Message(line)
-             call Galacticus_Display_Message(repeat(" ",lengthMaximum)//' : y            : yScale')
-             call Galacticus_Display_Message(line)
+             call displayMessage(line)
+             call displayMessage(repeat(" ",lengthMaximum)//' : y            : yScale')
+             call displayMessage(line)
              do i=1,self%propertyCountActive
                 message=node%nameFromIndex(int(i),self%propertyTypeODE)
                 message=repeat(" ",lengthMaximum-len(message))//message
@@ -510,11 +510,11 @@ contains
                 message=message//" : "//label
                 write (label,'(e12.6)') self%propertyScalesActive(i)
                 message=message//" : "//label
-                call Galacticus_Display_Message(message)
+                call displayMessage(message)
              end do
-             call Galacticus_Display_Message(line)
+             call displayMessage(line)
              call node%serializeASCII()
-             call Galacticus_Display_Unindent('done')
+             call displayUnindent('done')
           end if          
           ! Assign module global pointer to this node.
           standardSelf         => self
@@ -608,7 +608,7 @@ contains
                    call System_Clock(systemClockCount)
                    if (systemClockCount > self%systemClockMaximum) then
                       if (present(status)) then
-                         call Galacticus_Display_Message('maximum wall time exceeded'                          )
+                         call displayMessage('maximum wall time exceeded'                          )
                          status=errorStatusXCPU
                          return
                       else
@@ -626,7 +626,7 @@ contains
                    self%propertyValuesActive  (1:self%propertyCountActive  )=self%propertyValuesActiveSaved  (1:self%propertyCountActive  )
                    self%propertyValuesInactive(1:self%propertyCountInactive)=self%propertyValuesInactiveSaved(1:self%propertyCountInactive)
                 else if (present(status)) then
-                   call Galacticus_Display_Message('ODE integration failed '//{introspection:location})
+                   call displayMessage('ODE integration failed '//{introspection:location})
                    status=errorStatusFail
                    return
                 else
@@ -911,10 +911,10 @@ contains
 
   subroutine standardErrorHandler(status,time,y)
     !% Handles errors in the ODE solver when evolving \glc\ nodes. Dumps the content of the node.
-    use            :: Galacticus_Display, only : Galacticus_Display_Indent     , Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-          &                                      Galacticus_Verbosity_Level_Set, verbosityStandard
-    use, intrinsic :: ISO_C_Binding     , only : c_double                      , c_int
-    use            :: String_Handling   , only : operator(//)
+    use            :: Display        , only : displayIndent      , displayMessage        , displayUnindent, displayVerbosity, &
+          &                                   displayVerbositySet, verbosityLevelStandard
+    use, intrinsic :: ISO_C_Binding  , only : c_double           , c_int
+    use            :: String_Handling, only : operator(//)
     implicit none
     integer         (kind=c_int    ), intent(in   )                                              :: status
     real            (kind=c_double ), intent(in   )                                              :: time
@@ -934,24 +934,24 @@ contains
        call standardSolver%errors(yError)
        yTolerance=standardODEStepTolerances(y)
        ! Report the failure message.
-       verbosityLevel=Galacticus_Verbosity_Level()
-       if (verbosityLevel < verbosityStandard) call Galacticus_Verbosity_Level_Set(verbosityStandard)
+       verbosityLevel=displayVerbosity()
+       if (verbosityLevel < verbosityLevelStandard) call displayVerbositySet(verbosityLevelStandard)
        message="ODE solver failed with error code "
        message=message//status//" in tree #"//standardSelf%activeTreeIndex
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
        ! Dump all node properties.
        call standardSelf%activeNode%serializeASCII()
        ! Evaluate derivatives.
        odeStatus=standardODEs(time,y,dydt)
-       call Galacticus_Display_Indent('ODE system parameters')
+       call displayIndent('ODE system parameters')
        lengthMaximum=0
        do i=1,standardSelf%propertyCountActive
           lengthMaximum=max(lengthMaximum,len(standardSelf%activeNode%nameFromIndex(int(i),standardSelf%propertyTypeODE)))
        end do
        line=repeat("―",lengthMaximum)//repeat("―――――――――――――――",5)
-       call Galacticus_Display_Message(line)
-       call Galacticus_Display_Message(repeat(" ",lengthMaximum)//' : y            : dy/dt        : yScale       : yError       : yErrorScaled')
-       call Galacticus_Display_Message(line)
+       call displayMessage(line)
+       call displayMessage(repeat(" ",lengthMaximum)//' : y            : dy/dt        : yScale       : yError       : yErrorScaled')
+       call displayMessage(line)
        do i=1,standardSelf%propertyCountActive
           message=standardSelf%activeNode%nameFromIndex(int(i),standardSelf%propertyTypeODE)
           message=repeat(" ",lengthMaximum-len(message))//message
@@ -970,11 +970,11 @@ contains
              label="infinity"
           end if
           message=message//" : "//label
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end do
-       call Galacticus_Display_Message(line)
-       call Galacticus_Display_Unindent('done')
-       call Galacticus_Verbosity_Level_Set(verbosityLevel)
+       call displayMessage(line)
+       call displayUnindent('done')
+       call displayVerbositySet(verbosityLevel)
     end if
     return
   end subroutine standardErrorHandler
@@ -997,8 +997,8 @@ contains
 
   subroutine standardPostStepProcessing(y,postStepStatus) bind(c)
     !% Perform any post-step actions on the node.
-    use            :: Interface_GSL, only : GSL_Success
     use, intrinsic :: ISO_C_Binding, only : c_double   , c_int
+    use            :: Interface_GSL, only : GSL_Success
     !# <include directive="postStepTask" type="moduleUse">
     include 'objects.tree_node.post_step.modules.inc'
     !# </include>
@@ -1017,8 +1017,8 @@ contains
 
   subroutine standardStepErrorAnalyzer(currentPropertyValue,currentPropertyError,timeStep,stepStatus) bind(c)
     !% Profiles ODE solver step sizes and errors.
-    use            :: Interface_GSL, only : GSL_Success
     use, intrinsic :: ISO_C_Binding, only : c_double   , c_int
+    use            :: Interface_GSL, only : GSL_Success
     implicit none
     real            (kind=c_double ), intent(in   ), dimension(*) :: currentPropertyValue
     real            (kind=c_double ), intent(in   ), dimension(*) :: currentPropertyError
@@ -1054,8 +1054,8 @@ contains
 
   subroutine standardPromote(self,node)
     !% Transfer the properties of {\normalfont \ttfamily node} to its parent node, then destroy it.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
-    use :: String_Handling   , only : operator(//)
+    use :: Display        , only : displayMessage, displayVerbosity, verbosityLevelInfo
+    use :: String_Handling, only : operator(//)
     implicit none
     class(mergerTreeNodeEvolverStandard), intent(inout)          :: self
     type (treeNode                     ), intent(inout), pointer :: node
@@ -1067,10 +1067,10 @@ contains
     ! Get pointer to parent node.
     parentNode => node%parent
     ! Display a message.
-    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+    if (displayVerbosity() >= verbosityLevelInfo) then
        message='Promoting node '
        message=message//node%index()//' to '//parentNode%index()
-       call Galacticus_Display_Message(message,verbosityInfo)
+       call displayMessage(message,verbosityLevelInfo)
     end if
     ! Perform any processing necessary before this halo is promoted.
     call self%nodeOperator_%nodePromote(node)
@@ -1138,9 +1138,9 @@ contains
 
   subroutine standardMerge(self,node)
     !% Handles instances where {\normalfont \ttfamily node} is about to merge with its parent node.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
-    use :: Galacticus_Nodes  , only : nodeComponentBasic
-    use :: String_Handling   , only : operator(//)
+    use :: Display         , only : displayMessage    , displayVerbosity, verbosityLevelInfo
+    use :: Galacticus_Nodes, only : nodeComponentBasic
+    use :: String_Handling , only : operator(//)
     !# <include directive="nodeMergerTask" type="moduleUse">
     include 'events.node_mergers.process.modules.inc'
     !# </include>
@@ -1152,12 +1152,12 @@ contains
     character(len=7                        )                :: label
 
     ! Display a message.
-    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+    if (displayVerbosity() >= verbosityLevelInfo) then
        basic => node%basic()
        write (label,'(f7.4)') basic%time()
        message='Making node '
        message=message//node%index()//' a satellite in '//node%parent%index()//' at time '//trim(adjustl(label))//' Gyr'
-       call Galacticus_Display_Message(message,verbosityInfo)
+       call displayMessage(message,verbosityLevelInfo)
     end if
     ! Call subroutines to perform any necessary processing prior to this node merger event.
     !# <include directive="nodeMergerTask" type="functionCall" functionType="void">

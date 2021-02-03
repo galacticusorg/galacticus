@@ -379,11 +379,11 @@ contains
     !% Update the radiation background for a given universe.
     use            :: Abundances_Structure        , only : abundances                   , max
     use            :: Arrays_Search               , only : searchArrayClosest
-    use            :: Galacticus_Display          , only : Galacticus_Display_Indent    , Galacticus_Display_Message, Galacticus_Display_Unindent
+    use            :: Display                     , only : displayIndent                , displayMessage          , displayUnindent
     use            :: Galacticus_Error            , only : Galacticus_Error_Report
     use            :: Galacticus_HDF5             , only : galacticusOutputFile
-    use            :: Galacticus_Nodes            , only : defaultDiskComponent         , defaultSpheroidComponent  , mergerTreeList             , nodeComponentBasic, &
-          &                                                nodeComponentDisk            , nodeComponentSpheroid     , treeNode                   , universe          , &
+    use            :: Galacticus_Nodes            , only : defaultDiskComponent         , defaultSpheroidComponent, mergerTreeList , nodeComponentBasic, &
+          &                                                nodeComponentDisk            , nodeComponentSpheroid   , treeNode       , universe          , &
           &                                                universeEvent
     use            :: IO_HDF5                     , only : hdf5Access                   , hdf5Object
     use, intrinsic :: ISO_C_Binding               , only : c_size_t
@@ -436,11 +436,11 @@ contains
        ! Display message.
        write (label,'(f6.3)') event%time
        message="Evolving cosmic background radiation to time "//trim(label)//" Gyr"
-       call Galacticus_Display_Indent(message)
+       call displayIndent(message)
        ! Find the current timestep.
        iNow=searchArrayClosest(self%time,event%time)
        ! Iterate over all nodes.
-       call Galacticus_Display_Message('Accumulating emissivity')
+       call displayMessage('Accumulating emissivity')
        treeTimeLatest=0.0d0
        forest => universe_%trees
        do while (associated(forest))
@@ -516,7 +516,7 @@ contains
        select type (state)
        type is (intergalacticBackgroundInternalState)
           if (iNow > 1) then
-             call Galacticus_Display_Message('Solving cosmic background radiation evolution')
+             call displayMessage('Solving cosmic background radiation evolution')
              self%timeODE      (  0:1)=self%time      (  iNow-1:iNow)
              self%emissivityODE(:,0  )=self%emissivity(:,iNow-1     )
              self%emissivityODE(:,  1)=self%emissivity(:,       iNow)
@@ -577,7 +577,7 @@ contains
           end if
        end select
        ! Display message.
-       call Galacticus_Display_Unindent('done')
+       call displayUnindent('done')
        ! Return true since we've performed our task.
        success=.true.
     class default

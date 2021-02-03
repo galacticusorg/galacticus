@@ -307,8 +307,8 @@ contains
 
   subroutine History_Dump(self)
     !% Dumps a history object.
-    use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: ISO_Varying_String, only : assignment(=)             , operator(//), varying_string
+    use :: Display           , only : displayMessage
+    use :: ISO_Varying_String, only : assignment(=) , operator(//), varying_string
     implicit none
     class    (history       ), intent(in   ) :: self
     integer                                  :: i      , j
@@ -325,7 +325,7 @@ contains
              write (label,'(e22.16)') self%data(i,j)
              message=message//" "//label
           end do
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end do
     end if
     return
@@ -379,8 +379,8 @@ contains
 
   subroutine History_Long_Integer_Dump(self)
     !% Dumps a history object.
-    use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: ISO_Varying_String, only : assignment(=)             , operator(//), varying_string
+    use :: Display           , only : displayMessage
+    use :: ISO_Varying_String, only : assignment(=) , operator(//), varying_string
     implicit none
     class    (longIntegerHistory), intent(in   ) :: self
     integer                                      :: i      , j
@@ -397,7 +397,7 @@ contains
              write (label,'(i16)') self%data(i,j)
              message=message//" "//label
           end do
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end do
     end if
     return
@@ -626,7 +626,7 @@ contains
     !% time). Optionally, the remove is done only if it will remove more than {\normalfont \ttfamily minimumPointsToRemove} entries (since the
     !% removal can be slow this allows for some optimization).
     use            :: Galacticus_Error , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : Memory_Usage_Record    , memoryTypeNodes
     implicit none
     class           (history), intent(inout)           :: history_

@@ -19,12 +19,12 @@
 
 program Tests_Linear_Growth_EdS
   !% Tests linear growth calculations.
-  use :: Cosmology_Functions, only : cosmologyFunctions            , cosmologyFunctionsClass
-  use :: Galacticus_Display , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: ISO_Varying_String , only : varying_string                , assignment(=)
+  use :: Cosmology_Functions, only : cosmologyFunctions , cosmologyFunctionsClass
+  use :: Display            , only : displayVerbositySet, verbosityLevelStandard
+  use :: ISO_Varying_String , only : assignment(=)      , varying_string
   use :: Input_Parameters   , only : inputParameters
-  use :: Linear_Growth      , only : componentDarkMatter           , linearGrowth           , linearGrowthClass
-  use :: Unit_Tests         , only : Assert                        , Unit_Tests_Begin_Group , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Linear_Growth      , only : componentDarkMatter, linearGrowth           , linearGrowthClass
+  use :: Unit_Tests         , only : Assert             , Unit_Tests_Begin_Group , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision                         , dimension(8), parameter :: redshift                 =[0.0d0,1.0d0,3.0d0,9.0d0,30.0d0,100.0d0,300.0d0,1000.0d0]
   class           (cosmologyFunctionsClass), pointer                 :: cosmologyFunctions_
@@ -36,7 +36,7 @@ program Tests_Linear_Growth_EdS
   type            (inputParameters        )                          :: parameters
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Linear growth: Einstein-de Sitter")
 

@@ -106,8 +106,8 @@ contains
 
   subroutine randomImport(self,simulations)
     !% Import data from a Random file.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, verbosityStandard
-    use :: Hashes            , only : rank1IntegerSizeTPtrHash , rank1DoublePtrHash         , rank2IntegerSizeTPtrHash, rank2DoublePtrHash
+    use :: Display, only : displayIndent     , displayUnindent         , verbosityLevelStandard
+    use :: Hashes , only : rank1DoublePtrHash, rank1IntegerSizeTPtrHash, rank2DoublePtrHash    , rank2IntegerSizeTPtrHash
     implicit none
     class           (nbodyImporterRandom), intent(inout)                              :: self
     type            (nBodyData          ), intent(  out), dimension(  :), allocatable :: simulations
@@ -115,7 +115,7 @@ contains
     integer         (c_size_t           )               , dimension(  :), pointer     :: particleID
     integer         (c_size_t           )                                             :: i
 
-    call Galacticus_Display_Indent('import simulation from Random file',verbosityStandard)
+    call displayIndent('import simulation from Random file',verbosityLevelStandard)
     allocate(simulations(1                 ))
     allocate(particleID (  self%countPoints))
     allocate(position   (3,self%countPoints))
@@ -136,7 +136,7 @@ contains
     call simulations(1)%propertiesInteger  %set('particleID',particleID)
     call simulations(1)%propertiesRealRank1%set('position'  ,position  )
     call simulations(1)%propertiesRealRank1%set('velocity'  ,velocity  )
-    call Galacticus_Display_Unindent('done',verbosityStandard)
+    call displayUnindent('done',verbosityLevelStandard)
     return
   end subroutine randomImport
 

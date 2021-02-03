@@ -21,17 +21,17 @@
 
 program Test_Integration
   !% Tests that numerical integration routines work.
-  use :: Galacticus_Display        , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Display                   , only : displayVerbositySet, verbosityLevelStandard
   use :: Numerical_Constants_Math  , only : Pi
   use :: Numerical_Integration     , only : integrator
-  use :: Test_Integration_Functions, only : Integrand1                    , Integrand2            , Integrand3          , Integrand4
-  use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Test_Integration_Functions, only : Integrand1         , Integrand2            , Integrand3          , Integrand4
+  use :: Unit_Tests                , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision                          :: integral
   type            (integrator), allocatable :: integrator_
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Numerical integration")

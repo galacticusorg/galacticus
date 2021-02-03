@@ -51,7 +51,7 @@ contains
   function filterPropertiesConstructorParameters(parameters) result (self)
     !% Constructor for the {\normalfont \ttfamily filterProperties} N-body operator class which takes a parameter set as input.
     use :: Input_Parameters     , only : inputParameters
-    use :: NBody_Simulation_Data, only : propertyTypeInteger, propertyTypeReal, propertyTypeUnknown, nBodyDataPropertyType
+    use :: NBody_Simulation_Data, only : nBodyDataPropertyType, propertyTypeInteger, propertyTypeReal, propertyTypeUnknown
     implicit none
     type     (nbodyOperatorFilterProperties)                              :: self
     type     (inputParameters              ), intent(inout)               :: parameters
@@ -147,9 +147,9 @@ contains
 
   subroutine filterPropertiesOperate(self,simulations)
     !% Identify and flag particles which have been always isolated.
-    use :: Galacticus_Display   , only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Message, verbosityStandard
+    use :: Display              , only : displayIndent          , displayMessage  , displayUnindent, verbosityLevelStandard
     use :: Galacticus_Error     , only : Galacticus_Error_Report
-    use :: NBody_Simulation_Data, only : propertyTypeInteger      , propertyTypeReal
+    use :: NBody_Simulation_Data, only : propertyTypeInteger    , propertyTypeReal
     implicit none
     class           (nbodyOperatorFilterProperties), intent(inout)                 :: self
     type            (nBodyData                    ), intent(inout), dimension(  :) :: simulations
@@ -162,7 +162,7 @@ contains
          &                                                                            k
     integer         (c_size_t                     )                                :: countFiltered
     
-    call Galacticus_Display_Indent('filter on property ranges',verbosityStandard)
+    call displayIndent('filter on property ranges',verbosityLevelStandard)
     do i=1,size(simulations)
        do j=1,size(self%propertyRanges)
           select case (self%propertyRanges(j)%type)
@@ -246,6 +246,6 @@ contains
        end do
        deallocate(mask)
     end do
-    call Galacticus_Display_Unindent('done',verbosityStandard)
+    call displayUnindent('done',verbosityLevelStandard)
     return
   end subroutine filterPropertiesOperate

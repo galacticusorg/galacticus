@@ -23,9 +23,9 @@ program Test_Recombination_Cooling_Hummer
   !% Test the radiative transfer state solver.
   use :: Atomic_Cross_Sections_Ionization_Photo      , only : atomicCrossSectionIonizationPhotoVerner
   use :: Atomic_Ionization_Potentials                , only : atomicIonizationPotentialVerner
-  use :: Atomic_Rates_Recombination_Radiative_Cooling, only : atomicRecombinationRateRadiativeCoolingComputed, atomicRecombinationRateRadiativeCoolingHummer
   use :: Atomic_Rates_Recombination_Radiative        , only : atomicRecombinationRateRadiativeVerner1996
-  use :: Galacticus_Display                          , only : Galacticus_Verbosity_Level_Set                 , verbosityStandard
+  use :: Atomic_Rates_Recombination_Radiative_Cooling, only : atomicRecombinationRateRadiativeCoolingComputed, atomicRecombinationRateRadiativeCoolingHummer
+  use :: Display                                     , only : displayVerbositySet                            , verbosityLevelStandard
   use :: Galacticus_Error                            , only : errorStatusSuccess
   use :: Unit_Tests                                  , only : Assert                                         , Unit_Tests_Begin_Group                       , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
@@ -36,7 +36,7 @@ program Test_Recombination_Cooling_Hummer
   type(atomicRecombinationRateRadiativeVerner1996     ), pointer :: atomicRecombinationRateRadiative_
   
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Construct atomic matter.
   allocate(atomicCrossSectionIonizationPhoto_              )
   allocate(atomicIonizationPotential_                      )

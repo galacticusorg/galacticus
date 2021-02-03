@@ -19,8 +19,8 @@
 
 !% Contains a module which implements an N-body data importer for IRATE files.
 
-  use :: Cosmology_Parameters, only : cosmologyParametersClass
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
   use :: IO_HDF5             , only : hdf5Object
 
   !# <nbodyImporter name="nbodyImporterIRATE">
@@ -123,12 +123,12 @@ contains
 
   subroutine irateImport(self,simulations)
     !% Import data from a IRATE file.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, verbosityStandard
-    use :: Galacticus_Error  , only : errorStatusSuccess
-    use :: Hashes            , only : rank1IntegerSizeTPtrHash , rank1DoublePtrHash         , integerSizeTHash   , doubleHash        , &
-         &                            rank2IntegerSizeTPtrHash , rank2DoublePtrHash
-    use :: IO_HDF5           , only : hdf5Object               , hdf5Access                 , H5T_NATIVE_INTEGERS, H5T_NATIVE_DOUBLES
-    use :: IO_IRATE          , only : irate
+    use :: Display         , only : displayIndent     , displayUnindent         , verbosityLevelStandard
+    use :: Galacticus_Error, only : errorStatusSuccess
+    use :: Hashes          , only : doubleHash        , integerSizeTHash        , rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, &
+          &                         rank2DoublePtrHash, rank2IntegerSizeTPtrHash
+    use :: IO_HDF5         , only : H5T_NATIVE_DOUBLES, H5T_NATIVE_INTEGERS     , hdf5Access            , hdf5Object
+    use :: IO_IRATE        , only : irate
     implicit none
     class           (nbodyImporterIRATE), intent(inout)                              :: self
     type            (nBodyData         ), intent(  out), dimension(:  ), allocatable :: simulations
@@ -142,7 +142,7 @@ contains
     integer                                                                          :: i              , status
     double precision                                                                 :: boxSize
 
-    call Galacticus_Display_Indent('import simulation from IRATE file',verbosityStandard)
+    call displayIndent('import simulation from IRATE file',verbosityLevelStandard)
     allocate(simulations(1))
     simulations(1)%label                 =self%label
     simulations(1)%propertiesInteger     =rank1IntegerSizeTPtrHash()
@@ -197,7 +197,7 @@ contains
     end do
     call snapshotGroup%close()
     !$ call hdf5Access%unset()
-    call Galacticus_Display_Unindent('done',verbosityStandard)
+    call displayUnindent('done',verbosityLevelStandard)
     return
   end subroutine irateImport
 

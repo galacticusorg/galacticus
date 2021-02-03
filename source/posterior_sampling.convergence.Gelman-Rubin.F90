@@ -179,7 +179,7 @@ contains
 
   logical function gelmanRubinIsConverged(self,simulationState,logLikelihood)
     !% Return whether the simulation is converged.
-    use :: Galacticus_Display      , only : Galacticus_Display_Message
+    use :: Display                 , only : displayMessage
     use :: ISO_Varying_String      , only : varying_string
     use :: MPI_Utilities           , only : mpiBarrier                    , mpiSelf
     use :: Memory_Management       , only : allocateArray
@@ -339,7 +339,7 @@ contains
           write (label,'(i16)') simulationState%count()
           message="Gelman-Rubin statistic at "//trim(adjustl(label))
           message=message//" steps cannot be computed (zero variances)"
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end if
        gelmanRubinIsConverged=.false.
        return
@@ -438,7 +438,7 @@ contains
           message=message//" steps min/max="//trim(adjustl(label))//"/"
           write (label,'(f6.2)') maxval(self%correctedHatR)
           message=message//trim(adjustl(label))//")"
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
           if (activeChainCount < mpiSelf%count()) then
              message='outlier chains:'
              label=''
@@ -448,9 +448,9 @@ contains
                    label=","
                 end if
              end do
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
           else
-             call Galacticus_Display_Message('no outlier chains')
+             call displayMessage('no outlier chains')
           end if
        end if
        write (self%logFileUnit,*) "outliers    ",simulationState%count(),self%chainMask

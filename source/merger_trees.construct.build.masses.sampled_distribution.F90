@@ -49,9 +49,9 @@ contains
   function sampledDistributionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sampledDistribution} merger tree masses class which takes a parameter set as
     !% input.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWarn
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Input_Parameters  , only : inputParameter            , inputParameters
+    use :: Display         , only : displayMessage         , verbosityLevelWarn
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type(mergerTreeBuildMassesSampledDistribution)                :: self
     type(inputParameters                         ), intent(inout) :: parameters
@@ -81,10 +81,10 @@ contains
     !# <inputParametersValidate source="parameters"/>
     ! Validate input.
     if (self%massTreeMaximum >= 1.0d16              )                                                           &
-         & call Galacticus_Display_Message(                                                                     &
+         & call displayMessage(                                                                     &
          &                                 '[massHaloMaximum] > 10¹⁶ - this seems very large and may lead '//   &
          &                                 'to failures in merger tree construction'                         ,  &
-         &                                 verbosityWarn                                                        &
+         &                                 verbosityLevelWarn                                                        &
          &                                )
     if (self%massTreeMaximum <= self%massTreeMinimum)                                                           &
          & call Galacticus_Error_Report   (                                                                     &

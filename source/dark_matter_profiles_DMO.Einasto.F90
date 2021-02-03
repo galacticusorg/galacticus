@@ -189,7 +189,7 @@ contains
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Galacticus_Error, only : Galacticus_Component_List        , Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
-     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
+    use :: Root_Finder     , only : rangeExpandMultiplicative        , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
    implicit none
     type            (darkMatterProfileDMOEinasto)                        :: self
     class           (darkMatterHaloScaleClass   ), intent(in   ), target :: darkMatterHaloScale_
@@ -531,8 +531,8 @@ contains
   double precision function einastoPotential(self,node,radius,status)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
-    use :: Galactic_Structure_Options  , only : structureErrorCodeSuccess
-    use :: Galacticus_Nodes            , only : nodeComponentBasic             , nodeComponentDarkMatterProfile, treeNode
+    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
+    use :: Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentDarkMatterProfile, treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout)           :: self
@@ -563,7 +563,7 @@ contains
   double precision function einastoRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
     !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
     !% in units of km s$^{-1}$ Mpc).
-    use :: Galacticus_Nodes            , only : nodeComponentDarkMatterProfile , treeNode
+    use :: Galacticus_Nodes                , only : nodeComponentDarkMatterProfile , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout) :: self
@@ -842,10 +842,10 @@ contains
 
   subroutine einastoEnergyTableMake(self,concentrationRequired,alphaRequired)
     !% Create a tabulation of the energy of Einasto profiles as a function of their concentration of $\alpha$ parameter.
-    use :: Memory_Management       , only : allocateArray   , deallocateArray
+    use :: Memory_Management       , only : allocateArray, deallocateArray
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
-    use :: Numerical_Ranges        , only : Make_Range      , rangeTypeLinear, rangeTypeLogarithmic
+    use :: Numerical_Ranges        , only : Make_Range   , rangeTypeLinear, rangeTypeLogarithmic
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
     double precision                             , intent(in   ) :: alphaRequired          , concentrationRequired
@@ -1102,13 +1102,13 @@ contains
   subroutine einastoFourierProfileTableMake(self,wavenumberRequired,concentrationRequired,alphaRequired)
     !% Create a tabulation of the Fourier transform of Einasto profiles as a function of their $\alpha$ parameter and
     !% dimensionless wavenumber.
+    use            :: Display              , only : displayCounter         , displayCounterClear  , displayIndent       , displayUnindent, &
+          &                                         verbosityLevelInfo     , verbosityLevelWorking
+    use            :: Galacticus_Error     , only : Galacticus_Error_Report, errorStatusSuccess
     use, intrinsic :: ISO_C_Binding        , only : c_size_t
-    use            :: Galacticus_Display   , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-          &                                         verbosityInfo             , verbosityWorking
-    use            :: Galacticus_Error     , only : Galacticus_Error_Report   , errorStatusSuccess
-    use            :: Memory_Management    , only : allocateArray             , deallocateArray
+    use            :: Memory_Management    , only : allocateArray          , deallocateArray
     use            :: Numerical_Integration, only : integrator
-    use            :: Numerical_Ranges     , only : Make_Range                , rangeTypeLinear                 , rangeTypeLogarithmic
+    use            :: Numerical_Ranges     , only : Make_Range             , rangeTypeLinear      , rangeTypeLogarithmic
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
     double precision                             , intent(in   ) :: alphaRequired                , concentrationRequired, wavenumberRequired
@@ -1150,7 +1150,7 @@ contains
     ! Remake the table if necessary.
     if (makeTable) then
        ! Display a message.
-       call Galacticus_Display_Indent('Constructing Einasto profile Fourier transform lookup table...',verbosityInfo)
+       call displayIndent('Constructing Einasto profile Fourier transform lookup table...',verbosityLevelInfo)
        ! Allocate arrays to the appropriate sizes.
        self%fourierProfileTableAlphaCount        =int(      (self%fourierProfileTableAlphaMaximum        -self%fourierProfileTableAlphaMinimum        ) &
             &*dble(einastoFourierProfileTableAlphaPointsPerUnit          ))+1
@@ -1184,7 +1184,7 @@ contains
              percentage=int(100.0d0*dble((iAlpha-1)*self%fourierProfileTableConcentrationCount+iConcentration-1       ) &
                   &                /dble(self%fourierProfileTableAlphaCount*self%fourierProfileTableConcentrationCount) &
                   &        )
-             call Galacticus_Display_Counter(percentage,iAlpha == 1 .and. iConcentration == 1,verbosityWorking)
+             call displayCounter(percentage,iAlpha == 1 .and. iConcentration == 1,verbosityLevelWorking)
 
              do iWavenumber=1,self%fourierProfileTableWavenumberCount
                 ! If the Fourier profile has fallen below some minimal level, simply truncate to zero to avoid numerical
@@ -1216,7 +1216,7 @@ contains
              end do
           end do
        end do
-       call Galacticus_Display_Counter_Clear(verbosityWorking)
+       call displayCounterClear(verbosityLevelWorking)
        ! Build interpolators.
        if (allocated(self%fourierProfileTableWavenumberInterpolator   )) deallocate(self%fourierProfileTableWavenumberInterpolator   )
        if (allocated(self%fourierProfileTableAlphaInterpolator        )) deallocate(self%fourierProfileTableAlphaInterpolator        )
@@ -1230,7 +1230,7 @@ contains
        ! Flag that the table is now initialized.
        self%fourierProfileTableInitialized=.true.
        ! Display a message.
-       call Galacticus_Display_Unindent('done',verbosityInfo)
+       call displayUnindent('done',verbosityLevelInfo)
     end if
     return
 
@@ -1251,7 +1251,7 @@ contains
 
   double precision function einastoFreefallRadius(self,node,time)
     !% Returns the freefall radius in the Einasto density profile at the specified {\normalfont \ttfamily time} (given in Gyr).
-    use            :: Galacticus_Nodes                , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile     , treeNode
+    use            :: Galacticus_Nodes                , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile , treeNode
     use            :: Gamma_Functions                 , only : Gamma_Function_Incomplete_Complementary
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr                , gravitationalConstantGalacticus
@@ -1319,7 +1319,7 @@ contains
   double precision function einastoFreefallRadiusIncreaseRate(self,node,time)
     !% Returns the rate of increase of the freefall radius in the Einasto density profile at the specified {\normalfont \ttfamily time} (given in
     !% Gyr).
-    use            :: Galacticus_Nodes                , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile     , treeNode
+    use            :: Galacticus_Nodes                , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile , treeNode
     use            :: Gamma_Functions                 , only : Gamma_Function_Incomplete_Complementary
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr                , gravitationalConstantGalacticus
@@ -1386,9 +1386,9 @@ contains
 
   subroutine einastoFreefallTabulate(self,freefallTimeScaleFree,alphaRequired)
     !% Tabulates the freefall time vs. freefall radius for Einasto halos.
-    use :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Indent, Galacticus_Display_Unindent, verbosityWorking
-    use :: Memory_Management , only : allocateArray             , deallocateArray
-    use :: Numerical_Ranges  , only : Make_Range                , rangeTypeLinear          , rangeTypeLogarithmic
+    use :: Display          , only : displayCounter, displayIndent  , displayUnindent     , verbosityLevelWorking
+    use :: Memory_Management, only : allocateArray , deallocateArray
+    use :: Numerical_Ranges , only : Make_Range    , rangeTypeLinear, rangeTypeLogarithmic
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
     double precision                             , intent(in   ) :: alphaRequired, freefallTimeScaleFree
@@ -1423,7 +1423,7 @@ contains
 
     if (retabulate) then
        ! Display a message.
-       call Galacticus_Display_Indent('Constructing Einasto profile freefall radius lookup table...',verbosityWorking)
+       call displayIndent('Constructing Einasto profile freefall radius lookup table...',verbosityLevelWorking)
        ! Decide how many points to tabulate and allocate table arrays.
        self%freefallRadiusTableRadiusCount=int(log10(self%freefallRadiusTableRadiusMaximum/self%freefallRadiusTableRadiusMinimum)*dble(einastoFreefallRadiusTableRadiusPointsPerDecade))+1
        self%freefallRadiusTableAlphaCount =int(     (self%freefallRadiusTableAlphaMaximum -self%freefallRadiusTableAlphaMinimum )*dble(einastoFreefallRadiusTableAlphaPointsPerUnit   ))+1
@@ -1446,7 +1446,7 @@ contains
              percentage=int(100.0d0*dble((iAlpha-1)*self%freefallRadiusTableRadiusCount+iRadius-1              ) &
                   &                /dble(self%freefallRadiusTableAlphaCount*self%freefallRadiusTableRadiusCount) &
                   &        )
-             call Galacticus_Display_Counter(percentage,iAlpha == 1 .and. iRadius == 1,verbosityWorking)
+             call displayCounter(percentage,iAlpha == 1 .and. iRadius == 1,verbosityLevelWorking)
              ! Compute the freefall radius.
              self%freefallRadiusTable(iRadius,iAlpha)=self%freefallTimeScaleFree(self%freefallRadiusTableRadius(iRadius),alpha)
           end do
@@ -1464,7 +1464,7 @@ contains
        self%freefallTimeMinimum=maxval(self%freefallRadiusTable(                                  1,:))
        self%freefallTimeMaximum=minval(self%freefallRadiusTable(self%freefallRadiusTableRadiusCount,:))
        ! Display a message.
-       call Galacticus_Display_Unindent('...done',verbosityWorking)
+       call displayUnindent('...done',verbosityLevelWorking)
        ! Specify that tabulation has been made.
        self%freefallRadiusTableInitialized=.true.
     end if
@@ -1579,9 +1579,9 @@ contains
 
   subroutine einastoRadialVelocityDispersionTabulate(self,radius,alphaRequired)
     !% Tabulates the radial velocity dispersion vs. radius for Einasto halos.
-    use :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Indent, Galacticus_Display_Unindent, verbosityWorking
-    use :: Memory_Management , only : allocateArray             , deallocateArray
-    use :: Numerical_Ranges  , only : Make_Range                , rangeTypeLinear          , rangeTypeLogarithmic
+    use :: Display          , only : displayCounter, displayIndent  , displayUnindent     , verbosityLevelWorking
+    use :: Memory_Management, only : allocateArray , deallocateArray
+    use :: Numerical_Ranges , only : Make_Range    , rangeTypeLinear, rangeTypeLogarithmic
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout)           :: self
     double precision                             , intent(in   ), optional :: radius    , alphaRequired
@@ -1611,7 +1611,7 @@ contains
     end if
     if (retabulate) then
        ! Display a message.
-       call Galacticus_Display_Indent('Constructing Einasto profile radial velocity dispersion lookup table...',verbosityWorking)
+       call displayIndent('Constructing Einasto profile radial velocity dispersion lookup table...',verbosityLevelWorking)
        ! Decide how many points to tabulate and allocate table arrays.
        self%radialVelocityDispersionTableRadiusCount=int(log10(self%radialVelocityDispersionRadiusMaximum/self%radialVelocityDispersionRadiusMinimum) &
             &                                            *dble(einastoRadialVelocityDispersionTableRadiusPointsPerDecade                            ) &
@@ -1638,7 +1638,7 @@ contains
              percentage=int(100.0d0*dble((iAlpha-1)*self%radialVelocityDispersionTableRadiusCount+iRadius-1                        ) &
                   &                /dble(self%radialVelocityDispersionTableAlphaCount*self%radialVelocityDispersionTableRadiusCount) &
                   &        )
-             call Galacticus_Display_Counter(percentage,iAlpha == 1 .and. iRadius == 1,verbosityWorking)
+             call displayCounter(percentage,iAlpha == 1 .and. iRadius == 1,verbosityLevelWorking)
              ! Compute the radial velocity dispersion.
              self%radialVelocityDispersionTable(iRadius,iAlpha)=self%radialVelocityDispersionScaleFree(self%radialVelocityDispersionTableRadius(iRadius),alpha)
           end do
@@ -1651,7 +1651,7 @@ contains
        self%radialVelocityDispersionTableAlphaInterpolator =interpolator(self%radialVelocityDispersionTableAlpha )
        self%radialVelocityDispersionTableRadiusInterpolator=interpolator(self%radialVelocityDispersionTableRadius)
        ! Display a message.
-       call Galacticus_Display_Unindent('...done',verbosityWorking)
+       call displayUnindent('...done',verbosityLevelWorking)
        ! Specify that tabulation has been made.
        self%radialVelocityDispersionTableInitialized=.true.
     end if

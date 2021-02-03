@@ -26,7 +26,7 @@
 !% Contains a module which does root finding.
 module Root_Finder
   !% Implements root finding.
-  use, intrinsic :: ISO_C_Binding, only : c_ptr, c_int, c_double, c_null_ptr
+  use, intrinsic :: ISO_C_Binding, only : c_double, c_int, c_null_ptr, c_ptr
   implicit none
   private
   public :: rootFinder
@@ -357,11 +357,11 @@ contains
 
   recursive double precision function rootFinderFind(self,rootGuess,rootRange,status)
     !% Finds the root of the supplied {\normalfont \ttfamily root} function.
-    use            :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWarn
-    use            :: Galacticus_Error  , only : Galacticus_Error_Report   , errorStatusOutOfRange, errorStatusSuccess
-    use            :: Interface_GSL     , only : GSL_Success               , gslFunction          , gslFunctionFdF    , gslSetErrorHandler
-    use            :: ISO_Varying_String, only : assignment(=)             , operator(//)         , varying_string
+    use            :: Display           , only : displayMessage         , verbosityLevelWarn
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report, errorStatusOutOfRange, errorStatusSuccess
     use, intrinsic :: ISO_C_Binding     , only : c_funptr
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)         , varying_string
+    use            :: Interface_GSL     , only : GSL_Success            , gslFunction          , gslFunctionFdF    , gslSetErrorHandler
     implicit none
     class           (rootFinder          )              , intent(inout), target   :: self
     real            (kind=c_double       )              , intent(in   ), optional :: rootGuess
@@ -581,7 +581,7 @@ contains
                 message=message//char(10)//"xHigh < "//trim(label)//" being enforced"
              end if
              if (present(status)) then
-                call Galacticus_Display_Message(message,verbosityWarn)
+                call displayMessage(message,verbosityLevelWarn)
                 status=errorStatusOutOfRange
                 return
              else
@@ -655,7 +655,7 @@ contains
 
     subroutine rootFinderGSLErrorHandler(reason,file,line,errorNumber) bind(c)
       !% Handle errors from the GSL library during root finding.
-      use, intrinsic :: ISO_C_Binding, only : c_int, c_char
+      use, intrinsic :: ISO_C_Binding, only : c_char, c_int
       character(c_char), dimension(*) :: file       , reason
       integer  (c_int ), value        :: errorNumber, line
       !$GLC attributes unused :: reason, file, line

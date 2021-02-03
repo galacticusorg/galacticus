@@ -22,16 +22,16 @@
 program Test_Nodes
   !% Tests the \glspl{node} implementation.
   use :: Array_Utilities           , only : Array_Reverse
+  use :: Display                   , only : displayVerbositySet       , verbosityLevelStandard
   use :: Functions_Global_Utilities, only : Functions_Global_Set
-  use :: Galacticus_Display        , only : Galacticus_Verbosity_Level_Set, verbosityStandard
   use :: Galacticus_Error          , only : Galacticus_Error_Report
-  use :: Galacticus_Nodes          , only : nodeClassHierarchyFinalize    , nodeClassHierarchyInitialize, nodeComponent       , nodeComponentBasic, &
-          &                                 nodeComponentPosition         , propertyTypeAll             , treeNode
-  use :: ISO_Varying_String        , only : varying_string                , assignment(=)               , char
+  use :: Galacticus_Nodes          , only : nodeClassHierarchyFinalize, nodeClassHierarchyInitialize, nodeComponent       , nodeComponentBasic, &
+          &                                 nodeComponentPosition     , propertyTypeAll             , treeNode
+  use :: ISO_Varying_String        , only : assignment(=)             , char                        , varying_string
   use :: Input_Parameters          , only : inputParameters
-  use :: Node_Components           , only : Node_Components_Initialize    , Node_Components_Uninitialize
+  use :: Node_Components           , only : Node_Components_Initialize, Node_Components_Uninitialize
   use :: Test_Nodes_Tasks          , only : Test_Node_Task
-  use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group      , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests                , only : Assert                    , Unit_Tests_Begin_Group      , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (treeNode                     )                                     :: node
   type            (treeNode                     )                           , pointer :: nodeHost
@@ -44,7 +44,7 @@ program Test_Nodes
   type            (inputParameters              )                                     :: parameters
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Open the parameter file.
   parameterFile='testSuite/parameters/nodes/nodes.xml'
   parameters=inputParameters(parameterFile)

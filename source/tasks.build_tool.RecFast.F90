@@ -49,7 +49,7 @@ contains
 
   subroutine buildToolRecFastPerform(self,status)
     !% Builds the tabulation.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent   , Galacticus_Display_Message, Galacticus_Display_Unindent
+    use :: Display           , only : displayIndent               , displayMessage, displayUnindent
     use :: Galacticus_Error  , only : errorStatusSuccess
     use :: Interfaces_RecFast, only : Interface_RecFast_Initialize
     implicit none
@@ -58,11 +58,11 @@ contains
     type   (varying_string      )                          :: recfastPath, recfastVersion
     !$GLC attributes unused :: self
 
-    call Galacticus_Display_Indent ('Begin task: RecFast tool build')
+    call displayIndent ('Begin task: RecFast tool build')
     call Interface_RecFast_Initialize(recfastPath,recfastVersion,static=.true.)
-    call Galacticus_Display_Message('RecFast version '//recfastVersion//' successfully built in: '//recfastPath)
+    call displayMessage('RecFast version '//recfastVersion//' successfully built in: '//recfastPath)
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: RecFast tool build')
+    call displayUnindent('Done task: RecFast tool build')
     return
   end subroutine buildToolRecFastPerform
 

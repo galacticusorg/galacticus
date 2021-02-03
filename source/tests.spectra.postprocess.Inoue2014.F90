@@ -21,7 +21,7 @@
 
 program Test_Inoue2014
   !% Tests the \cite{inoue_updated_2014} algorithm for IGM absorption.
-  use :: Galacticus_Display                    , only : Galacticus_Verbosity_Level_Set                , verbosityStandard
+  use :: Display                               , only : displayVerbositySet                           , verbosityLevelStandard
   use :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorInoue2014
   use :: Unit_Tests                            , only : Assert                                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish, &
           &                                             compareLessThanOrEqual
@@ -33,7 +33,7 @@ program Test_Inoue2014
   double precision                                                , dimension(7) :: redshift=[1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0]
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Inoue et al. (2014) IGM attenuation model")

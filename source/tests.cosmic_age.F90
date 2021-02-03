@@ -20,13 +20,13 @@
 program Tests_Cosmic_Age
   !% Tests cosmic age calculations for various Universers. Ages calculated using Python
   !% \href{http://www.astro.ucla.edu/~wright/CC.python}{implementation} of Ned Wright's cosmology calculator.
-  use :: Cosmology_Functions     , only : cosmologyFunctions            , cosmologyFunctionsClass, cosmologyFunctionsMatterDarkEnergy, cosmologyFunctionsMatterLambda
-  use :: Cosmology_Parameters    , only : cosmologyParametersSimple     , hubbleUnitsTime
-  use :: Galacticus_Display      , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: ISO_Varying_String      , only : varying_string                , assignment(=)
+  use :: Cosmology_Functions     , only : cosmologyFunctions       , cosmologyFunctionsClass, cosmologyFunctionsMatterDarkEnergy, cosmologyFunctionsMatterLambda
+  use :: Cosmology_Parameters    , only : cosmologyParametersSimple, hubbleUnitsTime
+  use :: Display                 , only : displayVerbositySet      , verbosityLevelStandard
+  use :: ISO_Varying_String      , only : assignment(=)            , varying_string
   use :: Input_Parameters        , only : inputParameters
   use :: Numerical_Constants_Math, only : Pi
-  use :: Unit_Tests              , only : Assert                        , Unit_Tests_Begin_Group , Unit_Tests_End_Group              , Unit_Tests_Finish
+  use :: Unit_Tests              , only : Assert                   , Unit_Tests_Begin_Group , Unit_Tests_End_Group              , Unit_Tests_Finish
   implicit none
   double precision                                    , dimension(8), parameter :: redshift                                      =[0.0000000000d+0,1.0000000000d+0,3.0000000000d+0,9.0000000000d+0,3.0000000000d+1,1.0000000000d+2,3.0000000000d+2,1.0000000000d+3]
   double precision                                    , dimension(8), parameter :: ageEdS                                        =[0.6518682071d+0,0.2304700578d+0,0.0814833670d+0,0.0206137656d+0,0.0037766710d+0,0.0006421713d+0,0.0001248044d+0,0.0000205705d+0]
@@ -47,7 +47,7 @@ program Tests_Cosmic_Age
        &                                                                           expansionFactorSymmetric                                                                                                                                                        , timeTurnaround
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Cosmic age")
   ! Cosmology functions for in an Einstein-de Sitter universe. For this case, we use the default settings.

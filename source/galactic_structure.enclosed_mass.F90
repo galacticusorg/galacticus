@@ -73,14 +73,14 @@ contains
 
   double precision function Galactic_Structure_Radius_Enclosing_Mass(node,mass,fractionalMass,componentType,massType,weightBy,weightIndex)
     !% Return the radius enclosing a given mass (or fractional mass) in {\normalfont \ttfamily node}.
-    use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScale       , darkMatterHaloScaleClass
-    use :: Dark_Matter_Profiles      , only : darkMatterProfile         , darkMatterProfileClass
-    use :: Galactic_Structure_Options, only : componentTypeDarkHalo     , massTypeDark
-    use :: Galacticus_Display        , only : Galacticus_Display_Message, verbosityWarn
+    use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScale      , darkMatterHaloScaleClass
+    use :: Dark_Matter_Profiles      , only : darkMatterProfile        , darkMatterProfileClass
+    use :: Display                   , only : displayMessage           , verbosityLevelWarn
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo    , massTypeDark
     use :: Galacticus_Error          , only : Galacticus_Error_Report
-    use :: ISO_Varying_String        , only : varying_string            , assignment(=)                , operator(//)
+    use :: ISO_Varying_String        , only : assignment(=)            , operator(//)                 , varying_string
     use :: Kind_Numbers              , only : kind_int8
-    use :: Root_Finder               , only : rangeExpandMultiplicative , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Root_Finder               , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     use :: String_Handling           , only : operator(//)
     implicit none
     type            (treeNode                ), intent(inout), target   :: node
@@ -147,7 +147,7 @@ contains
           write (massLabel,'(e10.4)') massRoot
           message=message//') at zero radius (was seeking '//trim(massLabel)
           message=message//') - returning zero radius.'
-          call Galacticus_Display_Message(message,verbosityWarn)
+          call displayMessage(message,verbosityLevelWarn)
           Galactic_Structure_Radius_Enclosing_Mass=0.0d0
           return
        end if

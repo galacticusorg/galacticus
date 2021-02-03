@@ -93,14 +93,14 @@ contains
 
   subroutine buildTableCIECloudyPerform(self,status)
     !% Builds the tabulation.
-    use :: Galacticus_Display   , only : Galacticus_Display_Indent    , Galacticus_Display_Message, Galacticus_Display_Unindent
+    use :: Display              , only : displayIndent                , displayMessage, displayUnindent
     use :: Galacticus_Error     , only : errorStatusSuccess
     use :: Interfaces_Cloudy_CIE, only : Interface_Cloudy_CIE_Tabulate
     implicit none
     class  (taskBuildTableCIECloudy), intent(inout), target   :: self
     integer                         , intent(  out), optional :: status
 
-    call Galacticus_Display_Indent  ('Begin task: tabulate collisional ionization equilibrium using Cloudy')
+    call displayIndent  ('Begin task: tabulate collisional ionization equilibrium using Cloudy')
     call Interface_Cloudy_CIE_Tabulate(                                                                  &
          &                             metallicityMaximumLogarithmic=self%metallicityLogarithmicMaximum, &
          &                             fileNameCoolingFunction      =self%fileNameCoolingFunction      , &
@@ -109,7 +109,7 @@ contains
          &                             includeContinuum             =self%includeContinuum               &
          &                            )
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: tabulate collisional ionization equilibrium using Cloudy')
+    call displayUnindent('Done task: tabulate collisional ionization equilibrium using Cloudy')
     return
   end subroutine buildTableCIECloudyPerform
 

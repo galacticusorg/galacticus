@@ -96,30 +96,30 @@ contains
 
   module procedure Tensor_R2_D3_Sym_Dump
     !% Reset a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} symmetric object.
-    use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: ISO_Varying_String, only : varying_string            , assignment(=)
+    use :: Display           , only : displayMessage
+    use :: ISO_Varying_String, only : assignment(=) , varying_string
     implicit none
     character(len=22        ) :: label
     type     (varying_string):: message
 
     write (label,'(e22.16)') self%x00
     message='x00: '//label
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     write (label,'(e22.16)') self%x01
     message='x01: '//label
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     write (label,'(e22.16)') self%x02
     message='x02: '//label
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     write (label,'(e22.16)') self%x11
     message='x11: '//label
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     write (label,'(e22.16)') self%x12
     message='x12: '//label
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     write (label,'(e22.16)') self%x22
     message='x22: '//label
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     return
   end procedure Tensor_R2_D3_Sym_Dump
 

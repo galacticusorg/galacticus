@@ -21,16 +21,16 @@
 
 program Test_Quasi_Random
   !% Tests that quasi-random number functions work.
-  use :: Galacticus_Display              , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: Numerical_Quasi_Random_Sequences, only : quasiRandomNumberGenerator    , gsl_qrng_sobol
-  use :: Unit_Tests                      , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Display                         , only : displayVerbositySet, verbosityLevelStandard
+  use :: Numerical_Quasi_Random_Sequences, only : gsl_qrng_sobol     , quasiRandomNumberGenerator
+  use :: Unit_Tests                      , only : Assert             , Unit_Tests_Begin_Group    , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (quasiRandomNumberGenerator)               :: quasiRandomSequence
   double precision                            , dimension(7) :: r                  , rSobol
   integer                                                    :: i
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   quasiRandomSequence=quasiRandomNumberGenerator(gsl_qrng_sobol)
   call Unit_Tests_Begin_Group("quasi-random number sequences")

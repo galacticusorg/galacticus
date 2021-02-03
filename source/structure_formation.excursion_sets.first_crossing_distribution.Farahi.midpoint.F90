@@ -69,14 +69,14 @@ contains
 
   double precision function farahiMidpointProbability(self,variance,time,node)
     !% Return the excursion set barrier at the given variance and time.
-    use :: Error_Functions        , only : erfApproximate
-    use :: File_Utilities         , only : File_Lock                  , File_Unlock                     , lockDescriptor
-    use :: Galacticus_Display     , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
-          &                                Galacticus_Display_Unindent, verbosityWorking
-    use :: Kind_Numbers           , only : kind_dble                  , kind_quad
-    use :: MPI_Utilities          , only : mpiBarrier                 , mpiSelf
-    use :: Memory_Management      , only : allocateArray              , deallocateArray
-    use :: Numerical_Ranges       , only : Make_Range                 , rangeTypeLogarithmic            , rangeTypeLinear
+    use :: Display          , only : displayCounter , displayCounterClear  , displayIndent       , displayMessage, &
+          &                          displayUnindent, verbosityLevelWorking
+    use :: Error_Functions  , only : erfApproximate
+    use :: File_Utilities   , only : File_Lock      , File_Unlock          , lockDescriptor
+    use :: Kind_Numbers     , only : kind_dble      , kind_quad
+    use :: MPI_Utilities    , only : mpiBarrier     , mpiSelf
+    use :: Memory_Management, only : allocateArray  , deallocateArray
+    use :: Numerical_Ranges , only : Make_Range     , rangeTypeLinear      , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                 :: self
     double precision                                         , intent(in   )                 :: variance                     , time
@@ -153,17 +153,17 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-          call Galacticus_Display_Indent("solving for excursion set barrier crossing probabilities",verbosityWorking)
+          call displayIndent("solving for excursion set barrier crossing probabilities",verbosityLevelWorking)
           message="    time: "
           write (label,'(f6.3)') self%timeMinimum
           message=message//label//" to "
           write (label,'(f6.3)') self%timeMaximum
           message=message//label
-          call Galacticus_Display_Message(message,verbosityWorking)
+          call displayMessage(message,verbosityLevelWorking)
           message="variance: "
           write (label,'(f9.3)') self%varianceMaximum
           message=message//label
-          call Galacticus_Display_Message(message,verbosityWorking)
+          call displayMessage(message,verbosityLevelWorking)
 #ifdef USEMPI
        end if
 #endif
@@ -227,7 +227,7 @@ contains
 #ifdef USEMPI
              if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-                call Galacticus_Display_Counter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityWorking)
+                call displayCounter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityLevelWorking)
 #ifdef USEMPI
              end if
 #endif
@@ -297,8 +297,8 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-          call Galacticus_Display_Counter_Clear(verbosityWorking)
-          call Galacticus_Display_Unindent("done",verbosityWorking)
+          call displayCounterClear(verbosityLevelWorking)
+          call displayUnindent("done",verbosityLevelWorking)
 #ifdef USEMPI
        end if
        if (self%coordinatedMPI_) then
@@ -348,14 +348,14 @@ contains
 
   subroutine farahiMidpointRateTabulate(self,varianceProgenitor,time,node)
     !% Tabulate the excursion set crossing rate.
-    use :: Error_Functions   , only : erfApproximate
-    use :: File_Utilities    , only : File_Lock                  , File_Unlock                     , lockDescriptor
-    use :: Galacticus_Display, only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
-          &                           Galacticus_Display_Unindent, verbosityWorking
-    use :: Kind_Numbers      , only : kind_dble                  , kind_quad
-    use :: MPI_Utilities     , only : mpiBarrier                 , mpiSelf
-    use :: Memory_Management , only : allocateArray              , deallocateArray
-    use :: Numerical_Ranges  , only : Make_Range                 , rangeTypeLinear                 , rangeTypeLogarithmic
+    use :: Display          , only : displayCounter , displayCounterClear  , displayIndent       , displayMessage, &
+          &                          displayUnindent, verbosityLevelWorking
+    use :: Error_Functions  , only : erfApproximate
+    use :: File_Utilities   , only : File_Lock      , File_Unlock          , lockDescriptor
+    use :: Kind_Numbers     , only : kind_dble      , kind_quad
+    use :: MPI_Utilities    , only : mpiBarrier     , mpiSelf
+    use :: Memory_Management, only : allocateArray  , deallocateArray
+    use :: Numerical_Ranges , only : Make_Range     , rangeTypeLinear      , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                   :: self
     double precision                                         , intent(in   )                   :: time                             , varianceProgenitor
@@ -516,17 +516,17 @@ contains
 #ifdef USEMPI
           if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-             call Galacticus_Display_Indent("solving for excursion set barrier crossing rates",verbosityWorking)
+             call displayIndent("solving for excursion set barrier crossing rates",verbosityLevelWorking)
              message="    time: "
              write (label,'(f6.3)') self%timeMinimumRate
              message=message//label//" to "
              write (label,'(f6.3)') self%timeMaximumRate
              message=message//label
-             call Galacticus_Display_Message(message,verbosityWorking)
+             call displayMessage(message,verbosityLevelWorking)
              message="variance: "
              write (label,'(f9.3)') self%varianceMaximumRate
              message=message//label
-             call Galacticus_Display_Message(message,verbosityWorking)
+             call displayMessage(message,verbosityLevelWorking)
 #ifdef USEMPI
           end if
 #endif
@@ -580,7 +580,7 @@ contains
 #ifdef USEMPI
                 if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-                   call Galacticus_Display_Counter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityWorking)
+                   call displayCounter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityLevelWorking)
 #ifdef USEMPI
                 end if
 #endif
@@ -735,8 +735,8 @@ contains
 #ifdef USEMPI
           if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-             call Galacticus_Display_Counter_Clear(       verbosityWorking)
-             call Galacticus_Display_Unindent     ("done",verbosityWorking)
+             call displayCounterClear(       verbosityLevelWorking)
+             call displayUnindent     ("done",verbosityLevelWorking)
 #ifdef USEMPI
           end if
           if (self%coordinatedMPI_) then

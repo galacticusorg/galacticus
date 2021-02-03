@@ -19,31 +19,32 @@
 
 !% Contains a module which handles setting of verbosity.
 
-module Galacticus_Display_Verbosity
+module Display_Verbosity
   !% Handle setting of verbosity.
   implicit none
   private
-  public :: Galacticus_Verbosity_Set_From_Parameters
+  public :: displayVerbositySetFromParameters
 
 contains
 
-  subroutine Galacticus_Verbosity_Set_From_Parameters(parameters)
+  subroutine displayVerbositySetFromParameters(parameters)
     !% Read the parameter that controls the verbosity level, and set that level.
-    use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set
-    use :: Input_Parameters  , only : inputParameters               , inputParameter
+    use :: Display           , only : displayVerbositySet, enumerationVerbosityLevelEncode
+    use :: ISO_Varying_String, only : char               , var_str                        , varying_string
+    use :: Input_Parameters  , only : inputParameter     , inputParameters
     implicit none
-    type   (inputParameters), intent(inout) :: parameters
-    integer                                 :: verbosityLevel
+    type(inputParameters), intent(inout) :: parameters
+    type(varying_string )               :: verbosityLevel
 
     ! Get the verbosity level parameter.
     !# <inputParameter>
     !#   <name>verbosityLevel</name>
-    !#   <defaultValue>1</defaultValue>
+    !#   <defaultValue>var_str('standard')</defaultValue>
     !#   <description>The level of verbosity for \glc\ (higher values give more verbosity).</description>
     !#   <source>parameters</source>
     !# </inputParameter>
-    call Galacticus_Verbosity_Level_Set(verbosityLevel)
+    call displayVerbositySet(enumerationVerbosityLevelEncode(char(verbosityLevel),includesPrefix=.false.))
     return
-  end subroutine Galacticus_Verbosity_Set_From_Parameters
+  end subroutine displayVerbositySetFromParameters
 
-end module Galacticus_Display_Verbosity
+end module Display_Verbosity

@@ -237,8 +237,8 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Spheroid_Standard_Thread_Initialize(parameters_)
     !% Initializes the standard spheroid module for each thread.
-    use :: Events_Hooks                         , only : satelliteMergerEvent             , postEvolveEvent, openMPThreadBindingAtLevel, dependencyRegEx, &
-         &                                               dependencyDirectionAfter
+    use :: Events_Hooks                         , only : dependencyDirectionAfter         , dependencyRegEx, openMPThreadBindingAtLevel, postEvolveEvent, &
+          &                                              satelliteMergerEvent
     use :: Galacticus_Error                     , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
     use :: Input_Parameters                     , only : inputParameter                   , inputParameters
@@ -305,7 +305,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Spheroid_Standard_Thread_Uninitialize()
     !% Uninitializes the standard spheroid module for each thread.
-    use :: Events_Hooks                         , only : satelliteMergerEvent    , postEvolveEvent
+    use :: Events_Hooks                         , only : postEvolveEvent         , satelliteMergerEvent
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
     use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
     implicit none
@@ -328,7 +328,7 @@ contains
   !# </preEvolveTask>
   subroutine Node_Component_Spheroid_Standard_Pre_Evolve(node)
     !% Ensure the spheroid has been initialized.
-    use :: Galacticus_Nodes, only : nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode, defaultSpheroidComponent
+    use :: Galacticus_Nodes, only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
     implicit none
     type (treeNode             ), intent(inout), pointer :: node
     class(nodeComponentSpheroid)               , pointer :: spheroid
@@ -378,13 +378,13 @@ contains
   !# </postStepTask>
   subroutine Node_Component_Spheroid_Standard_Post_Step(node,status)
     !% Trim histories attached to the spheroid.
-    use :: Abundances_Structure          , only : abs                       , zeroAbundances
-    use :: Galacticus_Display            , only : Galacticus_Display_Message, verbosityWarn
+    use :: Abundances_Structure          , only : abs                     , zeroAbundances
+    use :: Display                       , only : displayMessage          , verbosityLevelWarn
     use :: Galacticus_Error              , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes              , only : nodeComponentSpheroid     , nodeComponentSpheroidStandard, treeNode      , defaultSpheroidComponent
+    use :: Galacticus_Nodes              , only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
+    use :: ISO_Varying_String            , only : assignment(=)           , operator(//)         , varying_string
     use :: Interface_GSL                 , only : GSL_Failure
-    use :: ISO_Varying_String            , only : assignment(=)             , operator(//)                 , varying_string
-    use :: Stellar_Luminosities_Structure, only : stellarLuminosities       , abs
+    use :: Stellar_Luminosities_Structure, only : abs                     , stellarLuminosities
     use :: String_Handling               , only : operator(//)
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
@@ -434,7 +434,7 @@ contains
                 message=message//'  Negative masses are due to numerically inaccuracy in the ODE solutions.'//char(10)
                 message=message//'  If significant, consider using a higher tolerance in the ODE solver.'
              end if
-             call Galacticus_Display_Message(message,verbosityWarn)
+             call displayMessage(message,verbosityLevelWarn)
              ! Store the new maximum fractional error.
              fractionalErrorMaximum=fractionalError
           end if
@@ -490,7 +490,7 @@ contains
                 message=message//'  Negative masses are due to numerically inaccuracy in the ODE solutions.'//char(10)
                 message=message//'  If significant, consider using a higher tolerance in the ODE solver.'
              end if
-             call Galacticus_Display_Message(message,verbosityWarn)
+             call displayMessage(message,verbosityLevelWarn)
              ! Store the new maximum fractional error.
              fractionalErrorMaximum=fractionalError
           end if
@@ -689,11 +689,11 @@ contains
   subroutine Node_Component_Spheroid_Standard_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}. Note that gas masses get an additional scaling down since they can approach
     !% zero and we'd like to prevent them from becoming negative.
-    use :: Abundances_Structure          , only : abs                     , max                  , operator(*)                  , unitAbundances
-    use :: Galacticus_Nodes              , only : nodeComponentDisk       , nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode           , &
-         &                                        defaultSpheroidComponent
+    use :: Abundances_Structure          , only : abs                     , max              , operator(*)          , unitAbundances
+    use :: Galacticus_Nodes              , only : defaultSpheroidComponent, nodeComponentDisk, nodeComponentSpheroid, nodeComponentSpheroidStandard, &
+          &                                       treeNode
     use :: Histories                     , only : history                 , operator(*)
-    use :: Stellar_Luminosities_Structure, only : abs                     , max                  , operator(*)                  , stellarLuminosities, &
+    use :: Stellar_Luminosities_Structure, only : abs                     , max              , operator(*)          , stellarLuminosities          , &
           &                                       unitStellarLuminosities
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
@@ -799,8 +799,8 @@ contains
     !% Transfer any standard spheroid associated with {\normalfont \ttfamily node} to its host halo.
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                , only : treeNode                , nodeComponentDisk        , nodeComponentSpheroid   , nodeComponentSpheroidStandard
-    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk   , destinationMergerSpheroid, destinationMergerUnmoved
+    use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentSpheroid    , nodeComponentSpheroidStandard, treeNode
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, destinationMergerUnmoved
     use :: Satellite_Merging_Remnant_Sizes , only : remnantNoChange
     use :: Stellar_Luminosities_Structure  , only : zeroStellarLuminosities
     implicit none
@@ -1373,7 +1373,7 @@ contains
   !# </mergerTreeExtraOutputTask>
   subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Output(node,iOutput,treeIndex,nodePassesFilter)
     !% Store the star formation history in the output file.
-    use            :: Galacticus_Nodes, only : nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode, defaultSpheroidComponent
+    use            :: Galacticus_Nodes, only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
     use            :: Histories       , only : history
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Kind_Numbers    , only : kind_int8
@@ -1403,15 +1403,15 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Node_Component_Spheroid_Standard_State_Store(stateFile,gslStateFile,stateOperatorID)
     !% Write the tablulation state to file.
-    use            :: Galacticus_Display                   , only : Galacticus_Display_Message, verbosityInfo
-    use, intrinsic :: ISO_C_Binding                        , only : c_size_t                  , c_ptr
+    use            :: Display                              , only : displayMessage          , verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding                        , only : c_ptr                   , c_size_t
     use            :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
     implicit none
     integer          , intent(in   ) :: stateFile
     integer(c_size_t), intent(in   ) :: stateOperatorID
     type   (c_ptr   ), intent(in   ) :: gslStateFile
 
-    call Galacticus_Display_Message('Storing state for: treeNodeMethodSpheroid -> standard',verbosity=verbosityInfo)
+    call displayMessage('Storing state for: treeNodeMethodSpheroid -> standard',verbosity=verbosityLevelInfo)
     !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
     !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
     !# </workaround>
@@ -1432,9 +1432,9 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Node_Component_Spheroid_Standard_State_Retrieve(stateFile,gslStateFile,stateOperationID)
     !% Retrieve the tabulation state from the file.
-    use            :: Galacticus_Display                   , only : Galacticus_Display_Message, verbosityInfo
+    use            :: Display                              , only : displayMessage          , verbosityLevelInfo
     use            :: Galacticus_Error                     , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding                        , only : c_size_t                  , c_ptr
+    use, intrinsic :: ISO_C_Binding                        , only : c_ptr                   , c_size_t
     use            :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
     implicit none
     integer          , intent(in   ) :: stateFile
@@ -1442,7 +1442,7 @@ contains
     type   (c_ptr   ), intent(in   ) :: gslStateFile
     logical                          :: wasAllocated
 
-    call Galacticus_Display_Message('Retrieving state for: treeNodeMethodSpheroid -> standard',verbosity=verbosityInfo)
+    call displayMessage('Retrieving state for: treeNodeMethodSpheroid -> standard',verbosity=verbosityLevelInfo)
 #ifdef THREADSAFEIO
     !$omp critical(gfortranInternalIO)
 #endif

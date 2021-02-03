@@ -125,7 +125,7 @@ contains
 
   subroutine cole2000AutoHook(self)
     !% Attach to the calculation reset event.
-    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels, satelliteMergerEvent
     implicit none
     class(mergerRemnantSizeCole2000), intent(inout) :: self
 
@@ -183,12 +183,12 @@ contains
 
   subroutine cole2000Get(self,node,radius,velocityCircular,angularMomentumSpecific)
     !% Compute the size of the merger remnant for {\normalfont \ttfamily node} using the \cite{cole_hierarchical_2000} algorithm.
+    use :: Display                           , only : displayMessage
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : massTypeDark
-    use :: Galacticus_Display                , only : Galacticus_Display_Message
     use :: Galacticus_Error                  , only : Galacticus_Error_Report
     use :: Numerical_Comparison              , only : Values_Agree
-    use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus
     use :: String_Handling                   , only : operator(//)
     implicit none
     class           (mergerRemnantSizeCole2000), intent(inout) :: self
@@ -267,7 +267,7 @@ contains
                 joinString=", "
              end if
              message=message//' (radius:mass:spheroidMass='//trim(dataString)//')'
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
              errorCondition=.true.
           end if
           if     (                                             &
@@ -297,7 +297,7 @@ contains
                 joinString=", "
              end if
              message=message//' (radius:mass:spheroidMass='//trim(dataString)//')'
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
              errorCondition=.true.
           end if
           if (errorCondition) then

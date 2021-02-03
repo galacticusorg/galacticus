@@ -67,12 +67,12 @@ contains
 
   subroutine windowRead(self,fileName)
     !% Read a \gls{mangle} window definition from file.
-    use :: Galacticus_Display, only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
-          &                           Galacticus_Display_Unindent
+    use :: Display           , only : displayCounter         , displayCounterClear, displayIndent, displayMessage, &
+          &                           displayUnindent
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)              , operator(//)                    , operator(==)             , varying_string
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)       , operator(==) , varying_string
     use :: Sorting           , only : sortIndex
-    use :: String_Handling   , only : String_Split_Words         , operator(//)
+    use :: String_Handling   , only : String_Split_Words     , operator(//)
     implicit none
     class           (window        ), intent(inout)              :: self
     character       (len=*         ), intent(in   )              :: fileName
@@ -85,7 +85,7 @@ contains
 
     ! Open and parse the file.
     message='Reading mangle window from: '//trim(fileName)
-    call Galacticus_Display_Indent(message)
+    call displayIndent(message)
     open(newUnit=fileUnit,file=fileName,status='old',form='formatted')
     ! Retrieve count of number of polygons.
     self%polygonCount=-1
@@ -95,13 +95,13 @@ contains
     end do
     message='found '
     message=message//self%polygonCount//' polygons'
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
      allocate(self%polygons       (self%polygonCount))
     allocate(solidAngle          (self%polygonCount))
     allocate(self%solidAngleIndex(self%polygonCount))
     ! Read each polygon.
     do i=1,self%polygonCount
-       call Galacticus_Display_Counter(int(100.0d0*dble(i-1)/dble(self%polygonCount)),isNew=(i==1))
+       call displayCounter(int(100.0d0*dble(i-1)/dble(self%polygonCount)),isNew=(i==1))
        ioStatus=0
        do while (ioStatus == 0)
           read (fileUnit,'(a)',iostat=ioStatus) line
@@ -122,12 +122,12 @@ contains
                &            self%polygons(i)%caps(j)%c
        end do
     end do
-    call Galacticus_Display_Counter_Clear()
+    call displayCounterClear()
     close(fileUnit)
     ! Get a sorted index of polygon solid angles.
     self%solidAngleIndex=sortIndex(solidAngle)
     deallocate(solidAngle)
-    call Galacticus_Display_Unindent('done')
+    call displayUnindent('done')
     return
   end subroutine windowRead
 

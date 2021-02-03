@@ -199,8 +199,10 @@ contains
 
   subroutine Kepler_Orbits_Builder(self,keplerOrbitDefinition)
     !% Build a {\normalfont \ttfamily keplerOrbit} object from the given XML {\normalfont \ttfamily keplerOrbitDefinition}.
-    use :: FoX_DOM         , only : getNodeName                 , node
+    use :: FoX_DOM         , only : getNodeName            , node
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
+    use :: FoX_DOM         , only : getNodeName            , node
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (keplerOrbit), intent(inout)               :: self
@@ -253,8 +255,8 @@ contains
 
   subroutine Kepler_Orbits_Dump(self)
     !% Reset an orbit to a null state.
-    use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: ISO_Varying_String, only : varying_string            , assignment(=)
+    use :: Display           , only : displayMessage
+    use :: ISO_Varying_String, only : assignment(=) , varying_string
     implicit none
     class    (keplerOrbit   ), intent(in   ) :: self
     character(len=22        )                :: label
@@ -263,55 +265,55 @@ contains
     if (self%massesIsSet             ) then
        write (label,'(e22.16)') self%hostMassValue
        message='host mass:             '//label
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
        write (label,'(e22.16)') self%specificReducedMassValue
        message='specific reduced mass: '//label
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     if (self%radiusIsSet             ) then
        write (label,'(e22.16)') self%radiusValue
        message='radius:                '//label
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     if (self%radiusPericenterIsSet   ) then
        write (label,'(e22.16)') self%radiusPericenterValue
        message='radius pericenter:     '//label
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     if (self%radiusApocenterIsSet   ) then
        write (label,'(e22.16)') self%radiusApocenterValue
        message='radius apocenter:      '//label
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     if (self%velocityRadialIsSet    ) then
        write (label,'(e22.16)') self%velocityRadialValue
        message='velocity radial:       '//label
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     if (self%velocityTangentialIsSet) then
        write (label,'(e22.16)') self%velocityTangentialValue
        message='velocity tangential:   '//label
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     if (self%angularMomentumIsSet   ) then
        write (label,'(e22.16)') self%angularMomentumValue
        message='angular momentum:      '//label
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     if (self%energyIsSet            ) then
        write (label,'(e22.16)') self%energyValue
        message='energy:                '//label
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     if (self%eccentricityIsSet      ) then
        write (label,'(e22.16)') self%eccentricityValue
        message='eccentricity:          '//label
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     if (self%semimajorAxisIsSet     ) then
        write (label,'(e22.16)') self%semimajorAxisValue
        message='semi-major axis:       '//label
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     return
   end subroutine Kepler_Orbits_Dump
@@ -817,7 +819,7 @@ contains
 
   double precision function Kepler_Orbits_Velocity_Scale(orbit)
     !% Return the velocity scale for the orbit.
-    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
@@ -831,7 +833,7 @@ contains
 
   subroutine Kepler_Orbits_Propagate(orbit,newRadius,infalling)
     !% Propagate an orbit along its path.
-    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (keplerOrbit), intent(inout)           :: orbit

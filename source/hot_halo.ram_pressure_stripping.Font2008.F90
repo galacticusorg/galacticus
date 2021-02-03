@@ -130,9 +130,9 @@ contains
 
   double precision function font2008RadiusStripped(self,node)
     !% Return the ram pressure stripping radius due to the hot halo using the model of \cite{font_colours_2008}.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, verbositySilent
-    use :: Galacticus_Error  , only : Galacticus_Error_Report   , errorStatusSuccess
-    use :: Root_Finder       , only : rangeExpandMultiplicative , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
+    use :: Display         , only : displayMessage           , verbosityLevelSilent
+    use :: Galacticus_Error, only : Galacticus_Error_Report  , errorStatusSuccess
+    use :: Root_Finder     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
     class           (hotHaloRamPressureStrippingFont2008), intent(inout), target :: self
     type            (treeNode                           ), intent(inout), target :: node
@@ -197,7 +197,7 @@ contains
                 message=message//" / "//trim(adjustl(label))
                 write (label,'(e12.6)') font2008RadiusSolver(radiusVirial)
                 message=message//" : "//trim(adjustl(label))
-                call Galacticus_Display_Message(message,verbositySilent)
+                call displayMessage(message,verbosityLevelSilent)
                 message='small radius / root function at small radius = '
                 write (label,'(e12.6)') radiusSmallestOverRadiusVirial*radiusVirial
                 message=message//trim(adjustl(label))
@@ -205,7 +205,7 @@ contains
                 message=message//" / "//trim(adjustl(label))
                 write (label,'(e12.6)') font2008RadiusSolver(radiusSmallestOverRadiusVirial*radiusVirial)
                 message=message//" : "//trim(adjustl(label))
-                call Galacticus_Display_Message(message,verbositySilent)
+                call displayMessage(message,verbosityLevelSilent)
                 call Galacticus_Error_Report('root finding failed'//{introspection:location})
              end if
              self%radiusLast=font2008RadiusStripped
@@ -222,7 +222,7 @@ contains
     !% Root function used in finding the ram pressure stripping radius.
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : componentTypeAll                , massTypeAll
-    use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: radius
     double precision                :: massEnclosed  , forceBindingGravitational, &

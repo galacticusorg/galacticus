@@ -40,7 +40,7 @@ contains
 
   function hydrogenRecombinationRateConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily hydrogenRecombinationRate} radiative transfer matter class which takes a parameter set as input.
-    use :: Input_Parameters, only : inputParameters, inputParameter
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (radiativeTransferConvergenceHydrogenRecombinationRate)                :: self
     type            (inputParameters                                      ), intent(inout) :: parameters
@@ -70,7 +70,7 @@ contains
   
   subroutine hydrogenRecombinationRateTestConvergence(self,radiativeTransferMatter_,properties,statusCell,converged)
     !% Test convergence in the computational domain cell.
-    use :: Galacticus_Display        , only : Galacticus_Display_Message   , verbosityStandard
+    use :: Display                   , only : displayMessage               , verbosityLevelStandard
     use :: MPI_Utilities             , only : mpiSelf
     use :: Radiative_Transfer_Matters, only : radiativeTransferMatterAtomic, radiativeTransferPropertiesMatterAtomic
     implicit none
@@ -107,7 +107,7 @@ contains
           else
              message=trim(message)//    'converged)'
           end if
-          call Galacticus_Display_Message(trim(message),verbosityStandard)
+          call displayMessage(trim(message),verbosityLevelStandard)
        end if
     else
        converged=.true.

@@ -20,12 +20,12 @@
 program Tests_Linear_Growth_Open
   !% Tests linear growth calculations for an open Universe. Growth rates are compared to calculations taken from:
   !% http://www.icosmos.co.uk/index.html
-  use :: Cosmology_Functions, only : cosmologyFunctions            , cosmologyFunctionsClass
-  use :: Galacticus_Display , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: ISO_Varying_String , only : varying_string                , assignment(=)
+  use :: Cosmology_Functions, only : cosmologyFunctions , cosmologyFunctionsClass
+  use :: Display            , only : displayVerbositySet, verbosityLevelStandard
+  use :: ISO_Varying_String , only : assignment(=)      , varying_string
   use :: Input_Parameters   , only : inputParameters
-  use :: Linear_Growth      , only : componentDarkMatter           , linearGrowth           , linearGrowthClass   , normalizeMatterDominated
-  use :: Unit_Tests         , only : Assert                        , Unit_Tests_Begin_Group , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Linear_Growth      , only : componentDarkMatter, linearGrowth           , linearGrowthClass   , normalizeMatterDominated
+  use :: Unit_Tests         , only : Assert             , Unit_Tests_Begin_Group , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision                         , dimension(8), parameter :: redshift                 =[0.0000d0,1.0000d0,3.0000d0,9.0000d0,30.000000d0,100.0000d0,300.000000d0,1000.000d0]
   double precision                         , dimension(8), parameter :: growthFactorOpen         =[0.4568354614082405d0,0.6176697062100953d0,0.7581803450845095d0,0.8844205217773703d0,0.9590358011003045d0,0.9869986440083428d0,0.9955930852515837d0,0.9986700650973155d0]
@@ -38,7 +38,7 @@ program Tests_Linear_Growth_Open
   double precision                                                   :: expansionFactor                                                                                                                                                                                    , linearGrowthFactor
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Linear growth: open cosmology")

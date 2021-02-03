@@ -142,13 +142,13 @@ contains
   double precision function standardGrowthRate(self,blackHole)
     !% Returns an initial separation growth rate for a binary black holes that follows a modified version of
     !% \cite{volonteri_assembly_2003}.
+    use :: Display                                    , only : displayIndent                             , displayMessage                 , displayUnindent
     use :: Galactic_Structure_Densities               , only : Galactic_Structure_Density
     use :: Galactic_Structure_Options                 , only : componentTypeDarkHalo                     , componentTypeSpheroid          , coordinateSystemCylindrical, massTypeDark, &
           &                                                    massTypeGalactic                          , massTypeStellar
     use :: Galactic_Structure_Rotation_Curve_Gradients, only : Galactic_Structure_Rotation_Curve_Gradient
     use :: Galactic_Structure_Rotation_Curves         , only : Galactic_Structure_Rotation_Curve
     use :: Galactic_Structure_Velocity_Dispersions    , only : Galactic_Structure_Velocity_Dispersion
-    use :: Galacticus_Display                         , only : Galacticus_Display_Indent                 , Galacticus_Display_Message     , Galacticus_Display_Unindent
     use :: Galacticus_Error                           , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                           , only : nodeComponentBlackHole                    , nodeComponentSpheroid          , treeNode
     use :: Numerical_Constants_Astronomical           , only : Mpc_per_km_per_s_To_Gyr                   , gravitationalConstantGalacticus
@@ -380,17 +380,17 @@ contains
             &                           *Galactic_Structure_Rotation_Curve_Gradient(node,blackHole%radialPosition()) &
             &                          )
        if (rotationCurveGradient == 0.0d0) then
-          call Galacticus_Display_Indent('dynamical friction calculation report')
+          call displayIndent('dynamical friction calculation report')
           write (message,'(a,i12)  ') 'nodeIndex = ',node%index()
           write (message,'(a,e12.6)') '     V(r) = ',Galactic_Structure_Rotation_Curve         (node,blackHole%radialPosition())
-          call Galacticus_Display_Message(trim(message))
+          call displayMessage(trim(message))
           write (message,'(a,e12.6)') '        r = ',                                                blackHole%radialPosition()
-          call Galacticus_Display_Message(trim(message))
+          call displayMessage(trim(message))
           write (message,'(a,e12.6)') ' dV(r)/dr = ',Galactic_Structure_Rotation_Curve_Gradient(node,blackHole%radialPosition())
-          call Galacticus_Display_Message(trim(message))
+          call displayMessage(trim(message))
           write (message,'(a,e12.6)') '   a_{df} = ',dynamicalFrictionAcceleration
-          call Galacticus_Display_Message(trim(message))
-          call Galacticus_Display_Unindent('done')
+          call displayMessage(trim(message))
+          call displayUnindent('done')
           call Galacticus_Error_Report('rotation curve gradient is zero'//{introspection:location})
        end if
        rateScatteringDynamicalFriction=+2.0d0                         &

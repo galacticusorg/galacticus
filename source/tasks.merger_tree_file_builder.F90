@@ -573,12 +573,12 @@ contains
     !% Compute and output the halo mass function.
     use :: Cosmology_Parameters      , only : hubbleUnitsLittleH
     use :: Dates_and_Times           , only : Formatted_Date_and_Time
-    use :: Galacticus_Display        , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
+    use :: Display                   , only : displayIndent          , displayUnindent
     use :: Galacticus_Error          , only : errorStatusSuccess
     use :: HDF5                      , only : hsize_t
     use :: Input_Parameters          , only : inputParameters
-    use :: Merger_Tree_Data_Structure, only : mergerTreeData           , metaDataTypeCosmology      , metaDataTypeProvenance, metaDataTypeSimulation, &
-          &                                   unitsLength              , unitsMass                  , unitsVelocity
+    use :: Merger_Tree_Data_Structure, only : mergerTreeData         , metaDataTypeCosmology, metaDataTypeProvenance, metaDataTypeSimulation, &
+          &                                   unitsLength            , unitsMass            , unitsVelocity
     implicit none
     class           (taskMergerTreeFileBuilder), intent(inout), target   :: self
     integer                                    , intent(  out), optional :: status
@@ -590,7 +590,7 @@ contains
     double precision                                                     :: metaDataValueFloat
     character       (len=1024                 )                          :: metaDataText
 
-    call Galacticus_Display_Indent('Begin task: merger tree file builder')
+    call displayIndent('Begin task: merger tree file builder')
     ! Initialize the data structure.
     call mergerTrees%reset()
     ! Set columns to read.
@@ -667,7 +667,7 @@ contains
     call mergerTrees%export(char(self%outputFileName),self%outputFormat,int(hdfChunkSize,kind=hsize_t),hdfCompressionLevel)
     ! Done.
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: merger tree file builder' )
+    call displayUnindent('Done task: merger tree file builder' )
     return
   end subroutine mergerTreeFileBuilderPerform
 

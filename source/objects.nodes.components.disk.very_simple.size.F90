@@ -269,15 +269,15 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Node_Component_Disk_Very_Simple_Size_State_Store(stateFile,gslStateFile,stateOperationID)
     !% Write the tablulation state to file.
-    use            :: Galacticus_Display                       , only : Galacticus_Display_Message, verbosityInfo
-    use, intrinsic :: ISO_C_Binding                            , only : c_size_t                  , c_ptr
+    use            :: Display                                  , only : displayMessage      , verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding                            , only : c_ptr               , c_size_t
     use            :: Node_Component_Disk_Very_Simple_Size_Data, only : diskMassDistribution
     implicit none
     integer          , intent(in   ) :: stateFile
     integer(c_size_t), intent(in   ) :: stateOperationID
     type   (c_ptr   ), intent(in   ) :: gslStateFile
 
-    call Galacticus_Display_Message('Storing state for: treeNodeMethodDisk -> standard',verbosity=verbosityInfo)
+    call displayMessage('Storing state for: treeNodeMethodDisk -> standard',verbosity=verbosityLevelInfo)
     !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
     !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
     !# </workaround>
@@ -297,9 +297,9 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Node_Component_Disk_Very_Simple_Size_State_Retrieve(stateFile,gslStateFile,stateOperationID)
     !% Retrieve the tabulation state from the file.
-    use            :: Galacticus_Display                       , only : Galacticus_Display_Message, verbosityInfo
+    use            :: Display                                  , only : displayMessage         , verbosityLevelInfo
     use            :: Galacticus_Error                         , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding                            , only : c_size_t                  , c_ptr
+    use, intrinsic :: ISO_C_Binding                            , only : c_ptr                  , c_size_t
     use            :: Node_Component_Disk_Very_Simple_Size_Data, only : diskMassDistribution
     implicit none
     integer          , intent(in   ) :: stateFile
@@ -307,7 +307,7 @@ contains
     type   (c_ptr   ), intent(in   ) :: gslStateFile
     logical                          :: wasAllocated
 
-    call Galacticus_Display_Message('Retrieving state for: treeNodeMethodDisk -> standard',verbosity=verbosityInfo)
+    call displayMessage('Retrieving state for: treeNodeMethodDisk -> standard',verbosity=verbosityLevelInfo)
     !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
     !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
     !# </workaround>

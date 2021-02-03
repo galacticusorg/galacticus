@@ -21,13 +21,13 @@
 
   use :: Model_Parameters                           , only : modelParameterList
   use :: Models_Likelihoods                         , only : posteriorSampleLikelihoodClass
+  use :: Numerical_Random_Numbers                   , only : randomNumberGeneratorClass
   use :: Posterior_Sample_Differential_Proposal_Size, only : posteriorSampleDffrntlEvltnProposalSizeClass
   use :: Posterior_Sample_Differential_Random_Jump  , only : posteriorSampleDffrntlEvltnRandomJumpClass
   use :: Posterior_Sampling_Convergence             , only : posteriorSampleConvergenceClass
   use :: Posterior_Sampling_State                   , only : posteriorSampleStateClass
   use :: Posterior_Sampling_State_Initialize        , only : posteriorSampleStateInitializeClass
   use :: Posterior_Sampling_Stopping_Criteria       , only : posteriorSampleStoppingCriterionClass
-  use :: Numerical_Random_Numbers                   , only : randomNumberGeneratorClass
 
   !# <posteriorSampleSimulation name="posteriorSampleSimulationDifferentialEvolution">
   !#  <description>
@@ -99,12 +99,12 @@ contains
   function differentialEvolutionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily differentialEvolution} posterior sampling simulation class which builds the object from a
     !% parameter set.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Input_Parameters  , only : inputParameter            , inputParameters
-    use :: MPI_Utilities     , only : mpiSelf
-    use :: Model_Parameters  , only : modelParameterActive      , modelParameterInactive
-    use :: String_Handling   , only : operator(//)
+    use :: Display         , only : displayMessage         , displayVerbosity      , verbosityLevelInfo
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: MPI_Utilities   , only : mpiSelf
+    use :: Model_Parameters, only : modelParameterActive   , modelParameterInactive
+    use :: String_Handling , only : operator(//)
     implicit none
     type   (posteriorSampleSimulationDifferentialEvolution)                              :: self
     type   (inputParameters                               ), intent(inout)               :: parameters
@@ -222,10 +222,10 @@ contains
        !# <objectDestructor name="modelParameter_"/>
     end do
     if (activeParameterCount < 1) call Galacticus_Error_Report('at least one active parameter must be specified in config file'//{introspection:location})
-    if (mpiSelf%isMaster() .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+    if (mpiSelf%isMaster() .and. displayVerbosity() >= verbosityLevelInfo) then
        message='Found '
        message=message//activeParameterCount//' active parameters (and '//inactiveParameterCount//' inactive parameters)'
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     ! Initialize priors and random perturbers.
     allocate(modelParametersActive_  (  activeParameterCount))
@@ -334,8 +334,8 @@ contains
 
   subroutine differentialEvolutionSimulate(self)
     !% Perform a differential evolution simulation.
+    use :: Display                     , only : displayIndent             , displayMessage , displayUnindent
     use :: File_Utilities              , only : File_Exists               , File_Remove
-    use :: Galacticus_Display          , only : Galacticus_Display_Indent , Galacticus_Display_Message, Galacticus_Display_Unindent
     use :: Galacticus_Error            , only : Galacticus_Error_Report   , Galacticus_Warn
     use :: MPI_Utilities               , only : mpiBarrier                , mpiSelf
     use :: Models_Likelihoods_Constants, only : logImpossible
@@ -375,7 +375,7 @@ contains
     ! Write start-up message.
     message="Process "//mpiSelf%rankLabel()//" [PID: "
     message=message//getPID()//"] is running on host '"//mpiSelf%hostAffinity()//"'"
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     ! Allocate a simple state object for the proposed state.
     allocate(posteriorSampleStateSimple :: stateProposed)
     select type (stateProposed)
@@ -444,25 +444,25 @@ contains
                    ! Copy the state to the proposed state vector.
                    stateVectorProposed=stateVectorInteractive
                    message="Chain "//mpiSelf%rankLabel()//" is being interactively moved to state:"
-                   call Galacticus_Display_Indent(message)
+                   call displayIndent(message)
                    ! Map parameters of interactively proposed state.
                    do i=1,size(stateVector)
                       write (label,*) stateVectorProposed(i)
                       message="State["
                       message=message//i//"] = "//trim(adjustl(label))
-                      call Galacticus_Display_Message(message)
+                      call displayMessage(message)
                       stateVectorProposed(i)=self%modelParametersActive_(i)%modelParameter_%map(stateVectorProposed(i))
                    end do
-                   call Galacticus_Display_Unindent('end')
+                   call displayUnindent('end')
                    ! Force acceptance of this state.
                    forceAcceptance=.true.
                 else
                    message="WARNING: state proposed in interaction file '"//interactionFileName//"' cannot be read"
-                   call Galacticus_Display_Message(message)
+                   call displayMessage(message)
                 end if
              else
                 message="WARNING: unable to open interaction file '"//interactionFileName//"'"
-                call Galacticus_Display_Message(message)
+                call displayMessage(message)
              end if
              close(interactionFile)
              ! Remove the interaction file.
@@ -521,7 +521,7 @@ contains
              if (mpiSelf%rank() == 0) then
                 message='Converged after '
                 message=message//convergedAtStep//' steps'
-                call Galacticus_Display_Message(message)
+                call displayMessage(message)
                 logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.convergence.log'
                 open(newunit=convergenceFileUnit,file=char(logFileName),status='unknown',form='formatted',access='append')
                 write (convergenceFileUnit,'(a,i8)') 'Converged at step: ',convergedAtStep
@@ -593,13 +593,13 @@ contains
 
   subroutine differentialEvolutionPosterior(self,posteriorSampleState_,logLikelihoodCurrent,logPriorCurrent,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious,forceAcceptance)
     !% Return the log of the posterior for the current state.
-    use            :: Galacticus_Display, only : Galacticus_Display_Indent , Galacticus_Display_Message, Galacticus_Display_Unindent
-    use            :: Galacticus_Error  , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: Kind_Numbers      , only : kind_int4
-    use            :: MPI_Utilities     , only : mpiBarrier                , mpiSelf
-    use            :: Model_Parameters  , only : modelParameterListLogPrior
-    use            :: Sorting           , only : sortIndex
+    use            :: Display         , only : displayIndent             , displayMessage, displayUnindent
+    use            :: Galacticus_Error, only : Galacticus_Error_Report
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
+    use            :: Kind_Numbers    , only : kind_int4
+    use            :: MPI_Utilities   , only : mpiBarrier                , mpiSelf
+    use            :: Model_Parameters, only : modelParameterListLogPrior
+    use            :: Sorting         , only : sortIndex
     implicit none
     class           (posteriorSampleSimulationDifferentialEvolution), intent(inout)               :: self
     class           (posteriorSampleStateClass                     ), intent(inout)               :: posteriorSampleState_
@@ -653,13 +653,13 @@ contains
          & timeEvaluateEffective=0.0d0
     timesEvaluate=mpiSelf%gather(dble(timeEvaluateEffective))
     ! If previous time estimate is negative, don't do load balancing.
-    if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call Galacticus_Display_Indent('Load balancing report')
+    if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call displayIndent('Load balancing report')
     if (any(timesEvaluate < 0.0d0) .or. .not.self%loadBalance) then
        forall(i=0:mpiSelf%count()-1)
           processToProcess  (i)=i
           processFromProcess(i)=i
        end forall
-       if (self%loadBalance .and. mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call Galacticus_Display_Message('Not performing load balancing - missing work cost data')
+       if (self%loadBalance .and. mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call displayMessage('Not performing load balancing - missing work cost data')
     else
        ! Distribute tasks across nodes.
        timesEvaluateOrder=sortIndex(timesEvaluate)-1
@@ -684,7 +684,7 @@ contains
        end do
        ! Report.
        if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) then
-          call Galacticus_Display_Indent('Chain redistribution:')
+          call displayIndent('Chain redistribution:')
           do i=0,mpiSelf%count()-1
              write (label,'(i4.4)') i
              message='Chain '//trim(label)//' -> process/node '
@@ -694,21 +694,21 @@ contains
              message=message//trim(label)//' (work = '
              write (label,'(f9.2)') timesEvaluate(i)
              message=message//trim(label)//')'
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
           end do
-          call Galacticus_Display_Unindent('done')
-          call Galacticus_Display_Indent('Node work loads:')
+          call displayUnindent('done')
+          call displayIndent('Node work loads:')
           do i=1,size(nodeWork)
              write (label,'(i4.4)') i
              message='Node '//trim(label)//': work = '
              write (label,'(f9.2)') nodeWork(i)
              message=message//trim(label)
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
           end do
-          call Galacticus_Display_Unindent('done')
+          call displayUnindent('done')
        end if
     end if
-    if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call Galacticus_Display_Unindent('done')
+    if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call displayUnindent('done')
     ! Get state vector, chain index, current likelihood, current prior and proposed prior.
     allocate(stateVectorSelf(self%parameterCount  ))
     allocate(stateVectorWork(self%parameterCount,1))
@@ -754,7 +754,7 @@ contains
     ! Gather actual evaluation times and report.
     timesEvaluateActual=mpiSelf%gather(dble(timeEvaluate))
     if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) then
-       call Galacticus_Display_Indent('Node work done vs. expected:')
+       call displayIndent('Node work done vs. expected:')
        do i=0,mpiSelf%count()-1
           write (label,'(i4.4)') i
           message='Node '//trim(label)//': work (actual/estimated) = '
@@ -762,9 +762,9 @@ contains
           message=message//trim(label)//" / "
           write (label,'(f9.2)') timesEvaluate      (i)
           message=message//trim(label)
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end do
-       call Galacticus_Display_Unindent('done')
+       call displayUnindent('done')
     end if
     return
   end subroutine differentialEvolutionPosterior

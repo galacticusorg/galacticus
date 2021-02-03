@@ -884,7 +884,7 @@ contains
     use    :: Galacticus_Nodes          , only : defaultDarkMatterProfileComponent, defaultPositionComponent, defaultSatelliteComponent, defaultSpinComponent, &
           &                                      mergerTree                       , treeNodeList
     use    :: Memory_Management         , only : Memory_Usage_Record              , allocateArray           , deallocateArray
-    use    :: Merger_Tree_Read_Importers, only : nodeDataMinimal                  , nodeData
+    use    :: Merger_Tree_Read_Importers, only : nodeData                         , nodeDataMinimal
     use    :: Merger_Tree_State_Store   , only : treeStateStoreSequence
     use    :: Numerical_Comparison      , only : Values_Agree
     !$ use :: OMP_Lib                   , only : OMP_Unset_Lock
@@ -1393,7 +1393,7 @@ contains
 
   subroutine readBuildDescendentPointers(self,nodes)
     !% Builds pointers from each node to its descendent node.
-    use :: Galacticus_Display        , only : Galacticus_Display_Message, verbosityInfo
+    use :: Display                   , only : displayMessage         , verbosityLevelInfo
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Merger_Tree_Read_Importers, only : nodeData
     use :: String_Handling           , only : operator(//)
@@ -1425,7 +1425,7 @@ contains
                 call Galacticus_Error_Report(message//{introspection:location})
              else
                 message=message//" - resetting this node to be an isolated node"
-                call Galacticus_Display_Message(message,verbosity=verbosityInfo)
+                call displayMessage(message,verbosity=verbosityLevelInfo)
                 nodes(iNode)%hostIndex =  nodes(iNode)%nodeIndex
                 nodes(iNode)%host      => nodes(iNode)
                 nodes(iNode)%isSubhalo =  .false.
@@ -1515,8 +1515,8 @@ contains
   subroutine readScanForSubhaloPromotions(self,nodes,nodeList)
     !% Scan for cases where a subhalo stops being a subhalo and so must be promoted.
     use :: Galacticus_Nodes          , only : nodeEvent                  , nodeEventSubhaloPromotion, treeNode, treeNodeList
-    use :: Node_Subhalo_Promotions   , only : nodeSubhaloPromotionPerform
     use :: Merger_Tree_Read_Importers, only : nodeData
+    use :: Node_Subhalo_Promotions   , only : nodeSubhaloPromotionPerform
     implicit none
     class  (mergerTreeConstructorRead), intent(inout)                              :: self
     class  (nodeData                 ), target       , dimension(:), intent(inout) :: nodes
@@ -1878,8 +1878,8 @@ contains
 
   subroutine readAssignScaleRadii(self,nodes,nodeList)
     !% Assign scale radii to nodes.
-    use :: Galacticus_Display        , only : Galacticus_Display_Indent, Galacticus_Display_Message    , Galacticus_Display_Unindent  , Galacticus_Verbosity_Level, &
-         &                                    verbosityWarn
+    use :: Display                   , only : displayIndent            , displayMessage                , displayUnindent              , displayVerbosity, &
+          &                                   verbosityLevelWarn
     use :: Galacticus_Error          , only : Galacticus_Error_Report  , errorStatusSuccess
     use :: Galacticus_Nodes          , only : nodeComponentBasic       , nodeComponentDarkMatterProfile, treeNodeList
     use :: Merger_Tree_Read_Importers, only : nodeData
@@ -1976,24 +1976,24 @@ contains
                    useFallbackScaleMethod=.false.
                 else
                    if (self%scaleRadiiFailureIsFatal) then
-                      messageVerbosity=Galacticus_Verbosity_Level()
+                      messageVerbosity=displayVerbosity()
                    else
-                      messageVerbosity=verbosityWarn
+                      messageVerbosity=verbosityLevelWarn
                    end if
-                   call Galacticus_Display_Indent  ("failed to find scale radius consistent with specified half-mass radius",messageVerbosity)
+                   call displayIndent  ("failed to find scale radius consistent with specified half-mass radius",messageVerbosity)
                    write (label,'(i16)') readNode%hostTree%index
                    message="      tree index: "//trim(label)
-                   call Galacticus_Display_Message(message,messageVerbosity)
+                   call displayMessage(message,messageVerbosity)
                     write (label,'(i16)') readNode%index()
                    message="      node index: "//trim(label)
-                   call Galacticus_Display_Message(message,messageVerbosity)
+                   call displayMessage(message,messageVerbosity)
                    write (label,'(e12.6)') self%darkMatterHaloScale_%virialRadius(readNode)
                    message="   virial radius: "//trim(label)
-                   call Galacticus_Display_Message(message,messageVerbosity)
+                   call displayMessage(message,messageVerbosity)
                    write (label,'(e12.6)') readRadiusHalfMass
                    message="half-mass radius: "//trim(label)
-                   call Galacticus_Display_Message(message,messageVerbosity)
-                   call Galacticus_Display_Unindent("",messageVerbosity)
+                   call displayMessage(message,messageVerbosity)
+                   call displayUnindent("",messageVerbosity)
                    if (self%scaleRadiiFailureIsFatal) then
                       call Galacticus_Error_Report('problem with half-mass radii - see report above - aborting'//{introspection:location})
                    else
@@ -2020,8 +2020,8 @@ contains
     ! Report warning on excessive scale radii if not already done.
     if (excessiveScaleRadii.and..not.excessiveScaleRadiiReported) then
        excessiveScaleRadiiReported=.true.
-       call Galacticus_Display_Message('warning - some scale radii exceed the corresponding virial radii - suggests&
-            & inconsistent definitions of halo mass/radius'//{introspection:location},verbosityWarn)
+       call displayMessage('warning - some scale radii exceed the corresponding virial radii - suggests&
+            & inconsistent definitions of halo mass/radius'//{introspection:location},verbosityLevelWarn)
     end if
 
     ! Exit on excessive half mass radii.
@@ -2569,9 +2569,9 @@ contains
 
   subroutine readScanForBranchJumps(self,nodes,nodeList)
     !% Search for subhalos which move between branches/trees.
-    use :: Galacticus_Display        , only : Galacticus_Display_Message, verbosityWarn
+    use :: Display                   , only : displayMessage, verbosityLevelWarn
     use :: Galacticus_Nodes          , only : treeNodeList
-    use :: ISO_Varying_String        , only : assignment(=)             , operator(//)
+    use :: ISO_Varying_String        , only : assignment(=) , operator(//)
     use :: Merger_Tree_Read_Importers, only : nodeData
     use :: String_Handling           , only : operator(//)
     implicit none
@@ -2621,7 +2621,7 @@ contains
                       message=message//nodes(iNode)%descendent%nodeIndex//']'
                       message=message//char(10)//'ignoring as not currently supported'
                       message=message//char(10)//'warning will not be issued again'
-                      call Galacticus_Display_Message(message,verbosityWarn)
+                      call displayMessage(message,verbosityLevelWarn)
                       self%warningNestedHierarchyIssued=.true.
                    end if
                    jumpToHost => jumpToHost%host
@@ -3124,9 +3124,9 @@ contains
 
   subroutine readTimeUntilMergingSubresolution(self,lastSeenNode,nodes,nodeList,iNode,timeSubhaloMerges)
     !% Compute the additional time until merging after a subhalo is lost from the tree (presumably due to limited resolution).
-    use :: Galacticus_Display        , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, verbosityWarn
+    use :: Display                   , only : displayIndent          , displayMessage       , displayUnindent, verbosityLevelWarn
     use :: Galacticus_Error          , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes          , only : nodeComponentBasic       , nodeComponentPosition     , treeNode                   , treeNodeList
+    use :: Galacticus_Nodes          , only : nodeComponentBasic     , nodeComponentPosition, treeNode       , treeNodeList
     use :: Kepler_Orbits             , only : keplerOrbit
     use :: Merger_Tree_Read_Importers, only : nodeData
     use :: String_Handling           , only : operator(//)
@@ -3189,20 +3189,20 @@ contains
           if (Vector_Magnitude(relativePosition) == 0.0d0) then
              message='merging halos ['
              message=message//lastSeenNode%nodeIndex//' & '//primaryProgenitor%nodeIndex//'] have zero separation'
-             call Galacticus_Display_Indent  (message                          ,verbosityWarn)
+             call displayIndent  (message                          ,verbosityLevelWarn)
              write (coordinateLabel,'("[",e12.6,",",e12.6,",",e12.6,"]")') primaryProgenitor%position
              message="position [primary  ] = "//trim(coordinateLabel)
-             call Galacticus_Display_Message (message                          ,verbosityWarn)
+             call displayMessage (message                          ,verbosityLevelWarn)
              write (coordinateLabel,'("[",e12.6,",",e12.6,",",e12.6,"]")') lastSeenNode     %position
              message="position [satellite] = "//trim(coordinateLabel)
-             call Galacticus_Display_Message (message                          ,verbosityWarn)
+             call displayMessage (message                          ,verbosityLevelWarn)
              write (coordinateLabel,'("[",e12.6,",",e12.6,",",e12.6,"]")') primaryProgenitor%velocity
              message="velocity [primary  ] = "//trim(coordinateLabel)
-             call Galacticus_Display_Message (message                          ,verbosityWarn)
+             call displayMessage (message                          ,verbosityLevelWarn)
              write (coordinateLabel,'("[",e12.6,",",e12.6,",",e12.6,"]")') lastSeenNode     %velocity
              message="velocity [satellite] = "//trim(coordinateLabel)
-             call Galacticus_Display_Message (message                          ,verbosityWarn)
-             call Galacticus_Display_Unindent('assuming instantaneous merging' ,verbosityWarn)
+             call displayMessage (message                          ,verbosityLevelWarn)
+             call displayUnindent('assuming instantaneous merging' ,verbosityLevelWarn)
           else
              ! Create the orbit.
              orbit=readOrbitConstruct(lastSeenNode%nodeMass,primaryProgenitor%nodeMass,relativePosition,relativeVelocity)
@@ -3413,31 +3413,31 @@ contains
 
   subroutine readTimingReport(self)
     !% Report on time taken in various steps of processing merger trees read from file.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
+    use :: Display, only : displayIndent, displayMessage, displayUnindent
     implicit none
     class    (mergerTreeConstructorRead), intent(inout) :: self
     integer                                             :: i        , lengthMaximum
     type     (varying_string           )                :: message
     character(len=12                   )                :: timeTaken
 
-    call Galacticus_Display_Indent("Merger tree read processing report:")
+    call displayIndent("Merger tree read processing report:")
     if (allocated(self%timingTimes).and.size(self%timingTimes) > 1) then
        lengthMaximum=maxval(len(self%timingLabels))
        do i=2,size(self%timingTimes)
           write (timeTaken,'(f10.2)') self%timingTimes(i)-self%timingTimes(i-1)
           message=repeat(" ",lengthMaximum-len(self%timingLabels(i)))//self%timingLabels(i)//": "//trim(adjustl(timeTaken))//" s"
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end do
     end if
-    call Galacticus_Display_Unindent("done")
+    call displayUnindent("done")
     return
   end subroutine readTimingReport
 
   subroutine readRootNodeAffinitiesInitial(self,nodes)
     !% Find initial root node affinities for all nodes.
-    use :: Galacticus_Display        , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, verbosityInfo, &
-         &                                    verbosityWarn
-    use :: ISO_Varying_String        , only : varying_string           , assignment(=)             , operator(//)
+    use :: Display                   , only : displayIndent     , displayMessage, displayUnindent, verbosityLevelInfo, &
+          &                                   verbosityLevelWarn
+    use :: ISO_Varying_String        , only : assignment(=)     , operator(//)  , varying_string
     use :: Memory_Management         , only : allocateArray
     use :: Merger_Tree_Read_Importers, only : nodeDataMinimal
     use :: Sorting                   , only : sortIndex
@@ -3538,12 +3538,12 @@ contains
     end if
     self%splitForestTreeSize(treeCount)=size(nodes)+1-self%splitForestTreeStart(treeCount)
     ! Report.
-    call Galacticus_Display_Indent('Breaking forest into trees:',verbosityInfo)
+    call displayIndent('Breaking forest into trees:',verbosityLevelInfo)
     do i=1,treeCount
        message="Tree "
        message=message//i//" of "//treeCount//" contains "//self%splitForestTreeSize(i)//" node"
        if (self%splitForestTreeSize(i) > 1) message=message//"s"
-       call Galacticus_Display_Message(message,verbosityInfo)
+       call displayMessage(message,verbosityLevelInfo)
     end do
     ! Search for nodes which have a descendent with different root affinity.
     pushCount=0
@@ -3566,7 +3566,7 @@ contains
     end do
     message="Found "
     message=message//pushCount//" links between trees"
-    call Galacticus_Display_Message(message,verbosityInfo)
+    call displayMessage(message,verbosityLevelInfo)
     ! Build a list of push and pull links.
     call allocateArray(self%splitForestPushTo   ,[pushCount])
     call allocateArray(self%splitForestPullFrom ,[pushCount])
@@ -3631,7 +3631,7 @@ contains
                       message=message//nodes(j)%nodeIndex//']'
                       message=message//char(10)//'ignoring as not currently supported'
                       message=message//char(10)//'warning will not be issued again'
-                      call Galacticus_Display_Message(message,verbosityWarn)
+                      call displayMessage(message,verbosityLevelWarn)
                       self%warningSplitForestNestedHierarchyIssued=.true.
                    end if
                    do while (nodes(j)%nodeIndex /= nodes(j)%hostIndex)
@@ -3651,7 +3651,7 @@ contains
           end if
        end if
     end do
-    call Galacticus_Display_Unindent('done',verbosityInfo)
+    call displayUnindent('done',verbosityLevelInfo)
     return
   end subroutine readRootNodeAffinitiesInitial
 
@@ -3746,12 +3746,12 @@ contains
 
   subroutine readAssignSplitForestEvents(self,nodes,nodeList)
     !% Assign events to nodes if they jump between trees in a forest.
-    use :: Galacticus_Display        , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent , verbosityInfo
+    use :: Display                   , only : displayIndent          , displayMessage     , displayUnindent             , verbosityLevelInfo
     use :: Galacticus_Error          , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes          , only : nodeComponentBasic       , nodeEvent                 , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, &
-          &                                   treeNode                 , treeNodeList
+    use :: Galacticus_Nodes          , only : nodeComponentBasic     , nodeEvent          , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, &
+          &                                   treeNode               , treeNodeList
     use :: Merger_Tree_Read_Importers, only : nodeData
-    use :: Node_Events_Inter_Tree    , only : Node_Pull_From_Tree      , Node_Push_From_Tree
+    use :: Node_Events_Inter_Tree    , only : Node_Pull_From_Tree    , Node_Push_From_Tree
     use :: String_Handling           , only : operator(//)
     implicit none
     class           (mergerTreeConstructorRead)              , intent(inout), target :: self
@@ -3771,7 +3771,7 @@ contains
 
     !! TODO: Handle cases where branch jumps and/or subhalo promotions are disallowed.
 
-    call Galacticus_Display_Indent('Assigning inter-tree events',verbosityInfo)
+    call displayIndent('Assigning inter-tree events',verbosityLevelInfo)
     do iNode=1,size(nodes)
        ! Process only isolated nodes.
        if (nodes(iNode)%isolatedNodeIndex == readNodeReachabilityUnreachable) cycle
@@ -3806,7 +3806,7 @@ contains
                 write (label,'(f12.8)') self%splitForestPushTime(self%pushListIndex(node))
                 message="Attaching push event ["
                 message=message//newEvent%ID//"] to node "//node%nodeIndex//" [-->"//self%splitForestPullFrom(self%pushListIndex(node))//"] {ref:"//self%splitForestPushTo(self%pushListIndex(node))//"} at time "//label//" Gyr"
-                call Galacticus_Display_Message(message,verbosityInfo)
+                call displayMessage(message,verbosityLevelInfo)
              end if
           end if
           if (self%isOnPullList(node)) then
@@ -3911,7 +3911,7 @@ contains
                    write (label,'(f12.8)') self%splitForestPushTime(self%pullListIndex(node,iPull))
                    message="Attaching pull event ["
                    message=message//newEvent%ID//"] to node "//node%nodeIndex//" [<--"//self%splitForestPushTo(self%pullListIndex(node,iPull))//"] {ref:"//self%splitForestPushTo(self%pullListIndex(node,iPull))//"} at time "//label//" Gyr"
-                   call Galacticus_Display_Message(message,verbosityInfo)
+                   call displayMessage(message,verbosityLevelInfo)
                 end if
              end do
           end if
@@ -3946,7 +3946,7 @@ contains
           end if
        end do
     end do
-    call Galacticus_Display_Unindent('done',verbosityInfo)
+    call displayUnindent('done',verbosityLevelInfo)
     return
   end subroutine readAssignSplitForestEvents
 

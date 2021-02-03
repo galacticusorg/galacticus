@@ -828,7 +828,7 @@ CODE
 		$deepCopyModules{'MPI_Utilities'     } = 1;
 		$deepCopyModules{'ISO_Varying_String'} = 1;
 		$deepCopyModules{'String_Handling'   } = 1;
-		$deepCopyModules{'Galacticus_Display'} = 1;
+		$deepCopyModules{'Display'} = 1;
             }
 	    $rankMaximum = 0;
             my $deepCopyCode;
@@ -891,7 +891,7 @@ CODE
 					$assignments       .= "  self%".$name."%copiedSelf => destination%".$name."\n";
 					$assignments       .= "  call destination%".$name."%autoHook()\n";
 					$assignments       .= " end if\n";
-					$assignments       .= " if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
+					$assignments       .= " if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
 					    if ( $debugging );
 					$assignments       .= "end if\n";
 				    }
@@ -973,7 +973,7 @@ CODE
 					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
 						$assignments       .= "end if\n";
 					    }
-					    $assignments       .= "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
+					    $assignments       .= "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
 						if ( $debugging );
 					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
 						$assignments       .= "end if\n";
@@ -1116,7 +1116,7 @@ CODE
 				$assignments       .= "  self%".$name."%copiedSelf => destination%".$name."\n";
 				$assignments       .= "  call destination%".$name."%autoHook()\n";
 				$assignments       .= " end if\n";
-				$assignments       .= " if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
+				$assignments       .= " if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
 				    if ( $debugging );
 				$assignments       .= "end if\n";
 			    }
@@ -1190,7 +1190,7 @@ CODE
 				if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
 				    $assignments .= "end if\n";
 				}
-				$assignments       .= "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
+				$assignments       .= "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
 				    if ( $debugging );
 				if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
 				    $assignments       .= "end if\n";
@@ -1274,7 +1274,7 @@ CODE
 					$assignments       .= "  self%".$name."%copiedSelf => destination%".$name."\n";
 					$assignments       .= "  call destination%".$name."%autoHook()\n";
 					$assignments       .= " end if\n";
-					$assignments       .= " if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
+					$assignments       .= " if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
 					    if ( $debugging );
 					$assignments       .= "end if\n";
 				    }
@@ -1319,7 +1319,7 @@ CODE
 					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
 						$assignments       .= "end if\n";
 					    }
-					    $assignments       .= "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
+					    $assignments       .= "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
 						if ( $debugging );
 				   	    $assignments       .= "call destination%".$name."%autoHook()\n";
 					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
@@ -1430,8 +1430,8 @@ CODE
 	    # Add "stateStore" and "stateRestore" method.
 	    my $stateStoreCode;
 	    my $stateRestoreCode;
-	    my %stateStoreModules   = ( "Galacticus_Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "ISO_C_Binding" => 1 );
-	    my %stateRestoreModules = ( "Galacticus_Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "ISO_C_Binding" => 1 );
+	    my %stateStoreModules   = ( "Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "ISO_C_Binding" => 1 );
+	    my %stateRestoreModules = ( "Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "ISO_C_Binding" => 1 );
 	    my @outputUnusedVariables;
 	    my @inputUnusedVariables;
 	    my $allocatablesFound = 0;
@@ -1442,8 +1442,8 @@ CODE
 	    $rankMaximum          = 0;
 	    $stateStoreCode   .= &performIO("position=FTell(stateFile)\n");
 	    $stateRestoreCode .= &performIO("position=FTell(stateFile)\n");
-	    $stateStoreCode   .= "call Galacticus_Display_Indent(var_str('storing state for \""  .$directive->{'name'}."\" [position: ')//position//']',verbosity=verbosityWorking)\n";
-	    $stateRestoreCode .= "call Galacticus_Display_Indent(var_str('restoring state for \"".$directive->{'name'}."\" [position: ')//position//']',verbosity=verbosityWorking)\n";
+	    $stateStoreCode   .= "call displayIndent(var_str('storing state for \""  .$directive->{'name'}."\" [position: ')//position//']',verbosity=verbosityLevelWorking)\n";
+	    $stateRestoreCode .= "call displayIndent(var_str('restoring state for \"".$directive->{'name'}."\" [position: ')//position//']',verbosity=verbosityLevelWorking)\n";
 	    $stateStoreCode   .= "select type (self)\n";
 	    $stateRestoreCode .= "select type (self)\n";
 	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
@@ -1451,17 +1451,17 @@ CODE
 		$stateStoreCode   .= "type is (".$nonAbstractClass->{'name'}.")\n";
 		$stateRestoreCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
 		$stateStoreCode   .= "if (self%stateOperationID == stateOperationID) then\n"; # If this object was already stored, don't do it again.
-		$stateStoreCode   .= " call Galacticus_Display_Unindent('skipping - already stored',verbosity=verbosityWorking)\n";
+		$stateStoreCode   .= " call displayUnindent('skipping - already stored',verbosity=verbosityLevelWorking)\n";
 		$stateStoreCode   .= " return\n";
 		$stateStoreCode   .= "end if\n";
 		$stateStoreCode   .= "self%stateOperationID=stateOperationID\n";
 		$stateRestoreCode .= "if (self%stateOperationID == stateOperationID) then\n"; # If this object was already restored, don't do it again.
-		$stateRestoreCode .= " call Galacticus_Display_Unindent('skipping - already restored',verbosity=verbosityWorking)\n";
+		$stateRestoreCode .= " call displayUnindent('skipping - already restored',verbosity=verbosityLevelWorking)\n";
 		$stateRestoreCode .= " return\n";
 		$stateRestoreCode .= "end if\n";
 		$stateRestoreCode .= "self%stateOperationID=stateOperationID\n";
-		$stateStoreCode   .= " call Galacticus_Display_Message('object type \"".$nonAbstractClass->{'name'}."\"',verbosity=verbosityWorking)\n";
-		$stateRestoreCode .= " call Galacticus_Display_Message('object type \"".$nonAbstractClass->{'name'}."\"',verbosity=verbosityWorking)\n";
+		$stateStoreCode   .= " call displayMessage('object type \"".$nonAbstractClass->{'name'}."\"',verbosity=verbosityLevelWorking)\n";
+		$stateRestoreCode .= " call displayMessage('object type \"".$nonAbstractClass->{'name'}."\"',verbosity=verbosityLevelWorking)\n";
 		(my $label = $nonAbstractClass->{'name'}) =~ s/^$directive->{'name'}//;
 		$label = lcfirst($label)
 		    unless ( $label =~ m/^[A-Z]{2,}/ );
@@ -1509,7 +1509,7 @@ CODE
 					    (my $variableName = $_) =~ s/\s*=.*$//;
 					    next
 						if ( grep {lc($_) eq lc($variableName)} @excludes );
-					    $outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
+					    $outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
 					    $outputCode .= "  select type (c__ => self%".$variableName.")\n";
 					    $outputCode .= "  class is (".$declaration->{'type'}.")\n";
 					    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
@@ -1520,9 +1520,9 @@ CODE
 					    $outputCode .= &performIO("   write (label,'(i16)') 0\n");
 					    #$outputCode .= &performIO("   write (label,'(i16)') sizeof(c__)\n");
 					    $outputCode .= "  end select\n";
-					    $outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
+					    $outputCode .= "  call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= " end if\n";
-					    $inputCode  .= " call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
+					    $inputCode  .= " call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
 					    $outputCode .= " call self%".$variableName."%stateStore  (stateFile,gslStateFile,stateOperationID)\n";
 					    $inputCode  .= " call self%".$variableName."%stateRestore(stateFile,gslStateFile,stateOperationID)\n";
 					    $stateFileUsed    = 1;
@@ -1587,7 +1587,7 @@ CODE
 					    }
 					    my $arrayElement = $rank > 0 ? "(".join(",",map {"i".$_} 1..$rank).")" : "";
 					    $labelUsed   = 1;
-					    $outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
+					    $outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
 					    if ( $declaration->{'intrinsic'} eq "class" ) {
 						$outputCode .= "  select type (c__ => self%".$variableName.$arrayElement.")\n";
 						$outputCode .= "  class is (".$declaration->{'type'}.")\n";
@@ -1608,9 +1608,9 @@ CODE
 						$outputCode .= &performIO("   write (label,'(i16)') 0\n");
 						#$outputCode .= &performIO("   write (label,'(i16)') sizeof(self%".$variableName.")\n");
 					    }
-					    $outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName.$arrayElement."\" with size '//trim(adjustl(label))//' bytes')\n";
+					    $outputCode .= "  call displayMessage('storing \"".$variableName.$arrayElement."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= " end if\n";
-					    $inputCode  .= " call Galacticus_Display_Message('restoring \"".$variableName.$arrayElement."\"',verbosity=verbosityWorking)\n";
+					    $inputCode  .= " call displayMessage('restoring \"".$variableName.$arrayElement."\"',verbosity=verbosityLevelWorking)\n";
 					    $inputCode  .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateRestore(stateFile,gslStateFile".($isFunctionClass ? ",stateOperationID" : "").")\n";
 					    $outputCode .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateStore  (stateFile,gslStateFile".($isFunctionClass ? ",stateOperationID" : ",storeIdentifier=".($declaration->{'intrinsic'} eq "class" ? ".true." : ".false.")).")\n";
 					    for(my $i=1;$i<=$rank;++$i) {
@@ -1645,7 +1645,7 @@ CODE
 					    $stateFileUsed      = 1;
 					    $labelUsed          = 1;
 					    $outputCode        .= " if (allocated(self%".$variableName.")) then\n";
-					    $outputCode        .= "  if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
+					    $outputCode        .= "  if (displayVerbosity() >= verbosityLevelWorking) then\n";
 					    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
 					    #  <description>
 					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
@@ -1653,7 +1653,7 @@ CODE
 					    # </workaround>
 					    $outputCode .= &performIO("   write (label,'(i16)') 0\n");
 					    #$outputCode        .= &performIO("   write (label,'(i16)') sizeof(self%".$variableName.")\n");
-					    $outputCode        .= "   call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
+					    $outputCode        .= "   call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode        .= "  end if\n";
 					    $outputCode        .= &performIO("  write (stateFile) .true.\n"
 							       . "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
@@ -1664,7 +1664,7 @@ CODE
 					    $inputCode         .= &performIO(" read (stateFile) wasAllocated\n");
 					    $inputCode         .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 					    $inputCode         .= " if (wasAllocated) then\n";
-					    $inputCode         .= "  call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
+					    $inputCode         .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
 					    $inputCode         .= "  allocate(storedShape(".$rank."))\n";
 					    $inputCode         .= &performIO("  read (stateFile) storedShape\n");
 					    $inputCode         .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
@@ -1747,7 +1747,7 @@ CODE
 			    foreach ( @{$declaration->{'variables'}} ) {
 				(my $variableName = $_) =~ s/\s*=.*$//;
 				$labelUsed  = 1;
-				$outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
+				$outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
 				$outputCode .= "  select type (c__ => self%".$variableName.")\n";
 				$outputCode .= "  class is (".$declaration->{'type'}.")\n";
 				# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
@@ -1758,9 +1758,9 @@ CODE
 				$outputCode .= &performIO("   write (label,'(i16)') 0\n");
 				#$outputCode .=&performIO( "   write (label,'(i16)') sizeof(c__)\n");
 				$outputCode .= "  end select\n";
-				$outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
+				$outputCode .= "  call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 				$outputCode .= " end if\n";
-				$inputCode  .= " call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
+				$inputCode  .= " call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
 				$outputCode .= " call self%".$variableName."%stateStore  (stateFile,gslStateFile,stateOperationID)\n";
 				$inputCode  .= " call self%".$variableName."%stateRestore(stateFile,gslStateFile,stateOperationID)\n";
 				$stateFileUsed    = 1;
@@ -1824,7 +1824,7 @@ CODE
 				}
 				my $arrayElement = $rank > 0 ? "(".join(",",map {"i".$_} 1..$rank).")" : "";
 				$labelUsed   = 1;
-				$outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
+				$outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
 				if ( $declaration->{'intrinsic'} eq "class" ) {
 				    $outputCode .= "  select type (c__ => self%".$variableName.$arrayElement.")\n";
 				    $outputCode .= "  class is (".$declaration->{'type'}.")\n";
@@ -1845,9 +1845,9 @@ CODE
 				    $outputCode .= &performIO("   write (label,'(i16)') 0\n");
 				    #$outputCode .= &performIO("   write (label,'(i16)') sizeof(self%".$variableName.$arrayElement.")\n");
 				}
-				$outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName.$arrayElement."\" with size '//trim(adjustl(label))//' bytes')\n";
+				$outputCode .= "  call displayMessage('storing \"".$variableName.$arrayElement."\" with size '//trim(adjustl(label))//' bytes')\n";
 				$outputCode .= " end if\n";
-				$inputCode  .= " call Galacticus_Display_Message('restoring \"".$variableName.$arrayElement."\"',verbosity=verbosityWorking)\n";
+				$inputCode  .= " call displayMessage('restoring \"".$variableName.$arrayElement."\"',verbosity=verbosityLevelWorking)\n";
 				$inputCode  .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateRestore(stateFile,gslStateFile)\n";
 				$outputCode .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateStore  (stateFile,gslStateFile,storeIdentifier=".($declaration->{'intrinsic'} eq "class" ? ".true." : ".false.").")\n";
 				for(my $i=1;$i<=$rank;++$i) {
@@ -1882,7 +1882,7 @@ CODE
 				$stateFileUsed      = 1;
 				$labelUsed          = 1;
 				$outputCode        .= " if (allocated(self%".$variableName.")) then\n";
-				$outputCode        .= "  if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
+				$outputCode        .= "  if (displayVerbosity() >= verbosityLevelWorking) then\n";
 				# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
 				#  <description>
 				#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
@@ -1890,7 +1890,7 @@ CODE
 				# </workaround>
 				$outputCode        .= &performIO("   write (label,'(i16)') 0\n");
 				#$outputCode        .= &performIO("   write (label,'(i16)') sizeof(self%".$variableName.")\n");
-				$outputCode        .= "   call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
+				$outputCode        .= "   call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 				$outputCode        .= "  end if\n";
 				$outputCode        .= &performIO("  write (stateFile) .true.\n"
 						   .  "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
@@ -1901,7 +1901,7 @@ CODE
 				$inputCode         .= &performIO(" read (stateFile) wasAllocated\n");
 				$inputCode         .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 				$inputCode         .= " if (wasAllocated) then\n";
-				$inputCode         .= "  call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
+				$inputCode         .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
 				$inputCode         .= "  allocate(storedShape(".$rank."))\n";
 				$inputCode         .= &performIO("  read (stateFile) storedShape\n");
 				$inputCode         .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
@@ -1943,7 +1943,7 @@ CODE
 					foreach ( @{$declaration->{'variables'}} ) {
 					    $labelUsed = 1;
 					    (my $variableName = $_) =~ s/\s*=.*$//;
-					    $outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
+					    $outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
 					    $outputCode .= "  select type (c__ => self%".$variableName.")\n";
 					    $outputCode .= "  class is (".$declaration->{'type'}.")\n";
 					    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
@@ -1954,9 +1954,9 @@ CODE
 					    $outputCode .= &performIO("   write (label,'(i16)') 0\n");
 					    #$outputCode .= &performIO("   write (label,'(i16)') sizeof(c__)\n");
 					    $outputCode .= "  end select\n";
-					    $outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
+					    $outputCode .= "  call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= " end if\n";
-					    $inputCode  .= " call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
+					    $inputCode  .= " call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
 					    $outputCode .= " call self%".$variableName."%stateStore  (stateFile,gslStateFile,stateOperationID)\n";
 					    $inputCode  .= " call self%".$variableName."%stateRestore(stateFile,gslStateFile,stateOperationID)\n";
 					    $stateFileUsed    = 1;
@@ -2027,7 +2027,7 @@ CODE
 					    }
 					    my $arrayElement = $rank > 0 ? "(".join(",",map {"i".$_} 1..$rank).")" : "";
 					    $labelUsed   = 1;
-					    $outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
+					    $outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
 					    if ( $declaration->{'intrinsic'} eq "class" ) {
 						$outputCode .= "  select type (c__ => self%".$variableName.$arrayElement.")\n";
 						$outputCode .= "  class is (".$declaration->{'type'}.")\n";
@@ -2048,9 +2048,9 @@ CODE
 						$outputCode .= &performIO("   write (label,'(i16)') 0\n");
 						#$outputCode .= &performIO("   write (label,'(i16)') sizeof(self%".$variableName.")\n");
 					    }
-					    $outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName.$arrayElement."\" with size '//trim(adjustl(label))//' bytes')\n";
+					    $outputCode .= "  call displayMessage('storing \"".$variableName.$arrayElement."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= " end if\n";
-					    $inputCode  .= " call Galacticus_Display_Message('restoring \"".$variableName.$arrayElement."\"',verbosity=verbosityWorking)\n";
+					    $inputCode  .= " call displayMessage('restoring \"".$variableName.$arrayElement."\"',verbosity=verbosityLevelWorking)\n";
 					    $inputCode  .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateRestore(stateFile,gslStateFile".($isFunctionClass ? ",stateOperationID" : "").")\n";
 					    $outputCode .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateStore  (stateFile,gslStateFile".($isFunctionClass ? ",stateOperationID" : ",storeIdentifier=".($declaration->{'intrinsic'} eq "class" ? ".true." : ".false.")).")\n";
 					    for(my $i=1;$i<=$rank;++$i) {
@@ -2085,7 +2085,7 @@ CODE
 					    $stateFileUsed      = 1;
 					    $labelUsed          = 1;
 					    $outputCode        .= " if (allocated(self%".$variableName.")) then\n";
-					    $outputCode        .= "  if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
+					    $outputCode        .= "  if (displayVerbosity() >= verbosityLevelWorking) then\n";
 					    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
 					    #  <description>
 					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
@@ -2093,7 +2093,7 @@ CODE
 					    # </workaround>
 					    $outputCode        .= &performIO("   write (label,'(i16)') 0\n");
 					    #$outputCode        .= &performIO("   write (label,'(i16)') sizeof(self%".$variableName.")\n");
-					    $outputCode        .= "   call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
+					    $outputCode        .= "   call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode        .= "  end if\n";
 					    $outputCode        .= &performIO("  write (stateFile) .true.\n"
 					                       .  "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
@@ -2104,7 +2104,7 @@ CODE
 					    $inputCode         .= &performIO(" read (stateFile) wasAllocated\n");
 					    $inputCode         .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 					    $inputCode         .= " if (wasAllocated) then\n";
-					    $inputCode         .= "  call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
+					    $inputCode         .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
 					    $inputCode         .= "  allocate(storedShape(".$rank."))\n";
 					    $inputCode         .= &performIO("  read (stateFile) storedShape\n");
 					    $inputCode         .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
@@ -2162,7 +2162,7 @@ CODE
 		} else {
 		    foreach ( @staticVariables ) {
 			$labelUsed       = 1;
-			$stateStoreCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
+			$stateStoreCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
 			# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
 			#  <description>
 			#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
@@ -2170,7 +2170,7 @@ CODE
 			# </workaround>
 			$stateStoreCode .= &performIO("   write (label,'(i16)') 0\n");
 			#$stateStoreCode .= &performIO("  write (label,'(i16)') sizeof(self%".$_.")\n");
-			$stateStoreCode .= "  call Galacticus_Display_Message('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
+			$stateStoreCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
 			$stateStoreCode .= " end if\n";
 		    }
 		    $stateStoreCode .= &performIO(" write (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n")
@@ -2184,7 +2184,7 @@ CODE
 		    $stateRestoreModules{'Galacticus_Error'} = 1;
 		} else {
 		    foreach ( @staticVariables ) {
-			$stateRestoreCode .= " call Galacticus_Display_Message('restoring \"".$_."\"',verbosity=verbosityWorking)\n";
+			$stateRestoreCode .= " call displayMessage('restoring \"".$_."\"',verbosity=verbosityLevelWorking)\n";
 		    }
 		    $stateRestoreCode .= &performIO(" read (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n")
 			if ( scalar(@staticVariables) > 0 );
@@ -2193,10 +2193,10 @@ CODE
 		}
 	    }
 	    $stateStoreCode   .= "end select\n";
-	    $stateStoreCode   .= "call Galacticus_Display_Unindent('done',verbosity=verbosityWorking)\n";
+	    $stateStoreCode   .= "call displayUnindent('done',verbosity=verbosityLevelWorking)\n";
 	    $stateStoreCode   .= "return\n";
 	    $stateRestoreCode .= "end select\n";
-	    $stateRestoreCode .= "call Galacticus_Display_Unindent('done',verbosity=verbosityWorking)\n";
+	    $stateRestoreCode .= "call displayUnindent('done',verbosity=verbosityLevelWorking)\n";
 	    $stateRestoreCode .= "return\n";
 	    unless ( $gslStateFileUsed ) {
 		push(@outputUnusedVariables,"gslStateFile");
@@ -3095,7 +3095,7 @@ CODE
 	    $modulePostContains->{'content'} .= "    use, intrinsic :: ISO_C_Binding     , only : c_size_t                  , c_ptr\n";
 	    $modulePostContains->{'content'} .= "    use            :: ISO_Varying_String, only : var_str\n";
 	    $modulePostContains->{'content'} .= "    use            :: String_Handling   , only : operator(//)\n";
-	    $modulePostContains->{'content'} .= "    use            :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking\n";
+	    $modulePostContains->{'content'} .= "    use            :: Display, only : displayMessage, verbosityLevelWorking\n";
 	    $modulePostContains->{'content'} .= "    implicit none\n";
 	    $modulePostContains->{'content'} .= "    integer          , intent(in   ) :: stateFile\n";
 	    $modulePostContains->{'content'} .= "    integer(c_size_t), intent(in   ) :: stateOperationID\n";
@@ -3104,11 +3104,11 @@ CODE
 	    $modulePostContains->{'content'} .= &performIO("position=FTell(stateFile)\n");
 	    $modulePostContains->{'content'} .= "    if (associated(".$directive->{'name'}."Default)) then\n";
 	    $modulePostContains->{'content'} .= &performIO("     write (stateFile) .true.\n");
-	    $modulePostContains->{'content'} .= "     call Galacticus_Display_Message(var_str('storing default object of \""  .$directive->{'name'}."\" class [position: ')//position//']',verbosity=verbosityWorking)\n";
+	    $modulePostContains->{'content'} .= "     call displayMessage(var_str('storing default object of \""  .$directive->{'name'}."\" class [position: ')//position//']',verbosity=verbosityLevelWorking)\n";
 	    $modulePostContains->{'content'} .= "     call ".$directive->{'name'}."Default%stateStore(stateFile,gslStateFile,stateOperationID)\n";
 	    $modulePostContains->{'content'} .= "    else\n";
 	    $modulePostContains->{'content'} .= &performIO("     write (stateFile) .false.\n");
-	    $modulePostContains->{'content'} .= "     call Galacticus_Display_Message(var_str('skipping default object of \""  .$directive->{'name'}."\" class [position: ')//position//']',verbosity=verbosityWorking)\n";
+	    $modulePostContains->{'content'} .= "     call displayMessage(var_str('skipping default object of \""  .$directive->{'name'}."\" class [position: ')//position//']',verbosity=verbosityLevelWorking)\n";
 	    $modulePostContains->{'content'} .= "    end if\n";
 	    $modulePostContains->{'content'} .= "    return\n";
 	    $modulePostContains->{'content'} .= "  end subroutine ".$directive->{'name'}."DoStateStore\n\n";
@@ -3120,7 +3120,7 @@ CODE
 	    $modulePostContains->{'content'} .= "    use, intrinsic :: ISO_C_Binding     , only : c_size_t                  , c_ptr\n";
 	    $modulePostContains->{'content'} .= "    use            :: ISO_Varying_String, only : var_str\n";
 	    $modulePostContains->{'content'} .= "    use            :: String_Handling   , only : operator(//)\n";
-	    $modulePostContains->{'content'} .= "    use            :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking\n";
+	    $modulePostContains->{'content'} .= "    use            :: Display, only : displayMessage, verbosityLevelWorking\n";
 	    $modulePostContains->{'content'} .= "    implicit none\n";
 	    $modulePostContains->{'content'} .= "    integer          , intent(in   ) :: stateFile\n";
 	    $modulePostContains->{'content'} .= "    integer(c_size_t), intent(in   ) :: stateOperationID\n";
@@ -3131,11 +3131,11 @@ CODE
 	    $modulePostContains->{'content'} .= &performIO("    read (stateFile) initialized\n"
                                              .             "    position=FTell(stateFile)\n");
 	    $modulePostContains->{'content'} .= "    if (initialized) then\n";
-	    $modulePostContains->{'content'} .= "     call Galacticus_Display_Message(var_str('restoring default object of \""  .$directive->{'name'}."\" class [position: ')//position//']',verbosity=verbosityWorking)\n";
+	    $modulePostContains->{'content'} .= "     call displayMessage(var_str('restoring default object of \""  .$directive->{'name'}."\" class [position: ')//position//']',verbosity=verbosityLevelWorking)\n";
 	    $modulePostContains->{'content'} .= "     default => ".$directive->{'name'}."()\n";
 	    $modulePostContains->{'content'} .= "     call default%stateRestore(stateFile,gslStateFile,stateOperationID)\n";
 	    $modulePostContains->{'content'} .= "    else\n";
-	    $modulePostContains->{'content'} .= "     call Galacticus_Display_Message(var_str('skipping default object of \""  .$directive->{'name'}."\" class [position: ')//position//']',verbosity=verbosityWorking)\n";
+	    $modulePostContains->{'content'} .= "     call displayMessage(var_str('skipping default object of \""  .$directive->{'name'}."\" class [position: ')//position//']',verbosity=verbosityLevelWorking)\n";
 	    $modulePostContains->{'content'} .= "    end if\n";
 	    $modulePostContains->{'content'} .= "    return\n";
 	    $modulePostContains->{'content'} .= "  end subroutine ".$directive->{'name'}."DoStateRetrieve\n\n";
@@ -3599,7 +3599,7 @@ sub deepCopyLinkedList {
     $code::objectIntrinsic = exists($linkedList->{'objectIntrinsic'}) ? $linkedList->{'objectIntrinsic'} : "class";
     $code::next            =                                            $linkedList->{'next'           }          ;
     $code::location        = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'});
-    $code::debugCode       = $debugging ? "if (debugReporting.and.mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".$code::objectType."] : ".$code::object." : ')//loc(itemNew_)//' : '//loc(itemNew_%".$code::object.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'},compact => 1).",verbositySilent)\n" : "";
+    $code::debugCode       = $debugging ? "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".$code::objectType."] : ".$code::object." : ')//loc(itemNew_)//' : '//loc(itemNew_%".$code::object.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'},compact => 1).",verbosityLevelSilent)\n" : "";
     my $deepCopyCode = fill_in_string(<<'CODE', PACKAGE => 'code');
 destination%{$variable} => null            ()
 destination_            => null            ()

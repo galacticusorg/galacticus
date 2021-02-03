@@ -644,8 +644,8 @@ contains
 
   function exponentialDiskAcceleration(self,coordinates)
     !% Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for exponential disk mass distributions.
-    use :: Coordinates                     , only : assignment(=), coordinateCylindrical, coordinateCartesian
-    use :: Numerical_Constants_Astronomical, only : gigaYear     , megaParsec           , gravitationalConstantGalacticus
+    use :: Coordinates                     , only : assignment(=), coordinateCartesian            , coordinateCylindrical
+    use :: Numerical_Constants_Astronomical, only : gigaYear     , gravitationalConstantGalacticus, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     double precision                                 , dimension(3  ) :: exponentialDiskAcceleration
@@ -688,7 +688,7 @@ contains
 
   function exponentialDiskTidalTensor(self,coordinates)
     !% Computes the gravitational tidal tensor at {\normalfont \ttfamily coordinates} for exponential disk mass distributions.
-    use :: Coordinates                     , only : assignment(=)                  , coordinateCylindrical, coordinateCartesian
+    use :: Coordinates                     , only : assignment(=)                  , coordinateCartesian, coordinateCylindrical
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     type            (tensorRank2Dimension3Symmetric )                 :: exponentialDiskTidalTensor
@@ -747,7 +747,7 @@ contains
   
   subroutine exponentialDiskAccelerationInterpolate(self,coordinatesCylindrical,accelerationRadial,accelerationVertical,tidalTensorRadialRadial,tidalTensorVerticalVertical,tidalTensorCross)
     !% Interpolate gravitational accelerations and tidal tensors in the tabulated solutions for an exponential disk.
-    use :: Coordinates, only : assignment(=), coordinateCylindrical, coordinateCartesian
+    use :: Coordinates, only : assignment(=), coordinateCartesian, coordinateCylindrical
     implicit none
     class           (massDistributionExponentialDisk), intent(inout)            :: self
     type            (coordinateCylindrical          ), intent(in   )            :: coordinatesCylindrical
@@ -855,18 +855,18 @@ contains
   subroutine exponentialDiskAccelerationTabulate(self)
     !% Tabulate the acceleration (and tidal tensor) due to the exponential disk mass distribution. Uses the approach of
     !% \cite{kuijken_mass_1989}. The tabulation is built for a dimensionless disk.
-    use :: Bessel_Functions        , only : Bessel_Function_J0_Zero    , Bessel_Function_J1_Zero         , Bessel_Function_Jn_Zero
-    use :: Galacticus_Display      , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-         &                                  verbosityWorking
+    use :: Bessel_Functions        , only : Bessel_Function_J0_Zero, Bessel_Function_J1_Zero, Bessel_Function_Jn_Zero
+    use :: Display                 , only : displayCounter         , displayCounterClear    , displayIndent          , displayUnindent, &
+          &                                 verbosityLevelWorking
+    use :: File_Utilities          , only : Directory_Make         , File_Exists            , File_Lock              , File_Path      , &
+          &                                 File_Unlock            , lockDescriptor
     use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: Galacticus_Paths        , only : galacticusPath             , pathTypeDataDynamic
-    use :: File_Utilities          , only : File_Exists                , File_Lock                       , File_Unlock              , File_Path                  , &
-         &                                  Directory_Make             , lockDescriptor
-    use :: ISO_Varying_String      , only : operator(//)               , char                            , varying_string
-    use :: IO_HDF5                 , only : hdf5Access                 , hdf5Object
+    use :: Galacticus_Paths        , only : galacticusPath         , pathTypeDataDynamic
+    use :: IO_HDF5                 , only : hdf5Access             , hdf5Object
+    use :: ISO_Varying_String      , only : char                   , operator(//)           , varying_string
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
-    use :: Numerical_Ranges        , only : Make_Range                 , rangeTypeLogarithmic
+    use :: Numerical_Ranges        , only : Make_Range             , rangeTypeLogarithmic
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
     double precision                                 , parameter     :: radiusMinimum                    = 1.0d-2, radiusMaximum    =5.0d1
@@ -945,7 +945,7 @@ contains
             &  *self%scaleRadius &
             &  /self%scaleHeight
        ! Iterate over radii and heights.
-       call Galacticus_Display_Indent("tabulating gravitational accelerations for exponential disk",verbosityWorking)
+       call displayIndent("tabulating gravitational accelerations for exponential disk",verbosityLevelWorking)
        countWork=0
        do iRadius=1,countRadii
           radius=self%accelerationRadii(iRadius)
@@ -959,7 +959,7 @@ contains
           do iHeight=1,countRadii
              !$omp atomic
              countWork=countWork+1
-             call Galacticus_Display_Counter(int(100.0d0*dble(countWork)/dble(countRadii**2)),iRadius == 1 .and. iHeight == 1,verbosityWorking)
+             call displayCounter(int(100.0d0*dble(countWork)/dble(countRadii**2)),iRadius == 1 .and. iHeight == 1,verbosityLevelWorking)
              height=self%accelerationHeights(iHeight)          
              ! Evaluate the integral for the radial component of acceleration.
              self%accelerationRadial(iRadius,iHeight)=0.0d0
@@ -1058,8 +1058,8 @@ contains
           !$omp end do
           !$omp end parallel
        end do
-       call Galacticus_Display_Counter_Clear(       verbosityWorking)
-       call Galacticus_Display_Unindent     ("done",verbosityWorking)
+       call displayCounterClear(       verbosityLevelWorking)
+       call displayUnindent     ("done",verbosityLevelWorking)
        !$ call hdf5Access%set()
        call file%openFile    (char   (fileName                        )                              ,overWrite=.true.,readOnly=.false.)
        call file%writeDataset(        self%accelerationRadii           ,'radii'                                                        )
@@ -1215,7 +1215,7 @@ contains
 
     double precision function Izm(wavenumber,m)
       !% Evalute the $m$-dependent part of the $I(z)$ integral.
-      use Binomial_Coefficients, only : Binomial_Coefficient
+      use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none
       double precision, intent(in   ) :: wavenumber
       integer         , intent(in   ) :: m
@@ -1255,7 +1255,7 @@ contains
     
     double precision function dIzdz(wavenumber)
       !% $z$ derivative of the $z$-dependent term appearing in the expression for the potential of the disk.
-      use Binomial_Coefficients, only : Binomial_Coefficient
+      use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none
       double precision, intent(in   ) :: wavenumber
       double precision                :: dIzdzmOdd , dIzdzmEven, &
@@ -1283,7 +1283,7 @@ contains
 
     double precision function dIzdzm(wavenumber,m)
       !% Evalute the $m$-dependent part of the $\mathrm{d}I(z)/\mathrm{d}z$ integral.
-      use Binomial_Coefficients, only : Binomial_Coefficient
+      use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none
       double precision, intent(in   ) :: wavenumber
       integer         , intent(in   ) :: m
@@ -1324,7 +1324,7 @@ contains
 
     double precision function d2Izdz2(wavenumber)
       !% $z$ $2^\mathrm{nd}$ derivative of the $z$-dependent term appearing in the expression for the potential of the disk.
-      use Binomial_Coefficients, only : Binomial_Coefficient
+      use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none
       double precision, intent(in   ) :: wavenumber
       double precision                :: d2Izdz2mOdd , d2Izdz2mEven, &
@@ -1352,7 +1352,7 @@ contains
 
     double precision function d2Izdz2m(wavenumber,m)
       !% Evalute the $m$-dependent part of the $\mathrm{d}^2I(z)/\mathrm{d}z^2$ integral.
-      use Binomial_Coefficients, only : Binomial_Coefficient
+      use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none
       double precision, intent(in   ) :: wavenumber
       integer         , intent(in   ) :: m

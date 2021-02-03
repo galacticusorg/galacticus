@@ -23,7 +23,7 @@ module Memory_Management
   !% Routines and data type for storing and reporting on memory usage. Also contains routines for allocating and deallocating
   !% arrays with automatic error checking and deallocation at program termination and memory usage reporting.
   use            :: Galacticus_Error, only : Galacticus_Error_Report
-  use, intrinsic :: ISO_C_Binding   , only : c_long                 , c_int    , c_double_complex
+  use, intrinsic :: ISO_C_Binding   , only : c_double_complex       , c_int    , c_long
   use            :: Kind_Numbers    , only : kind_int8              , kind_quad
   implicit none
   private
@@ -98,8 +98,8 @@ contains
   subroutine Memory_Usage_Report()
     !% Writes a report on the current memory usage. The total memory use is evaluated and all usages are scaled into convenient
     !% units prior to output.
-    use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: ISO_Varying_String, only : varying_string            , assignment(=)
+    use :: Display           , only : displayMessage
+    use :: ISO_Varying_String, only : assignment(=) , varying_string
     implicit none
     double precision                , parameter :: newReportChangeFactor=1.2d0
     logical                                     :: issueNewReport
@@ -144,8 +144,8 @@ contains
        call Add_Memory_Component(usedMemory%memoryType(memoryTypeMisc) ,headerText,usageText,join)
        join='='
        call Add_Memory_Component(usedMemory%memoryType(memoryTypeTotal),headerText,usageText,join)
-       call Galacticus_Display_Message(headerText)
-       call Galacticus_Display_Message(usageText )
+       call displayMessage(headerText)
+       call displayMessage(usageText )
     end if
     !$omp end critical(memoryUsageReport)
     return
@@ -153,7 +153,8 @@ contains
 
   subroutine Add_Memory_Component(memoryUsage_,headerText,usageText,join)
     !% Add a memory type to the memory reporting strings.
-    use :: ISO_Varying_String, only : varying_string, trim, assignment(=), operator(//), char, len
+    use :: ISO_Varying_String, only : assignment(=), char          , len, operator(//), &
+          &                           trim         , varying_string
     implicit none
     type     (memoryUsage           ), intent(in   ) :: memoryUsage_
     type     (varying_string        ), intent(inout) :: headerText     , usageText
@@ -242,9 +243,9 @@ contains
 
   subroutine Memory_Usage_Record(elementsUsed,memoryType,addRemove,blockCount,file,line)
     !% Record a change in memory usage.
-    use            :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityDebug
+    use            :: Display           , only : displayMessage, displayVerbosity, verbosityLevelDebug
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: ISO_Varying_String, only : varying_string            , assignment(=)             , operator(//)
+    use            :: ISO_Varying_String, only : assignment(=) , operator(//)    , varying_string
     use            :: String_Handling   , only : operator(//)
     implicit none
     integer  (kind=c_size_t ), intent(in   )           :: elementsUsed
@@ -272,12 +273,12 @@ contains
     accumulation=elementsUsed*addRemoveActual+sign(blockCountActual,addRemoveActual)*allocationOverhead
     !$omp atomic
     usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage+accumulation
-    if (Galacticus_Verbosity_Level() >= verbosityDebug) then
+    if (displayVerbosity() >= verbosityLevelDebug) then
        if (present(file).and.present(line)) then
           message='memory record: '
           message=message//elementsUsed*addRemoveActual+sign(blockCountActual,addRemoveActual)*allocationOverhead
           message=message//' ['//file//':'//line//']'
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end if
     end if
     return

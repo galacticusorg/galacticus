@@ -56,5 +56,5 @@
     </nodeOperatorMethod>
   </nodeOperatorMethod>
 
-  <verbosityLevel value="1"/>
+  <verbosityLevel value="standard"/>
 </parameters>

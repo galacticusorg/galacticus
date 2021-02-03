@@ -109,10 +109,10 @@ contains
 
   subroutine environmentalOverdensityOperate(self,simulations)
     !% Determine the mean position and velocity of N-body particles.
-    use    :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear
-    use    :: Memory_Management , only : allocateArray             , deallocateArray
-    use    :: Nearest_Neighbors , only : nearestNeighbors
-    !$ use :: OMP_Lib           , only : omp_get_thread_num
+    use    :: Display          , only : displayCounter    , displayCounterClear
+    use    :: Memory_Management, only : allocateArray     , deallocateArray
+    use    :: Nearest_Neighbors, only : nearestNeighbors
+    !$ use :: OMP_Lib          , only : omp_get_thread_num
     implicit none
     class           (nbodyOperatorEnvironmentalOverdensity), intent(inout)                 :: self
     type            (nBodyData                            ), intent(inout), dimension(:  ) :: simulations
@@ -198,7 +198,7 @@ contains
        call allocateArray(overdensity,[size(position_,dim=2,kind=c_size_t)])
        overdensity=-2.0d0
        ! Iterate over particles.
-       call Galacticus_Display_Counter(0,.true.)
+       call displayCounter(0,.true.)
        j=0_c_size_t
        !$omp parallel do private(neighborCount,neighborIndex,neighborDistance) schedule(dynamic)
        do k=1_c_size_t,size(position_,dim=2,kind=c_size_t),self%sampleRate
@@ -208,11 +208,11 @@ contains
           !$omp atomic
           j=j+self%sampleRate
           !$ if (omp_get_thread_num() == 0) then
-          call Galacticus_Display_Counter(int(100.0d0*float(j)/float(size(position_,dim=2,kind=c_size_t))),.false.)
+          call displayCounter(int(100.0d0*float(j)/float(size(position_,dim=2,kind=c_size_t))),.false.)
           !$ end if
        end do
        !$omp end parallel do
-       call Galacticus_Display_Counter_Clear()
+       call displayCounterClear()
        call deallocateArray(position)
        call simulations(iSimulation)%analysis%writeDataset(overdensity,'overdensityEnvironmental')
     end do

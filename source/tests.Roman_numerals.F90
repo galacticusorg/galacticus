@@ -21,13 +21,13 @@
 
 program Test_Roman_Numerals
   !% Tests that Roman numeral conversion functions work.
-  use :: Galacticus_Display      , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Display                 , only : displayVerbositySet, verbosityLevelStandard
   use :: ISO_Varying_String      , only : var_str
   use :: Numerical_Roman_Numerals, only : Roman_Numerals
-  use :: Unit_Tests              , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests              , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
 
-  call Galacticus_Verbosity_Level_Set(verbosityStandard                                                    )
+  call displayVerbositySet(verbosityLevelStandard                                                    )
   call Unit_Tests_Begin_Group        ("Roman numeral conversion"                                           )
   call Assert                        ('1987 = MCMLXXXVII'       ,Roman_Numerals(1987),var_str('MCMLXXXVII'))
   call Unit_Tests_End_Group          (                                                                     )

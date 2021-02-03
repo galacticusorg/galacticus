@@ -25,15 +25,15 @@ program Test_DiemerKravtsov2014_Concentration
   use :: Cosmology_Functions                 , only : cosmologyFunctions                              , cosmologyFunctionsClass
   use :: Cosmology_Parameters                , only : cosmologyParameters                             , cosmologyParametersClass         , hubbleUnitsLittleH
   use :: Dark_Matter_Profiles_Concentration  , only : darkMatterProfileConcentrationDiemerKravtsov2014
+  use :: Display                             , only : displayVerbositySet                             , verbosityLevelStandard
   use :: Events_Hooks                        , only : eventsHooksInitialize
   use :: File_Utilities                      , only : File_Exists
   use :: Functions_Global_Utilities          , only : Functions_Global_Set
-  use :: Galacticus_Display                  , only : Galacticus_Verbosity_Level_Set                  , verbosityStandard
   use :: Galacticus_Error                    , only : Galacticus_Error_Report
   use :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
   use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize                    , nodeComponentBasic               , treeNode
   use :: Galacticus_Paths                    , only : galacticusPath                                  , pathTypeExec
-  use :: ISO_Varying_String                  , only : varying_string                                  , assignment(=)                    , operator(//)                       , char
+  use :: ISO_Varying_String                  , only : assignment(=)                                   , char                             , operator(//)                       , varying_string
   use :: Input_Parameters                    , only : inputParameters
   use :: Node_Components                     , only : Node_Components_Initialize                      , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
   use :: Power_Spectra                       , only : powerSpectrum                                   , powerSpectrumClass
@@ -58,7 +58,7 @@ program Test_DiemerKravtsov2014_Concentration
        &                                                                         i
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("DiemerKravtsov2014 halo concentration algorithm")
   ! Test DiemerKravtsov2014 halo concentration algorithm.

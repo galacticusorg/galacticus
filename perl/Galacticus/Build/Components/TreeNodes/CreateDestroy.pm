@@ -310,7 +310,7 @@ sub Tree_Node_Class_Creation {
 	modules     =>
 	    [
 	     "ISO_Varying_String",
-	     "Galacticus_Display",
+	     "Display",
 	     "Galacticus_Error",
 	     "String_Handling"
   	    ],
@@ -340,10 +340,10 @@ sub Tree_Node_Class_Creation {
 	    ]
     };
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
-if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+if (displayVerbosity() >= verbosityLevelInfo) then
   message='Creating {$class->{'name'}} in node '
   message=message//self%index()
-  call Galacticus_Display_Message(message,verbosityInfo)
+  call displayMessage(message,verbosityLevelInfo)
 end if
 if (present(template)) then
    allocate(self%component{ucfirst($class->{'name'})}(1),source=template)

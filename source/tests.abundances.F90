@@ -21,13 +21,13 @@
 
 program Test_Abundances
   !% Test abundances objects.
-  use :: Abundances_Structure      , only : abundances                    , max
+  use :: Abundances_Structure      , only : abundances                , max
+  use :: Display                   , only : displayVerbositySet       , verbosityLevelStandard
   use :: Functions_Global_Utilities, only : Functions_Global_Set
-  use :: Galacticus_Display        , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: ISO_Varying_String        , only : varying_string                , assignment(=)
+  use :: ISO_Varying_String        , only : assignment(=)             , varying_string
   use :: Input_Parameters          , only : inputParameters
   use :: Node_Components           , only : Node_Components_Initialize
-  use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests                , only : Assert                    , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (varying_string )               :: parameterFile
   type            (abundances     )               :: abundances1    , abundances2, abundances3
@@ -35,7 +35,7 @@ program Test_Abundances
   type            (inputParameters)               :: parameters
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Abundances objects functions")
 

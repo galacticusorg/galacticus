@@ -20,8 +20,8 @@
   !% Implementation of a posterior sampling likelihood class which implements a likelihood using Gaussian regression to emulate
   !% another likelihood.
 
-  use            :: Linear_Algebra, only : matrixLU
   use, intrinsic :: ISO_C_Binding , only : c_size_t
+  use            :: Linear_Algebra, only : matrixLU
 
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodGaussianRegression">
   !#  <description>
@@ -265,11 +265,11 @@ contains
   double precision function gaussianRegressionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for a Gaussian regression likelihood function.
     use :: Dates_and_Times               , only : Formatted_Date_and_Time
+    use :: Display                       , only : displayIndent                  , displayMessage                 , displayUnindent, displayVerbosity, &
+          &                                       verbosityLevelInfo
     use :: Error_Functions               , only : Error_Function
-    use :: Galacticus_Display            , only : Galacticus_Display_Indent      , Galacticus_Display_Message     , Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-          &                                       verbosityInfo
     use :: Galacticus_Error              , only : Galacticus_Error_Report
-    use :: Linear_Algebra                , only : vector                         , matrix                         , assignment(=)
+    use :: Linear_Algebra                , only : assignment(=)                  , matrix                         , vector
     use :: MPI_Utilities                 , only : mpiSelf
     use :: Memory_Management             , only : allocateArray
     use :: Models_Likelihoods_Constants  , only : logImpossible
@@ -314,7 +314,7 @@ contains
     !$GLC attributes unused :: forceAcceptance
 
     ! Report on emulation efficiency.
-    if (mod(self%evaluationCount,self%reportCount) == 0 .and. self%evaluationCount > 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+    if (mod(self%evaluationCount,self%reportCount) == 0 .and. self%evaluationCount > 0 .and. displayVerbosity() >= verbosityLevelInfo) then
        evaluationsTotal=mpiSelf%sum(self%evaluationCount)
        simulationsTotal=mpiSelf%sum(self%simulationCount)
        if (mpiSelf%isMaster()) then
@@ -328,7 +328,7 @@ contains
           message=message//trim(adjustl(label))//'/'
           write (label,'(f6.2)') 100.0d0*dble(evaluationsTotal-simulationsTotal)/dble(evaluationsTotal)
           message=message//trim(adjustl(label))//'%)'
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end if
     end if
     ! Rebuild emulator if necessary.
@@ -345,7 +345,7 @@ contains
     end select
     if (accumulatedStateCount >= self%emulatorRebuildCount .and. (any(stateCount == self%emulatorRebuildCount) .or. .not.self%initialized) .and. correlationLength > 0) then
        if (mpiSelf%isMaster()) then
-          call Galacticus_Display_Indent('Rebuilding Gaussian process emulator ['//char(Formatted_Date_and_Time())//']')
+          call displayIndent('Rebuilding Gaussian process emulator ['//char(Formatted_Date_and_Time())//']')
           call flush(0)
        end if
        ! Initialize Gaussian regression workspace.
@@ -382,7 +382,7 @@ contains
           self%initialized=.true.
        end if
        ! Gather the simulator state and likelihood from other chains.
-       if (mpiSelf%isMaster()) call Galacticus_Display_Message('gathering states ['//char(Formatted_Date_and_Time())//']')
+       if (mpiSelf%isMaster()) call displayMessage('gathering states ['//char(Formatted_Date_and_Time())//']')
        allocate(states     (simulationState%dimension(),self%emulatorRebuildCount,0:mpiSelf%count()-1))
        allocate(likelihoods(                            self%emulatorRebuildCount,0:mpiSelf%count()-1))
        states                    =mpiSelf%gather(self%simulationState    )
@@ -402,7 +402,7 @@ contains
        ! number of states available from all chains and take that number of states from each chain. If more states are needed, we
        ! find the minimum number of remaining states available from all chains and take that number of states from each chain. The
        ! process is repeated until we have accumulated enough states.
-       if (mpiSelf%isMaster()) call Galacticus_Display_Message('extracting states ['//char(Formatted_Date_and_Time())//']')
+       if (mpiSelf%isMaster()) call displayMessage('extracting states ['//char(Formatted_Date_and_Time())//']')
        j=0
        do while (j < self%emulatorRebuildCount)
           stateCountAccept=min(minval(stateCount,mask=stateCount > 0),max(self%emulatorRebuildCount/mpiSelf%count(),1))
@@ -432,7 +432,7 @@ contains
           self%statesCombined(:,i)=self%statesCombined(:,i)-self%stateMeans
        end do
        ! Evaluate sums needed in fitting polynomial trend model.
-       if (mpiSelf%isMaster()) call Galacticus_Display_Message('fitting global trends (step #1) ['//char(Formatted_Date_and_Time())//']')
+       if (mpiSelf%isMaster()) call displayMessage('fitting global trends (step #1) ['//char(Formatted_Date_and_Time())//']')
        iterator1=polynomialIterator(self%polynomialOrder,simulationState%dimension())
        iterator2=polynomialIterator(self%polynomialOrder,simulationState%dimension())
        ! Pre-compute products over states.
@@ -443,7 +443,7 @@ contains
           end do
        end do
        call iterator1%reset()
-       if (mpiSelf%isMaster()) call Galacticus_Display_Message('fitting global trends (step #2) ['//char(Formatted_Date_and_Time())//']')
+       if (mpiSelf%isMaster()) call displayMessage('fitting global trends (step #2) ['//char(Formatted_Date_and_Time())//']')
        ! Compute sums over states.
        do while (iterator1%iterate())
           self%likelihoodSums(iterator1%counter())=sum(workspace2D(:,iterator1%counter())*likelihoodsCombined)
@@ -452,7 +452,7 @@ contains
              self%stateSums(iterator1%counter(),iterator2%counter())=sum(workspace2D(:,iterator1%counter())*workspace2D(:,iterator2%counter()))
           end do
        end do
-       if (mpiSelf%isMaster()) call Galacticus_Display_Message('fitting global trends (step #3) ['//char(Formatted_Date_and_Time())//']')
+       if (mpiSelf%isMaster()) call displayMessage('fitting global trends (step #3) ['//char(Formatted_Date_and_Time())//']')
        ! Assign vector and matrix in our linear system.
        likelihoodSums   =self%likelihoodSums
        stateSums        =self%stateSums
@@ -460,7 +460,7 @@ contains
        coefficients     =stateSums%linearSystemSolve(likelihoodSums)
        self%coefficients=coefficients
        ! Compute fitted likelihoods.
-       if (mpiSelf%isMaster()) call Galacticus_Display_Message('fitting global trends (step #4) ['//char(Formatted_Date_and_Time())//']')
+       if (mpiSelf%isMaster()) call displayMessage('fitting global trends (step #4) ['//char(Formatted_Date_and_Time())//']')
        likelihoodsFitted=0.0d0
        call iterator1%reset()
        do while (iterator1%iterate())
@@ -474,7 +474,7 @@ contains
        ! Determine suitable scales for each dimension.
        self%stateScales=maxval(self%statesCombined,dim=2)-minval(self%statesCombined,dim=2)
        ! Compute the variogram.
-       if (mpiSelf%isMaster()) call Galacticus_Display_Message('computing variogram ['//char(Formatted_Date_and_Time())//']')
+       if (mpiSelf%isMaster()) call displayMessage('computing variogram ['//char(Formatted_Date_and_Time())//']')
        k=0
        do i=1,self%emulatorRebuildCount-1
           do j=i+1,self%emulatorRebuildCount
@@ -488,7 +488,7 @@ contains
           end do
        end do
        ! Fit the variogram model.
-       if (mpiSelf%isMaster()) call Galacticus_Display_Message('fitting variogram ['//char(Formatted_Date_and_Time())//']')
+       if (mpiSelf%isMaster()) call displayMessage('fitting variogram ['//char(Formatted_Date_and_Time())//']')
        call gaussianRegressionFitVariogram(self,separations,semiVariances)
        ! Compute regression matrix.
        k=0
@@ -509,7 +509,7 @@ contains
        end do
        if (self%dumpEmulator) close(fileUnit)
        ! Find the LU decomposition of the regression matrix for later use.
-       if (mpiSelf%isMaster()) call Galacticus_Display_Message('computing regression matrix ['//char(Formatted_Date_and_Time())//']')
+       if (mpiSelf%isMaster()) call displayMessage('computing regression matrix ['//char(Formatted_Date_and_Time())//']')
        self%regressionMatrix(1:self%emulatorRebuildCount  ,  self%emulatorRebuildCount+1)=1.0d0
        self%regressionMatrix(  self%emulatorRebuildCount+1,1:self%emulatorRebuildCount  )=1.0d0
        self%regressionMatrix(  self%emulatorRebuildCount+1,  self%emulatorRebuildCount+1)=0.0d0
@@ -518,7 +518,7 @@ contains
        self%regressionMatrixLU        =matrixLU(regressionMatrix)
        determinantSign                =regressionMatrix%signDeterminant()
        self%regressionMatrixIsSingular=(determinantSign == 0)
-       if (mpiSelf%isMaster().and.self%regressionMatrixIsSingular) call Galacticus_Display_Message('   ==> regression matrix is singular')
+       if (mpiSelf%isMaster().and.self%regressionMatrixIsSingular) call displayMessage('   ==> regression matrix is singular')
        ! Retain (the most recent) 50% of the required number of points.
        self%simulatorLikelihood  (  1:self%accumulatedStateCount/2)=self%simulatorLikelihood(  self%accumulatedStateCount/2+1:2*(self%accumulatedStateCount/2))
        self%simulationState      (:,1:self%accumulatedStateCount/2)=self%simulationState    (:,self%accumulatedStateCount/2+1:2*(self%accumulatedStateCount/2))
@@ -531,7 +531,7 @@ contains
        deallocate(semiVariances      )
        deallocate(separations        )
        ! Finished.
-       if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('done ['//char(Formatted_Date_and_Time())//']')
+       if (mpiSelf%isMaster()) call displayUnindent('done ['//char(Formatted_Date_and_Time())//']')
     end if
     ! Count evaluations.
     self%evaluationCount=self%evaluationCount+1
@@ -573,7 +573,7 @@ contains
                &      .and.                                                                             &
                &       .not.self%dummyEmulator
           ! Report on emulator failure rate.
-          if (mpiSelf%isMaster() .and. Galacticus_Verbosity_Level() >= verbosityInfo .and. mod(self%evaluationCount,self%reportCount) == 0 .and. self%evaluationCount > 0) then
+          if (mpiSelf%isMaster() .and. displayVerbosity() >= verbosityLevelInfo .and. mod(self%evaluationCount,self%reportCount) == 0 .and. self%evaluationCount > 0) then
              write (label,'(i8)') failuresTotal
              message='Emulator failed '//trim(adjustl(label))//' times out of '
              write (label,'(i8)') checksTotal
@@ -582,8 +582,8 @@ contains
              message=message//trim(adjustl(label))//'% - expect '
              write (label,'(f6.2)') 100.0d0*failureRateExpected
              message=message//trim(adjustl(label))//'% for perfect emulator)'
-             call Galacticus_Display_Message(message)
-             if (.not.self%isGood) call Galacticus_Display_Message('WARNING: emulator failure rate is too high - emulator will not be used')
+             call displayMessage(message)
+             if (.not.self%isGood) call displayMessage('WARNING: emulator failure rate is too high - emulator will not be used')
           end if
        else
           if (simulationConvergence%isConverged().and.simulationConvergence%stateIsOutlier(simulationState%chainIndex()).and.self%emulateOutliers) return
@@ -649,10 +649,10 @@ contains
 
   subroutine gaussianRegressionFitVariogram(self,separations,semiVariances)
     !% Compute best fit coefficients for the variogram model.
-    use            :: Multidimensional_Minimizer, only : multiDMinimizer
     use            :: Galacticus_Error          , only : Galacticus_Error_Report
-    use            :: Interface_GSL             , only : GSL_Success            , GSL_ENoProg, GSL_Continue
     use, intrinsic :: ISO_C_Binding             , only : c_size_t
+    use            :: Interface_GSL             , only : GSL_Continue           , GSL_ENoProg, GSL_Success
+    use            :: Multidimensional_Minimizer, only : multiDMinimizer
     use            :: Sorting                   , only : sortIndex
     implicit none
     class           (posteriorSampleLikelihoodGaussianRegression), intent(inout), target       :: self
@@ -920,7 +920,7 @@ contains
 
   logical function gaussianRegressionWillEvaluate(self,simulationState,modelParameters_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
     !% Return true if the log-likelihood will be evaluated.
-    use :: Galacticus_Display            , only : Galacticus_Verbosity_Level     , verbosityInfo
+    use :: Display                       , only : displayVerbosity               , verbosityLevelInfo
     use :: Models_Likelihoods_Constants  , only : logImpossible
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
     use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
@@ -942,7 +942,7 @@ contains
        gaussianRegressionWillEvaluate=.true.
     end if
     if (self%initialized.and..not.self%regressionMatrixIsSingular) then
-       if (mod(self%evaluationCount,self%reportCount) == 0 .and. self%evaluationCount > 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+       if (mod(self%evaluationCount,self%reportCount) == 0 .and. self%evaluationCount > 0 .and. displayVerbosity() >= verbosityLevelInfo) then
           ! Emulation will be tested, so the simulator is always run.
           gaussianRegressionWillEvaluate=.true.
           return
@@ -969,7 +969,7 @@ contains
 
   subroutine gaussianRegressionEmulate(self,simulationState,likelihoodEmulated,likelihoodEmulatedError)
     !% Evaluate the model emulator.
-    use :: Linear_Algebra, only : vector, assignment(=)
+    use :: Linear_Algebra, only : assignment(=), vector
     implicit none
     class           (posteriorSampleLikelihoodGaussianRegression), intent(inout)               :: self
     class           (posteriorSampleStateClass                  ), intent(inout)               :: simulationState

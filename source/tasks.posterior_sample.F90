@@ -44,7 +44,7 @@ contains
     !% Constructor for the {\normalfont \ttfamily posteriorSample} task class which takes a parameter set as input.
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Input_Parameters, only : inputParameter              , inputParameters
-    use :: Node_Components , only : Node_Components_Initialize  , Node_Components_Thread_Initialize 
+    use :: Node_Components , only : Node_Components_Initialize  , Node_Components_Thread_Initialize
     implicit none
     type   (taskPosteriorSample           )                :: self
     type   (inputParameters               ), intent(inout) :: parameters
@@ -91,7 +91,7 @@ contains
 
   subroutine posteriorSampleDestructor(self)
     !% Destructor for the {\normalfont \ttfamily posteriorSample} task class.
-    use :: Node_Components, only : Node_Components_Uninitialize , Node_Components_Thread_Uninitialize
+    use :: Node_Components, only : Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
     implicit none
     type(taskPosteriorSample), intent(inout) :: self
 
@@ -105,15 +105,15 @@ contains
 
   subroutine posteriorSamplePerform(self,status)
     !% Perform the posterior sampling.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent
-    use :: Galacticus_Error  , only : errorStatusSuccess
+    use :: Display         , only : displayIndent     , displayUnindent
+    use :: Galacticus_Error, only : errorStatusSuccess
     implicit none
     class  (taskPosteriorSample), intent(inout), target   :: self
     integer                     , intent(  out), optional :: status
 
-    call Galacticus_Display_Indent('Begin task: posterior sampling')
+    call displayIndent('Begin task: posterior sampling')
     call self%posteriorSampleSimulation_%simulate()
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: posterior sampling' )
+    call displayUnindent('Done task: posterior sampling' )
     return
   end subroutine posteriorSamplePerform

@@ -21,13 +21,13 @@
 
 program Test_Parameters
   !% Test reading of input parameters.
-  use :: Cosmological_Density_Field, only : cosmologicalMassVariance      , cosmologicalMassVarianceClass
-  use :: Cosmology_Parameters      , only : cosmologyParameters           , cosmologyParametersClass
-  use :: Galacticus_Display        , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Cosmological_Density_Field, only : cosmologicalMassVariance, cosmologicalMassVarianceClass
+  use :: Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass
+  use :: Display                   , only : displayVerbositySet     , verbosityLevelStandard
   use :: IO_HDF5                   , only : hdf5Object
-  use :: ISO_Varying_String        , only : varying_string                , assignment(=)                , var_str
+  use :: ISO_Varying_String        , only : assignment(=)           , var_str                      , varying_string
   use :: Input_Parameters          , only : inputParameters
-  use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group       , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests                , only : Assert                  , Unit_Tests_Begin_Group       , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (hdf5Object                   )          :: outputFile
   type            (varying_string               )          :: parameterFile            , parameterValue
@@ -37,7 +37,7 @@ program Test_Parameters
   double precision                                         :: valueNumerical
   
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Open an output file.
   call outputFile%openFile("testSuite/outputs/testParameters.hdf5",overWrite=.true.)
   parameterFile  ='testSuite/parameters/testsParameters.xml'

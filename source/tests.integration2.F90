@@ -21,16 +21,26 @@
 
 program Test_Integration2
   !% Tests that numerical integration routines work.
-  use :: Galacticus_Display         , only : Galacticus_Display_Indent                     , Galacticus_Display_Message                 , Galacticus_Display_Unindent                     , Galacticus_Verbosity_Level_Set                 , &
-          &                                  verbosityStandard
+  use :: Display                    , only : displayIndent                   , displayMessage                             , displayUnindent                                 , displayVerbositySet                            , &
+          &                                  verbosityLevelStandard
   use :: Galacticus_Error           , only : Galacticus_Error_Report
+  use :: ISO_Varying_String         , only : assignment(=)                   , char                                       , len
   use :: Kind_Numbers               , only : kind_int8
+  use :: Numerical_Integration2     , only : integrator1D                    , integrator2                                , integratorAdaptiveCompositeTrapezoidal1D        , integratorCompositeGaussKronrod1D              , &
+          &                                  integratorCompositeTrapezoidal1D, integratorMultiVectorized1D                , integratorMultiVectorizedCompositeGaussKronrod1D, integratorMultiVectorizedCompositeTrapezoidal1D, &
+          &                                  integratorVectorized1D          , integratorVectorizedCompositeGaussKronrod1D, integratorVectorizedCompositeTrapezoidal1D
+  use :: Test_Integration2_Functions, only : testFunctions                   , testFunctionsInitialize                    , testFunctionsMulti                              , testIntegrator                                 , &
+          &                                  testIntegratorMulti
   use :: Numerical_Integration      , only : integrator1                      => integrator, GSL_Integ_Gauss15                          , GSL_Integ_Gauss61
-  use :: Numerical_Integration2     , only : integrator2                                   , integrator1D                               , integratorAdaptiveCompositeTrapezoidal1D        , integratorCompositeGaussKronrod1D              , &
-          &                                  integratorCompositeTrapezoidal1D              , integratorMultiVectorized1D                , integratorMultiVectorizedCompositeGaussKronrod1D, integratorMultiVectorizedCompositeTrapezoidal1D, &
-          &                                  integratorVectorized1D                        , integratorVectorizedCompositeGaussKronrod1D, integratorVectorizedCompositeTrapezoidal1D
-  use :: ISO_Varying_String         , only : assignment(=)                                 , len                                        , char
-  use :: Test_Integration2_Functions, only : testFunctions                                 , testFunctionsInitialize                    , testFunctionsMulti                              , testIntegrator                                 , &
+  use :: Display                    , only : displayIndent                   , displayMessage                             , displayUnindent                                 , displayVerbositySet                            , &
+          &                                  verbosityLevelStandard
+  use :: Galacticus_Error           , only : Galacticus_Error_Report
+  use :: ISO_Varying_String         , only : assignment(=)                   , char                                       , len
+  use :: Kind_Numbers               , only : kind_int8
+  use :: Numerical_Integration2     , only : integrator1D                    , integrator2                                , integratorAdaptiveCompositeTrapezoidal1D        , integratorCompositeGaussKronrod1D              , &
+          &                                  integratorCompositeTrapezoidal1D, integratorMultiVectorized1D                , integratorMultiVectorizedCompositeGaussKronrod1D, integratorMultiVectorizedCompositeTrapezoidal1D, &
+          &                                  integratorVectorized1D          , integratorVectorizedCompositeGaussKronrod1D, integratorVectorizedCompositeTrapezoidal1D
+  use :: Test_Integration2_Functions, only : testFunctions                   , testFunctionsInitialize                    , testFunctionsMulti                              , testIntegrator                                 , &
           &                                  testIntegratorMulti
   implicit none
   double precision                                                                             :: timeMean                       , error
@@ -59,7 +69,7 @@ program Test_Integration2
   integer                                     , parameter                                      :: trialCount              =10
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Determine units of system clock.
   call System_Clock(countStart,countRate)
   select case (countRate)
@@ -79,7 +89,7 @@ program Test_Integration2
           &                                testFunctions(iFunction)%rangeLow         , &
           &                                " to "                                    , &
           &                                testFunctions(iFunction)%rangeHigh
-     call Galacticus_Display_Indent(message)
+     call displayIndent(message)
      ! Allocate integrators.
      allocate(integratorCompositeTrapezoidal1D                 :: integrators     (1)%integrator_)
      integrators     (1)%description="Scalar composite trapezoidal"
@@ -201,7 +211,7 @@ program Test_Integration2
              &                    integral(i)                     , &
              &                    error                           , &
              &                    trim(status)
-        call Galacticus_Display_Message(message)
+        call displayMessage(message)
      end do
      do i=1,2
         timeMean=dble(timeGSL(i))/dble(trialCount)
@@ -224,13 +234,13 @@ program Test_Integration2
              &                    integralGSL(i), &
              &                    error         , &
              &                    trim(status)
-        call Galacticus_Display_Message(message)
+        call displayMessage(message)
      end do
      ! Destroy integrators.
      do i=1,integratorCount
         deallocate(integrators(i)%integrator_)
      end do
-     call Galacticus_Display_Unindent("done")
+     call displayUnindent("done")
   end do
   ! Iterate over multi-integrand functions.
   do iFunction=1,size(testFunctionsMulti)
@@ -240,7 +250,7 @@ program Test_Integration2
           &                                testFunctionsMulti(iFunction)%rangeLow         , &
           &                                " to "                                         , &
           &                                testFunctionsMulti(iFunction)%rangeHigh
-     call Galacticus_Display_Indent(message)
+     call displayIndent(message)
      ! Allocate integrators.
      allocate(integratorMultiVectorizedCompositeTrapezoidal1D  :: integratorsMulti( 1)%integrator_)
      integratorsMulti( 1)%description="Multi-integrand vector adaptive composite trapezoidal"
@@ -322,12 +332,12 @@ program Test_Integration2
              &                    integralMulti(i,:)                   , &
              &                    error                                , &
              &                    trim(status)
-        call Galacticus_Display_Message(message)
+        call displayMessage(message)
      end do
      ! Destroy integrators.
      do i=1,integratorMultiCount
         deallocate(integratorsMulti(i)%integrator_)
      end do
-     call Galacticus_Display_Unindent("done")
+     call displayUnindent("done")
   end do
 end program Test_Integration2

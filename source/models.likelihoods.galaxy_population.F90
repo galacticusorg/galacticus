@@ -62,8 +62,8 @@ contains
   function galaxyPopulationConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily galaxyPopulation} posterior sampling likelihood class which builds the object
     !% from a parameter set.
-    use :: Galacticus_Display, only : Galacticus_Verbosity_Level
-    use :: Input_Parameters  , only : inputParameter            , inputParameters
+    use :: Display         , only : displayVerbosity
+    use :: Input_Parameters, only : inputParameter  , inputParameters
     implicit none
     type   (posteriorSampleLikelihoodGalaxyPopulation)                :: self
     type   (inputParameters                          ), intent(inout) :: parameters
@@ -86,7 +86,7 @@ contains
     !# <inputParameter>
     !#   <name>evolveForestsVerbosity</name>
     !#   <description>The verbosity level to use while performing evolve forests tasks.</description>
-    !#   <defaultValue>Galacticus_Verbosity_Level()</defaultValue>
+    !#   <defaultValue>displayVerbosity()</defaultValue>
     !#   <source>parameters</source>
     !# </inputParameter>
     !# <inputParameter>
@@ -128,15 +128,15 @@ contains
 
   double precision function galaxyPopulationEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the \glc\ likelihood function.
+    use :: Display                       , only : displayIndent                  , displayMessage               , displayUnindent             , displayVerbosity, &
+          &                                       displayVerbositySet            , verbosityLevelSilent         , verbosityLevelStandard
     use :: Functions_Global              , only : Tasks_Evolve_Forest_Construct_ , Tasks_Evolve_Forest_Destruct_, Tasks_Evolve_Forest_Perform_
-    use :: Galacticus_Display            , only : Galacticus_Display_Indent      , Galacticus_Display_Message   , Galacticus_Display_Unindent , Galacticus_Verbosity_Level, &
-          &                                       Galacticus_Verbosity_Level_Set , verbosityStandard            , verbositySilent
     use :: Galacticus_Error              , only : Galacticus_Error_Report        , errorStatusSuccess
-    use :: Kind_Numbers                  , only : kind_int8
     use :: ISO_Varying_String            , only : char                           , operator(//)                 , var_str
+    use :: Kind_Numbers                  , only : kind_int8
     use :: MPI_Utilities                 , only : mpiBarrier                     , mpiSelf
-    use :: Models_Likelihoods_Constants  , only : logImpossible                  , logImprobable
     use :: Model_Parameters              , only : modelParameterDerived
+    use :: Models_Likelihoods_Constants  , only : logImpossible                  , logImprobable
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
     use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
     use :: String_Handling               , only : String_Count_Words             , String_Join                  , String_Split_Words          , operator(//)
@@ -175,8 +175,8 @@ contains
     !$GLC attributes unused :: logPriorCurrent, logLikelihoodCurrent, forceAcceptance, temperature, simulationConvergence
 
     ! Switch verbosity level.
-    verbosityLevel=Galacticus_Verbosity_Level()
-    call Galacticus_Verbosity_Level_Set(self%evolveForestsVerbosity)
+    verbosityLevel=displayVerbosity()
+    call displayVerbositySet(self%evolveForestsVerbosity)
     ! Initialize likelihood to impossible.
     galaxyPopulationEvaluate=logImpossible
     if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
@@ -371,15 +371,15 @@ contains
                 end select
              end do
              if (.not.dependenciesUpdated) then
-                call Galacticus_Verbosity_Level_Set(verbosityStandard)
-                call Galacticus_Display_Indent('unresolved parameters')
+                call displayVerbositySet(verbosityLevelStandard)
+                call displayIndent('unresolved parameters')
                 do i=1,size(modelParametersInactive_)
                    select type (modelParameter_ => modelParametersInactive_(i)%modelParameter_)
                       class is (modelParameterDerived)
-                      if (index(self%modelParametersInactive_(i)%definition,"%[") /= 0) call Galacticus_Display_Message(modelParametersInactive_(i)%modelParameter_%name()//" : "//self%modelParametersInactive_(i)%definition)
+                      if (index(self%modelParametersInactive_(i)%definition,"%[") /= 0) call displayMessage(modelParametersInactive_(i)%modelParameter_%name()//" : "//self%modelParametersInactive_(i)%definition)
                    end select
                 end do
-                call Galacticus_Display_Unindent('unresolved parameters')
+                call displayUnindent('unresolved parameters')
                 call Galacticus_Error_Report('can not resolve parameter dependencies'//{introspection:location})
              end if
              firstIteration=.false.
@@ -412,10 +412,10 @@ contains
           ! Record timing information.
           call CPU_Time(timeEnd)
           timeEvaluate=timeEnd-timeBegin
-          if (verbosityLevel >= verbosityStandard) then
+          if (verbosityLevel >= verbosityLevelStandard) then
              write (valueText,'(e12.4)') logLikelihoodProposed
              message=var_str("Chain ")//simulationState%chainIndex()//" has logℒ="//trim(valueText)
-             call Galacticus_Display_Message(message,verbositySilent)
+             call displayMessage(message,verbosityLevelSilent)
           end if
        end if
        call mpiBarrier()
@@ -424,7 +424,7 @@ contains
        call self%parametersModel%reset()
     end do
     ! Restore verbosity level.
-    call Galacticus_Verbosity_Level_Set(verbosityLevel)
+    call displayVerbositySet(verbosityLevel)
     return
   end function galaxyPopulationEvaluate
 

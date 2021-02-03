@@ -21,13 +21,13 @@ program Tests_Comoving_Distance
   !% Tests comoving distance calculations for various universes. Distances calculated using Python
   !% \href{http://www.astro.ucla.edu/~wright/CC.python}{implementation} of Ned Wright's cosmology
   !% calculator.
-  use :: Cosmology_Functions        , only : cosmologyFunctions            , cosmologyFunctionsClass, cosmologyFunctionsMatterLambda
+  use :: Cosmology_Functions        , only : cosmologyFunctions       , cosmologyFunctionsClass, cosmologyFunctionsMatterLambda
   use :: Cosmology_Functions_Options, only : distanceTypeComoving
   use :: Cosmology_Parameters       , only : cosmologyParametersSimple
-  use :: Galacticus_Display         , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: ISO_Varying_String         , only : varying_string                , assignment(=)
+  use :: Display                    , only : displayVerbositySet      , verbosityLevelStandard
+  use :: ISO_Varying_String         , only : assignment(=)            , varying_string
   use :: Input_Parameters           , only : inputParameters
-  use :: Unit_Tests                 , only : Assert                        , Unit_Tests_Begin_Group , Unit_Tests_End_Group          , Unit_Tests_Finish
+  use :: Unit_Tests                 , only : Assert                   , Unit_Tests_Begin_Group , Unit_Tests_End_Group          , Unit_Tests_Finish
   implicit none
   double precision                                , dimension(8), parameter         :: redshift                               =[0.1000000d0,1.0000000d0,3.0000000d0,9.0000000d0,30.0000000d0,100.0000000d0,300.0000000d0,1000.0000000d0]
   double precision                                , dimension(8)           , target :: distanceEdS                            =[27.9031290d0,175.6143280d0,299.7923450d0,409.9791330d0,491.8947530d0,539.9166970d0,564.9913370d0,580.4490760d0]
@@ -45,7 +45,7 @@ program Tests_Comoving_Distance
        &                                                                               time                                                                                                                                                    , timeLookup
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Comoving distance")
   ! Cosmology functions for in an Einstein-de Sitter universe. For this case, we use the default settings.

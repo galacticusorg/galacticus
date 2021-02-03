@@ -97,7 +97,7 @@ sub Process_StateStorable {
 subroutine {$className}StateStore(self,stateFile,gslStateFile,storeIdentifier)
  !% Store the state of this object to file.
  use, intrinsic :: ISO_C_Binding     , only : c_size_t, c_ptr
- use            :: Galacticus_Display
+ use            :: Display
  implicit none
  class    ({$className}), intent(inout)              :: self
  integer                , intent(in   )              :: stateFile
@@ -109,7 +109,7 @@ CODE
 subroutine {$className}StateRestore(self,stateFile,gslStateFile)
  !% Store the state of this object to file.
  use, intrinsic :: ISO_C_Binding     , only : c_size_t, c_ptr
- use            :: Galacticus_Display
+ use            :: Display
  implicit none
  class  ({$className}), intent(inout)               :: self
  integer              , intent(in   )               :: stateFile
@@ -120,22 +120,22 @@ CODE
 	# Close function.
 	my $outputCodeCloser = fill_in_string(<<'CODE', PACKAGE => 'code');
  end select
- call Galacticus_Display_Unindent('done',verbosity=verbosityWorking)
+ call displayUnindent('done',verbosity=verbosityLevelWorking)
  return
 end subroutine {$className}StateStore
 CODE
 	my $inputCodeCloser  = fill_in_string(<<'CODE', PACKAGE => 'code');
  end select
- call Galacticus_Display_Unindent('done',verbosity=verbosityWorking)
+ call displayUnindent('done',verbosity=verbosityLevelWorking)
  return
 end subroutine {$className}StateRestore
 CODE
 	my $outputCode = fill_in_string(<<'CODE', PACKAGE => 'code');
- call Galacticus_Display_Indent('storing state for "{$className}"',verbosity=verbosityWorking)
+ call displayIndent('storing state for "{$className}"',verbosity=verbosityLevelWorking)
  select type (self)
 CODE
 	my $inputCode  = fill_in_string(<<'CODE', PACKAGE => 'code');
- call Galacticus_Display_Indent('restoring state for "{$className}"',verbosity=verbosityWorking)
+ call displayIndent('restoring state for "{$className}"',verbosity=verbosityLevelWorking)
  select type (self)
 CODE
 	my @outputUnusedVariables;
@@ -199,7 +199,7 @@ CODE
 						$outputCode .= &performIO("   write (stateFile) .true.\n"
 							    .             "   write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n");
 					    }
-					    $outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
+					    $outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
 					    if ( $declaration->{'intrinsic'} eq "class" ) {
 						$outputCode .= "  select type (c__ => self%".$variableName.")\n";
 						$outputCode .= "  class is (".$declaration->{'type'}.")\n";
@@ -208,7 +208,7 @@ CODE
 					    } else {
 						$outputCode .= &performIO("   write (label,'(i16)') sizeof(self%".$variableName.")\n");
 					    }
-					    $outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
+					    $outputCode .= "  call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= " end if\n";
 					    if ( $rank > 0 ) {
 						for(my $i=1;$i<=$rank;++$i) {
@@ -231,7 +231,7 @@ CODE
 						$inputCode  .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 						$inputCode  .= " if (wasAllocated) then\n";
 					    }
-					    $inputCode  .= "  call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
+					    $inputCode  .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
 					    if ( $allocatable ) {
 						$inputCode  .= "  allocate(storedShape(".$rank."))\n";
 						$inputCode  .= &performIO("  read (stateFile) storedShape\n");
@@ -273,9 +273,9 @@ CODE
 						if ( grep {lc($_) eq lc($variableName)} @excludes );
 					    $labelUsed   = 1;
 					    $outputCode .= "  if (allocated(self%".$variableName.")) then\n";
-					    $outputCode .= "   if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
+					    $outputCode .= "   if (displayVerbosity() >= verbosityLevelWorking) then\n";
 					    $outputCode .= &performIO("    write (label,'(i16)') sizeof(self%".$variableName.")\n");
-					    $outputCode .= "    call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
+					    $outputCode .= "    call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= "   end if\n";
 					    $outputCode .= &performIO("   write (stateFile) .true.\n"
 					                .  "   write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
@@ -286,7 +286,7 @@ CODE
 		    			    $inputCode  .= &performIO(" read (stateFile) wasAllocated\n");
 					    $inputCode  .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 					    $inputCode  .= " if (wasAllocated) then\n";
-					    $inputCode  .= "  call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
+					    $inputCode  .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
 					    $inputCode  .= "  allocate(storedShape(".$rank."))\n";
 		    			    $inputCode  .= &performIO("  read (stateFile) storedShape\n");
 					    $inputCode  .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
@@ -329,13 +329,13 @@ CODE
 		}
 		foreach ( @staticVariables ) {
 		    $labelUsed   = 1;
-		    $outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
+		    $outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
 		    $outputCode .= &performIO("  write (label,'(i16)') sizeof(self%".$_.")\n");
-		    $outputCode .= "  call Galacticus_Display_Message('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
+		    $outputCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
 		    $outputCode .= " end if\n";
 		}
 		foreach ( @staticVariables ) {
-		    $inputCode .= " call Galacticus_Display_Message('restoring \"".$_."\"',verbosity=verbosityWorking)\n";
+		    $inputCode .= " call displayMessage('restoring \"".$_."\"',verbosity=verbosityLevelWorking)\n";
 		}
 		$outputCode .= &performIO("  write (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n")
 		    if ( scalar(@staticVariables) > 0 );

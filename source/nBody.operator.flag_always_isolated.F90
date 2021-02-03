@@ -70,12 +70,12 @@ contains
 
   subroutine flagAlwaysIsolatedOperate(self,simulations)
     !% Identify and flag particles which have been always isolated.
-    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
     use    :: Arrays_Search     , only : searchIndexed
-    use    :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                               verbosityStandard
-    use    :: ISO_Varying_String, only : var_str
+    use    :: Display           , only : displayCounter         , displayCounterClear, displayIndent, displayUnindent, &
+          &                              verbosityLevelStandard
     use    :: Galacticus_Error  , only : Galacticus_Error_Report
+    use    :: ISO_Varying_String, only : var_str
+    !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num
     use    :: Sorting           , only : sortIndex
     use    :: String_Handling   , only : operator(//)
     implicit none
@@ -90,7 +90,7 @@ contains
     integer         (c_size_t                       )                              :: i                      , j          , &
          &                                                                            k                      , iSimulation
 
-    call Galacticus_Display_Indent('flag always isolated objects',verbosityStandard)
+    call displayIndent('flag always isolated objects',verbosityLevelStandard)
     do iSimulation=1,size(simulations)
        ! Retrieve required properties.
        particleIDs             => simulations(iSimulation)%propertiesInteger%value('particleID'             )
@@ -131,15 +131,15 @@ contains
              j=k
           end do
           !$ if (OMP_Get_Thread_Num() == 0) then
-          call Galacticus_Display_Counter(int(100.0d0*dble(i)/dble(size(alwaysIsolated))),verbosity=verbosityStandard,isNew=i == 1_c_size_t)
+          call displayCounter(int(100.0d0*dble(i)/dble(size(alwaysIsolated))),verbosity=verbosityLevelStandard,isNew=i == 1_c_size_t)
           !$ end if
        end do
        !$omp end parallel do
-       call Galacticus_Display_Counter_Clear(verbosityStandard)
+       call displayCounterClear(verbosityLevelStandard)
        ! Store results.
        call simulations(iSimulation)%propertiesInteger%set('alwaysIsolated',alwaysIsolated)
        deallocate(indexID       )
     end do
-    call Galacticus_Display_Unindent('done',verbosityStandard)
+    call displayUnindent('done',verbosityLevelStandard)
     return
   end subroutine flagAlwaysIsolatedOperate

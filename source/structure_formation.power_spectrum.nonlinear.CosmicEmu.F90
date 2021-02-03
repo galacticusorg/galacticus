@@ -23,8 +23,8 @@
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters      , only : cosmologyParametersClass
-  use :: Numerical_Interpolation   , only : interpolator
   use :: File_Utilities            , only : lockDescriptor
+  use :: Numerical_Interpolation   , only : interpolator
   use :: Power_Spectra_Primordial  , only : powerSpectrumPrimordialClass
 
   !# <powerSpectrumNonlinear name="powerSpectrumNonlinearCosmicEmu">
@@ -146,9 +146,9 @@ contains
   double precision function cosmicEmuValue(self,waveNumber,time)
     !% Return a nonlinear power spectrum equal using the code of \cite{lawrence_coyote_2010}.
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
-    use :: File_Utilities      , only : Count_Lines_In_File         , Directory_Make     , File_Exists, File_Lock, &
-          &                             File_Name_Temporary         , File_Remove        , File_Unlock
-    use :: Galacticus_Display  , only : Galacticus_Display_Message  , verbosityWorking
+    use :: Display             , only : displayMessage              , verbosityLevelWorking
+    use :: File_Utilities      , only : Count_Lines_In_File         , Directory_Make       , File_Exists, File_Lock, &
+          &                             File_Name_Temporary         , File_Remove          , File_Unlock
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     use :: Galacticus_Paths    , only : galacticusPath              , pathTypeDataDynamic
     use :: ISO_Varying_String  , only : varying_string
@@ -217,19 +217,19 @@ contains
              if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.c")) then
                 ! Download the code.
                 if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")) then
-                   call Galacticus_Display_Message("downloading CosmicEmu code....",verbosityWorking)
+                   call displayMessage("downloading CosmicEmu code....",verbosityLevelWorking)
                    call System_Command_Do("wget http://www.hep.anl.gov/cosmology/CosmicEmu/CosmicEmu_v1.1.tar.gz -O "//galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")
                    if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")) &
                         & call Galacticus_Error_Report("failed to download CosmicEmu code"//{introspection:location})
                 end if
                 ! Unpack the code.
-                call Galacticus_Display_Message("unpacking CosmicEmu code....",verbosityWorking)
+                call displayMessage("unpacking CosmicEmu code....",verbosityLevelWorking)
                 call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1 -f "//galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")
                 if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.c")) &
                      & call Galacticus_Error_Report("failed to unpack CosmicEmu code"//{introspection:location})
              end if
              ! Build the code.
-             call Galacticus_Display_Message("compiling CosmicEmu code....",verbosityWorking)
+             call displayMessage("compiling CosmicEmu code....",verbosityLevelWorking)
              call System_Command_Do("cd "//galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1; sed -i~ -r s/""^(\s*gcc.*\-lm)\s*$""/""\1 \-I\`gsl\-config \-\-prefix\`\n\n%.o: %.c\n\tgcc -c \$< -o \$\*\.o \-I\`gsl\-config \-\-prefix\`\n""/ makefile; make");
              if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.exe")) &
                   & call Galacticus_Error_Report("failed to build Cosmic_Emu code"//{introspection:location})

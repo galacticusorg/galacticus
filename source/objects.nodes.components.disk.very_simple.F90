@@ -27,8 +27,8 @@ module Node_Component_Disk_Very_Simple
   use :: Galacticus_Nodes                , only : treeNode
   use :: Math_Exponentiation             , only : fastExponentiator
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
-  use :: Stellar_Feedback_Outflows       , only : stellarFeedbackOutflowsClass
   use :: Star_Formation_Rates_Disks      , only : starFormationRateDisksClass
+  use :: Stellar_Feedback_Outflows       , only : stellarFeedbackOutflowsClass
   use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
   implicit none
   private
@@ -179,10 +179,10 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Disk_Very_Simple_Thread_Initialize(parameters_)
     !% Initializes the tree node very simple disk profile module.
-    use :: Events_Hooks                        , only : satelliteMergerEvent       , postEvolveEvent, openMPThreadBindingAtLevel, dependencyRegEx, &
-         &                                              dependencyDirectionAfter
-    use :: Galacticus_Nodes                    , only : defaultDiskComponent
-    use :: Input_Parameters                    , only : inputParameter             , inputParameters
+    use :: Events_Hooks    , only : dependencyDirectionAfter, dependencyRegEx, openMPThreadBindingAtLevel, postEvolveEvent, &
+          &                         satelliteMergerEvent
+    use :: Galacticus_Nodes, only : defaultDiskComponent
+    use :: Input_Parameters, only : inputParameter          , inputParameters
      implicit none
     type(inputParameters), intent(inout) :: parameters_
     type(dependencyRegEx), dimension(1)  :: dependencies
@@ -211,7 +211,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Disk_Very_Simple_Thread_Uninitialize()
     !% Uninitializes the tree node very simple disk profile module.
-    use :: Events_Hooks    , only : satelliteMergerEvent, postEvolveEvent
+    use :: Events_Hooks    , only : postEvolveEvent     , satelliteMergerEvent
     use :: Galacticus_Nodes, only : defaultDiskComponent
     implicit none
     
@@ -234,7 +234,7 @@ contains
   !# </preEvolveTask>
   subroutine Node_Component_Disk_Very_Simple_Pre_Evolve(node)
     !% Ensure the disk has been initialized.
-    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentDiskVerySimple, treeNode, defaultDiskComponent
+    use :: Galacticus_Nodes, only : defaultDiskComponent, nodeComponentDisk, nodeComponentDiskVerySimple, treeNode
     implicit none
     type (treeNode         ), intent(inout), pointer :: node
     class(nodeComponentDisk)               , pointer :: disk
@@ -283,12 +283,12 @@ contains
   !# </postStepTask>
   subroutine Node_Component_Disk_Very_Simple_Post_Step(node,status)
     !% Catch rounding errors in the very simple disk gas evolution.
-    use :: Abundances_Structure          , only : abs                       , zeroAbundances
-    use :: Galacticus_Display            , only : Galacticus_Display_Message, verbosityWarn
-    use :: Galacticus_Nodes              , only : nodeComponentDisk         , nodeComponentDiskVerySimple, treeNode    , defaultDiskComponent
+    use :: Abundances_Structure          , only : abs                 , zeroAbundances
+    use :: Display                       , only : displayMessage      , verbosityLevelWarn
+    use :: Galacticus_Nodes              , only : defaultDiskComponent, nodeComponentDisk      , nodeComponentDiskVerySimple, treeNode
+    use :: ISO_Varying_String            , only : assignment(=)       , operator(//)           , varying_string
     use :: Interface_GSL                 , only : GSL_Failure
-    use :: ISO_Varying_String            , only : varying_string            , assignment(=)              , operator(//)
-    use :: Stellar_Luminosities_Structure, only : abs                       , zeroStellarLuminosities
+    use :: Stellar_Luminosities_Structure, only : abs                 , zeroStellarLuminosities
     use :: String_Handling               , only : operator(//)
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
@@ -333,7 +333,7 @@ contains
                 message=message//'  Negative masses are due to numerical inaccuracy in the ODE solutions.'//char(10)
                 message=message//'  If significant, consider using a higher tolerance in the ODE solver.'
              end if
-             call Galacticus_Display_Message(message,verbosityWarn)
+             call displayMessage(message,verbosityLevelWarn)
              ! Store the new maximum fractional error.
              fractionalErrorMaximum=fractionalError
           end if
@@ -653,11 +653,11 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Disk_Very_Simple_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
-    use :: Abundances_Structure          , only : abs              , abundances                 , max                , unitAbundances         , &
+    use :: Abundances_Structure          , only : abs                 , abundances       , max                        , unitAbundances         , &
           &                                       zeroAbundances
-    use :: Galacticus_Nodes              , only : nodeComponentDisk, nodeComponentDiskVerySimple, treeNode           , defaultDiskComponent
+    use :: Galacticus_Nodes              , only : defaultDiskComponent, nodeComponentDisk, nodeComponentDiskVerySimple, treeNode
     use :: Histories                     , only : history
-    use :: Stellar_Luminosities_Structure, only : abs              , max                        , stellarLuminosities, unitStellarLuminosities
+    use :: Stellar_Luminosities_Structure, only : abs                 , max              , stellarLuminosities        , unitStellarLuminosities
     implicit none
     type            (treeNode           ), intent(inout), pointer :: node
     class           (nodeComponentDisk  )               , pointer :: disk
@@ -701,11 +701,11 @@ contains
 
   subroutine satelliteMerger(self,node)
     !% Transfer any very simple disk associated with {\normalfont \ttfamily node} to its host halo.
-    use :: Abundances_Structure                , only : zeroAbundances
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                    , only : nodeComponentDisk      , nodeComponentDiskVerySimple, nodeComponentSpheroid, treeNode
-    use :: Satellite_Merging_Mass_Movements    , only : destinationMergerDisk  , destinationMergerSpheroid
-    use :: Stellar_Luminosities_Structure      , only : zeroStellarLuminosities
+    use :: Abundances_Structure            , only : zeroAbundances
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentDiskVerySimple, nodeComponentSpheroid, treeNode
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid
+    use :: Stellar_Luminosities_Structure  , only : zeroStellarLuminosities
     implicit none
     class  (*                    ), intent(inout) :: self
     type   (treeNode             ), intent(inout) :: node

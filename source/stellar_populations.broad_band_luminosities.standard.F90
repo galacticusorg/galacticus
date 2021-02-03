@@ -22,8 +22,8 @@
   use, intrinsic :: ISO_C_Binding                         , only : c_size_t
   use            :: Locks                                 , only : ompReadWriteLock
   use            :: Numerical_Interpolation               , only : interpolator
-  use            :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorClass
   use            :: Stellar_Population_Spectra            , only : stellarPopulationSpectraClass
+  use            :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorClass
 
   type luminosityTable
      !% Structure for holding tables of simple stellar population luminosities.
@@ -77,8 +77,8 @@ contains
   function standardConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily standard} stellar population broad band luminosities class which takes a
     !% parameter set as input.
-    use :: Input_Parameters, only : inputParameters
     use :: Galacticus_Paths, only : galacticusPath , pathTypeDataDynamic
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type            (stellarPopulationBroadBandLuminositiesStandard)                :: self
     type            (inputParameters                               ), intent(inout) :: parameters
@@ -140,10 +140,10 @@ contains
     !% Returns the luminosity for a $1 M_\odot$ simple {\normalfont \ttfamily stellarPopulation\_} of given {\normalfont \ttfamily
     !% abundances} and {\normalfont \ttfamily age} and observed through the filter specified by {\normalfont \ttfamily
     !% filterIndex}.
-    use            :: Abundances_Structure   , only : Abundances_Get_Metallicity, logMetallicityZero, metallicityTypeLogarithmicByMassSolar
-    use            :: Galacticus_Error       , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Stellar_Populations    , only : stellarPopulationClass
+    use            :: Abundances_Structure, only : Abundances_Get_Metallicity, logMetallicityZero, metallicityTypeLogarithmicByMassSolar
+    use            :: Galacticus_Error    , only : Galacticus_Error_Report
+    use, intrinsic :: ISO_C_Binding       , only : c_size_t
+    use            :: Stellar_Populations , only : stellarPopulationClass
     implicit none
     class           (stellarPopulationBroadBandLuminositiesStandard)                                  , intent(inout) :: self
     integer                                                         , dimension( :                   ), intent(in   ) :: luminosityIndex                       , filterIndex
@@ -276,19 +276,19 @@ contains
 
   subroutine standardTabulate(self,luminosityIndex,filterIndex,stellarPopulationSpectraPostprocessor_,stellarPopulation_,redshift)
     !% Tabulate stellar population luminosity in the given filters.
-    use            :: Abundances_Structure            , only : logMetallicityZero        , metallicityTypeLogarithmicByMassSolar
-    use            :: File_Utilities                  , only : File_Exists               , File_Lock                            , File_Unlock               , lockDescriptor
-    use            :: Galacticus_Display              , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear     , Galacticus_Display_Indent , Galacticus_Display_Unindent, &
-         &                                                     verbosityWorking
-    use            :: Galacticus_Error                , only : Galacticus_Error_Report   , Galacticus_Warn                      , errorStatusFail           , errorStatusSuccess
-    use :: Input_Parameters, only : inputParameters
-    use            :: IO_HDF5                         , only : hdf5Access                , hdf5Object
+    use            :: Abundances_Structure            , only : logMetallicityZero     , metallicityTypeLogarithmicByMassSolar
+    use            :: Display                         , only : displayCounter         , displayCounterClear                  , displayIndent  , displayUnindent   , &
+          &                                                    verbosityLevelWorking
+    use            :: File_Utilities                  , only : File_Exists            , File_Lock                            , File_Unlock    , lockDescriptor
+    use            :: Galacticus_Error                , only : Galacticus_Error_Report, Galacticus_Warn                      , errorStatusFail, errorStatusSuccess
+    use            :: IO_HDF5                         , only : hdf5Access             , hdf5Object
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use            :: ISO_Varying_String              , only : assignment(=)             , char                                 , operator(//)              , var_str
-    use            :: Instruments_Filters             , only : Filter_Extent             , Filter_Name
-    use            :: Memory_Management               , only : Memory_Usage_Record       , allocateArray                        , deallocateArray
+    use            :: ISO_Varying_String              , only : assignment(=)          , char                                 , operator(//)   , var_str
+    use            :: Input_Parameters                , only : inputParameters
+    use            :: Instruments_Filters             , only : Filter_Extent          , Filter_Name
+    use            :: Memory_Management               , only : Memory_Usage_Record    , allocateArray                        , deallocateArray
     use            :: Numerical_Constants_Astronomical, only : metallicitySolar
-    use            :: Numerical_Integration           , only : integrator                , GSL_Integ_Gauss15
+    use            :: Numerical_Integration           , only : GSL_Integ_Gauss15      , integrator
     use            :: String_Handling                 , only : operator(//)
     implicit none
     class           (stellarPopulationBroadBandLuminositiesStandard), intent(inout)                   :: self
@@ -445,8 +445,8 @@ contains
                         &                                           iLuminosity  // &
                         &  " of "                                                // &
                         &  size(luminosityIndex)
-                   call Galacticus_Display_Indent (message,verbosityWorking)
-                   call Galacticus_Display_Counter(0,.true.,verbosityWorking)
+                   call displayIndent (message,verbosityLevelWorking)
+                   call displayCounter(0,.true.,verbosityLevelWorking)
                    ! Get wavelength extent of the filter.
                    wavelengthRange=Filter_Extent(filterIndex(iLuminosity))
                    ! Integrate over the wavelength range.
@@ -473,7 +473,7 @@ contains
                          ! Update the counter.
                          !$omp atomic
                          loopCount=loopCount+1
-                         call Galacticus_Display_Counter(int(100.0d0*dble(loopCount)/dble(loopCountMaximum)),.false.,verbosityWorking)
+                         call displayCounter(int(100.0d0*dble(loopCount)/dble(loopCountMaximum)),.false.,verbosityLevelWorking)
                          call standardAbundances%metallicitySet(self%luminosityTables(populationID)%metallicity(iMetallicity) &
                               &,metallicityType=metallicityTypeLogarithmicByMassSolar)
                          toleranceRelative=self%integrationToleranceRelative
@@ -518,8 +518,8 @@ contains
                    !# <objectDestructor name="standardStellarPopulationSpectraPostprocessor"/>
                    !$omp end parallel
                    ! Clear the counter and write a completion message.
-                   call Galacticus_Display_Counter_Clear(           verbosityWorking)
-                   call Galacticus_Display_Unindent     ('finished',verbosityWorking)
+                   call displayCounterClear(           verbosityLevelWorking)
+                   call displayUnindent     ('finished',verbosityLevelWorking)
                    ! Get the normalization by integrating a zeroth magnitude (AB) source through the filter.
                    allocate(integratorAB_)
                    integratorAB_=integrator(integrandFilteredLuminosityAB,toleranceRelative=self%integrationToleranceRelative)

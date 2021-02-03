@@ -124,11 +124,11 @@ contains
 
   double precision function independentLikelihoodsSequantialEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the halo mass function likelihood function.
-    use :: Galacticus_Display          , only : Galacticus_Display_Message
+    use :: Display                     , only : displayMessage
     use :: Galacticus_Error            , only : Galacticus_Error_Report
     use :: ISO_Varying_String          , only : varying_string
     use :: MPI_Utilities               , only : mpiSelf
-    use :: Models_Likelihoods_Constants, only : logImpossible             , logImprobable
+    use :: Models_Likelihoods_Constants, only : logImpossible          , logImprobable
     use :: String_Handling             , only : operator(//)
     implicit none
     class           (posteriorSampleLikelihoodIndpndntLklhdsSqntl), intent(inout)               :: self
@@ -172,7 +172,7 @@ contains
        self%evaluateCountGlobal=evaluateCount
        message="sequential likelihood number "
        message=message//evaluateCount//" has been reached globally"
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     ! Initialize a local copy of the proposed log prior. In order to ensure MPI synchronization between processes we must always
     ! call evaluate on each independent likelihood. For example, the "Galacticus" likelihood class runs each chain under MPI

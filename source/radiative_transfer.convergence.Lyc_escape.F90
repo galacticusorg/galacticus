@@ -40,7 +40,7 @@ contains
 
   function lycEscapeConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily lycEscape} radiative transfer matter class which takes a parameter set as input.
-    use :: Input_Parameters, only : inputParameters, inputParameter
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (radiativeTransferConvergenceLycEscape)                :: self
     type            (inputParameters                      ), intent(inout) :: parameters
@@ -70,7 +70,7 @@ contains
   
   subroutine lycEscapeTestConvergence(self,radiativeTransferMatter_,properties,statusCell,converged)
     !% Test convergence in the computational domain cell.
-    use :: Galacticus_Display        , only : Galacticus_Display_Message   , verbosityStandard
+    use :: Display                   , only : displayMessage               , verbosityLevelStandard
     use :: MPI_Utilities             , only : mpiSelf
     use :: Radiative_Transfer_Matters, only : radiativeTransferMatterAtomic, radiativeTransferPropertiesMatterAtomic
     implicit none
@@ -96,7 +96,7 @@ contains
           else
              message=trim(message)//    'converged)'
           end if
-          call Galacticus_Display_Message(trim(message),verbosityStandard)
+          call displayMessage(trim(message),verbosityLevelStandard)
        end if
        ! Reset accumulated recombination rate.
        self%escapeRateTotalPrevious=escapeRateTotal
@@ -109,10 +109,10 @@ contains
 
   subroutine lycEscapePhotonPacketEscapes(self,photonPacket)
     !% Process an escaping photon packet.
+    use :: Numerical_Constants_Astronomical, only : luminositySolar
     use :: Numerical_Constants_Atomic      , only : lymanSeriesLimitWavelengthHydrogen
     use :: Numerical_Constants_Physical    , only : plancksConstant                   , speedLight
     use :: Numerical_Constants_Units       , only : angstromsPerMeter
-    use :: Numerical_Constants_Astronomical, only : luminositySolar    
     implicit none
     class           (radiativeTransferConvergenceLycEscape), intent(inout) :: self
     class           (radiativeTransferPhotonPacketClass   ), intent(inout) :: photonPacket

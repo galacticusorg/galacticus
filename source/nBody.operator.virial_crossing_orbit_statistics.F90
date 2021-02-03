@@ -19,9 +19,9 @@
 
 !% Contains a module which implements an N-body data operator which computes virial crossing orbit statistics in bins of separation.
   
-  use, intrinsic :: ISO_C_Binding           , only : c_size_t
   use            :: Cosmology_Functions     , only : cosmologyFunctionsClass
   use            :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  use, intrinsic :: ISO_C_Binding           , only : c_size_t
   use            :: Input_Parameters        , only : inputParameters
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
@@ -57,8 +57,8 @@ contains
 
   function virialCrossingOrbitStatisticsConstructorParameters(parameters) result (self)
     !% Constructor for the ``virialCrossingOrbitStatistics'' N-body operator class which takes a parameter set as input.
-    use :: Input_Parameters   , only : inputParameter
     use :: Cosmology_Functions, only : cosmologyFunctionsClass
+    use :: Input_Parameters   , only : inputParameter
     implicit none
     type            (nbodyOperatorVirialCrossingOrbitStatistics)                :: self
     type            (inputParameters                           ), intent(inout) :: parameters
@@ -194,21 +194,21 @@ contains
 
   subroutine virialCrossingOrbitStatisticsOperate(self,simulations)
     !% Compute virial crossing orbit statistics in bins of separation.
-    !$ use :: OMP_Lib                       , only : OMP_Get_Thread_Num
     use    :: Arrays_Search                 , only : searchArray
+    use    :: Display                       , only : displayCounter                   , displayCounterClear                , displayIndent, displayMessage, &
+          &                                          displayUnindent                  , verbosityLevelStandard
     use    :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
-    use    :: Galacticus_Display            , only : Galacticus_Display_Indent        , Galacticus_Display_Unindent        , Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                                           Galacticus_Display_Message       , verbosityStandard
-    use    :: Galacticus_Nodes              , only : treeNode                         , nodeComponentBasic
+    use    :: Galacticus_Nodes              , only : nodeComponentBasic               , treeNode
     use    :: IO_HDF5                       , only : hdf5Access
     use    :: ISO_Varying_String            , only : var_str
+#ifdef USEMPI
+    use    :: MPI_Utilities                 , only : mpiSelf
+#endif
     use    :: Memory_Management             , only : deallocateArray
     use    :: Nearest_Neighbors             , only : nearestNeighbors
     use    :: Node_Components               , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use    :: Numerical_Ranges              , only : Make_Range                       , rangeTypeLinear
-#ifdef USEMPI
-    use    :: MPI_Utilities                 , only : mpiSelf
-#endif
+    !$ use :: OMP_Lib                       , only : OMP_Get_Thread_Num
     implicit none
     class           (nbodyOperatorVirialCrossingOrbitStatistics), intent(inout)                 :: self
     type            (nBodyData                                 ), intent(inout), dimension(:  ) :: simulations
@@ -246,7 +246,7 @@ contains
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Indent('compute virial crossing orbit statistics',verbosityStandard)
+       call displayIndent('compute virial crossing orbit statistics',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif
@@ -273,7 +273,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Message(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityStandard)
+          call displayMessage(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityLevelStandard)
 #ifdef USEMPI
        end if
 #endif
@@ -322,7 +322,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Counter(0,.true.)
+          call displayCounter(0,.true.)
 #ifdef USEMPI
        end if
 #endif
@@ -509,7 +509,7 @@ contains
 #ifdef USEMPI
           if (mpiSelf%isMaster()) then
 #endif
-             call Galacticus_Display_Counter(                                                 &
+             call displayCounter(                                                 &
                   &                          int(                                             &
                   &                              +100.0d0                                     &
                   &                              *float(i                                  )  &
@@ -529,7 +529,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Counter_Clear()
+          call displayCounterClear()
 #ifdef USEMPI
        end if
 #endif
@@ -590,7 +590,7 @@ contains
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Unindent('done',verbosityStandard)
+       call displayUnindent('done',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif

@@ -222,14 +222,14 @@ contains
 
   function fullySpecifiedConstruct(self,treeNumber,finished) result(tree)
     !% Construct a fully-specified merger tree.
-    use            :: FoX_DOM           , only : node
-    use            :: Galacticus_Display, only : Galacticus_Display_Indent   , Galacticus_Display_Unindent, Galacticus_Verbosity_Level, verbosityInfo
-    use            :: Galacticus_Error  , only : Galacticus_Error_Report
-    use            :: Galacticus_Nodes  , only : mergerTree                  , treeNode                   , treeNodeList
-    use            :: IO_XML            , only : XML_Get_Elements_By_Tag_Name
-    use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: Kind_Numbers      , only : kind_int8
-    use            :: Memory_Management , only : Memory_Usage_Record
+    use            :: Display          , only : displayIndent               , displayUnindent, displayVerbosity, verbosityLevelInfo
+    use            :: FoX_DOM          , only : node
+    use            :: Galacticus_Error , only : Galacticus_Error_Report
+    use            :: Galacticus_Nodes , only : mergerTree                  , treeNode       , treeNodeList
+    use            :: IO_XML           , only : XML_Get_Elements_By_Tag_Name
+    use, intrinsic :: ISO_C_Binding    , only : c_size_t
+    use            :: Kind_Numbers     , only : kind_int8
+    use            :: Memory_Management, only : Memory_Usage_Record
     implicit none
     type   (mergerTree                         ), pointer                     :: tree
     class  (mergerTreeConstructorFullySpecified), intent(inout)               :: self
@@ -280,7 +280,7 @@ contains
        !$omp end critical(mergerTreeConstructFullySpecifiedDeepCopyReset)
         call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
        ! Begin writing report.
-       call Galacticus_Display_Indent('Initial conditions of fully-specified tree',verbosityInfo)
+       call displayIndent('Initial conditions of fully-specified tree',verbosityLevelInfo)
        ! Iterate over nodes.
        do i=1,nodeCount
           ! Get the node definition.
@@ -307,10 +307,10 @@ contains
           ! Build components.
           call nodeArray(i)%node%componentBuilder(nodeDefinition)
           ! Dump the node.
-          if (Galacticus_Verbosity_Level() > verbosityInfo) call nodeArray(i)%node%serializeASCII()
+          if (displayVerbosity() > verbosityLevelInfo) call nodeArray(i)%node%serializeASCII()
        end do
        ! Finish writing report.
-       call Galacticus_Display_Unindent('done',verbosityInfo)
+       call displayUnindent('done',verbosityLevelInfo)
        ! Destroy the node array.
        deallocate(nodeArray)
        ! Check that we found a root node.
@@ -327,7 +327,10 @@ contains
       !% Extract and return an index from a node definition as used when constructing fully-specified merger trees.
       use :: FoX_Dom         , only : node
       use :: Galacticus_Error, only : Galacticus_Error_Report
+      use :: Kind_Numbers    , only : kind_int8
       use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, extractDataContent => extractDataContentTS
+      use :: FoX_Dom         , only : node
+      use :: Galacticus_Error, only : Galacticus_Error_Report
       use :: Kind_Numbers    , only : kind_int8
       implicit none
       integer  (kind=kind_int8)                             :: indexNode

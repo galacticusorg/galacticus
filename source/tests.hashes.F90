@@ -21,10 +21,10 @@
 
 program Test_Hashes
   !% Tests features of the hashes (i.e. associative arrays) module.
-  use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: Hashes            , only : genericHash                   , integerHash
-  use :: Input_Parameters  , only : inputParameter                , inputParameters
-  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Display         , only : displayVerbositySet, verbosityLevelStandard
+  use :: Hashes          , only : genericHash        , integerHash
+  use :: Input_Parameters, only : inputParameter     , inputParameters
+  use :: Unit_Tests      , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type (integerHash    )              :: myHash
   type (genericHash    )              :: genericHash_
@@ -33,7 +33,7 @@ program Test_Hashes
   class(*              ), pointer     :: generic_
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Hashes")
   ! Tests of integer scalar hashes.

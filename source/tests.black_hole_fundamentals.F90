@@ -21,14 +21,14 @@
 
 program Test_Black_Hole_Fundamentals
   !% Tests of black hole fundamental functions.
-  use :: Black_Hole_Fundamentals, only : Black_Hole_Horizon_Radius     , Black_Hole_ISCO_Radius, orbitPrograde
-  use :: Galacticus_Display     , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: Unit_Tests             , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish, &
+  use :: Black_Hole_Fundamentals, only : Black_Hole_Horizon_Radius, Black_Hole_ISCO_Radius, orbitPrograde
+  use :: Display                , only : displayVerbositySet      , verbosityLevelStandard
+  use :: Unit_Tests             , only : Assert                   , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish, &
           &                              compareEquals
   implicit none
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Black hole functions")

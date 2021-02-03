@@ -21,19 +21,19 @@
 
 program Test_String_Utilities
   !% Tests that numerical range making code works correctly.
-  use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: ISO_Varying_String, only : varying_string                , assignment(=)
+  use :: Display           , only : displayVerbositySet      , verbosityLevelStandard
+  use :: ISO_Varying_String, only : assignment(=)            , varying_string
   use :: Kind_Numbers      , only : kind_int8
-  use :: String_Handling   , only : Convert_VarString_To_Char     , String_Count_Words    , String_Levenshtein_Distance, String_Lower_Case, &
-          &                         String_Split_Words            , String_Upper_Case     , String_Upper_Case_First    , operator(//)
-  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group       , Unit_Tests_Finish
+  use :: String_Handling   , only : Convert_VarString_To_Char, String_Count_Words    , String_Levenshtein_Distance, String_Lower_Case, &
+          &                         String_Split_Words       , String_Upper_Case     , String_Upper_Case_First    , operator(//)
+  use :: Unit_Tests        , only : Assert                   , Unit_Tests_Begin_Group, Unit_Tests_End_Group       , Unit_Tests_Finish
   implicit none
   character(len=20        ), dimension(3) :: words
   type     (varying_string), dimension(3) :: myStrings
   type     (varying_string)               :: myString1, myString2
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("String handling utilities")

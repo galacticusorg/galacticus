@@ -260,7 +260,7 @@
   </mergerTreeOutputterMethod>
 
   <!-- ODE solver and luminosities -->
-  <verbosityLevel value="2"/>
+  <verbosityLevel value="working"/>
   <odeLatentIntegratorType value="trapezoidal"/>
   <diskLuminositiesStellarInactive value="false"/>
   <spheroidLuminositiesStellarInactive value="false"/>

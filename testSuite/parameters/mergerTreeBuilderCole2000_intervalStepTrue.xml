@@ -3,7 +3,7 @@
   <version>0.9.4</version>
 
   <!-- Logging -->
-  <verbosityLevel value="1"/>
+  <verbosityLevel value="standard"/>
 
   <!-- Tasks -->
   <taskMethod value="evolveForests"/>

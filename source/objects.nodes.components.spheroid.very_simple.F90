@@ -171,8 +171,8 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Spheroid_Very_Simple_Thread_Initialize(parameters_)
     !% Initializes the tree node very simple satellite module.
-    use :: Events_Hooks    , only : satelliteMergerEvent    , postEvolveEvent, openMPThreadBindingAtLevel, dependencyRegEx, &
-         &                          dependencyDirectionAfter
+    use :: Events_Hooks    , only : dependencyDirectionAfter, dependencyRegEx, openMPThreadBindingAtLevel, postEvolveEvent, &
+          &                         satelliteMergerEvent
     use :: Galacticus_Nodes, only : defaultSpheroidComponent
     use :: Input_Parameters, only : inputParameter          , inputParameters
     implicit none
@@ -196,7 +196,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Spheroid_Very_Simple_Thread_Uninitialize()
     !% Uninitializes the tree node very simple satellite module.
-    use :: Events_Hooks    , only : satelliteMergerEvent    , postEvolveEvent
+    use :: Events_Hooks    , only : postEvolveEvent         , satelliteMergerEvent
     use :: Galacticus_Nodes, only : defaultSpheroidComponent
     implicit none
 
@@ -216,7 +216,7 @@ contains
   !# </preEvolveTask>
   subroutine Node_Component_Spheroid_Very_Simple_Pre_Evolve(node)
     !% Ensure the spheroid has been initialized.
-    use :: Galacticus_Nodes, only : nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode, defaultSpheroidComponent
+    use :: Galacticus_Nodes, only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode
     implicit none
     type (treeNode             ), intent(inout), pointer :: node
     class(nodeComponentSpheroid)               , pointer :: spheroid
@@ -265,12 +265,12 @@ contains
   !# </postStepTask>
   subroutine Node_Component_Spheroid_Very_Simple_Post_Step(node,status)
     !% Catch rounding errors in the very simple spheroid gas evolution.
-    use :: Abundances_Structure          , only : abs                       , zeroAbundances
-    use :: Galacticus_Display            , only : Galacticus_Display_Message, verbosityWarn
-    use :: Galacticus_Nodes              , only : nodeComponentSpheroid     , nodeComponentSpheroidVerySimple, treeNode    , defaultSpheroidComponent
+    use :: Abundances_Structure          , only : abs                     , zeroAbundances
+    use :: Display                       , only : displayMessage          , verbosityLevelWarn
+    use :: Galacticus_Nodes              , only : defaultSpheroidComponent, nodeComponentSpheroid  , nodeComponentSpheroidVerySimple, treeNode
+    use :: ISO_Varying_String            , only : assignment(=)           , operator(//)           , varying_string
     use :: Interface_GSL                 , only : GSL_Failure
-    use :: ISO_Varying_String            , only : varying_string            , assignment(=)                  , operator(//)
-    use :: Stellar_Luminosities_Structure, only : abs                       , zeroStellarLuminosities
+    use :: Stellar_Luminosities_Structure, only : abs                     , zeroStellarLuminosities
     use :: String_Handling               , only : operator(//)
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
@@ -315,7 +315,7 @@ contains
                 message=message//'  Negative masses are due to numerical inaccuracy in the ODE solutions.'//char(10)
                 message=message//'  If significant, consider using a higher tolerance in the ODE solver.'
              end if
-             call Galacticus_Display_Message(message,verbosityWarn)
+             call displayMessage(message,verbosityLevelWarn)
              ! Store the new maximum fractional error.
              fractionalErrorMaximum=fractionalError
           end if
@@ -371,11 +371,11 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Spheroid_Very_Simple_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
-    use :: Abundances_Structure          , only : abs                  , abundances                     , max                , unitAbundances          , &
+    use :: Abundances_Structure          , only : abs                     , abundances           , max                            , unitAbundances         , &
           &                                       zeroAbundances
-    use :: Galacticus_Nodes              , only : nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode           , defaultSpheroidComponent
+    use :: Galacticus_Nodes              , only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode
     use :: Histories                     , only : history
-    use :: Stellar_Luminosities_Structure, only : abs                  , max                            , stellarLuminosities, unitStellarLuminosities
+    use :: Stellar_Luminosities_Structure, only : abs                     , max                  , stellarLuminosities            , unitStellarLuminosities
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
     class           (nodeComponentSpheroid)               , pointer :: spheroid
@@ -419,12 +419,12 @@ contains
 
   subroutine satelliteMerger(self,node)
     !% Transfer any very simple spheroid associated with {\normalfont \ttfamily node} to its host halo.
-    use :: Abundances_Structure                , only : zeroAbundances
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                    , only : nodeComponentDisk       , nodeComponentSpheroid    , nodeComponentSpheroidVerySimple, treeNode
-    use :: Histories                           , only : history
-    use :: Satellite_Merging_Mass_Movements    , only : destinationMergerDisk   , destinationMergerSpheroid, destinationMergerUnmoved
-    use :: Stellar_Luminosities_Structure      , only : zeroStellarLuminosities
+    use :: Abundances_Structure            , only : zeroAbundances
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentSpheroid    , nodeComponentSpheroidVerySimple, treeNode
+    use :: Histories                       , only : history
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, destinationMergerUnmoved
+    use :: Stellar_Luminosities_Structure  , only : zeroStellarLuminosities
     implicit none
     class  (*                    ), intent(inout) :: self
     type   (treeNode             ), intent(inout) :: node

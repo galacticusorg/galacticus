@@ -278,14 +278,14 @@ contains
 
   subroutine massFunctionCovariancePerform(self,status)
     !% Compute and output the halo mass function.
-    use :: Galacticus_Display              , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
-    use :: Galacticus_Error                , only : Galacticus_Error_Report  , errorStatusSuccess
+    use :: Display                         , only : displayIndent          , displayUnindent
+    use :: Galacticus_Error                , only : Galacticus_Error_Report, errorStatusSuccess
     use :: IO_HDF5                         , only : hdf5Object
-    use :: Memory_Management               , only : allocateArray            , deallocateArray
-    use :: Numerical_Constants_Astronomical, only : massSolar                , megaParsec
+    use :: Memory_Management               , only : allocateArray          , deallocateArray
+    use :: Numerical_Constants_Astronomical, only : massSolar              , megaParsec
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Integration           , only : integrator
-    use :: Numerical_Ranges                , only : Make_Range               , rangeTypeLinear            , rangeTypeLogarithmic
+    use :: Numerical_Ranges                , only : Make_Range             , rangeTypeLinear   , rangeTypeLogarithmic
     implicit none
     class           (taskMassFunctionCovariance), intent(inout), target                   :: self
     integer                                     , intent(  out), optional                 :: status
@@ -312,7 +312,7 @@ contains
          &                                                                                   integratorBiasI             , integratorHaloOccupancyTime
     type            (hdf5Object                )                                          :: massFunctionFile            , dataset
 
-    call Galacticus_Display_Indent('Begin task: mass function covariance' )
+    call displayIndent('Begin task: mass function covariance' )
     ! Set a module-scope pointer to our self.
     massFunctionCovarianceSelf     => self
     massFunctionCovarianceSelfCopy => self
@@ -598,7 +598,7 @@ contains
     call massFunctionFile%close  ()
     ! Done.
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: mass function covariance' )
+    call displayUnindent('Done task: mass function covariance' )
     return
   end subroutine massFunctionCovariancePerform
 
@@ -946,10 +946,10 @@ contains
   subroutine massFunctionCovarianceLSSWindowFunction(self,massBinCount,redshiftMinimum,redshiftMaximum,varianceLSS)
     !% Compute variance due to large scale structure by directly summing over the Fourier transform
     !% of the survey selection function.
+    use            :: Display                 , only : displayCounter  , displayCounterClear
     use            :: FFTW3                   , only : FFTW_Wavenumber
-    use            :: Galacticus_Display      , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear
     use, intrinsic :: ISO_C_Binding           , only : c_double_complex
-    use            :: Memory_Management       , only : allocateArray             , deallocateArray
+    use            :: Memory_Management       , only : allocateArray   , deallocateArray
     use            :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (taskMassFunctionCovariance), intent(inout), target                   :: self
@@ -998,7 +998,7 @@ contains
           massFunctionCovarianceSelfCopy%massBinMinimumJ=10.0d0**(massFunctionCovarianceSelfCopy%logMassBinCenter(j)-0.5d0*massFunctionCovarianceSelfCopy%log10MassBinWidth(j))
           massFunctionCovarianceSelfCopy%massBinMaximumJ=10.0d0**(massFunctionCovarianceSelfCopy%logMassBinCenter(j)+0.5d0*massFunctionCovarianceSelfCopy%log10MassBinWidth(j))
           ! Update progress.
-          call Galacticus_Display_Counter(                                              &
+          call displayCounter(                                              &
                &                          int(100.0d0*dble(taskCount)/dble(taskTotal)), &
                &                          isNew=(taskCount==0)                          &
                &                         )
@@ -1121,14 +1121,14 @@ contains
     end do
     if (allocated(windowFunctionI)) deallocate(windowFunctionI)
     if (allocated(windowFunctionJ)) deallocate(windowFunctionJ)
-    call Galacticus_Display_Counter_Clear()
+    call displayCounterClear()
     return
   end subroutine massFunctionCovarianceLSSWindowFunction
 
   subroutine massFunctionCovarianceLSSAngularSpectrum(self,massBinCount,redshiftMinimum,redshiftMaximum,varianceLSS)
     !% Compute variance due to large scale structure by integration over the angular power spectrum.
-    use :: Galacticus_Display      , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear
-    use :: Memory_Management       , only : allocateArray             , deallocateArray
+    use :: Display                 , only : displayCounter, displayCounterClear
+    use :: Memory_Management       , only : allocateArray , deallocateArray
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
     implicit none
@@ -1176,7 +1176,7 @@ contains
             &                                                )
        do j=massFunctionCovarianceSelfCopy%binI,massBinCount
           ! Update progress.
-          call Galacticus_Display_Counter(                                              &
+          call displayCounter(                                              &
                &                          int(100.0d0*dble(taskCount)/dble(taskTotal)), &
                &                          isNew=(taskCount==0)                          &
                &                         )

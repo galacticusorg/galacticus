@@ -29,9 +29,9 @@ contains
 
   logical function Node_Branch_Jump(event,node,deadlockStatus)
     !% Moves a satellite node to a different branch of the merger tree.
-    use :: Galacticus_Display                 , only : Galacticus_Display_Message   , verbosityInfo
+    use :: Display                            , only : displayMessage               , verbosityLevelInfo
     use :: Galacticus_Nodes                   , only : nodeEvent                    , treeNode
-    use :: ISO_Varying_String                 , only : varying_string               , assignment(=), operator(//)
+    use :: ISO_Varying_String                 , only : assignment(=)                , operator(//)      , varying_string
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
     use :: String_Handling                    , only : operator(//)
     !# <include directive="branchJumpPostProcess" type="moduleUse">
@@ -56,7 +56,7 @@ contains
     write (label,'(f12.6)') event%time
     message='Node ['
     message=message//node%index()//'] jumping branch to host ['//event%node%index()//'] at time '//label//' Gyr'
-    call Galacticus_Display_Message(message,verbosityInfo)
+    call displayMessage(message,verbosityLevelInfo)
     ! Remove the satellite from its current host.
     call node%removeFromHost()
     ! Find the new host and insert the node as a satellite in that new host.

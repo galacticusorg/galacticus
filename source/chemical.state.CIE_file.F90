@@ -583,12 +583,12 @@ contains
   subroutine cieFileReadFile(self,fileName)
     !% Read in data from an chemical state file.
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Display                      , only : displayIndent                     , displayUnindent     , verbosityLevelDebug
     use :: File_Utilities               , only : File_Name_Expand
-    use :: Galacticus_Display           , only : Galacticus_Display_Indent         , Galacticus_Display_Unindent, verbosityDebug
     use :: Galacticus_Error             , only : Galacticus_Error_Report
     use :: IO_HDF5                      , only : hdf5Access                        , hdf5Object
     use :: ISO_Varying_String           , only : varying_string
-    use :: Table_Labels                 , only : enumerationExtrapolationTypeEncode, extrapolationTypeFix       , extrapolationTypePowerLaw, extrapolationTypeZero
+    use :: Table_Labels                 , only : enumerationExtrapolationTypeEncode, extrapolationTypeFix, extrapolationTypePowerLaw, extrapolationTypeZero
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     character       (len=*               ), intent(in   ) :: fileName
@@ -600,7 +600,7 @@ contains
 
     call hdf5Access%set()
     ! Parse the file.
-    call Galacticus_Display_Indent('Reading file: '//fileName,verbosityDebug)
+    call displayIndent('Reading file: '//fileName,verbosityLevelDebug)
     call chemicalStateFile%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
     ! Check the file format version of the file.
     call chemicalStateFile%readAttribute('fileFormat',fileFormatVersion)
@@ -666,7 +666,7 @@ contains
          & ) call Galacticus_Error_Report('extrapolation type not permitted'//{introspection:location})
     ! Close the file.
     call chemicalStateFile%close()
-    call Galacticus_Display_Unindent('done',verbosityDebug)
+    call displayUnindent('done',verbosityLevelDebug)
     call hdf5Access%unset()
     ! Store table ranges for convenience.
     self%metallicityMinimum=self%metallicities(                    1)

@@ -21,12 +21,12 @@
 
 program Test_Root_Finding
   !% Tests that routine finding routines work.
-  use :: Galacticus_Display         , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Display                    , only : displayVerbositySet    , verbosityLevelStandard
   use :: Galacticus_Error           , only : errorStatusDivideByZero
-  use :: Root_Finder                , only : rangeExpandAdditive           , rangeExpandMultiplicative, rangeExpandSignExpectPositive, rootFinder
-  use :: Test_Root_Finding_Functions, only : Root_Function_1               , Root_Function_2          , Root_Function_2_Both         , Root_Function_2_Derivative, &
-          &                                  Root_Function_3               , Root_Function_4          , Root_Function_4_Both         , Root_Function_4_Derivative
-  use :: Unit_Tests                 , only : Assert                        , Unit_Tests_Begin_Group   , Unit_Tests_End_Group         , Unit_Tests_Finish
+  use :: Root_Finder                , only : rangeExpandAdditive    , rangeExpandMultiplicative, rangeExpandSignExpectPositive, rootFinder
+  use :: Test_Root_Finding_Functions, only : Root_Function_1        , Root_Function_2          , Root_Function_2_Both         , Root_Function_2_Derivative, &
+          &                                  Root_Function_3        , Root_Function_4          , Root_Function_4_Both         , Root_Function_4_Derivative
+  use :: Unit_Tests                 , only : Assert                 , Unit_Tests_Begin_Group   , Unit_Tests_End_Group         , Unit_Tests_Finish
   implicit none
   type            (rootFinder)               :: finder1, finder2
   double precision                           :: xGuess , xRoot
@@ -34,7 +34,7 @@ program Test_Root_Finding
   integer                                    :: status
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Root finding")

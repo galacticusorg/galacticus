@@ -48,6 +48,7 @@ module Merger_Tree_Data_Structure
   !#  <visibility>public</visibility>
   !#  <validator>yes</validator>
   !#  <encodeFunction>yes</encodeFunction>
+  !#  <decodeFunction>yes</decodeFunction>
   !#  <entry label="null"                    />
   !#  <entry label="treeIndex"               />
   !#  <entry label="nodeIndex"               />
@@ -827,12 +828,12 @@ contains
 
   subroutine Merger_Tree_Data_Structure_Read_ASCII(mergerTrees,inputFile,columnHeaders,commentCharacter,separator,maximumRedshift)
     !% Read in merger tree data from an ASCII file.
+    use :: Display           , only : displayMessage
     use :: File_Utilities    , only : Count_Lines_In_File
-    use :: Galacticus_Display, only : Galacticus_Display_Message
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)             , operator(//)
-    use :: Memory_Management , only : allocateArray             , deallocateArray
-    use :: String_Handling   , only : String_Count_Words        , String_Split_Words, operator(//)
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
+    use :: Memory_Management , only : allocateArray          , deallocateArray
+    use :: String_Handling   , only : String_Count_Words     , String_Split_Words, operator(//)
     implicit none
     class    (mergerTreeData), intent(inout)               :: mergerTrees
     character(len=*         ), intent(in   )               :: inputFile
@@ -1130,7 +1131,7 @@ contains
     ! Report number of forests found.
     message='Found '
     message=message//mergerTrees%forestCount//' forests'
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
 
     ! Deallocate workspace.
     if (allocated(inputColumns)) call deallocateArray(inputColumns)

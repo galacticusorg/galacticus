@@ -106,14 +106,14 @@ contains
 
   subroutine multiPerform(self,status)
     !% Perform all tasks.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent
-    use :: Galacticus_Error  , only : errorStatusSuccess
+    use :: Display         , only : displayIndent     , displayUnindent
+    use :: Galacticus_Error, only : errorStatusSuccess
     implicit none
     class  (taskMulti    ), intent(inout), target   :: self
     integer               , intent(  out), optional :: status
     type   (multiTaskList), pointer                 :: task_
 
-    call Galacticus_Display_Indent('Begin multiple tasks')
+    call displayIndent('Begin multiple tasks')
     if (present(status)) status=errorStatusSuccess
     task_ => self%tasks
     do while (associated(task_))
@@ -121,7 +121,7 @@ contains
        if (present(status) .and. status /= errorStatusSuccess) return
        task_ => task_%next
     end do
-    call Galacticus_Display_Unindent('Done multiple tasks')
+    call displayUnindent('Done multiple tasks')
     return
   end subroutine multiPerform
 

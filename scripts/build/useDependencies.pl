@@ -170,7 +170,11 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 	if ( scalar(@{$directives->{'functionClass'}}) > 0 ||  scalar(@{$directives->{'inputParameter'}}) > 0 );
     # Add dependence on error reporting module if necessary.
     push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName."galacticus_error.mod")
-	if ( grep {exists($_->{'encodeFunction'}) && $_->{'encodeFunction'} eq "yes"} @{$directives->{'enumeration'}} );
+	if (
+	    (grep {exists($_->{'encodeFunction'}) && $_->{'encodeFunction'} eq "yes" && ! exists($_->{'errorValue'})} @{$directives->{'enumeration'}})
+	    ||
+	    (grep {exists($_->{'decodeFunction'}) && $_->{'decodeFunction'} eq "yes"                                } @{$directives->{'enumeration'}})
+	);
     # Find modules used in functionClass directives.
     foreach my $functionClass ( @{$directives->{'functionClass'}} ) {
 	next 

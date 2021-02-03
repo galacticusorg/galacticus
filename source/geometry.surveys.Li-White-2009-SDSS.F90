@@ -235,12 +235,12 @@ contains
 
   subroutine liWhite2009SDSSRandomsInitialize(self)
     !% Compute the window function for the survey.
-    use :: File_Utilities          , only : Count_Lines_In_File       , Directory_Make     , File_Exists
-    use :: Galacticus_Display      , only : Galacticus_Display_Message
+    use :: Display                 , only : displayMessage
+    use :: File_Utilities          , only : Count_Lines_In_File    , Directory_Make     , File_Exists
     use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: Galacticus_Paths        , only : galacticusPath            , pathTypeDataDynamic
+    use :: Galacticus_Paths        , only : galacticusPath         , pathTypeDataDynamic
     use :: ISO_Varying_String      , only : varying_string
-    use :: Memory_Management       , only : allocateArray             , deallocateArray
+    use :: Memory_Management       , only : allocateArray          , deallocateArray
     use :: Numerical_Constants_Math, only : Pi
     use :: String_Handling         , only : operator(//)
     use :: System_Command          , only : System_Command_Do
@@ -290,6 +290,6 @@ contains
     call deallocateArray(angleTmp                       )
     message="Read "
     message=message//randomsCount//" random points and kept "//randomsCount//" of them"
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     return
   end subroutine liWhite2009SDSSRandomsInitialize

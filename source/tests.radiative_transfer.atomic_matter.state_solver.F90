@@ -26,21 +26,23 @@ program Test_Radiative_Transfer_State_Solver
   use :: Atomic_Radiation_Gaunt_Factors              , only : gauntFactorVanHoof2014
   use :: Atomic_Rates_Excitation_Collisional         , only : atomicExcitationRateCollisionalScholzWalters1991
   use :: Atomic_Rates_Ionization_Collisional         , only : atomicIonizationRateCollisionalVerner1996
-  use :: Atomic_Rates_Recombination_Dielectronic     , only : atomicRecombinationRateDielectronicZero         , atomicRecombinationRateDielectronicArnaud1985
+  use :: Atomic_Rates_Recombination_Dielectronic     , only : atomicRecombinationRateDielectronicArnaud1985   , atomicRecombinationRateDielectronicZero
   use :: Atomic_Rates_Recombination_Radiative        , only : atomicRecombinationRateRadiativeFixed           , atomicRecombinationRateRadiativeVerner1996
   use :: Atomic_Rates_Recombination_Radiative_Cooling, only : atomicRecombinationRateRadiativeCoolingFixed    , atomicRecombinationRateRadiativeCoolingHummer
-  use :: Galacticus_Display                          , only : Galacticus_Verbosity_Level_Set                  , verbosityStandard
+  use :: Display                                     , only : displayVerbositySet                             , verbosityLevelStandard
   use :: Galacticus_Error                            , only : errorStatusSuccess
-  use :: Input_Parameters                            , only : inputParameters
   use :: ISO_Varying_String                          , only : var_str
+  use :: Input_Parameters                            , only : inputParameters
+#ifdef USEMPI
+  use :: MPI                                         , only : MPI_Thread_Single
+#endif
+#ifdef USEMPI
+  use :: MPI_Utilities                               , only : mpiFinalize                                     , mpiInitialize
+#endif
   use :: Mass_Distributions                          , only : massDistributionConstantDensityCloud
   use :: Numerical_Constants_Astronomical            , only : metallicitySolar
   use :: Radiative_Transfer_Matters                  , only : radiativeTransferMatterAtomic                   , radiativeTransferPropertiesMatterAtomic
   use :: Unit_Tests                                  , only : Assert                                          , Unit_Tests_Begin_Group                       , Unit_Tests_End_Group, Unit_Tests_Finish
-#ifdef USEMPI
-  use :: MPI                                         , only : MPI_Thread_Single
-  use :: MPI_Utilities                               , only : mpiFinalize                                     , mpiInitialize
-#endif
   implicit none
   type   (inputParameters                                 ), target      :: parameters
   type   (atomicCrossSectionIonizationPhotoVerner         ), pointer     :: atomicCrossSectionIonizationPhoto_
@@ -63,7 +65,7 @@ program Test_Radiative_Transfer_State_Solver
   call mpiInitialize(MPI_Thread_Single  )
 #endif
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Initialize parameters.
   parameters=inputParameters(var_str('testSuite/parameters/test-radiativeTransfer-atomicMatterStateSolver.xml'))
   ! Construct atomic matter.

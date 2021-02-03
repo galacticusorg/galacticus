@@ -231,8 +231,8 @@ contains
   subroutine galacticusOpen(self,fileName)
     !% Validate a \glc\ format merger tree file.
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
-    use :: Galacticus_Display  , only : Galacticus_Display_Message, verbosityWarn
-    use :: Galacticus_Error    , only : Galacticus_Error_Report   , Galacticus_Warn
+    use :: Display             , only : displayMessage         , verbosityLevelWarn
+    use :: Galacticus_Error    , only : Galacticus_Error_Report, Galacticus_Warn
     use :: IO_HDF5             , only : hdf5Access
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
@@ -303,7 +303,7 @@ contains
           if (self%fatalMismatches) then
              call Galacticus_Error_Report(message//{introspection:location})
           else
-             call Galacticus_Display_Message(message,verbosityWarn)
+             call displayMessage(message,verbosityLevelWarn)
           end if
        end if
     end if
@@ -318,7 +318,7 @@ contains
           if (self%fatalMismatches) then
              call Galacticus_Error_Report(message//{introspection:location})
           else
-             call Galacticus_Display_Message(message,verbosityWarn)
+             call displayMessage(message,verbosityLevelWarn)
           end if
        end if
     end if
@@ -333,7 +333,7 @@ contains
           if (self%fatalMismatches) then
              call Galacticus_Error_Report(message//{introspection:location})
           else
-             call Galacticus_Display_Message(message,verbosityWarn)
+             call displayMessage(message,verbosityLevelWarn)
           end if
        end if
     end if
@@ -348,7 +348,7 @@ contains
           if (self%fatalMismatches) then
              call Galacticus_Error_Report(message//{introspection:location})
           else
-             call Galacticus_Display_Message(message,verbosityWarn)
+             call displayMessage(message,verbosityLevelWarn)
           end if
        end if
     end if
@@ -360,7 +360,7 @@ contains
           message=message//trim(valueString)//'] differs from the internal value ['
           write (valueString,'(e14.8)') localSigma8
           message=message//trim(valueString)//'] - may not matter if sigma_8 is not used in other functions'
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end if
     end if
     call cosmologicalParametersGroup%close()

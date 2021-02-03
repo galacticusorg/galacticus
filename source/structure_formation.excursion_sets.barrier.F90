@@ -54,6 +54,7 @@ module Excursion_Sets_Barriers
   !#  <name>excursionSetRemap</name>
   !#  <description>Specifies whether a remapping of the barrier should apply to cases where the excursion set is used for rate calculation, non-rate calculations, or both.</description>
   !#  <encodeFunction>yes</encodeFunction>
+  !#  <decodeFunction>yes</decodeFunction>
   !#  <validator>yes</validator>
   !#  <entry label="rates"   />
   !#  <entry label="nonRates"/>

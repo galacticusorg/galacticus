@@ -267,11 +267,11 @@ contains
 
   subroutine conditionalMassFunctionPerform(self,status)
     !% Compute and output the halo mass function.
-    use :: Galacticus_Display   , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
-    use :: Galacticus_Error     , only : Galacticus_Error_Report  , errorStatusSuccess
+    use :: Display              , only : displayIndent          , displayUnindent
+    use :: Galacticus_Error     , only : Galacticus_Error_Report, errorStatusSuccess
     use :: Galacticus_HDF5      , only : galacticusOutputFile
     use :: IO_HDF5              , only : hdf5Object
-    use :: ISO_Varying_String   , only : char                     , var_str                    , varying_string
+    use :: ISO_Varying_String   , only : char                   , var_str           , varying_string
     use :: Memory_Management    , only : allocateArray
     use :: Numerical_Integration, only : integrator
     use :: String_Handling      , only : operator(//)
@@ -292,7 +292,7 @@ contains
     type            (varying_string            )                               :: message
     character       (len=12                    )                               :: label
 
-    call Galacticus_Display_Indent('Begin task: conditional mass function' )
+    call displayIndent('Begin task: conditional mass function' )
     if(present(status)) status=errorStatusSuccess
     call allocateArray(conditionalMassFunction          ,[self%countMass])
     call allocateArray(conditionalMassFunctionIncomplete,[self%countMass])
@@ -386,7 +386,7 @@ contains
        call outputGroup%writeDataset(conditionalMassFunctionIncomplete,"massFunctionIncomplete",commentText="Incomplete conditional mass function in units of per log(mass).")
     end if
     call outputGroup%close()
-    call Galacticus_Display_Unindent('Done task: conditional mass function' )
+    call displayUnindent('Done task: conditional mass function' )
     return
 
   contains

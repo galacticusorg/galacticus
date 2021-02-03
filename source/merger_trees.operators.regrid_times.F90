@@ -84,7 +84,7 @@ contains
 
   function regridTimesConstructorInternal(snapTolerance,dumpTrees,outputTimes_) result(self)
     !% Internal constructor for the regrid times merger tree operator class.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeOperatorRegridTimes)                        :: self
     double precision                               , intent(in   )         :: snapTolerance
@@ -113,14 +113,14 @@ contains
 
   subroutine regridTimesOperatePreEvolution(self,tree)
     !% Perform a regrid times operation on a merger tree.
-    use            :: Galacticus_Display     , only : Galacticus_Display_Indent, Galacticus_Display_Unindent  , Galacticus_Display_Message, verbosityWorking
-    use            :: Galacticus_Error       , only : Galacticus_Error_Report  , Galacticus_Warn
-    use            :: Galacticus_Nodes       , only : mergerTree               , nodeComponentBasic           , nodeComponentSatellite    , nodeEvent       , &
-          &                                           treeNode                 , treeNodeList
+    use            :: Display                , only : displayIndent           , displayMessage               , displayUnindent       , verbosityLevelWorking
+    use            :: Galacticus_Error       , only : Galacticus_Error_Report , Galacticus_Warn
+    use            :: Galacticus_Nodes       , only : mergerTree              , nodeComponentBasic           , nodeComponentSatellite, nodeEvent            , &
+          &                                           treeNode                , treeNodeList
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: ISO_Varying_String     , only : var_str
     use            :: Kind_Numbers           , only : kind_int8
-    use            :: Merger_Tree_Walkers    , only : mergerTreeWalkerAllNodes , mergerTreeWalkerIsolatedNodes
+    use            :: Merger_Tree_Walkers    , only : mergerTreeWalkerAllNodes, mergerTreeWalkerIsolatedNodes
     use            :: Merger_Trees_Dump      , only : Merger_Tree_Dump
     use            :: Numerical_Comparison   , only : Values_Agree
     use            :: Numerical_Interpolation, only : interpolator
@@ -153,7 +153,7 @@ contains
     ! Iterate over trees.
     currentTree => tree
     do while (associated(currentTree))
-       call Galacticus_Display_Indent(var_str('Regridding tree ')//currentTree%index,verbosityWorking)
+       call displayIndent(var_str('Regridding tree ')//currentTree%index,verbosityLevelWorking)
        ! Dump the unprocessed tree if required.
        if (self%dumpTrees) call Merger_Tree_Dump(                              &
             &                                    currentTree                 , &
@@ -244,7 +244,7 @@ contains
           end if
        end do
        firstNewNode=nodeIndex+1
-       call Galacticus_Display_Message(var_str('Tree contains ')//countNodes//' nodes prior to regridding',verbosityWorking)
+       call displayMessage(var_str('Tree contains ')//countNodes//' nodes prior to regridding',verbosityLevelWorking)
        ! Walk the tree, locating branches which intersect grid times.
        treeWalkerIsolatedNodes=mergerTreeWalkerIsolatedNodes(currentTree)
        do while (treeWalkerIsolatedNodes%next(node))
@@ -425,7 +425,7 @@ contains
              countNodes=countNodes+1_c_size_t
           end if
        end do
-       call Galacticus_Display_Message(var_str('Tree contains ')//countNodes//' nodes after regridding',verbosityWorking)
+       call displayMessage(var_str('Tree contains ')//countNodes//' nodes after regridding',verbosityLevelWorking)
        ! Dump the processed tree if required.
        if (self%dumpTrees) call Merger_Tree_Dump(                              &
             &                                    currentTree                 , &
@@ -440,7 +440,7 @@ contains
             &                                    scaleNodesByLogMass=.true.  , &
             &                                    edgeLengthsToTimes =.true.    &
             &                                   )
-       call Galacticus_Display_Unindent('Done',verbosityWorking)
+       call displayUnindent('Done',verbosityLevelWorking)
        ! Move to the next tree.
        currentTree => currentTree%nextTree
     end do

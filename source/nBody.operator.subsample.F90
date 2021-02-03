@@ -65,7 +65,7 @@ contains
 
   function subsampleConstructorInternal(rate,randomNumberGenerator_) result (self)
     !% Internal constructor for the {\normalfont \ttfamily subsample} N-body operator class.
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (nbodyOperatorSubsample    )                        :: self
     class           (randomNumberGeneratorClass), intent(in   ), target :: randomNumberGenerator_
@@ -87,9 +87,9 @@ contains
 
   subroutine subsampleOperate(self,simulations)
     !% Identify and flag particles which have been always isolated.
-    use :: Galacticus_Display   , only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Message, verbosityStandard
+    use :: Display              , only : displayIndent          , displayMessage  , displayUnindent, verbosityLevelStandard
     use :: Galacticus_Error     , only : Galacticus_Error_Report
-    use :: NBody_Simulation_Data, only : propertyTypeInteger      , propertyTypeReal
+    use :: NBody_Simulation_Data, only : propertyTypeInteger    , propertyTypeReal
     implicit none
     class           (nbodyOperatorSubsample), intent(inout)                 :: self
     type            (nBodyData             ), intent(inout), dimension(  :) :: simulations
@@ -102,7 +102,7 @@ contains
     integer         (c_size_t              )                                :: k                   , countSubsampled             , &
          &                                                                     countOriginal
     
-    call Galacticus_Display_Indent('subsample points',verbosityStandard)
+    call displayIndent('subsample points',verbosityLevelStandard)
     do i=1,size(simulations)
        countOriginal=-1_c_size_t
        if (countOriginal < 0_c_size_t .and. simulations(i)%propertiesInteger     %size() > 0) then
@@ -170,6 +170,6 @@ contains
        end do
        deallocate(mask)
     end do
-    call Galacticus_Display_Unindent('done',verbosityStandard)
+    call displayUnindent('done',verbosityLevelStandard)
     return
   end subroutine subsampleOperate

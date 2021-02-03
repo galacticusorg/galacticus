@@ -25,28 +25,28 @@ program Test_Concentrations
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters                , only : cosmologyParametersSimple
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
-  use :: Dark_Matter_Profiles_Concentration  , only : darkMatterProfileConcentrationClass     , darkMatterProfileConcentrationDiemerKravtsov2014             , darkMatterProfileConcentrationDuttonMaccio2014, darkMatterProfileConcentrationLudlow2016Fit, &
+  use :: Dark_Matter_Profiles_Concentration  , only : darkMatterProfileConcentrationClass     , darkMatterProfileConcentrationDiemerKravtsov2014            , darkMatterProfileConcentrationDuttonMaccio2014, darkMatterProfileConcentrationLudlow2016Fit, &
           &                                           darkMatterProfileConcentrationPrada2011
+  use :: Display                             , only : displayVerbositySet                     , verbosityLevelStandard
   use :: Events_Hooks                        , only : eventsHooksInitialize
   use :: File_Utilities                      , only : Count_Lines_in_File
   use :: Functions_Global_Utilities          , only : Functions_Global_Set
   use :: Galacticus_Calculations_Resets      , only : Galacticus_Calculations_Reset
-  use :: Galacticus_Display                  , only : Galacticus_Verbosity_Level_Set          , verbosityStandard
   use :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
-  use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize            , nodeComponentBasic                                           , treeNode
+  use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize            , nodeComponentBasic                                          , treeNode
   use :: Galacticus_Paths                    , only : galacticusPath                          , pathTypeExec
-  use :: ISO_Varying_String                  , only : assignment(=)                           , char                                                         , operator(//)                                  , operator(==)                               , &
+  use :: ISO_Varying_String                  , only : assignment(=)                           , char                                                        , operator(//)                                  , operator(==)                               , &
           &                                           varying_string
   use :: Input_Parameters                    , only : inputParameters
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
-  use :: Node_Components                     , only : Node_Components_Initialize              , Node_Components_Thread_Initialize                            , Node_Components_Thread_Uninitialize           , Node_Components_Uninitialize
+  use :: Node_Components                     , only : Node_Components_Initialize              , Node_Components_Thread_Initialize                           , Node_Components_Thread_Uninitialize           , Node_Components_Uninitialize
   use :: Power_Spectra                       , only : powerSpectrumStandard
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
   use :: String_Handling                     , only : String_Split_Words
   use :: Transfer_Functions                  , only : transferFunctionEisensteinHu1999
-  use :: Unit_Tests                          , only : Assert                                  , Unit_Tests_Begin_Group                                       , Unit_Tests_End_Group                          , Unit_Tests_Finish
+  use :: Unit_Tests                          , only : Assert                                  , Unit_Tests_Begin_Group                                      , Unit_Tests_End_Group                          , Unit_Tests_Finish
   implicit none
   type            (treeNode                                                    ), pointer                             :: node
   class           (nodeComponentBasic                                          ), pointer                             :: basic
@@ -81,7 +81,7 @@ program Test_Concentrations
        &                                                                                                                 iModel
 
   ! Initialize.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   call eventsHooksInitialize()
   call Functions_Global_Set ()
   ! Specify all models to run.

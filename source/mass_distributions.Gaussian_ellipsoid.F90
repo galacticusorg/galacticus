@@ -67,7 +67,7 @@ contains
     !% Constructor for the {\normalfont \ttfamily gaussianEllipsoid} mass distribution class which builds the object from a parameter
     !% set.
     use :: Input_Parameters, only : inputParameter, inputParameters
-    use :: Linear_Algebra  , only : vector        , assignment(=)
+    use :: Linear_Algebra  , only : assignment(=) , vector
     implicit none
     type            (massDistributionGaussianEllipsoid)                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
@@ -160,7 +160,7 @@ contains
   subroutine gaussianEllipsoidInitialize(self,scaleLength,axes,rotation)
     !% (Re)initialize properties of a Gaussian ellipsoid mass distribution.
     use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: Linear_Algebra          , only : vector                 , matrixRotation, assignment(=)
+    use :: Linear_Algebra          , only : assignment(=)          , matrixRotation, vector
     use :: Numerical_Comparison    , only : Values_Differ
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -221,7 +221,7 @@ contains
   double precision function gaussianEllipsoidDensity(self,coordinates)
     !% Return the density at the specified {\normalfont \ttfamily coordinates} in a Gaussian ellipsoid mass distribution.
     use :: Coordinates   , only : assignment(=), coordinateCartesian
-    use :: Linear_Algebra, only : vector       , assignment(=)      , operator(*)
+    use :: Linear_Algebra, only : assignment(=), operator(*)        , vector
     implicit none
     class           (massDistributionGaussianEllipsoid), intent(inout) :: self
     class           (coordinate                       ), intent(in   ) :: coordinates
@@ -262,8 +262,8 @@ contains
 
   function gaussianEllipsoidAcceleration(self,coordinates)
     !% Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for Gaussian ellipsoid mass distributions.
-    use :: Coordinates                 , only : assignment(=)                  , coordinateCartesian
-    use :: Linear_Algebra              , only : vector                         , assignment(=)      , operator(*)
+    use :: Coordinates                     , only : assignment(=)                  , coordinateCartesian
+    use :: Linear_Algebra                  , only : assignment(=)                  , operator(*)        , vector
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     double precision                                   , dimension(3  ) :: gaussianEllipsoidAcceleration
@@ -424,16 +424,16 @@ contains
     !%  a_i = - 2 \pi \mathrm{G} a_1 a_2 a_3 x_i \int_0^\infty {\mathrm{d} u \over \Delta(u)} {\rho(m^2) \over (a_i^2+u)}.
     !% \end{equation}
     !% We take $a_3=1$ in all cases in order to construct the scale-free solution.
-    use :: Galacticus_Display      , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-         &                                  verbosityWorking
-    use :: Galacticus_Paths        , only : galacticusPath             , pathTypeDataDynamic
-    use :: File_Utilities          , only : File_Exists                , File_Lock                       , File_Unlock              , File_Path                  , &
-         &                                  Directory_Make             , lockDescriptor
-    use :: Numerical_Integration   , only : integrator
+    use :: Display                 , only : displayCounter       , displayCounterClear , displayIndent , displayUnindent, &
+          &                                 verbosityLevelWorking
+    use :: File_Utilities          , only : Directory_Make       , File_Exists         , File_Lock     , File_Path      , &
+          &                                 File_Unlock          , lockDescriptor
+    use :: Galacticus_Paths        , only : galacticusPath       , pathTypeDataDynamic
+    use :: IO_HDF5                 , only : hdf5Access           , hdf5Object
+    use :: ISO_Varying_String      , only : char                 , operator(//)        , varying_string
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Ranges        , only : Make_Range                 , rangeTypeLogarithmic
-    use :: ISO_Varying_String      , only : operator(//)               , char                            , varying_string
-    use :: IO_HDF5                 , only : hdf5Access                 , hdf5Object
+    use :: Numerical_Integration   , only : integrator
+    use :: Numerical_Ranges        , only : Make_Range           , rangeTypeLogarithmic
     implicit none
     class           (massDistributionGaussianEllipsoid), intent(inout)       :: self
     double precision                                   , dimension(3) , save :: positionCartesian          , scaleLength
@@ -481,7 +481,7 @@ contains
        self%accelerationX          =Make_Range(          xMinimum,          xMaximum,countX          ,rangeTypeLogarithmic)
        self%accelerationScaleLength=Make_Range(scaleLengthMinimum,scaleLengthMaximum,countScaleLength,rangeTypeLogarithmic)
        ! Iterate over all positions and scale lengths, computing the accelerations.
-       call Galacticus_Display_Indent("tabulating gravitational accelerations for Gaussian ellipsoids",verbosityWorking)
+       call displayIndent("tabulating gravitational accelerations for Gaussian ellipsoids",verbosityLevelWorking)
        countWork=0
        do i=1,countX
           do j=1,countX
@@ -491,7 +491,7 @@ contains
              do k=1,countX
                 !$omp atomic
                 countWork=countWork+1
-                call Galacticus_Display_Counter(int(100.0d0*dble(countWork)/dble(countX**3)),i == 1 .and. j == 1 .and. k == 1,verbosityWorking)
+                call displayCounter(int(100.0d0*dble(countWork)/dble(countX**3)),i == 1 .and. j == 1 .and. k == 1,verbosityLevelWorking)
                 positionCartesian=[self%accelerationX          (i),self%accelerationX          (j),self%accelerationX(k)]
                 do l=1,countScaleLength
                    do m=1,countScaleLength
@@ -515,8 +515,8 @@ contains
              !$omp end parallel
           end do
        end do
-       call Galacticus_Display_Counter_Clear(       verbosityWorking)
-       call Galacticus_Display_Unindent     ("done",verbosityWorking)
+       call displayCounterClear(       verbosityLevelWorking)
+       call displayUnindent     ("done",verbosityLevelWorking)
        !$ call hdf5Access%set()
        call file%openFile    (char   (fileName                    )               ,overWrite=.true.,readOnly=.false.)
        call file%writeDataset(        self%accelerationX           ,'x'                                             )

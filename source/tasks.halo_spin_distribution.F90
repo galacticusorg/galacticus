@@ -155,7 +155,7 @@ contains
 
   subroutine haloSpinDistributionPerform(self,status)
     !% Compute and output the halo spin distribution.
-    use            :: Galacticus_Display     , only : Galacticus_Display_Indent        , Galacticus_Display_Unindent
+    use            :: Display                , only : displayIndent                    , displayUnindent
     use            :: Galacticus_Error       , only : Galacticus_Error_Report          , errorStatusSuccess
     use            :: Galacticus_HDF5        , only : galacticusOutputFile
     use            :: Galacticus_Nodes       , only : nodeComponentBasic               , nodeComponentDarkMatterProfile     , nodeComponentSpin, treeNode
@@ -178,7 +178,7 @@ contains
          &                                                                           containerGroup
     type            (varying_string                )                              :: groupName            , commentText
 
-    call Galacticus_Display_Indent('Begin task: halo spin distribution')
+    call displayIndent('Begin task: halo spin distribution')
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
     call Node_Components_Thread_Initialize(self%parameters)
     ! Create a tree node.
@@ -238,6 +238,6 @@ contains
     if (containerGroup%isOpen()) call containerGroup%close()
     call Node_Components_Thread_Uninitialize()
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: halo spin distribution' )
+    call displayUnindent('Done task: halo spin distribution' )
     return
   end subroutine haloSpinDistributionPerform

@@ -113,10 +113,10 @@ contains
 
   subroutine mergeImport(self,simulations)
     !% Merge data from multiple importers.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, verbosityStandard
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Hashes            , only : rank1IntegerSizeTPtrHash , rank1DoublePtrHash         , integerSizeTHash , doubleHash, &
-         &                            rank2IntegerSizeTPtrHash , rank2DoublePtrHash   
+    use :: Display         , only : displayIndent          , displayUnindent         , verbosityLevelStandard
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Hashes          , only : doubleHash             , integerSizeTHash        , rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, &
+          &                         rank2DoublePtrHash     , rank2IntegerSizeTPtrHash
     implicit none
     class           (nbodyImporterMerge), intent(inout)                              :: self
     type            (nBodyData         ), intent(  out), allocatable, dimension(  :) :: simulations
@@ -128,7 +128,7 @@ contains
     integer                                                                          :: j                   , k
     integer         (c_size_t          )                                             :: countObjects        , countObjectsMerged
     
-    call Galacticus_Display_Indent('merging imported data',verbosityStandard)
+    call displayIndent('merging imported data',verbosityLevelStandard)
     allocate(simulations(1))
     countObjectsMerged    =  0_c_size_t
     importer_             => self%importers
@@ -271,7 +271,7 @@ contains
        deallocate(importer_%simulations)
        importer_ => importer_%next
     end do
-    call Galacticus_Display_Unindent('done',verbosityStandard)
+    call displayUnindent('done',verbosityLevelStandard)
     return
   end subroutine mergeImport
 

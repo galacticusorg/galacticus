@@ -22,10 +22,10 @@
   use :: Input_Parameters               , only : inputParameters
   use :: Kind_Numbers                   , only : kind_int8
   use :: Merger_Tree_Construction       , only : mergerTreeConstructorClass
+  use :: Merger_Tree_Initialization     , only : mergerTreeInitializorClass
   use :: Merger_Tree_Operators          , only : mergerTreeOperatorClass
   use :: Merger_Tree_Outputters         , only : mergerTreeOutputter        , mergerTreeOutputterClass
   use :: Merger_Trees_Evolve            , only : mergerTreeEvolver          , mergerTreeEvolverClass
-  use :: Merger_Tree_Initialization     , only : mergerTreeInitializorClass
   use :: Output_Times                   , only : outputTimesClass
   use :: Task_Evolve_Forests_Work_Shares, only : evolveForestsWorkShareClass
   use :: Universe_Operators             , only : universeOperator           , universeOperatorClass
@@ -235,7 +235,7 @@ contains
 
   subroutine evolveForestsStateStore(self,stateFile,gslStateFile,stateOperationID)
     !% Store the internal state of this object.
-    use, intrinsic :: ISO_C_Binding, only : c_size_t, c_ptr
+    use, intrinsic :: ISO_C_Binding, only : c_ptr, c_size_t
     implicit none
     class  (taskEvolveForests), intent(inout) :: self
     integer                   , intent(in   ) :: stateFile
@@ -253,7 +253,7 @@ contains
 
   subroutine evolveForestsStateRestore(self,stateFile,gslStateFile,stateOperationID)
     !% Store the internal state of this object.
-    use, intrinsic :: ISO_C_Binding, only : c_size_t, c_ptr
+    use, intrinsic :: ISO_C_Binding, only : c_ptr, c_size_t
     implicit none
     class  (taskEvolveForests), intent(inout) :: self
     integer                   , intent(in   ) :: stateFile
@@ -295,18 +295,31 @@ contains
 
   subroutine evolveForestsPerform(self,status)
     !% Evolves the complete set of merger trees as specified.
-    use               :: Galacticus_Display                  , only : Galacticus_Display_Indent          , Galacticus_Display_Message         , Galacticus_Display_Unindent, verbosityInfo
+    use               :: Display                             , only : displayIndent                      , displayMessage                     , displayUnindent, verbosityLevelInfo
     use               :: Galacticus_Error                    , only : Galacticus_Error_Report            , errorStatusSuccess
     use               :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
-    use               :: Galacticus_Nodes                    , only : mergerTree                         , nodeComponentBasic                 , treeNode                   , universe        , &
+    use               :: Galacticus_Nodes                    , only : mergerTree                         , nodeComponentBasic                 , treeNode       , universe          , &
           &                                                           universeEvent
     use   , intrinsic :: ISO_C_Binding                       , only : c_size_t
-    
     use               :: Memory_Management                   , only : Memory_Usage_Record                , memoryTypeNodes
     use               :: Merger_Tree_Walkers                 , only : mergerTreeWalkerAllNodes           , mergerTreeWalkerIsolatedNodes
     use               :: Node_Components                     , only : Node_Components_Thread_Initialize  , Node_Components_Thread_Uninitialize
     use               :: Node_Events_Inter_Tree              , only : Inter_Tree_Event_Post_Evolve
-    !$ use            :: OMP_Lib                             , only : omp_lock_kind                      , OMP_Init_Lock                      , OMP_Get_Thread_Num         , OMP_Destroy_Lock
+    !$ use            :: OMP_Lib                             , only : OMP_Destroy_Lock                   , OMP_Get_Thread_Num                 , OMP_Init_Lock  , omp_lock_kind
+    use               :: Sorting                             , only : sortIndex
+    use               :: String_Handling                     , only : operator(//)
+    
+    use               :: Display                             , only : displayIndent                      , displayMessage                     , displayUnindent, verbosityLevelInfo
+    use               :: Galacticus_Error                    , only : Galacticus_Error_Report            , errorStatusSuccess
+    use               :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
+    use               :: Galacticus_Nodes                    , only : mergerTree                         , nodeComponentBasic                 , treeNode       , universe          , &
+          &                                                           universeEvent
+    use   , intrinsic :: ISO_C_Binding                       , only : c_size_t
+    use               :: Memory_Management                   , only : Memory_Usage_Record                , memoryTypeNodes
+    use               :: Merger_Tree_Walkers                 , only : mergerTreeWalkerAllNodes           , mergerTreeWalkerIsolatedNodes
+    use               :: Node_Components                     , only : Node_Components_Thread_Initialize  , Node_Components_Thread_Uninitialize
+    use               :: Node_Events_Inter_Tree              , only : Inter_Tree_Event_Post_Evolve
+    !$ use            :: OMP_Lib                             , only : OMP_Destroy_Lock                   , OMP_Get_Thread_Num                 , OMP_Init_Lock  , omp_lock_kind
     use               :: Sorting                             , only : sortIndex
     use               :: String_Handling                     , only : operator(//)
     ! Include modules needed for tasks.
@@ -371,7 +384,7 @@ contains
     ! processed. Once all trees reach the event time the stack of trees is passed to the event task. Tree processing then
     ! continues by popping trees off of the stack and processing them further (possibly to the next universal event).
 
-    call Galacticus_Display_Indent('Begin task: merger tree evolution')
+    call displayIndent('Begin task: merger tree evolution')
 
     ! Set status to success by default.
     if (present(status)) status=errorStatusSuccess
@@ -481,7 +494,7 @@ contains
              end if
              ! Display a message.
              message=message//tree%index//" {"//tree%baseNode%index()//"}"
-             call Galacticus_Display_Indent(message)
+             call displayIndent(message)
              ! Determine if this will be the final forest evolved by multiple threads.
              if (self%evolveSingleForest) then
                 basic =>tree%baseNode%basic()
@@ -714,7 +727,7 @@ contains
                    if (removeTree) then
                       message="Removing remnant tree "
                       message=message//currentTree%index//" {"//currentTree%baseNode%index()//"}"
-                      call Galacticus_Display_Message(message,verbosityInfo)
+                      call displayMessage(message,verbosityLevelInfo)
                       if (.not.associated(previousTree)) then
                          nextTree    => currentTree%nextTree
                          call currentTree%destroy()
@@ -755,7 +768,7 @@ contains
                    ! Tree reached an output time, so output it. We can then continue evolving.
                    write (label,'(f7.2)') evolveToTime
                    message="Output tree data at t="//trim(label)//" Gyr"
-                   call Galacticus_Display_Message(message)
+                   call displayMessage(message)
                    call evolveForestsMergerTreeOutputter_%outputTree(tree,iOutput,evolveToTime)
                    ! Perform any extra output and post-output processing on nodes.
                    treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
@@ -806,10 +819,10 @@ contains
                 ! Suspend the tree.
                 call self%suspendTree(tree)
                 ! Unindent messages.
-                call Galacticus_Display_Unindent('Suspending tree')
+                call displayUnindent('Suspending tree')
              else
                 ! Unindent messages.
-                call Galacticus_Display_Unindent('Finished tree'  )
+                call displayUnindent('Finished tree'  )
              end if
           end if singleForstSuspend
           ! For single forest evolution, block all threads until the master thread has completed tree suspension.
@@ -870,7 +883,7 @@ contains
                       message=message//" --> There are no trees pending further processing"
                    end if
                    !$omp end critical(universeTransform)
-                   call Galacticus_Display_Message(message)
+                   call displayMessage(message)
                    call Inter_Tree_Event_Post_Evolve()
                    call Galacticus_Error_Report('exiting'//{introspection:location})
                 else
@@ -897,7 +910,7 @@ contains
                 end do
                 ! Mark that there is more work to do.
                 triggerFinishUniverse=.true.
-                call Galacticus_Display_Message('Finished universe evolution pass')
+                call displayMessage('Finished universe evolution pass')
              end if
              !$omp end critical(universeTransform)
              !$omp end master
@@ -953,7 +966,7 @@ contains
     include 'galacticus.tasks.evolve_tree.universePostEvolveTask.inc'
     !# </include>
 
-    call Galacticus_Display_Unindent('Done task: merger tree evolution')
+    call displayUnindent('Done task: merger tree evolution')
 
     return
   end subroutine evolveForestsPerform
@@ -963,7 +976,7 @@ contains
 #ifdef USEMPI
     use :: Galacticus_Error        , only : Galacticus_Error_Report
 #endif
-    use :: ISO_Varying_String      , only : varying_string         , operator(//)
+    use :: ISO_Varying_String      , only : operator(//)           , varying_string
     use :: Kind_Numbers            , only : kind_int8
     use :: Merger_Tree_Construction, only : mergerTreeStateStore
     use :: String_Handling         , only : operator(//)
@@ -1004,7 +1017,7 @@ contains
 
   subroutine evolveForestsResumeTree(self,tree)
     !% Resume processing of a tree.
-    use :: ISO_Varying_String      , only : varying_string         , operator(//)
+    use :: ISO_Varying_String      , only : operator(//)           , varying_string
     use :: Merger_Tree_Construction, only : mergerTreeStateFromFile
     use :: String_Handling         , only : operator(//)
     implicit none

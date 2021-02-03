@@ -129,18 +129,18 @@ contains
   
   subroutine pairCountsOperate(self,simulations)
     !% Compute pair counts of the particles in bins of separation.
-    !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num
     use    :: Arrays_Search     , only : searchArray
-    use    :: Galacticus_Display, only : Galacticus_Display_Indent , Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                               Galacticus_Display_Message, verbosityStandard
+    use    :: Display           , only : displayCounter    , displayCounterClear   , displayIndent, displayMessage, &
+          &                              displayUnindent   , verbosityLevelStandard
     use    :: IO_HDF5           , only : hdf5Access
     use    :: ISO_Varying_String, only : var_str
-    use    :: Memory_Management , only : deallocateArray
-    use    :: Nearest_Neighbors , only : nearestNeighbors
-    use    :: Numerical_Ranges  , only : Make_Range                , rangeTypeLogarithmic
 #ifdef USEMPI
     use    :: MPI_Utilities     , only : mpiSelf
 #endif
+    use    :: Memory_Management , only : deallocateArray
+    use    :: Nearest_Neighbors , only : nearestNeighbors
+    use    :: Numerical_Ranges  , only : Make_Range        , rangeTypeLogarithmic
+    !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num
     implicit none
     class           (nbodyOperatorPairCounts   ), intent(inout)                 :: self
     type            (nBodyData                 ), intent(inout), dimension(:  ) :: simulations
@@ -164,7 +164,7 @@ contains
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Indent('compute pair counts',verbosityStandard)
+       call displayIndent('compute pair counts',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif
@@ -183,7 +183,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Message(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityStandard)
+       call displayMessage(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityLevelStandard)
 #ifdef USEMPI
        end if
 #endif
@@ -219,7 +219,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Counter(0,.true.)
+          call displayCounter(0,.true.)
 #ifdef USEMPI
        end if
 #endif
@@ -260,7 +260,7 @@ contains
 #ifdef USEMPI
           if (mpiSelf%isMaster()) then
 #endif
-             call Galacticus_Display_Counter(                                                 &
+             call displayCounter(                                                 &
                   &                          int(                                             &
                   &                              +100.0d0                                     &
                   &                              *float(i                                  )  &
@@ -278,7 +278,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Counter_Clear()
+          call displayCounterClear()
 #ifdef USEMPI
        end if
 #endif
@@ -316,7 +316,7 @@ contains
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Unindent('done',verbosityStandard)
+       call displayUnindent('done',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif

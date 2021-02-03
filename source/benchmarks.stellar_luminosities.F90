@@ -24,9 +24,9 @@ program Benchmark_Stellar_Populations_Luminosities
   use :: Abundances_Structure                      , only : abundances                                    , metallicityTypeLinearByMassSolar
   use :: Cosmology_Functions                       , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters                      , only : cosmologyParametersSimple
-  use :: Galacticus_Display                        , only : Galacticus_Verbosity_Level_Set                , verbosityWorking
+  use :: Display                                   , only : displayVerbositySet                           , verbosityLevelWorking
   use :: Galacticus_Paths                          , only : galacticusPath                                , pathTypeDataDynamic                      , pathTypeDataStatic
-  use :: ISO_Varying_String                        , only : var_str                                       , char                                     , operator(//)
+  use :: ISO_Varying_String                        , only : char                                          , operator(//)                             , var_str
   use :: Input_Parameters                          , only : inputParameters
   use :: Instruments_Filters                       , only : Filter_Get_Index
   use :: Kind_Numbers                              , only : kind_int8
@@ -74,7 +74,7 @@ program Benchmark_Stellar_Populations_Luminosities
 
   parameters=inputParameters()
   call parameters%markGlobal()
-  call Galacticus_Verbosity_Level_Set(verbosityWorking)
+  call displayVerbositySet(verbosityLevelWorking)
   ! Construct cosmology and stellar populations.
   cosmologyParameters_                  =cosmologyParametersSimple                      (                                                                                                                                                      &
        &                                                                                 OmegaMatter                        = 0.3d0                                                                                                          , &

@@ -118,8 +118,8 @@ contains
 
   subroutine equilibriumAutoHook(self)
     !% Attach to various event hooks.
-    use :: Events_Hooks, only : nodePromotionEvent  , openMPThreadBindingAtLevel, postEvolveEvent, preDerivativeEvent, &
-          &                     satelliteMergerEvent, dependencyDirectionAfter  , dependencyRegEx
+    use :: Events_Hooks, only : dependencyDirectionAfter, dependencyRegEx   , nodePromotionEvent  , openMPThreadBindingAtLevel, &
+          &                     postEvolveEvent         , preDerivativeEvent, satelliteMergerEvent
     implicit none
     class(galacticStructureSolverEquilibrium), intent(inout) :: self
     type (dependencyRegEx                   ), dimension(1)  :: dependencies
@@ -183,8 +183,8 @@ contains
 
   subroutine equilibriumSolve(self,node)
     !% Solve for the structure of galactic components.
-    use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Display         , only : displayMessage
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
@@ -229,7 +229,7 @@ contains
        end do
        ! Check that we found a converged solution.
        if (equilibriumFitMeasure > self%solutionTolerance) then
-          call Galacticus_Display_Message('dumping node for which radii are currently being sought')
+          call displayMessage('dumping node for which radii are currently being sought')
           call node%serializeASCII()
           call Galacticus_Error_Report('failed to find converged solution'//{introspection:location})
        end if
@@ -242,13 +242,13 @@ contains
 
     subroutine radiusSolve(node,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)
       !% Solve for the equilibrium radius of the given component.
+      use :: Display                           , only : displayVerbosity                 , displayVerbositySet, verbosityLevelStandard
       use :: Galactic_Structure_Options        , only : massTypeBaryonic
       use :: Galactic_Structure_Rotation_Curves, only : Galactic_Structure_Rotation_Curve
-      use :: Galacticus_Display                , only : Galacticus_Verbosity_Level       , Galacticus_Verbosity_Level_Set, verbosityStandard
       use :: Galacticus_Error                  , only : Galacticus_Error_Report
       use :: ISO_Varying_String                , only : varying_string
       use :: Memory_Management                 , only : allocateArray                    , deallocateArray
-      use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus
+      use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus
       use :: String_Handling                   , only : operator(//)
       implicit none
       type            (treeNode          ), intent(inout)                     :: node
@@ -379,7 +379,7 @@ contains
          radius=radiusNew
          ! Catch unphysical states.
          if (radius <= 0.0d0) then
-            if (Galacticus_Verbosity_Level() < verbosityStandard) call Galacticus_Verbosity_Level_Set(verbosityStandard)
+            if (displayVerbosity() < verbosityLevelStandard) call displayVerbositySet(verbosityLevelStandard)
             call node%serializeASCII()
             message='radius has reached zero for node '
             message=message//node%index()//' - report follows:'//char(10)

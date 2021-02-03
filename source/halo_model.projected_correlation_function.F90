@@ -66,7 +66,7 @@ contains
     use :: Linear_Growth             , only : linearGrowthClass
     use :: Memory_Management         , only : allocateArray
     use :: Numerical_Constants_Math  , only : Pi
-    use :: Numerical_Integration     , only : integrator                       , GSL_Integ_Gauss61
+    use :: Numerical_Integration     , only : GSL_Integ_Gauss61                , integrator
     use :: Numerical_Ranges          , only : Make_Range                       , rangeTypeLogarithmic
     use :: Power_Spectra             , only : powerSpectrumClass
     use :: Table_Labels              , only : extrapolationTypeExtrapolate
@@ -262,8 +262,8 @@ contains
 
     double precision function powerSpectrumOneHaloTimeIntegrand(timePrime)
       !% Time integrand for the one-halo term in the power spectrum.
-      use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWarn
-      use :: Galacticus_Error  , only : errorStatusSuccess
+      use :: Display         , only : displayMessage    , verbosityLevelWarn
+      use :: Galacticus_Error, only : errorStatusSuccess
       implicit none
       double precision            , intent(in   ) :: timePrime
       type            (integrator)                :: integratorTime
@@ -281,7 +281,7 @@ contains
            &                                                                          )                                                    &
            &                            *cosmologyFunctions_%comovingVolumeElementTime(time)
       if (errorStatus /= errorStatusSuccess .and. .not.integrationWarningIssued) then
-         call Galacticus_Display_Message('WARNING: [powerSpectrumOneHaloTimeIntegrand] integration failed - likely due to oscillatory nature of integrand - proceeding anyway',verbosity=verbosityWarn)
+         call displayMessage('WARNING: [powerSpectrumOneHaloTimeIntegrand] integration failed - likely due to oscillatory nature of integrand - proceeding anyway',verbosity=verbosityLevelWarn)
          integrationWarningIssued=.true.
       end if
       return
@@ -336,8 +336,8 @@ contains
 
     double precision function powerSpectrumTwoHaloTimeIntegrand(timePrime)
       !% Time integrand for the two-halo term in the power spectrum.
-      use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWarn
-      use :: Galacticus_Error  , only : errorStatusSuccess
+      use :: Display         , only : displayMessage    , verbosityLevelWarn
+      use :: Galacticus_Error, only : errorStatusSuccess
       implicit none
       double precision            , intent(in   ) :: timePrime
       type            (integrator)                :: integratorTime
@@ -360,7 +360,7 @@ contains
            &                            *sqrt(powerSpectrum_     %power                    (wavenumber(iWavenumber),time))                                 &
            &                            *     cosmologyFunctions_%comovingVolumeElementTime(                        time)
       if (errorStatus /= errorStatusSuccess .and. .not.integrationWarningIssued) then
-         call Galacticus_Display_Message('WARNING: [powerSpectrumTwoHaloTimeIntegrand] integration failed - likely due to oscillatory nature of integrand - proceeding anyway',verbosity=verbosityWarn)
+         call displayMessage('WARNING: [powerSpectrumTwoHaloTimeIntegrand] integration failed - likely due to oscillatory nature of integrand - proceeding anyway',verbosity=verbosityLevelWarn)
          integrationWarningIssued=.true.
       end if
       return

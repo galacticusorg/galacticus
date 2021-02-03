@@ -19,8 +19,8 @@
 
 !% Contains a module which implements an N-body data importer for Millennium database CSV files.
 
-  use :: Cosmology_Parameters, only : cosmologyParametersClass
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
   
   !# <nbodyImporter name="nbodyImporterMillenniumCSV">
   !#  <description>An importer for Millennium database CSV files.</description>
@@ -119,11 +119,11 @@ contains
   subroutine millenniumCSVImport(self,simulations)
     !% Import data from a MillenniumCSV file.
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
-    use :: Galacticus_Display  , only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                              verbosityStandard
+    use :: Display             , only : displayCounter        , displayCounterClear     , displayIndent     , displayUnindent         , &
+          &                             verbosityLevelStandard
     use :: File_Utilities      , only : Count_Lines_in_File
-    use :: Hashes              , only : rank1IntegerSizeTPtrHash , rank2IntegerSizeTPtrHash   , rank1DoublePtrHash        , rank2DoublePtrHash
-    use :: String_Handling     , only : String_Split_Words       , String_Count_Words
+    use :: Hashes              , only : rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, rank2DoublePtrHash, rank2IntegerSizeTPtrHash
+    use :: String_Handling     , only : String_Count_Words    , String_Split_Words
     implicit none
     class           (nbodyImporterMillenniumCSV), intent(inout)                              :: self
     type            (nBodyData                 ), intent(  out), dimension(  :), allocatable :: simulations
@@ -146,7 +146,7 @@ contains
          &                                                                                      gotID
     !$GLC attributes initialized :: columns
 
-    call Galacticus_Display_Indent('import simulation from MillenniumCSV file',verbosityStandard)
+    call displayIndent('import simulation from MillenniumCSV file',verbosityLevelStandard)
     allocate(simulations(1))
     simulations(1)%label=self%label
     ! Count lines in file. (Subtract 1 since one lines gives the column headers.)
@@ -254,9 +254,9 @@ contains
              end do
           end if
        end if
-       call Galacticus_Display_Counter(int(100.0d0*dble(i)/dble(countPoints)),verbosity=verbosityStandard,isNew=i == 1_c_size_t)
+       call displayCounter(int(100.0d0*dble(i)/dble(countPoints)),verbosity=verbosityLevelStandard,isNew=i == 1_c_size_t)
     end do
-    call Galacticus_Display_Counter_Clear(verbosityStandard)
+    call displayCounterClear(verbosityLevelStandard)
     close(file)
     ! Convert position to internal units (physical Mpc).
     do i=1_c_size_t,countPoints
@@ -286,7 +286,7 @@ contains
            call simulations(1)%propertiesInteger%set(columns(j)%label,propertiesInteger(columns(j)%index)%property)
       end if
     end do
-    call Galacticus_Display_Unindent('done',verbosityStandard)
+    call displayUnindent('done',verbosityLevelStandard)
     return
   end subroutine millenniumCSVImport
 

@@ -2,7 +2,7 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <verbosityLevel value="1"/>
+  <verbosityLevel value="standard"/>
   <treeNodeMethodDarkMatterProfile value="scale"/>
 
   <starFormationRateDisksMethod value="timescale">

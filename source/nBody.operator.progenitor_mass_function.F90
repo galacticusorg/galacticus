@@ -19,8 +19,8 @@
 
 !% Contains a module which implements an N-body data operator which computes progenitor mass functions.
 
-  use, intrinsic :: ISO_C_Binding       , only : c_size_t
   use            :: Cosmology_Parameters, only : cosmologyParametersClass
+  use, intrinsic :: ISO_C_Binding       , only : c_size_t
 
   !# <nbodyOperator name="nbodyOperatorProgenitorMassFunction">
   !#  <description>An N-body data operator which computes progenitor mass functions.</description>
@@ -155,18 +155,18 @@ contains
 
   subroutine progenitorMassFunctionOperate(self,simulations)
     !% Compute mass functions of particles.
-    !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num
-    use    :: Galacticus_Display, only : Galacticus_Display_Indent , Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                               Galacticus_Display_Message, verbosityStandard
-    use    :: IO_HDF5           , only : hdf5Access                , hdf5Object
-    use    :: ISO_Varying_String, only : var_str
-    use    :: Numerical_Ranges  , only : Make_Range                , rangeTypeLogarithmic
-    use    :: Dates_and_Times   , only : Formatted_Date_and_Time
-    use    :: Sorting           , only : sort
     use    :: Arrays_Search     , only : searchArray
+    use    :: Dates_and_Times   , only : Formatted_Date_and_Time
+    use    :: Display           , only : displayCounter         , displayCounterClear   , displayIndent, displayMessage, &
+          &                              displayUnindent        , verbosityLevelStandard
+    use    :: IO_HDF5           , only : hdf5Access             , hdf5Object
+    use    :: ISO_Varying_String, only : var_str
 #ifdef USEMPI
     use    :: MPI_Utilities     , only : mpiSelf
 #endif
+    use    :: Numerical_Ranges  , only : Make_Range             , rangeTypeLogarithmic
+    !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num
+    use    :: Sorting           , only : sort
     implicit none
     class           (nbodyOperatorProgenitorMassFunction), intent(inout)                   :: self
     type            (nBodyData                          ), intent(inout), dimension(:    ) :: simulations
@@ -191,7 +191,7 @@ contains
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Indent('compute progenitor mass function',verbosityStandard)
+       call displayIndent('compute progenitor mass function',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif
@@ -214,7 +214,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Message(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityStandard)
+       call displayMessage(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityLevelStandard)
 #ifdef USEMPI
        end if
 #endif
@@ -289,7 +289,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Counter(0,.true.)
+          call displayCounter(0,.true.)
 #ifdef USEMPI
        end if
 #endif
@@ -325,7 +325,7 @@ contains
 #ifdef USEMPI
           if (mpiSelf%isMaster()) then
 #endif
-             call Galacticus_Display_Counter(                                      &
+             call displayCounter(                                      &
                   &                          int(                                  &
                   &                              +100.0d0                          &
                   &                              *float(i                       )  &
@@ -342,7 +342,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Counter_Clear()
+          call displayCounterClear()
 #ifdef USEMPI
        end if
 #endif
@@ -398,7 +398,7 @@ contains
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Unindent('done',verbosityStandard)
+       call displayUnindent('done',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif

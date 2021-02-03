@@ -239,7 +239,7 @@ contains
 
   subroutine haloModelProjectedCorrelationFunctionPerform(self,status)
     !% Generate a mock galaxy catalog using a simple halo model approach.
-    use :: Galacticus_Display               , only : Galacticus_Display_Indent        , Galacticus_Display_Unindent
+    use :: Display                          , only : displayIndent                    , displayUnindent
     use :: Galacticus_Error                 , only : errorStatusSuccess
     use :: Galacticus_HDF5                  , only : galacticusOutputFile
     use :: Halo_Model_Projected_Correlations, only : Halo_Model_Projected_Correlation
@@ -250,7 +250,7 @@ contains
     integer                                           , intent(  out), optional :: status
     type   (hdf5Object                               )                          :: outputGroup
 
-    call Galacticus_Display_Indent('Begin task: halo model projected correlation function')
+    call displayIndent('Begin task: halo model projected correlation function')
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
     call Node_Components_Thread_Initialize(self%parameters)
     call Halo_Model_Projected_Correlation(                                    &
@@ -278,7 +278,7 @@ contains
     call outputGroup%close       (                                                                                                 )
     call Node_Components_Thread_Uninitialize()
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: halo model projected correlation function' )
+    call displayUnindent('Done task: halo model projected correlation function' )
   end subroutine haloModelProjectedCorrelationFunctionPerform
 
   logical function haloModelProjectedCorrelationFunctionRequiresOutputFile(self)

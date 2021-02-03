@@ -29,9 +29,9 @@ contains
 
   subroutine Satellite_Move_To_New_Host(satelliteNode,newHostNode)
     !% Move {\normalfont \ttfamily satelliteNode} to be a satellite of {\normalfont \ttfamily newHostNode}.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
-    use :: Galacticus_Nodes  , only : nodeComponentBasic        , treeNode
-    use :: ISO_Varying_String, only : varying_string            , assignment(=)             , operator(//)
+    use :: Display           , only : displayMessage    , displayVerbosity, verbosityLevelInfo
+    use :: Galacticus_Nodes  , only : nodeComponentBasic, treeNode
+    use :: ISO_Varying_String, only : assignment(=)     , operator(//)    , varying_string
     use :: String_Handling   , only : operator(//)
     !# <include directive="satelliteHostChangeTask" type="moduleUse">
     include 'satellites.structures.host_change.moduleUse.inc'
@@ -47,12 +47,12 @@ contains
     character(len=12            )                         :: label
 
     ! Report if necessary.
-    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+    if (displayVerbosity() >= verbosityLevelInfo) then
        basic => satelliteNode%basic()
        write (label,'(f12.6)') basic%time()
        message='Satellite node ['
        message=message//satelliteNode%index()//'] is being promoted to new host node ['//newHostNode%index()//'] at time '//trim(label)//' Gyr'
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
 
     ! Allow arbitrary routines to act prior to the host change event.

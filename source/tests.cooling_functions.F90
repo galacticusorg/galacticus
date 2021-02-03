@@ -26,8 +26,8 @@ program Test_Cooling_Functions
   use :: Chemical_States                 , only : chemicalState                          , chemicalStateClass
   use :: Cooling_Functions               , only : coolingFunction                        , coolingFunctionAtomicCIECloudy  , coolingFunctionCMBCompton, coolingFunctionClass
   use :: Cosmology_Functions             , only : cosmologyFunctions                     , cosmologyFunctionsClass
-  use :: Galacticus_Display              , only : Galacticus_Verbosity_Level_Set         , verbosityStandard
-  use :: ISO_Varying_String              , only : varying_string                         , assignment(=)
+  use :: Display                         , only : displayVerbositySet                    , verbosityLevelStandard
+  use :: ISO_Varying_String              , only : assignment(=)                          , varying_string
   use :: Input_Parameters                , only : inputParameters
   use :: Numerical_Constants_Astronomical, only : gigaYear
   use :: Numerical_Constants_Physical    , only : boltzmannsConstant
@@ -50,7 +50,7 @@ program Test_Cooling_Functions
        &                                                                timescaleCooling               , coolantAtomicCIECloudy
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Cooling functions")
   ! Read in controlling parameters.

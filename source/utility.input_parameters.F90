@@ -225,8 +225,10 @@ contains
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     !% specified as a variable length string.
     use :: FoX_dom           , only : node
+    use :: ISO_Varying_String, only : char, extract, operator(==)
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, parseString => parseStringTS
-    use :: ISO_Varying_String, only : extract                          , char                        , operator(==)
+    use :: FoX_dom           , only : node
+    use :: ISO_Varying_String, only : char, extract, operator(==)
     implicit none
     type     (inputParameters)                                           :: inputParametersConstructorVarStr
     type     (varying_string    )              , intent(in   )           :: xmlString
@@ -337,12 +339,18 @@ contains
 
   function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
+    use :: Display           , only : displayMessage
     use :: File_Utilities    , only : File_Name_Temporary
-    use :: FoX_dom           , only : getOwnerDocument                 , node           , setLiveNodeLists
-    use :: Galacticus_Display, only : Galacticus_Display_Message
+    use :: FoX_dom           , only : getOwnerDocument       , node, setLiveNodeLists
     use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String, only : assignment(=)          , char, operator(//)    , operator(/=)
+    use :: String_Handling   , only : String_Strip
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists, getTextContent => getTextContentTS
-    use :: ISO_Varying_String, only : char                             , assignment(=)  , operator(/=)                      , operator(//)
+    use :: Display           , only : displayMessage
+    use :: File_Utilities    , only : File_Name_Temporary
+    use :: FoX_dom           , only : getOwnerDocument       , node, setLiveNodeLists
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String, only : assignment(=)          , char, operator(//)    , operator(/=)
     use :: String_Handling   , only : String_Strip
     implicit none
     type     (inputParameters)                                        :: inputParametersConstructorNode
@@ -423,7 +431,7 @@ contains
                &  " oldParameters.xml"                                              // &
                &  " newParameters.xml"                                    //char(10)// &
                &  "      to migrate your parameter file."
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end if
     end if
     !$omp end critical (FoX_DOM_Access)
@@ -434,8 +442,8 @@ contains
 
   recursive subroutine inputParametersBuildTree(self,parentParameter,parametersNode)
     !% Build a tree representation of the input parameter file.
-    use :: FoX_DOM, only : ELEMENT_NODE, getNodeType           , node
-    use :: IO_XML , only : xmlNodeList , XML_Get_Child_Elements
+    use :: FoX_DOM, only : ELEMENT_NODE          , getNodeType, node
+    use :: IO_XML , only : XML_Get_Child_Elements, xmlNodeList
     implicit none
     class  (inputParameters), intent(inout)              :: self
     type   (inputParameter ), intent(inout), pointer     :: parentParameter
@@ -766,10 +774,14 @@ contains
 
   function inputParameterGet(self)
     !% Get the value of a parameter.
-    use :: FoX_dom           , only : DOMException                               , getAttributeNode, getNodeName, hasAttribute, &
-          &                           inException                                , node
+    use :: FoX_dom           , only : DOMException           , getAttributeNode, getNodeName, hasAttribute, &
+          &                           inException            , node
     use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String, only : assignment(=)
     use :: IO_XML            , only : getTextContent          => getTextContentTS
+    use :: FoX_dom           , only : DOMException           , getAttributeNode, getNodeName, hasAttribute, &
+          &                           inException            , node
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
     type   (varying_string)                :: inputParameterGet
@@ -797,10 +809,10 @@ contains
   end function inputParameterGet
 
   subroutine inputParametersCheckParameters(self,allowedParameterNames)
-    use :: FoX_dom            , only : destroy                    , getNodeName               , node
-    use :: Galacticus_Display , only : Galacticus_Display_Indent  , Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-         &                             verbositySilent
-    use :: ISO_Varying_String , only : assignment(=)              , operator(//)
+    use :: Display            , only : displayIndent                  , displayMessage      , displayUnindent, displayVerbosity, &
+          &                            enumerationVerbosityLevelEncode, verbosityLevelSilent
+    use :: FoX_dom            , only : destroy                        , getNodeName         , node
+    use :: ISO_Varying_String , only : assignment(=)                  , operator(//)        , char
     use :: Regular_Expressions, only : regEx
     use :: String_Handling    , only : String_Levenshtein_Distance
     implicit none
@@ -810,21 +822,21 @@ contains
     type     (inputParameter ), pointer                               :: currentParameter
     type     (regEx          ), save                                  :: regEx_
     !$omp threadprivate(regEx_)
-    logical                                                           :: warningsFound                , parameterMatched    , &
+    logical                                                           :: warningsFound         , parameterMatched    , &
          &                                                               verbose
-    integer                                                           :: allowedParametersCount       , errorStatus         , &
-         &                                                               distance                     , distanceMinimum     , &
-         &                                                               j                            , verbosityLevel
+    integer                                                           :: allowedParametersCount, errorStatus         , &
+         &                                                               distance              , distanceMinimum     , &
+         &                                                               j
     character(len=1024       )                                        :: parameterValue
-    character(len=1024       )                                        :: unknownName                  , allowedParameterName, &
+    character(len=1024       )                                        :: unknownName           , allowedParameterName, &
          &                                                               parameterNameGuess
-    type     (varying_string )                                        :: message
+    type     (varying_string )                                        :: message               , verbosityLevel
 
     ! Determine whether we should be verbose.
-    verbose=Galacticus_Verbosity_Level() > verbositySilent
+    verbose=displayVerbosity() > verbosityLevelSilent
     if (self%isPresent('verbosityLevel')) then
        call self%value('verbosityLevel',verbosityLevel)
-       verbose=verbosityLevel > verbositySilent
+       verbose=enumerationVerbosityLevelEncode(char(verbosityLevel),includesPrefix=.false.) > verbosityLevelSilent
     end if
     ! Validate parameters.
     warningsFound=.false.
@@ -865,7 +877,7 @@ contains
                   &  .and.                                              &
                   &   .not.warningsFound                                &
                   & ) then
-                if (verbose) call Galacticus_Display_Indent('WARNING: problems found with input parameters:')
+                if (verbose) call displayIndent('WARNING: problems found with input parameters:')
                 warningsFound=.true.
              end if
              if (errorStatus /= inputParameterErrorStatusSuccess .and. verbose) then
@@ -877,7 +889,7 @@ contains
                    message='ambiguous value for parameter ['//getNodeName(node_)//']'
                 end select
                 !$omp end critical (FoX_DOM_Access)
-                call Galacticus_Display_Message(message)
+                call displayMessage(message)
              end if
              if (allowedParametersCount > 0 .and. .not.parameterMatched .and. verbose) then
                 !$omp critical (FoX_DOM_Access)
@@ -896,14 +908,14 @@ contains
                 if (verbose) then
                    message='unrecognized parameter ['//trim(unknownName)//']'
                    if (distanceMinimum >= 0) message=message//' (did you mean ['//trim(parameterNameGuess)//']?)'
-                   call Galacticus_Display_Message(message)
+                   call displayMessage(message)
                 end if
              end if
           end if
           currentParameter => currentParameter%sibling
        end do
     end if
-    if (warningsFound .and. verbose) call Galacticus_Display_Unindent('')
+    if (warningsFound .and. verbose) call displayUnindent('')
     return
   end subroutine inputParametersCheckParameters
 
@@ -1169,7 +1181,7 @@ contains
     use :: FoX_dom           , only : node
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: IO_HDF5           , only : hdf5Access
-    use :: ISO_Varying_String, only : operator(//)            , char, assignment(=)
+    use :: ISO_Varying_String, only : assignment(=)          , char, operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
     type     (inputParameters)                          :: inputParametersSubParameters
@@ -1245,18 +1257,23 @@ contains
 
   recursive subroutine inputParametersValueNode{Type¦label}(self,parameterNode,parameterValue,errorStatus,writeOutput)
     !% Return the value of the specified parameter.
-    use :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName                        , hasAttribute                              , &
+    use :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName , hasAttribute, &
           &                           inException                      , node
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: IO_HDF5           , only : hdf5Access
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
-    use :: String_Handling   , only : String_Split_Words               , String_Count_Words
+    use :: ISO_Varying_String, only : assignment(=)                    , char              , operator(//), operator(==), &
+          &                           trim
+    use :: String_Handling   , only : String_Count_Words               , String_Split_Words, operator(//)
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists   , getTextContent  => getTextContentTS, extractDataContent => extractDataContentTS
+    use :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName , hasAttribute, &
+          &                           inException                      , node
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: IO_HDF5           , only : hdf5Access
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists   , getTextContent  => getTextContentTS, extractDataContent => extractDataContentTS
-    use :: ISO_Varying_String, only : char                             , trim              , assignment(=)                      , operator(//)                              , &
-         &                            operator(==)
-    use :: String_Handling   , only : operator(//)
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
+    use :: ISO_Varying_String, only : assignment(=)                    , char              , operator(//), operator(==), &
+          &                           trim
+    use :: String_Handling   , only : String_Count_Words               , String_Split_Words, operator(//)
     implicit none
     class           (inputParameters           ), intent(inout), target      :: self
     type            (inputParameter            ), intent(inout), target      :: parameterNode
@@ -1497,7 +1514,7 @@ contains
     !% Serialize input parameters to a string.
     use :: FoX_dom             , only : getNodeName  , node
     use :: Hashes_Cryptographic, only : Hash_MD5
-    use :: ISO_Varying_String  , only : assignment(=), operator(//), char
+    use :: ISO_Varying_String  , only : assignment(=), char, operator(//)
     implicit none
     type   (varying_string )                          :: inputParametersSerializeToString
     class  (inputParameters), intent(inout)           :: self
@@ -1549,9 +1566,9 @@ contains
 
   subroutine inputParametersAddParameter(self,parameterName,parameterValue)
     !% Add a parameter to the set.
-    use :: FoX_dom, only : appendChild , createElementNS, getNamespaceURI, node       , &
-         &                 setAttribute, ELEMENT_NODE   , getNodeName    , getNodeType, &
-         &                 hasAttribute 
+    use :: FoX_dom, only : ELEMENT_NODE, appendChild, createElementNS, getNamespaceURI, &
+          &                getNodeName , getNodeType, hasAttribute   , node           , &
+          &                setAttribute
          implicit none
     class    (inputParameters), intent(inout) :: self
     character(len=*          ), intent(in   ) :: parameterName   , parameterValue

@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use, intrinsic :: ISO_C_Binding                   , only : c_size_t
   use            :: Computational_Domains           , only : computationalDomainClass
+  use, intrinsic :: ISO_C_Binding                   , only : c_size_t
   use            :: Numerical_Random_Numbers        , only : randomNumberGeneratorClass
   use            :: Radiative_Transfer_Convergences , only : radiativeTransferConvergenceClass
+  use            :: Radiative_Transfer_Outputters   , only : radiativeTransferOutputterClass
   use            :: Radiative_Transfer_Photon_Packet, only : radiativeTransferPhotonPacketClass
   use            :: Radiative_Transfer_Sources      , only : radiativeTransferSourceClass
-  use            :: Radiative_Transfer_Outputters   , only : radiativeTransferOutputterClass
   
   !# <task name="taskRadiativeTransfer">
   !#  <description>A task which performs radiative transfer.</description>
@@ -60,8 +60,8 @@ contains
 
   function radiativeTransferConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily radiativeTransfer} task class which takes a parameter set as input.
-    use :: Input_Parameters  , only : inputParameters, inputParameter
     use :: ISO_Varying_String, only : var_str
+    use :: Input_Parameters  , only : inputParameter, inputParameters
     implicit none
     type            (taskRadiativeTransfer             )                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
@@ -152,7 +152,7 @@ contains
   function radiativeTransferConstructorInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,countPhotonsPerWavelength,countPhotonsPerWavelengthFinalIteration,countIterationsMinimum,countIterationsMaximum,outputGroupName,outputIterations,computationalDomain_,radiativeTransferPhotonPacket_,radiativeTransferSource_,radiativeTransferOutputter_,radiativeTransferConvergence_,randomNumberGenerator_) result(self)
     !% Constructor for the {\normalfont \ttfamily radiativeTransfer} task class which takes a parameter set as input.
     use :: ISO_Varying_String, only : char
-    use :: Numerical_Ranges  , only : Make_Range          , rangeTypeLogarithmic
+    use :: Numerical_Ranges  , only : Make_Range, rangeTypeLogarithmic
     implicit none
     type            (taskRadiativeTransfer             )                        :: self
     integer                                             , intent(in   )         :: wavelengthCountPerDecade
@@ -198,12 +198,12 @@ contains
 
   subroutine radiativeTransferPerform(self,status)
     !% Perform radiative transfer and output results.
-    use :: Galacticus_Display      , only : Galacticus_Display_Indent                , Galacticus_Display_Unindent, Galacticus_Display_Message, verbosityStandard
+    use :: Display                 , only : displayIndent                            , displayMessage    , displayUnindent, verbosityLevelStandard
     use :: Galacticus_Error        , only : Galacticus_Error_Report                  , errorStatusSuccess
     use :: Galacticus_HDF5         , only : galacticusOutputFile
     use :: IO_HDF5                 , only : hdf5Object
+    use :: MPI_Utilities           , only : mpiBarrier                               , mpiSelf
     use :: Statistics_Distributions, only : distributionFunction1DNegativeExponential
-    use :: MPI_Utilities           , only : mpiSelf                                  , mpiBarrier
     use :: Timers                  , only : timer
     implicit none
     class           (taskRadiativeTransfer                    ), intent(inout), target       :: self
@@ -225,7 +225,7 @@ contains
     type            (timer                                    )                              :: timer_                   , timerTotal_               , &
          &                                                                                      timerIteration_
 
-    if (mpiSelf%isMaster()) call Galacticus_Display_Indent('Begin task: radiative transfer')
+    if (mpiSelf%isMaster()) call displayIndent('Begin task: radiative transfer')
     ! Establish timers.
     timer_         =timer()
     timerTotal_    =timer()
@@ -247,7 +247,7 @@ contains
        countIterations=countIterations+1
        if (mpiSelf%isMaster()) then
           write (message,'(a,i6)') 'begin iteration ',countIterations
-          call Galacticus_Display_Indent(trim(message),verbosityStandard)
+          call displayIndent(trim(message),verbosityLevelStandard)
        end if
        call mpiBarrier()
        call timerIteration_%start()
@@ -256,7 +256,7 @@ contains
        call self%radiativeTransferOutputter_%reset()
        ! Iterate over photon wavelengths.
        call timer_%start()
-       if (mpiSelf%isMaster()) call Galacticus_Display_Indent('cast photon packets',verbosityStandard)
+       if (mpiSelf%isMaster()) call displayIndent('cast photon packets',verbosityLevelStandard)
        wavelengths : do iWavelength=1,size(self%wavelengths)
           ! Iterate over photon packets.
           countPhotonsPerWavelength=self%countPhotonsPerWavelength
@@ -336,33 +336,33 @@ contains
        end do wavelengths
        call mpiBarrier()
        call timer_%stop()
-       if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('done ['//timer_%reportText()//']',verbosityStandard)
+       if (mpiSelf%isMaster()) call displayUnindent('done ['//timer_%reportText()//']',verbosityLevelStandard)
        ! Skip state solving and convergence on any final iteration.
        if (.not.finalIteration) then
           ! Solve for state of matter in the computational domain.
-          if (mpiSelf%isMaster()) call Galacticus_Display_Indent('solve for matter state',verbosityStandard)
+          if (mpiSelf%isMaster()) call displayIndent('solve for matter state',verbosityLevelStandard)
           call timer_%start()
           call self%computationalDomain_%stateSolve()
           call mpiBarrier()
           call timer_%stop()
-          if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('done ['//timer_%reportText()//']',verbosityStandard)       
+          if (mpiSelf%isMaster()) call displayUnindent('done ['//timer_%reportText()//']',verbosityLevelStandard)       
           ! Test convergence on the computational domain.
-          if (mpiSelf%isMaster()) call Galacticus_Display_Indent('test for convergence',verbosityStandard)
+          if (mpiSelf%isMaster()) call displayIndent('test for convergence',verbosityLevelStandard)
           call timer_%start()
           converged=self%computationalDomain_%converged()
           call mpiBarrier()
           call timer_%stop()
           if (mpiSelf%isMaster()) then
              if (converged) then
-                call Galacticus_Display_Message('converged'    ,verbosityStandard)
+                call displayMessage('converged'    ,verbosityLevelStandard)
              else
-                call Galacticus_Display_Message('not converged',verbosityStandard)
+                call displayMessage('not converged',verbosityLevelStandard)
              end if
-             call Galacticus_Display_Unindent('done ['//timer_%reportText()//']',verbosityStandard)
+             call displayUnindent('done ['//timer_%reportText()//']',verbosityLevelStandard)
           end if
           call mpiBarrier()
           call timerIteration_%stop()
-          if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('done ['//timerIteration_%reportText()//']',verbosityStandard)
+          if (mpiSelf%isMaster()) call displayUnindent('done ['//timerIteration_%reportText()//']',verbosityLevelStandard)
        end if
        ! Output the computational domain.
        if (mpiSelf%isMaster().and.self%outputIterations) then
@@ -386,6 +386,6 @@ contains
     if (mpiSelf%isMaster()) call outputGroup%close()
     call timerTotal_%stop()
     if (present(status)) status=errorStatusSuccess
-    if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('Done task: radiative transfer ['//timerTotal_%reportText()//']')
+    if (mpiSelf%isMaster()) call displayUnindent('Done task: radiative transfer ['//timerTotal_%reportText()//']')
     return
   end subroutine radiativeTransferPerform

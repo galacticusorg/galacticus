@@ -73,7 +73,7 @@ contains
 
   subroutine parameterFileInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
     !% Initialize simulation state by reading parameter values from a parameter file.
-    use :: Galacticus_Display          , only : Galacticus_Display_Message
+    use :: Display                     , only : displayMessage
     use :: MPI_Utilities               , only : mpiSelf
     use :: Models_Likelihoods_Constants, only : logImpossible
     use :: Posterior_Sampling_State    , only : posteriorSampleStateClass
@@ -162,7 +162,7 @@ contains
                &  ' -> value   = ' //trim(labelValue  )                             //char(10)// &
                &  ' -> minimum = ' //trim(labelMinimum)                             //char(10)// &
                &  ' -> maximum = ' //trim(labelMaximum)
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end if
     end do
     return

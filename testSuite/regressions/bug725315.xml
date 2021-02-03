@@ -131,7 +131,7 @@
   <hotHaloMassDistributionMethod value="betaProfile"/>
   <spheroidMassToleranceAbsolute value="1e-06"/>
   <hotHaloTemperatureProfileMethod value="virial"/>
-  <verbosityLevel value="1"/>
+  <verbosityLevel value="standard"/>
   <stellarPopulationMethod value="standard">
     <metalYield value="0.02"/>
     <recycledFraction value="0.39"/>

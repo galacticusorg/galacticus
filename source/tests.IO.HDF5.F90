@@ -19,12 +19,12 @@
 
 program Tests_IO_HDF5
   !% Tests the HDF5 I/O module.
-  use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Display           , only : displayVerbositySet, verbosityLevelStandard
   use :: HDF5              , only : HSIZE_T
-  use :: IO_HDF5           , only : IO_HDF5_Is_HDF5               , hdf5Object
-  use :: ISO_Varying_String, only : varying_string                , assignment(=)         , trim
+  use :: IO_HDF5           , only : IO_HDF5_Is_HDF5    , hdf5Object
+  use :: ISO_Varying_String, only : assignment(=)      , trim                  , varying_string
   use :: Kind_Numbers      , only : kind_int8
-  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (hdf5Object    ), target                                 :: datasetObject                  , fileObject           , &
        &                                                                      groupObject
@@ -66,7 +66,7 @@ program Tests_IO_HDF5
   type            (varying_string)             , dimension(17)             :: datasetNamesReference
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("HDF5 IO")

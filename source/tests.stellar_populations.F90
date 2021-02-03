@@ -22,11 +22,11 @@
 program Test_Stellar_Populations
   !% Tests of stellar populations.
   use :: Abundances_Structure                      , only : abundances
+  use :: Display                                   , only : displayVerbositySet                    , verbosityLevelWorking
   use :: Functions_Global_Utilities                , only : Functions_Global_Set
-  use :: Galacticus_Display                        , only : Galacticus_Verbosity_Level_Set         , verbosityWorking
   use :: Galacticus_Paths                          , only : galacticusPath                         , pathTypeDataStatic
-  use :: Input_Parameters                          , only : inputParameters
   use :: ISO_Varying_String                        , only : char
+  use :: Input_Parameters                          , only : inputParameters
   use :: Node_Components                           , only : Node_Components_Initialize
   use :: Numerical_Constants_Astronomical          , only : metallicitySolar
   use :: Stellar_Astrophysics                      , only : stellarAstrophysics                    , stellarAstrophysicsFile
@@ -54,7 +54,7 @@ program Test_Stellar_Populations
   type            (stellarPopulationSpectraFSPS           )            :: stellarPopulationSpectra_
   double precision                                                     :: recycledMass                   , yieldMetals
 
-  call Galacticus_Verbosity_Level_Set(verbosityWorking)
+  call displayVerbositySet(verbosityLevelWorking)
   parameters=inputParameters()
   call parameters%markGlobal()
   call Functions_Global_Set      (          )
