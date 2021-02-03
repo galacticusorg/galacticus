@@ -27,7 +27,8 @@ module Instruments_Filters
   use :: ISO_Varying_String     , only : varying_string
   implicit none
   private
-  public :: Filter_Get_Index, Filter_Response, Filter_Extent, Filter_Vega_Offset, Filter_Name, Filter_Wavelength_Effective
+  public :: Filter_Get_Index, Filter_Response            , Filter_Extent , Filter_Vega_Offset, &
+       &    Filter_Name     , Filter_Wavelength_Effective, Filters_Output
 
   type filterType
      !% A structure which holds filter response curves.
@@ -102,16 +103,13 @@ contains
     use :: FoX_dom                  , only : DOMException           , Node                             , destroy           , getExceptionCode                          , &
          &                                   inException
     use :: Galacticus_Error         , only : Galacticus_Error_Report
-    use :: Galacticus_HDF5          , only : galacticusOutputFile   , galacticusOutputFileIsOpen
     use :: Galacticus_Paths         , only : galacticusPath         , pathTypeDataDynamic              , pathTypeDataStatic
     use :: HII_Region_Emission_Lines, only : emissionLineWavelength
-    use :: IO_HDF5                  , only : hdf5Access             , hdf5Object
     use :: IO_XML                   , only : XML_Array_Read         , XML_Get_First_Element_By_Tag_Name, XML_Path_Exists   , extractDataContent => extractDataContentTS, &
          &                                   XML_Parse
     use :: ISO_Varying_String       , only : assignment(=)          , char                             , operator(//)      , operator(==)                              , &
          &                                   extract
     use :: Memory_Management        , only : Memory_Usage_Record    , allocateArray
-    use :: Numerical_Constants_Units, only : angstromsPerMeter
     use :: String_Handling          , only : String_Split_Words     , operator(//)
     implicit none
     type            (varying_string), intent(in   )               :: filterName
@@ -123,11 +121,10 @@ contains
     integer                                                       :: filterIndex                   , ioErr
     type            (varying_string)                              :: filterFileName                , errorMessage
     type            (DOMException  )                              :: exception
-    logical                                                       :: parseSuccess                  , firstFilter
+    logical                                                       :: parseSuccess
     character       (len=64        )                              :: word
     double precision                                              :: centralWavelength             , resolution                , &
          &                                                           filterWidth
-    type            (hdf5Object    )                              :: filtersGroup                  , dataset
 
     ! Allocate space for this filter.
     if (allocated(filterResponses)) then
@@ -291,27 +288,35 @@ contains
     filterResponses(filterIndex)%wavelengthEffectiveAvailable=.true.
     filterResponses(filterIndex)%wavelengthEffective         =+sum(filterResponses(filterIndex)%wavelength*filterResponses(filterIndex)%response) &
          &                                                    /sum(                                        filterResponses(filterIndex)%response)
-    ! Store the filter effective wavelength to the output file.
-    if (galacticusOutputFileIsOpen) then
-       call hdf5Access%set()
-       filtersGroup=galacticusOutputFile%openGroup('Filters','Properties of filters used.')
-       firstFilter =.not.filtersGroup%hasDataset('name')
-       word        =filterResponses(filterIndex)%name
-       call filtersGroup%writeDataset([word                                            ],'name'               ,'Filter name.'                       ,appendTo=.true.                        )
-       call filtersGroup%writeDataset([filterResponses(filterIndex)%wavelengthEffective],'wavelengthEffective','Effective wavelength of filter [Å].',appendTo=.true.,datasetReturned=dataset)
-       if (firstFilter) then
-          call dataset%writeAttribute("Angstroms [Å]"        ,"units"    )
-          call dataset%writeAttribute(1.0d0/angstromsPerMeter,"unitsInSI")
-       end if
-       call dataset     %close()
-       call filtersGroup%close()
-       call hdf5Access%unset()
-    end if
     ! Build an interpolator for this filter.
     filterResponses(filterIndex)%interpolator_=interpolator(filterResponses(filterIndex)%wavelength,filterResponses(filterIndex)%response)
     return
   end subroutine Filter_Response_Load
 
+  !# <hdfPreCloseTask>
+  !#  <unitName>Filters_Output</unitName>
+  !# </hdfPreCloseTask>
+  subroutine Filters_Output()
+    !% Output accumulated filter data to file.
+    use :: Galacticus_HDF5          , only : galacticusOutputFile
+    use :: IO_HDF5                  , only : hdf5Access          , hdf5Object
+    use :: Numerical_Constants_Units, only : angstromsPerMeter
+    implicit none
+    type(hdf5Object) :: filtersGroup, dataset
+
+    if (.not.allocated(filterResponses)) return
+    !$ call hdf5Access%set()
+    filtersGroup=galacticusOutputFile%openGroup('Filters','Properties of filters used.')
+    call filtersGroup%writeDataset(filterResponses%name               ,'name'               ,'Filter name.'                                               )
+    call filtersGroup%writeDataset(filterResponses%wavelengthEffective,'wavelengthEffective','Effective wavelength of filter [Å].',datasetReturned=dataset)
+    call dataset%writeAttribute("Angstroms [Å]"        ,"units"    )
+    call dataset%writeAttribute(1.0d0/angstromsPerMeter,"unitsInSI")
+    call dataset     %close()
+    call filtersGroup%close()
+    !$ call hdf5Access%unset()
+    return
+  end subroutine Filters_Output
+  
   double precision function Filter_Response(filterIndex,wavelength)
     !% Return the filter response function at the given {\normalfont \ttfamily wavelength} (specified in Angstroms).  Note that we follow the
     !% convention of \cite{hogg_k_2002} and assume that the filter response gives the fraction of incident photons received by the
