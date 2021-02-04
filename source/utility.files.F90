@@ -473,14 +473,17 @@ contains
     return
   end subroutine File_Remove_Char
 
-  subroutine File_Rename(nameOld,nameNew)
+  subroutine File_Rename(nameOld,nameNew,overwrite)
     !% Remove a file.
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : trim                   , operator(//), char
     implicit none
-    type   (varying_string), intent(in   ) :: nameOld, nameNew
-    integer(c_int         )                :: status
+    type   (varying_string), intent(in   )           :: nameOld  , nameNew
+    logical                , intent(in   ), optional :: overwrite
+    integer(c_int         )                          :: status
+    !# <optionalArgument name="overwrite" defaultsTo=".false."/>
 
+    if (overwrite_ .and. File_Exists(nameNew)) call File_Remove(nameNew)
     status=rename_C(char(nameOld)//char(0),char(nameNew)//char(0))
     if (status /= 0) call Galacticus_Error_Report('failed to rename file "'//trim(nameOld)//'" to "'//trim(nameNew)//'"'//{introspection:location})
     return

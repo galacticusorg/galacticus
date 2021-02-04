@@ -22,16 +22,27 @@
 program Test_Files
   !% Tests that file functions work.
   use :: Display           , only : displayVerbositySet, verbosityLevelStandard
-  use :: File_Utilities    , only : File_Exists
+  use :: File_Utilities    , only : File_Exists        , File_Rename           , File_Remove
   use :: Galacticus_Paths  , only : galacticusPath     , pathTypeExec
-  use :: ISO_Varying_String, only : operator(//)
+  use :: ISO_Varying_String, only : operator(//)       , var_str
   use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
- 
+  integer :: i
+  
   call displayVerbositySet(verbosityLevelStandard                                                                                 )
   call Unit_Tests_Begin_Group        ("File utilities"                                                                                  )
+  ! File existance.
   call Assert                        ('file exists'        ,File_Exists(galacticusPath(pathTypeExec)//'source/tests.files.F90' ),.true. )
   call Assert                        ('file does not exist',File_Exists(galacticusPath(pathTypeExec)//'source/tests.bork.crump'),.false.)
-  call Unit_Tests_End_Group          (                                                                                                  )
-  call Unit_Tests_Finish             (                                                                                                  )
+  ! File renaming.
+  open(newunit=i,file='tmp.file',status='unknown',form='formatted')
+  write (i,*) "test file"
+  close(i)
+  call File_Rename(var_str('tmp.file'),var_str('mvd.file'))
+  call Assert                        ('file rename'        ,File_Exists('mvd.file') .and. .not.File_Exists('tmp.file'),.true. )
+  ! File removal.
+  call File_Remove('mvd.file')
+  call Assert                        ('file removal'       ,                                   File_Exists('tmp.file'),.false.)
+  call Unit_Tests_End_Group          (                                                                                        )
+  call Unit_Tests_Finish             (                                                                                        )
 end program Test_Files
