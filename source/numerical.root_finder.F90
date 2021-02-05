@@ -74,7 +74,7 @@ module Root_Finder
      double precision                                                  :: toleranceAbsolute
      double precision                                                  :: toleranceRelative
      logical                                                           :: initialized
-     logical                                                           :: functionInitialized
+     logical                                                           :: functionInitialized          =.false.
      logical                                                           :: resetRequired
      logical                                                           :: useDerivative
      integer                                                           :: rangeExpandType
