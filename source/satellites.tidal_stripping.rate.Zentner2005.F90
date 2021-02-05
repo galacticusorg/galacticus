@@ -21,9 +21,7 @@
 
   !% Implementation of a satellite tidal stripping class which follows the model of \cite{zentner_physics_2005}.
 
-  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
-  use :: Kind_Numbers           , only : kind_int8
-  use :: Root_Finder            , only : rootFinder
+  use :: Satellite_Tidal_Stripping_Radii, only : satelliteTidalStrippingRadiusClass
 
   !# <satelliteTidalStripping name="satelliteTidalStrippingZentner2005">
   !#  <description>
@@ -48,19 +46,11 @@
   type, extends(satelliteTidalStrippingClass) :: satelliteTidalStrippingZentner2005
      !% Implementation of a satellite tidal stripping class which follows the model of \cite{zentner_physics_2005}.
      private
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
-     double precision                                    :: efficiency                    , expandMultiplier, &
-          &                                                 radiusTidalPrevious
-     integer         (kind_int8               )          :: lastUniqueID
-     type            (rootFinder              )          :: finder
+     class           (satelliteTidalStrippingRadiusClass), pointer :: satelliteTidalStrippingRadius_ => null()
+     double precision                                              :: efficiency
    contains
-     !# <methods>
-     !#   <method description="Reset memoized calculations." method="calculationReset" />
-     !# </methods>
-     final     ::                     zentner2005Destructor
-     procedure :: autoHook         => zentner2005AutoHook
-     procedure :: calculationReset => zentner2005CalculationReset
-     procedure :: massLossRate     => zentner2005MassLossRate
+     final     ::                 zentner2005Destructor
+     procedure :: massLossRate => zentner2005MassLossRate
   end type satelliteTidalStrippingZentner2005
 
   interface satelliteTidalStrippingZentner2005
@@ -82,7 +72,7 @@ contains
     implicit none
     type            (satelliteTidalStrippingZentner2005)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
-    class           (darkMatterHaloScaleClass          ), pointer       :: darkMatterHaloScale_
+    class           (satelliteTidalStrippingRadiusClass), pointer       :: satelliteTidalStrippingRadius_
     double precision                                                    :: efficiency
 
     !# <inputParameter>
@@ -91,237 +81,84 @@ contains
     !#   <description>The dimensionless rate coefficient apeparing in the \cite{zentner_physics_2005} expression for the tidal mass loss rate from subhalos.</description>
     !#   <source>parameters</source>
     !# </inputParameter>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    self=satelliteTidalStrippingZentner2005(efficiency,darkMatterHaloScale_)
+    !# <objectBuilder class="satelliteTidalStrippingRadius" name="satelliteTidalStrippingRadius_" source="parameters"/>
+    self=satelliteTidalStrippingZentner2005(efficiency,satelliteTidalStrippingRadius_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !# <objectDestructor name="satelliteTidalStrippingRadius_"/>
     return
   end function zentner2005ConstructorParameters
 
-  function zentner2005ConstructorInternal(efficiency,darkMatterHaloScale_) result(self)
+  function zentner2005ConstructorInternal(efficiency,satelliteTidalStrippingRadius_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily zentner2005} satellite tidal stripping class.
     implicit none
     type            (satelliteTidalStrippingZentner2005)                        :: self
-    class           (darkMatterHaloScaleClass          ), intent(in   ), target :: darkMatterHaloScale_
+    class           (satelliteTidalStrippingRadiusClass), intent(in   ), target :: satelliteTidalStrippingRadius_
     double precision                                    , intent(in)            :: efficiency
-    double precision                                    , parameter             :: toleranceAbsolute   =0.0d0 , toleranceRelative=1.0d-3
-   !# <constructorAssign variables="efficiency, *darkMatterHaloScale_"/>
+    !# <constructorAssign variables="efficiency, *satelliteTidalStrippingRadius_"/>
 
-    self%expandMultiplier=2.0d0
-    self%finder          =rootFinder(                                                &
-         &                           rootFunction     =zentner2005TidalRadiusSolver, &
-         &                           toleranceAbsolute=toleranceAbsolute           , &
-         &                           toleranceRelative=toleranceRelative             &
-         &                          )
     return
   end function zentner2005ConstructorInternal
 
-  subroutine zentner2005AutoHook(self)
-    !% Attach to the calculation reset event.
-    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
-    implicit none
-    class(satelliteTidalStrippingZentner2005), intent(inout) :: self
-
-    call calculationResetEvent%attach(self,zentner2005CalculationReset,openMPThreadBindingAllLevels)
-    return
-  end subroutine zentner2005AutoHook
-
   subroutine zentner2005Destructor(self)
     !% Destructor for the {\normalfont \ttfamily zentner2005} satellite tidal stripping class.
-    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(satelliteTidalStrippingZentner2005), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
-    call calculationResetEvent%detach(self,zentner2005CalculationReset)
+    !# <objectDestructor name="self%satelliteTidalStrippingRadius_"/>
     return
   end subroutine zentner2005Destructor
 
   double precision function zentner2005MassLossRate(self,node)
-    !% Return a mass loss rate for satellites due to tidal stripping using the formulation of \cite{zentner_physics_2005}. To
-    !% allow for non-spherical mass distributions, we proceed as follows to determine the tidal field:
-    !%
-    !% Let $\bm{\mathsf{G}}$ be the gravitational tidal tensor evaluated at the position of the satellite. Consider a unit vector,
-    !% $\boldsymbol{\hat{x}}$ in the satellite. The tidal field along this vector is $\bm{\mathsf{G}} \boldsymbol{\hat{x}}$. The
-    !% radial component of the tidal field in this direction is then $\boldsymbol{\hat{x}} \bm{\mathsf{G}}
-    !% \boldsymbol{\hat{x}}$. We want to find the maximum of the tidal field over all possible directions (i.e. all possible unit
-    !% vectors).
-    !%
-    !% We can write our unit vector as
-    !% \begin{equation}
-    !%  \boldsymbol{\hat{x}} = \sum_{i=1}^3 a_i \boldsymbol{\hat{e}}_i,
-    !% \end{equation}
-    !% where the $\boldsymbol{\hat{e}}_i$ are the eigenvectors of $\bm{\mathsf{G}}$ and $\sum_{i=1}^3 a_i^2 = 1$. Then since, by
-    !% definition, $\bm{\mathsf{G}} \boldsymbol{\hat{e}}_i = \lambda_i \boldsymbol{\hat{e}}_i$, where $\lambda_i$ are the
-    !% eigenvalues of $\bm{\mathsf{G}}$, we have that
-    !% \begin{equation}
-    !%  \boldsymbol{\hat{x}} \bm{\mathsf{G}} \boldsymbol{\hat{x}}= \sum_{i=1}^3 a_i^2 \lambda_i.
-    !% \end{equation}
-    !% The sum on the right hand side of the above is a weighted average of eigenvalues. Any weighted averge is maximized by
-    !% setting the weight of the largest value to $1$, and all other weights to $0$. Therefore, our tidal field is maximized along
-    !% the direction corresponding the eigenvector of $\bm{\mathsf{G}}$ with the largest eigenvalue. (Note that we want the
-    !% largest positive eigenvalue, not the largest absolute eigenvalue as we're interested in stretching tidal fields, not
-    !% compressive ones.)
+    !% Return a mass loss rate for satellites due to tidal stripping using the formulation of \cite{zentner_physics_2005}.
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options        , only : coordinateSystemCartesian
-    use :: Galactic_Structure_Tidal_Tensors  , only : Galactic_Structure_Tidal_Tensor
     use :: Galacticus_Nodes                  , only : nodeComponentSatellite          , treeNode
-    use :: Linear_Algebra                    , only : vector                          , matrix                        , assignment(=)
-    use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec                    , gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec    , gravitationalConstantGalacticus
     use :: Numerical_Constants_Math          , only : Pi
     use :: Numerical_Constants_Prefixes      , only : kilo
-    use :: Root_Finder                       , only : rangeExpandMultiplicative       , rangeExpandSignExpectNegative , rangeExpandSignExpectPositive
-    use :: Tensors                           , only : assignment(=)                   , tensorRank2Dimension3Symmetric
     use :: Vectors                           , only : Vector_Magnitude                , Vector_Product
     implicit none
-    class           (satelliteTidalStrippingZentner2005), intent(inout)         :: self
-    type            (treeNode                          ), intent(inout), target :: node
-    type            (treeNode                          ), pointer               :: nodeHost
-    class           (nodeComponentSatellite            ), pointer               :: satellite
-    double precision                                    , dimension(3  )        :: position                               , velocity                        , &
-         &                                                                         tidalTensorEigenValueComponents
-    double precision                                    , dimension(3,3)        :: tidalTensorComponents                  , tidalTensorEigenVectorComponents
-    double precision                                    , parameter             :: radiusZero                      =0.0d0
-    double precision                                    , parameter             :: radiusTidalTinyFraction         =1.0d-6
-    double precision                                                            :: massSatellite                          , frequencyAngular                , &
-         &                                                                         periodOrbital                          , radius                          , &
-         &                                                                         tidalFieldRadial                       , radiusTidal                     , &
-         &                                                                         massOuterSatellite                     , frequencyRadial
-    type            (tensorRank2Dimension3Symmetric    )                        :: tidalTensor
-    type            (matrix                            )                        :: tidalTensorMatrix                      , tidalTensorEigenVectors
-    type            (vector                            )                        :: tidalTensorEigenValues
+    class           (satelliteTidalStrippingZentner2005), intent(inout)  :: self
+    type            (treeNode                          ), intent(inout)  :: node
+    class           (nodeComponentSatellite            ), pointer        :: satellite
+    double precision                                    , dimension(3  ) :: position          , velocity
+    double precision                                                     :: massSatellite     , frequencyAngular, &
+         &                                                                  periodOrbital     , radius          , &
+         &                                                                  massOuterSatellite, frequencyRadial
 
-    ! Get required quantities from satellite and host nodes.
-    nodeHost          => node     %mergesWith(        )
-    satellite         => node     %satellite (        )
-    massSatellite     =  satellite%boundMass (        )
-    position          =  satellite%position  (        )
-    velocity          =  satellite%velocity  (        )
-    radius            =  Vector_Magnitude    (position)
+    ! Get required quantities from the satellite node.
+    satellite          =>  node     %satellite (        )
+    massSatellite      =   satellite%boundMass (        )
+    position           =   satellite%position  (        )
+    velocity           =   satellite%velocity  (        )
+    radius             =   Vector_Magnitude    (position)
     ! Compute the orbital period.
-    frequencyAngular  = +Vector_Magnitude(Vector_Product(position,velocity)) &
-         &              /radius**2                                           &
-         &              *kilo                                                &
-         &              *gigaYear                                            &
-         &              /megaParsec
-    frequencyRadial   = +abs             (   Dot_Product(position,velocity)) &
-         &              /radius**2                                           &
-         &              *kilo                                                &
-         &              *gigaYear                                            &
-         &              /megaParsec
+    frequencyAngular   =  +Vector_Magnitude(Vector_Product(position,velocity)) &
+         &                /radius**2                                           &
+         &                *kilo                                                &
+         &                *gigaYear                                            &
+         &                /megaParsec
+    frequencyRadial    =  +abs             (   Dot_Product(position,velocity)) &
+         &                /radius**2                                           &
+         &                *kilo                                                &
+         &                *gigaYear                                            &
+         &                /megaParsec
     ! Find the orbital period. We use the larger of the angular and radial frequencies to avoid numerical problems for purely
     ! radial or purely circular orbits.
-    periodOrbital     = 2.0d0*Pi/max(frequencyAngular,frequencyRadial)
-    ! Find the maximum of the tidal field over all directions in the satellite. To compute this we multiply the a unit vector by
-    ! the tidal tensor, which gives the vector tidal acceleration for displacements along that direction. We then take the dot
-    ! product with that same unit vector to get the magnitude of this acceleration in the that direction. This magnitude is
-    ! maximized for a vector coinciding with the eigenvector of the tidal tensor with the largest eigenvalue. For spherical mass
-    ! distributions this reduces to:
-    !
-    ! -2GM(r)r⁻³ - 4πGρ(r)
-    tidalTensor                     = Galactic_Structure_Tidal_Tensor(nodeHost,position)
-    tidalTensorComponents           = tidalTensor
-    tidalTensorMatrix               = tidalTensorComponents
-    call tidalTensorMatrix%eigenSystem(tidalTensorEigenVectors,tidalTensorEigenValues)
-    tidalTensorEigenValueComponents = tidalTensorEigenValues
-    tidalTensorEigenVectorComponents= tidalTensorEigenVectors
-    tidalFieldRadial                =-abs(tidalTensor%vectorProject(tidalTensorEigenVectorComponents(maxloc(tidalTensorEigenValueComponents,dim=1),:))) &
-         &                           *(                                                                                                                 &
-         &                             +kilo                                                                                                            &
-         &                             *gigaYear                                                                                                        &
-         &                             /megaParsec                                                                                                      &
-         &                            )**2
-    ! If the tidal force is stretching (not compressing), compute the tidal radius.
-    if     (                                                                      &
-         &   frequencyAngular**2                               > tidalFieldRadial &
-         &  .and.                                                                 &
-         &   massSatellite                                     >  0.0d0           &
-         &  .and.                                                                 &
-         &   Galactic_Structure_Enclosed_Mass(node,radiusZero) >= 0.0d0           &
-         & ) then
-       ! Check if node differs from previous one for which we performed calculations.
-       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-       ! Initial estimate of the tidal radius.
-       zentner2005TidalPull=  frequencyAngular**2-tidalFieldRadial
-       if (self%radiusTidalPrevious <= 0.0d0) then
-          self%radiusTidalPrevious=+(                                 &
-               &                     +gravitationalConstantGalacticus &
-               &                     *massSatellite                   &
-               &                     /zentner2005TidalPull            &
-               &                     *(kilo*gigaYear/megaParsec)**2   &
-               &                    )**(1.0d0/3.0d0)
-          self%expandMultiplier   =+2.0d0
-       end if
-       ! Check if tidal radius will lie outside of current boundary.
-       if (Galactic_Structure_Enclosed_Mass(node,self%radiusTidalPrevious) >= massSatellite) then
-          ! Tidal radius lies outside current boundary, so no additional stripping will occur.
-          zentner2005MassLossRate=0.0d0
-       else
-          ! Find the tidal radius in the dark matter profile.
-          call self%finder%rangeExpand(                                                             &
-               &                       rangeExpandUpward            =1.0d0*self%expandMultiplier  , &
-               &                       rangeExpandDownward          =1.0d0/self%expandMultiplier  , &
-               &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-               &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-               &                       rangeExpandType              =rangeExpandMultiplicative      &
-               &                      )
-          zentner2005Node => node
-          ! Check for extremes.
-          if (zentner2005TidalRadiusSolver(radiusTidalTinyFraction*self%radiusTidalPrevious) >  0.0d0) then
-             ! Complete stripping.
-             radiusTidal       =0.0d0
-             massOuterSatellite=massSatellite
-          else
-             ! Find the tidal radius, using the previous result as an initial guess.
-             radiusTidal       =self%finder%find(rootGuess=self%radiusTidalPrevious)
-             massOuterSatellite=max(                                                                  &
-                  &                 massSatellite-Galactic_Structure_Enclosed_Mass(node,radiusTidal), &
-                  &                 0.0d0                                                             &
-                  &                )
-             self%radiusTidalPrevious  =radiusTidal
-             self%expandMultiplier=1.2d0
-          end if
-          zentner2005MassLossRate=-self%efficiency    &
-               &                  *massOuterSatellite &
-               &                  /periodOrbital
-       end if
-    else
-       zentner2005MassLossRate=0.0d0
-    end if
+    periodOrbital      =  +2.0d0                 &
+         &                *Pi                    &
+         &                /max(                  &
+         &                     frequencyAngular, &
+         &                     frequencyRadial   &
+         &                    )
+    ! Compute the mass of the satellite outside of the tidal radius.
+    massOuterSatellite =  max(                                                                                          &
+         &                    +massSatellite                                                                            &
+         &                    -Galactic_Structure_Enclosed_Mass(node,self%satelliteTidalStrippingRadius_%radius(node)), &
+         &                    +0.0d0                                                                                    &
+         &                   )
+    ! Compute the rate of mass loss.
+    zentner2005MassLossRate=-self%efficiency    &
+         &                  *massOuterSatellite &
+         &                  /periodOrbital    
     return
   end function zentner2005MassLossRate
-
-  double precision function zentner2005TidalRadiusSolver(radius)
-    !% Root function used to find the tidal radius within a subhalo.
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec
-    use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus
-    use :: Numerical_Constants_Prefixes      , only : kilo
-    implicit none
-    double precision, intent(in   ) :: radius
-    double precision                :: enclosedMass
-
-    ! Get the satellite component.
-    enclosedMass                =+Galactic_Structure_Enclosed_Mass(zentner2005Node,radius)
-    zentner2005TidalRadiusSolver=+zentner2005TidalPull               &
-         &                       -gravitationalConstantGalacticus    &
-         &                       *enclosedMass                       &
-         &                       /radius                         **3 &
-         &                       *(                                  &
-         &                         +kilo                             &
-         &                         *gigaYear                         &
-         &                         /megaParsec                       &
-         &                        )                              **2
-    return
-  end function zentner2005TidalRadiusSolver
-
-  subroutine zentner2005CalculationReset(self,node)
-    !% Reset the stored tidal radii.
-    implicit none
-    class(satelliteTidalStrippingZentner2005), intent(inout) :: self
-    type (treeNode                          ), intent(inout) :: node
-
-    self%radiusTidalPrevious=-1.0d0
-    self%lastUniqueID       =node%uniqueID()
-    return
-  end subroutine zentner2005CalculationReset

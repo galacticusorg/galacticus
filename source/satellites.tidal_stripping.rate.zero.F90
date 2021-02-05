@@ -54,8 +54,8 @@ contains
   double precision function zeroMassLossRate(self,node)
     !% Return a mass loss rate for satellites due to tidal stripping which is always zero.
     implicit none
-    class(satelliteTidalStrippingZero), intent(inout)         :: self
-    type (treeNode                   ), intent(inout), target :: node
+    class(satelliteTidalStrippingZero), intent(inout) :: self
+    type (treeNode                   ), intent(inout) :: node
     !$GLC attributes unused :: self, node
 
     zeroMassLossRate=0.0d0

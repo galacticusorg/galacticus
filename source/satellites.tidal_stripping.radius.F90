@@ -19,26 +19,27 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-!% Contains a module that provides a class to perform calculations of the mass loss rate due to tidal stripping for satellites.
+!% Contains a module that provides a class to perform calculations of the tidal stripping radius for satellites.
 
-module Satellite_Tidal_Stripping
-  !% Provides a class to perform calculations of the mass loss rate due to tidal stripping for satellites.
+module Satellite_Tidal_Stripping_Radii
+  !% Provides a class to perform calculations of the tidal stripping radius for satellites.
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !# <functionClass>
-  !#  <name>satelliteTidalStripping</name>
-  !#  <descriptiveName>Tidal stripping models for satellites.</descriptiveName>
+  !#  <name>satelliteTidalStrippingRadius</name>
+  !#  <descriptiveName>Tidal stripping radii models for satellites.</descriptiveName>
   !#  <description>
-  !#   Class providing models of tidal stripping for satellites.
+  !#   Class providing models of tidal stripping radii for satellites.
   !#  </description>
-  !#  <default>zentner2005</default>
-  !#  <method name="massLossRate" >
-  !#   <description>Returns the rate of tidal mass loss for {\normalfont \ttfamily node} (in units of $M_\odot$/Gyr).</description>
+  !#  <default>king1962</default>
+  !#  <calculationReset>yes</calculationReset>
+  !#  <method name="radius" >
+  !#   <description>Returns the tidal radius for {\normalfont \ttfamily node} (in units of Mpc).</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
   !#  </method>
   !# </functionClass>
 
-end module Satellite_Tidal_Stripping
+end module Satellite_Tidal_Stripping_Radii
