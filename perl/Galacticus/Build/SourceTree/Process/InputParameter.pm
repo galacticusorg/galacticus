@@ -59,12 +59,7 @@ sub Process_InputParameters {
 	    $inputParameterSource .= "  ! Auto-generated input parameter\n";
 	    if ( exists($node->{'directive'}->{'name'}) ) {
 		# Simple parameter defined by a name.
-		$inputParameterSource .= "  call ";
-		if ( exists($node->{'directive'}->{'source'}) ) {
-		    $inputParameterSource .= $node->{'directive'}->{'source'};
-		} else {
-		    $inputParameterSource .= "globalParameters";
-		}
+		$inputParameterSource .= "  call ".$node->{'directive'}->{'source'};
 		my $parameterName = $node->{'directive'}->{'name'};
 		$parameterName = "'".$parameterName."'" # Add delimiters to name unless the name is actually a function.
 		    unless ( $parameterName =~ m/\(/ );

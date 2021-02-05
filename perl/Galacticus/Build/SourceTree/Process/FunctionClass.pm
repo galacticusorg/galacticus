@@ -711,14 +711,14 @@ CODE
 				}
 			    }
 			    if ( $constructorNode->{'type'} eq "inputParameter" ) {
-				my $source = exists($constructorNode->{'directive'}->{'source'}) ? $constructorNode->{'directive'}->{'source'} : "globalParameters";
-				if      ( exists($constructorNode->{'directive'}->{'name'    }) ) {
+				my $source = $constructorNode->{'directive'}->{'source'};
+				if ( exists($constructorNode->{'directive'}->{'name'}) ) {
 				    # A regular parameter, defined by its name.
-				    push(@{$allowedParameters->{$source}->{'all'}},         $constructorNode->{'directive'}->{'name' });
+				    push(@{$allowedParameters->{$source}->{'all'}},$constructorNode->{'directive'}->{'name' });
 				}
 			    }
 			    if ( $constructorNode->{'type'} eq "objectBuilder"  ) {
-				my $source = exists($constructorNode->{'directive'}->{'source'}) ? $constructorNode->{'directive'}->{'source'} : "globalParameters";
+				my $source = $constructorNode->{'directive'}->{'source'};
 				push(@{$allowedParameters->{$source}->{'all'}},exists($constructorNode->{'directive'}->{'parameterName'}) ? $constructorNode->{'directive'}->{'parameterName'} : $constructorNode->{'directive'}->{'class'}."Method");
 				# Check if the class contains a pointer of the expected type and name for this object.
 				my $typeNode = $class->{'tree'}->{'firstChild'};
