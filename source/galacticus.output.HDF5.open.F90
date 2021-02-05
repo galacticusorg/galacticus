@@ -178,7 +178,7 @@ contains
           call galacticusOutputFile%close()
           !$ call hdf5Access%unset()
           ! Move the scratch file to the final file if necessary.
-          if (galacticusOutputFileName /= galacticusOutputScratchFileName) call File_Rename(galacticusOutputScratchFileName,galacticusOutputFileName)
+          if (galacticusOutputFileName /= galacticusOutputScratchFileName) call File_Rename(galacticusOutputScratchFileName,galacticusOutputFileName,overwrite=.true.)
           ! Record that the file is now closed.
           galacticusOutputFileIsOpen=.false.
        end if
