@@ -99,8 +99,6 @@ contains
     !#   <variable>kappa</variable>
     !#   <defaultValue>0.41d0</defaultValue>
     !#   <description>The parameter $\kappa$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>a0</name>
@@ -108,8 +106,6 @@ contains
     !#   <variable>a0</variable>
     !#   <defaultValue>2.45d0</defaultValue>
     !#   <description>The parameter $a_0$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>a1</name>
@@ -117,8 +113,6 @@ contains
     !#   <variable>a1</variable>
     !#   <defaultValue>1.82d0</defaultValue>
     !#   <description>The parameter $a_1$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>b0</name>
@@ -126,8 +120,6 @@ contains
     !#   <variable>b0</variable>
     !#   <defaultValue>3.20d0</defaultValue>
     !#   <description>The parameter $b_0$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>b1</name>
@@ -135,8 +127,6 @@ contains
     !#   <variable>b1</variable>
     !#   <defaultValue>2.30d0</defaultValue>
     !#   <description>The parameter $b_1$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>cAlpha</name>
@@ -144,8 +134,6 @@ contains
     !#   <variable>cAlpha</variable>
     !#   <defaultValue>0.21d0</defaultValue>
     !#   <description>The parameter $c_{\alpha}$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>scatter</name>
@@ -153,8 +141,6 @@ contains
     !#   <variable>scatter</variable>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The scatter (in dex) to assume in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>

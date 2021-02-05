@@ -75,8 +75,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>A scale factor to be applied to inflow velocities.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters"/>
     !# <objectBuilder class="criticalOverdensity"         name="criticalOverdensity_"         source="parameters"/>

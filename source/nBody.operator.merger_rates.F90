@@ -64,60 +64,44 @@ contains
     !#   <name>indexSnapshot</name>
     !#   <source>parameters</source>
     !#   <description>The snapshot index for which to compute the merger rate.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMinimum</name>
     !#   <source>parameters</source>
     !#   <description>The minimum mass (of the secondary halo) for which to accumulate merging statistics.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMaximum</name>
     !#   <source>parameters</source>
     !#   <description>The maximum mass (of the secondary halo) for which to accumulate merging statistics.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massHostMinimum</name>
     !#   <source>parameters</source>
     !#   <description>The minimum mass (of the primary halo) for which to accumulate merging statistics.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massHostMaximum</name>
     !#   <source>parameters</source>
     !#   <description>The maximum mass (of the primary halo) for which to accumulate merging statistics.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>missingHostIsFatal</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true, missing host halos are cause for a fatal error. Otherwise they are ignored.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>alwaysIsolatedOnly</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true, only mergers of halos which have been always isolated are considered. Otherwise, all halos are considered.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>suffix</name>
     !#   <source>parameters</source>
     !#   <defaultValue>var_str('')</defaultValue>
     !#   <description>A suffix to append to the output merger rate attribute. Useful if you want to write output multiple merger rates.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=nbodyOperatorMergerRates(indexSnapshot,massMinimum,massMaximum,massHostMinimum,massHostMaximum,missingHostIsFatal,alwaysIsolatedOnly,suffix,cosmologyFunctions_)

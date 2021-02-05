@@ -78,64 +78,48 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>40.0d0</defaultValue>
     !#   <description>The parameter $\alpha$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>beta</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.5d0</defaultValue>
     !#   <description>The parameter $\beta$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gamma</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-10.0d0</defaultValue>
     !#   <description>The parameter $\gamma$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sigma</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-10.0d0</defaultValue>
     !#   <description>The parameter $\sigma$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}, determines width of first peak in transfer function.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>tau</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-10.0d0</defaultValue>
     !#   <description>The parameter $\tau$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}, determines damping of DAO.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>kPeak</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-10.0d0</defaultValue>
     !#   <description>The parameter $k_\mathrm{peak}$, the wavenumber of first peak in ETHOS transfer function, apearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>hPeak</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-10.0d0</defaultValue>
     !#   <description>The parameter $h_\mathrm{peak}$, the amplitude of the first peak, appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>h2</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-10.0d0</defaultValue>
     !#   <description>The parameter $h_2$, the amplitude of the second peak, appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -145,8 +129,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%equalityEpochMatterRadiation(requestTypeExpansionFactor))</defaultValue>
     !#   <description>The redshift of the epoch at which the transfer function is defined.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     self=transferFunctionETHOSDM(transferFunctionCDM,alpha,beta,gamma,sigma,tau,kPeak,hPeak,h2,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>

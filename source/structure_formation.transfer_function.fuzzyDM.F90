@@ -58,8 +58,6 @@ contains
     !#   <name>m22</name>
     !#   <source>parameters</source>
     !#   <description>The mass of the fuzzy dark matter particle in units of $10^{-22}$~eV, $m_{22}$.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>beta</name>
@@ -67,8 +65,6 @@ contains
     !#   <defaultValue>5.475d0</defaultValue>
     !#   <defaultSource>\citep[][average of values in Table~4]{murgia_non-cold_2017}</defaultSource>
     !#   <description>The parameter $\beta$, which controls the shape of the cut-off, appearing in the transfer function \citep{murgia_non-cold_2017}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gamma</name>
@@ -76,8 +72,6 @@ contains
     !#   <defaultValue>-2.0d0</defaultValue>
     !#   <defaultSource>\citep[][average of values in Table~4]{murgia_non-cold_2017}</defaultSource>
     !#   <description>The parameter $\gamma$, which controls the shape of the cut-off, appearing in the transfer function \citep{murgia_non-cold_2017}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -87,8 +81,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%equalityEpochMatterRadiation(requestTypeExpansionFactor))</defaultValue>
     !#   <description>The redshift of the epoch at which the transfer function is defined.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     self=transferFunctionFuzzyDM(transferFunctionCDM,m22,beta,gamma,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>

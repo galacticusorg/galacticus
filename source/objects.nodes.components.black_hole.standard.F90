@@ -163,8 +163,6 @@ contains
     !#   <source>parameters_</source>
     !#   <defaultValue>100.0d0</defaultValue>
     !#   <description>The mass of the seed black hole placed at the center of each newly formed galaxy.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     ! Get accretion rate enhancement factors.
     !# <inputParameter>

@@ -72,8 +72,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>40.0d0</defaultValue>
     !#   <description>Dark matter particle mass in units of $10^{-22}$~eV.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -83,8 +81,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%equalityEpochMatterRadiation(requestTypeExpansionFactor))</defaultValue>
     !#   <description>The redshift of the epoch at which the transfer function is defined.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
      self=transferFunctionHu2008Fuzzy(transferFunctionCDM,m22,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>

@@ -74,11 +74,9 @@ contains
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>solveForInactiveProperties</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true, galactic structure is solved for during evaluation of inactive property integrals. Otherwise, structure is not solved for during this phase---this should only be used if the inactive property integrands \emph{do not} depend on galactic structure.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     self=galacticStructureSolverSimple(useFormationHalo,solveForInactiveProperties,darkMatterProfileDMO_)

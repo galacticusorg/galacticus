@@ -73,24 +73,18 @@ function murgia2017ConstructorParameters(parameters) result(self)
     !#   <source>parameters</source>
     !#   <defaultValue>0.0075d0</defaultValue>
     !#   <description>The parameter $\alpha$, which sets the cut-off scale length, appearing in the warm dark matter transfer function \citep{murgia_non-cold_2017}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>beta</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.5d0</defaultValue>
     !#   <description>The parameter $\beta$, which controls the shape of the cut-off, appearing in the warm dark matter transfer function \citep{murgia_non-cold_2017}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gamma</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-10.0d0</defaultValue>
     !#   <description>The parameter $\gamma$, which controls the shape of the cut-off, appearing in the warm dark matter transfer function \citep{murgia_non-cold_2017}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -100,8 +94,6 @@ function murgia2017ConstructorParameters(parameters) result(self)
     !#   <source>parameters</source>
     !#   <defaultValue>cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%equalityEpochMatterRadiation(requestTypeExpansionFactor))</defaultValue>
     !#   <description>The redshift of the epoch at which the transfer function is defined.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     self=transferFunctionmurgia2017(transferFunctionCDM,alpha,beta,gamma,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
