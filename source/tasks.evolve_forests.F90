@@ -308,20 +308,6 @@ contains
     !$ use            :: OMP_Lib                             , only : OMP_Destroy_Lock                   , OMP_Get_Thread_Num                 , OMP_Init_Lock  , omp_lock_kind
     use               :: Sorting                             , only : sortIndex
     use               :: String_Handling                     , only : operator(//)
-    
-    use               :: Display                             , only : displayIndent                      , displayMessage                     , displayUnindent, verbosityLevelInfo
-    use               :: Galacticus_Error                    , only : Galacticus_Error_Report            , errorStatusSuccess
-    use               :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
-    use               :: Galacticus_Nodes                    , only : mergerTree                         , nodeComponentBasic                 , treeNode       , universe          , &
-          &                                                           universeEvent
-    use   , intrinsic :: ISO_C_Binding                       , only : c_size_t
-    use               :: Memory_Management                   , only : Memory_Usage_Record                , memoryTypeNodes
-    use               :: Merger_Tree_Walkers                 , only : mergerTreeWalkerAllNodes           , mergerTreeWalkerIsolatedNodes
-    use               :: Node_Components                     , only : Node_Components_Thread_Initialize  , Node_Components_Thread_Uninitialize
-    use               :: Node_Events_Inter_Tree              , only : Inter_Tree_Event_Post_Evolve
-    !$ use            :: OMP_Lib                             , only : OMP_Destroy_Lock                   , OMP_Get_Thread_Num                 , OMP_Init_Lock  , omp_lock_kind
-    use               :: Sorting                             , only : sortIndex
-    use               :: String_Handling                     , only : operator(//)
     ! Include modules needed for tasks.
     !# <include directive="universePostEvolveTask" type="moduleUse" functionType="void">
     include 'galacticus.tasks.evolve_tree.universePostEvolveTask.moduleUse.inc'
