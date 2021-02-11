@@ -57,6 +57,7 @@ module Dark_Matter_Profiles_Generic
      !#   <method description="Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$)." method="radiusEnclosingDensityNumerical" />
      !#   <method description="Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given {\normalfont \ttfamily mass} (given in units of $M_\odot$)." method="radiusEnclosingMassNumerical" />
      !#   <method description="Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}." method="circularVelocityMaximumNumerical" />
+     !#   <method description="Returns the radius (in Mpc) at which the maximum circular velocity is reached in the dark matter profile of {\normalfont \ttfamily node}." method="radiusCircularVelocityMaximumNumerical" />
      !#   <method description="Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given in units of km s$^{-1}$ Mpc)." method="radiusFromSpecificAngularMomentumNumerical" />
      !#   <method description="Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc)." method="densityLogSlopeNumerical" />
      !# </methods>
@@ -78,8 +79,11 @@ module Dark_Matter_Profiles_Generic
      procedure                                         :: radiusEnclosingDensityNumerical            => genericRadiusEnclosingDensityNumerical
      procedure                                         :: radiusEnclosingMassNumerical               => genericRadiusEnclosingMassNumerical
      procedure                                         :: circularVelocityMaximumNumerical           => genericCircularVelocityMaximumNumerical
+     procedure                                         :: radiusCircularVelocityMaximumNumerical     => genericRadiusCircularVelocityMaximumNumerical
      procedure                                         :: radiusFromSpecificAngularMomentumNumerical => genericRadiusFromSpecificAngularMomentumNumerical
      procedure                                         :: densityLogSlopeNumerical                   => genericDensityLogSlopeNumerical
+     procedure                                         :: solverSet                                  => genericSolverSet
+     procedure                              , nopass   :: solverUnset                                => genericSolverUnset
   end type darkMatterProfileGeneric
 
   abstract interface
@@ -94,14 +98,19 @@ module Dark_Matter_Profiles_Generic
   end interface
 
   ! Module-scope pointers used in integrand functions and root finding.
-  class           (darkMatterProfileGeneric      ), pointer :: genericSelf
-  type            (treeNode                      ), pointer :: genericNode
-  class           (nodeComponentBasic            ), pointer :: genericBasic
-  class           (nodeComponentDarkMatterProfile), pointer :: genericDarkMatterProfile
-  double precision                                          :: genericTime                   , genericRadiusFreefall , genericDensity        , genericMass , &
-       &                                                       genericSpecificAngularMomentum, genericMassGrowthRate , genericScaleGrowthRate, genericScale, &
-       &                                                       genericShape                  , genericShapeGrowthRate
-  !$omp threadprivate(genericSelf,genericNode,genericBasic,genericTime,genericRadiusFreefall,genericDensity,genericMass,genericSpecificAngularMomentum,genericMassGrowthRate,genericDarkMatterProfile,genericScaleGrowthRate,genericScale,genericShape,genericShapeGrowthRate)
+  type :: genericSolver
+     class(darkMatterProfileGeneric), pointer :: self
+     type (treeNode                ), pointer :: node
+  end type genericSolver
+  type            (genericSolver                 ), allocatable, dimension(:) :: solvers
+  integer                                         , parameter                 :: solversIncrement              =10
+  integer                                                                     :: solversCount                  = 0
+  class           (nodeComponentBasic            ), pointer                   :: genericBasic
+  class           (nodeComponentDarkMatterProfile), pointer                   :: genericDarkMatterProfile
+  double precision                                                            :: genericTime                      , genericRadiusFreefall , genericDensity        , genericMass , &
+       &                                                                         genericSpecificAngularMomentum   , genericMassGrowthRate , genericScaleGrowthRate, genericScale, &
+       &                                                                         genericShape                     , genericShapeGrowthRate
+  !$omp threadprivate(solvers,solversCount,genericBasic,genericTime,genericRadiusFreefall,genericDensity,genericMass,genericSpecificAngularMomentum,genericMassGrowthRate,genericDarkMatterProfile,genericScaleGrowthRate,genericScale,genericShape,genericShapeGrowthRate)
 
   !# <enumeration>
   !#  <name>nonAnalyticSolvers</name>
@@ -133,32 +142,36 @@ contains
     !% calculation.
     use :: Numerical_Integration, only : integrator
     implicit none
-    class           (darkMatterProfileGeneric), intent(inout) :: self
-    type            (treeNode                ), intent(inout) :: node
-    double precision                          , intent(in   ) :: radiusLower, radiusUpper
-    type            (integrator              )                :: integrator_
-
-    integrator_=integrator(genericMassIntegrand,toleranceRelative=1.0d-6)
-    genericEnclosedMassDifferenceNumerical=+integrator_%integrate(radiusLower,radiusUpper)
+    class           (darkMatterProfileGeneric), intent(inout), target :: self
+    type            (treeNode                ), intent(inout), target :: node
+    double precision                          , intent(in   )         :: radiusLower        , radiusUpper
+    type            (integrator              ), save                  :: integrator_
+    logical                                   , save                  :: initialized=.false.
+    !$omp threadprivate(integrator_,initialized)
+    
+    if (.not.initialized) then
+       integrator_=integrator(genericMassIntegrand,toleranceRelative=1.0d-2)
+       initialized=.true.
+    end if
+    call self%solverSet  (node)
+    genericEnclosedMassDifferenceNumerical =  integrator_%integrate(radiusLower,radiusUpper)
+    call self%solverUnset(   )
     return
-
-  contains
-
-    double precision function genericMassIntegrand(radius)
-      !% Integrand for mass in generic dark matter profiles.
-      use :: Numerical_Constants_Math, only : Pi
-      implicit none
-      double precision, intent(in   ) :: radius
-
-      if (radius > 0.0d0) then
-         genericMassIntegrand=4.0d0*Pi*radius**2*self%density(node,radius)
-      else
-         genericMassIntegrand=0.0d0
-      end if
-      return
-    end function genericMassIntegrand
-
   end function genericEnclosedMassDifferenceNumerical
+  
+  double precision function genericMassIntegrand(radius)
+    !% Integrand for mass in generic dark matter profiles.
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    double precision, intent(in   ) :: radius
+    
+    if (radius > 0.0d0) then
+       genericMassIntegrand=4.0d0*Pi*radius**2*solvers(solversCount)%self%density(solvers(solversCount)%node,radius)
+    else
+       genericMassIntegrand=0.0d0
+    end if
+    return
+  end function genericMassIntegrand
 
   double precision function genericPotentialNumerical(self,node,radius,status)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
@@ -170,20 +183,25 @@ contains
     type            (treeNode                ), intent(inout), target   :: node
     double precision                          , intent(in   )           :: radius
     integer                                   , intent(  out), optional :: status
-    double precision                          , parameter               :: radiusMaximumFactor =1.0d2
-    type            (integrator              )                          :: integrator_
+    double precision                          , parameter               :: radiusMaximumFactor=1.0d2
+    type            (integrator              ), save                    :: integrator_
+    logical                                   , save                    :: initialized        =.false.
+    !$omp threadprivate(integrator_,initialized)
     double precision                                                    :: radiusMaximum
 
     if (present(status)) status=structureErrorCodeSuccess
-    genericSelf               =>  self
-    genericNode               =>  node
+    if (.not.initialized) then
+       integrator_=integrator(integrandPotential,toleranceRelative=1.0d-6)
+       initialized=.true.
+    end if
+    call self%solverSet  (node)
     radiusMaximum             =  +radiusMaximumFactor                          &
          &                       *self%darkMatterHaloScale_%virialRadius(node)
-    integrator_               =   integrator           (integrandPotential,toleranceRelative=1.0d-6)
     genericPotentialNumerical =   integrator_%integrate(               &
          &                                              radius       , &
          &                                              radiusMaximum  &
          &                                             )
+    call self%solverUnset(   )
     return
   end function genericPotentialNumerical
 
@@ -196,16 +214,21 @@ contains
     implicit none
     class           (darkMatterProfileGeneric), intent(inout), target   :: self
     type            (treeNode                ), intent(inout), pointer  :: node
-    double precision                          , intent(in   )           :: radiusLower, radiusUpper
-    type            (integrator              )                          :: integrator_
-
-    genericSelf                         => self
-    genericNode                         => node
-    integrator_                         =  integrator           (integrandPotential,toleranceRelative=1.0d-6)
-    genericPotentialDifferenceNumerical =  integrator_%integrate(             &
-         &                                                       radiusLower, &
-         &                                                       radiusUpper  &
-         &                                                      )
+    double precision                          , intent(in   )           :: radiusLower        , radiusUpper
+    type            (integrator              ), save                    :: integrator_
+    logical                                   , save                    :: initialized=.false.
+    !$omp threadprivate(integrator_,initialized)
+ 
+    if (.not.initialized) then
+       integrator_=  integrator(integrandPotential,toleranceRelative=1.0d-6)
+       initialized=.true.
+    end if
+    call self%solverSet  (node)
+    genericPotentialDifferenceNumerical=integrator_%integrate(             &
+         &                                                    radiusLower, &
+         &                                                    radiusUpper  &
+         &                                                   )
+    call self%solverUnset(   )
     return
   end function genericPotentialDifferenceNumerical
 
@@ -216,9 +239,9 @@ contains
     double precision, intent(in   ) :: radius
 
     if (radius > 0.0d0) then
-       integrandPotential=-gravitationalConstantGalacticus                 &
-            &             *genericSelf%enclosedMass(genericNode,radius)    &
-            &             /                                     radius **2
+       integrandPotential=-gravitationalConstantGalacticus                                               &
+            &             *solvers(solversCount)%self%enclosedMass(solvers(solversCount)%node,radius)    &
+            &             /                                                                   radius **2
     else
        integrandPotential=0.0d0
     end if
@@ -249,47 +272,63 @@ contains
   double precision function genericRadialVelocityDispersionNumerical(self,node,radius)
     !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Numerical_Integration           , only : integrator
+    use :: Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Numerical_Integration, only : integrator
     implicit none
-    class           (darkMatterProfileGeneric), intent(inout)            :: self
-    type            (treeNode                ), intent(inout)            :: node
+    class           (darkMatterProfileGeneric), intent(inout), target    :: self
+    type            (treeNode                ), intent(inout), target    :: node
     double precision                          , intent(in   )            :: radius
-    double precision                                         , parameter :: radiusTinyFraction =1.0d-9, radiusLargeFactor=5.0d2
+    double precision                                         , parameter :: radiusTinyFraction=1.0d-9 , radiusLargeFactor=5.0d2
     double precision                                                     :: radiusMinimum             , radiusMaximum          , &
-         &                                                                  radiusVirial
-    type            (integrator              )                           :: integrator_
-
-    radiusVirial =self%darkMatterHaloScale_%virialRadius(node)
-    radiusMinimum=max(       radius,radiusTinyFraction*radiusVirial)
-    radiusMaximum=max(10.0d0*radius,radiusLargeFactor *radiusVirial)
-    integrator_=integrator(genericJeansEquationIntegrand,toleranceRelative=1.0d-6)
-    genericRadialVelocityDispersionNumerical=sqrt(                                                    &
-         &                                        +integrator_%integrate(radiusMinimum,radiusMaximum) &
-         &                                        /self       %density  (node         ,radius       ) &
-         &                                       )
+         &                                                                  radiusVirial              , density                , &
+         &                                                                  jeansIntegral
+    type            (integrator              ), save                     :: integrator_
+    logical                                   , save                     :: initialized       =.false.
+    !$omp threadprivate(integrator_,initialized)
+    
+    if (.not.initialized) then
+       integrator_=integrator(genericJeansEquationIntegrand,toleranceRelative=1.0d-6)
+       initialized=.true.
+    end if
+    call self%solverSet  (node)
+    radiusVirial  =  self       %darkMatterHaloScale_%virialRadius(node                            )
+    radiusMinimum =  max(       radius,radiusTinyFraction*radiusVirial)
+    radiusMaximum =  max(10.0d0*radius,radiusLargeFactor *radiusVirial)    
+    jeansIntegral =  integrator_                     %integrate   (     radiusMinimum,radiusMaximum)
+    density       =  self                            %density     (node,radiusMinimum              )
+    if (density <= 0.0d0) then
+       ! Density is zero - the velocity dispersion is undefined. If the Jeans integral is also zero this is acceptable - we've
+       ! been asked for the velocity dispersion in a region of zero density, so we simply return zero dispersion as it should have
+       ! no consequence. If the Jeans integral in non-zero however, then something has gone wrong.
+       genericRadialVelocityDispersionNumerical=0.0d0
+       if (jeansIntegral > 0.0d0) call Galacticus_Error_Report('undefined velocity dispersion'//{introspection:location})
+    else
+       genericRadialVelocityDispersionNumerical=sqrt(               &
+            &                                        +jeansIntegral &
+            &                                        /density       &
+            &                                       )
+    end if
+    call self%solverUnset(   )
     return
-
-  contains
-
-    double precision function genericJeansEquationIntegrand(radius)
-      !% Integrand for generic drak matter profile Jeans equation.
-      implicit none
-      double precision, intent(in   ) :: radius
-
-      if (radius > 0.0d0) then
-         genericJeansEquationIntegrand=+gravitationalConstantGalacticus &
-              &                        *self%enclosedMass(node,radius)  &
-              &                        *self%density     (node,radius)  &
-              &                        /radius**2
-      else
-         genericJeansEquationIntegrand=0.0d0
-      end if
-      return
-    end function genericJeansEquationIntegrand
-
   end function genericRadialVelocityDispersionNumerical
-
+  
+  double precision function genericJeansEquationIntegrand(radius)
+    !% Integrand for generic drak matter profile Jeans equation.
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    implicit none
+    double precision, intent(in   ) :: radius
+    
+    if (radius > 0.0d0) then
+       genericJeansEquationIntegrand=+gravitationalConstantGalacticus                                            &
+            &                        *solvers(solversCount)%self%enclosedMass(solvers(solversCount)%node,radius) &
+            &                        *solvers(solversCount)%self%density     (solvers(solversCount)%node,radius) &
+            &                        /radius**2
+    else
+       genericJeansEquationIntegrand=0.0d0
+    end if
+    return
+  end function genericJeansEquationIntegrand
+  
   double precision function genericRadialMomentNumerical(self,node,moment,radiusMinimum,radiusMaximum)
     !% Returns the radial moment of the density in the dark matter profile of {\normalfont \ttfamily node} between the given
     !% {\normalfont \ttfamily radiusMinimum} and {\normalfont \ttfamily radiusMaximum} (given in units of Mpc).
@@ -408,16 +447,16 @@ contains
     double precision                                            :: radiusVirial               , radiusLarge      , &
          &                                                         energyPotential            , energyKinetic    , &
          &                                                         pseudoPressure
-
+    
     integratorPotential=integrator(integrandEnergyPotential,toleranceRelative=1.0d-3)
     integratorKinetic  =integrator(integrandEnergyKinetic  ,toleranceRelative=1.0d-3)
     integratorPressure =integrator(integrandPseudoPressure ,toleranceRelative=1.0d-3)
     radiusVirial          =+self%darkMatterHaloScale_%virialRadius(node)
     radiusLarge           =+multiplierRadius                                          &
          &                 *radiusVirial
-    energyPotential       =+integratorPotential%integrate(0.0d0        ,radiusVirial)
-    energyKinetic         =+integratorKinetic  %integrate(0.0d0        ,radiusVirial)
-    pseudoPressure        =+integratorPressure %integrate(radiusVirial,radiusLarge  )
+    energyPotential       =+integratorPotential%integrate(0.0d0       ,radiusVirial)
+    energyKinetic         =+integratorKinetic  %integrate(0.0d0       ,radiusVirial)
+    pseudoPressure        =+integratorPressure %integrate(radiusVirial,radiusLarge )
     genericEnergyNumerical=-0.5d0                                                     &
          &                 *gravitationalConstantGalacticus                           &
          &                 *(                                                         &
@@ -495,9 +534,8 @@ contains
     type            (differentiator          )                        :: differentiator_
     double precision                                                  :: timeLastIsolated
 
+    call self%solverSet  (node)
     differentiator_                  =   differentiator                            (genericEnergyEvaluate                    )
-    genericSelf                      =>  self
-    genericNode                      =>  node
     genericBasic                     =>  node                    %basic            (                                         )
     genericDarkMatterProfile         =>  node                    %darkMatterProfile(                                         )
     genericTime                      =   genericBasic            %time             (                                         )
@@ -517,6 +555,7 @@ contains
     call genericDarkMatterProfile%scaleGrowthRateSet(genericScaleGrowthRate)
     call genericDarkMatterProfile%shapeSet          (genericShape          )
     call genericDarkMatterProfile%shapeGrowthRateSet(genericShapeGrowthRate)
+    call self%solverUnset(   )
     return
   end function genericEnergyGrowthRateNumerical
 
@@ -533,8 +572,8 @@ contains
     call genericBasic            %massSet            (genericMass +genericMassGrowthRate *(time-genericTime))
     call genericDarkMatterProfile%scaleSet           (genericScale+genericScaleGrowthRate*(time-genericTime))
     call genericDarkMatterProfile%shapeSet           (genericShape+genericShapeGrowthRate*(time-genericTime))
-    call Galacticus_Calculations_Reset_(genericNode)
-    genericEnergyEvaluate=genericSelf%energyNumerical(genericNode)
+    call Galacticus_Calculations_Reset_(solvers(solversCount)%node)
+    genericEnergyEvaluate=solvers(solversCount)%self%energyNumerical(solvers(solversCount)%node)
     return
   end function genericEnergyEvaluate
 
@@ -549,8 +588,7 @@ contains
     double precision                          , parameter             :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
     type            (rootFinder              )                        :: finder
 
-    genericSelf => self
-    genericNode => node
+    call self%solverSet  (node)
     genericTime =  time
     finder      =  rootFinder(                                                             &
          &                    rootFunction                 =rootRadiusFreefall           , &
@@ -563,6 +601,7 @@ contains
          &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
          &                   )
     genericFreefallRadiusNumerical=finder%find(rootGuess=self%darkMatterHaloScale_%virialRadius(node))
+    call self%solverUnset(   )
     return
   end function genericFreefallRadiusNumerical
 
@@ -587,7 +626,7 @@ contains
     double precision, intent(in   ) :: radius
     double precision                :: potentialDifference
 
-    potentialDifference=+genericSelf%potentialDifferenceNumerical(genericNode,radius,genericRadiusFreefall)
+    potentialDifference=+solvers(solversCount)%self%potentialDifferenceNumerical(solvers(solversCount)%node,radius,genericRadiusFreefall)
     if (potentialDifference < 0.0d0) then
        integrandTimeFreefall=+Mpc_per_km_per_s_To_Gyr   &
             &                /sqrt(                     &
@@ -612,11 +651,11 @@ contains
     double precision                          , parameter             :: timeLogarithmicStep=0.1d0
     type            (differentiator          )                        :: differentiator_
 
-    genericSelf                                =>  self
-    genericNode                                =>  node
+    call self%solverSet  (node)
     differentiator_                            =   differentiator            (genericFreefallRadiusEvaluate                    )
     genericFreefallRadiusIncreaseRateNumerical =  +differentiator_%derivative(log(time)                    ,timeLogarithmicStep) &
          &                                        /                               time
+    call self%solverUnset(   )
     return
   end function genericFreefallRadiusIncreaseRateNumerical
 
@@ -625,7 +664,7 @@ contains
     implicit none
     double precision, intent(in   ), value :: timeLogarithmic
 
-    genericFreefallRadiusEvaluate=genericSelf%freefallRadiusNumerical(genericNode,exp(timeLogarithmic))
+    genericFreefallRadiusEvaluate=solvers(solversCount)%self%freefallRadiusNumerical(solvers(solversCount)%node,exp(timeLogarithmic))
     return
   end function genericFreefallRadiusEvaluate
 
@@ -640,8 +679,7 @@ contains
     double precision                          , parameter             :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
     type            (rootFinder              )                        :: finder
 
-    genericSelf    => self
-    genericNode    => node
+    call self%solverSet  (node)
     genericDensity =  density
     finder      =  rootFinder(                                                             &
          &                    rootFunction                 =rootDensity                  , &
@@ -654,6 +692,7 @@ contains
          &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  &
          &                   )
     genericRadiusEnclosingDensityNumerical=finder%find(rootGuess=self%darkMatterHaloScale_%virialRadius(node))
+    call self%solverUnset(   )
     return
   end function genericRadiusEnclosingDensityNumerical
 
@@ -664,7 +703,7 @@ contains
     double precision, intent(in   ) :: radius
 
     rootDensity=+3.0d0                                           &
-         &      *genericSelf%enclosedMass(genericNode,radius)    &
+         &      *solvers(solversCount)%self%enclosedMass(solvers(solversCount)%node,radius)    &
          &      /4.0d0                                           &
          &      /Pi                                              &
          &      /                                     radius **3 &
@@ -683,8 +722,7 @@ contains
     double precision                          , parameter             :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
     type            (rootFinder              )                        :: finder
 
-    genericSelf => self
-    genericNode => node
+    call self%solverSet  (node)
     genericMass =  mass
     finder      =  rootFinder(                                                             &
          &                    rootFunction                 =rootMass                     , &
@@ -696,6 +734,7 @@ contains
          &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
          &                   )
     genericRadiusEnclosingMassNumerical=finder%find(rootRange=[0.0d0,self%darkMatterHaloScale_%virialRadius(node)])
+    call self%solverUnset(   )
     return
   end function genericRadiusEnclosingMassNumerical
 
@@ -704,23 +743,22 @@ contains
     implicit none
     double precision, intent(in   ) :: radius
 
-    rootMass=+genericSelf%enclosedMass(genericNode,radius) &
+    rootMass=+solvers(solversCount)%self%enclosedMass(solvers(solversCount)%node,radius) &
          &   -             genericMass
     return
   end function rootMass
 
-  double precision function genericCircularVelocityMaximumNumerical(self,node)
-    !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
+  double precision function genericRadiusCircularVelocityMaximumNumerical(self,node)
+    !% Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
     use :: Numerical_Comparison, only : Values_Agree
     use :: Root_Finder         , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
-    class           (darkMatterProfileGeneric), intent(inout), target :: self
-    type            (treeNode                ), intent(inout), target :: node
-    double precision                          , parameter             :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
-    type            (rootFinder              )                        :: finder
+    class           (darkMatterProfileGeneric), intent(inout) :: self
+    type            (treeNode                ), intent(inout) :: node
+    double precision                          , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
+    type            (rootFinder              )                :: finder
 
-    genericSelf => self
-    genericNode => node
+    call self%solverSet  (node)
     finder      =  rootFinder(                                                             &
          &                    rootFunction                 =rootCircularVelocityMaximum  , &
          &                    toleranceAbsolute            =toleranceAbsolute            , &
@@ -744,10 +782,21 @@ contains
          &                                                                                                             &
          &               )                                                                                             &
          & ) then
-       genericCircularVelocityMaximumNumerical=self%circularVelocityNumerical(node,                      self%darkMatterHaloScale_%virialRadius(node) )
+       genericRadiusCircularVelocityMaximumNumerical=                      self%darkMatterHaloScale_%virialRadius(node)
     else
-       genericCircularVelocityMaximumNumerical=self%circularVelocityNumerical(node,finder%find(rootGuess=self%darkMatterHaloScale_%virialRadius(node)))
+       genericRadiusCircularVelocityMaximumNumerical=finder%find(rootGuess=self%darkMatterHaloScale_%virialRadius(node))
     end if
+    call self%solverUnset(   )
+    return
+  end function genericRadiusCircularVelocityMaximumNumerical
+
+  double precision function genericCircularVelocityMaximumNumerical(self,node)
+    !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
+    implicit none
+    class(darkMatterProfileGeneric), intent(inout) :: self
+    type (treeNode                ), intent(inout) :: node
+
+    genericCircularVelocityMaximumNumerical=self%circularVelocityNumerical(node,self%radiusCircularVelocityMaximumNumerical(node))
     return
   end function genericCircularVelocityMaximumNumerical
 
@@ -764,8 +813,8 @@ contains
     rootCircularVelocityMaximum=+4.0d0                                           &
          &                      *Pi                                              &
          &                      *                                     radius **3 &
-         &                      *genericSelf%density     (genericNode,radius)    &
-         &                      -genericSelf%enclosedMass(genericNode,radius)
+         &                      *solvers(solversCount)%self%density     (solvers(solversCount)%node,radius)    &
+         &                      -solvers(solversCount)%self%enclosedMass(solvers(solversCount)%node,radius)
     return
   end function rootCircularVelocityMaximum
 
@@ -780,8 +829,7 @@ contains
     double precision                          , parameter             :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
     type            (rootFinder              )                        :: finder
 
-    genericSelf                    => self
-    genericNode                    => node
+    call self%solverSet  (node)
     genericSpecificAngularMomentum =  specificAngularMomentum
     finder                         =  rootFinder(                                                             &
          &                                       rootFunction                 =rootSpecificAngularMomentum  , &
@@ -793,6 +841,7 @@ contains
          &                                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
          &                                      )
     genericRadiusFromSpecificAngularMomentumNumerical=finder%find(rootRange=[0.0d0,self%darkMatterHaloScale_%virialRadius(node)])
+    call self%solverUnset(   )
     return
   end function genericRadiusFromSpecificAngularMomentumNumerical
 
@@ -801,7 +850,7 @@ contains
     implicit none
     double precision, intent(in   ) :: radius
 
-    rootSpecificAngularMomentum=+genericSelf%circularVelocityNumerical(genericNode,radius) &
+    rootSpecificAngularMomentum=+solvers(solversCount)%self%circularVelocityNumerical(solvers(solversCount)%node,radius) &
          &                      *                                                  radius &
          &                      -genericSpecificAngularMomentum
     return
@@ -818,11 +867,11 @@ contains
     double precision                          , parameter             :: radiusLogarithmicStep=0.1d0
     type            (differentiator          )                        :: differentiator_
 
-    genericSelf                    =>   self
-    genericNode                    =>   node
+    call self%solverSet  (node)
     differentiator_                =    differentiator                   (genericDensityEvaluate                      )
     genericDensityLogSlopeNumerical=   +differentiator_       %derivative(log(radius)           ,radiusLogarithmicStep) &
          &                             /genericDensityEvaluate           (log(radius)                                 )
+    call self%solverUnset(   )
     return
   end function genericDensityLogSlopeNumerical
 
@@ -831,9 +880,47 @@ contains
     implicit none
     double precision, intent(in   ), value :: radiusLogarithmic
 
-    genericDensityEvaluate=genericSelf%density(genericNode,exp(radiusLogarithmic))
+    genericDensityEvaluate=solvers(solversCount)%self%density(solvers(solversCount)%node,exp(radiusLogarithmic))
     return
   end function genericDensityEvaluate
 
-end module Dark_Matter_Profiles_Generic
+  subroutine genericSolverSet(self,node)
+    !% Set a sub-module scope pointers on a stack to allow recursive calls to functions.
+    implicit none
+    class  (darkMatterProfileGeneric), intent(inout), target       :: self
+    type   (treeNode                ), intent(inout), target       :: node
+    type   (genericSolver           ), allocatable  , dimension(:) :: solvers_
+    integer                                                        :: i
 
+    ! Increment the state counter. This is necessary to ensure that this function can be called recursively.
+    if (allocated(solvers)) then
+       if (solversCount == size(solvers)) then
+          call move_alloc(solvers,solvers_)
+          allocate(solvers(size(solvers_)+solversIncrement))
+          solvers(1:size(solvers_))=solvers_
+          do i=1,size(solvers_)
+             nullify(solvers_(i)%self)
+             nullify(solvers_(i)%node)
+          end do
+          deallocate(solvers_)
+       end if
+    else
+       allocate(solvers(solversIncrement))
+    end if
+    solversCount=solversCount+1
+    solvers(solversCount)%self => self
+    solvers(solversCount)%node => node
+    return
+  end subroutine genericSolverSet
+  
+  subroutine genericSolverUnset()
+    !% Unset a sub-module scope pointers on the stack.
+    implicit none
+
+    solvers(solversCount)%self => null()
+    solvers(solversCount)%node => null()
+    solversCount=solversCount-1
+    return
+  end subroutine genericSolverUnset
+
+end module Dark_Matter_Profiles_Generic

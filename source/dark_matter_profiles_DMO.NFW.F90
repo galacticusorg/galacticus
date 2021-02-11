@@ -97,6 +97,7 @@
      procedure :: radiusEnclosingMass               => nfwRadiusEnclosingMass
      procedure :: potential                         => nfwPotential
      procedure :: circularVelocity                  => nfwCircularVelocity
+     procedure :: radiusCircularVelocityMaximum     => nfwRadiusCircularVelocityMaximum
      procedure :: circularVelocityMaximum           => nfwCircularVelocityMaximum
      procedure :: radialVelocityDispersion          => nfwRadialVelocityDispersion
      procedure :: radiusFromSpecificAngularMomentum => nfwRadiusFromSpecificAngularMomentum
@@ -542,9 +543,28 @@ contains
     return
   end function nfwCircularVelocity
 
+  double precision function nfwRadiusCircularVelocityMaximum(self,node)
+    !% Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
+    use :: Galacticus_Nodes                , only : nodeComponentDarkMatterProfile , treeNode
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    implicit none
+    class           (darkMatterProfileDMONFW       ), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    ! The radius (in scale-free units) at the peak of the NFW rotation curve. Numerical value found using Mathematica.
+    double precision                                , parameter     :: radiusCircularVelocityMaximumScaleFree=2.162581587064612d0
+    double precision                                                :: scaleRadius
+
+    darkMatterProfile                =>  node             %darkMatterProfile(autoCreate=.true.)
+    scaleRadius                      =   darkMatterProfile%scale            (                 )
+    nfwRadiusCircularVelocityMaximum =  +radiusCircularVelocityMaximumScaleFree &
+         &                              *scaleRadius
+    return
+  end function nfwRadiusCircularVelocityMaximum
+
   double precision function nfwCircularVelocityMaximum(self,node)
     !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
-    use :: Galacticus_Nodes            , only : nodeComponentBasic             , nodeComponentDarkMatterProfile, treeNode
+    use :: Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentDarkMatterProfile, treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMONFW       ), intent(inout) :: self

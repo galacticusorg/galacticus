@@ -41,6 +41,7 @@
      procedure :: enclosedMass                      => multipleEnclosedMass
      procedure :: potential                         => multiplePotential
      procedure :: circularVelocity                  => multipleCircularVelocity
+     procedure :: radiusCircularVelocityMaximum     => multipleRadiusCircularVelocityMaximum
      procedure :: circularVelocityMaximum           => multipleCircularVelocityMaximum
      procedure :: radialVelocityDispersion          => multipleRadialVelocityDispersion
      procedure :: radiusFromSpecificAngularMomentum => multipleRadiusFromSpecificAngularMomentum
@@ -224,6 +225,20 @@ contains
     end if
     return
   end function multipleCircularVelocity
+
+  double precision function multipleRadiusCircularVelocityMaximum(self,node)
+    !% Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
+    implicit none
+    class(darkMatterProfileDMOMultiple), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+
+    if (node%isSatellite()) then
+       multipleRadiusCircularVelocityMaximum=self%darkMatterProfileDMOSatellite_%radiusCircularVelocityMaximum(node)
+    else
+       multipleRadiusCircularVelocityMaximum=self%darkMatterProfileDMOHost_     %radiusCircularVelocityMaximum(node)
+    end if
+    return
+  end function multipleRadiusCircularVelocityMaximum
 
   double precision function multipleCircularVelocityMaximum(self,node)
     !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.

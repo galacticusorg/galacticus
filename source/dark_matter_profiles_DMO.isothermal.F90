@@ -40,6 +40,7 @@
      procedure :: radiusEnclosingDensity            => isothermalRadiusEnclosingDensity
      procedure :: potential                         => isothermalPotential
      procedure :: circularVelocity                  => isothermalCircularVelocity
+     procedure :: radiusCircularVelocityMaximum     => isothermalRadiusCircularVelocityMaximum
      procedure :: circularVelocityMaximum           => isothermalCircularVelocityMaximum
      procedure :: radialVelocityDispersion          => isothermalRadialVelocityDispersion
      procedure :: radiusFromSpecificAngularMomentum => isothermalRadiusFromSpecificAngularMomentum
@@ -216,12 +217,23 @@ contains
     return
   end function isothermalCircularVelocity
 
+  double precision function isothermalRadiusCircularVelocityMaximum(self,node)
+    !% Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}. For an isothermal halo circular
+    !% velocity is independent of radius, so a value of the virial radius is returned.
+    implicit none
+    class(darkMatterProfileDMOIsothermal), intent(inout) :: self
+    type (treeNode                      ), intent(inout) :: node
+
+    isothermalRadiusCircularVelocityMaximum=self%darkMatterHaloScale_%virialRadius(node)
+    return
+  end function isothermalRadiusCircularVelocityMaximum
+
   double precision function isothermalCircularVelocityMaximum(self,node)
     !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}. For an isothermal halo circular
     !% velocity is independent of radius.
     implicit none
-    class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type            (treeNode                      ), intent(inout) :: node
+    class(darkMatterProfileDMOIsothermal), intent(inout) :: self
+    type (treeNode                      ), intent(inout) :: node
 
     isothermalCircularVelocityMaximum=self%circularVelocity(node,0.0d0)
     return

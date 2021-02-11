@@ -55,6 +55,7 @@
      procedure :: enclosedMass                      => truncatedExponentialEnclosedMass
      procedure :: potential                         => truncatedExponentialPotential
      procedure :: circularVelocity                  => truncatedExponentialCircularVelocity
+     procedure :: radiusCircularVelocityMaximum     => truncatedExponentialRadiusCircularVelocityMaximum
      procedure :: circularVelocityMaximum           => truncatedExponentialCircularVelocityMaximum
      procedure :: radialVelocityDispersion          => truncatedExponentialRadialVelocityDispersion
      procedure :: radiusFromSpecificAngularMomentum => truncatedExponentialRadiusFromSpecificAngularMomentum
@@ -406,6 +407,20 @@ contains
     end if
     return
   end function truncatedExponentialCircularVelocity
+
+  double precision function truncatedExponentialRadiusCircularVelocityMaximum(self,node)
+    !% Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    implicit none
+    class(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
+    type (treeNode                                ), intent(inout) :: node
+
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
+       truncatedExponentialRadiusCircularVelocityMaximum=self%darkMatterProfileDMO_%radiusCircularVelocityMaximum         (node)
+    else
+       truncatedExponentialRadiusCircularVelocityMaximum=self                      %radiusCircularVelocityMaximumNumerical(node)
+    end if
+    return
+  end function truncatedExponentialRadiusCircularVelocityMaximum
 
   double precision function truncatedExponentialCircularVelocityMaximum(self,node)
     !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.

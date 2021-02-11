@@ -89,6 +89,12 @@ module Dark_Matter_Profiles_DMO
   !#   <argument>type            (treeNode), intent(inout) :: node</argument>
   !#   <argument>double precision          , intent(in   ) :: radius</argument>
   !#  </method>
+  !#  <method name="radiusCircularVelocityMaximum" >
+  !#   <description>Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
+  !#  </method>
   !#  <method name="circularVelocityMaximum" >
   !#   <description>Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
