@@ -143,6 +143,7 @@ contains
     !% the direction corresponding the eigenvector of $\bm{\mathsf{G}}$ with the largest eigenvalue. (Note that we want the
     !% largest positive eigenvalue, not the largest absolute eigenvalue as we're interested in stretching tidal fields, not
     !% compressive ones.)
+    use :: Galacticus_Error                  , only : Galacticus_Error_Report         , errorStatusSuccess
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options        , only : coordinateSystemCartesian
     use :: Galactic_Structure_Tidal_Tensors  , only : Galactic_Structure_Tidal_Tensor
@@ -164,8 +165,10 @@ contains
     double precision                                       , dimension(3,3)        :: tidalTensorComponents                  , tidalTensorEigenVectorComponents
     double precision                                       , parameter             :: radiusZero                      =0.0d0
     double precision                                       , parameter             :: radiusTidalTinyFraction         =1.0d-6
+    integer                                                                        :: status
     double precision                                                               :: massSatellite                          , frequencyAngular                , &
-         &                                                                            radius                                 , tidalFieldRadial
+         &                                                                            radius                                 , tidalFieldRadial                , &
+         &                                                                            radiusLimitDownward
     type            (tensorRank2Dimension3Symmetric       )                        :: tidalTensor
     type            (matrix                               )                        :: tidalTensorMatrix                      , tidalTensorEigenVectors
     type            (vector                               )                        :: tidalTensorEigenValues
@@ -228,31 +231,30 @@ contains
                &                    )**(1.0d0/3.0d0)
           self%expandMultiplier   =+2.0d0
        end if
-       ! Check if tidal radius will lie outside of current boundary.
-       if (Galactic_Structure_Enclosed_Mass(node,self%radiusTidalPrevious) >= massSatellite) then
-          ! Tidal radius lies outside current boundary, so no additional stripping will occur.
-          king1962Radius=Galactic_Structure_Radius_Enclosing_Mass(node,massSatellite)
+       ! Find the tidal radius in the dark matter profile.
+       radiusLimitDownward=+radiusTidalTinyFraction  &
+            &              *self%radiusTidalPrevious
+       call self%finder%rangeExpand(                                                              &
+            &                       rangeExpandUpward            =+1.0d0*self%expandMultiplier  , &
+            &                       rangeExpandDownward          =+1.0d0/self%expandMultiplier  , &
+            &                       rangeExpandDownwardSignExpect= rangeExpandSignExpectNegative, &
+            &                       rangeExpandUpwardSignExpect  = rangeExpandSignExpectPositive, &
+            &                       rangeDownwardLimit           = radiusLimitDownward          , &
+            &                       rangeExpandType              = rangeExpandMultiplicative      &
+            &                      )
+       king1962Node => node
+       ! Find the tidal radius, using the previous result as an initial guess.
+       self%radiusTidalPrevious=self%finder%find(rootGuess=self%radiusTidalPrevious,status=status)
+       if (status == errorStatusSuccess) then
+          self%expandMultiplier   =1.2d0
+       else if (king1962TidalRadiusSolver(radiusLimitDownward) > 0.0d0) then 
+          ! Complete stripping.
+          self%radiusTidalPrevious=0.0d0
        else
-          ! Find the tidal radius in the dark matter profile.
-          call self%finder%rangeExpand(                                                             &
-               &                       rangeExpandUpward            =1.0d0*self%expandMultiplier  , &
-               &                       rangeExpandDownward          =1.0d0/self%expandMultiplier  , &
-               &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-               &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-               &                       rangeExpandType              =rangeExpandMultiplicative      &
-               &                      )
-          king1962Node => node
-          ! Check for extremes.
-          if (king1962TidalRadiusSolver(radiusTidalTinyFraction*self%radiusTidalPrevious) >  0.0d0) then
-             ! Complete stripping.
-             self%radiusTidalPrevious=0.0d0
-          else
-             ! Find the tidal radius, using the previous result as an initial guess.
-             self%radiusTidalPrevious=self%finder%find(rootGuess=self%radiusTidalPrevious)
-             self%expandMultiplier   =1.2d0
-          end if
-          king1962Radius=self%radiusTidalPrevious
+          ! Find the tidal radius, using the previous result as an initial guess.
+          call Galacticus_Error_Report('unable to find tidal radius'//{introspection:location})
        end if
+       king1962Radius=self%radiusTidalPrevious
     else
        king1962Radius=Galactic_Structure_Radius_Enclosing_Mass(node,massSatellite)
     end if
@@ -269,7 +271,7 @@ contains
     double precision                :: enclosedMass
 
     ! Get the satellite component.
-    enclosedMass                =+Galactic_Structure_Enclosed_Mass(king1962Node,radius)
+    enclosedMass             =+Galactic_Structure_Enclosed_Mass(king1962Node,radius)
     king1962TidalRadiusSolver=+king1962TidalPull                  &
          &                    -gravitationalConstantGalacticus    &
          &                    *enclosedMass                       &
