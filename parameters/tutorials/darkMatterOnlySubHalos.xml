@@ -281,6 +281,7 @@
     <nodePropertyExtractorMethod value="radiusTidal"          />
     <nodePropertyExtractorMethod value="radiusBoundMass"      />
     <nodePropertyExtractorMethod value="virialProperties"     />
+    <nodePropertyExtractorMethod value="radiusVelocityMaximum"/>
     <nodePropertyExtractorMethod value="velocityMaximum"      />
     <nodePropertyExtractorMethod value="positionOrbital"      />
     <nodePropertyExtractorMethod value="densityProfile"        >
