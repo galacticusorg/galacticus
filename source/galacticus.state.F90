@@ -180,62 +180,66 @@ contains
 
     ! Check if we have already retrieved the internal state.
     if (.not.stateHasBeenRetrieved) then
-
-       ! Check if state retrieve is active.
-       if (stateRetrieveActive) then
-
-          ! Open a file in which to retrieve the state and an additional file for GSL state.
-          fileName   =stateRetrieveFileRoot//'.state'
-          fileNameGSL=stateRetrieveFileRoot//'.gsl.state'
-          !$ if (omp_in_parallel()) then
-          !$    fileName   =fileName   //':openMP'//omp_get_thread_num()
-          !$    fileNameGSL=fileNameGSL//':openMP'//omp_get_thread_num()
-          !$ end if
+       !$omp critical (stateRetrieve)
+       if (.not.stateHasBeenRetrieved) then
+          
+          ! Check if state retrieve is active.
+          if (stateRetrieveActive) then
+             
+             ! Open a file in which to retrieve the state and an additional file for GSL state.
+             fileName   =stateRetrieveFileRoot//'.state'
+             fileNameGSL=stateRetrieveFileRoot//'.gsl.state'
+             !$ if (omp_in_parallel()) then
+             !$    fileName   =fileName   //':openMP'//omp_get_thread_num()
+             !$    fileNameGSL=fileNameGSL//':openMP'//omp_get_thread_num()
+             !$ end if
 #ifdef USEMPI
-          fileName   =fileName   //':MPI'//mpiSelf%rankLabel()
-          fileNameGSL=fileNameGSL//':MPI'//mpiSelf%rankLabel()
+             fileName   =fileName   //':MPI'//mpiSelf%rankLabel()
+             fileNameGSL=fileNameGSL//':MPI'//mpiSelf%rankLabel()
 #endif
-          !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-          !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
-          !# </workaround>
+             !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+             !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+             !# </workaround>
 #ifdef THREADSAFEIO
-          !$omp critical(gfortranInternalIO)
+             !$omp critical(gfortranInternalIO)
 #endif
-          open(newunit=stateUnit,file=char(fileName),form='unformatted',status='old')
+             open(newunit=stateUnit,file=char(fileName),form='unformatted',status='old')
 #ifdef THREADSAFEIO
-          !$omp end critical(gfortranInternalIO)
+             !$omp end critical(gfortranInternalIO)
 #endif
-          gslStateFile=gslFileOpen(char(fileNameGSL),'r')
+             gslStateFile=gslFileOpen(char(fileNameGSL),'r')
+             
+             !$omp critical(stateOperationID)
+             stateOperatorID =stateOperatorID+1_c_size_t
+             stateOperatorID_=stateOperatorID
+             !$omp end critical(stateOperationID)
+             !# <include directive="galacticusStateRetrieveTask" type="functionCall" functionType="void">
+             !#  <functionArgs>stateUnit,gslStateFile,stateOperatorID_</functionArgs>
+	     include 'galacticus.state.retrieve.inc'
+             !# </include>
+             !# <eventHook name="stateRestore">
+             !#  <callWith>stateUnit,gslStateFile,stateOperatorID_</callWith>
+             !# </eventHook>
+      
+             ! Close the state files.
+             !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+	     !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+             !# </workaround>
+#ifdef THREADSAFEIO
+             !$omp critical(gfortranInternalIO)
+#endif
+             close(stateUnit)
+#ifdef THREADSAFEIO
+             !$omp end critical(gfortranInternalIO)
+#endif
+             call gslFileClose(gslStateFile)
 
-          !$omp critical(stateOperationID)
-          stateOperatorID =stateOperatorID+1_c_size_t
-          stateOperatorID_=stateOperatorID
-          !$omp end critical(stateOperationID)
-          !# <include directive="galacticusStateRetrieveTask" type="functionCall" functionType="void">
-          !#  <functionArgs>stateUnit,gslStateFile,stateOperatorID_</functionArgs>
-          include 'galacticus.state.retrieve.inc'
-          !# </include>
-          !# <eventHook name="stateRestore">
-          !#  <callWith>stateUnit,gslStateFile,stateOperatorID_</callWith>
-          !# </eventHook>
-
-          ! Close the state files.
-          !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-          !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
-          !# </workaround>
-#ifdef THREADSAFEIO
-          !$omp critical(gfortranInternalIO)
-#endif
-          close(stateUnit)
-#ifdef THREADSAFEIO
-          !$omp end critical(gfortranInternalIO)
-#endif
-          call gslFileClose(gslStateFile)
-
+          end if
+          
+          ! Flag that internal state has been retrieved
+          stateHasBeenRetrieved=.true.
        end if
-
-       ! Flag that internal state has been retrieved
-       stateHasBeenRetrieved=.true.
+       !$omp end critical (stateRetrieve)
     end if
 
     return
