@@ -225,11 +225,18 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Satellite_Orbiting_Tree_Initialize(node)
     !% Initialize the orbiting satellite component.
-    use :: Galacticus_Nodes, only : treeNode
+    use :: Galacticus_Nodes, only : treeNode, nodeComponentSatellite
     implicit none
-    type(treeNode), pointer, intent(inout) :: node
+    type (treeNode              ), pointer, intent(inout) :: node
+    class(nodeComponentSatellite), pointer                :: satellite
 
-    if (node%isSatellite()) call Node_Component_Satellite_Orbiting_Create(node)
+    if (node%isSatellite()) then
+       satellite => node%satellite()
+       select type (satellite)
+       type is (nodeComponentSatellite)
+          call Node_Component_Satellite_Orbiting_Create(node)
+       end select
+    end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Tree_Initialize
 
