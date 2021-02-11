@@ -21,67 +21,137 @@
 
 program Test_Dark_Matter_Profiles
   !% Tests dark matter profiles.
-  use :: Cosmology_Functions       , only : cosmologyFunctions         , cosmologyFunctionsClass
-  use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScale        , darkMatterHaloScaleClass
-  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOBurkert
-  use :: Display                   , only : displayVerbositySet        , verbosityLevelStandard
-  use :: Events_Hooks              , only : eventsHooksInitialize
-  use :: Functions_Global_Utilities, only : Functions_Global_Set
-  use :: Galacticus_Nodes          , only : nodeClassHierarchyFinalize , nodeClassHierarchyInitialize     , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
-          &                                 treeNode
-  use :: ISO_Varying_String        , only : assignment(=)              , varying_string
-  use :: Input_Parameters          , only : inputParameters
-  use :: Node_Components           , only : Node_Components_Initialize , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
-  use :: Unit_Tests                , only : Assert                     , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
+  use :: Cosmology_Parameters        , only : cosmologyParametersSimple
+  use :: Cosmology_Functions         , only : cosmologyFunctionsMatterLambda
+  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleVirialDensityContrastDefinition
+  use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMOBurkert                                   , darkMatterProfileDMONFW, darkMatterProfileDMOFiniteResolution
+  use :: Dark_Matter_Profiles_Generic, only : nonAnalyticSolversNumerical
+  use :: Virial_Density_Contrast     , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
+  use :: Events_Hooks                , only : eventsHooksInitialize
+  use :: Functions_Global_Utilities  , only : Functions_Global_Set
+  use :: Display                     , only : displayVerbositySet                                           , verbosityLevelStandard
+  use :: Galacticus_Nodes            , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize     , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
+          &                                   treeNode
+  use :: Input_Parameters            , only : inputParameters
+  use :: ISO_Varying_String          , only : varying_string                                                , assignment(=)                    , var_str
+  use :: Node_Components             , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use :: Unit_Tests                  , only : Assert                                                        , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
-  type            (treeNode                      ), pointer      :: node
-  class           (nodeComponentBasic            ), pointer      :: basic
-  class           (nodeComponentDarkMatterProfile), pointer      :: dmProfile
-  class           (cosmologyFunctionsClass       ), pointer      :: cosmologyFunctions_
-  class           (darkMatterHaloScaleClass      ), pointer      :: darkMatterHaloScale_
-  double precision                                , parameter    :: concentration            =8.0d0                                                          , &
-       &                                                            massVirial               =1.0d0
-  double precision                                , dimension(7) :: radius                   =[0.125d0, 0.250d0, 0.500d0, 1.000d0, 2.000d0, 4.000d0, 8.000d0]
-  double precision                                , dimension(7) :: mass                                                                                     , &
-       &                                                            density                                                                                  , &
-       &                                                            fourier
-  type            (darkMatterProfileDMOBurkert   )               :: darkMatterProfileDMOBurkert_
-  type            (varying_string                )               :: parameterFile
-  type            (inputParameters               )               :: parameters
-  integer                                                        :: i
-  double precision                                               :: radiusScale
+  type            (treeNode                                                      ), pointer      :: node
+  class           (nodeComponentBasic                                            ), pointer      :: basic
+  class           (nodeComponentDarkMatterProfile                                ), pointer      :: dmProfile
+  double precision                                                                , parameter    :: concentration                   =8.0d0                                                          , &
+       &                                                                                            massVirial                      =1.0d0
+  double precision                                                                , dimension(7) :: radius                          =[0.125d0, 0.250d0, 0.500d0, 1.000d0, 2.000d0, 4.000d0, 8.000d0]
+  double precision                                                                , dimension(7) :: mass                                                                                            , &
+       &                                                                                            density                                                                                         , &
+       &                                                                                            fourier
+  type            (darkMatterProfileDMOBurkert                                   ), pointer      :: darkMatterProfileDMOBurkert_
+  type            (darkMatterProfileDMONFW                                       ), pointer      :: darkMatterProfileDMONFW_
+  type            (darkMatterProfileDMOFiniteResolution                          ), pointer      :: darkMatterProfileDMOFiniteResolution_
+  type            (cosmologyParametersSimple                                     ), pointer      :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterLambda                                ), pointer      :: cosmologyFunctions_
+  type            (darkMatterHaloScaleVirialDensityContrastDefinition            ), pointer      :: darkMatterHaloScale_
+  type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer      :: virialDensityContrast_
+  type            (inputParameters                                               )               :: parameters
+  integer                                                                                        :: i
+  double precision                                                                               :: radiusScale
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
-  ! Begin unit tests.
-  call Unit_Tests_Begin_Group    ('Dark matter profiles'           )
-  ! Read in controlling parameters.
-  parameterFile='testSuite/parameters/darkMatterProfiles.xml'
-  parameters=inputParameters(parameterFile)
-  call parameters%markGlobal()
   ! Initialize event hooks and global functions.
   call eventsHooksInitialize()
   call Functions_Global_Set ()
   ! Initialize node components.
+  parameters=inputParameters(var_str('testSuite/parameters/darkMatterProfiles.xml'))
   call nodeClassHierarchyInitialize     (parameters)
   call Node_Components_Initialize       (parameters)
   call Node_Components_Thread_Initialize(parameters)
+  ! Build required objects.
+  allocate(cosmologyParameters_        )
+  allocate(cosmologyFunctions_         )
+  allocate(virialDensityContrast_      )
+  allocate(darkMatterHaloScale_        )
+  allocate(darkMatterProfileDMOBurkert_)
+  allocate(darkMatterProfileDMONFW_    )
+  allocate(darkMatterProfileDMOFiniteResolution_    )
+  !# <referenceConstruct object="cosmologyParameters_"        >
+  !#  <constructor>
+  !#   cosmologyParametersSimple                                     (                                               &amp;
+  !#    &amp;                                                         OmegaMatter           = 0.2815d0             , &amp;
+  !#    &amp;                                                         OmegaBaryon           = 0.0465d0             , &amp;
+  !#    &amp;                                                         OmegaDarkEnergy       = 0.7185d0             , &amp;
+  !#    &amp;                                                         temperatureCMB        = 2.7800d0             , &amp;
+  !#    &amp;                                                         HubbleConstant        =69.3000d0               &amp;
+  !#    &amp;                                                        )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="cosmologyFunctions_"         >
+  !#  <constructor>
+  !#   cosmologyFunctionsMatterLambda                                (                                               &amp;
+  !#    &amp;                                                         cosmologyParameters_  =cosmologyParameters_    &amp;
+  !#    &amp;                                                        )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="virialDensityContrast_"      >
+  !#  <constructor>
+  !#   virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                               &amp;
+  !#    &amp;                                                         tableStore            =.true.                , &amp;
+  !#    &amp;                                                         cosmologyFunctions_   =cosmologyFunctions_     &amp;
+  !#    &amp;                                                        )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="darkMatterHaloScale_"        >
+  !#  <constructor>
+  !#   darkMatterHaloScaleVirialDensityContrastDefinition            (                                               &amp;
+  !#    &amp;                                                         cosmologyParameters_  =cosmologyParameters_  , &amp;
+  !#    &amp;                                                         cosmologyFunctions_   =cosmologyFunctions_   , &amp;
+  !#    &amp;                                                         virialDensityContrast_=virialDensityContrast_  &amp;
+  !#    &amp;                                                        )
+  !#  </constructor>
+  !# </referenceConstruct>
   ! Create a node.
-  node                         => treeNode                                     (                                )
+  node      => treeNode                  (                 )
   ! Create components.
-  basic                        => node                       %basic            (autoCreate=.true.               )
-  dmProfile                    => node                       %darkMatterProfile(autoCreate=.true.               )
-  ! Get required objects.
-  cosmologyFunctions_          => cosmologyFunctions                           (                                )
-  darkMatterHaloScale_         => darkMatterHaloScale                          (                                )
-  darkMatterProfileDMOBurkert_ =  darkMatterProfileDMOBurkert                  (            darkMatterHaloScale_)
+  basic     => node    %basic            (autoCreate=.true.)
+  dmProfile => node    %darkMatterProfile(autoCreate=.true.)
   ! Set properties.
-  call basic%timeSet     (cosmologyFunctions_%cosmicTime(1.0d0))
-  call basic%massSet     (massVirial                           )
+  call basic%timeSet(cosmologyFunctions_%cosmicTime(1.0d0))
+  call basic%massSet(massVirial                           )
   ! Compute scale radius.
-  radiusScale                  = +darkMatterHaloScale_       %virialRadius     (            node                ) &
-       &                         /concentration
-  call dmProfile%scaleSet(radiusScale                          )
+  radiusScale=+darkMatterHaloScale_%virialRadius(node) &
+       &      /concentration
+  call dmProfile%scaleSet(radiusScale)
+  ! Build dark matter profiles.
+  !# <referenceConstruct object="darkMatterProfileDMOBurkert_"         >
+  !#  <constructor>
+  !#   darkMatterProfileDMOBurkert         (                                                     &amp;
+  !#    &amp;                               darkMatterHaloScale_   =darkMatterHaloScale_         &amp;
+  !#    &amp;                              )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="darkMatterProfileDMONFW_"             >
+  !#  <constructor>
+  !#   darkMatterProfileDMONFW             (                                                     &amp;
+  !#    &amp;                               darkMatterHaloScale_   =darkMatterHaloScale_         &amp;
+  !#    &amp;                              )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="darkMatterProfileDMOFiniteResolution_">
+  !#  <constructor>
+  !#   darkMatterProfileDMOFiniteResolution(                                                     &amp;
+  !#    &amp;                               lengthResolution       =0.5d0*radiusScale          , &amp;
+  !#    &amp;                               massResolution         =0.0d0                      , &amp;
+  !#    &amp;                               resolutionIsComoving   =.false.                    , &amp;
+  !#    &amp;                               nonAnalyticSolver      =nonAnalyticSolversNumerical, &amp;
+  !#    &amp;                               darkMatterProfileDMO_  =darkMatterProfileDMONFW_   , &amp;
+  !#    &amp;                               darkMatterHaloScale_   =darkMatterHaloScale_       , &amp;
+  !#    &amp;                               cosmologyFunctions_    =cosmologyFunctions_          &amp;
+  !#    &amp;                              )
+  !#  </constructor>
+  !# </referenceConstruct>
+  ! Begin unit tests.
+  call Unit_Tests_Begin_Group('Dark matter profiles')
   ! Test Burkert profile.
   call Unit_Tests_Begin_Group('Burkert profile')
   do i=1,7
@@ -132,6 +202,106 @@ program Test_Dark_Matter_Profiles
        &      relTol=1.0d-6           &
        &     )
   call Unit_Tests_End_Group       ()
+  ! Test NFW profile.
+  call Unit_Tests_Begin_Group('NFW profile')
+  do i=1,7
+     mass   (i)=darkMatterProfileDMONFW_%enclosedMass(node,      radiusScale*radius(i))
+     density(i)=darkMatterProfileDMONFW_%density     (node,      radiusScale*radius(i))*radiusScale**3
+     fourier(i)=darkMatterProfileDMONFW_%kSpace      (node,1.0d0/radiusScale/radius(i))
+  end do
+  call Assert(                        &
+       &      'enclosed mass'       , &
+       &      mass                  , &
+       &      [                       &
+       &       5.099550982355504d-3 , &
+       &       1.768930674181593d-2 , &
+       &       5.513246746363203d-2 , &
+       &       1.476281525188409d-1 , &
+       &       3.301489257042704d-1 , &
+       &       6.186775455118112d-1 , &
+       &       1.000000000000000d+0   &
+       &      ]                     , &
+       &      relTol=1.0d-6           &
+       &     )
+  call Assert(                        &
+       &      'density'             , &
+       &      density               , &
+       &      [                       &
+       &       3.844641857939078d-1 , &
+       &       1.557079952465327d-1 , &
+       &       5.406527612726829d-2 , &
+       &       1.520585891079421d-2 , &
+       &       3.379079757954268d-3 , &
+       &       6.082343564317684d-4 , &
+       &       9.386332660984080d-5   &
+       &      ]                     , &
+       &      relTol=1.0d-6           &
+       &     )
+  call Assert(                        &
+       &      'fourier'             , &
+       &      fourier               , &
+       &      [                       &
+       &       1.099052711906094d-2 , &
+       &       3.746284433831412d-2 , &
+       &       1.127728075593513d-1 , &
+       &       2.619030036621630d-1 , &
+       &       5.434560723827092d-1 , &
+       &       8.448608065763800d-1 , &
+       &       9.579597044271230d-1   &
+       &      ]                     , &
+       &      relTol=1.0d-6           &
+       &     )
+  call Unit_Tests_End_Group       ()
+  ! Test finite resolution NFW profile.
+  call Unit_Tests_Begin_Group('Finite resolution NFW profile')
+  do i=1,7
+     mass   (i)=darkMatterProfileDMOFiniteResolution_%enclosedMass(node,      radiusScale*radius(i))
+     density(i)=darkMatterProfileDMOFiniteResolution_%density     (node,      radiusScale*radius(i))*radiusScale**3
+     fourier(i)=darkMatterProfileDMOFiniteResolution_%kSpace      (node,1.0d0/radiusScale/radius(i))
+  end do  
+  call Assert(                        &
+       &      'enclosed mass'       , &
+       &      mass                  , &
+       &      [                       &
+       &       5.410494282933803d-4 , &
+       &       3.708595550354260d-3 , &
+       &       2.209440527192044d-2 , &
+       &       1.015518916542734d-1 , &
+       &       3.078129428041789d-1 , &
+       &       6.172528294234203d-1 , &
+       &       1.000000000000005d+0   &
+       &      ]                     , &
+       &      relTol=1.0d-6           &
+       &     )
+  call Assert(                        &
+       &      'density'             , &
+       &      density               , &
+       &      [                       &
+       &       6.265312109880385d-2 , &
+       &       5.093582721586019d-2 , &
+       &       3.410260647873253d-2 , &
+       &       1.562211582815012d-2 , &
+       &       3.867325516504940d-3 , &
+       &       6.191960305673652d-4 , &
+       &       9.386712084466690d-5   &
+       &      ]                     , &
+       &      relTol=1.0d-6           &
+       &     )
+  call Assert(                        &
+       &      'fourier'             , &
+       &      fourier               , &
+       &      [                       &
+       &       6.492149190111194d-4 , &
+       &       8.391359414915730d-3 , &
+       &       7.029377218413079d-2 , &
+       &       2.362807258397670d-1 , &
+       &       5.347978166112108d-1 , &
+       &       8.425081839186430d-1 , &
+       &       9.573588294484700d-1   &
+       &      ]                     , &
+       &      relTol=1.0d-6           &
+       &     )
+  call Unit_Tests_End_Group       ()
   ! End unit tests.
   call Unit_Tests_End_Group       ()
   call Unit_Tests_Finish          ()
@@ -139,4 +309,12 @@ program Test_Dark_Matter_Profiles
   call Node_Components_Thread_Uninitialize()
   call Node_Components_Uninitialize       ()
   call nodeClassHierarchyFinalize         ()
+  ! Clean up objects.
+  !# <objectDestructor name="cosmologyParameters_"                 />
+  !# <objectDestructor name="cosmologyFunctions_"                  />
+  !# <objectDestructor name="virialDensityContrast_"               />
+  !# <objectDestructor name="darkMatterHaloScale_"                 />
+  !# <objectDestructor name="darkMatterProfileDMOBurkert_"         />
+  !# <objectDestructor name="darkMatterProfileDMONFW_"             />
+  !# <objectDestructor name="darkMatterProfileDMOFiniteResolution_"/>
 end program Test_Dark_Matter_Profiles
