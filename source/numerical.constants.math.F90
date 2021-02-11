@@ -40,4 +40,8 @@ module Numerical_Constants_Math
   ! Euler's constant.
   !# <gslConstant variable="eulersConstant" gslSymbol="M_EULER" gslHeader="gsl_math"/>
 
+  ! Riemann zeta-function values.
+  !! ζ(3) - https://oeis.org/A002117
+  double precision, public, parameter :: riemannZeta3=1.20205690315959428539973816151144999076d0
+  
 end module Numerical_Constants_Math
