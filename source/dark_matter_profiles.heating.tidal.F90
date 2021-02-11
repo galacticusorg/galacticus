@@ -22,17 +22,34 @@
   use :: Kind_Numbers, only : kind_int8
 
   !# <darkMatterProfileHeating name="darkMatterProfileHeatingTidal">
-  !#  <description>A dark matter profile heating model which accounts for heating due to tidal shocking.</description>
+  !#  <description>
+  !#   A dark matter profile heating model which accounts for heating due to tidal shocking. The model follows the general
+  !#   approach of \cite{gnedin_tidal_1999}. The change in the specific energy of particles at radius $r$ in a halo is gievn by
+  !#   $\Delta \epsilon = \Delta \epsilon_1 + \Delta \epsilon_2$, where $\Delta \epsilon_1$, and $\Delta \epsilon_2$ are the first
+  !#   and second order perturbations respectively. The first order term is given by $\Delta \epsilon_1 = Q r^2$ where $Q$ is the
+  !#   tidal tensor integrated along the orbital path (see, for example, \citealt{taylor_dynamics_2001}), while the second order
+  !#   term is given by $\Delta \epsilon_2 = (2/3) f \sigma_\mathrm{rms} (1+\chi_\mathrm{r,v}) \sqrt{\Delta \epsilon_1}$
+  !#   \citep[][eqn.~20, see also \protect\citealt{gnedin_self-consistent_1999}; eqn.~18a,b]{gnedin_tidal_1999}. For the particle
+  !#   velocity dispersion, $v_\mathrm{rms}$, we use $\sqrt{3} \sigma_\mathrm{r}(r)$, the radial velocity dispersion in the dark
+  !#   matter profile scaled to the total velocity dispersion assuming an isotropic velocity distribution. The position-velocity
+  !#   correlation function, $\chi_\mathrm{r,v}$, is taken to be a constant given by the parameter {\normalfont \ttfamily
+  !#   [correlationVelocityRadius]}. The coefficient, $f=${\normalfont \ttfamily [coefficientSecondOrder]} is introduced to allow
+  !#   some freedom to adjust the contribution of the second order term. It is degenerate with the value of $\chi_\mathrm{r,v}$
+  !#   but is introduced to allow for possible future promotion of $\chi_\mathrm{r,v}$ from a constant to a function of the dark
+  !#   matter profile potential \citep[see, for example,][appendix~B]{gnedin_self-consistent_1999}.
+  !#  </description>
   !# </darkMatterProfileHeating>
   type, extends(darkMatterProfileHeatingClass) :: darkMatterProfileHeatingTidal
      !% A dark matter profile heating class which accounts for heating due to tidal shocking.
      private
-    double precision            :: specificEnergyOverRadiusSquared_, specificEnergyOverRadiusSquaredParent_
-    integer         (kind_int8) :: lastUniqueID                    , parentUniqueID
+     double precision            :: specificEnergyOverRadiusSquared_, specificEnergyOverRadiusSquaredParent_, &
+          &                         correlationVelocityRadius       , coefficientSecondOrder
+     integer         (kind_int8) :: lastUniqueID                    , parentUniqueID
   contains
      !# <methods>
-     !#   <method description="Reset memoized calculations." method="calculationReset" />
-     !#   <method description="Compute $Q = E / r^2$." method="specificEnergyOverRadiusSquared" />
+     !#   <method description="Reset memoized calculations."                             method="calculationReset"               />
+     !#   <method description="Compute $Q = E / r^2$."                                   method="specificEnergyOverRadiusSquared"/>
+     !#   <method description="Compute the first and second order energy perturbations." method="specificEnergyTerms"            />
      !# </methods>
      final     ::                                    tidalDestructor
      procedure :: autoHook                        => tidalAutoHook
@@ -41,6 +58,7 @@
      procedure :: specificEnergyGradient          => tidalSpecificEnergyGradient
      procedure :: specificEnergyIsEverywhereZero  => tidalSpecificEnergyIsEverywhereZero
      procedure :: specificEnergyOverRadiusSquared => tidalSpecificEnergyOverRadiusSquared
+     procedure :: specificEnergyTerms             => tidalSpecificEnergyTerms
   end type darkMatterProfileHeatingTidal
 
   interface darkMatterProfileHeatingTidal
@@ -55,19 +73,34 @@ contains
     !% Constructor for the {\normalfont \ttfamily tidal} dark matter profile heating scales class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(darkMatterProfileHeatingTidal), target        :: self
-    type(inputParameters              ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
-
-    self=darkMatterProfileHeatingTidal()
+    type            (darkMatterProfileHeatingTidal), target        :: self
+    type            (inputParameters              ), intent(inout) :: parameters
+    double precision                                               :: coefficientSecondOrder, correlationVelocityRadius
+    
+    !# <inputParameter>
+    !#   <name>coefficientSecondOrder</name>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <source>parameters</source>
+    !#   <description>A multiplicative coefficient for the second-order heating term.</description>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>correlationVelocityRadius</name>
+    !#   <defaultValue>-1.0d0</defaultValue>
+    !#   <source>parameters</source>
+    !#   <description>The velocity-position correlation function, $\chi_\mathrm{r,v}, as defined by \cite[][eqn.~B1]{gnedin_self-consistent_1999} which controls the strength of the second order heating term.</description>
+    !# </inputParameter>
+    self=darkMatterProfileHeatingTidal(coefficientSecondOrder,correlationVelocityRadius)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function tidalConstructorParameters
 
-  function tidalConstructorInternal() result(self)
+  function tidalConstructorInternal(coefficientSecondOrder,correlationVelocityRadius) result(self)
     !% Internal constructor for the {\normalfont \ttfamily tidal} dark matter profile heating scales class.
     implicit none
-    type(darkMatterProfileHeatingTidal) :: self
-
+    type            (darkMatterProfileHeatingTidal)                :: self
+    double precision                               , intent(in   ) :: coefficientSecondOrder, correlationVelocityRadius
+    !# <constructorAssign variables="coefficientSecondOrder, correlationVelocityRadius"/>
+    
     self%specificEnergyOverRadiusSquared_      =-1.0d0
     self%specificEnergyOverRadiusSquaredParent_=-1.0d0
     self%lastUniqueID                          =-1_kind_int8
@@ -119,28 +152,69 @@ contains
     type            (treeNode                     ), intent(inout) :: node
     class           (darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
     double precision                               , intent(in   ) :: radius
-    !$GLC attributes unused :: darkMatterProfileDMO_
+    double precision                                               :: energyPerturbationFirstOrder, energyPerturbationSecondOrder
 
-    tidalSpecificEnergy=+self%specificEnergyOverRadiusSquared(node)    &
-         &              *radius                                    **2
+    call self%specificEnergyTerms(node,darkMatterProfileDMO_,radius,energyPerturbationFirstOrder,energyPerturbationSecondOrder)
+    tidalSpecificEnergy=+energyPerturbationFirstOrder  &
+         &              +energyPerturbationSecondOrder
     return
   end function tidalSpecificEnergy
 
   double precision function tidalSpecificEnergyGradient(self,node,darkMatterProfileDMO_,radius)
     !% Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileHeatingTidal), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
     class           (darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
     double precision                               , intent(in   ) :: radius
-    !$GLC attributes unused :: darkMatterProfileDMO_
+    double precision                                               :: energyPerturbationFirstOrder, energyPerturbationSecondOrder
 
-    tidalSpecificEnergyGradient=+2.0d0                                      &
-         &                      *self%specificEnergyOverRadiusSquared(node) &
-         &                      *radius
+    
+    if (radius > 0.0d0) then
+       call self%specificEnergyTerms(node,darkMatterProfileDMO_,radius,energyPerturbationFirstOrder,energyPerturbationSecondOrder)
+       tidalSpecificEnergyGradient=+(                                                                                                &
+            &                        +energyPerturbationFirstOrder *  2.0d0                                                          & !   dlog[r²    ]/dlog(r) term
+            &                        +energyPerturbationSecondOrder*(                                                                &
+            &                                                        -0.5d0                                                          & ! ⎧ dlog[σ_r(r)]/dlog[r] term
+            &                                                        *darkMatterProfileDMO_%densityLogSlope         (node,radius)    & ! ⎥
+            &                                                        -0.5d0                                                          & ! ⎥ Assumes the Jeans equation in
+            &                                                        *gravitationalConstantGalacticus                                & ! ⎥ spherical symmetry with anisotropy
+            &                                                        *darkMatterProfileDMO_%enclosedMass            (node,radius)    & ! ⎥ parameter β=0. Would be better to
+            &                                                        /                                                    radius     & ! ⎥ have this provided by the
+            &                                                        /darkMatterProfileDMO_%radialVelocityDispersion(node,radius)**2 & ! ⎩ darkMatterProfileDMO class.
+            &                                                        +1.0d0                                                          & !   dlog[r     ]/dlog(r) term
+            &                                                       )                                                                &
+            &                       )                                                                                                &
+            &                      /radius
+    else
+       tidalSpecificEnergyGradient=+0.0d0
+    end if
     return
   end function tidalSpecificEnergyGradient
 
+  subroutine tidalSpecificEnergyTerms(self,node,darkMatterProfileDMO_,radius,energyPerturbationFirstOrder,energyPerturbationSecondOrder)
+    !% Compute the first and second order perturbations to the energy.
+    implicit none
+    class           (darkMatterProfileHeatingTidal), intent(inout) :: self
+    type            (treeNode                     ), intent(inout) :: node
+    class           (darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
+    double precision                               , intent(in   ) :: radius
+    double precision                               , intent(  out) :: energyPerturbationFirstOrder, energyPerturbationSecondOrder
+
+    energyPerturbationFirstOrder =+self%specificEnergyOverRadiusSquared(node)                  &
+         &                        *radius                                    **2
+    energyPerturbationSecondOrder=+sqrt(2.0d0)                                                 &
+         &                        *self%coefficientSecondOrder                                 &
+         &                        *(                                                           &
+         &                          +1.0d0                                                     &
+         &                          +self%correlationVelocityRadius                            &
+         &                         )                                                           &
+         &                        *sqrt(energyPerturbationFirstOrder)                          &
+         &                        *darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
+    return
+  end subroutine tidalSpecificEnergyTerms
+  
   logical function tidalSpecificEnergyIsEverywhereZero(self,node,darkMatterProfileDMO_)
     !% Returns true if the specific energy is everywhere zero in the given {\normalfont \ttfamily node}.
     implicit none
