@@ -79,7 +79,7 @@ contains
     
     !# <inputParameter>
     !#   <name>coefficientSecondOrder</name>
-    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <defaultValue>0.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>A multiplicative coefficient for the second-order heating term.</description>
     !# </inputParameter>
@@ -173,20 +173,25 @@ contains
     
     if (radius > 0.0d0) then
        call self%specificEnergyTerms(node,darkMatterProfileDMO_,radius,energyPerturbationFirstOrder,energyPerturbationSecondOrder)
-       tidalSpecificEnergyGradient=+(                                                                                                &
-            &                        +energyPerturbationFirstOrder *  2.0d0                                                          & !   dlog[r²    ]/dlog(r) term
-            &                        +energyPerturbationSecondOrder*(                                                                &
-            &                                                        -0.5d0                                                          & ! ⎧ dlog[σ_r(r)]/dlog[r] term
-            &                                                        *darkMatterProfileDMO_%densityLogSlope         (node,radius)    & ! ⎥
-            &                                                        -0.5d0                                                          & ! ⎥ Assumes the Jeans equation in
-            &                                                        *gravitationalConstantGalacticus                                & ! ⎥ spherical symmetry with anisotropy
-            &                                                        *darkMatterProfileDMO_%enclosedMass            (node,radius)    & ! ⎥ parameter β=0. Would be better to
-            &                                                        /                                                    radius     & ! ⎥ have this provided by the
-            &                                                        /darkMatterProfileDMO_%radialVelocityDispersion(node,radius)**2 & ! ⎩ darkMatterProfileDMO class.
-            &                                                        +1.0d0                                                          & !   dlog[r     ]/dlog(r) term
-            &                                                       )                                                                &
-            &                       )                                                                                                &
-            &                      /radius
+       if (energyPerturbationSecondOrder > 0.0d0) then
+          tidalSpecificEnergyGradient=+(                                                                                                &
+               &                        +energyPerturbationFirstOrder *  2.0d0                                                          & !   dlog[r²    ]/dlog(r) term
+               &                        +energyPerturbationSecondOrder*(                                                                &
+               &                                                        -0.5d0                                                          & ! ⎧ dlog[σ_r(r)]/dlog[r] term
+               &                                                        *darkMatterProfileDMO_%densityLogSlope         (node,radius)    & ! ⎥
+               &                                                        -0.5d0                                                          & ! ⎥ Assumes the Jeans equation in
+               &                                                        *gravitationalConstantGalacticus                                & ! ⎥ spherical symmetry with anisotropy
+               &                                                        *darkMatterProfileDMO_%enclosedMass            (node,radius)    & ! ⎥ parameter β=0. Would be better to
+               &                                                        /                                                    radius     & ! ⎥ have this provided by the
+               &                                                        /darkMatterProfileDMO_%radialVelocityDispersion(node,radius)**2 & ! ⎩ darkMatterProfileDMO class.
+               &                                                        +1.0d0                                                          & !   dlog[r     ]/dlog(r) term
+               &                                                       )                                                                &
+               &                       )                                                                                                &
+               &                      /radius
+       else
+          tidalSpecificEnergyGradient=+  energyPerturbationFirstOrder *  2.0d0                                                          & !   dlog[r²    ]/dlog(r) term
+               &                      /radius
+       end if
     else
        tidalSpecificEnergyGradient=+0.0d0
     end if
@@ -202,16 +207,20 @@ contains
     double precision                               , intent(in   ) :: radius
     double precision                               , intent(  out) :: energyPerturbationFirstOrder, energyPerturbationSecondOrder
 
-    energyPerturbationFirstOrder =+self%specificEnergyOverRadiusSquared(node)                  &
-         &                        *radius                                    **2
-    energyPerturbationSecondOrder=+sqrt(2.0d0)                                                 &
-         &                        *self%coefficientSecondOrder                                 &
-         &                        *(                                                           &
-         &                          +1.0d0                                                     &
-         &                          +self%correlationVelocityRadius                            &
-         &                         )                                                           &
-         &                        *sqrt(energyPerturbationFirstOrder)                          &
-         &                        *darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
+    energyPerturbationFirstOrder    =+self%specificEnergyOverRadiusSquared(node)                  &
+         &                           *radius                                    **2
+    if (self%coefficientSecondOrder > 0.0d0) then
+       energyPerturbationSecondOrder=+sqrt(2.0d0)                                                 &
+            &                        *self%coefficientSecondOrder                                 &
+            &                        *(                                                           &
+            &                          +1.0d0                                                     &
+            &                          +self%correlationVelocityRadius                            &
+            &                         )                                                           &
+            &                        *sqrt(energyPerturbationFirstOrder)                          &
+            &                        *darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
+    else
+       energyPerturbationSecondOrder=+0.0d0
+    end if
     return
   end subroutine tidalSpecificEnergyTerms
   
