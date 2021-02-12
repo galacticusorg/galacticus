@@ -46,11 +46,12 @@
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOHeated
      !% A dark matter halo profile class implementing heated dark matter halos.
      private
-     class           (darkMatterProfileDMOClass    ), pointer :: darkMatterProfileDMO_     => null()
-     class           (darkMatterProfileHeatingClass), pointer :: darkMatterProfileHeating_ => null()
+     class           (darkMatterProfileDMOClass    ), pointer :: darkMatterProfileDMO_         => null()
+     class           (darkMatterProfileHeatingClass), pointer :: darkMatterProfileHeating_     => null()
      integer         (kind=kind_int8               )          :: lastUniqueID
-     double precision                                         :: radiusFinalPrevious                , radiusInitialPrevious
+     double precision                                         :: radiusFinalPrevious                    , radiusInitialPrevious
      integer                                                  :: nonAnalyticSolver
+     logical                                                  :: velocityDispersionApproximate
      type            (rootFinder                   )          :: finder
    contains
      !# <methods>
@@ -105,6 +106,7 @@ contains
     class  (darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
     class  (darkMatterProfileHeatingClass ), pointer       :: darkMatterProfileHeating_
     type   (varying_string                )                :: nonAnalyticSolver
+    logical                                                :: velocityDispersionApproximate
 
     !# <inputParameter>
     !#   <name>nonAnalyticSolver</name>
@@ -112,10 +114,16 @@ contains
     !#   <source>parameters</source>
     !#   <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>velocityDispersionApproximate</name>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <source>parameters</source>
+    !#   <description>If {\normalfont \ttfamily true}, radial velocity dispersion is computed using an approximate method in which we assume that $\sigma_\mathrm{r}^2(r) \rightarrow \sigma_\mathrm{r}^2(r) - (2/3) \epsilon(r)$, where $\epsilon(r)$ is the specific heating energy. If {\normalfont \ttfamily false} then radial velocity dispersion is computed by numerically solving the Jeans equation.</description>
+    !# </inputParameter>
     !# <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
     !# <objectBuilder class="darkMatterProfileHeating" name="darkMatterProfileHeating_" source="parameters"/>
-    self=darkMatterProfileDMOHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_)
+    self=darkMatterProfileDMOHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),velocityDispersionApproximate,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="darkMatterProfileDMO_"    />
     !# <objectDestructor name="darkMatterHaloScale_"     />
@@ -123,7 +131,7 @@ contains
     return
   end function heatedConstructorParameters
 
-  function heatedConstructorInternal(nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_) result(self)
+  function heatedConstructorInternal(nonAnalyticSolver,velocityDispersionApproximate,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily heated} dark matter profile class.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
@@ -132,8 +140,9 @@ contains
     class  (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
     class  (darkMatterProfileHeatingClass), intent(in   ), target :: darkMatterProfileHeating_
     integer                               , intent(in   )         :: nonAnalyticSolver
-    double precision                      , parameter             :: toleranceAbsolute        =0.0d0, toleranceRelative=1.0d-6
-    !# <constructorAssign variables="nonAnalyticSolver, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileHeating_"/>
+    logical                               , intent(in   )         :: velocityDispersionApproximate
+    double precision                      , parameter             :: toleranceAbsolute            =0.0d0, toleranceRelative=1.0d-6
+    !# <constructorAssign variables="nonAnalyticSolver, velocityDispersionApproximate, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileHeating_"/>
 
     ! Validate.
     if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Galacticus_Error_Report('invalid non-analytic solver type'//{introspection:location})
@@ -505,13 +514,18 @@ contains
          &                                                         velocityDispersionSquare
 
     if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfileDMO_) .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
+       ! Use the original, unheated profile velocity dispersion.
        heatedRadialVelocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
-    else
-       radiusInitial                 = self%radiusInitial                                     (node                           ,radius       )
-       energySpecific                = self%darkMatterProfileHeating_%specificEnergy          (node,self%darkMatterProfileDMO_,radiusInitial)
-       velocityDispersionSquare      =+self%darkMatterProfileDMO_    %radialVelocityDispersion(node                           ,radiusInitial)**2 &
+    else if (self%velocityDispersionApproximate) then
+       ! Use the approximate solution for velocity dispersion.
+       radiusInitial                 = self%radiusInitial                                               (node                           ,radius       )
+       energySpecific                = self%darkMatterProfileHeating_%specificEnergy                    (node,self%darkMatterProfileDMO_,radiusInitial)
+       velocityDispersionSquare      =+self%darkMatterProfileDMO_    %radialVelocityDispersion          (node                           ,radiusInitial)**2 &
             &                         -2.0d0/3.0d0*energySpecific
        heatedRadialVelocityDispersion=sqrt(max(0.0d0,velocityDispersionSquare))
+    else
+       ! Use a numerical solution.
+       heatedRadialVelocityDispersion=+self                           %radialVelocityDispersionNumerical(node                           ,radius       )
     end if
     return
   end function heatedRadialVelocityDispersion
