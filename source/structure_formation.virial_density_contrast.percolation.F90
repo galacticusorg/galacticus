@@ -22,7 +22,7 @@
   use    :: Cosmology_Functions, only : cosmologyFunctionsClass
   use    :: Kind_Numbers       , only : kind_int8
   !$ use :: OMP_Lib            , only : OMP_Destroy_Lock       , OMP_Init_Lock, OMP_Set_Lock, OMP_Unset_Lock, &
-!$          &                             omp_lock_kind
+  !$          &                         omp_lock_kind
   use    :: Tables             , only : table2DLogLogLin
 
   !# <virialDensityContrast name="virialDensityContrastPercolation" recursive="yes">
@@ -49,12 +49,12 @@
      double precision                                            :: linkingLength
      type            (varying_string                  )          :: fileName
      class           (cosmologyFunctionsClass         ), pointer :: cosmologyFunctions_             => null()
+     logical                                                     :: isRecursive                              , parentDeferred
+     class           (virialDensityContrastPercolation), pointer :: recursiveSelf                   => null()
      !# <workaround type="gfortran" PR="90788" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=90788">
      !#  <description>Null initialization of the following class(*) pointer causes an ICE in gfortran 10.0</description>
      !#  <code>class           (*                      ), pointer :: percolationObjects_ => null()</code>
      !# </workaround>
-     logical                                                     :: isRecursive                              , parentDeferred
-     class           (virialDensityContrastPercolation), pointer :: recursiveSelf                   => null()
      class           (*                               ), pointer :: percolationObjects_
      integer         (kind_int8                       )          :: selfID
      ! Tabulation of density contrast vs. time and mass.
@@ -67,9 +67,9 @@
      integer                                                     :: densityContrastTableRemakeCount
    contains
      !# <methods>
-     !#   <method description="Tabulate the virial density contrast as a function of mass and time." method="tabulate" />
-     !#   <method description="Restore a tabulated solution from file." method="restoreTable" />
-     !#   <method description="Store a tabulated solution to file." method="storeTable" />
+     !#   <method description="Tabulate the virial density contrast as a function of mass and time." method="tabulate"    />
+     !#   <method description="Restore a tabulated solution from file."                              method="restoreTable"/>
+     !#   <method description="Store a tabulated solution to file."                                  method="storeTable"  />
      !# </methods>
      final     ::                                percolationDestructor
      procedure :: densityContrast             => percolationDensityContrast
@@ -78,6 +78,7 @@
      procedure :: tabulate                    => percolationTabulate
      procedure :: deepCopy                    => percolationDeepCopy
      procedure :: deepCopyReset               => percolationDeepCopyReset
+     procedure :: deepCopyFinalize            => percolationDeepCopyFinalize
      procedure :: restoreTable                => percolationRestoreTable
      procedure :: storeTable                  => percolationStoreTable
   end type virialDensityContrastPercolation
@@ -335,7 +336,6 @@ contains
     useTable        =.false.
     ! Determine how to compute density contrast.
     if (self%isRecursive) then
-       call percolationFindParent(self)
        call percolationCopyTable (self)
        if (percolationSolving) then
           ! Currently solving for solutions - return the current guess.
@@ -382,7 +382,7 @@ contains
     implicit none
     class           (virialDensityContrastPercolation), intent(inout)            :: self
     double precision                                  , intent(in   )            :: mass
-    double precision                                  , intent(in   ) , optional :: time      , expansionFactor
+    double precision                                  , intent(in   ) , optional :: time          , expansionFactor
     logical                                           , intent(in   ) , optional :: collapsing
     double precision                                                             :: timeActual
     logical                                                                      :: mustRetabulate
@@ -391,7 +391,6 @@ contains
     timeActual=self%cosmologyFunctions_%epochTime(time,expansionFactor,collapsing)
     ! Determine how to compute density contrast.
     if (self%isRecursive) then
-       call percolationFindParent(self)
        call percolationCopyTable (self)
        ! If our table is sufficient, use it, otherwise request that the parent self performs the calculation (in which case it
        ! will update its table, and we can later copy it).
@@ -422,21 +421,41 @@ contains
   end function percolationIsMassDepdendent
 
   subroutine percolationDeepCopyReset(self)
-    !% Perform a deep copy of the object.
+    !% Perform a deep copy reset of the object.
     use :: Functions_Global, only : percolationObjectsDeepCopyReset_
     implicit none
     class(virialDensityContrastPercolation), intent(inout) :: self
-    
-    self%copiedSelf => null()
+
+    self                           %   copiedSelf => null()
+    if (.not.self%isRecursive) self%recursiveSelf => null()
     if (associated(self%cosmologyfunctions_)) call self%cosmologyfunctions_%deepCopyReset()
     if (associated(self%percolationObjects_)) call percolationObjectsDeepCopyReset_(self%percolationObjects_)
     return
   end subroutine percolationDeepCopyReset
 
+  subroutine percolationDeepCopyFinalize(self)
+    !% Finalize a deep copy reset of the object.
+    use :: Functions_Global, only : percolationObjectsDeepCopyFinalize_
+    implicit none
+    class(virialDensityContrastPercolation), intent(inout) :: self
+
+    if (self%isRecursive) call percolationFindParent(self)
+    if (associated(self%cosmologyfunctions_)) call self%cosmologyfunctions_%deepCopyFinalize()
+    if (associated(self%percolationObjects_)) call percolationObjectsDeepCopyFinalize_(self%percolationObjects_)
+    return
+  end subroutine percolationDeepCopyFinalize
+
   subroutine percolationDeepCopy(self,destination)
     !% Perform a deep copy of the object.
-    use :: Functions_Global, only : percolationObjectsDeepCopy_
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Functions_Global  , only : percolationObjectsDeepCopy_
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+#ifdef OBJECTDEBUG
+    use :: MPI_Utilities     , only : mpiSelf
+    use :: Function_Classes  , only : debugReporting
+    use :: Display           , only : displayMessage             , verbosityLevelSilent
+    use :: ISO_Varying_String, only : operator(//)               , var_str
+    use :: String_Handling   , only : operator(//)
+#endif
     implicit none
     class(virialDensityContrastPercolation), intent(inout) :: self
     class(virialDensityContrastClass      ), intent(inout) :: destination
@@ -490,6 +509,9 @@ contains
              self%cosmologyFunctions_%copiedSelf => destination%cosmologyFunctions_
              call destination%cosmologyFunctions_%autoHook()
           end if
+#ifdef OBJECTDEBUG
+          if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): cosmologyfunctions_ : [destination] : ')//loc(destination)//' : '//loc(destination%cosmologyFunctions_)//' : '//{introspection:location:compact},verbosityLevelSilent)
+#endif
        end if
        nullify(destination%percolationobjects_)
        if (associated(self%percolationobjects_)) then
@@ -527,7 +549,7 @@ contains
        if (associated(self%recursiveSelf%recursiveSelf)) then
           self%recursiveSelf => self%recursiveSelf%recursiveSelf
        else
-          call Galacticus_Error_Report("recursive child's parent was not copied"//{introspection:location})
+        call Galacticus_Error_Report("recursive child's parent was not copied"//{introspection:location})
        end if
        self%parentDeferred=.false.
     end if

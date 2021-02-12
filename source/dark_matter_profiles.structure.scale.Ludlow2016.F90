@@ -207,6 +207,7 @@ contains
        !$omp critical(darkMatterProfilesStructureScaleLudlow2016DeepCopy)
        !# <deepCopyReset variables="self%cosmologyFunctions_"/>
        !# <deepCopy source="self%cosmologyFunctions_" destination="ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_"/>
+       !# <deepCopyFinalize variables="ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_"/>
        !$omp end critical(darkMatterProfilesStructureScaleLudlow2016DeepCopy)
        allocate(ludlow2016States(ludlow2016StateCount)%finder)
        call self%formationTimeRootFunctionSet(ludlow2016States(ludlow2016StateCount)%finder)

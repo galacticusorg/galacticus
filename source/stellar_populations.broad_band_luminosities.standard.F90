@@ -465,6 +465,7 @@ contains
                    !# <deepCopyReset variables="stellarPopulationSpectra_ stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_"/>
                    !# <deepCopy source="stellarPopulationSpectra_"                                                                  destination="standardStellarPopulationSpectra"             />
                    !# <deepCopy source="stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_" destination="standardStellarPopulationSpectraPostprocessor"/>
+                   !# <deepCopyFinalize variables="standardStellarPopulationSpectra standardStellarPopulationSpectraPostprocessor"/>
                    !$omp end critical(broadBandLuminositiesDeepCopy)
                    !$omp do
                    do iAge=1,self%luminosityTables(populationID)%agesCount

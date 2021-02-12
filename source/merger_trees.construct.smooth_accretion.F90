@@ -162,6 +162,7 @@ contains
        !$omp critical(mergerTreeConstructSmoothAccretionDeepCopyReset)
        !# <deepCopyReset variables="self%randomNumberGenerator_"/>
        !# <deepCopy source="self%randomNumberGenerator_" destination="tree%randomNumberGenerator_"/>
+       !# <deepCopyFinalize variables="tree%randomNumberGenerator_"/>
        !$omp end critical(mergerTreeConstructSmoothAccretionDeepCopyReset)
        call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
        ! Assign a mass to the base node.

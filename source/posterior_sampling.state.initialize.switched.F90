@@ -167,6 +167,7 @@ contains
           allocate(modelParameters__(i)%modelParameter_,mold=modelParameters_(j)%modelParameter_)
           !# <deepCopyReset variables="modelParameters_(j)%modelParameter_"/>
           !# <deepCopy source="modelParameters_(j)%modelParameter_" destination="modelParameters__(i)%modelParameter_"/>
+          !# <deepCopyFinalize variables="modelParameters__(i)%modelParameter_"/>
        end do
        ! Apply the initializor
        call stateInitializor_%initialize(simulationState__,modelParameters__,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)

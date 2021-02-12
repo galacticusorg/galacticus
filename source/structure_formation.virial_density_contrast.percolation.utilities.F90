@@ -30,7 +30,8 @@ module Virial_Density_Contrast_Percolation_Utilities
   use :: Dark_Matter_Profiles_Shape        , only : darkMatterProfileShape        , darkMatterProfileShapeClass
   use :: Galacticus_Nodes                  , only : nodeComponentDarkMatterProfile, treeNode
   private
-  public :: Virial_Density_Contrast_Percolation_Solver, Virial_Density_Contrast_Percolation_Objects_Constructor, percolationObjects, percolationObjectsDeepCopy, percolationObjectsDeepCopyReset
+  public :: Virial_Density_Contrast_Percolation_Solver, Virial_Density_Contrast_Percolation_Objects_Constructor, percolationObjects, percolationObjectsDeepCopy, &
+       &    percolationObjectsDeepCopyReset           , percolationObjectsDeepCopyFinalize
 
   ! Container type used to store state.
   type :: solverState
@@ -73,9 +74,9 @@ contains
     !% Construct an instance of the container type for percolation virial density contrast objects from a parameter structure.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    class(*                         ), pointer               :: self
-    type (percolationObjects        ), pointer               :: percolationObjects_
-    type (inputParameters           ), intent(inout), target :: parameters
+    class(*                 ), pointer               :: self
+    type (percolationObjects), pointer               :: percolationObjects_
+    type (inputParameters   ), intent(inout), target :: parameters
 
     allocate(percolationObjects_)
     !# <objectBuilder class="darkMatterProfileDMO"           name="percolationObjects_%darkMatterProfileDMO_"           source="parameters"/>
@@ -93,7 +94,7 @@ contains
     !% Destruct an instance of the container type for percolation virial density contrast objects.
     implicit none
     type(percolationObjects), intent(inout) :: self
-
+    
     !# <objectDestructor name="self%darkMatterProfileDMO_"          />
     !# <objectDestructor name="self%cosmologyParameters_"           />
     !# <objectDestructor name="self%cosmologyFunctions_"            />
@@ -125,8 +126,33 @@ contains
     class default
        call Galacticus_Error_Report("self must be of 'percolationObjects' class"//{introspection:location})
     end select
-     return
-   end subroutine percolationObjectsDeepCopyReset
+    return
+  end subroutine percolationObjectsDeepCopyReset
+  
+  !# <functionGlobal>
+  !#  <unitName>percolationObjectsDeepCopyFinalize</unitName>
+  !#  <type>void</type>
+  !#  <arguments>class(*), intent(inout) :: self</arguments>
+  !# </functionGlobal>
+  subroutine percolationObjectsDeepCopyFinalize(self)
+    !% Finalize a deep copy of percolation virial density contrast objects.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class(*), intent(inout) :: self
+    
+    select type (self)
+    class is (percolationObjects)
+       if (associated(self%darkMatterProfileDMO_          )) call self%darkMatterProfileDMO_          %deepCopyFinalize()
+       if (associated(self%cosmologyParameters_           )) call self%cosmologyParameters_           %deepCopyFinalize()
+       if (associated(self%cosmologyFunctions_            )) call self%cosmologyFunctions_            %deepCopyFinalize()
+       if (associated(self%darkMatterHaloScale_           )) call self%darkMatterHaloScale_           %deepCopyFinalize()
+       if (associated(self%darkMatterProfileConcentration_)) call self%darkMatterProfileConcentration_%deepCopyFinalize()
+       if (associated(self%darkMatterProfileShape_        )) call self%darkMatterProfileShape_        %deepCopyFinalize()
+    class default
+       call Galacticus_Error_Report("self must be of 'percolationObjects' class"//{introspection:location})
+    end select
+    return
+  end subroutine percolationObjectsDeepCopyFinalize
   
   !# <functionGlobal>
   !#  <unitName>percolationObjectsDeepCopy</unitName>
@@ -136,6 +162,13 @@ contains
   subroutine percolationObjectsDeepCopy(self,destination)
     !% Perform a deep copy of percolation virial density contrast objects.
     use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef OBJECTDEBUG
+      use :: MPI_Utilities     , only : mpiSelf
+      use :: Function_Classes  , only : debugReporting
+      use :: Display           , only : displayMessage, verbosityLevelSilent
+      use :: ISO_Varying_String, only : operator(//)  , var_str
+      use :: String_Handling   , only : operator(//)
+#endif
     implicit none
     class(*), intent(inout) :: self, destination
 
@@ -152,7 +185,7 @@ contains
           if (associated(self%darkMatterProfileDMO_)) then
              if (associated(self%darkMatterProfileDMO_%copiedSelf)) then
                 select type(s => self%darkMatterProfileDMO_%copiedSelf)
-                   class is (darkMatterProfileDMOClass)
+                class is (darkMatterProfileDMOClass)
                    destination%darkMatterProfileDMO_ => s
                 class default
                    call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
@@ -164,20 +197,28 @@ contains
                 self%darkMatterProfileDMO_%copiedSelf => destination%darkMatterProfileDMO_
                 call destination%darkMatterProfileDMO_%autoHook()
              end if
+#ifdef OBJECTDEBUG
+             if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): darkmatterprofiledmo_ : [destination] : ')//loc(destination)//' : '//loc(destination%darkmatterprofiledmo_)//' : '//{introspection:location:compact},verbosityLevelSilent)
+#endif
           end if
-          if (associated(self%cosmologyParameters_%copiedSelf)) then
-             select type(s => self%cosmologyParameters_%copiedSelf)
+          if (associated(self%cosmologyParameters_)) then
+             if (associated(self%cosmologyParameters_%copiedSelf)) then
+                select type(s => self%cosmologyParameters_%copiedSelf)
                 class is (cosmologyParametersClass)
-                destination%cosmologyParameters_ => s
-             class default
-                call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
-             end select
-             call self%cosmologyParameters_%copiedSelf%referenceCountIncrement()
-          else
-             allocate(destination%cosmologyParameters_,mold=self%cosmologyParameters_)
-             call self%cosmologyParameters_%deepCopy(destination%cosmologyParameters_)
-             self%cosmologyParameters_%copiedSelf => destination%cosmologyParameters_
-             call destination%cosmologyParameters_%autoHook()
+                   destination%cosmologyParameters_ => s
+                class default
+                   call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+                end select
+                call self%cosmologyParameters_%copiedSelf%referenceCountIncrement()
+             else
+                allocate(destination%cosmologyParameters_,mold=self%cosmologyParameters_)
+                call self%cosmologyParameters_%deepCopy(destination%cosmologyParameters_)
+                self%cosmologyParameters_%copiedSelf => destination%cosmologyParameters_
+                call destination%cosmologyParameters_%autoHook()
+             end if
+#ifdef OBJECTDEBUG
+             if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): cosmologyparameters_ : [destination] : ')//loc(destination)//' : '//loc(destination%cosmologyParameters_)//' : '//{introspection:location:compact},verbosityLevelSilent)
+#endif
           end if
           if (associated(self%cosmologyFunctions_)) then
              if (associated(self%cosmologyFunctions_%copiedSelf)) then
@@ -194,6 +235,9 @@ contains
                 self%cosmologyFunctions_%copiedSelf => destination%cosmologyFunctions_
                 call destination%cosmologyFunctions_%autoHook()
              end if
+#ifdef OBJECTDEBUG
+             if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): cosmologyfunctions_ : [destination] : ')//loc(destination)//' : '//loc(destination%cosmologyFunctions_)//' : '//{introspection:location:compact},verbosityLevelSilent)
+#endif
           end if
           if (associated(self%darkMatterHaloScale_)) then
              if (associated(self%darkMatterHaloScale_%copiedSelf)) then
@@ -210,6 +254,9 @@ contains
                 self%darkMatterHaloScale_%copiedSelf => destination%darkMatterHaloScale_
                 call destination%darkMatterHaloScale_%autoHook()
              end if
+#ifdef OBJECTDEBUG
+             if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): darkmatterhaloscale_ : [destination] : ')//loc(destination)//' : '//loc(destination%darkMatterHaloScale_)//' : '//{introspection:location:compact},verbosityLevelSilent)
+#endif
           end if
           if (associated(self%darkMatterProfileConcentration_)) then
              if (associated(self%darkMatterProfileConcentration_%copiedSelf)) then
@@ -226,6 +273,9 @@ contains
                 self%darkMatterProfileConcentration_%copiedSelf => destination%darkMatterProfileConcentration_
                 call destination%darkMatterProfileConcentration_%autoHook()
              end if
+#ifdef OBJECTDEBUG
+             if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): darkmatterprofileconcentration_ : [destination] : ')//loc(destination)//' : '//loc(destination%darkMatterProfileConcentration_)//' : '//{introspection:location:compact},verbosityLevelSilent)
+#endif
           end if
           if (associated(self%darkMatterProfileShape_)) then
              if (associated(self%darkMatterProfileShape_%copiedSelf)) then
@@ -242,6 +292,9 @@ contains
                 self%darkMatterProfileShape_%copiedSelf => destination%darkMatterProfileShape_
                 call destination%darkMatterProfileShape_%autoHook()
              end if
+#ifdef OBJECTDEBUG
+             if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): darkmatterprofileshape_ : [destination] : ')//loc(destination)//' : '//loc(destination%darkMatterProfileShape_)//' : '//{introspection:location:compact},verbosityLevelSilent)
+#endif
           end if
        class default
           call Galacticus_Error_Report("destination must be of 'percolationObjects' class"//{introspection:location})
@@ -314,7 +367,7 @@ contains
        cosmologyParameters_                      => percolationObjects_%cosmologyParameters_
        darkMatterHaloScale_                      => percolationObjects_%darkMatterHaloScale_
        darkMatterProfileConcentration_           => percolationObjects_%darkMatterProfileConcentration_
-       class default
+    class default
        call Galacticus_Error_Report('percolationObjects_ must be of "percolationObjects" type'//{introspection:location})
     end select
     ! Build a scale radius object.

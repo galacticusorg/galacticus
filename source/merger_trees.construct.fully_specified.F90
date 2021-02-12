@@ -277,6 +277,7 @@ contains
        !$omp critical(mergerTreeConstructFullySpecifiedDeepCopyReset)
        !# <deepCopyReset variables="self%randomNumberGenerator_"/>
        !# <deepCopy source="self%randomNumberGenerator_" destination="tree%randomNumberGenerator_"/>
+       !# <deepCopyFinalize variables="tree%randomNumberGenerator_"/>
        !$omp end critical(mergerTreeConstructFullySpecifiedDeepCopyReset)
         call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
        ! Begin writing report.

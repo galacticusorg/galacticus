@@ -184,6 +184,7 @@ contains
           !$omp critical(analysesGravitationalLensingDeepCopy)
           !# <deepCopyReset variables="self%gravitationalLensing_"/>
           !# <deepCopy source="self%gravitationalLensing_" destination="grvtnlLnsngGravitationalLensing_"/>
+          !# <deepCopyFinalize variables="grvtnlLnsngGravitationalLensing_"/>
           !$omp end critical(analysesGravitationalLensingDeepCopy)
           allocate(integrator_)
           integrator_=integrator(magnificationCDFIntegrand,toleranceRelative=1.0d-3)

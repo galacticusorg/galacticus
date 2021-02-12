@@ -421,6 +421,7 @@ contains
     !# <deepCopy source="self%mergerTreeConstructor_" destination="evolveForestsMergerTreeConstructor_"/>
     !# <deepCopy source="self%mergerTreeOperator_"    destination="evolveForestsMergerTreeOperator_"   />
     !# <deepCopy source="self%galacticFilter_"        destination="evolveForestsGalacticFilter_"       />
+    !# <deepCopyFinalize variables="evolveForestsMergerTreeEvolver_ evolveForestsMergerTreeOutputter_ evolveForestsMergerTreeInitializor_ evolveForestsMergerTreeConstructor_ evolveForestsMergerTreeOperator_ evolveForestsGalacticFilter_"/>  
     !$omp end critical(evolveForestsDeepCopy)
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
     call Node_Components_Thread_Initialize(self%parameters)

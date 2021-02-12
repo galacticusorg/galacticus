@@ -458,6 +458,7 @@ contains
           !$omp critical(mergerTreeOperatorsParticulateDeepCopy)
           !# <deepCopyReset variables="self"/>
           !# <deepCopy source="self" destination="particulateSelf"/>
+          !# <deepCopyFinalize variables="particulateSelf"/>
           !$omp end critical(mergerTreeOperatorsParticulateDeepCopy)
           !$omp do reduction(+: positionRandomOffset, velocityRandomOffset)
           do i=1,particleCountActual

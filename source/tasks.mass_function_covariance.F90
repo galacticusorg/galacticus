@@ -1026,6 +1026,7 @@ contains
           !$omp critical(massFunctionCovarianceDeepCopy)
           !# <deepCopyReset variables="self"/>
           !# <deepCopy source="self" destination="massFunctionCovarianceSelfCopy"/>
+          !# <deepCopyFinalize variables="massFunctionCovarianceSelfCopy"/>
           !$omp end critical(massFunctionCovarianceDeepCopy)
           call allocateArray(massFunctionCovarianceSelfCopy%volumeNormalizationI,[countFields])
           call allocateArray(massFunctionCovarianceSelfCopy%volumeNormalizationJ,[countFields])
@@ -1155,6 +1156,7 @@ contains
     !$omp critical(massFunctionCovarianceDeepCopy)
     !# <deepCopyReset variables="self"/>
     !# <deepCopy source="self" destination="massFunctionCovarianceSelfCopy"/>
+    !# <deepCopyFinalize variables="massFunctionCovarianceSelfCopy"/>
     !$omp end critical(massFunctionCovarianceDeepCopy)
     call allocateArray(massFunctionCovarianceSelfCopy%volumeNormalizationI,[countFields])
     call allocateArray(massFunctionCovarianceSelfCopy%volumeNormalizationJ,[countFields])

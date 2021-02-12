@@ -949,6 +949,7 @@ contains
        !$omp critical(mergerTreeConstructReadDeepCopyReset)
        !# <deepCopyReset variables="self%randomNumberGenerator_"/>
        !# <deepCopy source="self%randomNumberGenerator_" destination="tree%randomNumberGenerator_"/>
+       !# <deepCopyFinalize variables="tree%randomNumberGenerator_"/>
        !$omp end critical(mergerTreeConstructReadDeepCopyReset)
        call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
        ! Store internal state.
@@ -1727,6 +1728,7 @@ contains
                       !$omp critical(mergerTreeConstructReadDeepCopyReset)
                       !# <deepCopyReset variables="self%randomNumberGenerator_"/>
                       !# <deepCopy source="self%randomNumberGenerator_" destination="treeCurrent%nextTree%randomNumberGenerator_"/>
+                      !# <deepCopyFinalize variables="treeCurrent%nextTree%randomNumberGenerator_"/>
                       !$omp end critical(mergerTreeConstructReadDeepCopyReset)
                       call treeCurrent%nextTree%randomNumberGenerator_%seedSet(seed=treeCurrent%nextTree%index,offset=.true.)
                    end if

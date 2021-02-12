@@ -189,8 +189,9 @@ contains
        !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
        !# <deepCopyReset variables="self%excursionSetBarrier_"/>
        !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
+       !# <deepCopyFinalize variables="excursionSetBarrier_"/>
        !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
-      call allocateArray(barrierTable   ,[1+self%varianceTableCount],lowerBounds=[0])
+       call allocateArray(barrierTable   ,[1+self%varianceTableCount],lowerBounds=[0])
        call allocateArray(barrierMidTable,[1+self%varianceTableCount],lowerBounds=[0])
        !$omp do schedule(dynamic)
        do iTime=1,self%timeTableCount
@@ -456,6 +457,7 @@ contains
           !# <deepCopyReset variables="self%excursionSetBarrier_ self%cosmologicalMassVariance_"/>
           !# <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
           !# <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
+          !# <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
           !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
           growthFactorEffective          =+cosmologicalMassVariance_%rootVariance(massLarge,self%timeMaximumRate                                ) &
                &                          /cosmologicalMassVariance_%rootVariance(massLarge,self%timeMaximumRate*(1.0d0-self%timeStepFractional))
@@ -560,6 +562,7 @@ contains
           !# <deepCopyReset variables="self%excursionSetBarrier_ self%cosmologicalMassVariance_"/>
           !# <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
           !# <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
+          !# <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
           !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
           call allocateArray(barrierTableRateQuad   ,[self%varianceTableCountRate])
           call allocateArray(barrierMidTableRateQuad,[self%varianceTableCountRate])

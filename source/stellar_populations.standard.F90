@@ -417,6 +417,7 @@ contains
           !# <deepCopy source="self%initialMassFunction_" destination="standardInitialMassFunction_"/>
           !# <deepCopy source="self%stellarFeedback_"     destination="standardStellarFeedback_"    />
           !# <deepCopy source="self%supernovaeTypeIa_"    destination="standardSupernovaeTypeIa_"   />
+          !# <deepCopyFinalize variables="standardStellarAstrophysics_ standardInitialMassFunction_ standardStellarFeedback_ standardSupernovaeTypeIa_"/>
           !$omp end critical(stellarPopulationsStandardDeepCopy)
           call integrator_%initialize  (24                        ,61                        )
           call integrator_%toleranceSet(property%toleranceAbsolute,property%toleranceRelative)

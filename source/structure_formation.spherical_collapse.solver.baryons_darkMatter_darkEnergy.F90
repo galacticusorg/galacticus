@@ -214,10 +214,12 @@ contains
        !$omp critical(sphericalCollapseSolverBrynsDrkMttrDrkEnrgyDeepCopy)
        !# <deepCopyReset variables="self%cosmologyFunctions_"/>
        !# <deepCopy source="self%cosmologyFunctions_" destination="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
+       !# <deepCopyFinalize variables="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
        if (calculationType == cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity) then
           allocate(linearGrowth_,mold=self%linearGrowth_)
           !# <deepCopyReset variables="self%linearGrowth_"/>
           !# <deepCopy source="self%linearGrowth_" destination="linearGrowth_"/>
+          !# <deepCopyFinalize variables="linearGrowth_"/>
        end if
        !$omp end critical(sphericalCollapseSolverBrynsDrkMttrDrkEnrgyDeepCopy)
        !$omp do schedule(dynamic)

@@ -28,6 +28,7 @@ use Galacticus::Build::SourceTree::Process::SourceDigest;
 use Galacticus::Build::SourceTree::Process::SourceIntrospection;
 use Galacticus::Build::SourceTree::Process::ObjectBuilder;
 use Galacticus::Build::SourceTree::Process::DeepCopyReset;
+use Galacticus::Build::SourceTree::Process::DeepCopyFinalize;
 use Galacticus::Build::SourceTree::Process::DebugHDF5;
 use Galacticus::Build::SourceTree::Process::DebugMPI;
 use Galacticus::Build::SourceTree::Process::ProfileOpenMP;
