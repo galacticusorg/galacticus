@@ -336,14 +336,14 @@ contains
     useTable        =.false.
     ! Determine how to compute density contrast.
     if (self%isRecursive) then
-       call percolationCopyTable (self)
        if (percolationSolving) then
           ! Currently solving for solutions - return the current guess.
           if (self%selfID /= self%recursiveSelf%selfID) call Galacticus_Error_Report('recursively-constructed percolation class object ID does not match that of actively solving object'//{introspection:location})
           useSolverCurrent=.true.
        else
-          ! Not solving for solutions - if our table is sufficient, use it, otherwise request that the parent self performs the
-          ! calculation (in which case it will update its table, and we can later copy it).
+          ! Not solving for solutions - if our table is sufficient (ensure it is up to date first), use it, otherwise request that
+          ! the parent self performs the calculation (in which case it will update its table, and we can later copy it).
+          call percolationCopyTable(self)
           !$ call OMP_Set_Lock(self%densityContrastTableLock)
           call self%tabulate(mass,timeActual,mustRetabulate)
           !$ call OMP_Unset_Lock(self%densityContrastTableLock)
