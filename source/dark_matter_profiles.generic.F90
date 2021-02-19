@@ -36,7 +36,9 @@ module Dark_Matter_Profiles_Generic
      ! Note that the following components can not be "private", as private components of parent types which are accessed through a
      ! "USE" association are inaccessible to the child type
      ! (e.g. https://www.ibm.com/support/knowledgecenter/SSGH4D_15.1.3/com.ibm.xlf1513.aix.doc/language_ref/extensible.html).
-     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_                => null()
+     ! Tolerances used in numerical solutions.
+     double precision                                    :: toleranceRelativeVelocityDispersion =  1.0d-6
    contains 
      !# <methods>
      !#   <method description="Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc)." method="enclosedMass" />
@@ -287,7 +289,7 @@ contains
     !$omp threadprivate(integrator_,initialized)
     
     if (.not.initialized) then
-       integrator_=integrator(genericJeansEquationIntegrand,toleranceRelative=1.0d-6)
+       integrator_=integrator(genericJeansEquationIntegrand,toleranceRelative=self%toleranceRelativeVelocityDispersion)
        initialized=.true.
     end if
     call self%solverSet  (node)

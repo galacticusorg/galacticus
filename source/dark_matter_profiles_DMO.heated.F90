@@ -100,13 +100,14 @@ contains
     !% Default constructor for the {\normalfont \ttfamily heated} dark matter halo profile class.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type   (darkMatterProfileDMOHeated    )                :: self
-    type   (inputParameters               ), intent(inout) :: parameters
-    class  (darkMatterProfileDMOClass     ), pointer       :: darkMatterProfileDMO_
-    class  (darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
-    class  (darkMatterProfileHeatingClass ), pointer       :: darkMatterProfileHeating_
-    type   (varying_string                )                :: nonAnalyticSolver
-    logical                                                :: velocityDispersionApproximate
+    type            (darkMatterProfileDMOHeated    )                :: self
+    type            (inputParameters               ), intent(inout) :: parameters
+    class           (darkMatterProfileDMOClass     ), pointer       :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
+    class           (darkMatterProfileHeatingClass ), pointer       :: darkMatterProfileHeating_
+    type            (varying_string                )                :: nonAnalyticSolver
+    logical                                                         :: velocityDispersionApproximate
+    double precision                                                :: toleranceRelativeVelocityDispersion
 
     !# <inputParameter>
     !#   <name>nonAnalyticSolver</name>
@@ -120,10 +121,16 @@ contains
     !#   <source>parameters</source>
     !#   <description>If {\normalfont \ttfamily true}, radial velocity dispersion is computed using an approximate method in which we assume that $\sigma_\mathrm{r}^2(r) \rightarrow \sigma_\mathrm{r}^2(r) - (2/3) \epsilon(r)$, where $\epsilon(r)$ is the specific heating energy. If {\normalfont \ttfamily false} then radial velocity dispersion is computed by numerically solving the Jeans equation.</description>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>toleranceRelativeVelocityDispersion</name>
+    !#   <defaultValue>1.0d-6</defaultValue>
+    !#   <source>parameters</source>
+    !#   <description>The relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
+    !# </inputParameter>
     !# <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
     !# <objectBuilder class="darkMatterProfileHeating" name="darkMatterProfileHeating_" source="parameters"/>
-    self=darkMatterProfileDMOHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),velocityDispersionApproximate,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_)
+    self=darkMatterProfileDMOHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),velocityDispersionApproximate,toleranceRelativeVelocityDispersion,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="darkMatterProfileDMO_"    />
     !# <objectDestructor name="darkMatterHaloScale_"     />
@@ -131,18 +138,19 @@ contains
     return
   end function heatedConstructorParameters
 
-  function heatedConstructorInternal(nonAnalyticSolver,velocityDispersionApproximate,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_) result(self)
+  function heatedConstructorInternal(nonAnalyticSolver,velocityDispersionApproximate,toleranceRelativeVelocityDispersion,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily heated} dark matter profile class.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    type   (darkMatterProfileDMOHeated   )                        :: self
-    class  (darkMatterProfileDMOClass    ), intent(in   ), target :: darkMatterProfileDMO_
-    class  (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
-    class  (darkMatterProfileHeatingClass), intent(in   ), target :: darkMatterProfileHeating_
-    integer                               , intent(in   )         :: nonAnalyticSolver
-    logical                               , intent(in   )         :: velocityDispersionApproximate
-    double precision                      , parameter             :: toleranceAbsolute            =0.0d0, toleranceRelative=1.0d-6
-    !# <constructorAssign variables="nonAnalyticSolver, velocityDispersionApproximate, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileHeating_"/>
+    type            (darkMatterProfileDMOHeated   )                        :: self
+    class           (darkMatterProfileDMOClass    ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
+    class           (darkMatterProfileHeatingClass), intent(in   ), target :: darkMatterProfileHeating_
+    integer                                        , intent(in   )         :: nonAnalyticSolver
+    logical                                        , intent(in   )         :: velocityDispersionApproximate
+    double precision                               , intent(in   )         :: toleranceRelativeVelocityDispersion
+    double precision                               , parameter             :: toleranceAbsolute                  =0.0d0, toleranceRelative=1.0d-6
+    !# <constructorAssign variables="nonAnalyticSolver, velocityDispersionApproximate, toleranceRelativeVelocityDispersion, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileHeating_"/>
 
     ! Validate.
     if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Galacticus_Error_Report('invalid non-analytic solver type'//{introspection:location})
