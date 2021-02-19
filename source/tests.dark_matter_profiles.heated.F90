@@ -44,6 +44,9 @@ program Test_Dark_Matter_Profiles_Heated
   double precision                                , parameter    :: time                           =13.8d00
   double precision                                , parameter    :: massVirial                     = 1.0d10
   double precision                                , parameter    :: heatingSpecific                = 1.0d06
+  double precision                                , parameter    :: coefficientSecondOrder         = 0.0d00
+  double precision                                , parameter    :: correlationVelocityRadius      =-1.0d00
+  logical                                         , parameter    :: velocityDispersionApproximate  =.true.
   class           (nodeComponentBasic            ), pointer      :: basic
   class           (nodeComponentSatellite        ), pointer      :: satellite
   class           (darkMatterHaloScaleClass      ), pointer      :: darkMatterHaloScale_
@@ -72,10 +75,10 @@ program Test_Dark_Matter_Profiles_Heated
   call Unit_Tests_Begin_Group("Heated dark matter profiles")
   call nodeClassHierarchyInitialize(parameters)
   ! Create the dark matter profiles.
-  darkMatterHaloScale_            => darkMatterHaloScale           (                                                                                                                 )
-  darkMatterProfileHeatingTidal_  =  darkMatterProfileHeatingTidal (                                                                                                                 )
-  darkMatterProfileDMOIsothermal_ =  darkMatterProfileDMOIsothermal(                                                              darkMatterHaloScale_                               )
-  darkMatterProfileDMOHeated_     =  darkMatterProfileDMOHeated    (nonAnalyticSolversFallThrough,darkMatterProfileDMOIsothermal_,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)
+  darkMatterHaloScale_            => darkMatterHaloScale           (                                                                                                                                               )
+  darkMatterProfileHeatingTidal_  =  darkMatterProfileHeatingTidal (coefficientSecondOrder       ,correlationVelocityRadius                                                                                        )
+  darkMatterProfileDMOIsothermal_ =  darkMatterProfileDMOIsothermal(                                                                                            darkMatterHaloScale_                               )
+  darkMatterProfileDMOHeated_     =  darkMatterProfileDMOHeated    (nonAnalyticSolversFallThrough,velocityDispersionApproximate,darkMatterProfileDMOIsothermal_,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)
   ! Set up the node.
   basic     => node%basic    (autoCreate=.true.)
   satellite => node%satellite(autoCreate=.true.)
