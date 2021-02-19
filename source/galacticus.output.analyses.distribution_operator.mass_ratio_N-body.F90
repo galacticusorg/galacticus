@@ -163,6 +163,8 @@ contains
        massRatioNBodyOperateScalar=0.0d0
        if (massParent <  self%massParentMinimum .or. massParent >=      self%massParentMaximum    ) return
        binIndex=searchArray(propertyValueMinimum,propertyValue)
+       !! Capture the final bin.
+       if (binIndex == size(propertyValueMinimum)-1_c_size_t .and. propertyValue > propertyValueMaximum(binIndex)) binIndex=size(propertyValueMinimum)
        if (binIndex   <= 0                      .or. binIndex   >  size(     propertyValueMinimum)) return
        if     (                                                 &
             &   propertyValue >= propertyValueMinimum(binIndex) &
