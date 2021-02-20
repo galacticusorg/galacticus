@@ -245,32 +245,70 @@ contains
        allocate(virialDensityContrastFixed                                      :: self%virialDensityContrastDefinition_)
        select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
        type is (virialDensityContrastFixed                                     )
-          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                                     (200.0d0,fixedDensityTypeCritical,2.0d0,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+          !# <referenceConstruct object="virialDensityContrastDefinition_">
+          !#  <constructor>
+          !#   virialDensityContrastFixed                                    (                                                                            &amp;
+          !#    &amp;                                                         densityContrastValue                =200.0d0                              , &amp;
+          !#    &amp;                                                         densityType                         =fixedDensityTypeCritical             , &amp;
+          !#    &amp;                                                         turnAroundOverVirialRadius          =2.0d0                                , &amp;
+          !#    &amp;                                                         cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+          !#    &amp;                                                         cosmologyFunctions_                 =self%cosmologyFunctions_               &amp;
+          !#    &amp;                                                        )
+          !#  </constructor>
+          !# </referenceConstruct>
        end select
     case (duttonMaccio2014DensityContrastMethodVirial    )
        allocate(virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt :: self%virialDensityContrastDefinition_)
        select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
        type is (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)
-          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(.true. ,                                                         self%cosmologyFunctions_)"/>
+          !# <referenceConstruct object="virialDensityContrastDefinition_">
+          !#  <constructor>
+          !#   virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                            &amp;
+          !#    &amp;                                                         tableStore                          =.true.                               , &amp;
+          !#    &amp;                                                         cosmologyFunctions_                 =self%cosmologyFunctions_               &amp;
+          !#    &amp;                                                        )
+          !#  </constructor>
+          !# </referenceConstruct>
        end select
     end select
     allocate(darkMatterHaloScaleDefinition_)
-    !# <referenceConstruct object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_)"/>
+          !# <referenceConstruct object="darkMatterHaloScaleDefinition_"  >
+          !#  <constructor>
+          !#   darkMatterHaloScaleVirialDensityContrastDefinition            (                                                                            &amp;
+          !#    &amp;                                                         cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+          !#    &amp;                                                         cosmologyFunctions_                 =self%cosmologyFunctions_             , &amp;
+          !#    &amp;                                                         virialDensityContrast_              =self%virialDensityContrastDefinition_  &amp;
+          !#    &amp;                                                        )
+          !#  </constructor>
+          !# </referenceConstruct>
     select case (self%densityProfileMethod)
     case (duttonMaccio2014DensityProfileMethodNFW    )
        allocate(darkMatterProfileDMONFW     :: self%darkMatterProfileDMODefinition_)
        select type (darkMatterProfileDMODefinition_ => self%darkMatterProfileDMODefinition_)
        type is (darkMatterProfileDMONFW    )
-          !# <referenceConstruct object="darkMatterProfileDMODefinition_" constructor="darkMatterProfileDMONFW    (.true.,darkMatterHaloScaleDefinition_)"/>
+          !# <referenceConstruct object="darkMatterProfileDMODefinition_" >
+          !#  <constructor>
+          !#   darkMatterProfileDMONFW                                       (                                                                            &amp;
+          !#    &amp;                                                         velocityDispersionUseSeriesExpansion=.true.                               , &amp;
+          !#    &amp;                                                         darkMatterHaloScale_                =darkMatterHaloScaleDefinition_         &amp;
+          !#    &amp;                                                        )
+          !#  </constructor>
+          !# </referenceConstruct>
        end select
     case (duttonMaccio2014DensityProfileMethodEinasto)
        allocate(darkMatterProfileDMOEinasto :: self%darkMatterProfileDMODefinition_)
        select type (darkMatterProfileDMODefinition_ => self%darkMatterProfileDMODefinition_)
        type is (darkMatterProfileDMOEinasto)
-          !# <referenceConstruct object="darkMatterProfileDMODefinition_" constructor="darkMatterProfileDMOEinasto(       darkMatterHaloScaleDefinition_)"/>
+          !# <referenceConstruct object="darkMatterProfileDMODefinition_" >
+          !#  <constructor>
+          !#   darkMatterProfileDMOEinasto                                   (                                                                            &amp;
+          !#    &amp;                                                         darkMatterHaloScale_                =darkMatterHaloScaleDefinition_         &amp;
+          !#    &amp;                                                        )
+          !#  </constructor>
+          !# </referenceConstruct> 
        end select
     end select
-    !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
+    !# <objectDestructor name="darkMatterHaloScaleDefinition_"/>
     return
   end subroutine duttonMaccio2014Definitions
 
@@ -282,7 +320,7 @@ contains
     !# <objectDestructor name="self%cosmologyParameters_"            />
     !# <objectDestructor name="self%cosmologyFunctions_"             />
     !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
-    !# <objectDestructor name="self%darkMatterProfileDMODefinition_"    />
+    !# <objectDestructor name="self%darkMatterProfileDMODefinition_" />
     return
   end subroutine duttonMaccio2014Destructor
 
