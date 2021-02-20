@@ -45,9 +45,12 @@ program Test_Dark_Matter_Profiles
   double precision                                                                , dimension(7) :: radius                          =[0.125d0, 0.250d0, 0.500d0, 1.000d0, 2.000d0, 4.000d0, 8.000d0]
   double precision                                                                , dimension(7) :: mass                                                                                            , &
        &                                                                                            density                                                                                         , &
-       &                                                                                            fourier
+       &                                                                                            fourier                                                                                         , &
+       &                                                                                            radialVelocityDispersion                                                                        , &
+       &                                                                                            radialVelocityDispersionSeriesExpansion
   type            (darkMatterProfileDMOBurkert                                   ), pointer      :: darkMatterProfileDMOBurkert_
   type            (darkMatterProfileDMONFW                                       ), pointer      :: darkMatterProfileDMONFW_
+  type            (darkMatterProfileDMONFW                                       ), pointer      :: darkMatterProfileDMONFWSeriesExpansion_
   type            (darkMatterProfileDMOFiniteResolution                          ), pointer      :: darkMatterProfileDMOFiniteResolution_
   type            (cosmologyParametersSimple                                     ), pointer      :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda                                ), pointer      :: cosmologyFunctions_
@@ -74,6 +77,7 @@ program Test_Dark_Matter_Profiles
   allocate(darkMatterHaloScale_        )
   allocate(darkMatterProfileDMOBurkert_)
   allocate(darkMatterProfileDMONFW_    )
+  allocate(darkMatterProfileDMONFWSeriesExpansion_  )
   allocate(darkMatterProfileDMOFiniteResolution_    )
   !# <referenceConstruct object="cosmologyParameters_"        >
   !#  <constructor>
@@ -123,30 +127,39 @@ program Test_Dark_Matter_Profiles
        &      /concentration
   call dmProfile%scaleSet(radiusScale)
   ! Build dark matter profiles.
-  !# <referenceConstruct object="darkMatterProfileDMOBurkert_"         >
+  !# <referenceConstruct object="darkMatterProfileDMOBurkert_"           >
   !#  <constructor>
-  !#   darkMatterProfileDMOBurkert         (                                                     &amp;
-  !#    &amp;                               darkMatterHaloScale_   =darkMatterHaloScale_         &amp;
+  !#   darkMatterProfileDMOBurkert         (                                                                  &amp;
+  !#    &amp;                               darkMatterHaloScale_                =darkMatterHaloScale_         &amp;
   !#    &amp;                              )
   !#  </constructor>
   !# </referenceConstruct>
-  !# <referenceConstruct object="darkMatterProfileDMONFW_"             >
+  !# <referenceConstruct object="darkMatterProfileDMONFW_"               >
   !#  <constructor>
-  !#   darkMatterProfileDMONFW             (                                                     &amp;
-  !#    &amp;                               darkMatterHaloScale_   =darkMatterHaloScale_         &amp;
+  !#   darkMatterProfileDMONFW             (                                                                  &amp;
+  !#    &amp;                               velocityDispersionUseSeriesExpansion=.false.                    , &amp;
+  !#    &amp;                               darkMatterHaloScale_                =darkMatterHaloScale_         &amp;
   !#    &amp;                              )
   !#  </constructor>
   !# </referenceConstruct>
-  !# <referenceConstruct object="darkMatterProfileDMOFiniteResolution_">
+  !# <referenceConstruct object="darkMatterProfileDMONFWSeriesExpansion_">
   !#  <constructor>
-  !#   darkMatterProfileDMOFiniteResolution(                                                     &amp;
-  !#    &amp;                               lengthResolution       =0.5d0*radiusScale          , &amp;
-  !#    &amp;                               massResolution         =0.0d0                      , &amp;
-  !#    &amp;                               resolutionIsComoving   =.false.                    , &amp;
-  !#    &amp;                               nonAnalyticSolver      =nonAnalyticSolversNumerical, &amp;
-  !#    &amp;                               darkMatterProfileDMO_  =darkMatterProfileDMONFW_   , &amp;
-  !#    &amp;                               darkMatterHaloScale_   =darkMatterHaloScale_       , &amp;
-  !#    &amp;                               cosmologyFunctions_    =cosmologyFunctions_          &amp;
+  !#   darkMatterProfileDMONFW             (                                                                  &amp;
+  !#    &amp;                               velocityDispersionUseSeriesExpansion=.true.                     , &amp;
+  !#    &amp;                               darkMatterHaloScale_                =darkMatterHaloScale_         &amp;
+  !#    &amp;                              )
+  !#  </constructor>
+  !# </referenceConstruct>  
+  !# <referenceConstruct object="darkMatterProfileDMOFiniteResolution_"  >
+  !#  <constructor>
+  !#   darkMatterProfileDMOFiniteResolution(                                                                  &amp;
+  !#    &amp;                               lengthResolution                    =0.5d0*radiusScale          , &amp;
+  !#    &amp;                               massResolution                      =0.0d0                      , &amp;
+  !#    &amp;                               resolutionIsComoving                =.false.                    , &amp;
+  !#    &amp;                               nonAnalyticSolver                   =nonAnalyticSolversNumerical, &amp;
+  !#    &amp;                               darkMatterProfileDMO_               =darkMatterProfileDMONFW_   , &amp;
+  !#    &amp;                               darkMatterHaloScale_                =darkMatterHaloScale_       , &amp;
+  !#    &amp;                               cosmologyFunctions_                 =cosmologyFunctions_          &amp;
   !#    &amp;                              )
   !#  </constructor>
   !# </referenceConstruct>
@@ -205,10 +218,15 @@ program Test_Dark_Matter_Profiles
   ! Test NFW profile.
   call Unit_Tests_Begin_Group('NFW profile')
   do i=1,7
-     mass   (i)=darkMatterProfileDMONFW_%enclosedMass(node,      radiusScale*radius(i))
-     density(i)=darkMatterProfileDMONFW_%density     (node,      radiusScale*radius(i))*radiusScale**3
-     fourier(i)=darkMatterProfileDMONFW_%kSpace      (node,1.0d0/radiusScale/radius(i))
+     mass                                   (i)=darkMatterProfileDMONFW_               %enclosedMass            (node,      radiusScale*radius(i))
+     density                                (i)=darkMatterProfileDMONFW_               %density                 (node,      radiusScale*radius(i))*radiusScale**3
+     fourier                                (i)=darkMatterProfileDMONFW_               %kSpace                  (node,1.0d0/radiusScale/radius(i))
+     radialVelocityDispersion               (i)=darkMatterProfileDMONFW_               %radialVelocityDispersion(node,      radiusScale*radius(i))
+     radialVelocityDispersionSeriesExpansion(i)=darkMatterProfileDMONFWSeriesExpansion_%radialVelocityDispersion(node,      radiusScale*radius(i))
   end do
+  ! Radial velocity dispersion in units of virial velocity.
+  radialVelocityDispersion               =radialVelocityDispersion               /darkMatterHaloScale_%virialVelocity(node)
+  radialVelocityDispersionSeriesExpansion=radialVelocityDispersionSeriesExpansion/darkMatterHaloScale_%virialVelocity(node)
   call Assert(                        &
        &      'enclosed mass'       , &
        &      mass                  , &
@@ -250,6 +268,34 @@ program Test_Dark_Matter_Profiles
        &       9.579597044271230d-1   &
        &      ]                     , &
        &      relTol=1.0d-6           &
+       &     )
+  call Assert(                                                     &
+       &      'radial velocity dispersion (analytic            )', &
+       &      radialVelocityDispersion                           , &
+       &      [                                                    &
+       &       6.285734096346791d-1                              , &
+       &       7.048421272327700d-1                              , &
+       &       7.510776824829392d-1                              , &
+       &       7.558757679348769d-1                              , &
+       &       7.172187600402157d-1                              , &
+       &       6.441447075213688d-1                              , &
+       &       5.520559866965048d-1                                &
+       &      ]                                                  , &
+       &      relTol=1.0d-6                                        &
+       &     )
+  call Assert(                                                     &
+       &      'radial velocity dispersion (series approximation)', &
+       &      radialVelocityDispersionSeriesExpansion            , &
+       &      [                                                    &
+       &       6.285734096346791d-1                              , &
+       &       7.048421272327700d-1                              , &
+       &       7.510776824829392d-1                              , &
+       &       7.558757679348769d-1                              , &
+       &       7.172187600402157d-1                              , &
+       &       6.441447075213688d-1                              , &
+       &       5.520559866965048d-1                                &
+       &      ]                                                  , &
+       &      relTol=1.0d-5                                        &
        &     )
   call Unit_Tests_End_Group       ()
   ! Test finite resolution NFW profile.
@@ -310,11 +356,12 @@ program Test_Dark_Matter_Profiles
   call Node_Components_Uninitialize       ()
   call nodeClassHierarchyFinalize         ()
   ! Clean up objects.
-  !# <objectDestructor name="cosmologyParameters_"                 />
-  !# <objectDestructor name="cosmologyFunctions_"                  />
-  !# <objectDestructor name="virialDensityContrast_"               />
-  !# <objectDestructor name="darkMatterHaloScale_"                 />
-  !# <objectDestructor name="darkMatterProfileDMOBurkert_"         />
-  !# <objectDestructor name="darkMatterProfileDMONFW_"             />
-  !# <objectDestructor name="darkMatterProfileDMOFiniteResolution_"/>
+  !# <objectDestructor name="cosmologyParameters_"                   />
+  !# <objectDestructor name="cosmologyFunctions_"                    />
+  !# <objectDestructor name="virialDensityContrast_"                 />
+  !# <objectDestructor name="darkMatterHaloScale_"                   />
+  !# <objectDestructor name="darkMatterProfileDMOBurkert_"           />
+  !# <objectDestructor name="darkMatterProfileDMONFW_"               />
+  !# <objectDestructor name="darkMatterProfileDMONFWSeriesExpansion_"/>
+  !# <objectDestructor name="darkMatterProfileDMOFiniteResolution_"  />
 end program Test_Dark_Matter_Profiles

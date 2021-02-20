@@ -96,33 +96,34 @@ program Test_Dark_Matter_Profiles_Generic
   cosmologyParameters_                    =>  cosmologyParameters                     ()
   cosmologyFunctions_                     =>  cosmologyFunctions                      ()
   darkMatterHaloScale_                    =>  darkMatterHaloScale                     ()
-  darkMatterProfileIsothermal_            =   darkMatterProfileDMOIsothermal          (                                                             &
-       &                                                                               darkMatterHaloScale_           =darkMatterHaloScale_         &
+  darkMatterProfileIsothermal_            =   darkMatterProfileDMOIsothermal          (                                                                  &
+       &                                                                               darkMatterHaloScale_                =darkMatterHaloScale_         &
        &                                                                              )
-  darkMatterProfileNFW_                   =   darkMatterProfileDMONFW                 (                                                             &
-       &                                                                               darkMatterHaloScale_           =darkMatterHaloScale_         &
+  darkMatterProfileNFW_                   =   darkMatterProfileDMONFW                 (                                                                  &
+       &                                                                               velocityDispersionUseSeriesExpansion=.false.                    , &
+       &                                                                               darkMatterHaloScale_                =darkMatterHaloScale_         &
        &                                                                              )
-  darkMatterProfileEinasto_               =   darkMatterProfileDMOEinasto             (                                                             &
-       &                                                                               darkMatterHaloScale_           =darkMatterHaloScale_         &
+  darkMatterProfileEinasto_               =   darkMatterProfileDMOEinasto             (                                                                  &
+       &                                                                               darkMatterHaloScale_                =darkMatterHaloScale_         &
        &                                                                              )
-  darkMatterProfileBurkert_               =   darkMatterProfileDMOBurkert             (                                                             &
-       &                                                                               darkMatterHaloScale_           =darkMatterHaloScale_         &
+  darkMatterProfileBurkert_               =   darkMatterProfileDMOBurkert             (                                                                  &
+       &                                                                               darkMatterHaloScale_                =darkMatterHaloScale_         &
        &                                                                              )
-  darkMatterProfileTruncated_             =   darkMatterProfileDMOTruncated           (                                                             &
-       &                                                                               radiusFractionalTruncateMinimum= 1.0d0                     , &
-       &                                                                               radiusFractionalTruncateMaximum=20.0d0                     , &
-       &                                                                               nonAnalyticSolver              =nonAnalyticSolversNumerical, &
-       &                                                                               darkMatterProfileDMO_          =darkMatterProfileNFW_      , &
-       &                                                                               darkMatterHaloScale_           =darkMatterHaloScale_         &
+  darkMatterProfileTruncated_             =   darkMatterProfileDMOTruncated           (                                                                  &
+       &                                                                               radiusFractionalTruncateMinimum     = 1.0d0                     , &
+       &                                                                               radiusFractionalTruncateMaximum     =20.0d0                     , &
+       &                                                                               nonAnalyticSolver                   =nonAnalyticSolversNumerical, &
+       &                                                                               darkMatterProfileDMO_               =darkMatterProfileNFW_      , &
+       &                                                                               darkMatterHaloScale_                =darkMatterHaloScale_         &
        &                                                                              )
-  darkMatterProfileTruncatedExponential_  =   darkMatterProfileDMOTruncatedExponential(                                                             &
-       &                                                                               radiusFractionalDecay          = 3.0d0                     , &
-       &                                                                               alpha                          = 1.0d0                     , &
-       &                                                                               beta                           = 3.0d0                     , &
-       &                                                                               gamma                          = 1.0d0                     , &
-       &                                                                               nonAnalyticSolver              =nonAnalyticSolversNumerical, &
-       &                                                                               darkMatterProfileDMO_          =darkMatterProfileNFW_      , &
-       &                                                                               darkMatterHaloScale_           =darkMatterHaloScale_         &
+  darkMatterProfileTruncatedExponential_  =   darkMatterProfileDMOTruncatedExponential(                                                                  &
+       &                                                                               radiusFractionalDecay               = 3.0d0                     , &
+       &                                                                               alpha                               = 1.0d0                     , &
+       &                                                                               beta                                = 3.0d0                     , &
+       &                                                                               gamma                               = 1.0d0                     , &
+       &                                                                               nonAnalyticSolver                   =nonAnalyticSolversNumerical, &
+       &                                                                               darkMatterProfileDMO_               =darkMatterProfileNFW_      , &
+       &                                                                               darkMatterHaloScale_                =darkMatterHaloScale_         &
        &                                                                              )
   darkMatterProfileIsothermal__           =   darkMatterProfileDarkMatterOnly(cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileIsothermal_           )
   darkMatterProfileNFW__                  =   darkMatterProfileDarkMatterOnly(cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileNFW_                  )

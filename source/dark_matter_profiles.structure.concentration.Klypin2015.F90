@@ -647,7 +647,7 @@ contains
     allocate(self%darkMatterProfileDMODefinition_)
     allocate(     darkMatterHaloScaleDefinition_ )
     !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"  constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_)"/>
-    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_" constructor="darkMatterProfileDMONFW                           (                                                          darkMatterHaloScaleDefinition_)"/>
+    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_" constructor="darkMatterProfileDMONFW                           (.true.                   ,                                darkMatterHaloScaleDefinition_)"/>
     !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                            />
     return
   end function klypin2015ConstructorInternal

@@ -261,13 +261,13 @@ contains
        allocate(darkMatterProfileDMONFW     :: self%darkMatterProfileDMODefinition_)
        select type (darkMatterProfileDMODefinition_ => self%darkMatterProfileDMODefinition_)
        type is (darkMatterProfileDMONFW    )
-          !# <referenceConstruct object="darkMatterProfileDMODefinition_" constructor="darkMatterProfileDMONFW   (darkMatterHaloScaleDefinition_)"/>
+          !# <referenceConstruct object="darkMatterProfileDMODefinition_" constructor="darkMatterProfileDMONFW    (.true.,darkMatterHaloScaleDefinition_)"/>
        end select
     case (duttonMaccio2014DensityProfileMethodEinasto)
        allocate(darkMatterProfileDMOEinasto :: self%darkMatterProfileDMODefinition_)
        select type (darkMatterProfileDMODefinition_ => self%darkMatterProfileDMODefinition_)
        type is (darkMatterProfileDMOEinasto)
-          !# <referenceConstruct object="darkMatterProfileDMODefinition_" constructor="darkMatterProfileDMOEinasto(darkMatterHaloScaleDefinition_)"/>
+          !# <referenceConstruct object="darkMatterProfileDMODefinition_" constructor="darkMatterProfileDMOEinasto(       darkMatterHaloScaleDefinition_)"/>
        end select
     end select
     !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
