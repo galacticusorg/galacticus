@@ -69,7 +69,8 @@
           &                                                     enclosingDensityRadiusPrevious         , densityScalePrevious               , &
           &                                                     enclosedMassPrevious                   , enclosingMassRadiusPrevious        , &
           &                                                     massScalePrevious                      , circularVelocityPrevious           , &
-          &                                                     circularVelocityRadiusPrevious
+          &                                                     circularVelocityRadiusPrevious         , radialVelocityDispersionPrevious   , &
+          &                                                     radialVelocityDispersionRadiusPrevious
    contains
      !# <methods>
      !#   <method description="Reset memoized calculations." method="calculationReset" />
@@ -244,6 +245,7 @@ contains
     self%enclosedMassPrevious                   =-1.0d0
     self%massScalePrevious                      =-1.0d0
     self%circularVelocityRadiusPrevious         =-1.0d0
+    self%radialVelocityDispersionRadiusPrevious =-1.0d0
     self%lastUniqueID                           =node%uniqueID()
     return
   end subroutine nfwCalculationReset
@@ -610,12 +612,22 @@ contains
     double precision                                                         :: radiusOverScaleRadius      , scaleRadius, &
          &                                                                      virialRadiusOverScaleRadius
 
-    darkMatterProfile           => node%darkMatterProfile(autoCreate=.true.)
-    scaleRadius                 =  darkMatterProfile%scale()
-    radiusOverScaleRadius       =  radius                                      /scaleRadius
-    virialRadiusOverScaleRadius =  self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
-    nfwRadialVelocityDispersion =  +self%radialVelocityDispersionScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius) &
-         &                         *self%darkMatterHaloScale_%virialVelocity(node)
+    if (radius > 0.0d0) then
+       ! Check if node differs from previous one for which we performed calculations.
+       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+       ! Compute the radial velocity dispersion if the radius has changed.
+       if (radius /= self%radialVelocityDispersionRadiusPrevious) then
+          darkMatterProfile                    => node%darkMatterProfile(autoCreate=.true.)
+          scaleRadius                          =  darkMatterProfile%scale()
+          radiusOverScaleRadius                =  radius                                      /scaleRadius
+          virialRadiusOverScaleRadius          =  self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
+          self%radialVelocityDispersionPrevious= +self%radialVelocityDispersionScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius) &
+               &                                 *self%darkMatterHaloScale_%virialVelocity(node)
+       end if
+       nfwRadialVelocityDispersion=self%radialVelocityDispersionPrevious
+    else
+       nfwRadialVelocityDispersion=0.0d0
+    end if
     return
   end function nfwRadialVelocityDispersion
 
