@@ -1050,42 +1050,55 @@ contains
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout)            :: self
     double precision                         , intent(in   )            :: concentration, radius
-    double precision                                        , parameter :: minimumRadiusForExactSolution   =1.0d-6
-    double precision                                        , parameter :: maximumRadiusForExactSolution   =5.0d2
+    double precision                                        , parameter :: minimumRadiusForExactSolution   =1.0d-2
+    double precision                                        , parameter :: maximumRadiusForExactSolution   =1.0d2
     ! Precomputed NFW normalization factor for unit radius.
     double precision                                        , parameter :: nfwNormalizationFactorUnitRadius=-8.5d0+Pi**2-6.0d0*log(2.0d0)+6.0d0*log(2.0d0)**2
     double precision                                                    :: radialVelocityDispersionSquare
+    double precision                                                    :: logRadius, onePlusRadius, logOnePlusRadius
 
     if (radius == 1.0d0) then
        radialVelocityDispersionSquare=nfwNormalizationFactorUnitRadius
     else if (radius >= maximumRadiusForExactSolution) then
-       radialVelocityDispersionSquare=+(2.0d0+radius)                                      &
-            &                         *(                                                   &
-            &                           +         188.0d0-75.0d0*radius                    &
-            &                           +20.0d0*(-  8.0d0+ 5.0d0*radius)*log(1.0d0+radius) &
-            &                          )                                                   &
-            &                         /(400.0d0*radius**3)
+       logRadius                      = log(radius)
+       radialVelocityDispersionSquare=+(-   3.0d0+   4.0d0*logRadius)/(    16.0d0*radius   ) &
+            &                         +(   69.0d0+  20.0d0*logRadius)/(   200.0d0*radius**2) &
+            &                         +(-  97.0d0-  60.0d0*logRadius)/(  1200.0d0*radius**3) &
+            &                         +(   71.0d0+ 105.0d0*logRadius)/(  3675.0d0*radius**4) &
+            &                         +(-   1.0d0-  56.0d0*logradius)/(  3136.0d0*radius**5) &
+            &                         +(-1271.0d0+2520.0d0*logRadius)/(211680.0d0*radius**6)
     else if (radius >= minimumRadiusForExactSolution) then
-       radialVelocityDispersionSquare=+0.5d0*radius*(1.0d0+radius)**2 &
-            &                         *(                              &
-            &                           +Pi**2                        &
-            &                           -log(radius)                  &
-            &                           -1.0d0/       radius          &
-            &                           -1.0d0/(1.0d0+radius)**2      &
-            &                           -6.0d0/(1.0d0+radius)         &
-            &                           +(                            &
-            &                             +1.0d0+ 1.0d0/radius**2     &
-            &                                   - 4.0d0/radius        &
-            &                             -2.0d0/(1.0d0+radius)       &
-            &                            )                            &
-            &                           *log(1.0d0+radius)            &
-            &                           +3.0d0*log(1.0d0+radius)**2   &
-            &                           +6.0d0*Dilogarithm(-radius)   &
+       onePlusRadius                 =      1.0d0+radius
+       logRadius                     = log(       radius)
+       logOnePlusRadius              = log(onePlusRadius)
+       radialVelocityDispersionSquare=+0.5d0                      &
+            &                         *       radius              &
+            &                         *onePlusRadius**2           &
+            &                         *(                          &
+            &                           +Pi**2                    &
+            &                           -logRadius                &
+            &                           -1.0d0/       radius      &
+            &                           -1.0d0/onePlusRadius**2   &
+            &                           -6.0d0/onePlusRadius      &
+            &                           +(                        &
+            &                             +1.0d0+ 1.0d0/radius**2 &
+            &                                   - 4.0d0/radius    &
+            &                             -2.0d0/onePlusRadius    &
+            &                            )                        &
+            &                           *logOnePlusRadius         &
+            &                           +3.0d0                    &
+            &                           *logOnePlusRadius**2      &
+            &                           +6.0d0                    &
+            &                           *Dilogarithm(-radius)     &
             &                          )
     else if (radius > 0.0d0) then
-       radialVelocityDispersionSquare=+0.25d0      *(-23.0d0       + 2.0d0*Pi**2- 2.0d0*log(radius))*radius    &
-            &                         +             (-59.0d0/6.0d0 +       Pi**2-       log(radius))*radius**2 &
-            &                         +1.0d0/24.0d0*(-101.0d0      +12.0d0*Pi**2-12.0d0*log(radius))*radius**3
+       logRadius                     = log(radius)
+       radialVelocityDispersionSquare=+ 1.0d0/   4.0d0*(-23.0d0       + 2.0d0*Pi**2- 2.0d0*logRadius)*radius    &
+            &                         +                (-59.0d0/6.0d0 +       Pi**2-       logRadius)*radius**2 &
+            &                         + 1.0d0/  24.0d0*(-101.0d0      +12.0d0*Pi**2-12.0d0*logRadius)*radius**3 &
+            &                         +11.0d0/  60.0d0                                               *radius**4 &
+            &                         -13.0d0/ 240.0d0                                               *radius**5 &
+            &                         +37.0d0/1400.0d0                                               *radius**6
     else
        radialVelocityDispersionSquare=0.0d0
     end if
