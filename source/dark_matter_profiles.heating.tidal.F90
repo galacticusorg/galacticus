@@ -87,7 +87,7 @@ contains
     !#   <name>correlationVelocityRadius</name>
     !#   <defaultValue>-1.0d0</defaultValue>
     !#   <source>parameters</source>
-    !#   <description>The velocity-position correlation function, $\chi_\mathrm{r,v}, as defined by \cite[][eqn.~B1]{gnedin_self-consistent_1999} which controls the strength of the second order heating term.</description>
+    !#   <description>The velocity-position correlation function, $\chi_\mathrm{r,v}$, as defined by \cite[][eqn.~B1]{gnedin_self-consistent_1999} which controls the strength of the second order heating term.</description>
     !# </inputParameter>
     self=darkMatterProfileHeatingTidal(coefficientSecondOrder,correlationVelocityRadius)
     !# <inputParametersValidate source="parameters"/>
