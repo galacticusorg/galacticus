@@ -288,7 +288,7 @@ contains
   double precision function heatedRadiusEnclosingMass(self,node,mass)
     !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
     !% {\normalfont \ttfamily mass} (given in units of $M_\odot$).
-    use :: Galactic_Structure_Options  , only : radiusLarge
+    use :: Galactic_Structure_Options      , only : radiusLarge
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout), target :: self
