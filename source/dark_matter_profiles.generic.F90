@@ -62,6 +62,8 @@ module Dark_Matter_Profiles_Generic
      !#   <method description="Returns the radius (in Mpc) at which the maximum circular velocity is reached in the dark matter profile of {\normalfont \ttfamily node}." method="radiusCircularVelocityMaximumNumerical" />
      !#   <method description="Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given in units of km s$^{-1}$ Mpc)." method="radiusFromSpecificAngularMomentumNumerical" />
      !#   <method description="Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc)." method="densityLogSlopeNumerical" />
+     !#   <method description="Set a sub-module scope pointers on a stack to allow recursive calls to functions." method="solverSet"/>
+     !#   <method description="Unset the sub-module scope pointer." method="solverUnset"/>
      !# </methods>
      procedure(genericDensityInterface     ), deferred :: density
      procedure(genericEnclosedMassNumerical), deferred :: enclosedMass
