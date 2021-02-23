@@ -641,6 +641,7 @@ contains
 
   function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalSpins,presetSpins,presetSpins3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_,outputTimes_,darkMatterProfileScaleRadius_,randomNumberGenerator_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily read} merger tree constructor class.
+    use    :: File_Utilities             , only : File_Name_Expand
     use    :: Galacticus_Error           , only : Galacticus_Error_Report, Galacticus_Warn
     use    :: Galacticus_Nodes           , only : defaultNBodyComponent  , nodeComponentNBodyGeneric
     use    :: Memory_Management          , only : allocateArray
@@ -694,7 +695,7 @@ contains
     self%treeNumberOffset=0_c_size_t
     self%fileCurrent     =1
     self%importerOpen    =.true.
-    call self%mergerTreeImporter_%open(self%fileNames(self%fileCurrent))
+    call self%mergerTreeImporter_%open(File_Name_Expand(char(self%fileNames(self%fileCurrent))))
     ! Validate input parameters.
     if (self%presetMergerNodes.and..not.self%presetMergerTimes) then
        message="presetting of merger target nodes requires that merger times also be preset;"//char(10)
@@ -879,6 +880,7 @@ contains
     !% Construct a merger tree by reading its definition from file.
     use    :: Array_Utilities           , only : operator(.intersection.)
     use    :: Arrays_Search             , only : searchArrayClosest
+    use    :: File_Utilities            , only : File_Name_Expand
     use    :: Functions_Global          , only : Galacticus_State_Retrieve_       , Galacticus_State_Store_
     use    :: Galacticus_Error          , only : Galacticus_Component_List        , Galacticus_Error_Report
     use    :: Galacticus_Nodes          , only : defaultDarkMatterProfileComponent, defaultPositionComponent, defaultSatelliteComponent, defaultSpinComponent, &
@@ -927,8 +929,8 @@ contains
     if (treeNumber-self%treeNumberOffset > treeNumberMaximum .and. self%fileCurrent < size(self%fileNames)) then
        self%fileCurrent     =self%fileCurrent     +1
        self%treeNumberOffset=self%treeNumberOffset+treeNumberMaximum
-       call self%mergerTreeImporter_%close(                                )
-       call self%mergerTreeImporter_%open (self%fileNames(self%fileCurrent))
+       call self%mergerTreeImporter_%close(                                                        )
+       call self%mergerTreeImporter_%open (File_Name_Expand(char(self%fileNames(self%fileCurrent))))
     end if
     treeNumberOffset=treeNumber-self%treeNumberOffset
     if (treeNumberOffset <= treeNumberMaximum) then
