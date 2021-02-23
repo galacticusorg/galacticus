@@ -43,7 +43,7 @@ module Node_Component_Satellite_Orbiting
   !#     <type>double</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Orbital position of the node."/>
+  !#     <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Orbital position of the node relative to its immediate host (sub-)halo."/>
   !#     <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
   !#   </property>
   !#   <property>
@@ -51,7 +51,7 @@ module Node_Component_Satellite_Orbiting
   !#     <type>double</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <output labels="[X,Y,Z]" unitsInSI="kilo" comment="Orbital velocity of the node."/>
+  !#     <output labels="[X,Y,Z]" unitsInSI="kilo" comment="Orbital velocity of the node relative to its immediate host (sub-)halo."/>
   !#     <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
   !#   </property>
   !#   <property>

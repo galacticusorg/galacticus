@@ -20,7 +20,16 @@
 !% Contains a module which implements an orbital position output analysis property extractor class.
 
   !# <nodePropertyExtractor name="nodePropertyExtractorPositionOrbital">
-  !#  <description>An orbital position output analysis property extractor class.</description>
+  !#  <description>
+  !#   An orbital position output analysis property extractor class. Specifically, the orbital position is defined relative to the
+  !#   top-level halo in any sub-halo hierarchy. That is, relative to the host halo which is itself not a sub-halo of any other
+  !#   halo. If the position of a (sub)$^i$-halo with respect to the center of its (sub)^{i-1}-halo host is $\mathbf{x}_i$ then
+  !#   the orbital potision computed by this class is
+  !#   \begin{equation}
+  !#    \mathbf{x} = sum_{i=1}^N \mathbf{x}_i,
+  !#   \end{equation}
+  !#   where $N$ is the depth of the node in the sub-halo hierarchy.
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorPositionOrbital
      !% An orbital position property extractor output analysis class.
@@ -131,10 +140,10 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(positionOrbitalDescriptions(3))
-    positionOrbitalDescriptions=[                                                &
-         &                       var_str('The orbital x-position of the halo.'), &
-         &                       var_str('The orbital y-position of the halo.'), &
-         &                       var_str('The orbital z-position of the halo.')  &
+    positionOrbitalDescriptions=[                                                                                                                                              &
+         &                       var_str('The orbital x-position of the halo relative to the top-level host halo (i.e. the host which is not a sub-halo of any other halo).'), &
+         &                       var_str('The orbital y-position of the halo relative to the top-level host halo (i.e. the host which is not a sub-halo of any other halo).'), &
+         &                       var_str('The orbital z-position of the halo relative to the top-level host halo (i.e. the host which is not a sub-halo of any other halo).')  &
          &                      ]
     return
   end function positionOrbitalDescriptions
