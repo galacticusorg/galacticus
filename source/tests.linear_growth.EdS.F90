@@ -19,34 +19,51 @@
 
 program Tests_Linear_Growth_EdS
   !% Tests linear growth calculations.
-  use :: Cosmology_Functions, only : cosmologyFunctions , cosmologyFunctionsClass
-  use :: Display            , only : displayVerbositySet, verbosityLevelStandard
-  use :: ISO_Varying_String , only : assignment(=)      , varying_string
-  use :: Input_Parameters   , only : inputParameters
-  use :: Linear_Growth      , only : componentDarkMatter, linearGrowth           , linearGrowthClass
-  use :: Unit_Tests         , only : Assert             , Unit_Tests_Begin_Group , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Cosmology_Parameters, only : cosmologyParametersSimple
+  use :: Cosmology_Functions , only : cosmologyFunctionsMatterLambda
+  use :: Display             , only : displayVerbositySet           , verbosityLevelStandard
+  use :: Linear_Growth       , only : componentDarkMatter           , linearGrowthCollisionlessMatter
+  use :: Unit_Tests          , only : Assert                        , Unit_Tests_Begin_Group         , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  double precision                         , dimension(8), parameter :: redshift                 =[0.0d0,1.0d0,3.0d0,9.0d0,30.0d0,100.0d0,300.0d0,1000.0d0]
-  class           (cosmologyFunctionsClass), pointer                 :: cosmologyFunctions_
-  class           (linearGrowthClass      ), pointer                 :: linearGrowth_
-  type            (varying_string         )                          :: parameterFile
-  character       (len=1024               )                          :: message
-  integer                                                            :: iExpansion
-  double precision                                                   :: expansionFactor                                                                    , linearGrowthFactor
-  type            (inputParameters        )                          :: parameters
+  double precision                                 , dimension(8), parameter :: redshift            =[0.0d0,1.0d0,3.0d0,9.0d0,30.0d0,100.0d0,300.0d0,1000.0d0]
+  type            (cosmologyParametersSimple      )                          :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterLambda )                          :: cosmologyFunctions_
+  type            (linearGrowthCollisionlessMatter)                          :: linearGrowth_
+  character       (len=1024                       )                          :: message
+  integer                                                                    :: iExpansion
+  double precision                                                           :: expansionFactor                                                               , linearGrowthFactor
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Linear growth: Einstein-de Sitter")
-
   ! Test growth factor in an Einstein-de Sitter universe. Growth factor should equal the expansion factor.
-  parameterFile='testSuite/parameters/linearGrowth/EdS.xml'
-  parameters=inputParameters(parameterFile)
-  call parameters%markGlobal()
-  ! Get the default cosmology functions object.
-  cosmologyFunctions_ => cosmologyFunctions()
-  linearGrowth_       => linearGrowth      ()
+  !# <referenceConstruct object="cosmologyParameters_">
+  !#  <constructor>
+  !#   cosmologyParametersSimple      (                                           &amp;
+  !#    &amp;                          OmegaMatter         = 1.00d0             , &amp;
+  !#    &amp;                          OmegaBaryon         = 0.00d0             , &amp;
+  !#    &amp;                          OmegaDarkEnergy     = 0.00d0             , &amp;
+  !#    &amp;                          temperatureCMB      = 2.78d0             , &amp;
+  !#    &amp;                          HubbleConstant      =73.00d0               &amp;
+  !#    &amp;                         )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="cosmologyFunctions_" >
+  !#  <constructor>
+  !#   cosmologyFunctionsMatterLambda (                                           &amp;
+  !#    &amp;                          cosmologyParameters_=cosmologyParameters_  &amp;
+  !#    &amp;                         )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="linearGrowth_"       >
+  !#  <constructor>
+  !#   linearGrowthCollisionlessMatter(                                           &amp;
+  !#    &amp;                          cosmologyParameters_=cosmologyParameters_, &amp;
+  !#    &amp;                          cosmologyFunctions_ =cosmologyFunctions_   &amp;
+  !#    &amp;                         )
+  !#  </constructor>
+  !# </referenceConstruct>
   do iExpansion=1,size(redshift)
      expansionFactor=cosmologyFunctions_%expansionFactorFromRedshift(redshift(iExpansion))
      linearGrowthFactor=linearGrowth_%value(expansionFactor=expansionFactor,component=componentDarkMatter)

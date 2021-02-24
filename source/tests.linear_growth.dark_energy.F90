@@ -20,35 +20,54 @@
 program Tests_Linear_Growth_Dark_Energy
   !% Tests linear growth calculations for a dark energy Universe. Growth rates are compared to Figure 1 of Linder and Jenkins
   !% (2003; MNRAS; 346; 573; http://adsabs.harvard.edu/abs/2003MNRAS.346..573L).
-  use :: Cosmology_Functions, only : cosmologyFunctions , cosmologyFunctionsClass
-  use :: Display            , only : displayVerbositySet, verbosityLevelStandard
-  use :: ISO_Varying_String , only : assignment(=)      , varying_string
-  use :: Input_Parameters   , only : inputParameters
-  use :: Linear_Growth      , only : componentDarkMatter, linearGrowth           , linearGrowthClass   , normalizeMatterDominated
-  use :: Unit_Tests         , only : Assert             , Unit_Tests_Begin_Group , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Cosmology_Parameters, only : cosmologyParametersSimple
+  use :: Cosmology_Functions , only : cosmologyFunctionsMatterDarkEnergy
+  use :: Display             , only : displayVerbositySet               , verbosityLevelStandard
+  use :: Linear_Growth       , only : componentDarkMatter               , linearGrowthCollisionlessMatter, normalizeMatterDominated
+  use :: Unit_Tests          , only : Assert                            , Unit_Tests_Begin_Group         , Unit_Tests_End_Group    , Unit_Tests_Finish
   implicit none
-  double precision                         , dimension(13), parameter :: redshift                 =[0.000000d0,0.052632d0,0.149425d0,0.265823d0,0.449275d0,0.666667d0,1.000000d0,1.325580d0,1.857140d0,2.846150d0,4.555560d0,8.090910d0,17.867900d0]
-  double precision                         , dimension(13), parameter :: growthFactorDarkEnergy   =[0.73d0,0.75d0,0.78d0,0.81d0,0.85d0,0.88d0,0.92d0,0.94d0,0.96d0,0.98d0,0.99d0,1.00d0,1.00d0]
-  class           (cosmologyFunctionsClass), pointer                  :: cosmologyFunctions_
-  class           (linearGrowthClass      ), pointer                  :: linearGrowth_
-  type            (varying_string         )                           :: parameterFile
-  character       (len=1024               )                           :: message
-  integer                                                             :: iExpansion
-  double precision                                                    :: expansionFactor                                                                                                                                                            , linearGrowthFactor
-  type            (inputParameters        )                           :: parameters
+  double precision                                    , dimension(13), parameter :: redshift              =[0.000000d0,0.052632d0,0.149425d0,0.265823d0,0.449275d0,0.666667d0,1.000000d0,1.325580d0,1.857140d0,2.846150d0,4.555560d0,8.090910d0,17.867900d0]
+  double precision                                    , dimension(13), parameter :: growthFactorDarkEnergy=[0.73d0,0.75d0,0.78d0,0.81d0,0.85d0,0.88d0,0.92d0,0.94d0,0.96d0,0.98d0,0.99d0,1.00d0,1.00d0]
+  type            (cosmologyParametersSimple         )                           :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterDarkEnergy)                           :: cosmologyFunctions_
+  type            (linearGrowthCollisionlessMatter   )                           :: linearGrowth_
+  character       (len=1024                          )                           :: message
+  integer                                                                        :: iExpansion
+  double precision                                                               :: expansionFactor                                                                                                                                                        , linearGrowthFactor
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Linear growth: dark energy cosmology")
-
   ! Test growth factor in a dark energy universe.
-  parameterFile='testSuite/parameters/linearGrowth/darkEnergy.xml'
-  parameters=inputParameters(parameterFile)
-  call parameters%markGlobal()
-  ! Get the default cosmology functions object.
-  cosmologyFunctions_ => cosmologyFunctions()
-  linearGrowth_       => linearGrowth      ()
+  !# <referenceConstruct object="cosmologyParameters_">
+  !#  <constructor>
+  !#   cosmologyParametersSimple      (                                                     &amp;
+  !#    &amp;                          OmegaMatter                   = 0.30d0             , &amp;
+  !#    &amp;                          OmegaBaryon                   = 0.00d0             , &amp;
+  !#    &amp;                          OmegaDarkEnergy               = 0.70d0             , &amp;
+  !#    &amp;                          temperatureCMB                = 2.78d0             , &amp;
+  !#    &amp;                          HubbleConstant                =73.00d0               &amp;
+  !#    &amp;                         )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="cosmologyFunctions_" >
+  !#  <constructor>
+  !#   cosmologyFunctionsMatterDarkEnergy(                                                  &amp;
+  !#    &amp;                             cosmologyParameters_       =cosmologyParameters_, &amp;
+  !#    &amp;                             darkEnergyEquationOfStateW0=-0.8d0              , &amp;
+  !#    &amp;                             darkEnergyEquationOfStateW1=+0.0d0                &amp;
+  !#    &amp;                            )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="linearGrowth_"       >
+  !#  <constructor>
+  !#   linearGrowthCollisionlessMatter(                                                     &amp;
+  !#    &amp;                          cosmologyParameters_          =cosmologyParameters_, &amp;
+  !#    &amp;                          cosmologyFunctions_           =cosmologyFunctions_   &amp;
+  !#    &amp;                         )
+  !#  </constructor>
+  !# </referenceConstruct>
   do iExpansion=1,size(redshift)
      expansionFactor=cosmologyFunctions_%expansionFactorFromRedshift(redshift(iExpansion))
      linearGrowthFactor=linearGrowth_%value(expansionFactor=expansionFactor,component=componentDarkMatter,normalize=normalizeMatterDominated)/expansionFactor
