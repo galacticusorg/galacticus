@@ -562,7 +562,45 @@ contains
     !% \begin{equation}
     !% S = [(1+\sqrt{1-j^2})^2+j^2] {\sqrt{1-j^2}\over j},
     !% \end{equation}
-    !% for black hole spin $j$.
+    !% for black hole spin $j$. This result is derived as follows. Starting from equation~(9) in \cite{benson_maximum_2009}:
+    !% \begin{equation}
+    !%  M_{\bullet,\mathrm{irr}} = \frac{1}{2} M_\bullet \left[ (1+\sqrt{1-j^2})^2 + j^2 \right]^{1/2},
+    !%  \label{eq:blackHoleMassIrreducible}
+    !% \end{equation}
+    !% which we can rearrange to get
+    !% \begin{equation}
+    !%  (1 + \sqrt{1-j^2})^2 + j^2 = 4 (M_{\bullet,\mathrm{irr}}/M_\bullet)^2.
+    !% \end{equation}
+    !% Differentating this gives
+    !% \begin{equation}
+    !% \left[ -2(1 + \sqrt{1-j^2}) \frac{1}{2} (1-j^2)^{-1/2} 2 j + 2 j \right] \frac{\mathrm{d} j}{\mathrm{d} M_\bullet} = - 8 (M_{\bullet,\mathrm{irr}}/M_\bullet)^2 M^{-1}_\bullet,
+    !% \end{equation}
+    !% which simplifies to
+    !% \begin{equation}
+    !% \frac{j}{(1-j^2)^{1/2}} \frac{\mathrm{d} j}{\mathrm{d} M_\bullet} = 4 (M_{\bullet,\mathrm{irr}}/M_\bullet)^2 M^{-1}_\bullet,
+    !% \end{equation}
+    !% and therefore
+    !% \begin{equation}
+    !%  \frac{\mathrm{d} j}{\mathrm{d} M_\bullet} = \frac{4}{M_\bullet} \left(\frac{M_{\bullet,\mathrm{irr}}}{M_\bullet}\right)^2  \frac{(1-j^2)^{1/2}}{j},
+    !% \end{equation}
+    !% which is equation~(10) in \cite{benson_maximum_2009}.
+    !%
+    !% The spin-down rate is then
+    !% \begin{equation}
+    !%  \frac{\mathrm{d}j}{\mathrm{d}t} = - \frac{\mathrm{d}j}{\mathrm{d}M_\bullet} \frac{P_\mathrm{jet}}{\mathrm{c}^2} = - 4 \frac{P_\mathrm{jet}}{M_\bullet \mathrm{c}^2} \left(\frac{M_{\bullet,\mathrm{irr}}}{M_\bullet}\right)^2  \frac{(1-j^2)^{1/2}}{j}.
+    !%  \label{eq:blackHoleJetSpinDownRate}
+    !% \end{equation}
+    !%
+    !% The spin-down parameter is then
+    !% \begin{equation}
+    !%  s_\mathrm{jet} = \frac{M_\bullet}{\dot{M}_{\bullet,0}} \frac{\mathrm{d}j}{\mathrm{d}t}.
+    !% \end{equation}
+    !% Using equations~(\ref{eq:blackHoleMassIrreducible}) and (\ref{eq:blackHoleJetSpinDownRate}) the above becomes
+    !% \begin{equation}
+    !%   s_\mathrm{jet} = - \frac{P_\mathrm{jet}}{\dot{M}_{\bullet,0} \mathrm{c}^2} \left[ (1+\sqrt{1-j^2})^2 + j^2 \right] \frac{(1-j^2)^{1/2}}{j},
+    !% \end{equation}
+    !% which is equation~(12)\footnote{Note that equation~(12) of \cite{benson_maximum_2009} is missing the factor of
+    !% $\dot{M}_{\bullet,0} \mathrm{c}^2$ in the denominator} of \cite{benson_maximum_2009}.
     implicit none
     double precision, intent(in   ) :: blackHoleSpin
     double precision, parameter     :: blackHoleSpinMinimum      =5.0d-8
