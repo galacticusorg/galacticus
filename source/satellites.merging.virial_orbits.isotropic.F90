@@ -38,6 +38,7 @@
      procedure :: angularMomentumVectorMean       => isotropicAngularMomentumVectorMean
      procedure :: velocityTotalRootMeanSquared    => isotropicVelocityTotalRootMeanSquared
      procedure :: energyMean                      => isotropicEnergyMean
+     procedure :: isAngularlyResolved             => isotropicIsAngularlyResolved
   end type virialOrbitIsotropic
 
   interface virialOrbitIsotropic
@@ -177,3 +178,14 @@ contains
     isotropicEnergyMean=self%virialOrbit_%energyMean(node,host)
     return
   end function isotropicEnergyMean
+
+  logical function isotropicIsAngularlyResolved(self)
+    !% Return true indicating that orbits are angularly-resolved.
+    implicit none
+    class(virialOrbitIsotropic), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    isotropicIsAngularlyResolved=.true.
+    return
+  end function isotropicIsAngularlyResolved
+  

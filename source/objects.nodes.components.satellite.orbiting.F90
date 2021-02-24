@@ -192,6 +192,7 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Satellite_Orbiting_Thread_Initialize(parameters_)
     !% Initializes the tree node orbiting satellite module.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
@@ -200,6 +201,8 @@ contains
     if (defaultSatelliteComponent%orbitingIsActive()) then
        !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
        !# <objectBuilder class="virialOrbit"         name="virialOrbit_"         source="parameters_"/>
+       ! Check that the virial orbit class supports setting of angular coordinates.
+       if (.not.virialOrbit_%isAngularlyResolved()) call Galacticus_Error_Report('"orbiting" satellite component requires a virialOrbit class which provides angularly-resolved orbits'//{introspection:location})
     end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Thread_Initialize

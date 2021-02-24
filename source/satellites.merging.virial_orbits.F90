@@ -41,6 +41,15 @@ module Virial_Orbits
   !#   <argument>type(treeNode), intent(inout) :: node               , host</argument>
   !#   <argument>logical       , intent(in   ) :: acceptUnboundOrbits</argument>
   !#  </method>
+  !#  <method name="isAngularlyResolved" >
+  !#   <description>Returns true if this orbit class provides resolution of the orbital angular coordinates ($\theta$,$\phi$) when setting orbits, false otherwise.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#   <code>
+  !#    !$GLC attributes unused :: self
+  !#    virialOrbitIsAngularlyResolved=.false.
+  !#  </code>
+  !#  </method>
   !#  <method name="densityContrastDefinition" >
   !#   <description>Returns a {\normalfont \ttfamily virialDensityContrast} object describing the virial density contrast used to define this orbit class.</description>
   !#   <type>class(virialDensityContrastClass)</type>

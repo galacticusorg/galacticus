@@ -38,6 +38,7 @@
      procedure :: angularMomentumVectorMean       => spinCorrelatedAngularMomentumVectorMean
      procedure :: velocityTotalRootMeanSquared    => spinCorrelatedVelocityTotalRootMeanSquared
      procedure :: energyMean                      => spinCorrelatedEnergyMean
+     procedure :: isAngularlyResolved             => spinCorrelatedIsAngularlyResolved
   end type virialOrbitSpinCorrelated
 
   interface virialOrbitSpinCorrelated
@@ -233,3 +234,14 @@ contains
     spinCorrelatedEnergyMean=self%virialOrbit_%energyMean(node,host)
     return
   end function spinCorrelatedEnergyMean
+
+  logical function spinCorrelatedIsAngularlyResolved(self)
+    !% Return true indicating that orbits are angularly-resolved.
+    implicit none
+    class(virialOrbitSpinCorrelated), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    spinCorrelatedIsAngularlyResolved=.true.
+    return
+  end function spinCorrelatedIsAngularlyResolved
+  
