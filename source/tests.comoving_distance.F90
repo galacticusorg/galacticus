@@ -25,40 +25,84 @@ program Tests_Comoving_Distance
   use :: Cosmology_Functions_Options, only : distanceTypeComoving
   use :: Cosmology_Parameters       , only : cosmologyParametersSimple
   use :: Display                    , only : displayVerbositySet      , verbosityLevelStandard
-  use :: ISO_Varying_String         , only : assignment(=)            , varying_string
-  use :: Input_Parameters           , only : inputParameters
   use :: Unit_Tests                 , only : Assert                   , Unit_Tests_Begin_Group , Unit_Tests_End_Group          , Unit_Tests_Finish
   implicit none
-  double precision                                , dimension(8), parameter         :: redshift                               =[0.1000000d0,1.0000000d0,3.0000000d0,9.0000000d0,30.0000000d0,100.0000000d0,300.0000000d0,1000.0000000d0]
-  double precision                                , dimension(8)           , target :: distanceEdS                            =[27.9031290d0,175.6143280d0,299.7923450d0,409.9791330d0,491.8947530d0,539.9166970d0,564.9913370d0,580.4490760d0]
-  double precision                                , dimension(8)           , target :: distanceOpen                           =[2.8365460d0,19.5660920d0,36.2487160d0,53.3136690d0,67.2862090d0,75.8567320d0,80.4014770d0,83.2171590d0]
-  double precision                                , dimension(8)           , target :: distanceCosmologicalConstant           =[2.9291813d0,23.1267935d0,44.4897529d0,64.4722404d0,79.4221370d0,88.1893579d0,92.7669523d0,95.5884181d0]
-  double precision                                , dimension(:), pointer           :: distance_
-  type            (cosmologyParametersSimple     )                                  :: cosmologyParametersCosmologicalConstant                                                                                                                 , cosmologyParametersOpen
-  class           (cosmologyFunctionsClass       )              , pointer           :: cosmologyFunctionsEdS                                                                                                                                   , cosmologyFunctions_
-  type            (cosmologyFunctionsMatterLambda)                         , target :: cosmologyFunctionsCosmologicalConstant                                                                                                                  , cosmologyFunctionsOpen
-  type            (varying_string                )                                  :: parameterFile
-  character       (len=1024                      )                                  :: message
-  type            (inputParameters               )                                  :: parameters
-  integer                                                                           :: i                                                                                                                                                       , iExpansion
-  double precision                                                                  :: distance                                                                                                                                                , distanceModulus        , &
-       &                                                                               time                                                                                                                                                    , timeLookup
+  double precision                                , dimension(8), parameter :: redshift                               =[0.1000000d0, 1.0000000d0, 3.0000000d0, 9.0000000d0,30.0000000d0,100.0000000d0,300.0000000d0,1000.0000000d0]
+  double precision                                , dimension(8), target    :: distanceEdS                            =[2.7903130d0,17.5614328d0,29.9792345d0,40.9979133d0,49.1894753d0, 53.9916697d0, 56.4991337d0,  58.0449076d0]
+  double precision                                , dimension(8), target    :: distanceOpen                           =[2.8365460d0,19.5660920d0,36.2487160d0,53.3136690d0,67.2862090d0, 75.8567320d0, 80.4014770d0,  83.2171590d0]
+  double precision                                , dimension(8), target    :: distanceCosmologicalConstant           =[2.9291813d0,23.1267935d0,44.4897529d0,64.4722404d0,79.4221370d0, 88.1893579d0, 92.7669523d0,  95.5884181d0]
+  double precision                                , dimension(:), pointer   :: distance_
+  class           (cosmologyFunctionsClass       )              , pointer   :: cosmologyFunctions_
+  type            (cosmologyParametersSimple     )                          :: cosmologyParametersCosmologicalConstant                                                                                                             , cosmologyParametersOpen, &
+       &                                                                       cosmologyParametersEdS
+  type            (cosmologyFunctionsMatterLambda)              , target    :: cosmologyFunctionsCosmologicalConstant                                                                                                              , cosmologyFunctionsOpen , &
+       &                                                                       cosmologyFunctionsEdS
+  character       (len=1024                      )                          :: message
+  integer                                                                   :: i                                                                                                                                                   , iExpansion
+  double precision                                                          :: distance                                                                                                                                            , distanceModulus        , &
+       &                                                                       time                                                                                                                                                , timeLookup
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Comoving distance")
-  ! Cosmology functions for in an Einstein-de Sitter universe. For this case, we use the default settings.
-  parameterFile='testSuite/parameters/comovingDistance/EdS.xml'
-  parameters=inputParameters(parameterFile)
-  call parameters%markGlobal()
-  cosmologyFunctionsEdS => cosmologyFunctions()
+  ! Cosmology functions for an Einstein-de Sitter Universe.
+  !# <referenceConstruct object="cosmologyParametersEdS"                 >
+  !#  <constructor>
+  !#   cosmologyParametersSimple     (                                                              &amp;
+  !#    &amp;                         OmegaMatter         =1.00d0                                 , &amp;
+  !#    &amp;                         OmegaBaryon         =0.00d0                                 , &amp;
+  !#    &amp;                         OmegaDarkEnergy     =0.00d0                                 , &amp;
+  !#    &amp;                         temperatureCMB      =2.78d0                                 , &amp;
+  !#    &amp;                         HubbleConstant      =1.00d4                                   &amp;
+  !#    &amp;                        )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="cosmologyFunctionsEdS"                  >
+  !#  <constructor>
+  !#   cosmologyFunctionsMatterLambda(                                                              &amp;
+  !#    &amp;                         cosmologyParameters_=cosmologyParametersEdS                   &amp;
+  !#    &amp;                        )
+  !#  </constructor>
+  !# </referenceConstruct>
   ! Cosmology functions for an open Universe.
-  cosmologyParametersOpen                =cosmologyParametersSimple     (0.3d0,0.0d0,0.0d0,2.78d0,10000.0d0     )
-  cosmologyFunctionsOpen                 =cosmologyFunctionsMatterLambda(cosmologyParametersOpen                )
+  !# <referenceConstruct object="cosmologyParametersOpen"                >
+  !#  <constructor>
+  !#   cosmologyParametersSimple     (                                                              &amp;
+  !#    &amp;                         OmegaMatter         =0.30d0                                 , &amp;
+  !#    &amp;                         OmegaBaryon         =0.00d0                                 , &amp;
+  !#    &amp;                         OmegaDarkEnergy     =0.00d0                                 , &amp;
+  !#    &amp;                         temperatureCMB      =2.78d0                                 , &amp;
+  !#    &amp;                         HubbleConstant      =1.00d4                                   &amp;
+  !#    &amp;                        )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="cosmologyFunctionsOpen"                 >
+  !#  <constructor>
+  !#   cosmologyFunctionsMatterLambda(                                                              &amp;
+  !#    &amp;                         cosmologyParameters_=cosmologyParametersOpen                  &amp;
+  !#    &amp;                        )
+  !#  </constructor>
+  !# </referenceConstruct>
   ! Cosmology functions for a cosmological constant Universe.
-  cosmologyParametersCosmologicalConstant=cosmologyParametersSimple     (0.3d0,0.0d0,0.7d0,2.78d0,10000.0d0     )
-  cosmologyFunctionsCosmologicalConstant =cosmologyFunctionsMatterLambda(cosmologyParametersCosmologicalConstant)
+  !# <referenceConstruct object="cosmologyParametersCosmologicalConstant">
+  !#  <constructor>
+  !#   cosmologyParametersSimple     (                                                              &amp;
+  !#    &amp;                         OmegaMatter         =0.30d0                                 , &amp;
+  !#    &amp;                         OmegaBaryon         =0.00d0                                 , &amp;
+  !#    &amp;                         OmegaDarkEnergy     =0.70d0                                 , &amp;
+  !#    &amp;                         temperatureCMB      =2.78d0                                 , &amp;
+  !#    &amp;                         HubbleConstant      =1.00d4                                   &amp;
+  !#    &amp;                        )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="cosmologyFunctionsCosmologicalConstant" >
+  !#  <constructor>
+  !#   cosmologyFunctionsMatterLambda(                                                              &amp;
+  !#    &amp;                         cosmologyParameters_=cosmologyParametersCosmologicalConstant  &amp;
+  !#    &amp;                        )
+  !#  </constructor>
+  !# </referenceConstruct>
   ! Iterate over cosmologies.
   do i=1,3
      select case (i)
