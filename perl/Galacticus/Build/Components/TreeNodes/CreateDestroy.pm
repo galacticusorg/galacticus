@@ -339,6 +339,8 @@ sub Tree_Node_Class_Creation {
 	     }
 	    ]
     };
+    my @nonNullComponents = map {$_->{'name'} eq "null" ? () : $_->{'name'}} @{$build->{'componentClasses'}->{$code::class->{'name'}}->{'members'}};
+    $code::nonNullComponents = "char(10)//".join("//char(10)//",map {"'   ".$_."'"} sort(@nonNullComponents));
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 if (displayVerbosity() >= verbosityLevelInfo) then
   message='Creating {$class->{'name'}} in node '
@@ -350,6 +352,10 @@ if (present(template)) then
 else
    select type (default{ucfirst($class->{'name'})}Component)
    type is (nodeComponent{ucfirst($class->{'name'})}Null)
+      message=         'creation of the {$class->{'name'}} component requested, but that component is null'//char(10)
+      message=message//'please select a non-null {$class->{'name'}} component - available options are:'
+      message=message//{$nonNullComponents}
+      call displayMessage(message,verbosityLevelSilent)
       call Galacticus_Error_Report('refusing to create null instance'//\{introspection:location\})
    class default
       allocate(self%component{ucfirst($class->{'name'})}(1),source=default{ucfirst($class->{'name'})}Component)
