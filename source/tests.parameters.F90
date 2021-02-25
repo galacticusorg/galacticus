@@ -42,11 +42,10 @@ program Test_Parameters
   call outputFile%openFile("testSuite/outputs/testParameters.hdf5",overWrite=.true.)
   parameterFile  ='testSuite/parameters/testsParameters.xml'
   testParameters=inputParameters(parameterFile,outputParametersGroup=outputFile)
-  call testParameters%markGlobal()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Parameter input")
   ! Test retrieval of cosmology parameters (simple).
-  cosmologyParameters_ => cosmologyParameters()
+  cosmologyParameters_ => cosmologyParameters(testParameters)
   call Unit_Tests_Begin_Group("Retrieve cosmological parameters (simple)")
   call Assert('Ωₘ  ',cosmologyParameters_%OmegaMatter    (), 0.2725d0,relTol=1.0d-6)
   call Assert('Ωb  ',cosmologyParameters_%OmegaBaryon    (), 0.0455d0,relTol=1.0d-6)
@@ -55,7 +54,7 @@ program Test_Parameters
   call Assert('TCMB',cosmologyParameters_%temperatureCMB (),2.72548d0,relTol=1.0d-6)
   call Unit_Tests_End_Group()
   ! Test retrieval of cosmological mass variance through a reference.
-  cosmologicalMassVariance_ => cosmologicalMassVariance()
+  cosmologicalMassVariance_ => cosmologicalMassVariance(testParameters)
   call Unit_Tests_Begin_Group("Parameter referencing")
   call Assert('σ₈ via reference'          ,cosmologicalMassVariance_%sigma8     (                                ),0.912d0,relTol=1.0d-6)
   call Assert('Test presence of reference',testParameters           %isPresent  ('cosmologicalMassVarianceMethod'),.true.               )
