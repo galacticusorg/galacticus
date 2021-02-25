@@ -769,7 +769,7 @@ contains
     double precision                         , dimension(3  ) :: positionReference           , nodePositionStart , &
          &                                                       nodePositionEnd
     double precision                         , parameter      :: speedMaximum         =2000.0 ! Maximum plausible physical speed for any node.
-    double precision                         , parameter      :: toleranceTimeRelative=1.0d-2
+    double precision                         , parameter      :: toleranceTimeRelative=1.0d-6
     double precision                                          :: distanceMinimum             , distanceMaximum   , &
          &                                                       distanceNodeStart           , distanceNodeEnd   , &
          &                                                       radiusBuffer                , timeCrossing      , &
