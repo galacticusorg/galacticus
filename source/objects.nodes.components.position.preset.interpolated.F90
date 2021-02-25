@@ -215,7 +215,6 @@ contains
     double precision                                                    :: timeParent                   , timeGrandparent
     logical                                                             :: useSpiralInterpolation       , searchEvent
 
-    
     ! If this component is not active return immediately.
     if (.not.defaultPositionComponent%presetInterpolatedIsActive()) return
     ! Get the position component of this node in which we will store the interpolation coefficients.
@@ -312,6 +311,7 @@ contains
              ! No history remains, and no event exists. This is the end of the life of this node, so we do not need to compute any
              ! interpolation.
              call position%interpolationCoefficientsSet(coefficientsNull)
+             call position%interpolationTimeMaximumSet (huge(0.0d0))
              return
           end if
        else
@@ -466,8 +466,17 @@ contains
        if (associated(nodeGrandparent)) then
           basicGrandparent => nodeGrandparent%basic()
           do while (Values_Less_Than(basicGrandparent%time(),time(2),relTol=1.0d-2))
-             nodeGrandparent  => nodeGrandparent%parent
-             basicGrandparent => nodeGrandparent%basic ()
+             nodeGrandparent => nodeGrandparent%parent
+             if (associated(nodeGrandparent)) then
+                basicGrandparent => nodeGrandparent%basic()
+             else
+                ! No grandparent halo exists at the final time. Use a null interpolation to ensure that
+                ! the fixed-at-snapshot position will be used for the node. Set the maximum time for the interpolation to infinity to
+                ! avoid an infinite loop of attempting to compute this interpolation.
+                call position%interpolationCoefficientsSet(coefficientsNull)
+                call position%interpolationTimeMaximumSet (huge(0.0d0))
+                return
+             end if
           end do
           ! Back up to the previous grandparent. This grandparent therefore exists up until our final time.
           nodeGrandparent  => nodeGrandparent%firstChild
@@ -581,9 +590,7 @@ contains
           call position%interpolationCoefficientsSet(coefficientsNull)
           call position%interpolationTimeMaximumSet (huge(0.0d0))
        end if
-   end if
-
-
+    end if
     return
   end subroutine computeInterpolation
 
