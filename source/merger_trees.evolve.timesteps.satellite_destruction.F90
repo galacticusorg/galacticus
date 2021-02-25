@@ -110,13 +110,15 @@ contains
     use :: Galacticus_Error                   , only : Galacticus_Error_Report
     use :: ISO_Varying_String                 , only : varying_string
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
+    use :: Satellite_Promotion                , only : Satellite_Move_To_New_Host
     use :: String_Handling                    , only : operator(//)
     implicit none
     class  (*             ), intent(inout)          :: self
     type   (mergerTree    ), intent(in   )          :: tree
     type   (treeNode      ), intent(inout), pointer :: node
     integer                , intent(inout)          :: deadlockStatus
-    type   (treeNode      )               , pointer :: mergee        , mergeeNext
+    type   (treeNode      )               , pointer :: mergee        , mergeeNext       , &
+         &                                             nodeSatellite , nodeSatelliteNext
     type   (varying_string)                         :: message
     !$GLC attributes unused :: self, tree
 
@@ -135,6 +137,13 @@ contains
        node  %mergeTarget  %firstMergee => mergee
        mergee%mergeTarget               => node      %mergeTarget
        mergee                           => mergeeNext
+    end do
+    ! Move the sub-sub-halo into its host's host.
+    nodeSatellite => node%firstSatellite
+    do while (associated(nodeSatellite))
+       nodeSatelliteNext => nodeSatellite%sibling
+       call Satellite_Move_To_New_Host(nodeSatellite,node%parent)
+       nodeSatellite     => nodeSatelliteNext
     end do
     ! Finally remove the satellite node from the host and merge targets and destroy it.
     call node%removeFromHost  ()
