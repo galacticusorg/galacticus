@@ -20,7 +20,6 @@
     <dimensionless value="true"/>
   </spheroidMassDistribution>
   <treeNodeMethodSpin value="vector"/>
-  <treeNodeMethodNBody value="generic"/>
 
   <diskMassDistribution value="exponentialDisk">
     <dimensionless value="true"/>
@@ -75,7 +74,6 @@
     <presetSubhaloMasses value="true"/>
     <missingHostsAreFatal value="true"/>
     <allowSubhaloPromotions value="true"/>
-    <presetNamedReals value="velocityMaximum velocityDispersion"/>
   </mergerTreeConstructorMethod>
   <mergerTreeEvolverMethod value="standard">
     <allTreesExistAtFinalTime value="false"/>
@@ -232,7 +230,9 @@
   <!-- Node evolution and physics -->
   <nodeOperatorMethod value="multi">
     <!-- Halo spin -->
-    <nodeOperatorMethod value="haloSpinInterpolate">
+    <nodeOperatorMethod value="haloSpinRandom">
+      <factorReset value="2.0"/>
+    </nodeOperatorMethod>
     <!-- Star formation -->
     <nodeOperatorMethod value="starFormationDisks"/>
     <nodeOperatorMethod value="starFormationSpheroids"/>
@@ -293,6 +293,7 @@
   </geometryLightconeMethod>
   <!-- Prune trees which lie outside the lightcone -->
   <mergerTreeOperatorMethod value="pruneLightcone">
+    <splitTrees value="true"/>
     <bufferIsolatedHalos value="true"/>
   </mergerTreeOperatorMethod>
   <!-- Set up the classic lightcone output using an outputter passed directly to the evolve forests task -->
