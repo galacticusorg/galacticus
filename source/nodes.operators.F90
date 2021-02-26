@@ -38,6 +38,15 @@ module Nodes_Operators
   !#    !$GLC attributes unused :: self, node
   !#   </code>
   !#  </method>
+  !#  <method name="nodesMerge" >
+  !#   <description>Act on the merging of two nodes.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#   <code>
+  !#    !$GLC attributes unused :: self, node
+  !#   </code>
+  !#  </method>
   !#  <method name="nodePromote" >
   !#   <description>Act on the promotion of a node to its parent.</description>
   !#   <type>void</type>

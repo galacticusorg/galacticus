@@ -37,6 +37,7 @@
    contains
      final     ::                                        multiDestructor
      procedure :: nodeInitialize                      => multiNodeInitialize
+     procedure :: nodesMerge                          => multiNodesMerge
      procedure :: nodePromote                         => multiNodePromote
      procedure :: galaxiesMerge                       => multiGalaxiesMerge
      procedure :: differentialEvolutionPre            => multiDifferentialEvolutionPre
@@ -125,6 +126,21 @@ contains
     end do
     return
   end subroutine multiNodeInitialize
+
+  subroutine multiNodesMerge(self,node)
+    !% Act on a merger between galaxies.
+    implicit none
+    class(nodeOperatorMulti), intent(inout) :: self
+    type (treeNode         ), intent(inout) :: node
+    type (multiProcessList ), pointer       :: process_
+
+    process_ => self%processes
+    do while (associated(process_))
+       call process_%process_%nodesMerge(node)
+       process_ => process_%next
+    end do
+    return
+  end subroutine multiNodesMerge
 
   subroutine multiNodePromote(self,node)
     !% Act on a node promotion event.

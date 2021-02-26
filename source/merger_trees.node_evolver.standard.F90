@@ -1164,8 +1164,9 @@ contains
     !#  <functionArgs>node</functionArgs>
     include 'events.node_mergers.process.inc'
     !# </include>
+    call self%nodeOperator_        %nodesMerge(node)
     ! Process the merger.
-    call self%mergerTreeNodeMerger_%process(node)
+    call self%mergerTreeNodeMerger_%process   (node)
     return
   end subroutine standardMerge
 
