@@ -201,21 +201,21 @@ program Test_DiemerKravtsov2014_Concentration
   !#    &amp;                                                       )
   !#  </constructor>
   !# </referenceConstruct>
-  darkMatterProfileConcentration=darkMatterProfileConcentrationDiemerKravtsov2014(                           &
-       &                                                                          0.69d0                   , &
-       &                                                                          6.58d0                   , &
-       &                                                                          1.37d0                   , &
-       &                                                                          6.82d0                   , &
-       &                                                                          1.42d0                   , &
-       &                                                                          1.12d0                   , &
-       &                                                                          1.69d0                   , &
-       &                                                                          0.00d0                   , &
-       &                                                                          cosmologyFunctions_      , &
-       &                                                                          cosmologyParameters_     , &
-       &                                                                          criticalOverdensity_     , &
-       &                                                                          cosmologicalMassVariance_, &
-       &                                                                          powerSpectrum_             &
-       &                                                                         )
+  darkMatterProfileConcentration_=darkMatterProfileConcentrationDiemerKravtsov2014(                          &
+       &                                                                           0.69d0                   , &
+       &                                                                           6.58d0                   , &
+       &                                                                           1.37d0                   , &
+       &                                                                           6.82d0                   , &
+       &                                                                           1.42d0                   , &
+       &                                                                           1.12d0                   , &
+       &                                                                           1.69d0                   , &
+       &                                                                           0.00d0                   , &
+       &                                                                           cosmologyFunctions_      , &
+       &                                                                           cosmologyParameters_     , &
+       &                                                                           criticalOverdensity_     , &
+       &                                                                           cosmologicalMassVariance_, &
+       &                                                                           powerSpectrum_             &
+       &                                                                          )
   ! Read the reference file.
   differenceFractionalMaximum=0.0d0
   open(newUnit=referenceUnit,file=char(galacticusPath(pathTypeExec)//"testSuite/data/diemerKravtsov2014Concentration.txt"),status='old',form='formatted',iostat=ioStatus)
