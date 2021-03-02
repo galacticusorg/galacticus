@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<!-- Parameter file used for testing Zhao et al. 2009 algorithms. -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+  <treeNodeMethodBasic value="standard"/>
+</parameters>
