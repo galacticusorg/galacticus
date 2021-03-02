@@ -21,6 +21,7 @@
 
   !% Implementation of a satellite tidal radius class which follows the method of \cite{king_structure_1962}.
 
+  use :: Cosmology_Parameters   , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   use :: Kind_Numbers           , only : kind_int8
   use :: Root_Finder            , only : rootFinder
@@ -32,14 +33,17 @@
   !#   r_\mathrm{tidal}=\left(\frac{GM_\mathrm{sat}}{\omega^2-d^2\Phi/dr^2}\right)^{1/3},
   !#   \end{equation}
   !#   where $\omega$ is the orbital angular velocity of the satellite, and $\Phi(r)$ is the gravitational potential due to the
-  !#   host.
+  !#   host. The calculation is based on the dark matter only density profile of the satellite---no accounting is made for the
+  !#   baryonic components.
   !#  </description>
   !# </satelliteTidalStrippingRadius>
   type, extends(satelliteTidalStrippingRadiusClass) :: satelliteTidalStrippingRadiusKing1962
      !% Implementation of a satellite tidal radius class which follows the method of \cite{king_structure_1962}.
      private
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
-     double precision                                    :: radiusTidalPrevious           , expandMultiplier
+     double precision                                    :: radiusTidalPrevious           , expandMultiplier, &
+          &                                                 fractionDarkMatter
      integer         (kind_int8               )          :: lastUniqueID
      type            (rootFinder              )          :: finder
    contains
@@ -71,23 +75,32 @@ contains
     implicit none
     type (satelliteTidalStrippingRadiusKing1962)                :: self
     type (inputParameters                      ), intent(inout) :: parameters
+    class(cosmologyParametersClass             ), pointer       :: cosmologyParameters_
     class(darkMatterHaloScaleClass             ), pointer       :: darkMatterHaloScale_
 
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    self=satelliteTidalStrippingRadiusKing1962(darkMatterHaloScale_)
+    self=satelliteTidalStrippingRadiusKing1962(cosmologyParameters_,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function king1962ConstructorParameters
 
-  function king1962ConstructorInternal(darkMatterHaloScale_) result(self)
+  function king1962ConstructorInternal(cosmologyParameters_,darkMatterHaloScale_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily king1962} satellite tidal stripping class.
     implicit none
     type            (satelliteTidalStrippingRadiusKing1962)                        :: self
+    class           (cosmologyParametersClass             ), intent(in   ), target :: cosmologyParameters_
     class           (darkMatterHaloScaleClass             ), intent(in   ), target :: darkMatterHaloScale_
     double precision                                       , parameter             :: toleranceAbsolute   =0.0d0, toleranceRelative=1.0d-3
-    !# <constructorAssign variables="*darkMatterHaloScale_"/>
+    !# <constructorAssign variables="*cosmologyParameters_, *darkMatterHaloScale_"/>
 
+    self%fractionDarkMatter=+(                                         & 
+         &                    +self%cosmologyParameters_%OmegaMatter() &
+         &                    -self%cosmologyParameters_%OmegaBaryon() &
+         &                   )                                         &
+         &                  /  self%cosmologyParameters_%OmegaMatter()
     self%expandMultiplier=2.0d0
     self%finder          =rootFinder(                                             &
          &                           rootFunction     =king1962TidalRadiusSolver, &
@@ -113,6 +126,7 @@ contains
     implicit none
     type(satelliteTidalStrippingRadiusKing1962), intent(inout) :: self
 
+    !# <objectDestructor name="self%darkMatterHaloScale_"/>
     !# <objectDestructor name="self%darkMatterHaloScale_"/>
     call calculationResetEvent%detach(self,king1962CalculationReset)
     return
@@ -145,7 +159,7 @@ contains
     !% compressive ones.)
     use :: Galacticus_Error                  , only : Galacticus_Error_Report         , errorStatusSuccess
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
-    use :: Galactic_Structure_Options        , only : coordinateSystemCartesian
+    use :: Galactic_Structure_Options        , only : coordinateSystemCartesian       , massTypeDark
     use :: Galactic_Structure_Tidal_Tensors  , only : Galactic_Structure_Tidal_Tensor
     use :: Galacticus_Nodes                  , only : nodeComponentSatellite          , treeNode
     use :: Linear_Algebra                    , only : vector                          , matrix                        , assignment(=)
@@ -256,7 +270,7 @@ contains
        end if
        king1962Radius=self%radiusTidalPrevious
     else
-       king1962Radius=Galactic_Structure_Radius_Enclosing_Mass(node,massSatellite)
+       king1962Radius=Galactic_Structure_Radius_Enclosing_Mass(node,massSatellite*self%fractionDarkMatter,massType=massTypeDark)
     end if
     return
   end function king1962Radius
