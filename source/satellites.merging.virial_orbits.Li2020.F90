@@ -24,7 +24,6 @@
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass       , criticalOverdensityClass
   use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
   use :: Virial_Density_Contrast   , only : virialDensityContrastBryanNorman1998
-  use :: Numerical_Interpolation   , only : interpolator
   
   !# <virialOrbit name="virialOrbitLi2020">
   !#  <description>Virial orbits using the \cite{li_orbital_2020} orbital parameter distribution.</description>
@@ -44,12 +43,11 @@
      class           (criticalOverdensityClass            ), pointer :: criticalOverdensity_      => null()
      class           (cosmologicalMassVarianceClass       ), pointer :: cosmologicalMassVariance_ => null()
      type            (virialDensityContrastBryanNorman1998), pointer :: virialDensityContrast_    => null()
-     double precision                                                :: mu                                 , sigma1  , &
-          &                                                             sigma2                             , a0      , &
-          &                                                             a1                                 , a2      , &
-          &                                                             a3                                 , aMinimum, &
-          &                                                             aMaximum
-     type            (interpolator                        )          :: interpolatorA
+     double precision                                                :: mu1                                , mu2   , &
+          &                                                             a0                                 , a1    , &
+          &                                                             a2                                 , a3    , &
+          &                                                             b1                                 , b2    , &
+          &                                                             c                                  , sigma1
      logical                                                         :: propagateOrbits
    contains
      !# <methods>
@@ -86,60 +84,82 @@ contains
     class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
     class           (criticalOverdensityClass     ), pointer       :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
-    double precision                                               :: mu                       , sigma1, &
-         &                                                            sigma2                   , a0    , &
-         &                                                            a1                       , a2    , &
-         &                                                            a3 
+    double precision                                               :: mu1                      , mu2   , &
+         &                                                            a0                       , a1    , &
+         &                                                            a2                       , a3    , &
+         &                                                            b1                       , b2    , &
+         &                                                            c                        , sigma1
     logical                                                        :: propagateOrbits
     
     !# <inputParameter>
-    !#   <name>mu</name>
-    !#   <defaultValue>1.21d0</defaultValue>
+    !#   <name>mu1</name>
+    !#   <defaultValue>1.20d0</defaultValue>
     !#   <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
     !#   <source>parameters</source>
-    !#   <description>Values of the $\mu$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
+    !#   <description>Values of the $\mu_1$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>mu2</name>
+    !#   <defaultValue>1.04d0</defaultValue>
+    !#   <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
+    !#   <source>parameters</source>
+    !#   <description>Values of the $\mu_2$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sigma1</name>
-    !#   <defaultValue>0.22d0</defaultValue>
+    !#   <defaultValue>0.20d0</defaultValue>
     !#   <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>Values of the $\sigma_1$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>sigma2</name>
-    !#   <defaultValue>0.40d0</defaultValue>
-    !#   <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
-    !#   <source>parameters</source>
-    !#   <description>Values of the $\sigma_2$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
-    !# </inputParameter>
-    !# <inputParameter>
     !#   <name>a0</name>
-    !#   <defaultValue>-0.97d0</defaultValue>
+    !#   <defaultValue>0.89d0</defaultValue>
     !#   <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>Values of the $a_0$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>a1</name>
-    !#   <defaultValue>0.74d0</defaultValue>
+    !#   <defaultValue>0.30d0</defaultValue>
     !#   <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>Values of the $a_1$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>a2</name>
-    !#   <defaultValue>4.80d0</defaultValue>
+    !#   <defaultValue>-3.33d0</defaultValue>
     !#   <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>Values of the $a_2$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>a3</name>
-    !#   <defaultValue>0.40d0</defaultValue>
+    !#   <defaultValue>0.56d0</defaultValue>
     !#   <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>Values of the $a_3$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>b1</name>
+    !#   <defaultValue>-1.44d0</defaultValue>
+    !#   <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
+    !#   <source>parameters</source>
+    !#   <description>Values of the $b_1$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>b2</name>
+    !#   <defaultValue>9.60d0</defaultValue>
+    !#   <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
+    !#   <source>parameters</source>
+    !#   <description>Values of the $b_2$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>c</name>
+    !#   <defaultValue>0.43d0</defaultValue>
+    !#   <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
+    !#   <source>parameters</source>
+    !#   <description>Values of the $c$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>propagateOrbits</name>
@@ -152,7 +172,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
-    self=virialOrbitLi2020(mu,sigma1,sigma2,a0,a1,a2,a3,propagateOrbits,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_)
+    self=virialOrbitLi2020(mu1,mu2,sigma1,a0,a1,a2,a3,b1,b2,c,propagateOrbits,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="darkMatterHaloScale_"     />
     !# <objectDestructor name="cosmologyParameters_"     />
@@ -162,10 +182,8 @@ contains
     return
   end function li2020ConstructorParameters
 
-  function li2020ConstructorInternal(mu,sigma1,sigma2,a0,a1,a2,a3,propagateOrbits,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
+  function li2020ConstructorInternal(mu1,mu2,sigma1,a0,a1,a2,a3,b1,b2,c,propagateOrbits,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily li2020} virial orbits class.
-    use :: Numerical_Integration, only : integrator
-    use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
     implicit none
     type            (virialOrbitLi2020            )                             :: self
     class           (darkMatterHaloScaleClass     ), intent(in   ), target      :: darkMatterHaloScale_
@@ -173,94 +191,18 @@ contains
     class           (cosmologyFunctionsClass      ), intent(in   ), target      :: cosmologyFunctions_
     class           (criticalOverdensityClass     ), intent(in   ), target      :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass), intent(in   ), target      :: cosmologicalMassVariance_
-    double precision                               , intent(in   )              :: mu                              , sigma1                           , &
-         &                                                                         sigma2                          , a0                               , &
-         &                                                                         a1                              , a2                               , &
-         &                                                                         a3
+    double precision                               , intent(in   )              :: mu1                      , mu2   , &
+         &                                                                         a0                       , a1    , &
+         &                                                                         a2                       , a3    , &
+         &                                                                         b1                       , b2    , &
+         &                                                                         c                        , sigma1
     logical                                        , intent(in   )              :: propagateOrbits
-    integer                                        , parameter                  :: countTable               =1000
-    double precision                               , parameter                  :: peakHeightMaximum        =10.0d0, massRatioMaximum           =2.0d0, &
-         &                                                                         extentVelocity           =10.0d0
-    double precision                               , dimension(:) , allocatable :: aTable                          , velocityTangentialMeanTable
-    type            (integrator                   )                             :: integratorVelocityTotal         , integratorCosSquaredTheta
-    double precision                                                               velocityTotal_                  , eta                              , &
-         &                                                                         a                               , velocityTotalMaximum
-    integer                                                                     :: i
-    
-    !# <constructorAssign variables="mu, sigma1, sigma2, a0, a1, a2, a3, propagateOrbits, *darkMatterHaloScale_, *cosmologyParameters_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_"/>
+    !# <constructorAssign variables="mu1, mu2, sigma1, a0, a1, a2, a3, b1, b2, c, propagateOrbits, *darkMatterHaloScale_, *cosmologyParameters_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_"/>
     
     ! Create virial density contrast definition.
     allocate(self%virialDensityContrast_)
     !# <referenceConstruct isResult="yes" owner="self" object="virialDensityContrast_" constructor="virialDensityContrastBryanNorman1998(self%cosmologyParameters_,self%cosmologyFunctions_)"/>
-    
-    ! Tabulate the mean tangential velocity as a function of a=a₀+a₁ν+a₂ξ^a₃.
-    allocate(aTable                     (countTable))
-    allocate(velocityTangentialMeanTable(countTable))
-    integratorVelocityTotal  = integrator(integrandVelocityTotal  ,toleranceRelative=1.0d-3)
-    integratorCosSquaredTheta= integrator(integrandCosSquaredTheta,toleranceRelative=1.0d-3)
-    velocityTotalMaximum     =+     self%mu        &
-         &                    *exp(                &
-         &                         +extentVelocity &
-         &                         *self%sigma1    &
-         &                        )
-    self%aMinimum            =+0.0d0
-    self%aMaximum            =+self%a0                            &
-         &                    +self%a1*peakHeightMaximum          &
-         &                    +self%a2*massRatioMaximum **self%a3
-    aTable                   =Make_Range(self%aMinimum,self%aMaximum,countTable,rangeTypeLinear)
-    do i=1,countTable
-       a                             =aTable(i)
-       velocityTangentialMeanTable(i)=integratorVelocityTotal%integrate(0.0d0,velocityTotalMaximum)
-    end do
-    self%interpolatorA=interpolator(aTable,velocityTangentialMeanTable)
     return
-
-  contains
-
-    double precision function integrandVelocityTotal(velocityTotal)
-      !% Integrand for the total velocity distribution function.
-      use :: Numerical_Constants_Math, only : Pi
-      implicit none
-      double precision, intent(in   ) :: velocityTotal
-
-      velocityTotal_=velocityTotal
-      eta=a*exp(-log(min(velocityTotal,sqrt(2.0d0)))**2/2.0d0/self%sigma2**2)
-      integrandVelocityTotal=integratorCosSquaredTheta%integrate(0.0d0,1.0d0)*exp(-0.5d0*log(velocityTotal/self%mu)**2/self%sigma1**2)/sqrt(2.0d0*Pi)/self%sigma1/velocityTotal      
-      return
-    end function integrandVelocityTotal
-    
-    double precision function integrandCosSquaredTheta(cosSquaredTheta)
-      !% Integrand for the $\cos^2\theta$ distribution, weighted by the tangential velocity.
-      implicit none
-      double precision, intent(in   ) :: cosSquaredTheta
-      double precision, parameter     :: etaSmall       =1.0d-6
-
-      if (eta < etaSmall) then
-         ! Series solution for small values of η.
-         integrandCosSquaredTheta=+exp(+eta   *cosSquaredTheta) &
-              &                   *   (                         &
-              &                        +        1.0d0           &
-              &                        -eta   / 2.0d0           &
-              &                        +eta**2/12.0d0           &
-              &                   )
-      else
-         ! Full solution for larger values of η.
-         integrandCosSquaredTheta=+     eta                     &
-              &                   *exp(+eta   *cosSquaredTheta) &
-              &                   /   (                         &
-              &                        +exp(eta)                &
-              &                        -1.0d0                   &
-              &                       )
-      end if
-      ! Multiply by the tangential velocity.
-      integrandCosSquaredTheta=+integrandCosSquaredTheta*velocityTotal_ &
-           &                   *sqrt(                                   &
-           &                         +1.0d0                             &
-           &                         -cosSquaredTheta                   &
-           &                        )
-      return
-    end function integrandCosSquaredTheta
-    
   end function li2020ConstructorInternal
 
   subroutine li2020Destructor(self)
@@ -321,7 +263,7 @@ contains
        call li2020Orbit%massesSet(massSatellite,massHost      )
        call li2020Orbit%radiusSet(              radiusHostSelf)
        ! Select total orbital velocity from a log-normal distribution.
-       velocityTotalInternal=exp(self%sigma1*node%hostTree%randomNumberGenerator_%standardNormalSample())*self%mu
+       velocityTotalInternal=exp(self%sigma1*node%hostTree%randomNumberGenerator_%standardNormalSample())*self%mu1
        ! If requested, check that the orbit is bound. We require it to have E<-boundTolerance to ensure that it is sufficiently
        ! bound that later rounding errors will not make it appear unbound.
        foundOrbit=.true.
@@ -379,14 +321,18 @@ contains
     !% Return the mean magnitude of the tangential velocity.
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic
+    use :: Numerical_Integration               , only : integrator
     implicit none
     class           (virialOrbitLi2020         ), intent(inout) :: self
-    type            (treeNode                  ), intent(inout) :: node                  , host
-    class           (nodeComponentBasic        ), pointer       :: hostBasic             , basic
+    type            (treeNode                  ), intent(inout) :: node                         , host
+    class           (nodeComponentBasic        ), pointer       :: hostBasic                    , basic
     class           (virialDensityContrastClass), pointer       :: virialDensityContrast_
-    double precision                                            :: massHost              , radiusHost   , &
-         &                                                         velocityHost          , massSatellite, &
-         &                                                         a
+    double precision                            , parameter     :: extentVelocity        =10.0d0
+    double precision                                            :: massHost                     , radiusHost               , &
+         &                                                         velocityHost                 , massSatellite            , &
+         &                                                         eta                          , velocityTotal_           , &
+         &                                                         velocityTotalMaximum
+    type            (integrator                )                :: integratorVelocityTotal      , integratorCosSquaredTheta
 
     !# <referenceAcquire target="virialDensityContrast_" source="self%densityContrastDefinition()"/>
     basic         => node%basic()
@@ -394,11 +340,60 @@ contains
     massHost      =  Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
     massSatellite =  Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%timeLastIsolated())                        )
     !# <objectDestructor name="virialDensityContrast_"/>
-
-    ! Evaluate a=....... - this is just eta(u=1). 
-    a=min(max(self%eta(host,massSatellite,massHost,velocityTotalInternal=1.0d0),self%aMinimum),self%aMaximum)
-    li2020VelocityTangentialMagnitudeMean=self%interpolatorA%interpolate(a)
+    velocityTotalMaximum     =+     self%mu1       &
+         &                    *exp(                &
+         &                         +extentVelocity &
+         &                         *self%sigma1    &
+         &                        )
+    li2020VelocityTangentialMagnitudeMean=integratorVelocityTotal%integrate(0.0d0,velocityTotalMaximum)
     return
+
+  contains
+
+    double precision function integrandVelocityTotal(velocityTotal)
+      !% Integrand for the total velocity distribution function.
+      use :: Numerical_Constants_Math, only : Pi
+      implicit none
+      double precision, intent(in   ) :: velocityTotal
+
+      velocityTotal_=velocityTotal
+      eta=self%eta(host,massSatellite,massHost,velocityTotal)
+      integrandVelocityTotal=integratorCosSquaredTheta%integrate(0.0d0,1.0d0)*exp(-0.5d0*log(velocityTotal/self%mu1)**2/self%sigma1**2)/sqrt(2.0d0*Pi)/self%sigma1/velocityTotal      
+      return
+    end function integrandVelocityTotal
+    
+    double precision function integrandCosSquaredTheta(cosSquaredTheta)
+      !% Integrand for the $\cos^2\theta$ distribution, weighted by the tangential velocity.
+      implicit none
+      double precision, intent(in   ) :: cosSquaredTheta
+      double precision, parameter     :: etaSmall       =1.0d-6
+
+      if (eta < etaSmall) then
+         ! Series solution for small values of η.
+         integrandCosSquaredTheta=+exp(+eta   *cosSquaredTheta) &
+              &                   *   (                         &
+              &                        +        1.0d0           &
+              &                        -eta   / 2.0d0           &
+              &                        +eta**2/12.0d0           &
+              &                   )
+      else
+         ! Full solution for larger values of η.
+         integrandCosSquaredTheta=+     eta                     &
+              &                   *exp(+eta   *cosSquaredTheta) &
+              &                   /   (                         &
+              &                        +exp(eta)                &
+              &                        -1.0d0                   &
+              &                       )
+      end if
+      ! Multiply by the tangential velocity.
+      integrandCosSquaredTheta=+integrandCosSquaredTheta*velocityTotal_ &
+           &                   *sqrt(                                   &
+           &                         +1.0d0                             &
+           &                         -cosSquaredTheta                   &
+           &                        )
+      return
+    end function integrandCosSquaredTheta
+
   end function li2020VelocityTangentialMagnitudeMean
 
   function li2020VelocityTangentialVectorMean(self,node,host)
@@ -426,16 +421,16 @@ contains
     double precision                                    :: massHost    , radiusHost, &
          &                                                 velocityHost
 
-    basic                               =>  node%basic()
-    hostBasic                           =>  host%basic()
-    massHost                            =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
-     li2020AngularMomentumMagnitudeMean =  +self%velocityTangentialMagnitudeMean(node,host) &
-         &                                 *radiusHost                                      &
-         &                                 /(                                               & ! Account for reduced mass.
-         &                                   +1.0d0                                         &
-         &                                   +basic    %mass()                              &
-         &                                   /hostBasic%mass()                              &
-         &                                  )
+    basic                              =>  node%basic()
+    hostBasic                          =>  host%basic()
+    massHost                           =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    li2020AngularMomentumMagnitudeMean =  +self%velocityTangentialMagnitudeMean(node,host) &
+         &                                *radiusHost                                      &
+         &                                /(                                               & ! Account for reduced mass.
+         &                                  +1.0d0                                         &
+         &                                  +basic    %mass()                              &
+         &                                  /hostBasic%mass()                              &
+         &                                 )
     return
   end function li2020AngularMomentumMagnitudeMean
 
@@ -472,7 +467,7 @@ contains
     massSatellite =  Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%timeLastIsolated())                        )
     !# <objectDestructor name="virialDensityContrast_"/>
     li2020VelocityTotalRootMeanSquared=+exp(self%sigma1      **2) &
-         &                             *    self%mu               &
+         &                             *    self%mu1              &
          &                             *         velocityHost
     return
   end function li2020VelocityTotalRootMeanSquared
@@ -515,7 +510,8 @@ contains
          &                                                 velocityTotalInternal
     class           (nodeComponentBasic), pointer       :: basic
     double precision                                    :: peakHeight           , massRatio, &
-         &                                                 time
+         &                                                 time                 , A        , &
+         &                                                 B
     
     basic      =>  nodeHost%basic()
     time       =   basic   %time ()
@@ -523,23 +519,24 @@ contains
          &        /self%cosmologicalMassVariance_%rootVariance(time=time,mass=massHost)
     massRatio  =  +massSatellite &
          &        /massHost
+    A          =+self%a1*peakHeight                   &
+         &      +self%a2           *massRatio**self%c &
+         &      +self%a3*peakHeight*massRatio**self%c
+    B          =+self%b1                              &
+         &      +self%b2           *massRatio**self%c
     li2020Eta  =  +max(                                       &
          &             +0.0d0                               , &
-         &             +(                                     &
-         &               +self%a0                             &
-         &               +self%a1*peakHeight                  &
-         &               +self%a2*massRatio **self%a3         &
-         &              )                                     &
+         &             +self%a0                               &
          &             *exp(                                  &
          &                  -log(                             &
-         &                       +min(                        &
-         &                            +sqrt(2.0d0)          , &
-         &                            +velocityTotalInternal  &
-         &                           )                        &
+         &                       +velocityTotalInternal       &
+         &                       /self%mu2                    &
          &                      )       **2                   &
          &                  /2.0d0                            &
-         &                  /self%sigma2**2                   &
+         &                  /self%sigma1**2                   &
          &                 )                                  &
+         &              +A*(velocityTotalInternal+1.0d0)      &
+         &              +B                                    &
          &            )
     return
   end function li2020Eta
