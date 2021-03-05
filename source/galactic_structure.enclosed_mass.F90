@@ -154,7 +154,7 @@ contains
        if (node%uniqueID() == uniqueIDPrevious) then
           radiusGuess          =  radiusPrevious
        else
-          darkMatterHaloScale_ => darkMatterHaloScale              (        )
+          darkMatterHaloScale_ => darkMatterHaloScale              (    )
           radiusGuess          =  darkMatterHaloScale_%virialRadius(node)
        end if
        Galactic_Structure_Radius_Enclosing_Mass=finder%find(rootGuess=radiusGuess)
