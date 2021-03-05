@@ -188,7 +188,7 @@ contains
              datasetDescription="Unknown property."
           end select
           propertyInteger => simulations(1)%propertiesInteger%value(i)
-          if (size(propertyInteger) > 0) call halosGroup%writeDataset  (propertyInteger,char(simulations(1)%propertiesInteger%key(i)),char(datasetDescription)                        )
+          if (size(propertyInteger) > 0) call halosGroup%writeDataset(propertyInteger,char(simulations(1)%propertiesInteger%key(i)),char(datasetDescription))
        end do
        do i=1,simulations(1)%propertiesReal   %size()
           select case (char(simulations(1)%propertiesReal   %key(i)))
@@ -208,10 +208,12 @@ contains
              datasetDescription="Unknown property."
           end select
           propertyReal    => simulations(1)%propertiesReal   %value(i)
-          if (size(propertyReal   ) > 0) call halosGroup%writeDataset  (propertyReal   ,char(simulations(1)%propertiesReal   %key(i)),char(datasetDescription),datasetReturned=dataset)
-          call                                dataset   %writeAttribute(char(unitName) ,'unitname'                                                                                    )
-          call                                dataset   %writeAttribute(     unitscgs  ,'unitscgs'                                                                                    )
-          call                                dataset   %close         (                                                                                                              )
+          if (size(propertyReal   ) > 0) then
+             call halosGroup%writeDataset  (propertyReal   ,char(simulations(1)%propertiesReal   %key(i)),char(datasetDescription),datasetReturned=dataset)
+             call dataset   %writeAttribute(char(unitName) ,'unitname'                                                                                    )
+             call dataset   %writeAttribute(     unitscgs  ,'unitscgs'                                                                                    )
+             call dataset   %close         (                                                                                                              )
+          end if
        end do
        call halosGroup   %close()
        call snapshotGroup%close()
