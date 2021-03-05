@@ -131,11 +131,10 @@ contains
        end do
        importer_ => importer_%next
     end do
-    ! Close analysis groups in combined importers and remove their pointers to simulation data.
+    ! Remove pointers to simulation dtaa in combined importers.
     importer_ => self%importers
     do while (associated(importer_))
        do i=1,size(importer_%simulations)
-          if (importer_%simulations(i)%analysis%isOpen()) call importer_%simulations(i)%analysis%close()
           importer_%simulations(i)%propertiesInteger     =rank1IntegerSizeTPtrHash()
           importer_%simulations(i)%propertiesIntegerRank1=rank2IntegerSizeTPtrHash()
           importer_%simulations(i)%propertiesReal        =rank1DoublePtrHash      ()
