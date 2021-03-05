@@ -535,7 +535,6 @@ contains
 #endif
        deallocate(weight1   )
        deallocate(weight2   )
-       deallocate(massVirial)
 #ifdef USEMPI
        ! Reduce across MPI processes.
        distributionVelocityRadialBin    =mpiSelf%sum(distributionVelocityRadialBin    )
