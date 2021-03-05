@@ -22,39 +22,55 @@
 program Tests_Spherical_Collapse_Flat
   !% Tests spherical collapse calculations for a flat Universe. Compares results to the fitting formula of
   !% \cite{bryan_statistical_1998}.
-  use :: Cosmology_Functions     , only : cosmologyFunctions   , cosmologyFunctionsClass
-  use :: Display                 , only : displayVerbositySet  , verbosityLevelStandard
-  use :: ISO_Varying_String      , only : assignment(=)        , varying_string
-  use :: Input_Parameters        , only : inputParameters
+  use :: Cosmology_Functions     , only : cosmologyFunctionsMatterLambda
+  use :: Cosmology_Parameters    , only : cosmologyParametersSimple
+  use :: Display                 , only : displayVerbositySet                                           , verbosityLevelStandard
   use :: Numerical_Constants_Math, only : Pi
-  use :: Unit_Tests              , only : Assert               , Unit_Tests_Begin_Group    , Unit_Tests_End_Group, Unit_Tests_Finish
-  use :: Virial_Density_Contrast , only : virialDensityContrast, virialDensityContrastClass
+  use :: Unit_Tests              , only : Assert                                                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Virial_Density_Contrast , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
   implicit none
-  double precision                            , dimension(7) :: redshift                 =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
-  class           (cosmologyFunctionsClass   ), pointer      :: cosmologyFunctions_
-  class           (virialDensityContrastClass), pointer      :: virialDensityContrast_
-  double precision                            , parameter    :: mass                     =1.0d12
-  type            (varying_string            )               :: parameterFile
-  character       (len=1024                  )               :: message
-  integer                                                    :: iExpansion
-  double precision                                           :: age                                                                     , bryanNormanFit , &
-       &                                                        densityContrast                                                         , expansionFactor, &
-       &                                                        x
-  type            (inputParameters           )               :: parameters
+  double precision                                                               , dimension(7) :: redshift              =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
+  type           (cosmologyParametersSimple                                     )               :: cosmologyParameters_
+  type           (cosmologyFunctionsMatterLambda                                )               :: cosmologyFunctions_
+  type           (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)               :: virialDensityContrast_
+  double precision                                                               , parameter    :: mass                  =1.0d12
+  character       (len=1024                                                     )               :: message
+  integer                                                                                       :: iExpansion
+  double precision                                                                              :: age                                                                  , bryanNormanFit , &
+       &                                                                                           densityContrast                                                      , expansionFactor, &
+       &                                                                                           x
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
-
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Spherical collapse: flat cosmology")
-
   ! Test spherical collapse in a flat universe.
-  parameterFile='testSuite/parameters/sphericalCollapse/flat.xml'
-  parameters=inputParameters(parameterFile)
-  call parameters%markGlobal()
-  ! Get the default cosmology functions object.
-  cosmologyFunctions_    => cosmologyFunctions   ()
-  virialDensityContrast_ => virialDensityContrast()
+  !# <referenceConstruct object="cosmologyParameters_"  >
+  !#  <constructor>
+  !#   cosmologyParametersSimple                                     (                                           &amp;
+  !#    &amp;                                                         OmegaMatter         = 0.1d0              , &amp;
+  !#    &amp;                                                         OmegaBaryon         = 0.0d0              , &amp;
+  !#    &amp;                                                         OmegaDarkEnergy     = 0.9d0              , &amp;
+  !#    &amp;                                                         temperatureCMB      = 2.7d0              , &amp;
+  !#    &amp;                                                         HubbleConstant      =70.0d0                &amp;
+  !#    &amp;                                                        )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="cosmologyFunctions_"   >
+  !#  <constructor>
+  !#   cosmologyFunctionsMatterLambda                                (                                           &amp;
+  !#    &amp;                                                         cosmologyParameters_=cosmologyParameters_  &amp;
+  !#    &amp;                                                        )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="virialDensityContrast_">
+  !#  <constructor>
+  !#   virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                           &amp;
+  !#    &amp;                                                         cosmologyFunctions_ =cosmologyFunctions_ , &amp;
+  !#    &amp;                                                         tableStore          =.true.                &amp;
+  !#    &amp;                                                        )
+  !#  </constructor>
+  !# </referenceConstruct>
   do iExpansion=1,size(redshift)
      expansionFactor=cosmologyFunctions_%expansionFactorFromRedshift(redshift(iExpansion))
      age            =cosmologyFunctions_%cosmicTime(expansionFactor)
