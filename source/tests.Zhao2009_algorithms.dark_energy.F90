@@ -38,21 +38,22 @@ program Test_Zhao2009_Dark_Energy
   use :: Galacticus_Function_Classes_Destroys     , only : Galacticus_Function_Classes_Destroy
   use :: Galacticus_Nodes                         , only : nodeClassHierarchyInitialize                                , nodeComponentBasic                     , treeNode
   use :: Galacticus_Paths                         , only : galacticusPath                                              , pathTypeExec
-  use :: ISO_Varying_String                       , only : assignment(=)                                               , char                                   , operator(//)                       , varying_string
+  use :: ISO_Varying_String                       , only : assignment(=)                                               , char                                   , operator(//)                       , varying_string              , &
+       &                                                   var_str
   use :: Input_Parameters                         , only : inputParameters
   use :: Linear_Growth                            , only : linearGrowthCollisionlessMatter
   use :: Node_Components                          , only : Node_Components_Initialize                                  , Node_Components_Thread_Initialize      , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
-  use :: String_Handling                          , only : operator(//)
+  use :: String_Handling                          , only : operator(//)                                                , String_Superscript
   use :: Power_Spectra_Primordial                 , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred     , only : powerSpectrumPrimordialTransferredSimple
   use :: Power_Spectrum_Window_Functions          , only : powerSpectrumWindowFunctionTopHat
   use :: Transfer_Functions                       , only : transferFunctionBBKS
   use :: Unit_Tests                               , only : Assert                                                      , Unit_Tests_Begin_Group                 , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
-  type            (treeNode                               )                         , pointer :: node
-  class           (nodeComponentBasic                     )                         , pointer :: basic
-  integer                                                  , dimension(2), parameter          :: logarithmicHaloMasses           =[12,15]
-  double precision                                         , dimension(2), parameter          :: concentrationDifferenceTolerance=[3.1d-2,7.9d-4], timeDifferenceTolerance=[2.5d-2,2.0d-2]
+  type            (treeNode                                                    ), pointer                 :: node
+  class           (nodeComponentBasic                                          ), pointer                 :: basic
+  integer                                                                       , dimension(2), parameter :: logarithmicHaloMasses              =[12,15]
+  double precision                                                              , dimension(2), parameter :: concentrationDifferenceTolerance   =[3.1d-2,7.9d-4], timeDifferenceTolerance=[2.5d-2,2.0d-2]
   type            (cosmologyParametersSimple                                   )                          :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda                              )                          :: cosmologyFunctions_
   type            (cosmologicalMassVarianceFilteredPower                       )                          :: cosmologicalMassVariance_
@@ -65,16 +66,17 @@ program Test_Zhao2009_Dark_Energy
   type            (darkMatterProfileConcentrationZhao2009                      )                          :: darkMatterProfileConcentration_
   type            (darkMatterHaloMassAccretionHistoryZhao2009                  )                          :: darkMatterHaloMassAccretionHistory_
   type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)                          :: criticalOverdensity_
-  type            (varying_string                                              )                          :: fileName                                 , message                         , &
+  type            (varying_string                                              )                          :: fileName                                           , message                         , &
        &                                                                                                     parameterFile
-  integer                                                                                                 :: dataLinesInFile                          , fUnit                           , &
-       &                                                                                                     iLine                                    , iMass                           , &
+  integer                                                                                                 :: dataLinesInFile                                    , fUnit                           , &
+       &                                                                                                     iLine                                              , iMass                           , &
        &                                                                                                     totalLinesInFile
-  double precision                                                                                        :: concentrationDifferenceMaximum           , haloMass                        , &
-       &                                                                                                     ourConcentration                         , ourTime                         , &
-       &                                                                                                     redshift                                 , theirConcentration              , &
-       &                                                                                                     theirTime                                , timeDifferenceMaximum
+  double precision                                                                                        :: concentrationDifferenceMaximum                     , haloMass                        , &
+       &                                                                                                     ourConcentration                                   , ourTime                         , &
+       &                                                                                                     redshift                                           , theirConcentration              , &
+       &                                                                                                     theirTime                                          , timeDifferenceMaximum
   type            (inputParameters                                             )                          :: parameters
+  character       (len=2                                                       )                          :: label
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -247,11 +249,10 @@ program Test_Zhao2009_Dark_Energy
      end do
      close(fUnit)
      ! Perform the tests.
-     message='10^'
-     message=message//logarithmicHaloMasses(iMass)//' M⊙ halo mass accretion history'
+     write (label,'(i2)') logarithmicHaloMasses(iMass)
+     message=var_str("10")//String_Superscript(trim(adjustl(label)))//" M⊙ halo mass accretion history"
      call Assert(char(message),timeDifferenceMaximum         ,0.0d0,absTol=timeDifferenceTolerance         (iMass))
-     message='10^'
-     message=message//logarithmicHaloMasses(iMass)//' M⊙ halo concentration history'
+     message=var_str("10")//String_Superscript(trim(adjustl(label)))//" M⊙ halo concentration history"
      call Assert(char(message),concentrationDifferenceMaximum,0.0d0,absTol=concentrationDifferenceTolerance(iMass))
   end do
   ! End unit tests.

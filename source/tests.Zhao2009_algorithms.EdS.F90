@@ -38,11 +38,12 @@ program Test_Zhao2009_Flat
   use :: Galacticus_Function_Classes_Destroys     , only : Galacticus_Function_Classes_Destroy
   use :: Galacticus_Nodes                         , only : nodeClassHierarchyInitialize                                , nodeComponentBasic                     , treeNode
   use :: Galacticus_Paths                         , only : galacticusPath                                              , pathTypeExec
-  use :: ISO_Varying_String                       , only : assignment(=)                                               , char                                   , operator(//)                       , varying_string
+  use :: ISO_Varying_String                       , only : assignment(=)                                               , char                                   , operator(//)                       , varying_string              , &
+       &                                                   var_str
   use :: Input_Parameters                         , only : inputParameters
   use :: Linear_Growth                            , only : linearGrowthCollisionlessMatter
   use :: Node_Components                          , only : Node_Components_Initialize                                  , Node_Components_Thread_Initialize      , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
-  use :: String_Handling                          , only : operator(//)
+  use :: String_Handling                          , only : operator(//)                                                , String_Superscript
   use :: Power_Spectra_Primordial                 , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred     , only : powerSpectrumPrimordialTransferredSimple
   use :: Power_Spectrum_Window_Functions          , only : powerSpectrumWindowFunctionTopHat
@@ -75,6 +76,7 @@ program Test_Zhao2009_Flat
        &                                                                                                     redshift                                 , theirConcentration              , &
        &                                                                                                     theirTime                                , timeDifferenceMaximum
   type            (inputParameters                                             )                          :: parameters
+  character       (len=2                                                       )                          :: label
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -247,11 +249,10 @@ program Test_Zhao2009_Flat
      end do
      close(fUnit)
      ! Perform the tests.
-     message='10^'
-     message=message//logarithmicHaloMasses(iMass)//' M⊙ halo mass accretion history'
+     write (label,'(i2)') logarithmicHaloMasses(iMass)
+     message=var_str("10")//String_Superscript(trim(adjustl(label)))//" M⊙ halo mass accretion history"
      call Assert(char(message),timeDifferenceMaximum         ,0.0d0,absTol=timeDifferenceTolerance         (iMass))
-     message='10^'
-     message=message//logarithmicHaloMasses(iMass)//' M⊙ halo concentration history'
+     message=var_str("10")//String_Superscript(trim(adjustl(label)))//" M⊙ halo concentration history"
      call Assert(char(message),concentrationDifferenceMaximum,0.0d0,absTol=concentrationDifferenceTolerance(iMass))
   end do
   ! End unit tests.

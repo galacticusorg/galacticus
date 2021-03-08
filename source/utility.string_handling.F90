@@ -52,11 +52,6 @@ module String_Handling
   ! Character strings used in whitespace detection.
   character(len=*), parameter :: charactersWhiteSpace=' '//char(0)//char(9)//char(10)//char(13)
 
-  ! Character strings used in converting to subscripts and superscripts.
-  character(len=*), parameter :: charactersScript     ='0123456789+-=()'
-  character(len=*), parameter :: charactersSubscript  ='₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎'
-  character(len=*), parameter :: charactersSuperscript='⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾'
-
 contains
 
   integer function String_Count_Words(inputString,separator,bracketing)
@@ -345,36 +340,94 @@ contains
 
   function String_Subscript(stringInput) result (stringOutput)
     !% Converts an input string to Unicode subscripts.
-    character(len=*               ), intent(in   ) :: stringInput
-    character(len=len(stringInput))                :: stringOutput
-    integer                                        :: iCharacter  , iString
-
-    ! Transfer input string to output string.
-    stringOutput=stringInput
-    ! Loop through each character in the string.
-    do iString=1,len(stringOutput)
-       ! Find position of current character in string in list of upper case characters.
-       iCharacter=index(charactersScript,stringOutput(iString:iString))
-       ! If a match is found, repace with the lower case equivalent.
-       if (iCharacter /= 0) stringOutput(iString:iString)=charactersSubscript(iCharacter:iCharacter)
+    use :: ISO_Varying_String, only : varying_string, assignment(=), operator(//)
+    character(len=*         ), intent(in   ) :: stringInput
+    type     (varying_string)                :: stringOutput
+    integer                                  :: iString
+    
+    stringOutput=""
+    do iString=1,len(stringInput)      
+       select case (stringInput(iString:iString))
+       case ("0")
+          stringOutput=stringOutput//"₀"
+       case ("1")
+          stringOutput=stringOutput//"₁"
+       case ("2")
+          stringOutput=stringOutput//"₂"
+       case ("3")
+          stringOutput=stringOutput//"₃"
+       case ("4")
+          stringOutput=stringOutput//"₄"
+       case ("5")
+          stringOutput=stringOutput//"₅"
+       case ("6")
+          stringOutput=stringOutput//"₆"
+       case ("7")
+          stringOutput=stringOutput//"₇"
+       case ("8")
+          stringOutput=stringOutput//"₈"
+       case ("9")
+          stringOutput=stringOutput//"₉"
+       case ("+")
+          stringOutput=stringOutput//"₊"
+       case ("-")
+          stringOutput=stringOutput//"₋"
+       case ("=")
+          stringOutput=stringOutput//"₌"
+       case ("(")
+          stringOutput=stringOutput//"₍"
+       case (")")
+          stringOutput=stringOutput//"₎"
+       case default
+          stringOutput=stringOutput//stringInput(iString:iString)
+       end select
     end do
     return
   end function String_Subscript
 
   function String_Superscript(stringInput) result (stringOutput)
     !% Converts an input string to Unicode superscripts.
-    character(len=*               ), intent(in   ) :: stringInput
-    character(len=len(stringInput))                :: stringOutput
-    integer                                        :: iCharacter  , iString
-
-    ! Transfer input string to output string.
-    stringOutput=stringInput
-    ! Loop through each character in the string.
-    do iString=1,len(stringOutput)
-       ! Find position of current character in string in list of upper case characters.
-       iCharacter=index(charactersScript,stringOutput(iString:iString))
-       ! If a match is found, repace with the lower case equivalent.
-       if (iCharacter /= 0) stringOutput(iString:iString)=charactersSuperscript(iCharacter:iCharacter)
+    use :: ISO_Varying_String, only : varying_string, assignment(=), operator(//)
+    character(len=*         ), intent(in   ) :: stringInput
+    type     (varying_string)                :: stringOutput
+    integer                                  :: iString
+    
+    stringOutput=""
+    do iString=1,len(stringInput)      
+       select case (stringInput(iString:iString))
+       case ("0")
+          stringOutput=stringOutput//"⁰"
+       case ("1")
+          stringOutput=stringOutput//"¹"
+       case ("2")
+          stringOutput=stringOutput//"²"
+       case ("3")
+          stringOutput=stringOutput//"³"
+       case ("4")
+          stringOutput=stringOutput//"⁴"
+       case ("5")
+          stringOutput=stringOutput//"⁵"
+       case ("6")
+          stringOutput=stringOutput//"⁶"
+       case ("7")
+          stringOutput=stringOutput//"⁷"
+       case ("8")
+          stringOutput=stringOutput//"⁸"
+       case ("9")
+          stringOutput=stringOutput//"⁹"
+       case ("+")
+          stringOutput=stringOutput//"⁺"
+       case ("-")
+          stringOutput=stringOutput//"⁻"
+       case ("=")
+          stringOutput=stringOutput//"⁼"
+       case ("(")
+          stringOutput=stringOutput//"⁽"
+       case (")")
+          stringOutput=stringOutput//"⁾"
+       case default
+          stringOutput=stringOutput//stringInput(iString:iString)
+       end select
     end do
     return
   end function String_Superscript

@@ -42,7 +42,7 @@ program Test_NFW96_Concentration_Dark_Energy
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
-  use :: String_Handling                     , only : operator(//)
+  use :: String_Handling                     , only : operator(//)                                                , String_Superscript
   use :: Transfer_Functions                  , only : transferFunctionBBKS
   use :: Unit_Tests                          , only : Assert                                                      , Unit_Tests_Begin_Group               , Unit_Tests_End_Group               , Unit_Tests_Finish
   use :: Virial_Density_Contrast             , only : virialDensityContrastFixed                                  , fixedDensityTypeCritical
@@ -69,6 +69,7 @@ program Test_NFW96_Concentration_Dark_Energy
   type            (inputParameters                                             )                          :: parameters
   integer                                                                                                 :: iMass
   double precision                                                                                        :: ourConcentration
+  character       (len=2                                                       )                          :: label
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -212,12 +213,13 @@ program Test_NFW96_Concentration_Dark_Energy
      ! Compute and compare concentration at z=0.
      call basic%timeSet(cosmologyFunctions_%cosmicTime(1.00d0))
      ourConcentration=darkMatterProfileConcentration_%concentration(node)
-     message=var_str("10^")//chardenLogHaloMass(iMass)//" M⊙/h halo concentration at z=0"
+     write (label,'(i2)') chardenLogHaloMass(iMass)
+     message=var_str("10")//String_Superscript(trim(adjustl(label)))//" M⊙/h halo concentration at z=0"
      call Assert(char(message),ourConcentration,chardenConcentrationZ0(iMass),relTol=0.02d0)
      ! Compute and compare concentration at z=3.
      call basic%timeSet(cosmologyFunctions_%cosmicTime(0.25d0))
      ourConcentration=darkMatterProfileConcentration_%concentration(node)
-     message=var_str("10^")//chardenLogHaloMass(iMass)//" M⊙/h halo concentration at z=3"
+     message=var_str("10")//String_Superscript(trim(adjustl(label)))//" M⊙/h halo concentration at z=3"
      call Assert(char(message),ourConcentration,chardenConcentrationZ3(iMass),relTol=0.01d0)
   end do
   ! End unit tests.

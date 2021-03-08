@@ -22,10 +22,11 @@
 program Test_String_Utilities
   !% Tests that numerical range making code works correctly.
   use :: Display           , only : displayVerbositySet      , verbosityLevelStandard
-  use :: ISO_Varying_String, only : assignment(=)            , varying_string
+  use :: ISO_Varying_String, only : assignment(=)            , varying_string        , char
   use :: Kind_Numbers      , only : kind_int8
-  use :: String_Handling   , only : Convert_VarString_To_Char, String_Count_Words    , String_Levenshtein_Distance, String_Lower_Case, &
-          &                         String_Split_Words       , String_Upper_Case     , String_Upper_Case_First    , operator(//)
+  use :: String_Handling   , only : Convert_VarString_To_Char, String_Count_Words    , String_Levenshtein_Distance, String_Lower_Case , &
+       &                            String_Split_Words       , String_Upper_Case     , String_Upper_Case_First    , String_Superscript, &
+       &                            String_Subscript         , operator(//)
   use :: Unit_Tests        , only : Assert                   , Unit_Tests_Begin_Group, Unit_Tests_End_Group       , Unit_Tests_Finish
   implicit none
   character(len=20        ), dimension(3) :: words
@@ -39,31 +40,31 @@ program Test_String_Utilities
   call Unit_Tests_Begin_Group("String handling utilities")
 
   ! Test word counting.
-  call Assert("count words: empty"                            ,String_Count_Words("  "                                                    ),0)
-  call Assert("count words: 'one'"                            ,String_Count_Words("one"                                                   ),1)
-  call Assert("count words: 'one two three'"                  ,String_Count_Words("one two three"                                         ),3)
-  call Assert("count words: 'one two three' [null separated]" ,String_Count_Words("one"//char( 0)//"two"//char( 0)//"three"               ),3)
-  call Assert("count words: 'one two three' [LF separated]"   ,String_Count_Words("one"//char(10)//"two"//char(10)//"three"               ),3)
-  call Assert("count words: 'one two three' [CR separated]"   ,String_Count_Words("one"//char(13)//"two"//char(13)//"three"               ),3)
-  call Assert("count words: 'one two three' [tab separated]"  ,String_Count_Words("one"//char( 9)//"two"//char( 9)//"three"               ),3)
-  call Assert("count words: 'one two three' [comma separated]",String_Count_Words("one,two,three"                          ,separator="," ),3)
-  call Assert("count words: 'one two three' [bracketed]"      ,String_Count_Words("one{1 2 3} two{5 6 7} three{9 10 11}"  ,bracketing="{}"),3)
+  call Assert("count words: empty"                            ,String_Count_Words("  "                                                     ),0)
+  call Assert("count words: 'one'"                            ,String_Count_Words("one"                                                    ),1)
+  call Assert("count words: 'one two three'"                  ,String_Count_Words("one two three"                                          ),3)
+  call Assert("count words: 'one two three' [null separated]" ,String_Count_Words("one"//char( 0)//"two"//char( 0)//"three"                ),3)
+  call Assert("count words: 'one two three' [LF separated]"   ,String_Count_Words("one"//char(10)//"two"//char(10)//"three"                ),3)
+  call Assert("count words: 'one two three' [CR separated]"   ,String_Count_Words("one"//char(13)//"two"//char(13)//"three"                ),3)
+  call Assert("count words: 'one two three' [tab separated]"  ,String_Count_Words("one"//char( 9)//"two"//char( 9)//"three"                ),3)
+  call Assert("count words: 'one two three' [comma separated]",String_Count_Words("one,two,three"                          ,separator ="," ),3)
+  call Assert("count words: 'one two three' [bracketed]"      ,String_Count_Words("one{1 2 3} two{5 6 7} three{9 10 11}"   ,bracketing="{}"),3)
 
   ! Test word splitting.
   call String_Split_Words(words,"one"                                                    )
-  call Assert("split words: 'one'"                            ,words(1:1),["one"                  ])
+  call Assert("split words: 'one'"                                         ,words(1:1),["one"                                                   ])
   call String_Split_Words(words,"one two three"                                          )
-  call Assert("split words: 'one two three'"                  ,words(1:3),["one  ","two  ","three"])
+  call Assert("split words: 'one two three'"                               ,words(1:3),["one  "           ,"two  "           ,"three"           ])
   call String_Split_Words(words,"one"//char( 0)//"two"//char( 0)//"three"                )
-  call Assert("split words: 'one two three' [null separated]" ,words(1:3),["one  ","two  ","three"])
+  call Assert("split words: 'one two three' [null separated]"              ,words(1:3),["one  "           ,"two  "           ,"three"           ])
   call String_Split_Words(words,"one"//char(10)//"two"//char(10)//"three"                )
-  call Assert("split words: 'one two three' [null separated]" ,words(1:3),["one  ","two  ","three"])
+  call Assert("split words: 'one two three' [LF separated]"                ,words(1:3),["one  "           ,"two  "           ,"three"           ])
   call String_Split_Words(words,"one"//char(13)//"two"//char(13)//"three"                )
-  call Assert("split words: 'one two three' [null separated]" ,words(1:3),["one  ","two  ","three"])
+  call Assert("split words: 'one two three' [CR separated]"                ,words(1:3),["one  "           ,"two  "           ,"three"           ])
   call String_Split_Words(words,"one"//char( 9)//"two"//char( 9)//"three"                )
-  call Assert("split words: 'one two three' [null separated]" ,words(1:3),["one  ","two  ","three"])
+  call Assert("split words: 'one two three' [tab separated]"               ,words(1:3),["one  "           ,"two  "           ,"three"           ])
   call String_Split_Words(words,"one,two,three"                          ,separator=","  )
-  call Assert("split words: 'one two three' [comma separated]",words(1:3),["one  ","two  ","three"])
+  call Assert("split words: 'one two three' [comma separated]"             ,words(1:3),["one  "           ,"two  "           ,"three"           ])
   call String_Split_Words(words,"one (two and a half) three"             ,bracketing="()")
   call Assert("split words: 'one (two and a half) three' [with bracketing]",words(1:3),["one             ","(two and a half)","three           "])
 
@@ -82,6 +83,12 @@ program Test_String_Utilities
   myStrings=["one  ","two  ","three"]
   call Assert('convert varying string to character array',Convert_VarString_To_Char(myStrings),["one  ","two  ","three"])
 
+  ! Conversion to superscript.
+  call Assert('convert to superscript',char(String_Superscript("Result=(+10293-84756)?")),"Result⁼⁽⁺¹⁰²⁹³⁻⁸⁴⁷⁵⁶⁾?")
+
+  ! Conversion to superscript.
+  call Assert('convert to subscript'  ,char(String_Subscript  ("Result=(+10293-84756)?")),"Result₌₍₊₁₀₂₉₃₋₈₄₇₅₆₎?")
+  
   ! Test Levenshtein distance.
   call Assert(                                                  &
        &      'measure Levenshtein distance'                  , &
