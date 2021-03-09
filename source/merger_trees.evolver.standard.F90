@@ -244,7 +244,8 @@ contains
 
   subroutine standardEvolve(self,tree,timeEnd,treeDidEvolve,suspendTree,deadlockReporting,systemClockMaximum,initializationLock,status)
     !% Evolves all properties of a merger tree to the specified time.
-    use    :: Display                            , only : displayIndent               , displayMessage                    , displayUnindent          , displayVerbosity
+    use    :: Display                            , only : displayIndent               , displayMessage                    , displayUnindent          , displayVerbosity           , &
+         &                                                displayGreen                , displayReset
     use    :: Galacticus_Error                   , only : Galacticus_Error_Report     , errorStatusSuccess
     use    :: Galacticus_Nodes                   , only : interruptTask               , mergerTree                        , nodeComponentBasic       , nodeEvent                  , &
           &                                               nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, treeNode
@@ -312,10 +313,10 @@ contains
                 if (self%allTreesExistAtFinalTime) then
                    ! It is not, write an error and exit.
                    vMessage='requested time exceeds the final time in the tree'//char(10)
-                   vMessage=vMessage//' HELP: If you expect that not all trees will exist at the latest requested'//char(10)
-                   vMessage=vMessage//'       output time (this can happen when using trees extracted from N-body'//char(10)
-                   vMessage=vMessage//'       simulations for example) set the following in your input parameter file:'//char(10)//char(10)
-                   vMessage=vMessage//'         <allTreesExistAtFinalTime value="false" />'//char(10)
+                   vMessage=vMessage//displayGreen()//' HELP:'//displayReset()//' If you expect that not all trees will exist at the latest requested'//char(10)
+                   vMessage=vMessage//                                         '       output time (this can happen when using trees extracted from N-body'//char(10)
+                   vMessage=vMessage//                                         '       simulations for example) set the following in your input parameter file:'//char(10)//char(10)
+                   vMessage=vMessage//                                         '         <allTreesExistAtFinalTime value="false" />'//char(10)
                    call Galacticus_Error_Report(vMessage//{introspection:location})
                 end if
              else
@@ -333,11 +334,11 @@ contains
                       write (label,'(e24.16)') event%time
                       vMessage=vMessage//'      event time: '//trim(label)//' Gyr'//char(10)
                       vMessage=vMessage//'      event ID  : '//event%ID           //char(10)
-                      vMessage=vMessage//' HELP: if you are reading merger trees from file and are attempting to'//char(10)
-                      vMessage=vMessage//'       output at a "snapshot time" consider setting:'                  //char(10)
-                      vMessage=vMessage//'           <mergerTreeReadOutputTimeSnapTolerance value="1.0e-3"/>'    //char(10)
-                      vMessage=vMessage//'       or similar in your parameter file to ensure that nodes exist'   //char(10)
-                      vMessage=vMessage//'       precisely at the output times you request'
+                      vMessage=vMessage//displayGreen()//' HELP:'//displayReset()//' if you are reading merger trees from file and are attempting to'//char(10)
+                      vMessage=vMessage//                                          '       output at a "snapshot time" consider setting:'                  //char(10)
+                      vMessage=vMessage//                                          '           <mergerTreeReadOutputTimeSnapTolerance value="1.0e-3"/>'    //char(10)
+                      vMessage=vMessage//                                          '       or similar in your parameter file to ensure that nodes exist'   //char(10)
+                      vMessage=vMessage//                                          '       precisely at the output times you request'
                       call Galacticus_Error_Report(vMessage//{introspection:location})
                    end if
                    event => event%next

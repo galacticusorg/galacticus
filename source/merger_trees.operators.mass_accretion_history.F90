@@ -137,6 +137,7 @@ contains
 
   subroutine massAccretionHistoryOperatePreEvolution(self,tree)
     !% Output the mass accretion history for a merger tree.
+    use            :: Display                         , only : displayGreen           , displayReset
     use            :: Galacticus_Error                , only : Galacticus_Error_Report
     use            :: Galacticus_HDF5                 , only : galacticusOutputFile
     use            :: Galacticus_Nodes                , only : mergerTree             , nodeComponentBasic, nodeComponentSpin, treeNode
@@ -206,7 +207,7 @@ contains
        groupName='mergerTree'
        groupName=groupName//treeCurrent%index
        call hdf5Access%set()
-       if (self%outputGroup%hasGroup(char(groupName))) call Galacticus_Error_Report('duplicate tree index detected - mass accretion history can not be output'//char(10)//{introspection:location}//'  HELP: This can happen if reading merger trees which contain multiple root nodes from file. To avoid this problem, force tree indices to be reset to the index of the root node by adding the following to your input parameter file:'//char(10)//'  <mergerTreeReadTreeIndexToRootNodeIndex value="true" />>')
+       if (self%outputGroup%hasGroup(char(groupName))) call Galacticus_Error_Report('duplicate tree index detected - mass accretion history can not be output'//char(10)//{introspection:location}//displayGreen()//'  HELP:'//displayReset()//' This can happen if reading merger trees which contain multiple root nodes from file. To avoid this problem, force tree indices to be reset to the index of the root node by adding the following to your input parameter file:'//char(10)//'  <mergerTreeReadTreeIndexToRootNodeIndex value="true" />>')
        treeGroup=self%outputGroup%openGroup(char(groupName),'Mass accretion history for main branch of merger tree.')
        call                             treeGroup       %writeDataset  (nodeIndex          ,'nodeIndex'          ,'Index of the node.'                                            )
        call                             treeGroup       %writeDataset  (nodeTime           ,'nodeTime'           ,'Time at node [Gyr].'          ,datasetReturned=accretionDataset)

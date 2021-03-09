@@ -278,7 +278,7 @@ contains
     !% Tabulate stellar population luminosity in the given filters.
     use            :: Abundances_Structure            , only : logMetallicityZero     , metallicityTypeLogarithmicByMassSolar
     use            :: Display                         , only : displayCounter         , displayCounterClear                  , displayIndent  , displayUnindent   , &
-          &                                                    verbosityLevelWorking
+          &                                                    verbosityLevelWorking  , displayMagenta                       , displayGreen   , displayReset
     use            :: File_Utilities                  , only : File_Exists            , File_Lock                            , File_Unlock    , lockDescriptor
     use            :: Galacticus_Error                , only : Galacticus_Error_Report, Galacticus_Warn                      , errorStatusFail, errorStatusSuccess
     use            :: IO_HDF5                         , only : hdf5Access             , hdf5Object
@@ -495,7 +495,7 @@ contains
                                if (self%integrationToleranceDegrade.and.toleranceRelative < 1.0d0) then
                                   toleranceRelative=2.0d0*toleranceRelative
                                   write (label,'(e9.3)') 2.0d0*self%integrationToleranceRelative
-                                  message=         "WARNING: increasing relative tolerance for stellar population luminosities to"    //char(10)
+                                  message=         displayMagenta()//"WARNING:"//displayReset()//" increasing relative tolerance for stellar population luminosities to"    //char(10)
                                   message=message//trim(adjustl(label))//" and retrying integral"//{introspection:location}
                                   call Galacticus_Warn(message)
                                else if (self%integrationToleranceDegrade) then
@@ -504,7 +504,10 @@ contains
                                else
                                   write (label,'(e9.3)') 2.0d0*self%integrationToleranceRelative
                                   message=         "integration of stellar populations failed"                                        //char(10)
-                                  message=message//"HELP: consider increasing the [self%integrationToleranceRelative]"                //char(10)
+                                  message=message//displayGreen()
+                                  message=message//"HELP: "
+                                  message=message//displayReset()
+                                  message=message//"consider increasing the [self%integrationToleranceRelative]"                      //char(10)
                                   message=message//"      parameter to "//trim(adjustl(label))//" to reduce the integration tolerance"//char(10)
                                   message=message//"      required if you can accept this lower accuracy."
                                   call Galacticus_Error_Report(message//{introspection:location})

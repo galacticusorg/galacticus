@@ -339,18 +339,18 @@ contains
 
   function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
-    use :: Display           , only : displayMessage
+    use :: Display           , only : displayMessage                   , displayGreen   , displayReset
     use :: File_Utilities    , only : File_Name_Temporary
-    use :: FoX_dom           , only : getOwnerDocument       , node, setLiveNodeLists
+    use :: FoX_dom           , only : getOwnerDocument                 , node           , setLiveNodeLists
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)          , char, operator(//)    , operator(/=)
+    use :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)    , operator(/=)
     use :: String_Handling   , only : String_Strip
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists, getTextContent => getTextContentTS
     use :: Display           , only : displayMessage
     use :: File_Utilities    , only : File_Name_Temporary
-    use :: FoX_dom           , only : getOwnerDocument       , node, setLiveNodeLists
+    use :: FoX_dom           , only : getOwnerDocument                 , node           , setLiveNodeLists
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)          , char, operator(//)    , operator(/=)
+    use :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)    , operator(/=)
     use :: String_Handling   , only : String_Strip
     implicit none
     type     (inputParameters)                                        :: inputParametersConstructorNode
@@ -425,7 +425,8 @@ contains
        versionElement => XML_Get_First_Element_By_Tag_Name(inputParametersConstructorNode%rootNode,"version")
        versionLabel=getTextContent(versionElement)
        if (String_Strip(versionLabel) /= "0.9.4") then
-          message="HELP: Parameter file appears to be for version "                 // &
+          message=displayGreen()//"HELP:"//displayReset()                           // &
+               &  " Parameter file appears to be for version "                      // &
                &  String_Strip(versionLabel)                              //char(10)// &
                &  "      Consider using: scripts/aux/parametersMigrate.pl"          // &
                &  " oldParameters.xml"                                              // &
@@ -810,7 +811,7 @@ contains
 
   subroutine inputParametersCheckParameters(self,allowedParameterNames)
     use :: Display            , only : displayIndent                  , displayMessage      , displayUnindent, displayVerbosity, &
-          &                            enumerationVerbosityLevelEncode, verbosityLevelSilent
+          &                            enumerationVerbosityLevelEncode, verbosityLevelSilent, displayMagenta , displayReset
     use :: FoX_dom            , only : destroy                        , getNodeName         , node
     use :: ISO_Varying_String , only : assignment(=)                  , operator(//)        , char
     use :: Regular_Expressions, only : regEx
@@ -877,7 +878,7 @@ contains
                   &  .and.                                              &
                   &   .not.warningsFound                                &
                   & ) then
-                if (verbose) call displayIndent('WARNING: problems found with input parameters:')
+                if (verbose) call displayIndent(displayMagenta()//'WARNING:'//displayReset()//' problems found with input parameters:')
                 warningsFound=.true.
              end if
              if (errorStatus /= inputParameterErrorStatusSuccess .and. verbose) then

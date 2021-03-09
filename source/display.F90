@@ -25,7 +25,8 @@ module Display
   implicit none
   private
   public :: displayMessage     , displayIndent , displayUnindent    , displayVerbosity, &
-       &    displayVerbositySet, displayCounter, displayCounterClear
+       &    displayVerbositySet, displayCounter, displayCounterClear, displayRed      , &
+       &    displayMagenta     , displayGreen  , displayBold        , displayReset
 
   !# <enumeration>
   !#  <name>verbosityLevel</name>
@@ -60,6 +61,9 @@ module Display
   ! Output type.
   logical                                      :: stdOutIsFile
   
+  ! ANSI codes.
+  character(len=* ), parameter                 :: ESC                       =achar(27)
+   
   interface displayMessage
      module procedure displayMessageChar
      module procedure displayMessageVarStr
@@ -481,5 +485,75 @@ contains
     end if
     return
   end function showMessage
+
+  function displayRed()
+    !% Return the ANSI escape code for red text.
+    use :: System_Output, only : stdOutIsATTY
+    implicit none
+    character(len=:), allocatable :: displayRed
+
+    if (stdOutIsATTY()) then
+       displayRed=ESC//"[31m"
+    else
+       displayRed=""
+    end if
+    return
+  end function displayRed
+  
+  function displayMagenta()
+    !% Return the ANSI escape code for magenta text.
+    use :: System_Output, only : stdOutIsATTY
+    implicit none
+    character(len=:), allocatable :: displayMagenta
+
+    if (stdOutIsATTY()) then
+       displayMagenta=ESC//"[35m"
+    else
+       displayMagenta=""
+    end if
+    return
+  end function displayMagenta
+  
+  function displayGreen()
+    !% Return the ANSI escape code for green text.
+    use :: System_Output, only : stdOutIsATTY
+    implicit none
+    character(len=:), allocatable :: displayGreen
+
+    if (stdOutIsATTY()) then
+       displayGreen=ESC//"[32m"
+    else
+       displayGreen=""
+    end if
+    return
+  end function displayGreen
+  
+  function displayBold()
+    !% Return the ANSI escape code for bold text.
+    use :: System_Output, only : stdOutIsATTY
+    implicit none
+    character(len=:), allocatable :: displayBold
+
+    if (stdOutIsATTY()) then
+       displayBold=ESC//"[1m"
+    else
+       displayBold=""
+    end if
+    return
+  end function displayBold
+  
+  function displayReset()
+    !% Return the ANSI escape code to reset text.
+    use :: System_Output, only : stdOutIsATTY
+    implicit none
+    character(len=:), allocatable :: displayReset
+
+    if (stdOutIsATTY()) then
+       displayReset=ESC//"[0m"
+    else
+       displayReset=""
+    end if
+    return
+  end function displayReset
   
 end module Display

@@ -50,6 +50,7 @@ contains
 
   subroutine multiLevelHierarchyProcess(self,node)
     !% Processes a node merging event, utilizing a multi level substructure hierarchy.
+    use :: Display         , only : displayGreen           , displayReset
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : treeNode
     use :: String_Handling , only : operator(//)
@@ -69,7 +70,7 @@ contains
        message='attempting to make node '
        message=message//node%index()//' a satellite, but it is the primary progenitor'//char(10)
        message=message//'this can happen if branch jumps are allowed and the tree is postprocessed to remove nodes'//char(10)
-       message=message//'HELP: to resolve this issue, either switch off postprocessing of the tree, or prevent'//char(10)
+       message=message//displayGreen()//'HELP:'//displayReset()//' to resolve this issue, either switch off postprocessing of the tree, or prevent'//char(10)
        message=message//'branch jumps by setting [mergerTreeReadAllowBranchJumps]=false'
        call Galacticus_Error_Report(message//{introspection:location})
     end if

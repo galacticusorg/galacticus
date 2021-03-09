@@ -2118,6 +2118,7 @@ contains
 
   subroutine Merger_Tree_Data_Set_Subhalo_Masses(mergerTrees)
     !% Set the masses of any subhalos (which have zero mass by default) based on particle count.
+    use :: Display         , only : displayMagenta , displayReset
     use :: Galacticus_Error, only : Galacticus_Warn
     class(mergerTreeData), intent(inout) :: mergerTrees
 
@@ -2126,7 +2127,7 @@ contains
           mergerTrees%nodeMass=dble(mergerTrees%particleCount)*mergerTrees%particleMass
        end where
     end if
-    if (any(mergerTrees%nodeMass <= 0.0d0)) call Galacticus_Warn("WARNING: some nodes have non-positive mass"//{introspection:location})
+    if (any(mergerTrees%nodeMass <= 0.0d0)) call Galacticus_Warn(displayMagenta()//"WARNING:"//displayReset()//" some nodes have non-positive mass"//{introspection:location})
     return
   end subroutine Merger_Tree_Data_Set_Subhalo_Masses
 

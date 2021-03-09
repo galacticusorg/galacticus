@@ -641,6 +641,7 @@ contains
 
   function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalSpins,presetSpins,presetSpins3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_,outputTimes_,darkMatterProfileScaleRadius_,randomNumberGenerator_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily read} merger tree constructor class.
+    use    :: Display                    , only : displayMagenta         , displayReset
     use    :: File_Utilities             , only : File_Name_Expand
     use    :: Galacticus_Error           , only : Galacticus_Error_Report, Galacticus_Warn
     use    :: Galacticus_Nodes           , only : defaultNBodyComponent  , nodeComponentNBodyGeneric
@@ -712,7 +713,7 @@ contains
     end if
     ! Warn about lack of branch jumps and subhalo promotions if split forests are being used.
     if (self%forestSizeMaximum > 0_c_size_t .and. .not.(self%allowBranchJumps .and. self%allowSubhaloPromotions)) then
-       message='WARNING: large forests may be split for processing but '
+       message=displayMagenta()//'WARNING:'//displayReset()//' large forests may be split for processing but '
        if (                                     .not.self%allowBranchJumps) message=message//' branch jumps'
        if (.not.self%allowSubhaloPromotions.and..not.self%allowBranchJumps) message=message//' and'
        if (.not.self%allowSubhaloPromotions                               ) message=message//' subhalo promotions'
@@ -721,7 +722,7 @@ contains
     end if
     ! Warn if subhalo promotions are allowed, but branch jumps are not.
     if (self%allowSubhaloPromotions.and..not.self%allowBranchJumps) then
-       message='WARNING: allowing subhalo promotions while not allowing branch jumps can lead to deadlocking of trees.'//char(10)
+       message=displayMagenta()//'WARNING:'//displayReset()//' allowing subhalo promotions while not allowing branch jumps can lead to deadlocking of trees.'//char(10)
        message=message//'Be sure that your trees have no promotion events for subhalos which survive beyond the end of their original branch'//char(10)
        message=message//'For example, without branch jumping, "a" in the following tree (in which "==>" indicates subhalo host) is stuck in "1", so it cannot evolve to become "b" causing the subhalo promotion "b" to "c" to be unreachable, resulting in a deadlock of the tree:'//char(10)//char(10)
        message=message//' ---   -----'//char(10)
@@ -739,7 +740,7 @@ contains
     end if
     ! Warn if subhalo promotions are allowed, but branch jumps are not.
     if (self%allowBranchJumps.and..not.self%presetMergerTimes) then
-       message='WARNING: allowing branch jumps while not presetting merger times can lead to tree deadlock if merging occurs prior to the jumped-to node time and before an output time which blocks the jumped-to node''s child.'//char(10)
+       message=displayMagenta()//'WARNING:'//displayReset()//' allowing branch jumps while not presetting merger times can lead to tree deadlock if merging occurs prior to the jumped-to node time and before an output time which blocks the jumped-to node''s child.'//char(10)
        message=message//'For example, "a" in the following tree (in which "<==" indicates subhalo host) jump from "3" to "1", but cannot merge with "1" since "1" still has a child, and that child, "2", cannot reach one because it is blocked by the output time, resulting in a deadlock of the tree:'//char(10)//char(10)
        message=message//' ---           ---'//char(10)
        message=message//' |1|<==========|a|'//char(10)

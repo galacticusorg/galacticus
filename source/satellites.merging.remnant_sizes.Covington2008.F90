@@ -180,7 +180,8 @@ contains
   
   subroutine covington2008Get(self,node,radius,velocityCircular,angularMomentumSpecific)
     !% Compute the size of the merger remnant for {\normalfont \ttfamily node} using the \cite{covington_predicting_2008} algorithm.
-    use :: Display                         , only : displayMessage                 , displayVerbosity, verbosityLevelWarn
+    use :: Display                         , only : displayMessage                 , displayVerbosity, verbosityLevelWarn, displayMagenta, &
+         &                                          displayReset
     use :: Galacticus_Error                , only : Galacticus_Error_Report        , Galacticus_Warn
     use :: Numerical_Comparison            , only : Values_Agree
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
@@ -334,7 +335,7 @@ contains
                 radiusVirial  =self%darkMatterHaloScale_%virialRadius  (nodeHost)
                 velocityVirial=self%darkMatterHaloScale_%virialVelocity(nodeHost)
                 if (angularMomentumSpecific < fractionAngularMomentumSpecificSmall*radiusVirial*velocityVirial) then
-                   message='WARNING: the specific angular momentum for node '
+                   message=displayMagenta()//'WARNING:'//displayReset()//' the specific angular momentum for node '
                    message=message//nodeHost%index()//' has become very small'//char(10)
                    message=message//' --> this will likely lead to a crash soon'
                    message=message//'NOTE: this can happen with the covington2008 implementation of the mergerRemnantSizeMethod class'//char(10)

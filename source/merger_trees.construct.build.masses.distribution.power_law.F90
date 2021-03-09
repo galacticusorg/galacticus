@@ -83,8 +83,8 @@ contains
     !% Computes the halo mass function sampling rate using a volume-limited sampling.
     implicit none
     class           (mergerTreeBuildMassDistributionPowerLaw), intent(inout) :: self
-    double precision                                            , intent(in   ) :: mass       , massMaximum, &
-         &                                                                         massMinimum, time
+    double precision                                         , intent(in   ) :: mass       , massMaximum, &
+         &                                                                      massMinimum, time
     !$GLC attributes unused :: time
 
     ! Sampling rate is simply a power-law in the logarithm of halo mass.

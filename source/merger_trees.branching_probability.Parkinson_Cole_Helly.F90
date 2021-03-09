@@ -605,7 +605,7 @@ contains
     !% Return a bound on the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily
     !% haloMass} at time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than
     !% {\normalfont \ttfamily massResolution}.
-    use            :: Display                 , only : displayMessage         , verbosityLevelWarn
+    use            :: Display                 , only : displayMessage         , verbosityLevelWarn, displayMagenta, displayReset
     use            :: Galacticus_Error        , only : Galacticus_Error_Report
     use            :: Hypergeometric_Functions, only : Hypergeometric_2F1
     use, intrinsic :: ISO_C_Binding           , only : c_int
@@ -709,12 +709,12 @@ contains
                       if (usingCDMAssumptions) then
                          if (.not.self%hypergeometricFailureWarned) then
                             self%hypergeometricFailureWarned=.true.
-                            call displayMessage(                                                                                &
-                                 &                          'WARNING: hypergeometric function evaluation failed when computing'//char(10)// &
-                                 &                          'merger tree branching probability bounds - will revert to more'   //char(10)// &
-                                 &                          'robust (but less stringent) bound in this and future cases'                 ,  &
-                                 &                          verbosityLevelWarn                                                                   &
-                                 &                         )
+                            call displayMessage(                                                                                                                      &
+                                 &              displayMagenta()//'WARNING:'//displayReset()//' hypergeometric function evaluation failed when computing'//char(10)// &
+                                 &              'merger tree branching probability bounds - will revert to more'                                         //char(10)// &
+                                 &              'robust (but less stringent) bound in this and future cases'                                                       ,  &
+                                 &              verbosityLevelWarn                                                                                                    &
+                                 &             )
                          end if
                          cycle
                       else
@@ -739,12 +739,12 @@ contains
                       if (usingCDMAssumptions) then
                          if (.not.self%hypergeometricFailureWarned) then
                             self%hypergeometricFailureWarned=.true.
-                            call displayMessage(                                                                                &
-                                 &                          'WARNING: hypergeometric function evaluation failed when computing'//char(10)// &
-                                 &                          'merger tree branching probability bounds - will revert to more'   //char(10)// &
-                                 &                          'robust (but less stringent) bound in this and future cases'                 ,  &
-                                 &                          verbosityLevelWarn                                                                   &
-                                 &                         )
+                            call displayMessage(                                                                                                                      &
+                                 &              displayMagenta()//'WARNING:'//displayReset()//' hypergeometric function evaluation failed when computing'//char(10)// &
+                                 &              'merger tree branching probability bounds - will revert to more'                                         //char(10)// &
+                                 &              'robust (but less stringent) bound in this and future cases'                                                       ,  &
+                                 &              verbosityLevelWarn                                                                                                    &
+                                 &             )
                          end if
                          cycle
                       else

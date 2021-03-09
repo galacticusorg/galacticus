@@ -118,6 +118,7 @@ contains
     use :: Atomic_Data                           , only : Atomic_Mass
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                            , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
+    use :: Display                               , only : displayGreen                                       , displayReset
     use :: Galactic_Filters                      , only : filterList                                         , galacticFilterAll                              , galacticFilterStarFormationRate                , galacticFilterStellarMass          , &
          &                                                galacticFilterGasFractionISM
     use :: Galacticus_Error                      , only : Galacticus_Error_Report
@@ -313,13 +314,13 @@ contains
     !# <referenceConstruct object="nodePropertyExtractor_"                                 constructor="nodePropertyExtractorMassStellar                (                                                             )"/>
     ! Find the index for the oxygen abundance.
     indexOxygen=Abundances_Index_From_Name("O")
-    if (indexOxygen < 0)                                                                                           &
-         & call Galacticus_Error_Report(                                                                           &
-         &                              'oxygen abundance is required for this analysis'    //char(10)//           &
-         &                              'HELP: you can track oxygen abundance by including:'//char(10)//char(10)// &
-         &                              '         <elementsToTrack value="O"/>'             //char(10)//char(10)// &
-         &                              '      in your parameter file'                      //                     &
-         &                              {introspection:location}                                                   &
+    if (indexOxygen < 0)                                                                                                                               &
+         & call Galacticus_Error_Report(                                                                                                               &
+         &                              'oxygen abundance is required for this analysis'                                        //char(10)//           &
+         &                              displayGreen()//'HELP:'//displayReset()//' you can track oxygen abundance by including:'//char(10)//char(10)// &
+         &                              '         <elementsToTrack value="O"/>'                                                 //char(10)//char(10)// &
+         &                              '      in your parameter file'                                                          //                     &
+         &                              {introspection:location}                                                                                       &
          &                             )
     ! Create an ISM metallicity weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )

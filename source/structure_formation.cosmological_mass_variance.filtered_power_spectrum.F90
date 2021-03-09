@@ -470,7 +470,8 @@ contains
   subroutine filteredPowerRetabulate(self,mass,time)
     !% Tabulate the cosmological mass variance.
     use :: Cosmology_Parameters    , only : hubbleUnitsLittleH
-    use :: Display                 , only : displayIndent            , displayMessage                   , displayUnindent, verbosityLevelWorking
+    use :: Display                 , only : displayIndent            , displayMessage                   , displayUnindent, verbosityLevelWorking, &
+         &                                  displayMagenta           , displayReset
     use :: File_Utilities          , only : File_Lock                , File_Unlock                      , lockDescriptor
     use :: Galacticus_Error        , only : Galacticus_Error_Report  , Galacticus_Warn
     use :: Numerical_Constants_Math, only : Pi
@@ -675,7 +676,7 @@ contains
                 if (self%nonMonotonicIsFatal) then
                    message=         ""
                 else
-                   message=         "WARNING: "
+                   message=         displayMagenta()//"WARNING: "//displayReset()
                 end if
                 write (label,'(e12.6)') massMinimum
                 message=         "σ(M) is non-increasing below mass M="//label//"M☉"

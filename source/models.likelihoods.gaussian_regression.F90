@@ -266,7 +266,7 @@ contains
     !% Return the log-likelihood for a Gaussian regression likelihood function.
     use :: Dates_and_Times               , only : Formatted_Date_and_Time
     use :: Display                       , only : displayIndent                  , displayMessage                 , displayUnindent, displayVerbosity, &
-          &                                       verbosityLevelInfo
+          &                                       verbosityLevelInfo             , displayMagenta                 , displayReset
     use :: Error_Functions               , only : Error_Function
     use :: Galacticus_Error              , only : Galacticus_Error_Report
     use :: Linear_Algebra                , only : assignment(=)                  , matrix                         , vector
@@ -583,7 +583,7 @@ contains
              write (label,'(f6.2)') 100.0d0*failureRateExpected
              message=message//trim(adjustl(label))//'% for perfect emulator)'
              call displayMessage(message)
-             if (.not.self%isGood) call displayMessage('WARNING: emulator failure rate is too high - emulator will not be used')
+             if (.not.self%isGood) call displayMessage(displayMagenta()//'WARNING:'//displayReset()//' emulator failure rate is too high - emulator will not be used')
           end if
        else
           if (simulationConvergence%isConverged().and.simulationConvergence%stateIsOutlier(simulationState%chainIndex()).and.self%emulateOutliers) return

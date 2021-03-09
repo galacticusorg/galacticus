@@ -422,6 +422,7 @@ contains
 
     double precision function massSpinIntegral(massIntrinsic)
       !% Integral over the halo mass function, spin distribution, halo mass error distribution, and spin error distribution.
+      use :: Display                 , only : displayMagenta         , displayReset
       use :: Galacticus_Error        , only : Galacticus_Error_Report, Galacticus_Warn, errorStatusFail, errorStatusSuccess
       use :: Input_Parameters        , only : inputParameters
       use :: Numerical_Constants_Math, only : Pi
@@ -515,7 +516,7 @@ contains
                descriptor=inputParameters()
                call self%distributionIntrinsic%descriptor(descriptor)
                call Galacticus_Warn(                                                                                            &
-                    &               'WARNING: failed to reach required tolerance ['                                          // &
+                    &               displayMagenta()//'WARNING:'//displayReset()//' failed to reach required tolerance ['    // &
                     &               trim(label    )                                                                          // &
                     &               '] in massSpinIntegral [iMass,iSpin='                                                    // &
                     &               trim(labelMass)                                                                          // &

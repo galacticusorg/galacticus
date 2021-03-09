@@ -452,6 +452,7 @@ contains
 
     function decodeUnits(unitString)
       !% Decode a textual unit definition and construct an importer units object from it.
+      use :: Display                         , only : displayMagenta         , displayReset
       use :: Galacticus_Error                , only : Galacticus_Error_Report, Galacticus_Warn
       use :: Numerical_Constants_Astronomical, only : kiloParsec             , massSolar
       use :: Numerical_Constants_Prefixes    , only : kilo
@@ -463,7 +464,7 @@ contains
       ! Check for trailing question mark.
       if (unitString(len_trim(unitString):len_trim(unitString)) == "?") then
          unitWork=trim(unitString(1:len_trim(unitString)-1))
-         call Galacticus_Warn('WARNING: file seems to be unsure about units "'//trim(unitString)//'"')
+         call Galacticus_Warn(displayMagenta()//'WARNING:'//displayReset()//' file seems to be unsure about units "'//trim(unitString)//'"')
       else
          unitWork=trim(unitString)
       end if

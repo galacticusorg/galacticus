@@ -262,7 +262,8 @@ contains
 
     double precision function powerSpectrumOneHaloTimeIntegrand(timePrime)
       !% Time integrand for the one-halo term in the power spectrum.
-      use :: Display         , only : displayMessage    , verbosityLevelWarn
+      use :: Display         , only : displayMessage    , verbosityLevelWarn, displayMagenta, displayReset
+
       use :: Galacticus_Error, only : errorStatusSuccess
       implicit none
       double precision            , intent(in   ) :: timePrime
@@ -281,7 +282,7 @@ contains
            &                                                                          )                                                    &
            &                            *cosmologyFunctions_%comovingVolumeElementTime(time)
       if (errorStatus /= errorStatusSuccess .and. .not.integrationWarningIssued) then
-         call displayMessage('WARNING: [powerSpectrumOneHaloTimeIntegrand] integration failed - likely due to oscillatory nature of integrand - proceeding anyway',verbosity=verbosityLevelWarn)
+         call displayMessage(displayMagenta()//'WARNING:'//displayReset()//' [powerSpectrumOneHaloTimeIntegrand] integration failed - likely due to oscillatory nature of integrand - proceeding anyway',verbosity=verbosityLevelWarn)
          integrationWarningIssued=.true.
       end if
       return
@@ -336,7 +337,7 @@ contains
 
     double precision function powerSpectrumTwoHaloTimeIntegrand(timePrime)
       !% Time integrand for the two-halo term in the power spectrum.
-      use :: Display         , only : displayMessage    , verbosityLevelWarn
+      use :: Display         , only : displayMessage    , verbosityLevelWarn, displayMagenta, displayReset
       use :: Galacticus_Error, only : errorStatusSuccess
       implicit none
       double precision            , intent(in   ) :: timePrime
@@ -360,7 +361,7 @@ contains
            &                            *sqrt(powerSpectrum_     %power                    (wavenumber(iWavenumber),time))                                 &
            &                            *     cosmologyFunctions_%comovingVolumeElementTime(                        time)
       if (errorStatus /= errorStatusSuccess .and. .not.integrationWarningIssued) then
-         call displayMessage('WARNING: [powerSpectrumTwoHaloTimeIntegrand] integration failed - likely due to oscillatory nature of integrand - proceeding anyway',verbosity=verbosityLevelWarn)
+         call displayMessage(displayMagenta()//'WARNING:'//displayReset()//' [powerSpectrumTwoHaloTimeIntegrand] integration failed - likely due to oscillatory nature of integrand - proceeding anyway',verbosity=verbosityLevelWarn)
          integrationWarningIssued=.true.
       end if
       return

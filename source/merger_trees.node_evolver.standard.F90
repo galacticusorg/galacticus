@@ -308,7 +308,8 @@ contains
 
   subroutine standardEvolve(self,tree,node,timeEnd,interrupted,functionInterrupt,galacticStructureSolver__,systemClockMaximum,status)
     !% Evolves {\normalfont \ttfamily node} to time {\normalfont \ttfamily timeEnd}, or until evolution is interrupted.
-    use            :: Display                       , only : displayIndent                , displayMessage                                  , displayUnindent
+    use            :: Display                       , only : displayIndent                , displayMessage                                  , displayUnindent                                , displayMagenta    , &
+         &                                                   displayReset
     use            :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
     use            :: Galacticus_Error              , only : Galacticus_Error_Report      , Galacticus_Warn                                 , errorStatusFail                                , errorStatusSuccess, &
           &                                                  errorStatusXCPU
@@ -492,7 +493,7 @@ contains
           call node%serializeScales(self%propertyScalesInactive,self%propertyTypeIntegrator)
           ! Check for zero property scales which will cause floating point overflow in the ODE solver.
           if (any(self%propertyScalesActive(1:self%propertyCountActive) == 0.0d0)) then
-             message='WARNING: Zero entry in ODE system scales for node'
+             message=displayMagenta()//'WARNING:'//displayReset()//' Zero entry in ODE system scales for node'
              call Galacticus_Warn          (message)
              call displayIndent(message)
              lengthMaximum=0

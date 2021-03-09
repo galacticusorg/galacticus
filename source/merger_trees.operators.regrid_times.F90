@@ -113,7 +113,8 @@ contains
 
   subroutine regridTimesOperatePreEvolution(self,tree)
     !% Perform a regrid times operation on a merger tree.
-    use            :: Display                , only : displayIndent           , displayMessage               , displayUnindent       , verbosityLevelWorking
+    use            :: Display                , only : displayIndent           , displayMessage               , displayUnindent       , verbosityLevelWorking, &
+         &                                            displayMagenta          , displayReset
     use            :: Galacticus_Error       , only : Galacticus_Error_Report , Galacticus_Warn
     use            :: Galacticus_Nodes       , only : mergerTree              , nodeComponentBasic           , nodeComponentSatellite, nodeEvent            , &
           &                                           treeNode                , treeNodeList
@@ -183,12 +184,14 @@ contains
           if (associated(node%mergeTarget).and..not.mergeTargetWarningIssued) then
              !$omp critical (mergeTargetWarning)
              if (.not.mergeTargetWarningIssued) then
-                call Galacticus_Warn(                                                                                &
-                     &               'WARNING: nodes in this tree have merge targets set'               //char(10)// &
-                     &               '         this is not supported by the regridding operator'        //char(10)// &
-                     &               '         your tree may crash or deadlock'                         //char(10)// &
-                     &               '         to avoid this problem do not preset merge targets, e.g. '//char(10)// &
-                     &               '           <mergerTreeReadPresetMergerNodes value="false"/>'                   &
+                call Galacticus_Warn(                                                                                          &
+                     &                                                                                    displayMagenta(  )// &
+                     &               'WARNING:'                                                         //displayReset  (  )// &
+                     &               ' nodes in this tree have merge targets set'                       //char          (10)// &
+                     &               '         this is not supported by the regridding operator'        //char          (10)// &
+                     &               '         your tree may crash or deadlock'                         //char          (10)// &
+                     &               '         to avoid this problem do not preset merge targets, e.g. '//char          (10)// &
+                     &               '           <mergerTreeReadPresetMergerNodes value="false"/>'                             &
                      &              )
                 mergeTargetWarningIssued=.true.
              end if

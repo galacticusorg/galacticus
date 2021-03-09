@@ -298,7 +298,8 @@ contains
 
   subroutine particleSwarmSimulate(self)
     !% Perform a particle swarm simulation.
-    use :: Display                     , only : displayIndent          , displayMessage, displayUnindent
+    use :: Display                     , only : displayIndent          , displayMessage, displayUnindent, displayMagenta, &
+         &                                      displayReset
     use :: File_Utilities              , only : File_Exists            , File_Remove
     use :: Galacticus_Error            , only : Galacticus_Error_Report
     use :: MPI_Utilities               , only : mpiBarrier             , mpiSelf
@@ -467,11 +468,11 @@ contains
                    end do
                    call displayUnindent('end')
                 else
-                   message="WARNING: state proposed in interaction file '"//interactionFileName//"' cannot be read"
+                   message=displayMagenta()//"WARNING:"//displayReset()//" state proposed in interaction file '"//interactionFileName//"' cannot be read"
                    call displayMessage(message)
                 end if
              else
-                message="WARNING: unable to open interaction file '"//interactionFileName//"'"
+                message=displayMagenta()//"WARNING:"//displayReset()//" unable to open interaction file '"//interactionFileName//"'"
                 call displayMessage(message)
              end if
              close(interactionFile)

@@ -376,7 +376,8 @@ contains
 
   double precision function generalizedPressSchechterFractionSubresolution(self,haloMass,deltaCritical,time,massResolution,node)
     !% Return the fraction of mass accreted in subresolution halos, i.e. those below {\normalfont \ttfamily massResolution}, per unit change in
-    !% $\delta_\mathrm{crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}. The integral is computed numerically.
+ !% $\delta_\mathrm{crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}. The integral is computed numerically.
+    use :: Display              , only : displayMagenta   , displayReset
     use :: Galacticus_Error     , only : Galacticus_Warn  , errorStatusSuccess
     use :: ISO_Varying_String   , only : varying_string
     use :: Numerical_Integration, only : GSL_Integ_Gauss15, integrator
@@ -430,9 +431,10 @@ contains
           else
              ! Attempt the integral again with lower tolerance. Issue a warnings if this is the first time this has happened.
              if (.not.self%subresolutionFractionIntegrandFailureWarned) then
-                message='WARNING: Integration of the subresolution fraction in the generalized Press-Schechter branching probability module failed.'//char(10)// &
-                &       'Will try again with lower tolerance. This warning will not be issued again.'                                                         // &
-                &       {introspection:location}
+                message=displayMagenta()//'WARNING:'                                                                                                          //displayReset(  )// &
+                     &                    ' Integration of the subresolution fraction in the generalized Press-Schechter branching probability module failed.'//char        (10)// &
+                     &                    'Will try again with lower tolerance. This warning will not be issued again.'                                                         // &
+                     &                    {introspection:location}
                 call Galacticus_Warn(message)
                 self%subresolutionFractionIntegrandFailureWarned=.true.
              end if

@@ -231,7 +231,7 @@ contains
   subroutine galacticusOpen(self,fileName)
     !% Validate a \glc\ format merger tree file.
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
-    use :: Display             , only : displayMessage         , verbosityLevelWarn
+    use :: Display             , only : displayMessage         , verbosityLevelWarn, displayMagenta, displayReset
     use :: Galacticus_Error    , only : Galacticus_Error_Report, Galacticus_Warn
     use :: IO_HDF5             , only : hdf5Access
     use :: Numerical_Comparison, only : Values_Differ
@@ -271,7 +271,7 @@ contains
     case (1)
        ! This version will be deprecated.
        !# <expiry version="1.0.0"/>
-       call Galacticus_Warn('WARNING: merger tree file format version is outdated - this format will soon be deprecated')
+       call Galacticus_Warn(displayMagenta()//'WARNING:'//displayReset()//' merger tree file format version is outdated - this format will soon be deprecated')
        self%forestHalosGroupName          ='haloTrees'
        self%forestContainmentAttributeName='treesAreSelfContained'
        self%forestIndexGroupName          ='treeIndex'
