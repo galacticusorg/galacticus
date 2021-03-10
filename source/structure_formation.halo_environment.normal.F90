@@ -54,6 +54,9 @@
      integer         (kind_int8                                        )          :: uniqueIDPrevious
      logical                                                                      :: linearToNonLinearInitialized
    contains
+     !# <methods>
+     !#   <method description="Reset memoized calculations." method="calculationReset" />
+     !# </methods>
      final     ::                                  normalDestructor
      procedure :: overdensityLinear             => normalOverdensityLinear
      procedure :: overdensityLinearGradientTime => normalOverdensityLinearGradientTime
@@ -64,6 +67,8 @@
      procedure :: pdf                           => normalPDF
      procedure :: cdf                           => normalCDF
      procedure :: overdensityLinearSet          => normalOverdensityLinearSet
+     procedure :: autoHook                      => normalAutoHook
+     procedure :: calculationReset              => normalCalculationReset
   end type haloEnvironmentNormal
 
   interface haloEnvironmentNormal
@@ -166,8 +171,19 @@ contains
     return
   end function normalConstructorInternal
 
+  subroutine normalAutoHook(self)
+    !% Attach to the calculation reset event.
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    implicit none
+    class(haloEnvironmentNormal), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,normalCalculationReset,openMPThreadBindingAllLevels)
+    return
+  end subroutine normalAutoHook
+
   subroutine normalDestructor(self)
     !% Destructor for the {\normalfont \ttfamily normal} halo mass function class.
+    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(haloEnvironmentNormal), intent(inout) :: self
 
@@ -179,8 +195,21 @@ contains
     !# <objectDestructor name="self%sphericalCollapseSolver_"      />
     !# <objectDestructor name="self%distributionOverdensity"       />
     !# <objectDestructor name="self%distributionOverdensityMassive"/>
+    call calculationResetEvent%detach(self,normalCalculationReset)
     return
   end subroutine normalDestructor
+
+  subroutine normalCalculationReset(self,node)
+    !% Reset the normal halo environment calculation.
+    use :: Galacticus_Nodes, only : treeNode
+    implicit none
+    class(haloEnvironmentNormal), intent(inout) :: self
+    type (treeNode             ), intent(inout) :: node
+
+    self%overdensityPrevious=-huge(0.0d0)
+    self%uniqueIDPrevious   =-1_kind_int8
+    return
+  end subroutine normalCalculationReset
 
   double precision function normalOverdensityLinear(self,node,presentDay)
     !% Return the environment of the given {\normalfont \ttfamily node}.
@@ -264,8 +293,8 @@ contains
        self%linearToNonLinearInitialized=.true.
     end if
     ! Find the nonlinear overdensity.
-    basic                      => node                  %basic      (                                         )
-    normalOverdensityNonLinear =  self%linearToNonLinear%interpolate(self%overdensityLinear(node),basic%time())
+    basic                      =>            node                  %basic      (                                         )
+    normalOverdensityNonLinear =  max(-1.0d0,self%linearToNonLinear%interpolate(self%overdensityLinear(node),basic%time()))
     return
   end function normalOverdensityNonLinear
 
@@ -326,7 +355,7 @@ contains
   end function normalCDF
 
   subroutine normalOverdensityLinearSet(self,node,overdensity)
-    !% Return the CDF of the environmental overdensity.
+    !% Set the environmental linear overdensity in the given {\normalfont \ttfamily node}.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (haloEnvironmentNormal), intent(inout) :: self
@@ -336,7 +365,7 @@ contains
 
     if (overdensity > self%environmentalOverdensityMaximum) call Galacticus_Error_Report('δ≥δ_c is inconsistent with normal (peak-background) density field'//{introspection:location})
     call node%hostTree%properties%set('haloEnvironmentOverdensity',overdensity)
-    self%uniqueIDPrevious   =node%hostTree%baseNode%uniqueID()
+    self%uniqueIDPrevious   =-1_kind_int8
     self%overdensityPrevious=overdensity
     return
   end subroutine normalOverdensityLinearSet
