@@ -102,6 +102,11 @@ contains
             &                  )                                                                                        , &
             &                 i                                                                                           &
             &                )
+       if (i > 1) then
+          ! Test for monotonicity. If monotonicity fails enforce it by adding a small increase in the CDF. This will make
+          ! negligible difference to our results.
+          if (self%cdf%y(i) <= self%cdf%y(i-1)) call self%cdf%populate(self%cdf%y(i-1)*(1.0d0+epsilon(0.0d0)),i)
+       end if
     end do
     call self%cdf%reverse(self%cdfInverse)
     return
