@@ -375,7 +375,6 @@ contains
     !$omp threadprivate(finder,finderConstructed)
     double precision                            :: expansionFactorTurnaroundMaximum        , expansionFactorTurnaroundMinimum
 
-
     if (cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal == 0.0d0) then
        ! No cosmological constant - use the simple analytic solution.
        cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum=-cllsnlssMttCsmlgclCnstntOmegaMatterEpochal &
@@ -526,15 +525,18 @@ contains
          &                                                                                            timeMaximum                           , radiusUpperLimit                  , &
          &                                                                                            normalization                         , overdensityNonlinear_             , &
          &                                                                                            timesMinimum                          , timesMaximum
+    logical                                                                                        :: finderPerturbationConstructed         , finderRadiusConstructed
     type            (integrator                                      )                             :: integrator_
     type            (rootFinder                                      )                             :: finderPerturbation                    , finderRadius
-    logical                                                                                        :: finderPerturbationConstructed=.false. , finderRadiusConstructed   =.false.
     integer                                                                                        :: i                                     , timeCount                         , &
          &                                                                                            iOverdensityLinear                    , iOverdensity                      , &
          &                                                                                            iTime
 
     ! Check that we have a linear growth object.
     if (.not.associated(self%linearGrowth_)) call Galacticus_Error_Report('no linearGrowth object was supplied'//{introspection:location})
+    ! Set initial state of root finder objects.
+    finderPerturbationConstructed=.false. 
+    finderRadiusConstructed      =.false.
     ! Find a suitable range of times to tabulate, and generate an array of times.
     timesMinimum      =min(0.5d0*time,self%cosmologyFunctions_%cosmicTime(expansionFactorMinimum))
     timesMaximum      =max(2.0d0*time,self%cosmologyFunctions_%cosmicTime(expansionFactorMaximum))
