@@ -20,20 +20,37 @@
 !% Implements a merger tree branching probability class using the algorithm of \cite{fakhouri_merger_2010}.
 
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
-  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass, haloEnvironmentClass
 
   !# <mergerTreeBranchingProbability name="mergerTreeBranchingProbabilityFakhouri2010">
-  !#  <description>Merger tree branching probabilities using the algorithm of \cite{fakhouri_merger_2010}.</description>
+  !#  <description>
+  !#   Merger tree branching probabilities using the algorithm of \cite{fakhouri_merger_2010}. The branching rate is given by
+  !#   \begin{equation}
+  !#    \frac{\mathrm{d}^2 N}{\mathrm{d} \xi \mathrm{d} z} = A \left(\frac{M}{10^{12}\hbox{M}_\odot}\right)^\alpha \xi^\beta \exp \left(\left[\frac{\xi}{\bar{\xi}}\right]^\gamma\right) (1+z)^\eta f_\mathrm{env}(\delta,M),
+  !#   \end{equation}
+  !#   where $M$ is the mass of the primary halo, $\xi$ is the mass ratio of the merging halos, and $A=${\normalfont \ttfamily
+  !#   [A]}, $\alpha=${\normalfont \ttfamily [alpha]}, $\beta=${\normalfont \ttfamily [beta]}, $\gamma=${\normalfont \ttfamily
+  !#   [gamma]}, and $\bar{\xi}=${\normalfont \ttfamily [xiBar]} are parameters. The function $f_\mathrm{env}(\delta,M)$ describes
+  !#   environmental dependence in the merger rate. We use the model of \cite[][their eqn.~(11)]{fakhouri_environmental_2009}:
+  !#   \begin{equation}
+  !#    f_\mathrm{env}(\delta,M) = B (1+\delta)^\mu \left( \frac{M}{10^{12}\mathrm{M}_\odot} \right)^\nu,
+  !#   \end{equation}
+  !#   where $\delta$ is the non-linear overdensity of the environment and $B=${\normalfont \ttfamily [B]}, $\mu=${\normalfont
+  !#   \ttfamily [mu]}, and $\nu=${\normalfont \ttfamily [nu]} are parameters.
+  !#  </description>
   !# </mergerTreeBranchingProbability>
   type, extends(mergerTreeBranchingProbabilityClass) :: mergerTreeBranchingProbabilityFakhouri2010
      !% A merger tree branching probability class using the algorithm of \cite{fakhouri_merger_2010}.
      private
      double precision                                         :: alpha                              , beta , &
           &                                                      gamma                              , eta  , &
-          &                                                      A                                  , xiBar
+          &                                                      A                                  , xiBar, &
+          &                                                      B                                  , mu   , &
+          &                                                      nu
      class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
      class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
+     class           (haloEnvironmentClass         ), pointer :: haloEnvironment_          => null()
    contains
      final     ::         fakhouri2010Destructor
      procedure :: rate => fakhouri2010Rate
@@ -56,9 +73,12 @@ contains
     class           (cosmologyFunctionsClass                   ), pointer       :: cosmologyFunctions_
     class           (cosmologicalMassVarianceClass             ), pointer       :: cosmologicalMassVariance_
     class           (criticalOverdensityClass                  ), pointer       :: criticalOverdensity_
+    class           (haloEnvironmentClass                      ), pointer       :: haloEnvironment_
     double precision                                                            :: alpha                    , beta , &
          &                                                                         gamma                    , eta  , &
-         &                                                                         A                        , xiBar
+         &                                                                         A                        , xiBar, &
+         &                                                                         B                        , mu   , &
+         &                                                                         nu
 
     !# <inputParameter>
     !#   <name>alpha</name>
@@ -102,29 +122,55 @@ contains
     !#   <description>The parameter $\bar{\xi}$ appearing in equation~(1) of \cite{fakhouri_merger_2010}.</description>
     !#   <source>parameters</source>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>B</name>
+    !#   <defaultValue>0.963d0</defaultValue>
+    !#   <defaultSource>\citep{fakhouri_environmental_2009}</defaultSource>
+    !#   <description>The parameter $B$ (the overall normalization) appearing in equation~(11; $\delta_\mathrm{7-FOF}$ case) of \cite{fakhouri_environmental_2009}.</description>
+    !#   <source>parameters</source>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>mu</name>
+    !#   <defaultValue>0.130d0</defaultValue>
+    !#   <defaultSource>\citep{fakhouri_environmental_2009}</defaultSource>
+    !#   <description>The parameter $\mu$ (exponent of the density) appearing in equation~(11; $\delta_\mathrm{7-FOF}$ case) of \cite{fakhouri_environmental_2009}.</description>
+    !#   <source>parameters</source>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>nu</name>
+    !#   <defaultValue>-0.0156d0</defaultValue>
+    !#   <defaultSource>\citep{fakhouri_environmental_2009}</defaultSource>
+    !#   <description>The parameter $\nu$ (exponent of the halo mass) appearing in equation~(11; $\delta_\mathrm{7-FOF}$ case) of \cite{fakhouri_environmental_2009}.</description>
+    !#   <source>parameters</source>
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
-    self=mergerTreeBranchingProbabilityFakhouri2010(alpha,beta,gamma,eta,A,xiBar,cosmologyFunctions_,cosmologicalMassVariance_,criticalOverdensity_)
+    !# <objectBuilder class="haloEnvironment"          name="haloEnvironment_"          source="parameters"/>
+    self=mergerTreeBranchingProbabilityFakhouri2010(alpha,beta,gamma,eta,A,xiBar,B,mu,nu,cosmologyFunctions_,cosmologicalMassVariance_,criticalOverdensity_,haloEnvironment_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"      />
     !# <objectDestructor name="cosmologicalMassVariance_"/>
     !# <objectDestructor name="criticalOverdensity_"     />
+    !# <objectDestructor name="haloEnvironment_"         />
     return
   end function fakhouri2010ConstructorParameters
 
-  function fakhouri2010ConstructorInternal(alpha,beta,gamma,eta,A,xiBar,cosmologyFunctions_,cosmologicalMassVariance_,criticalOverdensity_) result(self)
+  function fakhouri2010ConstructorInternal(alpha,beta,gamma,eta,A,xiBar,B,mu,nu,cosmologyFunctions_,cosmologicalMassVariance_,criticalOverdensity_,haloEnvironment_) result(self)
     !% Internal constructor for the ``fakhouri2010'' merger tree branching probability class.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeBranchingProbabilityFakhouri2010)                        :: self
     double precision                                            , intent(in   )         :: alpha                    , beta , &
          &                                                                                 gamma                    , eta  , &
-         &                                                                                 A                        , xiBar
+         &                                                                                 A                        , xiBar, &
+         &                                                                                 B                        , mu   , &
+         &                                                                                 nu
     class           (cosmologyFunctionsClass                   ), intent(in   ), target :: cosmologyFunctions_
     class           (cosmologicalMassVarianceClass             ), intent(in   ), target :: cosmologicalMassVariance_
     class           (criticalOverdensityClass                  ), intent(in   ), target :: criticalOverdensity_
-    !# <constructorAssign variables="alpha, beta, gamma, eta, A, xiBar, *cosmologyFunctions_, *cosmologicalMassVariance_, *criticalOverdensity_"/>
+    class           (haloEnvironmentClass                      ), intent(in   ), target :: haloEnvironment_
+    !# <constructorAssign variables="alpha, beta, gamma, eta, A, xiBar, B, mu, nu, *cosmologyFunctions_, *cosmologicalMassVariance_, *criticalOverdensity_, *haloEnvironment_"/>
     
     return
   end function fakhouri2010ConstructorInternal
@@ -136,6 +182,7 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"      />
     !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     !# <objectDestructor name="self%criticalOverdensity_"     />
+    !# <objectDestructor name="self%haloEnvironment_"         />
     return
   end subroutine fakhouri2010Destructor
 
@@ -181,5 +228,19 @@ contains
          &             +mass                                                  &
          &             -massBranch                                            &
          &            )**2
+    ! Include the environmental dependence.
+    fakhouri2010Rate=+fakhouri2010Rate&
+         &           *self%B                                             &
+         &           *(                                                  &
+         &             +1.0d0                                            &
+         &             +self%haloEnvironment_%overdensityNonlinear(node) &
+         &            )**self%mu                                         &
+         &           *(                                                  &
+         &             +(                                                &
+         &               +mass                                           &
+         &               -massBranch                                     &
+         &              )                                                &
+         &             /massReference                                    &
+         &            )**self%nu
     return
   end function fakhouri2010Rate
