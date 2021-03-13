@@ -226,7 +226,6 @@ contains
     !# <inputParameter>
     !#   <name>lengthSoftening</name>
     !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The Plummer-equivalent softening length. That is, the parameter $\epsilon$ in the softening gravitational potential $\phi(r) = -\mathrm{G}m/\sqrt{r^2+\epsilon^2}$. If set to zero, softening is ignored when constructing the particle representation of the halo. For non-zero values softening is accounted for when constructing the velocity distribution following the procedure of \cite{barnes_gravitational_2012}.</description>
     !# </inputParameter>
     !# <inputParameter>
