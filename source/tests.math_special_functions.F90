@@ -31,7 +31,7 @@ program Test_Math_Special_Functions
   use :: Factorials              , only : Factorial                        , Logarithmic_Double_Factorial
   use :: Gamma_Functions         , only : Gamma_Function                   , Gamma_Function_Incomplete                      , Gamma_Function_Incomplete_Complementary, Gamma_Function_Logarithmic, &
           &                               Inverse_Gamma_Function_Incomplete, Inverse_Gamma_Function_Incomplete_Complementary
-  use :: Hypergeometric_Functions, only : Hypergeometric_1F1               , Hypergeometric_2F1                             , Hypergeometric_pFq
+  use :: Hypergeometric_Functions, only : Hypergeometric_1F1               , Hypergeometric_2F1                             , Hypergeometric_pFq_Regularized         , Hypergeometric_pFq
   use :: Polylogarithms          , only : Polylogarithm_2                  , Polylogarithm_3
   use :: Unit_Tests              , only : Assert                           , Unit_Tests_Begin_Group                         , Unit_Tests_End_Group                   , Unit_Tests_Finish
   implicit none
@@ -50,7 +50,8 @@ program Test_Math_Special_Functions
        &                             inverseGammaFunctionIncomplete                                                                                                                                                              , inverseGammaFunctionIncompleteComplementary, &
        &                             logGammaFunction                                                                                                                                                                            , sineIntegral                               , &
        &                             hypergeometric1F2                                                                                                                                                                           , hypergeometric2F1approx                    , &
-       &                             polylogarithm2                                                                                                                                                                              , polylogarithm3
+       &                             polylogarithm2                                                                                                                                                                              , polylogarithm3                             , &
+       &                             hypergeometric1F2Regularized
   double complex  , dimension(17) :: errorFunctionComplex
   integer                         :: i
 
@@ -86,6 +87,7 @@ program Test_Math_Special_Functions
      hypergeometric2F1                          (i)=Hypergeometric_2F1                             ([1.5d0,0.5d0],[1.5d0      ], 1.0d0/(argument(i)+1.0d0)                         )
      hypergeometric2F1approx                    (i)=Hypergeometric_2F1                             ([1.5d0,0.5d0],[1.5d0      ], 1.0d0/(argument(i)+1.0d0),toleranceRelative=1.0d-6)
      hypergeometric1F2                          (i)=Hypergeometric_pFq                             ([1.5d0      ],[1.5d0,0.5d0],        argument(i)                                )
+     hypergeometric1F2Regularized               (i)=Hypergeometric_pFq_Regularized                 ([1.5d0      ],[1.5d0,0.5d0],        argument(i)                                )
      polylogarithm2                             (i)=Polylogarithm_2                                (                            -1.0d0/ argument(i)                                )
      polylogarithm3                             (i)=Polylogarithm_3                                (                            -1.0d0/ argument(i)                                )
   end do
@@ -482,6 +484,22 @@ program Test_Math_Special_Functions
        &        279.0556851d0                           &
        &       ],                                       &
        &       relTol=1.0d-6                            &
+       &     )
+  call Assert("hypergeometric regularized, ₁F₂([3/2],[3/2,1/2],x)/Γ(3/2)Γ(1/2)", &
+       &       hypergeometric1F2Regularized,                                     &
+       &       [                                                                 &
+       &          2.395088164459957d0,                                           &
+       &          5.404244374495762d0,                                           &
+       &         10.179246689601360d0,                                           &
+       &         17.384960971825730d0,                                           &
+       &         27.869601505963740d0,                                           &
+       &         42.704536809925250d0,                                           &
+       &         63.231214467615680d0,                                           &
+       &         91.116286835144320d0,                                           &
+       &        128.416162351259700d0,                                           &
+       &        177.652366745316700d0                                            &
+       &       ],                                                                &
+       &       relTol=1.0d-6                                                     &
        &     )
 
   ! Test hypergeometric 2F1 function transitions for |x|>1.
