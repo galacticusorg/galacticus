@@ -161,18 +161,19 @@ contains
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options        , only : coordinateSystemCartesian       , massTypeDark
     use :: Galactic_Structure_Tidal_Tensors  , only : Galactic_Structure_Tidal_Tensor
-    use :: Galacticus_Nodes                  , only : nodeComponentSatellite          , treeNode
-    use :: Linear_Algebra                    , only : vector                          , matrix                        , assignment(=)
-    use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec                    , gravitationalConstantGalacticus
+    use :: Galacticus_Nodes                  , only : nodeComponentSatellite          , nodeComponentBasic                      , treeNode
+    use :: Linear_Algebra                    , only : vector                          , matrix                                  , assignment(=)
+    use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec                              , gravitationalConstantGalacticus
     use :: Numerical_Constants_Math          , only : Pi
     use :: Numerical_Constants_Prefixes      , only : kilo
-    use :: Root_Finder                       , only : rangeExpandMultiplicative       , rangeExpandSignExpectNegative , rangeExpandSignExpectPositive
+    use :: Root_Finder                       , only : rangeExpandMultiplicative       , rangeExpandSignExpectNegative           , rangeExpandSignExpectPositive
     use :: Tensors                           , only : assignment(=)                   , tensorRank2Dimension3Symmetric
     use :: Vectors                           , only : Vector_Magnitude                , Vector_Product
     implicit none
     class           (satelliteTidalStrippingRadiusKing1962), intent(inout)         :: self
     type            (treeNode                             ), intent(inout), target :: node
     type            (treeNode                             ), pointer               :: nodeHost
+    class           (nodeComponentBasic                   ), pointer               :: basic
     class           (nodeComponentSatellite               ), pointer               :: satellite
     double precision                                       , dimension(3  )        :: position                               , velocity                        , &
          &                                                                            tidalTensorEigenValueComponents
@@ -270,7 +271,14 @@ contains
        end if
        king1962Radius=self%radiusTidalPrevious
     else
-       king1962Radius=Galactic_Structure_Radius_Enclosing_Mass(node,massSatellite*self%fractionDarkMatter,massType=massTypeDark)
+       ! If the bound mass of the satellite exceeds the original mass (which can happen during failed ODE steps), simply return
+       ! the virial radius. Otherwise, solve for the radius enclosing the current bound mass.
+       basic => node%basic()
+       if (massSatellite > basic%mass()) then
+          king1962Radius=self%darkMatterHaloScale_%virialRadius(node)
+       else
+          king1962Radius=Galactic_Structure_Radius_Enclosing_Mass(node,massSatellite*self%fractionDarkMatter,massType=massTypeDark)
+       end if
     end if
     return
   end function king1962Radius
