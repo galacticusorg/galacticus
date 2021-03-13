@@ -31,7 +31,7 @@ module Hypergeometric_Functions
   use            :: Interface_GSL, only : gsl_sf_result, gsl_success
   implicit none
   private
-  public :: Hypergeometric_1F1, Hypergeometric_2F1, Hypergeometric_pFq
+  public :: Hypergeometric_1F1, Hypergeometric_2F1, Hypergeometric_pFq, Hypergeometric_pFq_Regularized
 
   interface Hypergeometric_pFq
      module procedure :: Hypergeometric_pFq_Real
@@ -136,20 +136,43 @@ contains
   double complex function Hypergeometric_pFq_Complex(a,b,x)
     !% Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$, using the algorithm of
     !% \cite{perger_numerical_1993}.
+    use :: Numerical_Comparison, only : Values_Agree
     implicit none
-    double complex, intent(in   ), dimension(:) :: a    , b
+    double complex, intent(in   ), dimension(:) :: a      , b
     double complex, intent(in   )               :: x
     double complex                              :: PFQ
-    integer                                     :: LNPFQ, IX, NSIGFIG
+    integer                                     :: LNPFQ  , IX   , &
+         &                                         NSIGFIG
+    logical                                     :: a1is1  , a1is2, &
+         &                                         a2is2  , b1is2, &
+         &                                         b1Is3
 
     LNPFQ  = 0
     IX     = 0
     NSIGFIG=10
     if (dreal(x) == 0.0d0) then
        Hypergeometric_pFq_Complex=1.0d0
-    else
-       Hypergeometric_pFq_Complex=PFQ(a,b,size(a),size(b),x,LNPFQ,IX,NSIGFIG)
+       return
     end if
+    if (size(a) == 2 .and. size(b) == 1) then
+       ! Special cases for ₂F₁.
+       a1Is1=Values_Agree(real(a(1)),1.0d0,absTol=1.0d-6) .and. Values_Agree(imag(a(1)),0.0d0,absTol=1.0d-6)
+       a1Is2=Values_Agree(real(a(1)),2.0d0,absTol=1.0d-6) .and. Values_Agree(imag(a(1)),0.0d0,absTol=1.0d-6)
+       a2Is2=Values_Agree(real(a(2)),2.0d0,absTol=1.0d-6) .and. Values_Agree(imag(a(2)),0.0d0,absTol=1.0d-6)
+       b1Is2=Values_Agree(real(b(1)),2.0d0,absTol=1.0d-6) .and. Values_Agree(imag(b(1)),0.0d0,absTol=1.0d-6)
+       b1Is3=Values_Agree(real(b(1)),3.0d0,absTol=1.0d-6) .and. Values_Agree(imag(b(1)),0.0d0,absTol=1.0d-6)
+       if (a1Is1 .and. a2Is2 .and. b1Is2) then
+          ! ₂F₁([1,2],[2],x) = 1/(1-x).
+          Hypergeometric_pFq_Complex=1.0d0/(1.0d0-x)
+          return
+       end if
+       if (a1Is2 .and. a2Is2 .and. b1Is3) then
+          ! ₂F₁([2,2],[3],x) = 2 (-x-log[1-x]+x log[1-x])/x²/(-1+x)
+          Hypergeometric_pFq_Complex=2.0d0*(-x-log(1.0d0-x)+x*log(1.0d0-x))/x**2/(-1.0d0+x)
+          return
+       end if
+    end if
+    Hypergeometric_pFq_Complex=PFQ(a,b,size(a),size(b),x,LNPFQ,IX,NSIGFIG)    
     return
   end function Hypergeometric_pFq_Complex
 
@@ -162,5 +185,16 @@ contains
     Hypergeometric_pFq_Real=real(Hypergeometric_pFq_Complex(dcmplx(a),dcmplx(b),dcmplx(x)))
     return
   end function Hypergeometric_pFq_Real
+
+  double precision function Hypergeometric_pFq_Regularized(a,b,x)
+    !% Evaluate the regularized generalized hypergeometric function
+    !% $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)/[\Gamma(b_1)\ldots\Gamma(b_q)]$ for real arguments.
+    implicit none
+    double precision, intent(in   ), dimension(:) :: a, b
+    double precision, intent(in   )               :: x
+
+    Hypergeometric_pFq_Regularized=real(Hypergeometric_pFq(dcmplx(a),dcmplx(b),dcmplx(x)))/product(Gamma(b))
+    return
+  end function Hypergeometric_pFq_Regularized
 
 end module Hypergeometric_Functions
