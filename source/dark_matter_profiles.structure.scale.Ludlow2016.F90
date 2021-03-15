@@ -159,7 +159,8 @@ contains
     !% \cite{ludlow_mass-concentration-redshift_2016} algorithm.
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Calculations_Resets      , only : Galacticus_Calculations_Reset
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report
+    use :: Display                             , only : displayGreen                       , displayReset
+    use :: Galacticus_Error                    , only : Galacticus_Error_Report            , errorStatusSuccess
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , nodeComponentDarkMatterProfile, treeNode
     use :: Merger_Tree_Walkers                 , only : mergerTreeWalkerIsolatedNodesBranch
     use :: Numerical_Comparison                , only : Values_Agree
@@ -180,7 +181,8 @@ contains
          &                                                                                   timeFormationTrial        , timeFormationEarliest  , &
          &                                                                                   timeFormationLatest       , timeFormationPrevious  , &
          &                                                                                   radiusScalePrevious2nd    , rangeExpandFactor
-    integer                                                                               :: iterationCount            , i
+    integer                                                                               :: iterationCount            , i                      , &
+         &                                                                                   status
 
     ! For halos with no progenitors, simply keep the fall-back result. Otherwise, perform our calculation
     if (.not.associated(node%firstChild)) then
@@ -259,6 +261,11 @@ contains
              ! Force convergence by setting the previous scale radius to that which we just set - since we're choosing a (possibly
              ! random) concentration from a distribution we no longer need to iterate to find a solution.
              radiusScalePrevious=+radiusScale
+          else if (self%formationTimeRoot(basic%time()) < 0.0d0) then
+             ! The characteristic mass exceeds that at the present time. This is possible in early iterations if the progenitor
+             ! halo was assigned a very large scale radius (usually from the fall-through method). Fall through to the alternative
+             ! concentration calculation, but do not force convergence.
+             radiusScale        =+self%darkMatterProfileScaleRadius_%radius(node)
           else
              ! Find the time at which the mass in progenitors equals this characteristic halo mass.
              if (iterationCount > 2) then
@@ -280,10 +287,19 @@ contains
                   &                                                         rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
                   &                                                        )
              if (iterationCount == 1) then
-                timeFormation=ludlow2016States(ludlow2016StateCount)%finder%find(rootRange=[timeFormationEarliest,timeFormationLatest])
+                timeFormation=ludlow2016States(ludlow2016StateCount)%finder%find(rootRange=[timeFormationEarliest,timeFormationLatest],status=status)
              else
-                timeFormation=ludlow2016States(ludlow2016StateCount)%finder%find(rootGuess= timeFormationPrevious                     )
+                timeFormation=ludlow2016States(ludlow2016StateCount)%finder%find(rootGuess= timeFormationPrevious                     ,status=status)
              end if
+             if (status /= errorStatusSuccess)                                                                                                                                     &
+                  & call Galacticus_Error_Report(                                                                                                                                  &
+                  &                              'solving for formation time failed'//char        (10)                                                                          // &
+                  &                              displayGreen()//' HELP:'           //displayReset(  )                                                                          // &
+                  &                              ' if you are using <darkMatterProfileScaleRadiusMethod value="concentration"> as the fall back method for setting scale radii,'// &
+                  &                              ' consider setting <useMeanConcentration value="true"/> in the fall-back method - scatter in the concentration-mass relation'  // &
+                  &                              ' can lead to poor convergence here'                                                                                           // &
+                  &                              {introspection:location}                                                                                                          &
+                  &                             )
              ! If requested, check for possible earlier formation times by simply stepping through trial times and finding the
              ! earliest at which the required mass threshold is reached. This is used for cases where the cumulative mass history
              ! is not monotonic.
