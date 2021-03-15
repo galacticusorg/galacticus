@@ -1256,17 +1256,17 @@ contains
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr                , gravitationalConstantGalacticus
     implicit none
-    class           (darkMatterProfileDMOEinasto   ), intent(inout)  :: self
-    type            (treeNode                      ), intent(inout)  :: node
-    double precision                                , intent(in   )  :: time
-    class           (nodeComponentBasic            ), pointer        :: basic
-    class           (nodeComponentDarkMatterProfile), pointer        :: darkMatterProfile
-    integer         (c_size_t                      ), dimension(0:1) :: jAlpha
-    double precision                                , dimension(0:1) :: hAlpha
-    integer                                                          :: iAlpha
-    double precision                                                 :: alpha            , freefallTimeScaleFree      , &
-         &                                                              radiusScale      , timeScale                  , &
-         &                                                              velocityScale    , virialRadiusOverScaleRadius
+    class           (darkMatterProfileDMOEinasto   ), intent(inout) , target :: self
+    type            (treeNode                      ), intent(inout) , target :: node
+    double precision                                , intent(in   )          :: time
+    class           (nodeComponentBasic            ), pointer                :: basic
+    class           (nodeComponentDarkMatterProfile), pointer                :: darkMatterProfile
+    integer         (c_size_t                      ), dimension(0:1)         :: jAlpha
+    double precision                                , dimension(0:1)         :: hAlpha
+    integer                                                                  :: iAlpha
+    double precision                                                         :: alpha            , freefallTimeScaleFree      , &
+         &                                                                      radiusScale      , timeScale                  , &
+         &                                                                      velocityScale    , virialRadiusOverScaleRadius
 
     ! For non-positive freefall times, return a zero freefall radius immediately.
     if (time <= 0.0d0) then
@@ -1324,17 +1324,17 @@ contains
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr                , gravitationalConstantGalacticus
     implicit none
-    class           (darkMatterProfileDMOEinasto   ), intent(inout)  :: self
-    type            (treeNode                      ), intent(inout)  :: node
-    double precision                                , intent(in   )  :: time
-    class           (nodeComponentBasic            ), pointer        :: basic
-    class           (nodeComponentDarkMatterProfile), pointer        :: darkMatterProfile
-    integer         (c_size_t                      ), dimension(0:1) :: jAlpha
-    double precision                                , dimension(0:1) :: hAlpha
-    integer                                                          :: iAlpha
-    double precision                                                 :: alpha            , freefallTimeScaleFree      , &
-         &                                                              radiusScale      , timeScale                  , &
-         &                                                              velocityScale    , virialRadiusOverScaleRadius
+    class           (darkMatterProfileDMOEinasto   ), intent(inout) , target :: self
+    type            (treeNode                      ), intent(inout) , target :: node
+    double precision                                , intent(in   )          :: time
+    class           (nodeComponentBasic            ), pointer                :: basic
+    class           (nodeComponentDarkMatterProfile), pointer                :: darkMatterProfile
+    integer         (c_size_t                      ), dimension(0:1)         :: jAlpha
+    double precision                                , dimension(0:1)         :: hAlpha
+    integer                                                                  :: iAlpha
+    double precision                                                         :: alpha            , freefallTimeScaleFree      , &
+         &                                                                      radiusScale      , timeScale                  , &
+         &                                                                      velocityScale    , virialRadiusOverScaleRadius
 
     ! For non-positive freefall times, return a zero freefall radius immediately.
     if (time <= 0.0d0) then

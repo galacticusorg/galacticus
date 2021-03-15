@@ -348,9 +348,9 @@ contains
     !% Returns the freefall radius in the multiple density profile at the specified {\normalfont \ttfamily time} (given in
     !% Gyr).
     implicit none
-    class           (darkMatterProfileDMOMultiple), intent(inout) :: self
-    type            (treeNode                    ), intent(inout) :: node
-    double precision                              , intent(in   ) :: time
+    class           (darkMatterProfileDMOMultiple), intent(inout), target :: self
+    type            (treeNode                    ), intent(inout), target :: node
+    double precision                              , intent(in   )         :: time
 
     if (node%isSatellite()) then
        multipleFreefallRadius=self%darkMatterProfileDMOSatellite_%freefallRadius(node,time)
@@ -364,9 +364,9 @@ contains
     !% Returns the rate of increase of the freefall radius in the multiple density profile at the specified {\normalfont
     !% \ttfamily time} (given in Gyr).
     implicit none
-    class           (darkMatterProfileDMOMultiple), intent(inout) :: self
-    type            (treeNode                    ), intent(inout) :: node
-    double precision                              , intent(in   ) :: time
+    class           (darkMatterProfileDMOMultiple), intent(inout), target :: self
+    type            (treeNode                    ), intent(inout), target :: node
+    double precision                              , intent(in   )         :: time
 
     if (node%isSatellite()) then
        multipleFreefallRadiusIncreaseRate=self%darkMatterProfileDMOSatellite_%freefallRadiusIncreaseRate(node,time)

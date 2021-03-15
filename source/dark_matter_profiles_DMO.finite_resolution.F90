@@ -597,9 +597,9 @@ contains
     !% Returns the freefall radius in the finiteResolution density profile at the specified {\normalfont \ttfamily time} (given in
     !% Gyr).
     implicit none
-    class           (darkMatterProfileDMOFiniteResolution), intent(inout) :: self
-    type            (treeNode                            ), intent(inout) :: node
-    double precision                                      , intent(in   ) :: time
+    class           (darkMatterProfileDMOFiniteResolution), intent(inout), target :: self
+    type            (treeNode                            ), intent(inout), target :: node
+    double precision                                      , intent(in   )         :: time
 
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        finiteResolutionFreefallRadius=self%darkMatterProfileDMO_%freefallRadius         (node,time)
@@ -613,9 +613,9 @@ contains
     !% Returns the rate of increase of the freefall radius in the finiteResolution density profile at the specified {\normalfont
     !% \ttfamily time} (given in Gyr).
     implicit none
-    class           (darkMatterProfileDMOFiniteResolution), intent(inout) :: self
-    type            (treeNode                            ), intent(inout) :: node
-    double precision                                      , intent(in   ) :: time
+    class           (darkMatterProfileDMOFiniteResolution), intent(inout), target :: self
+    type            (treeNode                            ), intent(inout), target :: node
+    double precision                                      , intent(in   )         :: time
 
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        finiteResolutionFreefallRadiusIncreaseRate=self%darkMatterProfileDMO_%freefallRadiusIncreaseRate         (node,time)

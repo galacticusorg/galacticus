@@ -475,9 +475,9 @@ contains
     !% Returns the freefall radius in the truncated density profile at the specified {\normalfont \ttfamily time} (given in
     !% Gyr).
     implicit none
-    class           (darkMatterProfileDMOTruncated), intent(inout) :: self
-    type            (treeNode                     ), intent(inout) :: node
-    double precision                               , intent(in   ) :: time
+    class           (darkMatterProfileDMOTruncated), intent(inout), target :: self
+    type            (treeNode                     ), intent(inout), target :: node
+    double precision                               , intent(in   )         :: time
 
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedFreefallRadius=self%darkMatterProfileDMO_%freefallRadius         (node,time)
@@ -491,9 +491,9 @@ contains
     !% Returns the rate of increase of the freefall radius in the truncated density profile at the specified {\normalfont
     !% \ttfamily time} (given in Gyr).
     implicit none
-    class           (darkMatterProfileDMOTruncated), intent(inout) :: self
-    type            (treeNode                     ), intent(inout) :: node
-    double precision                               , intent(in   ) :: time
+    class           (darkMatterProfileDMOTruncated), intent(inout), target :: self
+    type            (treeNode                     ), intent(inout), target :: node
+    double precision                               , intent(in   )         :: time
 
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedFreefallRadiusIncreaseRate=self%darkMatterProfileDMO_%freefallRadiusIncreaseRate         (node,time)

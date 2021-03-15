@@ -336,9 +336,9 @@ contains
     !% \end{equation}
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     implicit none
-    class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type            (treeNode                      ), intent(inout) :: node
-    double precision                                , intent(in   ) :: time
+    class           (darkMatterProfileDMOIsothermal), intent(inout), target :: self
+    type            (treeNode                      ), intent(inout), target :: node
+    double precision                                , intent(in   )         :: time
 
     isothermalFreefallRadius=sqrt(2.0d0/Pi)*self%darkMatterHaloScale_%virialVelocity(node)*time&
          &/Mpc_per_km_per_s_To_Gyr
@@ -353,9 +353,9 @@ contains
     !% \end{equation}
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     implicit none
-    class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type            (treeNode                      ), intent(inout) :: node
-    double precision                                , intent(in   ) :: time
+    class           (darkMatterProfileDMOIsothermal), intent(inout), target :: self
+    type            (treeNode                      ), intent(inout), target :: node
+    double precision                                , intent(in   )         :: time
     !$GLC attributes unused :: time
 
     isothermalFreefallRadiusIncreaseRate=sqrt(2.0d0/Pi)*self%darkMatterHaloScale_%virialVelocity(node) &

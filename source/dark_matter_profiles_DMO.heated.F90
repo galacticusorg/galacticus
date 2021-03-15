@@ -616,9 +616,9 @@ contains
     !% Returns the freefall radius in the heated density profile at the specified {\normalfont \ttfamily time} (given in
     !% Gyr).
     implicit none
-    class           (darkMatterProfileDMOHeated), intent(inout) :: self
-    type            (treeNode                  ), intent(inout) :: node
-    double precision                            , intent(in   ) :: time
+    class           (darkMatterProfileDMOHeated), intent(inout), target :: self
+    type            (treeNode                  ), intent(inout), target :: node
+    double precision                            , intent(in   )         :: time
 
    if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfileDMO_) .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        heatedFreefallRadius=self%darkMatterProfileDMO_%freefallRadius         (node,time)
@@ -632,9 +632,9 @@ contains
     !% Returns the rate of increase of the freefall radius in the heated density profile at the specified {\normalfont
     !% \ttfamily time} (given in Gyr).
     implicit none
-    class           (darkMatterProfileDMOHeated), intent(inout) :: self
-    type            (treeNode                  ), intent(inout) :: node
-    double precision                            , intent(in   ) :: time
+    class           (darkMatterProfileDMOHeated), intent(inout), target :: self
+    type            (treeNode                  ), intent(inout), target :: node
+    double precision                            , intent(in   )         :: time
 
    if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfileDMO_) .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        heatedFreefallRadiusIncreaseRate=self%darkMatterProfileDMO_%freefallRadiusIncreaseRate         (node,time)

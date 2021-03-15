@@ -142,15 +142,17 @@ module Dark_Matter_Profiles_DMO
   !#   <description>Returns the freefall radius (in Mpc) corresponding to the given {\normalfont \ttfamily time} (in Gyr) in {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
-  !#   <argument>double precision          , intent(in   ) :: time</argument>
+  !#   <selfTarget>yes</selfTarget>
+  !#   <argument>type            (treeNode), intent(inout), target :: node</argument>
+  !#   <argument>double precision          , intent(in   )         :: time</argument>
   !#  </method>
   !#  <method name="freeFallRadiusIncreaseRate" >
   !#   <description>Returns the rate of increase of the freefall radius (in Mpc/Gyr) corresponding to the given {\normalfont \ttfamily time} (in Gyr) in {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
-  !#   <argument>double precision          , intent(in   ) :: time</argument>
+  !#   <selfTarget>yes</selfTarget>
+  !#   <argument>type            (treeNode), intent(inout), target :: node</argument>
+  !#   <argument>double precision          , intent(in   )         :: time</argument>
   !#  </method>
   !#  <method name="radiusEnclosingMass" >
   !#   <description>Returns the radius (in Mpc) enclosing a given mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node}.</description>

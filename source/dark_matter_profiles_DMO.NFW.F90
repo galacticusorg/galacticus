@@ -1353,13 +1353,13 @@ contains
     use :: Galacticus_Nodes                , only : nodeComponentDarkMatterProfile, treeNode
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     implicit none
-    class           (darkMatterProfileDMONFW       ), intent(inout) :: self
-    type            (treeNode                      ), intent(inout) :: node
-    double precision                                , intent(in   ) :: time
-    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
-    double precision                                                :: concentration    , freefallTimeScaleFree, &
-         &                                                             radiusScale      , timeScale            , &
-         &                                                             velocityScale
+    class           (darkMatterProfileDMONFW       ), intent(inout), target :: self
+    type            (treeNode                      ), intent(inout), target :: node
+    double precision                                , intent(in   )         :: time
+    class           (nodeComponentDarkMatterProfile), pointer               :: darkMatterProfile
+    double precision                                                        :: concentration    , freefallTimeScaleFree, &
+         &                                                                     radiusScale      , timeScale            , &
+         &                                                                     velocityScale
 
     ! For non-positive freefall times, return a zero freefall radius immediately.
     if (time <= 0.0d0) then
@@ -1402,13 +1402,13 @@ contains
     use :: Galacticus_Nodes                , only : nodeComponentDarkMatterProfile, treeNode
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     implicit none
-    class           (darkMatterProfileDMONFW       ), intent(inout) :: self
-    type            (treeNode                      ), intent(inout) :: node
-    double precision                                , intent(in   ) :: time
-    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
-    double precision                                                :: concentration    , freefallTimeScaleFree, &
-         &                                                             radiusScale      , timeScale            , &
-         &                                                             velocityScale
+    class           (darkMatterProfileDMONFW       ), intent(inout), target :: self
+    type            (treeNode                      ), intent(inout), target :: node
+    double precision                                , intent(in   )         :: time
+    class           (nodeComponentDarkMatterProfile), pointer               :: darkMatterProfile
+    double precision                                                        :: concentration    , freefallTimeScaleFree, &
+         &                                                                     radiusScale      , timeScale            , &
+         &                                                                     velocityScale
 
     ! For non-positive freefall times, return the limiting value for small radii.
     if (time <= 0.0d0) then
