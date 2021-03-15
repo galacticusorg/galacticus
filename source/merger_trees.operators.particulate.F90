@@ -309,7 +309,7 @@ contains
     use    :: Galacticus_Nodes                  , only : mergerTree                       , nodeComponentBasic                      , nodeComponentPosition , nodeComponentSatellite, &
           &                                              treeNode
     use    :: IO_HDF5                           , only : hdf5Access                       , hdf5Object
-    use    :: ISO_Varying_String                , only : varying_string
+    use    :: ISO_Varying_String                , only : varying_string                   , var_str
     use    :: Memory_Management                 , only : allocateArray                    , deallocateArray
     use    :: Merger_Tree_Walkers               , only : mergerTreeWalkerAllNodes
     use    :: Node_Components                   , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
@@ -342,8 +342,10 @@ contains
          &                                                                          energyPotential                      , speed                      , &
          &                                                                          speedEscape                          , distributionFunctionMaximum
     integer                                                                      :: particleCountActual                  , i                          , &
-         &                                                                          j                                    , typeIndex
-    logical                                                                      :: isNew                                , keepSample
+         &                                                                          j                                    , typeIndex                  , &
+         &                                                                          counter
+    logical                                                                      :: isNew                                , keepSample                 , &
+         &                                                                          firstNode
     type            (coordinateCartesian          )                              :: positionCartesian                    , velocityCartesian
     type            (coordinateSpherical          )                              :: positionSpherical                    , velocitySpherical
     type            (hdf5Object                   )                              :: outputFile                           , header                     , &
@@ -390,6 +392,7 @@ contains
     call outputFile%close()
     call hdf5Access%unset()
     ! Iterate over nodes.
+    firstNode =.true.
     treeWalker=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
     do while (treeWalker%next(node))
        call Galacticus_Calculations_Reset(node)
@@ -449,9 +452,10 @@ contains
           particulateLengthSoftening =  self%lengthSoftening
           particulateSofteningKernel =  self%kernelSoftening
           ! Iterate over particles.
-          isNew=.true.
-          positionRandomOffset = 0.0d0
-          velocityRandomOffset = 0.0d0
+          isNew               =.true.
+          counter             =0
+          positionRandomOffset=0.0d0
+          velocityRandomOffset=0.0d0
           !$omp parallel private(i,j,positionSpherical,positionCartesian,velocitySpherical,velocityCartesian,energy,energyPotential,speed,speedEscape,speedPrevious,distributionFunction,distributionFunctionMaximum,keepSample,radiusEnergy,positionVector,velocityVector,randomDeviates)
           call Node_Components_Thread_Initialize(self%parameters)
           allocate(particulateSelf,mold=self)
@@ -463,9 +467,11 @@ contains
           !$omp do reduction(+: positionRandomOffset, velocityRandomOffset)
           do i=1,particleCountActual
              !$ if (OMP_Get_Thread_Num() == 0) then
-                call displayCounter(max(1,int(100.0d0*dble(i-1)/dble(particleCountActual))),isNew=isNew,verbosity=verbosityLevelStandard)
+                call displayCounter(max(1,int(100.0d0*dble(counter)/dble(particleCountActual))),isNew=isNew,verbosity=verbosityLevelStandard)
                 isNew=.false.
              !$ end if
+             !$omp atomic
+             counter=counter+1
              ! Sample particle positions from the halo density distribution. Currently, we assume that halos are spherically
              ! symmetric.
              !$omp critical (mergerTreeOperatorParticulateSample)
@@ -659,11 +665,19 @@ contains
           else
              particleIDs=particleIDs+particleCounts(typeIndex)
           end if
+          if (.not.firstNode.and.self%chunkSize == -1)                                                                                                                   &
+               & call Galacticus_Error_Report(                                                                                                                           &
+               &                              var_str('can not write multiple halos to output with chunksize=-1')//char(10)//                                            &
+               &                              displayGreen()//' HELP: '//displayReset()//                                                                                &
+               &                              ' set <chunkSize value="N"/> where N is a non-zero value in the particulate merger tree operator in your parameter file'// &
+               &                              {introspection:location}                                                                                                   &
+               &                              )
           particleGroup=outputFile%openGroup(groupName,'Group containing particle data for halos',chunkSize=self%chunkSize)
           call particleGroup%writeDataset(particlePosition,'Coordinates','Particle coordinates',appendTo=self%chunkSize /= -1,appendDimension=2)
           call particleGroup%writeDataset(particleVelocity,'Velocities' ,'Particle velocities' ,appendTo=self%chunkSize /= -1,appendDimension=2)
           call particleGroup%writeDataset(particleIDs     ,'ParticleIDs','Particle IDs'        ,appendTo=self%chunkSize /= -1                  )
           call particleGroup%close()
+          firstNode=.false.
           call deallocateArray(particlePosition)
           call deallocateArray(particleVelocity)
           call deallocateArray(particleIDs     )
