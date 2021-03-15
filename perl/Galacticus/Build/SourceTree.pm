@@ -3,6 +3,7 @@
 package Galacticus::Build::SourceTree;
 use strict;
 use warnings;
+use utf8;
 use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
@@ -23,6 +24,8 @@ use Galacticus::Build::SourceTree::Process::FunctionClass;
 use Galacticus::Build::SourceTree::Process::StateStorable;
 use Galacticus::Build::SourceTree::Process::DeepCopyActions;
 use Galacticus::Build::SourceTree::Process::OptionalArgument;
+use Galacticus::Build::SourceTree::Process::ForEach;
+use Galacticus::Build::SourceTree::Process::Allocate;
 use Galacticus::Build::SourceTree::Process::Generics;
 use Galacticus::Build::SourceTree::Process::SourceDigest;
 use Galacticus::Build::SourceTree::Process::SourceIntrospection;
@@ -39,6 +42,7 @@ use Galacticus::Build::SourceTree::Process::ConditionalCall;
 use Galacticus::Build::SourceTree::Process::EventHooks;
 use Galacticus::Build::SourceTree::Process::ClassDocumentation;
 use Galacticus::Build::SourceTree::Analyze::UseDuplication;
+use Encode;
 
 sub ParseFile {    
     # Grab the file name.
@@ -196,7 +200,8 @@ sub Build_Children {
     delete($unitOpeners{'moduleProcedure'})
 	unless ( $type eq "contains" );
     # Connect a file handle to the code text.
-    open(my $code,"<",\$codeText);
+    my $c = decode(q{utf8},$codeText);
+    open(my $code,"<",\$c);
     # Read lines.
     do {
 	# Get a line.
