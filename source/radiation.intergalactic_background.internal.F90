@@ -24,6 +24,7 @@
   use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters                  , only : cosmologyParametersClass
   use :: Intergalactic_Medium_State            , only : intergalacticMediumStateClass
+  use :: Kind_Numbers                          , only : kind_int8
   use :: Numerical_Interpolation               , only : interpolator
   use :: Output_Times                          , only : outputTimesClass
   use :: Star_Formation_Rates_Disks            , only : starFormationRateDisksClass
@@ -60,6 +61,11 @@
      double precision                                                     , dimension(0:1) :: timeODE
      double precision                                                                      :: timeCurrent
      type            (interpolator                          )                              :: interpolatorWavelength                      , interpolatorTime
+     class           (*                                     ), pointer                     :: statePrevious
+     double precision                                                                      :: timePrevious
+     integer         (kind_int8                             )                              :: universeUniqueIDPrevious
+     integer         (c_size_t                              )                              :: iTime
+     double precision                                                     , dimension(0:1) :: hTime
    contains
      final     ::             intergalacticBackgroundInternalDestructor
      procedure :: flux     => intergalacticBackgroundInternalFlux
@@ -255,6 +261,10 @@ contains
     ! Build interpolators.
     self%interpolatorWavelength=interpolator(self%wavelength)
     self%interpolatorTime      =interpolator(self%time      )
+    ! Initialize state.
+    self%statePrevious            => null()
+    self%timePrevious             =  -1.0d0
+    self%universeUniqueIDPrevious =  -1_kind_int8
     return
   end function intergalacticBackgroundInternalConstructorInternal
 
@@ -305,39 +315,48 @@ contains
     class           (radiationFieldIntergalacticBackgroundInternal), intent(inout)  :: self
     double precision                                               , intent(in   )  :: wavelength
     type            (treeNode                                     ), intent(inout)  :: node
-    double precision                                               , dimension(0:1) :: hWavelength         , hTime
+    double precision                                               , dimension(0:1) :: hWavelength
     double precision                                               , parameter      :: timeTolerance=1.0d-3
-    class           (*                                            ), pointer        :: state
+    
     integer         (c_size_t                                     )                 :: iWavelength         , jWavelength, &
-         &                                                                             iTime               , jTime
+         &                                                                             jTime
 
-    !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)
-    ! Get the state of the radiation field.
-    state => node%hostTree%hostUniverse%attributes%value('radiationFieldIntergalacticBackgroundInternal')
-    select type (state)
+    if (node%hostTree%hostUniverse%uniqueID /= self%universeUniqueIDPrevious .or. self%timeCurrent /= self%timePrevious) then
+       !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)    
+       ! Get the state of the radiation field.
+       self%universeUniqueIDPrevious =  node%hostTree%hostUniverse%uniqueID
+       self%timePrevious             =  self                      %timeCurrent
+       self%statePrevious            => node%hostTree%hostUniverse%attributes %value('radiationFieldIntergalacticBackgroundInternal')
+       select type (state => self%statePrevious)
+       type is (intergalacticBackgroundInternalState)
+          ! Check that the time is within the applicable range.
+          if (self%timeCurrent > state%timeNext*(1.0d0+timeTolerance)) call Galacticus_Error_Report('time is out of range'//{introspection:location})
+          ! Find interpolation in array of times.
+          call self%interpolatorTime%linearFactors(self%timeCurrent,self%iTime,self%hTime)
+          if (self%timeCurrent > state%timePrevious) self%hTime=[1.0d0,0.0d0]
+       class default
+          call Galacticus_Error_Report('state has unknown type'//{introspection:location})
+       end select
+       !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
+    end if
+    ! Find interpolation in the array of wavelengths.
+    call self%interpolatorWavelength%linearFactors(     wavelength ,iWavelength,hWavelength)
+    ! Interpolate in wavelength and time.
+    intergalacticBackgroundInternalFlux=0.0d0
+    select type (state => self%statePrevious)
     type is (intergalacticBackgroundInternalState)
-       ! Check that the time is within the applicable range.
-       if (self%timeCurrent > state%timeNext*(1.0d0+timeTolerance)) call Galacticus_Error_Report('time is out of range'//{introspection:location})
-       ! Find interpolation in the array of wavelengths.
-       call self%interpolatorWavelength%linearFactors(     wavelength ,iWavelength,hWavelength)
-       ! Find interpolation in array of times.
-       call self%interpolatorTime      %linearFactors(self%timeCurrent,iTime      ,hTime      )
-       if (self%timeCurrent > state%timePrevious) hTime=[1.0d0,0.0d0]
-       ! Interpolate in wavelength and time.
-       intergalacticBackgroundInternalFlux=0.0d0
        do jTime=0,1
           do jWavelength=0,1
-             intergalacticBackgroundInternalFlux=+intergalacticBackgroundInternalFlux                                      &
-                  &                              +hTime                              (                        jTime      ) &
-                  &                              *hWavelength                        (jWavelength                        ) &
-                  &                              *state%flux                         (jWavelength+iWavelength,jTime+iTime)
+             intergalacticBackgroundInternalFlux=+intergalacticBackgroundInternalFlux                                           &
+                  &                              +     hWavelength                   (jWavelength                             ) &
+                  &                              *self%hTime                         (                        jTime           ) &
+                  &                              *state%flux                         (jWavelength+iWavelength,jTime+self%iTime)
           end do
        end do
+       intergalacticBackgroundInternalFlux=max(intergalacticBackgroundInternalFlux,0.0d0)
     class default
-       intergalacticBackgroundInternalFlux=0.0d0
+       call Galacticus_Error_Report('state has unknown type'//{introspection:location})
     end select
-    !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
-    intergalacticBackgroundInternalFlux=max(intergalacticBackgroundInternalFlux,0.0d0)
     return
   end function intergalacticBackgroundInternalFlux
 
@@ -368,6 +387,9 @@ contains
           state%flux        =0.0d0
           call universe_%attributes%set('radiationFieldIntergalacticBackgroundInternal',state)
           !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
+          self%universeUniqueIDPrevious =  -1_kind_int8
+          self%timePrevious             =  -1.0d0
+          self%statePrevious            => null()
        end if
     class default
        call Galacticus_Error_Report('incorrect class'//{introspection:location})
@@ -545,6 +567,9 @@ contains
           !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)
           state%timeNext=self%time(iNow+1)
           !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
+          self%universeUniqueIDPrevious =  -1_kind_int8
+          self%timePrevious             =  -1.0d0
+          self%statePrevious            => null()
           if     (                                                                           &
                &             iNow    <                        self             %timeCount    &
                &  .and.                                                                      &
