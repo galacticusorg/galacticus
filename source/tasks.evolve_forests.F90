@@ -46,7 +46,7 @@
      integer                                                :: evolveSingleForestSections
      double precision                                       :: evolveSingleForestMassMinimum
      ! Tree universes used while processing all trees.
-     type            (universe                   ), pointer :: universeWaiting               => null(), universeProcessed       => null()
+     type            (universe                   )          :: universeWaiting                        , universeProcessed
      ! Objects used in tree processing.
      class           (mergerTreeConstructorClass ), pointer :: mergerTreeConstructor_        => null()
      class           (mergerTreeOperatorClass    ), pointer :: mergerTreeOperator_           => null()
@@ -285,8 +285,6 @@ contains
     !# <objectDestructor name="self%mergerTreeOutputter_"   />
     !# <objectDestructor name="self%mergerTreeInitializor_" />
     !# <objectDestructor name="self%galacticFilter_"        />
-    if (associated(self%universeWaiting  )) deallocate(self%universeWaiting  )
-    if (associated(self%universeProcessed)) deallocate(self%universeProcessed)
     call stateStoreEvent  %detach(self,evolveForestsStateStore  )
     call stateRestoreEvent%detach(self,evolveForestsStateRestore)
     call Node_Components_Uninitialize()
@@ -387,11 +385,8 @@ contains
     disableSingleForestEvolution=.false.
     ! Initialize universes which will act as tree stacks. We use two stacks: one for trees waiting to be processed, one for trees
     ! that have already been processed.
-    allocate(self%universeWaiting  )
-    allocate(self%universeProcessed)
-    self%universeWaiting  %trees => null()
-    self%universeProcessed%trees => null()
-    call self%universeWaiting%attributes%initialize()
+    self%universeWaiting  =universe()
+    self%universeProcessed=universe()
 
     ! Set record of whether any trees were evolved to false initially.
     treesDidEvolve  =.false.
@@ -408,7 +403,7 @@ contains
     ! Begin parallel processing of trees until all work is done.
     !$omp parallel copyin(finished)
     allocate(evolveForestsMergerTreeOutputter_  ,mold=self%mergerTreeOutputter_  )
-    allocate(evolveForestsMergerTreeInitializor_  ,mold=self%mergerTreeInitializor_  )
+    allocate(evolveForestsMergerTreeInitializor_,mold=self%mergerTreeInitializor_)
     allocate(evolveForestsMergerTreeEvolver_    ,mold=self%mergerTreeEvolver_    )
     allocate(evolveForestsMergerTreeConstructor_,mold=self%mergerTreeConstructor_)
     allocate(evolveForestsMergerTreeOperator_   ,mold=self%mergerTreeOperator_   )

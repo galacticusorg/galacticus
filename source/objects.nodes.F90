@@ -122,6 +122,7 @@ module Galacticus_Nodes
      logical                                  :: allTreesBuilt =  .false.
      type   (universeEvent ), pointer, public :: event
      type   (genericHash   )                  :: attributes
+     integer(kind_int8     )                  :: uniqueID
    contains
      !# <methods>
      !#   <method description="Create a {\normalfont \ttfamily treeEvent} object in this universe." method="createEvent"/>
@@ -135,6 +136,11 @@ module Galacticus_Nodes
      procedure :: pushTree    => universePushTree
   end type universe
 
+  interface universe
+     !% Interface to universe constructors.
+     module procedure universeConstructor
+  end interface universe
+    
   type, public :: universeEvent
      !% Type for events attached to universes.
      private
@@ -161,14 +167,17 @@ module Galacticus_Nodes
   double precision                                   , dimension(0) :: nullDouble1d
 
   ! Labels for function mapping reduction types.
-  integer                         , parameter, public               :: reductionSummation=1
-  integer                         , parameter, public               :: reductionProduct  =2
+  integer                         , parameter, public               :: reductionSummation  =1
+  integer                         , parameter, public               :: reductionProduct    =2
 
   ! Unique ID counter.
-  integer         (kind=kind_int8)                                  :: uniqueIdCount     =0
+  integer         (kind=kind_int8)                                  :: uniqueIdCount       =0
 
   ! Event ID counter.
-  integer         (kind=kind_int8)                                  :: eventID           =0
+  integer         (kind=kind_int8)                                  :: eventID             =0
+
+  ! Universe unique ID counter.
+  integer         (kind=kind_int8)                                  :: universeUniqueIdCount=0
 
   ! Enumeration for active/inactive properties.
   integer, parameter, public :: propertyTypeAll     =0
@@ -1230,6 +1239,22 @@ module Galacticus_Nodes
     return
   end subroutine nodeComponentGetError
   
+  function universeConstructor() result(self)
+    !% Constructor for the universe class.
+    implicit none
+    type(universe) :: self
+
+    !$omp critical(universeUniqueIDAssign)
+    universeUniqueIdCount=universeUniqueIdCount+1
+    self%uniqueID        =universeUniqueIdCount
+    !$omp end critical(universeUniqueIDAssign)
+    self%trees         => null()
+    self%event         => null()
+    self%allTreesBuilt =  .false.
+    call self%attributes%initialize()
+    return
+  end function universeConstructor
+
   function mergerTreeConstructor() result(self)
     !% Constructor for the merger tree class. Currently does nothing.
     implicit none
