@@ -37,13 +37,13 @@
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationBullock2001
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{bullock_profiles_2001}.
      private
-     class           (cosmologyParametersClass                                       ), pointer :: cosmologyParameters_             => null()
-     class           (cosmologyFunctionsClass                                        ), pointer :: cosmologyFunctions_              => null()
-     class           (criticalOverdensityClass                                       ), pointer :: criticalOverdensity_             => null()
-     class           (cosmologicalMassVarianceClass                                  ), pointer :: cosmologicalMassVariance_        => null()
+     class           (cosmologyParametersClass                                      ), pointer :: cosmologyParameters_             => null()
+     class           (cosmologyFunctionsClass                                       ), pointer :: cosmologyFunctions_              => null()
+     class           (criticalOverdensityClass                                      ), pointer :: criticalOverdensity_             => null()
+     class           (cosmologicalMassVarianceClass                                 ), pointer :: cosmologicalMassVariance_        => null()
      type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer :: virialDensityContrastDefinition_ => null()
-     type            (darkMatterProfileDMONFW                                        ), pointer :: darkMatterProfileDMODefinition_  => null()
-     double precision                                                                           :: F                                         , K
+     type            (darkMatterProfileDMONFW                                       ), pointer :: darkMatterProfileDMODefinition_  => null()
+     double precision                                                                          :: F                                         , K
    contains
      final     ::                                   bullock2001Destructor
      procedure :: concentration                  => bullock2001Concentration
