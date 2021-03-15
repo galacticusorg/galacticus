@@ -754,12 +754,14 @@ contains
 
   double precision function genericRadiusCircularVelocityMaximumNumerical(self,node)
     !% Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
+    use :: Galacticus_Nodes    , only : nodeComponentBasic
     use :: Numerical_Comparison, only : Values_Agree
     use :: Root_Finder         , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (darkMatterProfileGeneric), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
     double precision                          , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
+    class           (nodeComponentBasic      ), pointer       :: basic
     type            (rootFinder              )                :: finder
 
     call self%solverSet  (node)
@@ -776,15 +778,14 @@ contains
     ! Isothermal profiles have dVc²/dr=0 everywhere. To handle these profiles, first test if the root function is sufficiently
     ! close to zero at the virial radius (which it will be for an isothermal profile), and return the circular velocity at that
     ! radius if so. Otherwise solve for the radius corresponding to the maximum circular velocity.
-    if     (                                                                                                           &
-         &  Values_Agree(                                                                                              &
-         &                      +rootCircularVelocityMaximum   (     self%darkMatterHaloScale_%virialRadius(node))   , &
-         &                      +0.0d0                                                                               , &
-         &               absTol=+toleranceRelative                                                                     &
-         &                      *self%circularVelocityNumerical(node,self%darkMatterHaloScale_%virialRadius(node))**2  &
-         &                      /                                    self%darkMatterHaloScale_%virialRadius(node)      &
-         &                                                                                                             &
-         &               )                                                                                             &
+    basic => node%basic()
+    if     (                                                                                                &
+         &  Values_Agree(                                                                                   &
+         &                      +rootCircularVelocityMaximum(self%darkMatterHaloScale_%virialRadius(node)), &
+         &                      +0.0d0                                                                    , &
+         &               absTol=+toleranceRelative                                                          &
+         &                      *basic%mass                 (                                            )  &
+         &               )                                                                                  &
          & ) then
        genericRadiusCircularVelocityMaximumNumerical=                      self%darkMatterHaloScale_%virialRadius(node)
     else
@@ -814,9 +815,9 @@ contains
     implicit none
     double precision, intent(in   ) :: radius
 
-    rootCircularVelocityMaximum=+4.0d0                                           &
-         &                      *Pi                                              &
-         &                      *                                     radius **3 &
+    rootCircularVelocityMaximum=+4.0d0                                                                         &
+         &                      *Pi                                                                            &
+         &                      *                                                                   radius **3 &
          &                      *solvers(solversCount)%self%density     (solvers(solversCount)%node,radius)    &
          &                      -solvers(solversCount)%self%enclosedMass(solvers(solversCount)%node,radius)
     return
