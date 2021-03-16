@@ -200,8 +200,22 @@ sub Build_Children {
     delete($unitOpeners{'moduleProcedure'})
 	unless ( $type eq "contains" );
     # Connect a file handle to the code text.
-    my $c = decode(q{utf8},$codeText);
-    open(my $code,"<",\$c);
+    ## NOTE: There seems to be a change in how Unicode charcaters are handled here between different Perl versions. The following
+    ## is a hack which switches between the methods that work depending on Perl version. Note that the transition version is a
+    ## guess. Known working versions are as follows:
+    ##
+    ### Version  Method
+    ### 5.10.1   Old
+    ### 5.26.3   New
+    my $code;
+    if ( $^V > v5.18 ) {
+	# New method.
+ 	open($code,"<",\$codeText);
+    } else {
+	# Old method.
+	my $codeTextDecoded = decode(q{utf8},$codeText);
+	open($code,"<",\$codeTextDecoded);
+    }
     # Read lines.
     do {
 	# Get a line.
