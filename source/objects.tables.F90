@@ -677,7 +677,6 @@ contains
     self%dxPrevious    =-1.0d0
     ! Set extrapolation type.
     if (present(extrapolationType)) then
-       if (any(extrapolationType == extrapolationTypeZero)) call Galacticus_Error_Report('zero extrapolation is not supported'//{introspection:location})
        self%extrapolationType=extrapolationType
     else
        self%extrapolationType=extrapolationTypeExtrapolate
@@ -740,6 +739,7 @@ contains
 
   double precision function Table_Linear_1D_Interpolate(self,x,table)
     !% Perform linear interpolation in a linear 1D table.
+    use :: Table_Labels, only : extrapolationTypeZero
     implicit none
     class           (table1DLinearLinear), intent(inout)           :: self
     double precision                     , intent(in   )           :: x
@@ -755,8 +755,16 @@ contains
     if (xEffective /= self%xPrevious .or. tableActual /= self%tablePrevious) then
        ! Determine the location in the table.
        if      (xEffective <  self%xv(          1)) then
+          if (self%extrapolationType(1) == extrapolationTypeZero) then
+             Table_Linear_1D_Interpolate=0.0d0
+             return
+          end if
           i=1
        else if (xEffective >= self%xv(self%xCount)) then
+          if (self%extrapolationType(2) == extrapolationTypeZero) then
+             Table_Linear_1D_Interpolate=0.0d0
+             return
+          end if
           i=self%xCount-1
        else
           i=max(min(int((xEffective-self%xv(1))*self%inverseDeltaX)+1,self%xCount-1),1)
@@ -775,6 +783,7 @@ contains
 
   double precision function Table_Linear_1D_Interpolate_Gradient(self,x,table)
     !% Perform linear interpolation in a linear 1D table.
+    use :: Table_Labels, only : extrapolationTypeZero
     implicit none
     class           (table1DLinearLinear), intent(inout)           :: self
     double precision                     , intent(in   )           :: x
@@ -790,8 +799,16 @@ contains
     if (xEffective /= self%dxPrevious .or. tableActual /= self%dTablePrevious) then
        ! Determine the location in the table.
        if      (xEffective <  self%xv(          1)) then
+          if (self%extrapolationType(1) == extrapolationTypeZero) then
+             Table_Linear_1D_Interpolate_Gradient=0.0d0
+             return
+          end if
           i=1
        else if (xEffective >= self%xv(self%xCount)) then
+          if (self%extrapolationType(2) == extrapolationTypeZero) then
+             Table_Linear_1D_Interpolate_Gradient=0.0d0
+             return
+          end if
           i=self%xCount-1
        else
           i=int((xEffective-self%xv(1))*self%inverseDeltaX)+1
@@ -1326,14 +1343,14 @@ contains
   double precision function Table1D_Find_Effective_X(self,x)
     !% Return the effective value of $x$ to use in table interpolations.
     use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Table_Labels    , only : extrapolationTypeExtrapolate, extrapolationTypeFix
+    use :: Table_Labels    , only : extrapolationTypeExtrapolate, extrapolationTypeFix, extrapolationTypeZero
     implicit none
     class           (table1D), intent(inout) :: self
     double precision         , intent(in   ) :: x
 
     if      (x < self%x(+1)) then
        select case (self%extrapolationType(1))
-       case (extrapolationTypeExtrapolate)
+       case (extrapolationTypeExtrapolate,extrapolationTypeZero)
           Table1D_Find_Effective_X=x
        case (extrapolationTypeFix        )
           Table1D_Find_Effective_X=self%x(+1)
@@ -1343,7 +1360,7 @@ contains
        end select
     else if (x > self%x(-1)) then
        select case (self%extrapolationType(2))
-       case (extrapolationTypeExtrapolate)
+       case (extrapolationTypeExtrapolate,extrapolationTypeZero)
           Table1D_Find_Effective_X=x
        case (extrapolationTypeFix        )
           Table1D_Find_Effective_X=self%x(-1)
