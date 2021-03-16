@@ -302,8 +302,8 @@ contains
     call displayMessage(message)
     call displayUnindent("done")
     ! Copy data.
-    allocate(galaxyPosition(size(galaxyPosition_,dim=1),size(galaxyPosition_,dim=2)))
-    allocate(galaxyVelocity(size(galaxyVelocity_,dim=1),size(galaxyVelocity_,dim=2)))
+    !# <allocate variable="galaxyPosition" shape="galaxyPosition_"/>
+    !# <allocate variable="galaxyVelocity" shape="galaxyVelocity_"/>
     galaxyPosition=galaxyPosition_
     galaxyVelocity=galaxyVelocity_
     deallocate(galaxyPosition_)
