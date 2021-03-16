@@ -317,7 +317,6 @@ contains
     type            (treeNode                                     ), intent(inout)  :: node
     double precision                                               , dimension(0:1) :: hWavelength
     double precision                                               , parameter      :: timeTolerance=1.0d-3
-    
     integer         (c_size_t                                     )                 :: iWavelength         , jWavelength, &
          &                                                                             jTime
 
