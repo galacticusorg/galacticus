@@ -40,7 +40,6 @@ program Tests_Kepler_Orbits
   ! Open the parameter file.
   parameterFile='parameters.xml'
   parameters=inputParameters(parameterFile)
-  call parameters%markGlobal()
 
   ! Compute velocity scale for unit mass and radius.
   velocityScale=sqrt(gravitationalConstantGalacticus)

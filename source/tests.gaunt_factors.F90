@@ -40,7 +40,6 @@ program Test_Gaunt_Factors
   call displayVerbositySet(verbosityLevelStandard)
   ! Initialize parameters.
   parameters=inputParameters()
-  call parameters%markGlobal()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("van Hoof et al. (2014) fitting function:")
   atomicIonizationPotential_=atomicIonizationPotentialVerner(                          )

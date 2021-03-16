@@ -45,7 +45,6 @@ program Tests_Bug745815
   ! Open the parameter file.
   parameterFile='testSuite/parameters/bug745815.xml'
   parameters=inputParameters(parameterFile)
-  call parameters%markGlobal()
 
   ! Create nodes.
   do i=1,5

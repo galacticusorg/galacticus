@@ -111,7 +111,6 @@ program Test_Concentrations
      allocate(parameters)
      parameterFile=galacticusPath(pathTypeExec)//'testSuite/parameters/concentrations_'//modelDensityContrast(iModel)//'.xml'
      parameters   =inputParameters(parameterFile)
-     call parameters%markGlobal()
      call nodeClassHierarchyInitialize     (parameters)
      call Node_Components_Initialize       (parameters)
      call Node_Components_Thread_Initialize(parameters)

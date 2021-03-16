@@ -56,7 +56,6 @@ program Test_Stellar_Populations
 
   call displayVerbositySet(verbosityLevelWorking)
   parameters=inputParameters()
-  call parameters%markGlobal()
   call Functions_Global_Set      (          )
   call Node_Components_Initialize(parameters)
   call abundances_%metallicitySet(metallicitySolar)

@@ -41,7 +41,6 @@ program Test_Random
   call displayVerbositySet(verbosityLevelStandard)
   ! Initialize parameters.
   parameters=inputParameters()
-  call parameters%markGlobal()
   ! Begin unit tests.
   randomSequence=randomNumberGeneratorGSL(295_c_long)
   call Unit_Tests_Begin_Group("random numbers")

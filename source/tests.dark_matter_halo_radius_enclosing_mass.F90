@@ -84,7 +84,6 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   ! Read in controlling parameters.
   parameterFile='testSuite/parameters/darkMatterHaloRadiusEnclosingMass.xml'
   parameters=inputParameters(parameterFile)
-  call parameters%markGlobal()
   ! Initialize event hooks and global functions.
   call eventsHooksInitialize()
   call Functions_Global_Set ()

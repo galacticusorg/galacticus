@@ -48,7 +48,6 @@ program Test_Nodes
   ! Open the parameter file.
   parameterFile='testSuite/parameters/nodes/nodes.xml'
   parameters=inputParameters(parameterFile)
-  call parameters%markGlobal()
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Nodes")

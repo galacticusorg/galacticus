@@ -73,7 +73,6 @@ program Benchmark_Stellar_Populations_Luminosities
        &                                                                                                      timeMeanError
 
   parameters=inputParameters()
-  call parameters%markGlobal()
   call displayVerbositySet(verbosityLevelWorking)
   ! Construct cosmology and stellar populations.
   cosmologyParameters_                  =cosmologyParametersSimple                      (                                                                                                                                                      &

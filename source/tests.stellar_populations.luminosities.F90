@@ -74,7 +74,6 @@ program Test_Stellar_Populations_Luminosities
        &                                                                             differenceMaximumMagnitudeAbsoluteObservedFrame, differenceMaximumMagnitudeApparent
 
   parameters=inputParameters()
-  call parameters%markGlobal()
   call eventsHooksInitialize()
   call displayVerbositySet(verbosityLevelWorking)
   call Galacticus_Output_Open_File   (parameters      )
