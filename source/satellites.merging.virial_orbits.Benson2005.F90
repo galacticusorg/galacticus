@@ -40,8 +40,8 @@
   type, extends(virialOrbitClass) :: virialOrbitBenson2005
      !% A virial orbit class using the \cite{benson_orbital_2005} orbital parameter distribution.
      private
-     class(darkMatterHaloScaleClass                                       ), pointer :: darkMatterHaloScale_   => null()
-     class(cosmologyFunctionsClass                                        ), pointer :: cosmologyFunctions_    => null()
+     class(darkMatterHaloScaleClass                                      ), pointer :: darkMatterHaloScale_   => null()
+     class(cosmologyFunctionsClass                                       ), pointer :: cosmologyFunctions_    => null()
      type (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer :: virialDensityContrast_ => null()
    contains
      final     ::                                    benson2005Destructor
@@ -292,7 +292,7 @@ contains
     !% Return the mean energy of the orbits.
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
-    use :: Numerical_Constants_Astronomical        , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
     implicit none
     class           (virialOrbitBenson2005), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node        , host
