@@ -1399,7 +1399,7 @@ contains
     use :: Table_Labels                , only : extrapolationTypeZero
     implicit none
     double precision                     , intent(in   ) :: wavelength
-    double precision                     , parameter     :: energyMinimum  =2.65d0, energyMaximum=11.27d0
+    double precision                     , parameter     :: energyMinimum  =2.65d0, energyMaximum=21.00d0
     integer                              , parameter     :: energyCount    =100
     type            (table1DLinearLinear), save          :: interpolator_
     logical                              , save          :: initialized    =.false.
@@ -1780,7 +1780,7 @@ contains
     implicit none
     double precision                     , intent(in   ) :: wavelength
     double precision                     , parameter     :: ratioOrthoToPara      =0.0d0     ! Assume all H₂ is in the para- configuration.
-    double precision                     , parameter     :: energyMinimum         =14.159d0, energyMaximum          =17.600d0
+    double precision                     , parameter     :: energyMinimum         =14.159d0, energyMaximum          =17.700d0
     integer                              , parameter     :: energyCount           =100
     type            (table1DLinearLinear), save          :: interpolator_
     logical                              , save          :: initialized           =.false.
