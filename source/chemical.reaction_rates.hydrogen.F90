@@ -27,7 +27,7 @@
   !# <chemicalReactionRate name="chemicalReactionRateHydrogenNetwork">
   !#  <description>
   !#   A chemical reaction rate classs that computes rates using the network of reactions and fitting functions from
-  !#   \cite{abel_modeling_1997} and \cite{tegmark_small_1997}. The parameter {\normalfont \ttfamily [hydrogenNetworkFast]}
+  !#   \cite{abel_modeling_1997} and \cite{tegmark_small_1997}. The parameter {\normalfont \ttfamily [fast]}
   !#   controls the approximations made. If set {\normalfont \ttfamily true} then H$^-$ is assumed to be at equilibrium abundance,
   !#   H$_2^+$ reactions are ignored and other slow reactions are ignored (see \citealt{abel_modeling_1997}).
   !#  </description>
@@ -1286,21 +1286,42 @@ contains
     !% using the fitting function given by \cite{shapiro_hydrogen_1987}, renormalized\footnote{It seems unclear what units were
     !% used in \protect\cite{shapiro_hydrogen_1987}, hence the recalibration.} to match the results of
     !% \cite{nascimento_photodetachment_1977}.
-    use :: Numerical_Constants_Physical, only : plancksConstant  , speedLight
-    use :: Numerical_Constants_Units   , only : angstromsPerMeter, electronVolt
+    use :: Numerical_Constants_Physical, only : plancksConstant         , speedLight
+    use :: Numerical_Constants_Units   , only : angstromsPerMeter       , electronVolt
+    use :: Tables                      , only : table1DLogarithmicLinear
+    use :: Table_Labels                , only : extrapolationTypeZero
     implicit none
-    double precision, intent(in   ) :: wavelength
-    double precision, parameter     :: energyThreshold=0.755d0
-    double precision                :: energy
+    double precision                          , intent(in   ) :: wavelength
+    double precision                          , parameter     :: energyThreshold=0.755d0
+    double precision                          , parameter     :: energyMinimum  =energyThreshold, energyMaximum=1000.0d0
+    integer                                   , parameter     :: energyCount    =100
+    type            (table1DLogarithmicLinear), save          :: interpolator_
+    logical                                   , save          :: initialized    =.false.
+    double precision                                          :: energy                         , crossSection
+    integer                                                   :: i
 
+    if (.not.initialized) then
+       !$omp critical (hydrogenNetworkCrossSection_Hminus_Gamma_to_H_ElectronInit)
+       if (.not.initialized) then
+          call interpolator_%create(energyMinimum,energyMaximum,energyCount,extrapolationType=[extrapolationTypeZero,extrapolationTypeZero])
+          do i=1,energyCount
+             energy=interpolator_%x(i)
+             ! Evaluate the fitting function for the cross-section.
+             if (energy >=  energyThreshold) then
+                crossSection=2.085d-16*(energy-energyThreshold)**1.5d0/energy**3
+             else
+                crossSection=0.000d+00
+             end if
+             call interpolator_%populate(crossSection,i)
+          end do
+          initialized=.true.
+       end if
+       !$omp end critical (hydrogenNetworkCrossSection_Hminus_Gamma_to_H_ElectronInit)
+    end if
     ! Convert from wavelength (in Angstroms) to energy (in eV).
     energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
-    ! Evaluate the fitting function for the cross-section.
-    if (energy >=  energyThreshold) then
-       hydrogenNetworkCrossSection_Hminus_Gamma_to_H_Electron=2.085d-16*(energy-energyThreshold)**1.5d0/energy**3
-    else
-       hydrogenNetworkCrossSection_Hminus_Gamma_to_H_Electron= 0.0d0
-    end if
+    ! Evaluate the cross section.
+    hydrogenNetworkCrossSection_Hminus_Gamma_to_H_Electron=interpolator_%interpolate(energy)
     return
   end function hydrogenNetworkCrossSection_Hminus_Gamma_to_H_Electron
 
@@ -1372,30 +1393,51 @@ contains
   double precision function hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus(wavelength)
     !% Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow \hbox{H} + \hbox{H}^+$
     !% as given by \cite{shapiro_hydrogen_1987}.
-    use :: Numerical_Constants_Physical, only : plancksConstant  , speedLight
-    use :: Numerical_Constants_Units   , only : angstromsPerMeter, electronVolt
+    use :: Numerical_Constants_Physical, only : plancksConstant      , speedLight
+    use :: Numerical_Constants_Units   , only : angstromsPerMeter    , electronVolt
+    use :: Tables                      , only : table1DLinearLinear
+    use :: Table_Labels                , only : extrapolationTypeZero
     implicit none
-    double precision, intent(in   ) :: wavelength
-    double precision                :: energy
+    double precision                     , intent(in   ) :: wavelength
+    double precision                     , parameter     :: energyMinimum  =2.65d0, energyMaximum=11.27d0
+    integer                              , parameter     :: energyCount    =100
+    type            (table1DLinearLinear), save          :: interpolator_
+    logical                              , save          :: initialized    =.false.
+    double precision                                     :: energy                  , crossSection
+    integer                                              :: i
 
+    if (.not.initialized) then
+       !$omp critical (hydrogenNetworkCrossSection_H2plus_Gamma_to_H_HplusInit)
+       if (.not.initialized) then
+          call interpolator_%create(energyMinimum,energyMaximum,energyCount,extrapolationType=[extrapolationTypeZero,extrapolationTypeZero])
+          do i=1,energyCount
+             energy=interpolator_%x(i)
+             ! Evaluate the fitting function for the cross-section.
+             if      (energy >=  2.65d0 .and. energy < 11.27d0) then
+                crossSection=10.0d0**(-40.97d0+energy*(+6.030d+0 &
+                     &                        +energy*(-0.504d+0 &
+                     &                        +energy*(+1.387d-2 &
+                     &                                )))        &
+                     &               )
+             else if (energy >= 11.27d0 .and. energy < 21.00d0) then
+                crossSection=10.0d0**(-30.26d0+energy*(+2.790d+0 &
+                     &                        +energy*(-0.184d+0 &
+                     &                        +energy*(+3.535d-3 &
+                     &                                )))        &
+                     &               )
+             else
+                crossSection=0.0d0
+             end if
+             call interpolator_%populate(crossSection,i)
+          end do
+          initialized=.true.
+       end if
+       !$omp end critical (hydrogenNetworkCrossSection_H2plus_Gamma_to_H_HplusInit)
+    end if
     ! Convert from wavelength (in Angstroms) to energy (in eV).
     energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
-    ! Evaluate the fitting function for the cross-section.
-    if      (energy >=  2.65d0 .and. energy < 11.27d0) then
-       hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus=10.0d0**(-40.97d0+energy*(+6.030d+0 &
-            &                                                               +energy*(-0.504d+0 &
-            &                                                               +energy*(+1.387d-2 &
-            &                                                                       )))        &
-            &                                        )
-    else if (energy >= 11.27d0 .and. energy < 21.00d0) then
-       hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus=10.0d0**(-30.26d0+energy*(+2.790d+0 &
-            &                                                               +energy*(-0.184d+0 &
-            &                                                               +energy*(+3.535d-3 &
-            &                                                                       )))        &
-            &                                        )
-    else
-       hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus=0.0d0
-    end if
+    ! Evaluate the cross-section.
+    hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus=interpolator_%interpolate(energy)
     return
   end function hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus
 
@@ -1520,24 +1562,45 @@ contains
     !% \hbox{e}^-$ as given by\footnote{\protect\cite{abel_modeling_1997} cite ``O'Neil \& Reinhardt (1978)'' as the source for
     !% this fit, but it is not listed in their bibliography, and I have not been able to locate by any other means.}
     !% \cite{abel_modeling_1997}.
-    use :: Numerical_Constants_Physical, only : plancksConstant  , speedLight
-    use :: Numerical_Constants_Units   , only : angstromsPerMeter, electronVolt
+    use :: Numerical_Constants_Physical, only : plancksConstant         , speedLight
+    use :: Numerical_Constants_Units   , only : angstromsPerMeter       , electronVolt
+    use :: Tables                      , only : table1DLogarithmicLinear
+    use :: Table_Labels                , only : extrapolationTypeZero
     implicit none
-    double precision, intent(in   ) :: wavelength
-    double precision                :: energy
+    double precision                          , intent(in   ) :: wavelength
+    double precision                          , parameter     :: energyMinimum  =15.42d0, energyMaximum=1000.0d0
+    integer                                   , parameter     :: energyCount    =100
+    type            (table1DLogarithmicLinear), save          :: interpolator_
+    logical                                   , save          :: initialized    =.false.
+    double precision                                          :: energy                 , crossSection
+    integer                                                   :: i
 
+    if (.not.initialized) then
+       !$omp critical (hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_ElectronInit)
+       if (.not.initialized) then
+          call interpolator_%create(energyMinimum,energyMaximum,energyCount,extrapolationType=[extrapolationTypeZero,extrapolationTypeZero])
+          do i=1,energyCount
+             energy=interpolator_%x(i)
+             ! Evaluate the fitting function for the cross-section.
+             if      (energy < 15.42d0) then
+                crossSection=0.0d0
+             else if (energy < 16.50d0) then
+                crossSection=6.2d-18*energy-9.40d-17
+             else if (energy < 17.70d0) then
+                crossSection=1.4d-18*energy-1.48d-17
+             else
+                crossSection=2.5d-14/energy**2.71d0
+             end if
+             call interpolator_%populate(crossSection,i)
+          end do
+          initialized=.true.
+       end if
+       !$omp end critical (hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_ElectronInit)
+    end if
     ! Convert from wavelength (in Angstroms) to energy (in eV).
     energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
-    ! Evaluate the fitting function for the cross-section.
-    if      (energy < 15.42d0) then
-       hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_Electron=0.0d0
-    else if (energy < 16.50d0) then
-       hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_Electron=6.2d-18*energy-9.40d-17
-    else if (energy < 17.70d0) then
-       hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_Electron=1.4d-18*energy-1.48d-17
-    else
-       hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_Electron=2.5d-14/(energy**2.71d0)
-    end if
+    ! Evaluate the cross-section.
+    hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_Electron=interpolator_%interpolate(energy)
     return
   end function hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_Electron
 
@@ -1607,25 +1670,46 @@ contains
   double precision function hydrogenNetworkCrossSection_H2plus_Gamma_to_2Hplus_Electron(wavelength)
     !% Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow 2\hbox{H}^+ +
     !% \hbox{e}^-$ as given by \cite{shapiro_hydrogen_1987}.
-    use :: Numerical_Constants_Physical, only : plancksConstant  , speedLight
-    use :: Numerical_Constants_Units   , only : angstromsPerMeter, electronVolt
+    use :: Numerical_Constants_Physical, only : plancksConstant      , speedLight
+    use :: Numerical_Constants_Units   , only : angstromsPerMeter    , electronVolt
+    use :: Tables                      , only : table1DLinearLinear
+    use :: Table_Labels                , only : extrapolationTypeZero
     implicit none
-    double precision, intent(in   ) :: wavelength
-    double precision                :: energy
+    double precision                     , intent(in   ) :: wavelength
+    double precision                     , parameter     :: energyMinimum  =30.0   , energyMaximum=90.0d0
+    integer                              , parameter     :: energyCount    =100
+    type            (table1DLinearLinear), save          :: interpolator_
+    logical                              , save          :: initialized    =.false.
+    double precision                                     :: energy                 , crossSection
+    integer                                              :: i
 
+    if (.not.initialized) then
+       !$omp critical (hydrogenNetworkCrossSection_H2plus_Gamma_to_2Hplus_ElectronInit)
+       if (.not.initialized) then
+          call interpolator_%create(energyMinimum,energyMaximum,energyCount,extrapolationType=[extrapolationTypeZero,extrapolationTypeZero])
+          do i=1,energyCount
+             energy=interpolator_%x(i)
+             ! Evaluate the fitting function for the cross-section.
+             if (energy >= 30.0d0 .and. energy <= 90.0d0) then
+                crossSection=10.0d0**(         -16.926d+0 &
+                     &                +energy*(- 4.528d-2 &
+                     &                +energy*(  2.238d-4 &
+                     &                +energy*(  4.245d-7 &
+                     &                        )))         &
+                     &               )
+             else
+                crossSection=0.0d0
+             end if
+             call interpolator_%populate(crossSection,i)
+          end do
+          initialized=.true.
+       end if
+       !$omp end critical (hydrogenNetworkCrossSection_H2plus_Gamma_to_2Hplus_ElectronInit)
+    end if
     ! Convert from wavelength (in Angstroms) to energy (in eV).
     energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
-    ! Evaluate the fitting function for the cross-section.
-    if (energy >= 30.0d0 .and. energy <= 90.0d0) then
-       hydrogenNetworkCrossSection_H2plus_Gamma_to_2Hplus_Electron=10.0d0**(         -16.926d+0 &
-            &                                                               +energy*(- 4.528d-2 &
-            &                                                               +energy*(  2.238d-4 &
-            &                                                               +energy*(  4.245d-7 &
-            &                                                                       )))         &
-            &                                                              )
-    else
-       hydrogenNetworkCrossSection_H2plus_Gamma_to_2Hplus_Electron=0.0d0
-    end if
+    ! Evaluate the cross-section.
+    hydrogenNetworkCrossSection_H2plus_Gamma_to_2Hplus_Electron=interpolator_%interpolate(energy)
     return
   end function hydrogenNetworkCrossSection_H2plus_Gamma_to_2Hplus_Electron
 
@@ -1689,45 +1773,71 @@ contains
   double precision function hydrogenNetworkCrossSection_H2_Gamma_to_2H(wavelength)
     !% Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow 2\hbox{H}$ as given by
     !% \cite{abel_modeling_1997}.
-    use :: Numerical_Constants_Physical, only : plancksConstant  , speedLight
-    use :: Numerical_Constants_Units   , only : angstromsPerMeter, electronVolt
+    use :: Numerical_Constants_Physical, only : plancksConstant      , speedLight
+    use :: Numerical_Constants_Units   , only : angstromsPerMeter    , electronVolt
+    use :: Tables                      , only : table1DLinearLinear
+    use :: Table_Labels                , only : extrapolationTypeZero
     implicit none
-    double precision, intent(in   ) :: wavelength
-    double precision, parameter     :: ratioOrthoToPara       =0.0d0                         !   Assume all H_2 is in the para- configuration.
-    double precision                :: crossSectionLymanOrtho       , crossSectionLymanPara                                                   , &
-         &                             crossSectionWernerOrtho      , crossSectionWernerPara                                                  , &
-         &                             energy
+    double precision                     , intent(in   ) :: wavelength
+    double precision                     , parameter     :: ratioOrthoToPara      =0.0d0     ! Assume all H₂ is in the para- configuration.
+    double precision                     , parameter     :: energyMinimum         =14.159d0, energyMaximum          =17.600d0
+    integer                              , parameter     :: energyCount           =100
+    type            (table1DLinearLinear), save          :: interpolator_
+    logical                              , save          :: initialized           =.false.
+    double precision                                     :: energy                         , crossSection                    , &
+         &                                                  crossSectionLymanPara          , crossSectionWernerPara          , &
+         &                                                  crossSectionLymanOrtho         , crossSectionWernerOrtho
+    integer                                              :: i
 
+    if (.not.initialized) then
+       !$omp critical (hydrogenNetworkCrossSection_H2_Gamma_to_2HInit)
+       if (.not.initialized) then
+          do i=1,energyCount
+          call interpolator_%create(energyMinimum,energyMaximum,energyCount,extrapolationType=[extrapolationTypeZero,extrapolationTypeZero])
+             energy=interpolator_%x(i)
+             ! Evaluate the Lyman and Werner band cross sections for para- and ortho- configurations.
+             if         (energy > 14.675d0 .and. energy <= 16.820d0) then
+                crossSectionLymanPara     =10.0d0**(-18.0d0+15.1289d0-1.0513900000d+0*energy                       )
+             else if    (energy > 16.820d0 .and. energy <= 17.600d0) then
+                crossSectionLymanPara     =10.0d0**(-18.0d0-31.4100d0+1.8042000000d-2*energy**3-4.2339d-5*energy**5)
+             else
+                crossSectionLymanPara     = 0.0d0
+             end if
+             if         (energy > 14.675d0 .and. energy <= 17.700d0) then
+                crossSectionWernerPara    =10.0d0**(-18.0d0+13.5311d0-0.9182618000d0*energy                        )
+             else
+                crossSectionWernerPara    = 0.0d0
+             end if
+             if (ratioOrthoToPara > 0.0d0) then
+                if      (energy > 14.159d0 .and. energy <= 15.302d0) then
+                   crossSectionLymanOrtho =10.0d0**(-18.0d0+12.0218406d0-0.8194290d0*energy                        )
+                else if (energy > 15.302d0 .and. energy <= 17.200d0) then
+                   crossSectionLymanOrtho =10.0d0**(-18.0d0+16.0464400d0-1.0824380d0*energy                        )
+                else
+                   crossSectionLymanOrtho = 0.0d0
+                end if
+                if      (energy > 14.159d0 .and. energy <= 17.200d0) then
+                   crossSectionWernerOrtho=10.0d0**(-18.0d0+12.8736700d0-0.85088597d0*energy                       )
+                else
+                   crossSectionWernerOrtho= 0.0d0
+                end if
+             else
+                crossSectionLymanOrtho =0.0d0
+                crossSectionWernerOrtho=0.0d0
+             end if
+             ! Construct the combined cross-section weighted by the appropriate ortho- to para- ratio.
+            crossSection=+(      1.0d0/(ratioOrthoToPara+1.0d0))*(crossSectionLymanPara +crossSectionWernerPara ) &
+                  &      +(1.0d0-1.0d0/(ratioOrthoToPara+1.0d0))*(crossSectionLymanOrtho+crossSectionWernerOrtho)
+             call interpolator_%populate(crossSection,i)
+          end do
+          initialized=.true.
+       end if
+       !$omp end critical(hydrogenNetworkCrossSection_H2_Gamma_to_2HInit)
+    end if
     ! Convert from wavelength (in Angstroms) to energy (in eV).
     energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
-    ! Evaluate the Lyman and Wener band cross sections for para- and ortho- configurations.
-    if      (energy > 14.675d0 .and. energy <= 16.820d0) then
-       crossSectionLymanPara  =10.0d0**(-18.0d0+15.1289d0-1.0513900000d+0*energy                       )
-    else if (                        energy <= 17.600d0) then
-       crossSectionLymanPara  =10.0d0**(-18.0d0-31.4100d0+1.8042000000d-2*energy**3-4.2339d-5*energy**5)
-    else
-       crossSectionLymanPara  = 0.0d0
-    end if
-    if      (energy > 14.675d0 .and. energy <= 17.700d0) then
-       crossSectionWernerPara =10.0d0**(-18.0d0+13.5311d0-0.9182618000d0*energy                        )
-    else
-       crossSectionWernerPara = 0.0d0
-    end if
-    if      (energy > 14.159d0 .and. energy <= 15.302d0) then
-       crossSectionLymanOrtho =10.0d0**(-18.0d0+12.0218406d0-0.8194290d0*energy                        )
-    else if (                        energy <= 17.200d0) then
-       crossSectionLymanOrtho =10.0d0**(-18.0d0+16.0464400d0-1.0824380d0*energy                        )
-    else
-       crossSectionLymanOrtho = 0.0d0
-    end if
-    if      (energy > 14.159d0 .and. energy <= 17.200d0) then
-       crossSectionWernerOrtho=10.0d0**(-18.0d0+12.8736700d0-0.85088597d0*energy                       )
-    else
-       crossSectionWernerOrtho= 0.0d0
-    end if
-    ! Construct the combined cross-section weighted by the appropriate ortho- to para- ratio.
-    hydrogenNetworkCrossSection_H2_Gamma_to_2H=+(      1.0d0/(ratioOrthoToPara+1.0d0))*(crossSectionLymanPara +crossSectionWernerPara ) &
-         &                                     +(1.0d0-1.0d0/(ratioOrthoToPara+1.0d0))*(crossSectionLymanOrtho+crossSectionWernerOrtho)
+    ! Evaluate the cross-section.
+    hydrogenNetworkCrossSection_H2_Gamma_to_2H=interpolator_%interpolate(energy)
     return
   end function hydrogenNetworkCrossSection_H2_Gamma_to_2H
 
@@ -1796,10 +1906,32 @@ contains
   double precision function hydrogenNetworkCrossSection_H_Gamma_to_Hplus_Electron(wavelength)
     !% Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow 2\hbox{H}$ as given by
     !% \cite{abel_modeling_1997}.
+    use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen
+    use :: Tables                    , only : table1DLogarithmicLinear
+    use :: Table_Labels              , only : extrapolationTypeZero
     implicit none
-    double precision, intent(in   ) :: wavelength
+    double precision                          , intent(in   ) :: wavelength
+    double precision                          , parameter     :: wavelengthFactor=1.0d-3
+    integer                                   , parameter     :: wavelengthCount =100
+    type            (table1DLogarithmicLinear), save          :: interpolator_
+    logical                                   , save          :: initialized    =.false.
+    double precision                                          :: crossSection
+    integer                                                   :: i
 
-    ! Use the hydrogen photoionization cross section method.
-    hydrogenNetworkCrossSection_H_Gamma_to_Hplus_Electron=hydrogenNetworkSelf%atomicCrossSectionIonizationPhoto_%crossSection(1,1,1,wavelength)
+    if (.not.initialized) then
+       !$omp critical (hydrogenNetworkCrossSection_H_Gamma_to_Hplus_ElectronInit)
+       if (.not.initialized) then
+          call interpolator_%create(wavelengthFactor*lymanSeriesLimitWavelengthHydrogen,lymanSeriesLimitWavelengthHydrogen,wavelengthCount,extrapolationType=[extrapolationTypeZero,extrapolationTypeZero])
+          do i=1,wavelengthCount
+             ! Use the hydrogen photoionization cross section method.
+             crossSection=hydrogenNetworkSelf%atomicCrossSectionIonizationPhoto_%crossSection(1,1,1,interpolator_%x(i))
+             call interpolator_%populate(crossSection,i)
+          end do
+          initialized=.true.
+       end if
+       !$omp end critical (hydrogenNetworkCrossSection_H_Gamma_to_Hplus_ElectronInit)
+    end if
+    ! Evaluate the cross-section.
+    hydrogenNetworkCrossSection_H_Gamma_to_Hplus_Electron=interpolator_%interpolate(wavelength)
     return
   end function hydrogenNetworkCrossSection_H_Gamma_to_Hplus_Electron
