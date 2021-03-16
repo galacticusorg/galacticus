@@ -8,7 +8,7 @@ use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
 use XML::Simple;
-use Sort::Topological qw(toposort);
+use Sort::Topo;
 use LaTeX::Encode;
 use Scalar::Util qw(reftype);
 use List::ExtraUtils;
@@ -114,7 +114,7 @@ sub Process_FunctionClass {
 	    # Sort classes. We first impose an alphanumeric sort to ensure that the ordering is always identical for each build,
 	    # and then impose a topological sort to ensure that dependencies are correctly handled.
 	    my @unsortedClasses = sort(keys(%classes));
-	    my @sortedClasses   = toposort(sub { @{$dependencies{$_[0]} || []}; }, \@unsortedClasses );
+	    my @sortedClasses   = &Sort::Topo::sort(\@unsortedClasses,\%dependencies);
 	    my @classes         = map($classes{$_},@sortedClasses);
 	    # Create a set of non-abstract classes.
 	    my @nonAbstractClasses;

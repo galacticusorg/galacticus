@@ -9,7 +9,7 @@ use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
 use Text::Table;
 use Text::Template 'fill_in_string';
-use Sort::Topological qw(toposort);
+use Sort::Topo;
 use Scalar::Util 'reftype';
 use XML::SAX::ParserFactory;
 use XML::Validator::Schema;
@@ -265,12 +265,7 @@ sub derivedTypesSerialize {
 	}
     }
     my @typeSort  = &List::ExtraUtils::sortedKeys($build->{'types'});
-    my @typeOrder =
-	toposort
-	(
-	 sub { @{$typeDependencies{$_[0]} || []}; },
-	 \@typeSort
-	);
+    my @typeOrder = &Sort::Topo::sort(\@typeSort,\%typeDependencies);
     # Iterate over types.
     foreach ( @typeOrder ) {
 	# Get the type.

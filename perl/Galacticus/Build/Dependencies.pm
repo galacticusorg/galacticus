@@ -6,7 +6,7 @@ use warnings;
 use utf8;
 use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
-use Sort::Topological qw(toposort);
+use Sort::Topo;
 use Scalar::Util 'reftype';
 use Data::Dumper;
 
@@ -117,7 +117,7 @@ sub Dependency_Sort {
     my @presortedUnits = sort(@unsortedUnits);
 
     # Perform dependency sort.
-    my @sortedSortNames = toposort(sub { @{$dependencies{$_[0]} || []}; }, \@presortedUnits);
+    my @sortedSortNames = &Sort::Topo::sort(\@presortedUnits,\%dependencies);
     my @sortedUnits;
     foreach my $sortName ( @sortedSortNames ) {
 	push(@sortedUnits,@{$sortNamesReverse{$sortName}});

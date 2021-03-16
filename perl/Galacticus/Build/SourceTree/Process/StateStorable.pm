@@ -11,7 +11,8 @@ use Text::Template 'fill_in_string';
 use Galacticus::Build::SourceTree::Process::Utils qw(performIO);
 
 # Insert hooks for our functions.
-$Galacticus::Build::SourceTree::Hooks::processHooks{'stateStorable'} = \&Process_StateStorable;
+$Galacticus::Build::SourceTree::Hooks::processHooks       {'stateStorable'} = \&Process_StateStorable;
+$Galacticus::Build::SourceTree::Hooks::processDependencies{'stateStorable'} = [ "generics" ];
 
 sub Process_StateStorable {
     # Get the tree.

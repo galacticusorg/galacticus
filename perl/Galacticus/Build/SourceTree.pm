@@ -10,7 +10,7 @@ use Data::Dumper;
 use Scalar::Util qw(reftype);
 use Fortran::Utils;
 use File::Slurp;
-use Sort::Topological qw(toposort);
+use Sort::Topo;
 use Galacticus::Build::SourceTree::Hooks;
 use Galacticus::Build::SourceTree::Parse::Directives;
 use Galacticus::Build::SourceTree::Parse::Visibilities;
@@ -147,7 +147,7 @@ sub ProcessTree {
 	    push(@{$dependencies{$dependent}},$processor);
 	}
     }
-    my @processorsOrdered = toposort(sub { @{$dependencies{$_[0]} || []}; }, \@processors );
+    my @processorsOrdered = &Sort::Topo::sort(\@processors,\%dependencies);
     # Run all defined processors on the tree.
     &{$Galacticus::Build::SourceTree::Hooks::processHooks{$_}}($tree,\%options)
 	foreach ( @processorsOrdered );

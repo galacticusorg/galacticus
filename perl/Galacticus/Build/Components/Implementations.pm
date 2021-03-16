@@ -7,7 +7,7 @@ use utf8;
 use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
-use Sort::Topological qw(toposort);
+use Sort::Topo;
 use Scalar::Util;
 use NestedMap;
 use List::ExtraUtils;
@@ -163,11 +163,7 @@ sub Implementation_Dependencies {
 	}
 	# Sort member names into parent->child order.
 	@{$build->{'componentClasses'}->{$className}->{'memberNames'}} =
-	    toposort
-	    (
-	     sub { @{$dependencies{$_[0]} || []}; },
-	     \@{$build->{'componentClasses'}->{$className}->{'memberNames'}}
-	    );
+	    &Sort::Topo::sort($build->{'componentClasses'}->{$className}->{'memberNames'},\%dependencies);
 	# Create the same ordering in the list of members.
 	my %members;
 	$members{$_->{'name'}} = $_
