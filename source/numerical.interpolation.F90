@@ -396,7 +396,7 @@ contains
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Interface_GSL     , only : GSL_Success            , GSL_EDom
     use :: ISO_Varying_String, only : assignment(=)          , operator(//)                , varying_string
-    use :: Table_Labels      , only : extrapolationTypeAbort , extrapolationTypeExtrapolate, extrapolationTypeFix
+    use :: Table_Labels      , only : extrapolationTypeAbort , extrapolationTypeExtrapolate, extrapolationTypeFix, extrapolationTypeZero
     implicit none
     class           (interpolator  ), intent(inout)               :: self
     double precision                , intent(in   )               :: x
@@ -453,6 +453,11 @@ contains
        if (statusGSL /= GSL_Success) then
           select case (statusGSL)
           case (GSL_EDom)
+             if (self%extrapolationType == extrapolationTypeZero) then
+                ! Return zero outside of the tabulated range.
+                interpolatorInterpolate=0.0d0
+                return
+             end if
              write (labelX       ,'(e12.6)')      x
              write (labelX_      ,'(e12.6)')      x_
              write (labelXMinimum,'(e12.6)') self%x (1              )
@@ -489,7 +494,7 @@ contains
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: Interface_GSL     , only : GSL_EDom
     use            :: ISO_Varying_String, only : assignment(=)          , operator(//)                , varying_string
-    use            :: Table_Labels      , only : extrapolationTypeAbort , extrapolationTypeExtrapolate, extrapolationTypeFix
+    use            :: Table_Labels      , only : extrapolationTypeAbort , extrapolationTypeExtrapolate, extrapolationTypeFix, extrapolationTypeZero
     implicit none
     class           (interpolator  ), intent(inout)               :: self
     double precision                , intent(in   )               :: x
@@ -504,7 +509,7 @@ contains
     x_=x
     select case (self%extrapolationType)
     case (extrapolationTypeExtrapolate,extrapolationTypeFix)
-       if (x < self%x(1              )) x_=self%x(1       )
+       if (x < self%x(1              )) x_=self%x(1              )
        if (x > self%x(self%countArray)) x_=self%x(self%countArray)
     end select
     ! Do the interpolation.
@@ -512,6 +517,11 @@ contains
     if (statusGSL /= 0) then
        select case (statusGSL)
        case (GSL_EDom)
+          if (self%extrapolationType == extrapolationTypeZero) then
+             ! Return zero outside of the tabulated range.
+             interpolatorDerivative=0.0d0
+             return
+          end if
           message='requested point is outside of allowed range'
        case default
           message='interpolation failed for unknown reason'
