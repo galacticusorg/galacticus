@@ -68,21 +68,25 @@ contains
     use :: Numerical_Constants_Math    , only : Pi
     use :: Numerical_Constants_Physical, only : plancksConstant
     use :: Numerical_Constants_Units   , only : ergs
-    use :: Numerical_Integration       , only : integrator     , GSL_Integ_Gauss15
+    use :: Numerical_Integration2      , only : integratorAdaptiveCompositeTrapezoidal1D
+    use :: Timers
     implicit none
-    class           (radiationFieldClass), target      , intent(inout) :: self
-    double precision                     , dimension(2), intent(in   ) :: wavelengthRange
-    double precision                     , external                    :: crossSectionFunction
-    type            (treeNode           ), target      , intent(inout) :: node
-    type            (integrator         )                              :: integrator_
-
+    class           (radiationFieldClass                     ), target      , intent(inout) :: self
+    double precision                                          , dimension(2), intent(in   ) :: wavelengthRange
+    double precision                                          , external                    :: crossSectionFunction
+    type            (treeNode                                ), target      , intent(inout) :: node
+    type            (integratorAdaptiveCompositeTrapezoidal1D)                              :: integrator_
+    
     ! Set module-scope pointers to self and the cross-section function for use in the integrand routine.
     selfGlobal                 => self
     nodeGlobal                 => node
     crossSectionFunctionGlobal => crossSectionFunction
-    ! Perform the integration.
-    integrator_=integrator(crossSectionIntegrand,toleranceRelative=1.0d-3,integrationRule=GSL_Integ_Gauss15)
-    radiationFieldIntegrateOverCrossSection_=integrator_%integrate(wavelengthRange(1),wavelengthRange(2))
+    ! Perform the integration. An adapative, composite trapezoidal integrator is used here - this is efficient since typically
+    ! these integrands can involve cross-sections with sharp edges, and the radiation field can also have sharp edges (and is
+    ! often approximated using a tabulated function).
+    call integrator_%integrandSet(integrand        =crossSectionIntegrand)
+    call integrator_%toleranceSet(toleranceRelative=1.0d-3               )
+    radiationFieldIntegrateOverCrossSection_=integrator_%evaluate(wavelengthRange(1),wavelengthRange(2))    
     ! Scale result by multiplicative prefactors to give answer in units of inverse seconds.
     radiationFieldIntegrateOverCrossSection_=+radiationFieldIntegrateOverCrossSection_ &
          &                                   *4.0d0                                    &
