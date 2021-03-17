@@ -286,7 +286,7 @@ contains
             &                                                                               )
        coolant => coolant%next
     end do
-    if (coolingFunctionCumulative > 0.0d0) then
+    if (coolingFunctionCumulative /= 0.0d0) then
        summationCoolingFunctionTemperatureLogSlope=+coolingFunctionGradient   &
             &                                      *temperature               &
             &                                      /coolingFunctionCumulative
