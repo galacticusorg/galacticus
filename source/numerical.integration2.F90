@@ -1159,10 +1159,10 @@ contains
             & +newInterval1%error                     &
             & +newInterval2%error
        ! Test for convergence.
-       converged=                                                                              &
-            &  abs(error) < self%toleranceAbsolute                                             &
-            & .or.                                                                             &
-            &  abs(error) < self%toleranceRelative*abs(adaptiveCompositeTrapezoidalEvaluate1D)
+       converged=                                                                               &
+            &  abs(error) <= self%toleranceAbsolute                                             &
+            & .or.                                                                              &
+            &  abs(error) <= self%toleranceRelative*abs(adaptiveCompositeTrapezoidalEvaluate1D)
        ! Destroy the old interval.
        deallocate(current)
        ! Insert the new intervals into our stack.
