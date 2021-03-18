@@ -25,18 +25,18 @@
   !#  <description>
   !#   A star formation histories class which records star formation split by metallicity. The star formation history is tabulated
   !#   on a grid of time and metallicity. The binning in time is chosen such that bins are at most of size {\normalfont \ttfamily
-  !#   [starFormationHistoryTimeStep]} between the time at which each galaxy formed and the final output time, and at most of size
-  !#   {\normalfont \ttfamily [starFormationHistoryFineTimeStep]} in the period {\normalfont \ttfamily
-  !#   [starFormationHistoryFineTime]} prior to each output time (all times specified in Gyr). The allows fine binning of recent
+  !#   [timeStep]} between the time at which each galaxy formed and the final output time, and at most of size
+  !#   {\normalfont \ttfamily [timeStepFine]} in the period {\normalfont \ttfamily
+  !#   [timeFine]} prior to each output time (all times specified in Gyr). The allows fine binning of recent
   !#   star formation just prior to each output. Usually, the metallicity binning is arranged logarithmically in metallicity with
-  !#   {\normalfont \ttfamily [starFormationHistoryMetallicityCount]} bins between {\normalfont \ttfamily
-  !#   [starFormationHistoryMetallicityMinimum]} and {\normalfont \ttfamily [starFormationHistoryMetallicityMaximum]} (specified
+  !#   {\normalfont \ttfamily [countMetallicities]} bins between {\normalfont \ttfamily
+  !#   [metallicityMinimum]} and {\normalfont \ttfamily [metallicityMaximum]} (specified
   !#   in Solar units). Note that the metallicity associated with each bin is the minimum metallicity for that bin (the maximum
   !#   being the metallicity value associated with the next bin, except for the final bin which extends to infinite
-  !#   metallicity). If {\normalfont \ttfamily [starFormationHistoryMetallicityCount]}$=0$ is set, then the star formation history
+  !#   metallicity). If {\normalfont \ttfamily [countMetallicities]}$=0$ is set, then the star formation history
   !#   is not split by metallicity (i.e. a single metallicity bin encompassing all metallicities from zero to infinity is
   !#   used). Alternatively, specific metallicity bin boundaries can be set via the {\normalfont \ttfamily
-  !#   [starFormationHistoryMetallicityBoundaries]} parameter---a final boundary corresponding to infinity is always added
+  !#   [metallicityBoundaries]} parameter---a final boundary corresponding to infinity is always added
   !#   automatically. Output follows the conventional format, with 2D star formation history datasets to represent the history as
   !#   a function of time and metallicity. An additional {\normalfont \ttfamily metallicities} dataset is added to the
   !#   {\normalfont \ttfamily starFormationHistories} output group to record the metallicity binning as follows:
@@ -44,7 +44,7 @@
   !#    DATASET "metallicities" {
   !#     COMMENT "Metallicities at which star formation histories are tabulated"
   !#       DATATYPE  H5T_IEEE_F64LE
-  !#       DATASPACE  SIMPLE { ( [starFormationHistoryMetallicityCount] ) / ( [starFormationHistoryMetallicityCount] ) }
+  !#       DATASPACE  SIMPLE { ( [countMetallicities] ) / ( [countMetallicities] ) }
   !#    }
   !#    \end{verbatim}
   !#  </description>
