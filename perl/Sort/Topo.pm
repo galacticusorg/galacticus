@@ -18,6 +18,8 @@ sub sort {
 	    unless ( grep {$_ eq $object} @objects );
 	my $objectIndex = first_index {$_ eq $object} @objects;
 	foreach my $dependent ( @{$dependencies{$object}} ) {
+	    next
+		unless ( grep {$_ eq $dependent} @objects );
 	    my $dependentIndex = first_index {$_ eq $dependent} @objects;
 	    push(@dependency,[$dependentIndex,$objectIndex]);
 	}
