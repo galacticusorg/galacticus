@@ -41,6 +41,13 @@ module Virial_Orbits
   !#   <argument>type(treeNode), intent(inout) :: node               , host</argument>
   !#   <argument>logical       , intent(in   ) :: acceptUnboundOrbits</argument>
   !#  </method>
+  !#  <method name="velocityDistributionFunction" >
+  !#   <description>Returns the distribution function of orbital velocity $\mathrm{d}^2p/\mathrm{d}v_r/\mathrm{d}v_\theta(v_r,v_\theta)$.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode), intent(inout) :: node          , host</argument>
+  !#   <argument>double precision          , intent(in   ) :: velocityRadial, velocityTangential</argument>
+  !#  </method>
   !#  <method name="isAngularlyResolved" >
   !#   <description>Returns true if this orbit class provides resolution of the orbital angular coordinates ($\theta$,$\phi$) when setting orbits, false otherwise.</description>
   !#   <type>logical</type>
