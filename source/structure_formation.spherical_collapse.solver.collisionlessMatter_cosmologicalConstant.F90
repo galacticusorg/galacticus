@@ -34,9 +34,9 @@
           &                                     fileNameRadiusTurnaround
    contains
      !# <methods>
-     !#   <method description="Restore a tabulated solution from file." method="restoreTable" />
-     !#   <method description="Store a tabulated solution to file." method="storeTable" />
-     !#   <method description="Store a tabulated solution to file." method="tabulate" />
+     !#   <method description="Restore a tabulated solution from file." method="restoreTable"/>
+     !#   <method description="Store a tabulated solution to file."     method="storeTable"  />
+     !#   <method description="Construct a tabulated solution."         method="tabulate"    />
      !# </methods>
      final     ::                          cllsnlssMttCsmlgclCnstntDestructor
      procedure :: criticalOverdensity   => cllsnlssMttCsmlgclCnstntCriticalOverdensity
