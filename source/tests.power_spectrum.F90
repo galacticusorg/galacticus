@@ -164,6 +164,7 @@ program Tests_Power_Spectrum
   !# <referenceConstruct object="powerSpectrumWindowFunction_"                >
   !#  <constructor>
   !#   powerSpectrumWindowFunctionTopHat       (                                                                                           &amp;
+  !#    &amp;                                   cosmologyParameters_               =cosmologyParameters_                                   &amp;
   !#    &amp;                                  )
   !#  </constructor>
   !# </referenceConstruct>
