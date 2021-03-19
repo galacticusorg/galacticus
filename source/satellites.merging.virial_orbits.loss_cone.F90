@@ -55,7 +55,7 @@
      class           (mergerTreeBranchingProbabilityClass), pointer                         :: mergerTreeBranchingProbability_ => null()
      double precision                                                                       :: velocityMinimum                          , velocityMaximum                     , &
           &                                                                                    massMinimum                              , massMaximum                         , &
-          &                                                                                    time
+          &                                                                                    time                                     , velocityDispersionMultiplier
      integer                                                                                :: countMassesPerDecade                     , countVelocitiesPerUnit
      logical                                                                                :: includeInFlightGrowth
      double precision                                     , allocatable, dimension(:      ) :: mass                                     , velocity
@@ -116,9 +116,9 @@
   !$omp threadprivate(cosmologyFunctions_,cosmologyParameters_,darkMatterHaloBias_,darkMatterHaloScale_,linearGrowth_,correlationFunctionTwoPoint_,cosmologicalVelocityField_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceEnvironmental_,criticalOverdensityEnvironmental_,haloEnvironment_,haloMassFunctionEnvironmental_,mergerTreeBranchingProbability_)
 
   ! Submodule-scope variables used in integrands.
-  double precision                    :: massHost_
+  double precision                    :: massHost_, timeEvaluate_
   type            (treeNode), pointer :: nodeHost_
-  !$omp threadprivate(massHost_,nodeHost_)
+  !$omp threadprivate(massHost_,nodeHost_,timeEvaluate_)
 
 contains
 
@@ -139,9 +139,9 @@ contains
     class           (virialDensityContrastClass         ), pointer       :: virialDensityContrast_
     class           (correlationFunctionTwoPointClass   ), pointer       :: correlationFunctionTwoPoint_
     class           (mergerTreeBranchingProbabilityClass), pointer       :: mergerTreeBranchingProbability_
-    double precision                                                     :: velocityMinimum                , velocityMaximum       , &
-         &                                                                  haloMassFunctionA              , haloMassFunctionP     , &
-         &                                                                  haloMassFunctionNormalization
+    double precision                                                     :: velocityMinimum                , velocityMaximum             , &
+         &                                                                  haloMassFunctionA              , haloMassFunctionP           , &
+         &                                                                  haloMassFunctionNormalization  , velocityDispersionMultiplier
     integer                                                              :: countMassesPerDecade           , countVelocitiesPerUnit
     logical                                                              :: includeInFlightGrowth
 
@@ -189,6 +189,12 @@ contains
     !#   <defaultValue>0.322d0</defaultValue>
     !#   <description>The normalization parameter $A$ of the \cite{sheth_ellipsoidal_2001} halo mass function used in averaging over environment.</description>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>velocityDispersionMultiplier</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>A multiplier applied to the dispersion of the cosmological velocity field.</description>
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"/>
     !# <objectBuilder class="cosmologyParameters"            name="cosmologyParameters_"            source="parameters"/>
     !# <objectBuilder class="cosmologicalVelocityField"      name="cosmologicalVelocityField_"      source="parameters"/>
@@ -200,7 +206,7 @@ contains
     !# <objectBuilder class="virialDensityContrast"          name="virialDensityContrast_"          source="parameters"/>
     !# <objectBuilder class="correlationFunctionTwoPoint"    name="correlationFunctionTwoPoint_"    source="parameters"/>
     !# <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"/>
-    self=virialOrbitLossCone(velocityMinimum,velocityMaximum,countVelocitiesPerUnit,countMassesPerDecade,includeInFlightGrowth,haloMassFunctionA,haloMassFunctionP,haloMassFunctionNormalization,cosmologyFunctions_,cosmologyParameters_,cosmologicalVelocityField_,linearGrowth_,darkMatterHaloBias_,darkMatterHaloScale_,virialDensityContrast_,correlationFunctionTwoPoint_,cosmologicalMassVariance_,criticalOverdensity_,mergerTreeBranchingProbability_)
+    self=virialOrbitLossCone(velocityMinimum,velocityMaximum,countVelocitiesPerUnit,countMassesPerDecade,includeInFlightGrowth,haloMassFunctionA,haloMassFunctionP,haloMassFunctionNormalization,velocityDispersionMultiplier,cosmologyFunctions_,cosmologyParameters_,cosmologicalVelocityField_,linearGrowth_,darkMatterHaloBias_,darkMatterHaloScale_,virialDensityContrast_,correlationFunctionTwoPoint_,cosmologicalMassVariance_,criticalOverdensity_,mergerTreeBranchingProbability_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"            />
     !# <objectDestructor name="cosmologyParameters_"           />
@@ -216,7 +222,7 @@ contains
     return
   end function lossConeConstructorParameters
 
-  function lossConeConstructorInternal(velocityMinimum,velocityMaximum,countVelocitiesPerUnit,countMassesPerDecade,includeInFlightGrowth,haloMassFunctionA,haloMassFunctionP,haloMassFunctionNormalization,cosmologyFunctions_,cosmologyParameters_,cosmologicalVelocityField_,linearGrowth_,darkMatterHaloBias_,darkMatterHaloScale_,virialDensityContrast_,correlationFunctionTwoPoint_,cosmologicalMassVariance_,criticalOverdensity_,mergerTreeBranchingProbability_) result(self)
+  function lossConeConstructorInternal(velocityMinimum,velocityMaximum,countVelocitiesPerUnit,countMassesPerDecade,includeInFlightGrowth,haloMassFunctionA,haloMassFunctionP,haloMassFunctionNormalization,velocityDispersionMultiplier,cosmologyFunctions_,cosmologyParameters_,cosmologicalVelocityField_,linearGrowth_,darkMatterHaloBias_,darkMatterHaloScale_,virialDensityContrast_,correlationFunctionTwoPoint_,cosmologicalMassVariance_,criticalOverdensity_,mergerTreeBranchingProbability_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily lossCone} virial orbits class.
     use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataDynamic
     use :: ISO_Varying_String, only : operator(//)
@@ -234,17 +240,17 @@ contains
     class           (virialDensityContrastClass         ), intent(in   ), target :: virialDensityContrast_
     class           (correlationFunctionTwoPointClass   ), intent(in   ), target :: correlationFunctionTwoPoint_
     class           (mergerTreeBranchingProbabilityClass), intent(in   ), target :: mergerTreeBranchingProbability_
-    double precision                                     , intent(in   )         :: velocityMinimum                , velocityMaximum       , &
-         &                                                                          haloMassFunctionA              , haloMassFunctionP     , &
-         &                                                                          haloMassFunctionNormalization
+    double precision                                     , intent(in   )         :: velocityMinimum                , velocityMaximum             , &
+         &                                                                          haloMassFunctionA              , haloMassFunctionP           , &
+         &                                                                          haloMassFunctionNormalization  , velocityDispersionMultiplier
     integer                                              , intent(in   )         :: countMassesPerDecade           , countVelocitiesPerUnit
     logical                                              , intent(in   )         :: includeInFlightGrowth
     integer                                                                      :: countVelocities
-    !# <constructorAssign variables="velocityMinimum, velocityMaximum, countVelocitiesPerUnit, countMassesPerDecade, includeInFlightGrowth, haloMassFunctionA, haloMassFunctionP, haloMassFunctionNormalization, *cosmologyFunctions_, *cosmologyParameters_, *cosmologicalVelocityField_, *linearGrowth_, *darkMatterHaloBias_, *darkMatterHaloScale_, *virialDensityContrast_, *correlationFunctionTwoPoint_, *cosmologicalMassVariance_, *criticalOverdensity_, *mergerTreeBranchingProbability_"/>
+    !# <constructorAssign variables="velocityMinimum, velocityMaximum, countVelocitiesPerUnit, countMassesPerDecade, includeInFlightGrowth, haloMassFunctionA, haloMassFunctionP, haloMassFunctionNormalization, velocityDispersionMultiplier, *cosmologyFunctions_, *cosmologyParameters_, *cosmologicalVelocityField_, *linearGrowth_, *darkMatterHaloBias_, *darkMatterHaloScale_, *virialDensityContrast_, *correlationFunctionTwoPoint_, *cosmologicalMassVariance_, *criticalOverdensity_, *mergerTreeBranchingProbability_"/>
 
     ! Set an initial mass range, along with an unphysical initial time (so that retabulation will be forced on the first call).
     self%time       =-huge(0.0d0)
-    self%massMinimum=1.0d07
+    self%massMinimum=1.0d06
     self%massMaximum=1.0d15
     ! Build the velocity array and interpolator.
     countVelocities=int((self%velocityMaximum-self%velocityMinimum)*dble(self%countVelocitiesPerUnit))+1    
@@ -656,10 +662,11 @@ contains
          &                                                                               radiusVirialHost                               , radiusInfallTerm1                         , &
          &                                                                               radiusInfallTerm2                              , factorEnvironmental                       , &
          &                                                                               massEnvironment                                , radiusEnvironment                         , &
-         &                                                                               jacobianFactor                                 , jacobianSign
+         &                                                                               jacobianFactor                                 , jacobianSign                              , &
+         &                                                                               radiusEvaluateLagrangian
     type            (interpolator                  )                                  :: interpolatorVelocityDispersionLinear
     type            (integrator                    )                                  :: integratorEnvironment                          , integratorEnvironmentNormalizer
-
+    
     ! Read in any existing tabulation from file.
     call self%restoreTable()
     ! Check if we need to retabulate.
@@ -815,7 +822,7 @@ contains
     integratorEnvironmentNormalizer=integrator(integrand=integrandEnvironmentNormalization,toleranceRelative=1.0d-3)
     do iHost=1,countMasses
        ! Build host node.
-       massHost           =  self%mass          (            iHost)
+       massHost           =  self%mass     (            iHost)
        massHost_          =  massHost
        nodeHost           => treeNode      (                 )
        nodeHost_          => nodeHost
@@ -830,18 +837,19 @@ contains
        radiusVirialHost  =darkMatterHaloScale_%virialRadius  (nodeHost)
        velocityVirialHost=darkMatterHaloScale_%virialVelocity(nodeHost)
        ! Compute the environmental boost factor for velocity dispersion.
+       timeEvaluate_      =+                                                                                                                                 self%time
        factorEnvironmental=+integratorEnvironment          %integrate(overdensityLimitLower*cosmologicalMassVariance_%rootVariance(mass=massEnvironment,time=self%time),haloEnvironment_%overdensityLinearMaximum()) &
             &              /integratorEnvironmentNormalizer%integrate(overdensityLimitLower*cosmologicalMassVariance_%rootVariance(mass=massEnvironment,time=self%time),haloEnvironment_%overdensityLinearMaximum())
        ! Iterate over satellite masses.
-       do iSatellite=1,countMasses
+       do iSatellite=1,countMasses          
           ! Only consider satellites less (or equally) massive than their host.
           if (iSatellite > iHost) cycle
           if (OMP_Get_Thread_Num() == 0) then
              call displayCounter(int(100.0d0*dble(countProgress)/dble(countTotal)),isNew=countProgress==0,verbosity=verbosityLevelWorking)
-             countProgress=countProgress+1          
+             countProgress=countProgress+1             
           end if
           ! Build satellite node.
-          massSatellite           =  self%mass               (           iSatellite)
+          massSatellite           =  self%mass          (           iSatellite)
           nodeSatellite           => treeNode           (                     )
           basicSatellite          => nodeSatellite%basic(autoCreate=.true.    )
           nodeSatellite %hostTree => tree
@@ -862,7 +870,9 @@ contains
           !$omp end single
           !$omp do schedule(dynamic)
           do iEvaluate=1,countRadii
-             velocityDispersionLinearTable(iEvaluate)=factorEnvironmental*cosmologicalVelocityField_%velocityDispersion1DHaloPairwise(massHost,massSatellite,radius(iEvaluate),self%time)             
+             velocityDispersionLinearTable(iEvaluate)=+                           factorEnvironmental                                                                  &
+                  &                                   *self                      %velocityDispersionMultiplier                                                         &
+                  &                                   *cosmologicalVelocityField_%velocityDispersion1DHaloPairwise(massHost,massSatellite,radius(iEvaluate),self%time)             
           end do
           !$omp end do
           interpolatorVelocityDispersionLinear=interpolator(radius,velocityDispersionLinearTable,extrapolationType=extrapolationTypeFix)          
@@ -938,14 +948,24 @@ contains
                       ! Skip orbits where the evaluation time is prior to the Big Bang.
                       if (timeEvaluate <= 0.0d0) cycle
                       ! If growth of the linear velocity field during the flight of the secondary is to be included. Reset the time at which to evaluate to the present time.
-                      if (self%includeInFlightGrowth) timeEvaluate=self%time                      
+                      if (self%includeInFlightGrowth) timeEvaluate=self%time
                       ! Compute the velocity field at the evaluation radius.
-                      !! Get the correlation in velocities at the evaluation distance.
+                      !! Get the correlation in velocities at the Lagrangian radius corresponding to the evaluation distance.
                       radiusEvaluate            =+radiusEvaluateVirial                              &
                            &                     *radiusVirialHost
                       radiusEvaluateComoving    =+radiusEvaluate                                    &
                            &                     /cosmologyFunctions_%expansionFactor(timeEvaluate)                      
-                      velocityDispersionEvaluate=+interpolatorVelocityDispersionLinear%interpolate(radiusEvaluate)              &
+                      radiusEvaluateLagrangian  =(                                                                                              &
+                           &                      + darkMatterHaloScale_        %meanDensity              (                      nodeHost     ) &
+                           &                      / cosmologyFunctions_         %matterDensityEpochal     (                      self    %time) &
+                           &                      *radiusVirialHost**3                                                                          &
+                           &                      +(                                                                                            &
+                           &                       +1.0d0                                                                                       &
+                           &                       +correlationFunctionTwoPoint_%correlationVolumeAveraged(radiusEvaluateComoving,self   %time) &
+                           &                      )                                                                                             &
+                           &                      *radiusEvaluate  **3                                                                          &
+                           &                     )**(1.0d0/3.0d0)
+                      velocityDispersionEvaluate=+interpolatorVelocityDispersionLinear%interpolate(radiusEvaluateLagrangian)    &
                            &                     *(                                                                             &
                            &                       +cosmologyFunctions_%hubbleParameterEpochal              (     timeEvaluate) &
                            &                       *cosmologyFunctions_%expansionFactor                     (     timeEvaluate) &
@@ -1048,16 +1068,16 @@ contains
                            &                 *correlationFunctionTwoPoint_%correlation(              radiusEvaluateComoving,timeEvaluate) &
                            &               )                                                                                              &
                            &              *abs(jacobianDeterminant) ! Coordinate transformation.
+                      ! Weight the distribution function by the radial velocity to account for the fact that higher radial velocity halos merge more frequently.
+                      distributionFunction=+distributionFunction &
+                           &               *velocityRadialVirial
                       ! Accumulate the distribution, marginal distributions, and summary statistics.
                       velocityRadialDistributionOrbits    (iHost,iSatellite,indexVelocityRadial                        )=+velocityRadialDistributionOrbits    (iHost,iSatellite,indexVelocityRadial                        ) &
-                           &                                                                                             +distributionFunction                                                                               &
-                           &                                                                                             *velocityRadialVirial
+                           &                                                                                             +distributionFunction
                       velocityTangentialDistributionOrbits(iHost,iSatellite,                    indexVelocityTangential)=+velocityTangentialDistributionOrbits(iHost,iSatellite,                    indexVelocityTangential) &
-                           &                                                                                             +distributionFunction                                                                               &
-                           &                                                                                             *velocityRadialVirial
+                           &                                                                                             +distributionFunction
                       velocityDistributionOrbits          (iHost,iSatellite,indexVelocityRadial,indexVelocityTangential)=+velocityDistributionOrbits          (iHost,iSatellite,indexVelocityRadial,indexVelocityTangential) &
-                           &                                                                                             +distributionFunction                                                                               &
-                           &                                                                                             *velocityRadialVirial
+                           &                                                                                             +distributionFunction
                       velocityRadialMeanVirial            (iHost,iSatellite                                            )=+velocityRadialMeanVirial            (iHost,iSatellite                                            ) &
                            &                                                                                             +distributionFunction                                                                               &
                            &                                                                                             *velocityRadialVirial
@@ -1177,23 +1197,23 @@ contains
       massReference       =+4.0d0                                                         &
            &               *Pi                                                            &
            &               /3.0d0                                                         &
-           &               *cosmologyFunctions_ %matterDensityEpochal(timeEvaluate      ) &
+           &               *cosmologyFunctions_ %matterDensityEpochal(timeEvaluate_     ) &
            &               *radiusReference**3
       mu                  =+0.6d0                                                                       &
            &               *(                                                                           &
            &                 +cosmologicalMassVariance_%rootVariance(mass=massRadius   ,time=self%time) &
            &                 /cosmologicalMassVariance_%rootVariance(mass=massReference,time=self%time) &
            &                )**2
-      overdensityNonlinear=+haloEnvironment_               %overdensityNonlinear(                                 node=nodeHost_                                                                                    )
-      massFunction        =+haloMassFunctionEnvironmental_ %differential        (time=timeEvaluate,mass=massHost_,node=nodeHost_                                                                                    )
-      mergerRate          =+mergerTreeBranchingProbability_%rate                (time=timeEvaluate,mass=massHost_,node=nodeHost_,deltaCritical=criticalOverdensity_%value(time=self%time),massBranch=0.5d0*massHost_)
-      integrandEnvironment=+(                                                                                                                                                                                         &
-           &                 +1.0d0                                                                                                                                                                                   &
-           &                 +overdensityNonlinear                                                                                                                                                                    &
-           &                )**mu                                                                                                                                                                                     &
-           &               *massFunction                                                                                                                                                                              &
-           &               *mergerRate                                                                                                                                                                                &
-           &               *haloEnvironment_               %pdf                 (overdensity                                                                                                                        )
+      overdensityNonlinear=+haloEnvironment_               %overdensityNonlinear(                                  node=nodeHost_                                                                                    )
+      massFunction        =+haloMassFunctionEnvironmental_ %differential        (time=timeEvaluate_,mass=massHost_,node=nodeHost_                                                                                    )
+      mergerRate          =+mergerTreeBranchingProbability_%rate                (time=timeEvaluate_,mass=massHost_,node=nodeHost_,deltaCritical=criticalOverdensity_%value(time=self%time),massBranch=0.5d0*massHost_)
+      integrandEnvironment=+(                                                                                                                                                                                          &
+           &                 +1.0d0                                                                                                                                                                                    &
+           &                 +overdensityNonlinear                                                                                                                                                                     &
+           &                )**mu                                                                                                                                                                                      &
+           &               *massFunction                                                                                                                                                                               &
+           &               *mergerRate                                                                                                                                                                                 &
+           &               *haloEnvironment_               %pdf                 (overdensity                                                                                                                         )
       return
     end function integrandEnvironment
     
@@ -1207,12 +1227,12 @@ contains
 
       call haloEnvironment_%overdensityLinearSet(nodeHost_,overdensity)
       call Galacticus_Calculations_Reset        (nodeHost_            )
-      overdensityNonlinear             =+haloEnvironment_               %overdensityNonlinear(                                 node=nodeHost_                                                                                    )
-      massFunction                     =+haloMassFunctionEnvironmental_ %differential        (time=timeEvaluate,mass=massHost_,node=nodeHost_                                                                                    )
-      mergerRate                       =+mergerTreeBranchingProbability_%rate                (time=timeEvaluate,mass=massHost_,node=nodeHost_,deltaCritical=criticalOverdensity_%value(time=self%time),massBranch=0.5d0*massHost_)
-      integrandEnvironmentNormalization=+massFunction                                                                                                                                                                              &
-           &                            *mergerRate                                                                                                                                                                                &
-           &                            *haloEnvironment_               %pdf                 (overdensity                                                                                                                        )
+      overdensityNonlinear             =+haloEnvironment_               %overdensityNonlinear(                                  node=nodeHost_                                                                                    )
+      massFunction                     =+haloMassFunctionEnvironmental_ %differential        (time=timeEvaluate_,mass=massHost_,node=nodeHost_                                                                                    )
+      mergerRate                       =+mergerTreeBranchingProbability_%rate                (time=timeEvaluate_,mass=massHost_,node=nodeHost_,deltaCritical=criticalOverdensity_%value(time=self%time),massBranch=0.5d0*massHost_)
+      integrandEnvironmentNormalization=+massFunction                                                                                                                                                                               &
+           &                            *mergerRate                                                                                                                                                                                 &
+           &                            *haloEnvironment_               %pdf                 (overdensity                                                                                                                         )
       return
     end function integrandEnvironmentNormalization
     
