@@ -329,7 +329,7 @@ contains
           velocityTangentialMeanVirial                      (iHost,iSatellite    )=   &
                & +velocityTangentialMeanVirial              (iHost,iSatellite    )    &
                & /distributionFunctionSum
-         velocityTangentialDispersionVirial                 (iHost,iSatellite    )=   &
+          velocityTangentialDispersionVirial                (iHost,iSatellite    )=   &
                & +sqrt(                                                               &
                &       +velocityTangentialDispersionVirial  (iHost,iSatellite    )    &
                &       /distributionFunctionSum                                       &
