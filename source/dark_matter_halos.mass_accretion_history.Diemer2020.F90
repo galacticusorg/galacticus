@@ -125,8 +125,8 @@ contains
     expansionFactor=self%cosmologyFunctions_%expansionFactor            (basic%time           ())
     redshift       =self%cosmologyFunctions_%redshiftFromExpansionFactor(      expansionFactor  )
     ! Computing fitting function coefficients (equations 8 of Diemer 2020).
-    A=+1.1721d0+0.3255*redshift
-    B=-0.2565d0+0.0932*redshift-0.0571*redshift**2+0.0042*redshift**3
+    A=+1.1721d0+0.3255d0*redshift
+    B=-0.2565d0+0.0932d0*redshift-0.0571d0*redshift**2+0.0042d0*redshift**3
     ! Compute the mass accretion exponent (equation 7 of Diemer 2020).
     massAccretionExponent=+A*peakHeight        &
          &                +B*peakHeight**1.5d0
