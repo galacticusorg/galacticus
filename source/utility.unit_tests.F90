@@ -146,19 +146,19 @@ contains
    case (compareLessThan          )
        passed={Type¦match¦^(logical|doubleComplex)¦.false.¦value1  < value2}
        comparison="≮"
-       {Type¦match¦^(?!(logical|doubleComplex))¦call Galacticus_Error_Report('unsupported comparison'//{introspection:location})¦}
+       {Type¦match¦^(logical|doubleComplex)¦call Galacticus_Error_Report('unsupported comparison'//{introspection:location})¦}
     case (compareGreaterThan       )
        passed={Type¦match¦^(logical|doubleComplex)¦.false.¦value1  > value2}
        comparison="≯"
-       {Type¦match¦^(?!(logical|doubleComplex))¦call Galacticus_Error_Report('unsupported comparison'//{introspection:location})¦}
+       {Type¦match¦^(logical|doubleComplex)¦call Galacticus_Error_Report('unsupported comparison'//{introspection:location})¦}
     case (compareLessThanOrEqual   )
        passed={Type¦match¦^(logical|doubleComplex)¦.false.¦value1 <= value2}
        comparison="≰"
-       {Type¦match¦^(?!(logical|doubleComplex))¦call Galacticus_Error_Report('unsupported comparison'//{introspection:location})¦}
+       {Type¦match¦^(logical|doubleComplex)¦call Galacticus_Error_Report('unsupported comparison'//{introspection:location})¦}
     case (compareGreaterThanOrEqual)
        passed={Type¦match¦^(logical|doubleComplex)¦.false.¦value1 >= value2}
        comparison="≱"
-       {Type¦match¦^(?!(logical|doubleComplex))¦call Galacticus_Error_Report('unsupported comparison'//{introspection:location})¦}
+       {Type¦match¦^(logical|doubleComplex)¦call Galacticus_Error_Report('unsupported comparison'//{introspection:location})¦}
     case default
        passed=.false.
        comparison=""

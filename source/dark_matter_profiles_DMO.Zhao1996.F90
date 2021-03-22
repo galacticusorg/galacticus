@@ -23,7 +23,7 @@
   !#  <description>
   !#   A dark matter profile DMO class which implements the \cite{zhao_analytical_1996} density profile
   !#   \begin{equation}
-  !#     \rho_\mathrm{dark matter}(r) \propto \left({r\over r_\mathrm{s}}\right^{-\gamma} \left(1+\left[{r\over r_\mathrm{s}}\right]^\alpha \right)^{-(\beta-\gamma)/\alpha},
+  !#     \rho_\mathrm{dark matter}(r) \propto \left({r\over r_\mathrm{s}}\right)^{-\gamma} \left(1+\left[{r\over r_\mathrm{s}}\right]^\alpha \right)^{-(\beta-\gamma)/\alpha},
   !#   \end{equation}
   !#   normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the scale length
   !#   $r_\mathrm{s}$.
@@ -36,10 +36,10 @@
           &              gamma
    contains
      !# <methods>
-     !#   <method description="Provides the values of the $(\alpha,\beta,\gamma)$ exponents in \cite{zhao_analytical_1996} dark matter density profiles." name="exponents"       />
-     !#   <method description="Compute the scale radius of the profile."                                                                                  name="scaleRadius"     />
-     !#   <method description="Compute the normalization of the profile."                                                                                 name="normalziation"   />
-     !#   <method description="Compute the unnormalized mass within the given scale-free radius"                                                          name="massUnnormalized"/>
+     !#   <method description="Provides the values of the $(\alpha,\beta,\gamma)$ exponents in \cite{zhao_analytical_1996} dark matter density profiles." method="exponents"       />
+     !#   <method description="Compute the scale radius of the profile."                                                                                  method="scaleRadius"     />
+     !#   <method description="Compute the normalization of the profile."                                                                                 method="normalziation"   />
+     !#   <method description="Compute the unnormalized mass within the given scale-free radius"                                                          method="massUnnormalized"/>
      !# </methods>
      final     ::                                      zhao1996Destructor
      procedure :: exponents                         => zhao1996Exponents
