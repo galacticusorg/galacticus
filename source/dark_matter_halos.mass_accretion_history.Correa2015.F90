@@ -184,12 +184,12 @@ contains
     ! Compute the mass accretion rate per unit redshift.
     expansionFactor          =+self%cosmologyFunctions_%expansionFactor            (time           )
     redshift                 =+self%cosmologyFunctions_%redshiftFromExpansionFactor(expansionFactor)
-    massAccretionRateRedshift=+baseMass                                   &
-         &                    *            (1.0d0+redshift-baseRedshift)  &
-         &                    *exp(+bTilde*(     +redshift-baseRedshift)) &
-         &                    *   (                                       &
-         &                         +aTilde/(1.0d0+redshift-baseRedshift)  &
-         &                         +bTilde                                &
+    massAccretionRateRedshift=+baseMass                                           &
+         &                    *            (1.0d0+redshift-baseRedshift) **aTilde &
+         &                    *exp(+bTilde*(     +redshift-baseRedshift))         &
+         &                    *   (                                               &
+         &                         +aTilde/(1.0d0+redshift-baseRedshift)          &
+         &                         +bTilde                                        &
          &                        )
     ! Convert to mass accretion rate per unit time.
     correa2015MassAccretionRate=-massAccretionRateRedshift                               &
