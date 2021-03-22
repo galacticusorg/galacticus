@@ -188,7 +188,7 @@ program Test_Correa2015_MAH
        &                                                              )                  &
        &                                                             )                   &
        &            )
-   ! Compute the mass accretion history.
+  ! Compute the mass accretion history.
   do i=1,size(mass)
      time    (i)=darkMatterHaloMassAccretionHistory_%time(node,mass(i))
      redshift(i)=cosmologyFunctions_ %redshiftFromExpansionFactor(         &
