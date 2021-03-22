@@ -908,7 +908,7 @@ contains
                         &            +  velocityRadialVirial    **2 &
                         &            +  velocityTangentialVirial**2 &
                         &            -  velocityRadialInfall    **2
-                   if     (                            &
+                    if     (                            &
                         &   radiusInfallTerm1 <  0.0d0 &
                         &  .or.                        &
                         &   radiusInfallTerm2 == 0.0d0 &
@@ -916,7 +916,7 @@ contains
                    !! Evaluate both roots of the equation to give the radii at which the current radial velocity is achieved.
                    radiiEvaluation(1)=(-2.0d0-sqrt(radiusInfallTerm1))/2.0d0/radiusInfallTerm2
                    radiiEvaluation(2)=(-2.0d0+sqrt(radiusInfallTerm1))/2.0d0/radiusInfallTerm2
-                   !! Evaluate both possible radii.
+                   !! Evaluate both possible radii.                    
                    do iEvaluate=1,2
                       radiusEvaluateVirial=radiiEvaluation(iEvaluate)
                       ! Evaluate only if the evaluation radius lies outside of the virial radius, and within a plausible range of influence.
@@ -1092,7 +1092,7 @@ contains
                            &                                                                                             *velocityTangentialVirial**2
                       distributionFunctionCumulated                                                                     =+distributionFunctionCumulated                                                                      &
                            &                                                                                             +distributionFunction
-                   end do
+                    end do
                 end do
              end do
           end do
@@ -1204,16 +1204,16 @@ contains
            &                 +cosmologicalMassVariance_%rootVariance(mass=massRadius   ,time=self%time) &
            &                 /cosmologicalMassVariance_%rootVariance(mass=massReference,time=self%time) &
            &                )**2
-      overdensityNonlinear=+haloEnvironment_               %overdensityNonlinear(                                  node=nodeHost_                                                                                    )
-      massFunction        =+haloMassFunctionEnvironmental_ %differential        (time=timeEvaluate_,mass=massHost_,node=nodeHost_                                                                                    )
-      mergerRate          =+mergerTreeBranchingProbability_%rate                (time=timeEvaluate_,mass=massHost_,node=nodeHost_,deltaCritical=criticalOverdensity_%value(time=self%time),massBranch=0.5d0*massHost_)
-      integrandEnvironment=+(                                                                                                                                                                                          &
-           &                 +1.0d0                                                                                                                                                                                    &
-           &                 +overdensityNonlinear                                                                                                                                                                     &
-           &                )**mu                                                                                                                                                                                      &
-           &               *massFunction                                                                                                                                                                               &
-           &               *mergerRate                                                                                                                                                                                 &
-           &               *haloEnvironment_               %pdf                 (overdensity                                                                                                                         )
+      overdensityNonlinear=+haloEnvironment_               %overdensityNonlinear(                                  node=nodeHost_                                                                                                   )
+      massFunction        =+haloMassFunctionEnvironmental_ %differential        (time=timeEvaluate_,mass=massHost_,node=nodeHost_                                                                                                   )
+      mergerRate          =+mergerTreeBranchingProbability_%rate                (time=timeEvaluate_,mass=massHost_,node=nodeHost_,deltaCritical=criticalOverdensity_%value(time=self%time,mass=massHost_),massBranch=0.5d0*massHost_)
+      integrandEnvironment=+(                                                                                                                                                                                                         &
+           &                 +1.0d0                                                                                                                                                                                                   &
+           &                 +overdensityNonlinear                                                                                                                                                                                    &
+           &                )**mu                                                                                                                                                                                                     &
+           &               *massFunction                                                                                                                                                                                              &
+           &               *mergerRate                                                                                                                                                                                                &
+           &               *haloEnvironment_               %pdf                 (overdensity                                                                                                                                        )
       return
     end function integrandEnvironment
     
@@ -1227,12 +1227,12 @@ contains
 
       call haloEnvironment_%overdensityLinearSet(nodeHost_,overdensity)
       call Galacticus_Calculations_Reset        (nodeHost_            )
-      overdensityNonlinear             =+haloEnvironment_               %overdensityNonlinear(                                  node=nodeHost_                                                                                    )
-      massFunction                     =+haloMassFunctionEnvironmental_ %differential        (time=timeEvaluate_,mass=massHost_,node=nodeHost_                                                                                    )
-      mergerRate                       =+mergerTreeBranchingProbability_%rate                (time=timeEvaluate_,mass=massHost_,node=nodeHost_,deltaCritical=criticalOverdensity_%value(time=self%time),massBranch=0.5d0*massHost_)
-      integrandEnvironmentNormalization=+massFunction                                                                                                                                                                               &
-           &                            *mergerRate                                                                                                                                                                                 &
-           &                            *haloEnvironment_               %pdf                 (overdensity                                                                                                                         )
+      overdensityNonlinear             =+haloEnvironment_               %overdensityNonlinear(                                  node=nodeHost_                                                                                                   )
+      massFunction                     =+haloMassFunctionEnvironmental_ %differential        (time=timeEvaluate_,mass=massHost_,node=nodeHost_                                                                                                   )
+      mergerRate                       =+mergerTreeBranchingProbability_%rate                (time=timeEvaluate_,mass=massHost_,node=nodeHost_,deltaCritical=criticalOverdensity_%value(time=self%time,mass=massHost_),massBranch=0.5d0*massHost_)
+      integrandEnvironmentNormalization=+massFunction                                                                                                                                                                                              &
+           &                            *mergerRate                                                                                                                                                                                                &
+           &                            *haloEnvironment_               %pdf                 (overdensity                                                                                                                                        )
       return
     end function integrandEnvironmentNormalization
     

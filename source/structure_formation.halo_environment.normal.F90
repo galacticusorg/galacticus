@@ -147,10 +147,10 @@ contains
     ! Construct the distribution for δ. This assumes a normal distribution for the densities, but conditioned on the fact that the
     ! region has not collapsed on any larger scale. The resulting distribution is given by eqn. (9) of Mo & White (1996; MNRAS;
     ! 282; 347). We include some small buffer to the collapse threshold to avoid rounding errors. 
-    self%environmentalOverdensityMaximum=+self%criticalOverdensity_%value(expansionFactor=1.0d0)   &
-         &                               *(                                                        &
-         &                                 +1.0d0                                                  &
-         &                                 -limitUpperBuffer                                       &
+    self%environmentalOverdensityMaximum=+self%criticalOverdensity_%value(expansionFactor=1.0d0,mass=self%environmentMass()) &
+         &                               *(                                                                                  &
+         &                                 +1.0d0                                                                            &
+         &                                 -limitUpperBuffer                                                                 &
          &                                )
     allocate(self%distributionOverdensity)
     !# <referenceConstruct owner="self" isResult="yes" object="distributionOverdensity" constructor="distributionFunction1DPeakBackground(overdensityVariance,self%environmentalOverdensityMaximum)"/>
