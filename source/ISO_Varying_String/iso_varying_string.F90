@@ -529,19 +529,28 @@ contains
 !****
 
   elemental function op_eq_VS_VS (string_a, string_b) result (op_eq)
+    !% Test equality of two varying string objects.
+    implicit none
+    type   (varying_string), intent(in) :: string_a
+    type   (varying_string), intent(in) :: string_b
+    integer                             :: i
+    logical                             :: op_eq
 
-    type(varying_string), intent(in) :: string_a
-    type(varying_string), intent(in) :: string_b
-    logical                          :: op_eq
-
-! Compare (==) two varying strings
-
-    op_eq = char(string_a) == char(string_b)
-
-! Finish
-
+    ! Compare (==) two varying strings
+    if (size(string_a%chars) == size(string_b%chars)) then
+       ! Strings have equal lengths, so test each character.
+       op_eq=.true.
+       do i=1,size(string_a%chars)
+          if (string_a%chars(i) /= string_b%chars(i)) then
+             op_eq=.false.
+             exit
+          end if
+       end do
+    else
+       ! Strings have different lengths so cannot be equal.
+       op_eq=.false.
+    end if
     return
-
   end function op_eq_VS_VS
 
 !****
