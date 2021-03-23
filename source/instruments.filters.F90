@@ -23,12 +23,12 @@
 
 module Instruments_Filters
   !% Implements calculations of filter response curves.
-  use :: Numerical_Interpolation, only : interpolator
-  use :: ISO_Varying_String     , only : varying_string
+  use :: ISO_Varying_String , only : varying_string
+  use :: Locks              , only : ompReadWriteLock
   implicit none
   private
-  public :: Filter_Get_Index, Filter_Response            , Filter_Extent , Filter_Vega_Offset, &
-       &    Filter_Name     , Filter_Wavelength_Effective, Filters_Output
+  public :: Filter_Get_Index, Filter_Response            , Filter_Extent , Filter_Vega_Offset      , &
+       &    Filter_Name     , Filter_Wavelength_Effective, Filters_Output, Filter_Response_Function
 
   type filterType
      !% A structure which holds filter response curves.
@@ -37,12 +37,16 @@ module Instruments_Filters
      type            (varying_string)                            :: name
      logical                                                     :: vegaOffsetAvailable, wavelengthEffectiveAvailable
      double precision                                            :: vegaOffset         , wavelengthEffective
-     type            (interpolator  )                            :: interpolator_
   end type filterType
 
   ! Array to hold filter data.
-  type(filterType), allocatable, dimension(:) :: filterResponses
+  type   (filterType      ), allocatable, dimension(:) :: filterResponses
+  integer                                              :: countFilterResponses=0
 
+  ! Read/write lock used to control access to the filter responeses.
+  type   (ompReadWriteLock)                            :: lock
+  logical                                              :: lockInitialized=.false.
+  
 contains
 
   integer function Filter_Get_Index(filterName)
@@ -52,14 +56,23 @@ contains
     type   (varying_string), intent(in   ) :: filterName
     integer                                :: iFilter
 
+    ! Initialize lock if necessary.
+    if (.not.lockInitialized) then
+       !$omp critical (instrumentsFiltersLock)
+       if (.not.lockInitialized) then
+          lock           =ompReadWriteLock()
+          lockInitialized=.true.
+       end if
+       !$omp end critical (instrumentsFiltersLock)
+    end if
     ! See if we already have this filter loaded. If not, load it.
-    !$omp critical (Filter_Get_Index_Lock)
-    if (.not.allocated(filterResponses)) then
+    call lock%setRead()
+    if (countFilterResponses == 0) then
        call Filter_Response_Load(filterName)
-       Filter_Get_Index=1
+       Filter_Get_Index=countFilterResponses
     else
        Filter_Get_Index=0
-       do iFilter=1,size(filterResponses)
+       do iFilter=1,countFilterResponses
          if (filterResponses(iFilter)%name == filterName) then
              Filter_Get_Index=iFilter
              exit
@@ -67,10 +80,10 @@ contains
        end do
        if (Filter_Get_Index == 0) then
           call Filter_Response_Load(filterName)
-          Filter_Get_Index=size(filterResponses)
+          Filter_Get_Index=countFilterResponses
        end if
     end if
-    !$omp end critical (Filter_Get_Index_Lock)
+    call lock%unsetRead()
     return
   end function Filter_Get_Index
 
@@ -80,7 +93,9 @@ contains
     type   (varying_string)                :: Filter_Name
     integer                , intent(in   ) :: filterIndex
 
+    call lock%setRead()
     Filter_Name=filterResponses(filterIndex)%name
+    call lock%unsetRead()
     return
   end function Filter_Name
 
@@ -90,10 +105,10 @@ contains
     double precision, dimension(2)  :: Filter_Extent
     integer         , intent(in   ) :: filterIndex
 
-    !$omp critical (Filter_Get_Index_Lock)
+    call lock%setRead()
     Filter_Extent(1)=filterResponses(filterIndex)%wavelength(1)
     Filter_Extent(2)=filterResponses(filterIndex)%wavelength(filterResponses(filterIndex)%nPoints)
-    !$omp end critical (Filter_Get_Index_Lock)
+    call lock%unsetRead()
     return
   end function Filter_Extent
 
@@ -126,22 +141,21 @@ contains
     double precision                                              :: centralWavelength             , resolution                , &
          &                                                           filterWidth
 
+    call lock%setWrite(haveReadLock=.true.)
     ! Allocate space for this filter.
-    if (allocated(filterResponses)) then
-       call Move_Alloc(filterResponses,filterResponsesTemporary)
-       allocate(filterResponses(size(filterResponsesTemporary)+1))
-       filterResponses(1:size(filterResponsesTemporary))=filterResponsesTemporary
-       do filterIndex=1,size(filterResponsesTemporary)
-          call filterResponses(filterIndex)%interpolator_%GSLReallocate(gslFree=.false.)
-       end do
-       deallocate(filterResponsesTemporary)       
-       call Memory_Usage_Record(sizeof(filterResponses(1)),blockCount=0)
-    else
+    if (countFilterResponses == 0) then
        allocate(filterResponses(1))
        call Memory_Usage_Record(sizeof(filterResponses))
+    else if (countFilterResponses == size(filterResponses)) then
+       call Move_Alloc(filterResponses,filterResponsesTemporary)
+       allocate(filterResponses(2*size(filterResponsesTemporary)))
+       filterResponses(1:size(filterResponsesTemporary))=filterResponsesTemporary
+       deallocate(filterResponsesTemporary)       
+       call Memory_Usage_Record(sizeof(filterResponses(1)),blockCount=0)
     end if
     ! Index in array to load into.
-    filterIndex=size(filterResponses)
+    countFilterResponses=countFilterResponses+1
+    filterIndex         =countFilterResponses
     ! Store the name of the filter.
     filterResponses(filterIndex)%name=filterName
     ! Check for special filters.
@@ -288,8 +302,11 @@ contains
     filterResponses(filterIndex)%wavelengthEffectiveAvailable=.true.
     filterResponses(filterIndex)%wavelengthEffective         =+sum(filterResponses(filterIndex)%wavelength*filterResponses(filterIndex)%response) &
          &                                                    /sum(                                        filterResponses(filterIndex)%response)
-    ! Build an interpolator for this filter.
-    filterResponses(filterIndex)%interpolator_=interpolator(filterResponses(filterIndex)%wavelength,filterResponses(filterIndex)%response)
+
+    !! AJB HACK
+    !! Build an interpolator for this filter.
+    !filterResponses(filterIndex)%interpolator_=interpolator(filterResponses(filterIndex)%wavelength,filterResponses(filterIndex)%response)
+    call lock%unsetWrite(haveReadLock=.true.)
     return
   end subroutine Filter_Response_Load
 
@@ -317,18 +334,34 @@ contains
     return
   end subroutine Filters_Output
   
-  double precision function Filter_Response(filterIndex,wavelength)
-    !% Return the filter response function at the given {\normalfont \ttfamily wavelength} (specified in Angstroms).  Note that we follow the
+  function Filter_Response_Function(filterIndex) result(interpolator_)
+    !% Return the filter response function (as an interpolator) as a function of wavelength (specified in Angstroms). Note that we follow the
     !% convention of \cite{hogg_k_2002} and assume that the filter response gives the fraction of incident photons received by the
     !% detector at a given wavelength, multiplied by the relative photon response (which will be 1 for a photon-counting detector
     !% such as a CCD, or proportional to the photon energy for a bolometer/calorimeter type detector.
+    use :: Numerical_Interpolation, only : interpolator
     implicit none
-    integer         , intent(in   ) :: filterIndex
-    double precision, intent(in   ) :: wavelength
+    type   (interpolator), pointer       :: interpolator_
+    integer              , intent(in   ) :: filterIndex
 
-    !$omp critical (Filter_Get_Index_Lock)
-    Filter_Response=filterResponses(filterIndex)%interpolator_%interpolate(wavelength)
-    !$omp end critical (Filter_Get_Index_Lock)
+    allocate(interpolator_)
+    call lock%setRead()
+    interpolator_=interpolator(filterResponses(filterIndex)%wavelength,filterResponses(filterIndex)%response)
+    call lock%unsetRead()
+    return
+  end function Filter_Response_Function
+
+  double precision function Filter_Response(filterIndex,wavelength)
+    !% Return the filter response function at the given {\normalfont \ttfamily wavelength} (specified in Angstroms).
+    use :: Numerical_Interpolation, only : interpolator
+    implicit none
+    integer                       , intent(in   ) :: filterIndex
+    double precision              , intent(in   ) :: wavelength
+    type            (interpolator), pointer       :: interpolator_
+
+    interpolator_   => Filter_Response_Function(filterIndex)
+    Filter_Response =  interpolator_%interpolate(wavelength)
+    deallocate(interpolator_)
     return
   end function Filter_Response
 
@@ -338,9 +371,11 @@ contains
     implicit none
     integer, intent(in   ) :: filterIndex
 
+    call lock%setRead()
     if (.not.filterResponses(filterIndex)%vegaOffsetAvailable) call Galacticus_Error_Report('Vega offset is not available'//{introspection:location})
     Filter_Vega_Offset=filterResponses(filterIndex)%vegaOffset
-    return
+    call lock%unsetRead()
+   return
   end function Filter_Vega_Offset
 
   double precision function Filter_Wavelength_Effective(filterIndex)
@@ -349,8 +384,10 @@ contains
     implicit none
     integer, intent(in   ) :: filterIndex
 
+    call lock%setRead()
     if (.not.filterResponses(filterIndex)%wavelengthEffectiveAvailable) call Galacticus_Error_Report('effective wavelength is not available'//{introspection:location})
     Filter_Wavelength_Effective=filterResponses(filterIndex)%wavelengthEffective
+    call lock%unsetRead()
     return
   end function Filter_Wavelength_Effective
 
