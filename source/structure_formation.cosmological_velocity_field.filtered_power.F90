@@ -163,7 +163,6 @@ contains
     implicit none
     class           (cosmologicalVelocityFieldFilteredPower), intent(inout) :: self
     double precision                                        , intent(in   ) :: mass, time
-
     
     filteredPowerVelocityDispersion1D=+self%cosmologyFunctions_%hubbleParameterEpochal              (     time   ) &
          &                            *self%linearGrowth_      %logarithmicDerivativeExpansionFactor(     time   ) &
