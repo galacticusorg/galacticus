@@ -317,6 +317,7 @@ contains
     type            (treeNode                                     ), intent(inout)  :: node
     double precision                                               , dimension(0:1) :: hWavelength
     double precision                                               , parameter      :: timeTolerance=1.0d-3
+    character       (len=16                                       )                 :: timeCurrent         , timeNext
     integer         (c_size_t                                     )                 :: iWavelength         , jWavelength, &
          &                                                                             jTime
 
@@ -329,7 +330,17 @@ contains
        select type (state => self%statePrevious)
        type is (intergalacticBackgroundInternalState)
           ! Check that the time is within the applicable range.
-          if (self%timeCurrent > state%timeNext*(1.0d0+timeTolerance)) call Galacticus_Error_Report('time is out of range'//{introspection:location})
+          if (self%timeCurrent > state%timeNext*(1.0d0+timeTolerance)) then
+             write (timeCurrent,'(e16.8)') self %timeCurrent
+             write (timeNext   ,'(e16.8)') state%timeNext
+             call Galacticus_Error_Report(                                                                       &
+                  &                       'time is out of range for intergalactic radiation field: '//char(10)// &
+                  &                       '   timeCurrent = Gyr'//adjustl(trim(timeCurrent))        //char(10)// &
+                  &                       '  >'                                                     //char(10)// &
+                  &                       '   timeNext    = Gyr'//adjustl(trim(timeNext   ))        //char(10)// &
+                  &                       {introspection:location}                                               &
+                  &                      )
+          end if
           ! Find interpolation in array of times.
           call self%interpolatorTime%linearFactors(self%timeCurrent,self%iTime,self%hTime)
           if (self%timeCurrent > state%timePrevious) self%hTime=[1.0d0,0.0d0]
@@ -432,6 +443,7 @@ contains
          &                                                                   stellarPopulationSpectra_
     double precision                                      , parameter     :: odeToleranceAbsolute         =1.0d-30, odeToleranceRelative             =1.0d-3
     double precision                                      , parameter     :: integrationToleranceAbsolute =1.0d-30, integrationToleranceRelative     =1.0d-3
+    double precision                                      , parameter     :: timeTolerance                =1.0d-03
     type            (abundances                          ), target        :: gasAbundancesDisk                    , gasAbundancesSpheroid
     type            (abundances                          ), pointer       :: gasAbundances
     class           (*                                   ), pointer       :: state
@@ -564,7 +576,14 @@ contains
           end if
           ! Add the next event to the universe.
           !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)
-          state%timeNext=self%time(iNow+1)
+          state    %timePrevious=self%time(iNow  )
+          if (iNow < self%timeCount) then
+             state%timeNext     =self%time(iNow+1)
+          else
+             ! At the final step, set the next time to the current time plus a small tolerance to allow interpolation of the
+             ! radiation field to slightly later times (which may occur due to numerical inaccuracies).
+             state%timeNext     =self%time(iNow  )*(1.0d0+timeTolerance)
+          end if
           !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
           self%universeUniqueIDPrevious =  -1_kind_int8
           self%timePrevious             =  -1.0d0
@@ -576,9 +595,6 @@ contains
                &  .and.                                                                      &
                &   self%time(iNow+1) < self%outputTimes_%time(self%outputTimes_%count    ()) &
                & ) then
-             !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)
-             state%timePrevious=self%time(iNow)
-             !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
              eventNew         => universe_%createEvent(      )
              eventNew%time    =  self     %time       (iNow+1)
              eventNew%creator => event    %creator
