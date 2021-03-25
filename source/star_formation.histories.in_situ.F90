@@ -174,12 +174,13 @@ contains
     return
   end subroutine inSituRate
 
-  subroutine inSituOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,labelComponent)
+  subroutine inSituOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,componentType)
     !% Output the star formation history for {\normalfont \ttfamily node}.
-    use :: Galacticus_HDF5 , only : galacticusOutputFile
-    use :: Galacticus_Nodes, only : mergerTree          , nodeComponentBasic, treeNode
-    use :: IO_HDF5         , only : hdf5Access          , hdf5Object
-    use :: String_Handling , only : operator(//)
+    use :: Galacticus_HDF5           , only : galacticusOutputFile
+    use :: Galacticus_Nodes          , only : mergerTree                    , nodeComponentBasic, treeNode
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
+    use :: IO_HDF5                   , only : hdf5Access                    , hdf5Object
+    use :: String_Handling           , only : operator(//)
     implicit none
     class           (starFormationHistoryInSitu), intent(inout)         :: self
     type            (treeNode                  ), intent(inout), target :: node
@@ -187,7 +188,7 @@ contains
     type            (history                   ), intent(inout)         :: historyStarFormation
     integer         (c_size_t                  ), intent(in   )         :: indexOutput
     integer         (kind=kind_int8            ), intent(in   )         :: indexTree
-    character       (len=*                     ), intent(in   )         :: labelComponent
+    integer                                     , intent(in   )         :: componentType
     class           (nodeComponentBasic        ), pointer               :: basicParent
     type            (treeNode                  ), pointer               :: nodeParent
     double precision                                                    :: timeBegin           , timeEnd
@@ -206,12 +207,12 @@ contains
        groupName   ="mergerTree"
        groupName   =groupName//indexTree
        treeGroup   =outputGroup %openGroup(char(groupName),"Star formation histories for each tree."               )
-       groupName   =trim(labelComponent)//"Time"
+       groupName   =enumerationComponentTypeDecode(componentType,includePrefix=.false.)//"Time"
        groupname   =groupName           //node%index()
-       call treeGroup%writeDataset(historyStarFormation%time,char(groupName),"Star formation history times of the "         //trim(labelComponent)//" component.")
-       groupName   =trim(labelComponent)//"SFH"
+       call treeGroup%writeDataset(historyStarFormation%time,char(groupName),"Star formation history times of the "         //char(enumerationComponentTypeDecode(componentType,includePrefix=.false.))//" component.")
+       groupName   =enumerationComponentTypeDecode(componentType,includePrefix=.false.)//"SFH"
        groupname   =groupName//node%index()
-       call treeGroup%writeDataset(historyStarFormation%data,char(groupName),"Star formation history stellar masses of the "//trim(labelComponent)//" component.")
+       call treeGroup%writeDataset(historyStarFormation%data,char(groupName),"Star formation history stellar masses of the "//char(enumerationComponentTypeDecode(componentType,includePrefix=.false.))//" component.")
        call treeGroup   %close()
        call outputGroup %close()
        call historyGroup%close()

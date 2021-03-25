@@ -855,12 +855,12 @@ contains
           ! Also add stellar properties histories.
           historyNode=disk    %stellarPropertiesHistory()
           historyHost=spheroidHost%stellarPropertiesHistory()
-          call historyHost%interpolatedIncrement(historyNode)
-          call historyNode%reset    (           )
+          call historyHost %interpolatedIncrement      (historyNode)
+          call historyNode %reset                      (           )
           call spheroidHost%stellarPropertiesHistorySet(historyHost)
-          call disk    %stellarPropertiesHistorySet(historyNode)
+          call disk        %stellarPropertiesHistorySet(historyNode)
           ! Also add star formation histories.
-          historyNode=disk    %starFormationHistory    ()
+          historyNode=disk        %starFormationHistory    ()
           historyHost=spheroidHost%starFormationHistory    ()
           call historyHost %increment              (historyNode,autoExtend  =.true. )
           call historyNode %reset                  (                                )
@@ -1067,10 +1067,11 @@ contains
   !# </mergerTreeExtraOutputTask>
   subroutine Node_Component_Disk_Standard_Star_Formation_History_Output(node,iOutput,treeIndex,nodePassesFilter)
     !% Store the star formation history in the output file.
-    use            :: Galacticus_Nodes, only : defaultDiskComponent, nodeComponentDisk, nodeComponentDiskStandard, treeNode
-    use            :: Histories       , only : history
-    use, intrinsic :: ISO_C_Binding   , only : c_size_t
-    use            :: Kind_Numbers    , only : kind_int8
+    use            :: Galacticus_Nodes          , only : defaultDiskComponent, nodeComponentDisk, nodeComponentDiskStandard, treeNode
+    use            :: Galactic_Structure_Options, only : componentTypeDisk
+    use            :: Histories                 , only : history
+    use, intrinsic :: ISO_C_Binding             , only : c_size_t
+    use            :: Kind_Numbers              , only : kind_int8
     implicit none
     type   (treeNode         ), intent(inout), pointer :: node
     integer(c_size_t         ), intent(in   )          :: iOutput
@@ -1082,11 +1083,12 @@ contains
     ! Check if we are the default method.
     if (.not.defaultDiskComponent%standardIsActive()) return
     ! Output the star formation history if a disk exists for this component.
-    disk => node%disk()
+    disk                 => node%disk                ()
+    historyStarFormation =  disk%starFormationHistory()
+    call starFormationHistory_%output(node,nodePassesFilter,historyStarFormation,iOutput,treeIndex,componentTypeDisk)
+    ! Update the star formation history only if a disk exists.
     select type (disk)
-       class is (nodeComponentDiskStandard)
-       historyStarFormation=disk%starFormationHistory()
-       call starFormationHistory_%output(node,nodePassesFilter,historyStarFormation,iOutput,treeIndex,'disk')
+    class is (nodeComponentDiskStandard)
        call disk%starFormationHistorySet(historyStarFormation)
     end select
     return

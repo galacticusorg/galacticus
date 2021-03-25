@@ -79,17 +79,17 @@ contains
     return
   end subroutine nullRate
 
-  subroutine nullOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,labelComponent)
+  subroutine nullOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,componentType)
     !% Output the star formation history for {\normalfont \ttfamily node}.
     implicit none
-    class    (starFormationHistoryNull), intent(inout)         :: self
-    type     (treeNode                ), intent(inout), target :: node
-    logical                            , intent(in   )         :: nodePassesFilter
-    type     (history                 ), intent(inout)         :: historyStarFormation
-    integer  (c_size_t                ), intent(in   )         :: indexOutput
-    integer  (kind=kind_int8          ), intent(in   )         :: indexTree
-    character(len=*                   ), intent(in   )         :: labelComponent
-    !$GLC attributes unused :: self, node, nodePassesFilter, historyStarFormation, indexOutput, indexTree, labelComponent
+    class  (starFormationHistoryNull), intent(inout)         :: self
+    type   (treeNode                ), intent(inout), target :: node
+    logical                          , intent(in   )         :: nodePassesFilter
+    type   (history                 ), intent(inout)         :: historyStarFormation
+    integer(c_size_t                ), intent(in   )         :: indexOutput
+    integer(kind=kind_int8          ), intent(in   )         :: indexTree
+    integer                            intent(in   )         :: componentType
+    !$GLC attributes unused :: self, node, nodePassesFilter, historyStarFormation, indexOutput, indexTree, componentType
 
     ! Do nothing.
     return

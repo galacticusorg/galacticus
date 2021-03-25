@@ -949,8 +949,8 @@ contains
           historySpheroid=spheroidHost%starFormationHistory()
           call historyDisk    %increment(historySpheroid     ,autoExtend=.true.)
           call historySpheroid%reset  (                    )
-          call diskHost    %    starFormationHistorySet(historyDisk    )
-          call spheroidHost%    starFormationHistorySet(historySpheroid)
+          call diskHost       %starFormationHistorySet(historyDisk    )
+          call spheroidHost   %starFormationHistorySet(historySpheroid)
           call historyDisk    %destroy(recordMemory=.false.)
           call historySpheroid%destroy(recordMemory=.false.)
        case (destinationMergerSpheroid)
@@ -983,15 +983,15 @@ contains
           historySpheroid=spheroidHost%stellarPropertiesHistory()
           call historySpheroid%interpolatedIncrement(historyDisk)
           call historyDisk    %reset    (           )
-          call spheroidHost%stellarPropertiesHistorySet(historySpheroid)
-          call diskHost    %stellarPropertiesHistorySet( historyDisk   )
+          call spheroidHost   %stellarPropertiesHistorySet(historySpheroid)
+          call diskHost       %stellarPropertiesHistorySet(historyDisk    )
           ! Also add star formation histories.
           historyDisk    =diskHost    %starFormationHistory()
           historySpheroid=spheroidHost%starFormationHistory()
           call historySpheroid%increment(historyDisk         ,autoExtend=.true.)
           call historyDisk    %reset  (                    )
-          call spheroidHost%starFormationHistorySet    (historySpheroid)
-          call diskHost    %starFormationHistorySet    (historyDisk    )
+          call spheroidHost   %starFormationHistorySet    (historySpheroid)
+          call diskHost       %starFormationHistorySet    (historyDisk    )
           call historyDisk    %destroy(recordMemory=.false.)
           call historySpheroid%destroy(recordMemory=.false.)
           historyDisk    =diskHost    %starFormationHistory()
@@ -1373,10 +1373,11 @@ contains
   !# </mergerTreeExtraOutputTask>
   subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Output(node,iOutput,treeIndex,nodePassesFilter)
     !% Store the star formation history in the output file.
-    use            :: Galacticus_Nodes, only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
-    use            :: Histories       , only : history
-    use, intrinsic :: ISO_C_Binding   , only : c_size_t
-    use            :: Kind_Numbers    , only : kind_int8
+    use            :: Galacticus_Nodes          , only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
+    use            :: Galactic_Structure_Options, only : componentTypeSpheroid
+    use            :: Histories                 , only : history
+    use, intrinsic :: ISO_C_Binding             , only : c_size_t
+    use            :: Kind_Numbers              , only : kind_int8
     implicit none
     type   (treeNode             ), intent(inout), pointer :: node
     integer(c_size_t             ), intent(in   )          :: iOutput
@@ -1387,12 +1388,13 @@ contains
 
     ! Check if we are the default method.
     if (.not.defaultSpheroidComponent%standardIsActive()) return
-    ! Output the star formation history if a spheroid exists for this component.
-    spheroid => node%spheroid()
+    ! Output the star formation history.
+    spheroid             => node    %spheroid            ()
+    historyStarFormation =  spheroid%starFormationHistory()
+    call starFormationHistory_%output(node,nodePassesFilter,historyStarFormation,iOutput,treeIndex,componentTypeSpheroid)
+    ! Update the star formation history only if a spheroid exists.
     select type (spheroid)
     class is (nodeComponentSpheroidStandard)
-       historyStarFormation=spheroid%starFormationHistory()
-       call starFormationHistory_%output(node,nodePassesFilter,historyStarFormation,iOutput,treeIndex,'spheroid')
        call spheroid%starFormationHistorySet(historyStarFormation)
     end select
     return

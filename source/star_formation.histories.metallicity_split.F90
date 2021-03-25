@@ -37,16 +37,58 @@
   !#   is not split by metallicity (i.e. a single metallicity bin encompassing all metallicities from zero to infinity is
   !#   used). Alternatively, specific metallicity bin boundaries can be set via the {\normalfont \ttfamily
   !#   [metallicityBoundaries]} parameter---a final boundary corresponding to infinity is always added
-  !#   automatically. Output follows the conventional format, with 2D star formation history datasets to represent the history as
-  !#   a function of time and metallicity. An additional {\normalfont \ttfamily metallicities} dataset is added to the
-  !#   {\normalfont \ttfamily starFormationHistories} output group to record the metallicity binning as follows:
-  !#    \begin{verbatim}
-  !#    DATASET "metallicities" {
-  !#     COMMENT "Metallicities at which star formation histories are tabulated"
-  !#       DATATYPE  H5T_IEEE_F64LE
-  !#       DATASPACE  SIMPLE { ( [countMetallicities] ) / ( [countMetallicities] ) }
-  !#    }
-  !#    \end{verbatim}
+  !#   automatically.
+  !#
+  !#   Star formation histories are output as follows:
+  !#   \begin{verbatim}
+  !#   HDF5 "galacticus.hdf5" {
+  !#   GROUP "starFormationHistories" {
+  !#      COMMENT "Star formation history data."
+  !#      DATASET "metallicities" {
+  !#       COMMENT "Metallicities at which star formation histories are tabulated"
+  !#         DATATYPE  H5T_IEEE_F64LE
+  !#         DATASPACE  SIMPLE { ( [countMetallicities] ) / ( [countMetallicities] ) }
+  !#      }
+  !#      GROUP "Output1" {
+  !#         COMMENT "Star formation histories for all trees at each out"
+  !#         GROUP "mergerTree1" {
+  !#            COMMENT "Star formation histories for each tree."
+  !#            DATASET "diskSFH&lt;nodeID&gt;" {
+  !#            COMMENT "Star formation history stellar masses of the disk "
+  !#               DATATYPE  H5T_IEEE_F64LE
+  !#               DATASPACE  SIMPLE { }
+  !#            }
+  !#            DATASET "diskTime&lt;nodeID&gt;" {
+  !#            COMMENT "Star formation history times of the disk component"
+  !#               DATATYPE  H5T_IEEE_F64LE
+  !#               DATASPACE  SIMPLE { }
+  !#            }
+  !#            DATASET "spheroidSFH&lt;nodeID&gt;" {
+  !#            COMMENT "Star formation history stellar masses of the spher"
+  !#               DATATYPE  H5T_IEEE_F64LE
+  !#               DATASPACE  SIMPLE { }
+  !#            }
+  !#            DATASET "spheroidTime&lt;nodeID&gt;" {
+  !#            COMMENT "Star formation history times of the spheroid compo"
+  !#               DATATYPE  H5T_IEEE_F64LE
+  !#               DATASPACE  SIMPLE { }
+  !#            }
+  !#         }
+  !#         GROUP "mergerTree2" {
+  !#         .
+  !#         .
+  !#         .
+  !#         }
+  !#      }
+  !#      GROUP "Output1" {
+  !#      .
+  !#      .
+  !#      .
+  !#      }
+  !#   }
+  !#   }
+  !#   \end{verbatim}
+  !#   where {\normalfont \ttfamily nodeID} is the index of the relevant node. 
   !#  </description>
   !# </starFormationHistory>
   type, extends(starFormationHistoryClass) :: starFormationHistoryMetallicitySplit
@@ -284,12 +326,13 @@ contains
     return
   end subroutine metallicitySplitRate
 
-  subroutine metallicitySplitOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,labelComponent)
+  subroutine metallicitySplitOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,componentType)
     !% Output the star formation history for {\normalfont \ttfamily node}.
-    use :: Galacticus_HDF5 , only : galacticusOutputFile
-    use :: Galacticus_Nodes, only : mergerTree          , nodeComponentBasic, treeNode
-    use :: IO_HDF5         , only : hdf5Access          , hdf5Object
-    use :: String_Handling , only : operator(//)
+    use :: Galacticus_HDF5           , only : galacticusOutputFile
+    use :: Galacticus_Nodes          , only : mergerTree                    , nodeComponentBasic, treeNode
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
+    use :: IO_HDF5                   , only : hdf5Access                    , hdf5Object
+    use :: String_Handling           , only : operator(//)
     implicit none
     class           (starFormationHistoryMetallicitySplit), intent(inout)         :: self
     type            (treeNode                            ), intent(inout), target :: node
@@ -297,12 +340,13 @@ contains
     type            (history                             ), intent(inout)         :: historyStarFormation
     integer         (c_size_t                            ), intent(in   )         :: indexOutput
     integer         (kind=kind_int8                      ), intent(in   )         :: indexTree
-    character       (len=*                               ), intent(in   )         :: labelComponent
+    integer                                               , intent(in   )         :: componentType
     class           (nodeComponentBasic                  ), pointer               :: basicParent
     type            (treeNode                            ), pointer               :: nodeParent
     double precision                                                              :: timeBegin           , timeEnd
     type            (varying_string                      )                        :: groupName
-    type            (hdf5Object                          )                        :: historyGroup        , outputGroup, treeGroup
+    type            (hdf5Object                          )                        :: historyGroup        , outputGroup, &
+         &                                                                           treeGroup
     type            (history                             )                        :: newHistory
 
     if (.not.historyStarFormation%exists()) return
@@ -319,10 +363,10 @@ contains
        outputGroup =historyGroup        %openGroup(char(groupName)         ,"Star formation histories for all trees at each output.")
        groupName=var_str("mergerTree")//indexTree
        treeGroup    =outputGroup        %openGroup(char(groupName)         ,"Star formation histories for each tree."               )
-       groupName=var_str(trim(labelComponent))//"Time"//node%index()
-       call treeGroup%writeDataset(historyStarFormation%time,char(groupName),"Star formation history times of the "         //trim(labelComponent)//" component.")
-       groupName=var_str(trim(labelComponent))//"SFH" //node%index()
-       call treeGroup%writeDataset(historyStarFormation%data,char(groupName),"Star formation history stellar masses of the "//trim(labelComponent)//" component.")
+       groupName=enumerationComponentTypeDecode(componentType,includePrefix=.false.)//"Time"//node%index()
+       call treeGroup%writeDataset(historyStarFormation%time,char(groupName),"Star formation history times of the "         //char(enumerationComponentTypeDecode(componentType,includePrefix=.false.))//" component.")
+       groupName=enumerationComponentTypeDecode(componentType,includePrefix=.false.)//"SFH" //node%index()
+       call treeGroup%writeDataset(historyStarFormation%data,char(groupName),"Star formation history stellar masses of the "//char(enumerationComponentTypeDecode(componentType,includePrefix=.false.))//" component.")
        call treeGroup   %close()
        call outputGroup %close()
        call historyGroup%close()
