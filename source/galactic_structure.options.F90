@@ -42,6 +42,8 @@ module Galactic_Structure_Options
   !#  <name>componentType</name>
   !#  <description>Used to specify the component(s) to be queried in galactic structure functions.</description>
   !#  <encodeFunction>yes</encodeFunction>
+  !#  <decodeFunction>yes</decodeFunction>
+  !#  <validator>yes</validator>
   !#  <entry label="all"       />
   !#  <entry label="disk"      />
   !#  <entry label="spheroid"  />
@@ -69,8 +71,8 @@ module Galactic_Structure_Options
   !# <enumeration>
   !#  <name>structureErrorCode</name>
   !#  <description>Error codes for galactic structure functions.</description>
-  !#  <entry label="success"  description="Successful completeion."/>
-  !#  <entry label="infinite" description="Result is ±∞."          />
+  !#  <entry label="success"  description="Successful completion."/>
+  !#  <entry label="infinite" description="Result is ±∞."         />
   !# </enumeration>
 
   ! Null value to use when no weighting is to be applied.
