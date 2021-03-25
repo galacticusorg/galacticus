@@ -183,9 +183,11 @@ contains
 
   subroutine historyDestructor(self)
     !% Destructor for the {\normalfont \ttfamily history} merger tree evolution timestep class.
+    use :: Events_Hooks, only : hdf5PreCloseEvent
     implicit none
     type(mergerTreeEvolveTimestepHistory), intent(inout) :: self
 
+    call hdf5PreCloseEvent%detach(self,historyWrite)
     !# <objectDestructor name="self%cosmologyFunctions_"        />
     !# <objectDestructor name="self%starFormationRateDisks_"    />
     !# <objectDestructor name="self%starFormationRateSpheroids_"/>
