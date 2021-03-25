@@ -58,7 +58,7 @@ contains
          &   *deltaCritical                                                                       &
          &   *                                                                   expansionFactor  &
          &   *linearGrowth_%logarithmicDerivativeExpansionFactor(expansionFactor=expansionFactor) &
-         &   *linearGrowth_%value                               (expansionFactor=expansionFactor) &
+         &   /linearGrowth_%value                               (expansionFactor=expansionFactor) &
          &  )
     bTilde=-f ! Correa et al. eqn. 3.
     return
