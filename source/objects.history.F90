@@ -1106,21 +1106,20 @@ contains
               call history_%extend([addHistory%time(1),addHistory%time(addCount)])
            end if
         end if
-
         ! Transfer each entry from addHistory to history_.
-        do iPoint=2,addCount
+        do iPoint=1,addCount
            ! Find indices in history_ spanned by addHistory point.
-           if (iPoint > 2) then
+           if (iPoint > 1) then
               ! Reuse the end index from the previous loop iteration if available.
               timeBeginIndex=timeEndIndex
            else
-              timeBeginIndex=searchArray(history_%time,addHistory%time(iPoint-1))
+              timeBeginIndex=1
            end if
            timeEndIndex=min(searchArray(history_%time,addHistory%time(iPoint))+1,size(history_%time))
            ! Loop over all points in history_ to which we need to add this contribution.
            do jPoint=timeBeginIndex,timeEndIndex
               if (jPoint == 1) then
-                 timeBegin=                               addHistory%time(iPoint-1)
+                 timeBegin=                            addHistory%time(iPoint-1)
               else
                  timeBegin=max(history_%time(jPoint-1),addHistory%time(iPoint-1))
               end if
