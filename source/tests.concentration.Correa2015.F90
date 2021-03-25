@@ -159,8 +159,8 @@ program Test_Correa2015_Concentration
   !# </referenceConstruct>
   !# <referenceConstruct object="darkMatterProfileConcentration_">
   !#  <constructor>
-  !#   darkMatterProfileConcentrationCorrea2015                 (                                                                         &amp;
-  !#    &amp;                                                        A               =950.0d0               , &amp;
+  !#   darkMatterProfileConcentrationCorrea2015                 (                                                                             &amp;
+  !#    &amp;                                                        A                                  =950.0d0                            , &amp;
   !#    &amp;                                                        cosmologyFunctions_                =cosmologyFunctions_                , &amp;
   !#    &amp;                                                        cosmologyParameters_               =cosmologyParameters_               , &amp;
   !#    &amp;                                                        linearGrowth_                      =linearGrowth_                      , &amp;
