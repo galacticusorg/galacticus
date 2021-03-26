@@ -106,11 +106,18 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <mergerTreeConstructorMethod value="smoothAccretion">
+    <mergerTreeConstructorMethod value="build">
       <redshiftBase value="0.0"/>
-      <massHaloDeclineFactor value="0.9"/>
-      <massHaloResolution value="1.0e9"/>
-      <massHalo value="1.0e12"/>
+      <mergerTreeBuilderMethod value="smoothAccretion">
+	<massHaloDeclineFactor value="0.9"/>
+      </mergerTreeBuilderMethod>
+      <mergerTreeMassResolutionMethod value="fixed">
+	<massResolution value="1.0e9"/>
+      </mergerTreeMassResolutionMethod>
+      <mergerTreeBuildMassesMethod value="fixedMass">
+	<massTree value="1.0e12"/>
+	<treeCount  value="1"/>
+      </mergerTreeBuildMassesMethod>
       <darkMatterHaloMassAccretionHistoryMethod value="wechsler2002" parameterLevel="top"/>
       <darkMatterHaloMassAccretionHistoryMethod value="zhao2009" parameterLevel="top"/>
       <darkMatterHaloMassAccretionHistoryMethod value="correa2015" parameterLevel="top"/>
