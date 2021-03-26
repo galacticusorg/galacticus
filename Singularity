@@ -1,6 +1,6 @@
 # Galacticus Singularity image
 # Uses SingularityHub to build Galacticus.
-# Version: 2021-02-26
+# Version: 2021-03-26
 
 Bootstrap:docker
 From:galacticusorg/galacticus:latest
