@@ -116,18 +116,18 @@ contains
     use :: Interface_GSL        , only : GSL_Success
     use :: Numerical_ODE_Solvers, only : odeSolver
     implicit none
-    class           (darkMatterHaloMassAccretionHistoryZhao2009), intent(inout) :: self
-    type            (treeNode                                  ), intent(inout) :: node
-    double precision                                            , intent(in   ) :: mass
-    class           (nodeComponentBasic                        ), pointer       :: baseBasicComponent
-    double precision                                            , parameter     :: odeToleranceAbsolute          =1.0d-10, odeToleranceRelative =1.0d-10
-    double precision                                            , dimension(1)  :: nowTime
-    double precision                                                            :: baseMass                              , baseTime                     , &
-       &                                                                           dSigmadMassLogarithmicObserved        , deltaCriticalObserved        , &
-       &                                                                           pObserved                             , sObserved                    , &
-       &                                                                           sigmaObserved                         , wObserved                    , &
-       &                                                                           currentMass
-    type            (odeSolver                                 )                :: solver
+    class           (darkMatterHaloMassAccretionHistoryZhao2009), intent(inout), target :: self
+    type            (treeNode                                  ), intent(inout), target :: node
+    double precision                                            , intent(in   )         :: mass
+    class           (nodeComponentBasic                        ), pointer               :: baseBasicComponent
+    double precision                                            , parameter             :: odeToleranceAbsolute          =1.0d-10, odeToleranceRelative =1.0d-10
+    double precision                                            , dimension(1)          :: nowTime
+    double precision                                                                    :: baseMass                              , baseTime                     , &
+       &                                                                                   dSigmadMassLogarithmicObserved        , deltaCriticalObserved        , &
+       &                                                                                   pObserved                             , sObserved                    , &
+       &                                                                                   sigmaObserved                         , wObserved                    , &
+       &                                                                                   currentMass
+    type            (odeSolver                                 )                        :: solver
 
     ! Get properties of the base node.
     baseBasicComponent => node%basic()

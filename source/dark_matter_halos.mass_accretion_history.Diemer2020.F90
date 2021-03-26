@@ -94,15 +94,29 @@ contains
     !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class           (darkMatterHaloMassAccretionHistoryDiemer2020), intent(inout) :: self
-    type            (treeNode                                    ), intent(inout) :: node
-    double precision                                              , intent(in   ) :: mass
+    class           (darkMatterHaloMassAccretionHistoryDiemer2020), intent(inout), target :: self
+    type            (treeNode                                    ), intent(inout), target :: node
+    double precision                                              , intent(in   )         :: mass
     !$GLC attributes unused :: self, node, mass
 
     diemer2020Time=0.0d0
     call Galacticus_Error_Report('"time" method is not supported'//{introspection:location})
     return
   end function diemer2020Time
+
+  double precision function diemer2020Mass(self,node,time)
+    !% Compute the mass corresponding to {\normalfont \ttfamily time} in the mass accretion history.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class           (darkMatterHaloMassAccretionHistoryDiemer2020), intent(inout), target :: self
+    type            (treeNode                                    ), intent(inout), target :: node
+    double precision                                              , intent(in   )         :: time
+    !$GLC attributes unused :: self, node, time
+
+    diemer2020Mass=0.0d0
+    call Galacticus_Error_Report('"mass" method is not supported'//{introspection:location})
+    return
+  end function diemer2020Mass
 
   double precision function diemer2020MassAccretionRate(self,node,time)
     !% Compute the mass accretion rate at the given {\normalfont \ttfamily time} in the mass accretion history of

@@ -132,12 +132,12 @@ contains
     !% \cite{wechsler_concentrations_2002}.
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    class           (darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout) :: self
-    type            (treeNode                                      ), intent(inout) :: node
-    double precision                                                , intent(in   ) :: mass
-    class           (nodeComponentBasic                            ), pointer       :: baseBasic
-    double precision                                                                :: expansionFactor                   , expansionFactorBase, &
-         &                                                                             mergerTreeFormationExpansionFactor
+    class           (darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout), target :: self
+    type            (treeNode                                      ), intent(inout), target :: node
+    double precision                                                , intent(in   )         :: mass
+    class           (nodeComponentBasic                            ), pointer               :: baseBasic
+    double precision                                                                        :: expansionFactor                   , expansionFactorBase, &
+         &                                                                                     mergerTreeFormationExpansionFactor
 
     baseBasic => node%basic()
     select case (self%formationRedshiftCompute)

@@ -108,14 +108,14 @@ contains
     use :: Dark_Matter_Halos_Correa2015, only : Dark_Matter_Halo_Correa2015_Fit_Parameters
     use :: Galacticus_Nodes            , only : nodeComponentBasic                        , treeNode
     implicit none
-    class           (darkMatterHaloMassAccretionHistoryCorrea2015), intent(inout) :: self
-    type            (treeNode                                    ), intent(inout) :: node
-    double precision                                              , intent(in   ) :: mass
-    class           (nodeComponentBasic                          ), pointer       :: baseBasic
-    double precision                                                              :: baseRedshift               , baseTime, &
-         &                                                                           baseExpansionFactor        , baseMass, &
-         &                                                                           redshift                   , aTilde  , &
-         &                                                                           bTilde
+    class           (darkMatterHaloMassAccretionHistoryCorrea2015), intent(inout), target :: self
+    type            (treeNode                                    ), intent(inout), target :: node
+    double precision                                              , intent(in   )         :: mass
+    class           (nodeComponentBasic                          ), pointer               :: baseBasic
+    double precision                                                                      :: baseRedshift               , baseTime, &
+         &                                                                                   baseExpansionFactor        , baseMass, &
+         &                                                                                   redshift                   , aTilde  , &
+         &                                                                                   bTilde
     !$GLC attributes unused :: self
 
     ! Get properties of the base node.

@@ -94,15 +94,29 @@ contains
     !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class           (darkMatterHaloMassAccretionHistoryMergerTreeBranching), intent(inout) :: self
-    type            (treeNode                                             ), intent(inout) :: node
-    double precision                                                       , intent(in   ) :: mass
+    class           (darkMatterHaloMassAccretionHistoryMergerTreeBranching), intent(inout), target :: self
+    type            (treeNode                                             ), intent(inout), target :: node
+    double precision                                                       , intent(in   )         :: mass
     !$GLC attributes unused :: self, node, mass
 
     mergerTreeBranchingTime=0.0d0
     call Galacticus_Error_Report('"time" method is not supported'//{introspection:location})
     return
   end function mergerTreeBranchingTime
+
+  double precision function mergerTreeBranchingMass(self,node,time)
+    !% Compute the mass corresponding to {\normalfont \ttfamily time} in the mass accretion history.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class           (darkMatterHaloMassAccretionHistoryMergerTreeBranching), intent(inout), target :: self
+    type            (treeNode                                             ), intent(inout), target :: node
+    double precision                                                       , intent(in   )         :: time
+    !$GLC attributes unused :: self, node, time
+
+    mergerTreeBranchingMass=0.0d0
+    call Galacticus_Error_Report('"mass" method is not supported'//{introspection:location})
+    return
+  end function mergerTreeBranchingMass
 
   double precision function mergerTreeBranchingMassAccretionRate(self,node,time)
     !% Compute the mass accretion rate at the given {\normalfont \ttfamily time} in the mass accretion history of

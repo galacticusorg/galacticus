@@ -53,7 +53,8 @@ program Test_Correa2015_MAH
   type            (powerSpectrumPrimordialTransferredSimple    )               :: powerSpectrumPrimordialTransferred_
   type            (darkMatterParticleCDM                       )               :: darkMatterParticle_
   double precision                                              , dimension(3) :: time                               , mass          , &
-       &                                                                          redshift                           , redshiftTarget
+       &                                                                          redshift                           , redshiftTarget, &
+       &                                                                          massRecovered
   integer                                                                      :: i
   type            (inputParameters                             )               :: parameters
   
@@ -190,14 +191,16 @@ program Test_Correa2015_MAH
        &            )
   ! Compute the mass accretion history.
   do i=1,size(mass)
-     time    (i)=darkMatterHaloMassAccretionHistory_%time(node,mass(i))
-     redshift(i)=cosmologyFunctions_ %redshiftFromExpansionFactor(         &
-          &       cosmologyFunctions_%expansionFactor             (        &
-          &                                                        time(i) &
-          &                                                       )        &
-          &                                                      )
+     time         (i)=darkMatterHaloMassAccretionHistory_%time(node,mass(i))
+     massRecovered(i)=darkMatterHaloMassAccretionHistory_%mass(node,time(i))
+     redshift     (i)=cosmologyFunctions_ %redshiftFromExpansionFactor(         &
+          &            cosmologyFunctions_%expansionFactor             (        &
+          &                                                             time(i) &
+          &                                                            )        &
+          &                                                           )
   end do
-  call Assert('mass accretion history',1.0d0+redshift,1.0d0+redshiftTarget,relTol=1.0d-3)
+  call Assert('mass accretion history'          ,1.0d0+redshift,1.0d0+redshiftTarget,relTol=1.0d-3)
+  call Assert('mass accretion history inversion',mass          ,massRecovered       ,relTol=1.0d-3)
   ! End unit tests.
   call Unit_Tests_End_Group               ()
   call Unit_Tests_Finish                  ()
