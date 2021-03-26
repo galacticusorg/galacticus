@@ -1468,6 +1468,7 @@
       <massParticle value="1.0e10"/>
       <timeSnapshot value="10.0"/>
       <radiusTruncateOverRadiusVirial value="2.0"/>
+      <lengthSoftening value="0.0"/>
       <selection value="hosts"/>
       <nonCosmological value="true"/>
     </mergerTreeOperatorMethod>
