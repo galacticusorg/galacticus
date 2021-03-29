@@ -225,6 +225,7 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily atomic} radiative transfer matter class.
     use :: Abundances_Structure            , only : Abundances_Index_From_Name, abundances                   , adjustElementsReset          , metallicityTypeLinearByMassSolar
     use :: Atomic_Data                     , only : Abundance_Pattern_Lookup  , Atomic_Abundance             , Atomic_Mass                  , Atomic_Number
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: ISO_Varying_String              , only : char
     use :: Numerical_Constants_Astronomical, only : massSolar                 , megaParsec                   , metallicitySolar
     use :: Numerical_Constants_Atomic      , only : atomicMassUnit
@@ -251,7 +252,8 @@ contains
     double precision                                              , allocatable  , dimension(:) :: abundancesRelative
     double precision                                                                            :: numberDensityMassDensityRatioHydrogen    , numberDensityMassDensityRatioHelium
     type            (abundances                                  )                              :: abundances_
-    integer                                                                                     :: i                                        , countIonizationStates
+    integer                                                                                     :: i                                        , countIonizationStates              , &
+         &                                                                                         indexElement
     !# <constructorAssign variables="abundancePattern, metallicity, elements, iterationAverageCount, temperatureMinimum, outputRates, outputAbsorptionCoefficients, convergencePercentile, *massDistribution_, *atomicCrossSectionIonizationPhoto_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiativeCooling_, *atomicIonizationRateCollisional_, *atomicRecombinationRateDielectronic_, *atomicIonizationPotential_, *atomicExcitationRateCollisional_, *gauntFactor_"/>
 
     ! Initialize count of outputs. (Just 1, for temperature.)
@@ -294,10 +296,12 @@ contains
        case (2)     ! Helium
           self%numberDensityMassDensityRatio(i)=+numberDensityMassDensityRatioHelium
        case default ! Metals
-          self%numberDensityMassDensityRatio(i)=+numberDensityMassDensityRatioHydrogen                                                                &
-               &                                *abundancesRelative                   (           Abundances_Index_From_Name(trim(self%elements(i)))) &
-               &                                *Atomic_Mass                          (shortLabel='H'                                               ) &
-               &                                /self%elementAtomicMasses             (                                                         i   )
+          indexElement=Abundances_Index_From_Name(trim(self%elements(i)))
+          if (indexElement <= 0) call Galacticus_Error_Report('unable to find element "'//trim(self%elements(i))//'"'//{introspection:location})
+          self%numberDensityMassDensityRatio(i)=+numberDensityMassDensityRatioHydrogen                          &
+               &                                *abundancesRelative                   (           indexElement) &
+               &                                *Atomic_Mass                          (shortLabel='H'         ) &
+               &                                /self%elementAtomicMasses             (           i           )
        end select
        countIonizationStates=countIonizationStates+self%elementAtomicNumbers(i)
     end do
