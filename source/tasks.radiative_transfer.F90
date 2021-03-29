@@ -61,7 +61,9 @@ contains
   function radiativeTransferConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily radiativeTransfer} task class which takes a parameter set as input.
     use :: ISO_Varying_String, only : var_str
-    use :: Input_Parameters  , only : inputParameter, inputParameters
+    use :: Input_Parameters  , only : inputParameter              , inputParameters
+    use :: Galacticus_Nodes  , only : nodeClassHierarchyInitialize
+    use :: Node_Components   , only : Node_Components_Initialize
     implicit none
     type            (taskRadiativeTransfer             )                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
@@ -71,6 +73,7 @@ contains
     class           (radiativeTransferSourceClass      ), pointer       :: radiativeTransferSource_
     class           (radiativeTransferOutputterClass   ), pointer       :: radiativeTransferOutputter_
     class           (randomNumberGeneratorClass        ), pointer       :: randomNumberGenerator_
+    type            (inputParameters                   ), pointer       :: parametersRoot
     integer                                                             :: wavelengthCountPerDecade
     integer         (c_size_t                          )                :: countPhotonsPerWavelength     , countIterationsMinimum                 , &
          &                                                                 countIterationsMaximum        , countPhotonsPerWavelengthFinalIteration
@@ -78,6 +81,18 @@ contains
     type            (varying_string                    )                :: outputGroupName
     logical                                                             :: outputIterations
 
+    ! Ensure the nodes objects are initialized. This is necessary to ensure that the abundances class is initialized.
+    if (associated(parameters%parent)) then
+       parametersRoot => parameters%parent
+       do while (associated(parametersRoot%parent))
+          parametersRoot => parametersRoot%parent
+       end do
+       call nodeClassHierarchyInitialize(parametersRoot)
+       call Node_Components_Initialize  (parametersRoot)
+    else
+       call nodeClassHierarchyInitialize(parameters    )
+       call Node_Components_Initialize  (parameters    )
+    end if
     !# <inputParameter>
     !#   <name>wavelengthMinimum</name>
     !#   <defaultValue>0.3d4</defaultValue>
@@ -184,6 +199,7 @@ contains
 
   subroutine radiativeTransferDestructor(self)
     !% Destructor for the {\normalfont \ttfamily radiativeTransfer} task class.
+    use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
     type(taskRadiativeTransfer), intent(inout) :: self
 
@@ -193,6 +209,7 @@ contains
     !# <objectDestructor name="self%radiativeTransferSource_"      />
     !# <objectDestructor name="self%radiativeTransferOutputter_"   />
     !# <objectDestructor name="self%randomNumberGenerator_"        />
+    call Node_Components_Uninitialize()
     return
   end subroutine radiativeTransferDestructor
 
