@@ -74,9 +74,7 @@ contains
     class           (cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
     class           (outputTimesClass                       ), pointer       :: outputTimes_
     class           (virialDensityContrastClass             ), pointer       :: virialDensityContrast_
-    integer                                                                  :: covarianceBinomialBinsPerDecade
-    double precision                                                         :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, &
-         &                                                                      radiusFractionMinimum            , radiusFractionMaximum            , &
+    double precision                                                         :: radiusFractionMinimum            , radiusFractionMaximum            , &
          &                                                                      redshift                         , negativeBinomialScatterFractional, &
          &                                                                      massRatioThreshold
     integer         (c_size_t                               )                :: countRadiiFractional
@@ -127,37 +125,16 @@ contains
     !#   <defaultSource>\citep{boylan-kolchin_theres_2010}</defaultSource>
     !#   <description>The fractional scatter (relative to the Poisson scatter) in the negative binomial distribution used in likelihood calculations.</description>
     !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceBinomialBinsPerDecade</name>
-    !#   <source>parameters</source>
-    !#   <variable>covarianceBinomialBinsPerDecade</variable>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of bins per decade of halo mass to use when constructing subhalo radial distribution covariance matrices for main branch galaxies.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceBinomialMassHaloMinimum</name>
-    !#   <source>parameters</source>
-    !#   <variable>covarianceBinomialMassHaloMinimum</variable>
-    !#   <defaultValue>1.0d8</defaultValue>
-    !#   <description>The minimum halo mass to consider when constructing subhalo radial distribution covariance matrices for main branch galaxies.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceBinomialMassHaloMaximum</name>
-    !#   <source>parameters</source>
-    !#   <variable>covarianceBinomialMassHaloMaximum</variable>
-    !#   <defaultValue>1.0d16</defaultValue>
-    !#   <description>The maximum halo mass to consider when constructing subhalo radial distribution covariance matrices for main branch galaxies.</description>
-    !# </inputParameter>
     !# <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     if (parameters%isPresent('fileName')) then
        !# <conditionalCall>
-       !#  <call>self=outputAnalysisSubhaloRadialDistribution(outputTimes_,virialDensityContrast_,cosmologyFunctions_                                                                      ,fileName                                                                           ,negativeBinomialScatterFractional,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum{conditions})</call>
+       !#  <call>self=outputAnalysisSubhaloRadialDistribution(outputTimes_,virialDensityContrast_,cosmologyFunctions_                                                                      ,fileName                                                                           ,negativeBinomialScatterFractional{conditions})</call>
        !#   <argument name="redshift" value="redshift" parameterPresent="parameters"/>
        !# </conditionalCall>
     else
-       self=outputAnalysisSubhaloRadialDistribution(outputTimes_,virialDensityContrast_,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massRatioThreshold,negativeBinomialScatterFractional,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
+       self=outputAnalysisSubhaloRadialDistribution(outputTimes_,virialDensityContrast_,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massRatioThreshold,negativeBinomialScatterFractional)
     end if
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="outputTimes_"          />
@@ -166,7 +143,7 @@ contains
     return
   end function subhaloRadialDistributionConstructorParameters
   
-  function subhaloRadialDistributionConstructorFile(outputTimes_,virialDensityContrast_,cosmologyFunctions_,fileName,negativeBinomialScatterFractional,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,redshift) result (self)
+  function subhaloRadialDistributionConstructorFile(outputTimes_,virialDensityContrast_,cosmologyFunctions_,fileName,negativeBinomialScatterFractional,redshift) result (self)
     !% Constructor for the ``subhaloRadialDistribution'' output analysis class for internal use.
     use :: IO_HDF5                , only : hdf5Object                , hdf5Access
     use :: Output_Times           , only : outputTimesClass
@@ -176,9 +153,7 @@ contains
     implicit none
     type            (outputAnalysisSubhaloRadialDistribution)                                :: self
     type            (varying_string                         ), intent(in   )                 :: fileName
-    integer                                                  , intent(in   )                 :: covarianceBinomialBinsPerDecade
-    double precision                                         , intent(in   )                 :: covarianceBinomialMassHaloMinimum , covarianceBinomialMassHaloMaximum, &
-         &                                                                                      negativeBinomialScatterFractional
+    double precision                                         , intent(in   )                 :: negativeBinomialScatterFractional
     class           (outputTimesClass                       ), intent(inout)                 :: outputTimes_
     class           (virialDensityContrastClass             ), intent(in   )                 :: virialDensityContrast_
     class           (cosmologyFunctionsClass                ), intent(inout)                 :: cosmologyFunctions_
@@ -218,11 +193,11 @@ contains
     do i=1_c_size_t,countRadiiFractional
        radialDistributionCovarianceTarget(i,i)=radialDistributionErrorTarget(i)**2
     end do
-    self=outputAnalysisSubhaloRadialDistribution(outputTimes_,virialDensityContrast_,time,radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massRatioThreshold,negativeBinomialScatterFractional,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,radialDistributionTarget,radialDistributionCovarianceTarget,labelTarget)
+    self=outputAnalysisSubhaloRadialDistribution(outputTimes_,virialDensityContrast_,time,radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massRatioThreshold,negativeBinomialScatterFractional,radialDistributionTarget,radialDistributionCovarianceTarget,labelTarget)
     return
   end function subhaloRadialDistributionConstructorFile
 
-  function subhaloRadialDistributionConstructorInternal(outputTimes_,virialDensityContrast_,time,radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massRatioThreshold,negativeBinomialScatterFractional,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,radialDistributionTarget,radialDistributionCovarianceTarget,labelTarget) result (self)
+  function subhaloRadialDistributionConstructorInternal(outputTimes_,virialDensityContrast_,time,radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massRatioThreshold,negativeBinomialScatterFractional,radialDistributionTarget,radialDistributionCovarianceTarget,labelTarget) result (self)
     !% Constructor for the ``subhaloRadialDistribution'' output analysis class for internal use.
     use :: Galactic_Filters                        , only : galacticFilterHaloIsolated                  , galacticFilterHaloNotIsolated      , galacticFilterHighPass    , galacticFilterAll                 , &
          &                                                  filterList
@@ -230,7 +205,7 @@ contains
          &                                                  nodePropertyExtractorRadiusVirial           , nodePropertyExtractorMassHalo
     use :: Numerical_Comparison                    , only : Values_Agree
     use :: Numerical_Ranges                        , only : Make_Range                                  , rangeTypeLinear
-    use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
+    use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorIdentity
     use :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerIdentity
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10     , outputAnalysisPropertyOperatorLog10
@@ -239,9 +214,7 @@ contains
     use :: Virial_Density_Contrast                 , only : virialDensityContrastClass
     implicit none
     type            (outputAnalysisSubhaloRadialDistribution     )                                          :: self
-    integer                                                       , intent(in   )                           :: covarianceBinomialBinsPerDecade
-    double precision                                              , intent(in   )                           :: covarianceBinomialMassHaloMinimum               , covarianceBinomialMassHaloMaximum, &
-         &                                                                                                     negativeBinomialScatterFractional               , radiusFractionMinimum            , &
+    double precision                                              , intent(in   )                           :: negativeBinomialScatterFractional               , radiusFractionMinimum            , &
          &                                                                                                     radiusFractionMaximum                           , time                             , &
          &                                                                                                     massRatioThreshold
     integer         (c_size_t                                    ), intent(in   )                           :: countRadiiFractional
@@ -365,10 +338,7 @@ contains
     !#    &amp;                         outputAnalysisDistributionNormalizer_                            , &amp;
     !#    &amp;                         galacticFilterSubhalos_                                          , &amp;
     !#    &amp;                         outputTimes_                                                     , &amp;
-    !#    &amp;                         outputAnalysisCovarianceModelBinomial                            , &amp;
-    !#    &amp;                         covarianceBinomialBinsPerDecade                                  , &amp;
-    !#    &amp;                         covarianceBinomialMassHaloMinimum                                , &amp;
-    !#    &amp;                         covarianceBinomialMassHaloMaximum                                  &amp;
+    !#    &amp;                         outputAnalysisCovarianceModelPoisson                               &amp;
     !#    &amp;                        )
     !#  </constructor>
     !# </referenceConstruct>
@@ -396,10 +366,7 @@ contains
     !#    &amp;                         outputAnalysisDistributionNormalizer_                            , &amp;
     !#    &amp;                         galacticFilterHosts_                                             , &amp;
     !#    &amp;                         outputTimes_                                                     , &amp;
-    !#    &amp;                         outputAnalysisCovarianceModelBinomial                            , &amp;
-    !#    &amp;                         covarianceBinomialBinsPerDecade                                  , &amp;
-    !#    &amp;                         covarianceBinomialMassHaloMinimum                                , &amp;
-    !#    &amp;                         covarianceBinomialMassHaloMaximum                                  &amp;
+    !#    &amp;                         outputAnalysisCovarianceModelPoisson                               &amp;
     !#    &amp;                        )
     !#  </constructor>
     !# </referenceConstruct>
@@ -467,33 +434,21 @@ contains
   subroutine subhaloRadialDistributionFinalizeAnalysis(self)
     !% Finalize analysis of a {\normalfont \ttfamily subhaloRadialDistribution} output analysis.
     implicit none
-    class           (outputAnalysisSubhaloRadialDistribution), intent(inout)                 :: self
-    double precision                                   , allocatable  , dimension(:  ) :: radialDistributionHosts
-    double precision                                   , allocatable  , dimension(:,:) :: covarianceHosts
-    double precision                                                                   :: weight           , weightVariance
-    integer         (c_size_t                         )                                :: i                , j
+    class           (outputAnalysisSubhaloRadialDistribution), intent(inout)               :: self
+    double precision                                         , allocatable  , dimension(:) :: radialDistributionHosts
+    double precision                                                                       :: weight
 
     ! If already finalized, no need to do anything.
     if (self%finalized) return
     self%finalized=.true.
     ! Retrieve results from our 1-D volume functions.
-    call self%volumeFunctionsSubHalos %results(binCenter=self%radiiFractional,functionValue=self%radialDistribution     ,functionCovariance=self%covariance     )
-    call self%volumeFunctionsHostHalos%results(                               functionValue=     radialDistributionHosts,functionCovariance=     covarianceHosts)
+    call self%volumeFunctionsSubHalos %results(binCenter=self%radiiFractional,functionValue=self%radialDistribution     ,functionCovariance=self%covariance)
+    call self%volumeFunctionsHostHalos%results(                               functionValue=     radialDistributionHosts                                   )
     ! Normalize the mass function.
-    weight           = sum(radialDistributionHosts)
-    weightVariance   = sum(covarianceHosts  )
+    weight=sum(radialDistributionHosts)
     if (weight > 0.0d0) then
        self%radialDistribution=+self%radialDistribution/weight
-       self%covariance  =+self%covariance  /weight**2
-       do    i=1_c_size_t,size(self%radialDistribution)
-          do j=1_c_size_t,size(self%radialDistribution)
-             self%covariance(i,j)=+self%covariance        (i,j)    &
-                  &               +self%radialDistribution(i  )    &
-                  &               *self%radialDistribution(  j)    &
-                  &               *weightVariance                  &
-                  &               /weight                      **2
-          end do
-       end do
+       self%covariance        =+self%covariance        /weight**2
     else
        self%radialDistribution=0.0d0
        self%covariance        =0.0d0
