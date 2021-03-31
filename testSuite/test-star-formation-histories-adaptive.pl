@@ -35,34 +35,18 @@ foreach my $outputName ( sort($outputs->groups()) ) {
     print $outputName.":\n";
     # Read stellar masses of disk and bulge, along with node and tree indices.
     my $nodeData                 = $outputs ->group  ($outputName          )->group('nodeData');
-    my $nodesNodeIndex           = $nodeData->dataset('nodeIndex'          )->get  (          );
-    my $nodesTreeIndex           = $nodeData->dataset('mergerTreeIndex'    )->get  (          );
     my $nodesMassStellarDisk     = $nodeData->dataset('diskMassStellar'    )->get  (          );
     my $nodesMassStellarSpheroid = $nodeData->dataset('spheroidMassStellar')->get  (          );
     # Read corresponding star formation histories.
     my $starFormationHistoryData = $starFormationHistories->group($outputName);
-    my $sfhDiskNodeIndex                = $starFormationHistoryData->dataset('diskNodeIndex'               )->get();
-    my $sfhDiskTreeIndex                = $starFormationHistoryData->dataset('diskTreeIndex'               )->get();
     my $sfhDiskStarFormationHistory     = $starFormationHistoryData->dataset('diskStarFormationHistory'    )->get();
-    my $sfhSpheroidNodeIndex            = $starFormationHistoryData->dataset('spheroidNodeIndex'           )->get();
-    my $sfhSpheroidTreeIndex            = $starFormationHistoryData->dataset('spheroidTreeIndex'           )->get();
     my $sfhSpheroidStarFormationHistory = $starFormationHistoryData->dataset('spheroidStarFormationHistory')->get();
     # Iterate over nodes, computing the integrated star formation history.
-    my $nodesSFHIntegratedDisk     = pdl zeroes(nelem($nodesNodeIndex));
-    my $nodesSFHIntegratedSpheroid = pdl zeroes(nelem($nodesNodeIndex));
-    for(my $i=0;$i<nelem($nodesNodeIndex);++$i) {
-	my $disk     = which(($sfhDiskNodeIndex     == $nodesNodeIndex->(($i))) & ($sfhDiskTreeIndex     == $nodesTreeIndex->(($i))));
-	my $spheroid = which(($sfhSpheroidNodeIndex == $nodesNodeIndex->(($i))) & ($sfhSpheroidTreeIndex == $nodesTreeIndex->(($i))));
-	if ( nelem($disk) == 1 ) {
-	    $nodesSFHIntegratedDisk    ->(($i)) .= $sfhDiskStarFormationHistory    (($disk    ->((0))),:,:)->sum()*(1.0-$recycledFraction);
-	} else {
-	    die("FAILED: no matching disk star formation history found");
-	}
-	if ( nelem($spheroid) == 1 ) {
-	    $nodesSFHIntegratedSpheroid->(($i)) .= $sfhSpheroidStarFormationHistory(($spheroid->((0))),:,:)->sum()*(1.0-$recycledFraction);
-	} else {
-	    die("FAILED: no matching spheroid star formation history found");
-	}
+    my $nodesSFHIntegratedDisk     = pdl zeroes(nelem($nodesMassStellarDisk    ));
+    my $nodesSFHIntegratedSpheroid = pdl zeroes(nelem($nodesMassStellarSpheroid));
+    for(my $i=0;$i<nelem($nodesMassStellarDisk);++$i) {
+	$nodesSFHIntegratedDisk    ->(($i)) .= $sfhDiskStarFormationHistory    (($i),:,:)->sum()*(1.0-$recycledFraction);
+	$nodesSFHIntegratedSpheroid->(($i)) .= $sfhSpheroidStarFormationHistory(($i),:,:)->sum()*(1.0-$recycledFraction);
     }
     my $tolerance     = pdl 1.0e-3;
     my $statusDisk     = any(abs($nodesSFHIntegratedDisk    -$nodesMassStellarDisk    ) > $tolerance*$nodesMassStellarDisk    ) ? "FAILED" : "SUCCESS";

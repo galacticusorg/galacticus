@@ -29,12 +29,13 @@ module Node_Component_Spheroid_Standard
   use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
   implicit none
   private
-  public :: Node_Component_Spheroid_Standard_Initialize         , Node_Component_Spheroid_Standard_Scale_Set                    , &
-       &    Node_Component_Spheroid_Standard_Radius_Solver      , Node_Component_Spheroid_Standard_Star_Formation_History_Output, &
-       &    Node_Component_Spheroid_Standard_Pre_Evolve         , Node_Component_Spheroid_Standard_Radius_Solver_Plausibility   , &
-       &    Node_Component_Spheroid_Standard_Thread_Uninitialize, Node_Component_Spheroid_Standard_Thread_Initialize            , &
-       &    Node_Component_Spheroid_Standard_State_Store        , Node_Component_Spheroid_Standard_State_Retrieve               , &
-       &    Node_Component_Spheroid_Standard_Inactive           , Node_Component_Spheroid_Standard_Post_Step
+  public :: Node_Component_Spheroid_Standard_Initialize                  , Node_Component_Spheroid_Standard_Scale_Set                    , &
+       &    Node_Component_Spheroid_Standard_Radius_Solver               , Node_Component_Spheroid_Standard_Star_Formation_History_Output, &
+       &    Node_Component_Spheroid_Standard_Pre_Evolve                  , Node_Component_Spheroid_Standard_Radius_Solver_Plausibility   , &
+       &    Node_Component_Spheroid_Standard_Thread_Uninitialize         , Node_Component_Spheroid_Standard_Thread_Initialize            , &
+       &    Node_Component_Spheroid_Standard_State_Store                 , Node_Component_Spheroid_Standard_State_Retrieve               , &
+       &    Node_Component_Spheroid_Standard_Inactive                    , Node_Component_Spheroid_Standard_Post_Step                    , &
+       &    Node_Component_Spheroid_Standard_Star_Formation_History_Flush
 
   !# <component>
   !#  <class>spheroid</class>
@@ -1399,6 +1400,22 @@ contains
     end select
     return
   end subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Output
+
+  !# <mergerTreeExtraOutputFlush>
+  !#  <unitName>Node_Component_Spheroid_Standard_Star_Formation_History_Flush</unitName>
+  !# </mergerTreeExtraOutputFlush>
+  subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Flush()
+    !% Flush star formation history data.
+    use :: Galacticus_Nodes          , only : defaultSpheroidComponent
+    use :: Galactic_Structure_Options, only : componentTypeSpheroid
+    implicit none
+
+    ! Check if we are the default method.
+    if (.not.defaultSpheroidComponent%standardIsActive()) return
+    ! Flush the star formation history.
+    call starFormationHistory_%outputFlush(componentTypeSpheroid)
+    return
+  end subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Flush
 
   !# <galacticusStateStoreTask>
   !#  <unitName>Node_Component_Spheroid_Standard_State_Store</unitName>

@@ -72,6 +72,16 @@ module Star_Formation_Histories
   !#   <argument>integer(kind=kind_int8), intent(in   )         :: indexTree</argument>
   !#   <argument>integer                , intent(in   )         :: componentType</argument>
   !#  </method>
+  !#  <method name="outputFlush" >
+  !#   <description>Flush any buffered output.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer, intent(in   ) :: componentType</argument>
+  !#   <code>
+  !#    !$GLC attributes unused :: self, componentType
+  !#    ! Do nothing by default.
+  !#   </code>
+  !#  </method>
   !# </functionClass>
 
 end module Star_Formation_Histories

@@ -186,6 +186,13 @@ contains
     use            :: IO_HDF5            , only : hdf5Access              , hdf5Object
     use, intrinsic :: ISO_C_Binding      , only : c_size_t
     use            :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
+    use omp_lib
+    !# <include directive="mergerTreeExtraOutputTask" type="moduleUse">
+    include 'merger_trees.outputter.tasks.extra.modules.inc'
+    !# </include>
+    !# <include directive="mergerTreeExtraOutputFlush" type="moduleUse">
+    include 'merger_trees.outputter.tasks.extra.flush.modules.inc'
+    !# </include>
     implicit none
     class           (mergerTreeOutputterStandard), intent(inout)          :: self
     type            (mergerTree                 ), intent(inout), target  :: tree
@@ -224,11 +231,26 @@ contains
           do while (treeWalker%next(node))
              ! Get the basic component.
              basic => node%basic()
-             if (basic%time() == time) call self%output(node,time)
+             if (basic%time() == time) then
+                ! Perform our output.
+                call self%output(node,time)
+                ! Perform an extra output tasks.
+                !# <include directive="mergerTreeExtraOutputTask" type="functionCall" functionType="void">
+                !#  <functionArgs>node,indexOutput,node%hostTree%index,self%galacticFilter_%passes(node)</functionArgs>
+		include 'merger_trees.outputter.tasks.extra.inc'
+                !# </include>
+                !# <eventHook name="mergerTreeExtraOutput">
+		!#  <callWith>node,indexOutput,node%hostTree,self%galacticFilter_%passes(node)</callWith>
+                !# </eventHook>  
+             end if
           end do
           ! Finished output.
           if (self%integerPropertyCount > 0 .and. self%integerBufferCount > 0) call self%dumpIntegerBuffer(indexOutput)
           if (self% doublePropertyCount > 0 .and. self% doubleBufferCount > 0) call self%dumpDoubleBuffer (indexOutput)
+          ! Perform an extra output tasks.
+          !# <include directive="mergerTreeExtraOutputFlush" type="functionCall" functionType="void">
+	  include 'merger_trees.outputter.tasks.extra.flush.inc'
+          !# </include>
           ! Compute the start and length of regions to reference.
           !$ call hdf5Access%set()
           referenceLength(1)=max(self%integerPropertiesWritten,self%doublePropertiesWritten)
@@ -306,6 +328,7 @@ contains
     call self%propertyNamesEstablish(basic%time(),node)
     self%integerPropertiesWritten=0
     self%doublePropertiesWritten =0
+                ! Perform our output.
     call self%output(node,basic%time())
     ! Finished output.
     if (self%integerPropertyCount > 0 .and. self%integerBufferCount > 0) call self%dumpIntegerBuffer(indexOutput)

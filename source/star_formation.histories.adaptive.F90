@@ -66,40 +66,20 @@
   !#      COMMENT "Star formation history data."
   !#      GROUP "Output1" {
   !#         COMMENT "Star formation histories for all trees at each output."
-  !#         DATASET "diskNodeIndex" {
-  !#         COMMENT "Node index of the disk component."
-  !#            DATATYPE  H5T_STD_I64LE
-  !#            DATASPACE  SIMPLE { ( [countGalaxies] ) }
-  !#         }
   !#         DATASET "diskStarFormationHistory" {
   !#         COMMENT "Star formation history of the disk component."
   !#            DATATYPE  H5T_IEEE_F64LE
   !#            DATASPACE  SIMPLE { ( [countMetallicities], [countTimes], [countGalaxies] ) }
-  !#         }
-  !#         DATASET "diskTreeIndex" {
-  !#         COMMENT "Tree index of the disk component."
-  !#            DATATYPE  H5T_STD_I64LE
-  !#            DATASPACE  SIMPLE { ( [countGalaxies] ) }
   !#         }
   !#         DATASET "metallicity" {
   !#         COMMENT "Metallicities at which the star formation history is tabulated [Zsun]."
   !#            DATATYPE  H5T_IEEE_F64LE
   !#            DATASPACE  SIMPLE { ( [countMetallicities] ) }
   !#         }
-  !#         DATASET "spheroidNodeIndex" {
-  !#         COMMENT "Node index of the spheroid component."
-  !#            DATATYPE  H5T_STD_I64LE
-  !#            DATASPACE  SIMPLE { ( [countGalaxies] ) }
-  !#         }
   !#         DATASET "spheroidStarFormationHistory" {
   !#         COMMENT "Star formation history of the spheroid component."
   !#            DATATYPE  H5T_IEEE_F64LE
   !#            DATASPACE  SIMPLE { ( [countMetallicities], [countTimes], [countGalaxies] ) }
-  !#         }
-  !#         DATASET "spheroidTreeIndex" {
-  !#         COMMENT "Tree index of the spheroid component."
-  !#            DATATYPE  H5T_STD_I64LE
-  !#            DATASPACE  SIMPLE { ( [countGalaxies] ) }
   !#         }
   !#         DATASET "time" {
   !#         COMMENT "Times at which the star formation history is tabulated [Gyr]."
@@ -127,7 +107,6 @@
      double precision                  , allocatable, dimension(:      ) :: metallicityTable
      type            (timeIntervals   ), allocatable, dimension(:      ) :: intervals
      double precision                  , allocatable, dimension(:,:,:,:) :: starFormationHistoryBuffer
-     integer         (kind_int8       ), allocatable, dimension(:,:    ) :: nodeIndexBuffer                     , treeIndexBuffer
      integer         (c_size_t        ), allocatable, dimension(:      ) :: indexOutputBuffer                   , indexOutput
      logical                                                             :: finalized
    contains
@@ -139,6 +118,7 @@
      procedure :: create        => adaptiveCreate
      procedure :: rate          => adaptiveRate
      procedure :: output        => adaptiveOutput
+     procedure :: outputFlush   => adaptiveOutputFlush
      procedure :: scales        => adaptiveScales
      procedure :: outputBuffers => adaptiveOutputBuffers
   end type starFormationHistoryAdaptive
@@ -384,8 +364,6 @@ contains
     end do
     ! Construct output buffers.
     allocate(self%starFormationHistoryBuffer(self%countOutputBuffer,self%countTimeStepsMaximum,size(self%metallicityTable),componentTypeMin:componentTypeMax))
-    allocate(self%           nodeIndexBuffer(self%countOutputBuffer                                                       ,componentTypeMin:componentTypeMax))
-    allocate(self%           treeIndexBuffer(self%countOutputBuffer                                                       ,componentTypeMin:componentTypeMax))
     allocate(self%         indexOutputBuffer(                                                                              componentTypeMin:componentTypeMax))
     allocate(self%         indexOutput      (                                                                              componentTypeMin:componentTypeMax))
     self%indexOutput      =-1_c_size_t
@@ -501,8 +479,6 @@ contains
        self%indexOutput(componentType)=indexOutput
        ! Accumulate the current node to the output buffer.
        self   %indexOutputBuffer         (                                                                                 componentType)=self                %indexOutputBuffer(componentType)+1_c_size_t
-       self   %nodeIndexBuffer           (self%indexOutputBuffer(componentType)                                           ,componentType)=node                %index            (             )
-       self   %treeIndexBuffer           (self%indexOutputBuffer(componentType)                                           ,componentType)=                     indexTree
        if (historyStarFormation%exists()) then
           self%starFormationHistoryBuffer(self%indexOutputBuffer(componentType),1:size(self%intervals(indexOutput)%time),:,componentType)=historyStarFormation%data             (:,:          )
        else
@@ -535,6 +511,16 @@ contains
     return
   end subroutine adaptiveOutput
 
+  subroutine adaptiveOutputFlush(self,componentType)
+    !% Flush any buffered star formation history data.
+    implicit none
+    class  (starFormationHistoryAdaptive), intent(inout) :: self
+    integer                              , intent(in   ) :: componentType
+
+    call self%outputBuffers(componentType)     
+    return
+  end subroutine adaptiveOutputFlush
+  
   subroutine adaptiveScales(self,historyStarFormation,massStellar,abundancesStellar)
     !% Set the scalings for error control on the absolute values of star formation histories.
     implicit none
@@ -566,15 +552,12 @@ contains
     class  (starFormationHistoryAdaptive), intent(inout) :: self
     integer                              , intent(in   ) :: componentType
     type   (hdf5Object                  )                :: historyGroup   , outputGroup
-    type   (varying_string              )                :: nameOutputGroup, nameStarFormationHistory, &
-         &                                                  nameNodeIndex  , nameTreeIndex
+    type   (varying_string              )                :: nameOutputGroup, nameStarFormationHistory
     
     ! Return immediately if there is no buffered output.
     if (self%indexOutputBuffer(componentType) <= 0_c_size_t) return
     nameOutputGroup         =var_str                       ("Output"                           )//self%indexOutput(componentType)
     nameStarFormationHistory=enumerationComponentTypeDecode(componentType,includePrefix=.false.)//"StarFormationHistory"
-    nameTreeIndex           =enumerationComponentTypeDecode(componentType,includePrefix=.false.)//"TreeIndex"
-    nameNodeIndex           =enumerationComponentTypeDecode(componentType,includePrefix=.false.)//"NodeIndex"
     !$ call hdf5Access%set()
     historyGroup=galacticusOutputFile%openGroup("starFormationHistories","Star formation history data."                          )
     outputGroup =historyGroup        %openGroup(char(nameOutputGroup)   ,"Star formation histories for all trees at each output.")
@@ -586,20 +569,6 @@ contains
          &                                  self%starFormationHistoryBuffer(1:self%indexOutputBuffer(componentType),1:size(self%intervals(self%indexOutput(componentType))%time),:,componentType), &
          &                                                                    char(nameStarFormationHistory                                           )                                          , &
          &                                  "Star formation history of the "//char(enumerationComponentTypeDecode(componentType,includePrefix=.false.))//" component."                           , &
-         &                        appendTo =.true.                                                                                                                                               , &
-         &                        chunkSize=self%countOutputBuffer                                                                                                                                 &
-         &                       )
-    call outputGroup%writeDataset(                                                                                                                                                                 &
-         &                                  self%treeIndexBuffer           (1:self%indexOutputBuffer(componentType)                                                               ,componentType), &
-         &                                                                    char(nameTreeIndex                                                      )                                          , &
-         &                                  "Tree index of the "            //char(enumerationComponentTypeDecode(componentType,includePrefix=.false.))//" component."                           , &
-         &                        appendTo =.true.                                                                                                                                               , &
-         &                        chunkSize=self%countOutputBuffer                                                                                                                                 &
-         &                       )
-    call outputGroup%writeDataset(                                                                                                                                                                 &
-         &                                  self%nodeIndexBuffer           (1:self%indexOutputBuffer(componentType)                                                               ,componentType), &
-         &                                                                    char(nameNodeIndex                                                      )                                          , &
-         &                                  "Node index of the "            //char(enumerationComponentTypeDecode(componentType,includePrefix=.false.))//" component."                           , &
          &                        appendTo =.true.                                                                                                                                               , &
          &                        chunkSize=self%countOutputBuffer                                                                                                                                 &
          &                       )
