@@ -31,6 +31,9 @@ program Test_Radiative_Transfer_State_Solver
   use :: Atomic_Rates_Recombination_Radiative_Cooling, only : atomicRecombinationRateRadiativeCoolingFixed    , atomicRecombinationRateRadiativeCoolingHummer
   use :: Display                                     , only : displayVerbositySet                             , verbosityLevelStandard
   use :: Galacticus_Error                            , only : errorStatusSuccess
+  use :: Galacticus_Nodes                            , only : nodeClassHierarchyInitialize
+  use :: Functions_Global_Utilities                  , only : Functions_Global_Set
+  use :: Node_Components                             , only : Node_Components_Initialize                      , Node_Components_Uninitialize
   use :: ISO_Varying_String                          , only : var_str
   use :: Input_Parameters                            , only : inputParameters
 #ifdef USEMPI
@@ -68,6 +71,9 @@ program Test_Radiative_Transfer_State_Solver
   call displayVerbositySet(verbosityLevelStandard)
   ! Initialize parameters.
   parameters=inputParameters(var_str('testSuite/parameters/test-radiativeTransfer-atomicMatterStateSolver.xml'))
+  call Functions_Global_Set        (          )
+  call nodeClassHierarchyInitialize(parameters)
+  call Node_Components_Initialize  (parameters)
   ! Construct atomic matter.
   allocate(atomicCrossSectionIonizationPhoto_            )
   allocate(atomicIonizationPotential_                    )
@@ -868,6 +874,7 @@ program Test_Radiative_Transfer_State_Solver
   !# <objectDestructor name="massDistribution_"                             />
   ! Done with unit tests.
   call Unit_Tests_Finish()
+  call Node_Components_Uninitialize()
   call parameters%destroy()
 #ifdef USEMPI
   call mpiFinalize()
