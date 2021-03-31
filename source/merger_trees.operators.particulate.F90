@@ -706,27 +706,37 @@ contains
     !% \end{equation}
     !% which we can then take the derivative of numerically to obtain the distribution function.
     use :: Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes     , only : nodeComponentBasic
     use :: Numerical_Integration, only : integrator
     use :: Table_Labels         , only : extrapolationTypeFix
     implicit none
-    double precision            , intent(in   ) :: radius
-    double precision            , intent(in   ) :: energyDistributionPointsPerDecade
-    double precision            , parameter     :: radiusVirialFraction                     =1.0d-5
-    double precision            , parameter     :: toleranceTabulation                      =1.0d-6
-    double precision            , parameter     :: toleranceGradient                        =1.0d-6
-    double precision                            :: radiusMinimum                                   , energyPotentialTruncate                  , &
-         &                                         particulateSmoothingIntegrationRangeLower       , particulateSmoothingIntegrationRangeUpper, &
-         &                                         radiusFactorAsymptote                           , integralAsymptotic                       , &
-         &                                         gradientDensityPotentialLower                   , gradientDensityPotentialUpper            , &
-         &                                         densitySmoothedIntegralLower                    , densitySmoothedIntegralUpper
-    logical                                     :: tableRebuild
-    integer                                     :: i
-    integer                                     :: radiusCount
-    type            (integrator)                :: intergatorSmoothingZ                            , integratorMass                           , &
-         &                                         integratorPotential                             , integratorEddington
+    double precision                    , intent(in   ) :: radius
+    double precision                    , intent(in   ) :: energyDistributionPointsPerDecade
+    class           (nodeComponentBasic), pointer       :: basic
+    double precision                    , parameter     :: toleranceTabulation                      =1.0d-6
+    double precision                    , parameter     :: toleranceGradient                        =1.0d-6
+    ! The largest (absolute) logarithmic gradient dlog(Φ)/dlog(r) at which it is acceptable to have a non-monotonic distribution
+    ! function. This allows for numerical inaccuracies that arise in cored density profiles where the central potential has the
+    ! form Φ(r) = Φ₀ + k r², such that the potential is very weakly dependent on r at small radii.
+    double precision                    , parameter     :: derivativeLogarithmicPotentialTolerance  =1.0d-5
+    double precision                                    :: radiusMinimum                                   , energyPotentialTruncate                  , &
+         &                                                 particulateSmoothingIntegrationRangeLower       , particulateSmoothingIntegrationRangeUpper, &
+         &                                                 radiusFactorAsymptote                           , integralAsymptotic                       , &
+         &                                                 gradientDensityPotentialLower                   , gradientDensityPotentialUpper            , &
+         &                                                 densitySmoothedIntegralLower                    , densitySmoothedIntegralUpper             , &
+         &                                                 derivativeLogarithmicPotential
+    logical                                             :: tableRebuild
+    integer                                             :: i                                               , j
+    integer                                             :: radiusCount
+    type            (integrator        )                :: intergatorSmoothingZ                            , integratorMass                           , &
+         &                                                 integratorPotential                             , integratorEddington
 
     ! Determine the minimum of the given radius and some small fraction of the virial radius.
-    radiusMinimum=min(radius/2.0d0,radiusVirialFraction*particulateSelf%darkMatterHaloScale_%virialRadius(particulateNode))
+    basic         =>                                                                      particulateNode%basic()
+    radiusMinimum =  min(                                                                                                                        &
+         &               +0.5d0*                                      radius                                                                   , &
+         &               +      particulateSelf%darkMatterProfileDMO_%radiusEnclosingMass(particulateNode        ,particulateSelf%massParticle)  &
+         &              )
     ! Rebuild the density vs. potential table to have sufficient range if necessary.
     if (particularEnergyDistributionInitialized) then
        tableRebuild=(radiusMinimum < (1.0d0-toleranceTabulation)*particulateEnergyDistribution%x(1))
@@ -785,7 +795,7 @@ contains
                   &                                table        =energyDistributionTablePotential                                                   , &
                   &                                computeSpline=i==radiusCount                                                                       &
                   &                               )
-         case default
+          case default
              ! Compute potential from a density field smoothed by the density distribution corresponding to the softened
              ! potential.
              particulateSmoothingIntegrationRangeUpper=+particulateRadiusTruncate-particulateRadius
@@ -870,7 +880,7 @@ contains
        ! Evaluate the integral in Eddington's formula. Ignore the normalization as we will simply use rejection sampling to draw
        ! from this distribution.
        call particulateEnergyDistribution%populate(0.0d0,radiusCount,table=energyDistributionTableDistribution,computeSpline=.false.)
-       integratorEddington=integrator(particulateEddingtonIntegrand,toleranceRelative=1.0d-5)
+       integratorEddington=integrator(particulateEddingtonIntegrand,toleranceRelative=5.0d-4)!1.0d-5)
        do i=1,radiusCount-1
           particulateRadius=particulateEnergyDistribution%x(i)
           particulateEnergy=particulateEnergyDistribution%y(i,table=energyDistributionTablePotential)
@@ -920,7 +930,26 @@ contains
                &    particulateEnergyDistribution%y(i  ,table=energyDistributionTableDistribution) &
                &   >                                                                               &
                &    particulateEnergyDistribution%y(i-1,table=energyDistributionTableDistribution) &
-               & ) call Galacticus_Error_Report('unphysical distribution function'//{introspection:location})
+               & ) then
+             ! Find the logarithmic derivative of potential with radius at this point.
+             derivativeLogarithmicPotential=+abs(                                                                                                                                                          &
+                  &                              +(+particulateEnergyDistribution%y(i,table=energyDistributionTablePotential)-particulateEnergyDistribution%y(i-1,table=energyDistributionTablePotential)) &
+                  &                              /(+particulateEnergyDistribution%x(i                                       )-particulateEnergyDistribution%x(i-1                                       )) &
+                  &                             )                                                                                                                                                          &
+                  &                         /       particulateEnergyDistribution%y(i,table=energyDistributionTablePotential)                                                                              &
+                  &                         *       particulateEnergyDistribution%x(i                                       )
+             ! For profiles where the potential asymptotes to a finite value at zero radius we don't need to tabulate to
+             ! arbitrarily small radii, just to radii small enough that we have approximately reached this asymptotic value. (This
+             ! is useful to avoid numerical inaccuracies in the regime of very small radii where the potential is almost
+             ! independent of radius.)
+             if (derivativeLogarithmicPotential < derivativeLogarithmicPotentialTolerance) then
+                do j=i-1,1,-1
+                   call particulateEnergyDistribution%populate(particulateEnergyDistribution%y(j+1,table=energyDistributionTablePotential)*(1.0d0+epsilon(0.0d0)),j,table=energyDistributionTableDistribution,computeSpline=i==radiusCount-1)
+                end do
+             else
+                call Galacticus_Error_Report('unphysical distribution function'//{introspection:location})
+             end if
+          end if
        end do
        ! Construct a reversed (radius vs. potential function) table.
        call particulateEnergyDistribution%reverse(particulateRadiusDistribution,table=energyDistributionTablePotential)
