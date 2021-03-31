@@ -199,18 +199,19 @@ contains
              countProgress=countProgress+1          
               call basic%massSet(max(mass(iMass),mass(jMass)))
               call Galacticus_Calculations_Reset(node)
-              radiusVirial                                         =self%darkMatterHaloScale_      %virialRadius                    (node)
-
-
-              radiusVirialLagrangian=(self%darkMatterHaloScale_%meanDensity(node)/self%cosmologyFunctions_%matterDensityEpochal(epochTime(iOutput)))**(1.0d0/3.0d0)*radiusVirial
-              
-              velocityDispersion1DMergingHalos(iMass,jMass,iOutput)=self%cosmologicalVelocityField_%velocityDispersion1DHaloPairwise(                                                    &
-                   &                                                                                                                 time      =self%outputTimes_%time        (iOutput), &
-                   &                                                                                                                 mass1     =                  mass        (iMass  ), &
-                   &                                                                                                                 mass2     =                  mass        (jMass  ), &
-                   &                                                                                                                 separation=                  radiusVirialLagrangian           &
-                   &                                                                                                                )
-              velocityDispersion1DMergingHalos(jMass,iMass,iOutput)=velocityDispersion1DMergingHalos(iMass,jMass,iOutput)
+              radiusVirial                                         =+  self%darkMatterHaloScale_      %virialRadius                    (           node                                             )
+              radiusVirialLagrangian                               =+(                                                                                                                                &
+                   &                                                  +self%darkMatterHaloScale_      %meanDensity                     (           node                                             ) &
+                   &                                                  /self%cosmologyFunctions_       %matterDensityEpochal            (           epochTime                               (iOutput)) &
+                   &                                                 )**(1.0d0/3.0d0)                                                                                                                 &
+                   &                                                *radiusVirial
+              velocityDispersion1DMergingHalos(iMass,jMass,iOutput)=+  self%cosmologicalVelocityField_%velocityDispersion1DHaloPairwise(                                                              &
+                   &                                                                                                                    time      =self%outputTimes_%time                  (iOutput), &
+                   &                                                                                                                    mass1     =                  mass                  (iMass  ), &
+                   &                                                                                                                    mass2     =                  mass                  (jMass  ), &
+                   &                                                                                                                    separation=                  radiusVirialLagrangian           &
+                   &                                                                                                                  )
+              velocityDispersion1DMergingHalos(jMass,iMass,iOutput)=+velocityDispersion1DMergingHalos(iMass,jMass,iOutput)
            end do
        end do
     end do
