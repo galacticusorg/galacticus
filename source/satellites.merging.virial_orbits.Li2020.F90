@@ -55,6 +55,7 @@
      !# </methods>
      final     ::                                    li2020Destructor
      procedure :: orbit                           => li2020Orbit
+     procedure :: velocityDistributionFunction    => li2020VelocityDistributionFunction
      procedure :: densityContrastDefinition       => li2020DensityContrastDefinition
      procedure :: velocityTangentialMagnitudeMean => li2020VelocityTangentialMagnitudeMean
      procedure :: velocityTangentialVectorMean    => li2020VelocityTangentialVectorMean
@@ -316,6 +317,84 @@ contains
     li2020DensityContrastDefinition => self%virialDensityContrast_
     return
   end function li2020DensityContrastDefinition
+
+  function li2020VelocityDistributionFunction(self,node,host,velocityRadial,velocityTangential) result(distributionFunction)
+    !% Return the orbital velocity distribution function.
+    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic
+    use :: Numerical_Constants_Math            , only : Pi
+    implicit none
+    double precision                                             :: distributionFunction
+    class           (virialOrbitLi2020         ), intent(inout)  :: self
+    type            (treeNode                  ), intent(inout)  :: host                  , node
+    double precision                            , intent(in   )  :: velocityRadial        , velocityTangential
+    class           (nodeComponentBasic        ), pointer        :: basic                 , hostBasic
+    class           (virialDensityContrastClass), pointer        :: virialDensityContrast_
+    double precision                                             :: velocityRadialInternal, velocityTangentialInternal, &
+         &                                                          velocityTotalInternal , cosSquaredTheta           , &
+         &                                                          massSatellite         , massHost                  , &
+         &                                                          radiusHost            , velocityHost              , &
+         &                                                          eta
+
+    ! Get basic components.
+    basic     => node%basic()
+    hostBasic => host%basic()
+    ! Find virial density contrast under Li et al. (2020) definition.
+    !# <referenceAcquire target="virialDensityContrast_" source="self%densityContrastDefinition()"/>    
+    ! Find mass, radius, and velocity in the host and satellite corresponding to the Li et al. (2020) virial density contrast
+    ! definition.
+    massHost     =             Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    massSatellite=min(massHost,Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%timeLastIsolated())                        ))
+    !# <objectDestructor name="virialDensityContrast_"/>
+    ! Compute the total velocity and cos²θ.
+    velocityRadialInternal    =velocityRadial    /velocityHost
+    velocityTangentialInternal=velocityTangential/velocityHost
+    velocityTotalInternal     =sqrt(                               &
+         &                          +velocityRadialInternal    **2 &
+         &                          +velocityTangentialInternal**2 &
+         &                         )
+    cosSquaredTheta           =+   (                        &
+         &                          +velocityRadialInternal &
+         &                          /velocityTotalInternal  &
+         &                         )**2
+    ! Compute the η parameter.
+    eta=self%eta(host,massSatellite,massHost,velocityTotalInternal)
+    ! Evaluate the distribution function in terms of scale-free (v_total,cos²θ).
+    distributionFunction=+exp (                              &
+         &                     -0.5d0                        &
+         &                     *(                            &
+         &                       +log(                       &
+         &                            +velocityTotalInternal &
+         &                            /self%mu1              &
+         &                           )                       &
+         &                       /self%sigma1                &
+         &                      )**2                         &
+         &                    )                              &
+         &               /sqrt(                              &
+         &                     +2.0d0                        &
+         &                     *Pi                           &
+         &                    )                              &
+         &               /self%sigma1                        &
+         &               /velocityTotalInternal
+    if (eta > 0.0d0) then
+       ! Anisotropic case - exponential distribution.
+       distributionFunction=+distributionFunction             &
+            &               *     eta                         &
+            &               /(exp(eta                )-1.0d0) &
+            &               * exp(eta*cosSquaredTheta)
+    else
+       ! Isotropic case - distribution is uniform in cos²θ.
+       distributionFunction=+distributionFunction
+    end if
+    ! Transform distribution to (v_r,v_t) coordinates, and make dimensionful.
+    distributionFunction=+distributionFunction          &
+         &               *2.0d0                         &
+         &               *velocityRadialInternal        &
+         &               *velocityTangentialInternal    &
+         &               /velocityTotalInternal     **3 &
+         &               /velocityHost              **2
+    return
+  end function li2020VelocityDistributionFunction
 
   double precision function li2020VelocityTangentialMagnitudeMean(self,node,host)
     !% Return the mean magnitude of the tangential velocity.

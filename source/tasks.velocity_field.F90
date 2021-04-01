@@ -145,20 +145,20 @@ contains
     implicit none
     class           (taskVelocityField ), intent(inout), target           :: self
     integer                             , intent(  out), optional         :: status
-    integer         (c_size_t          )                                  :: outputCount                     , massCount    , &
-         &                                                                   iOutput                         , iMass        , &
-         &                                                                   jMass                           , countProgress, &
+    integer         (c_size_t          )                                  :: outputCount                     , massCount             , &
+         &                                                                   iOutput                         , iMass                 , &
+         &                                                                   jMass                           , countProgress         , &
          &                                                                   countTotal
-    double precision                    , allocatable  , dimension(:    ) :: mass                            , epochTime    , &
+    double precision                    , allocatable  , dimension(:    ) :: mass                            , epochTime             , &
          &                                                                   epochRedshift
     double precision                    , allocatable  , dimension(:,:  ) :: velocityDispersion1D
     double precision                    , allocatable  , dimension(:,:,:) :: velocityDispersion1DMergingHalos
     type            (treeNode          )               , pointer          :: node
     class           (nodeComponentBasic)               , pointer          :: basic
-    type            (hdf5Object        )                                  :: outputsGroup                    , outputGroup  , &
+    type            (hdf5Object        )                                  :: outputsGroup                    , outputGroup           , &
          &                                                                   containerGroup                  , dataset
     type            (varying_string    )                                  :: groupName                       , commentText
-    double precision                                                      :: radiusVirialLargest
+    double precision                                                      :: radiusVirial                    , radiusVirialLagrangian
 
     call displayIndent('Begin task: velocity field')
     ! Get the requested output redshifts.
@@ -199,14 +199,19 @@ contains
              countProgress=countProgress+1          
               call basic%massSet(max(mass(iMass),mass(jMass)))
               call Galacticus_Calculations_Reset(node)
-              radiusVirialLargest                                  =self%darkMatterHaloScale_      %virialRadius                    (node)
-              velocityDispersion1DMergingHalos(iMass,jMass,iOutput)=self%cosmologicalVelocityField_%velocityDispersion1DHaloPairwise(                                                           &
-                   &                                                                                                                 time      =self%outputTimes_%time               (iOutput), &
-                   &                                                                                                                 mass1     =                  mass               (iMass  ), &
-                   &                                                                                                                 mass2     =                  mass               (jMass  ), &
-                   &                                                                                                                 separation=                  radiusVirialLargest           &
-                   &                                                                                                                )
-              velocityDispersion1DMergingHalos(jMass,iMass,iOutput)=velocityDispersion1DMergingHalos(iMass,jMass,iOutput)
+              radiusVirial                                         =+  self%darkMatterHaloScale_      %virialRadius                    (           node                                             )
+              radiusVirialLagrangian                               =+(                                                                                                                                &
+                   &                                                  +self%darkMatterHaloScale_      %meanDensity                     (           node                                             ) &
+                   &                                                  /self%cosmologyFunctions_       %matterDensityEpochal            (           epochTime                               (iOutput)) &
+                   &                                                 )**(1.0d0/3.0d0)                                                                                                                 &
+                   &                                                *radiusVirial
+              velocityDispersion1DMergingHalos(iMass,jMass,iOutput)=+  self%cosmologicalVelocityField_%velocityDispersion1DHaloPairwise(                                                              &
+                   &                                                                                                                    time      =self%outputTimes_%time                  (iOutput), &
+                   &                                                                                                                    mass1     =                  mass                  (iMass  ), &
+                   &                                                                                                                    mass2     =                  mass                  (jMass  ), &
+                   &                                                                                                                    separation=                  radiusVirialLagrangian           &
+                   &                                                                                                                  )
+              velocityDispersion1DMergingHalos(jMass,iMass,iOutput)=+velocityDispersion1DMergingHalos(iMass,jMass,iOutput)
            end do
        end do
     end do
