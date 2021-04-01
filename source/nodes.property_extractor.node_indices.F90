@@ -115,7 +115,7 @@ contains
          &                      node%sibling       %index(), &
          &                      node%firstSatellite%index()  &
          &                     ]
-        select case (node%isSatellite())
+    select case (node%isSatellite())
     case (.true. )
        nodeIndicesExtract(5  )=0
     case (.false.)
