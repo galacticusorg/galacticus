@@ -38,7 +38,7 @@
   !#   tree. This means that as a galaxy evovles through the tree and, in particular, gets promoted into a new halo the index
   !#   associated with a galaxy will change. This is useful to identify where the galaxy resides in the original (unevolved) tree
   !#   structure, but does not allow galaxies to be traced from one output to the next using their {\normalfont \ttfamily
-  !#   nodeIndex} value. By setting {\normalfont \ttfamily [nodePromotionIndexShift]}$=${\normalfont \ttfamily true} this behavior
+  !#   nodeIndex} value. By use of the node operator {\normalfont \ttfamily \textless nodeOperatorMethod value="indexShift"/\textgreater} this behavior
   !#   can be changed such that the value of {\normalfont \ttfamily nodeIndex} will reflect the index of the earliest progenitor
   !#   node along the main branch of the current node. As such, this index will remain the same for a given galaxy during its
   !#   evolution\index{galaxies!tracing through
@@ -49,9 +49,8 @@
   !#    \includegraphics[width=140mm]{Diagrams/NodePromotionIndices.pdf}
   !#    \end{center}
   !#    \caption{Illustration of  options for the propagation  of node indices during  node promotion events.  Two identical trees
-  !#    (top row) are evolved with {\normalfont \ttfamily [nodePromotionIndexShift]}$=${\normalfont \ttfamily false} (left column)
-  !#    and {\normalfont \ttfamily [nodePromotionIndexShift]}$=${\normalfont \ttfamily  true} (right column). The middle and lower
-  !#    rows indicate the resulting node indices after two stages of tree evolution.}
+  !#    (top row) are evolved without (left column) and one with (right column) the node operator {\normalfont \ttfamily \textless nodeOperatorMethod value="indexShift"/\textgreater}
+  !#     The middle and lower rows indicate the resulting node indices after two stages of tree evolution.}
   !#    \label{fig:NodePromotionIndexAlgorithms}
   !#   \end{figure}
   !#  </description>
