@@ -138,7 +138,7 @@
       <name value="mergerTreeBranchingProbabilityMethod::gamma1"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="-1.00"/>
-	<limitUpper value="+1.00"/>
+	<limitUpper value="+0.99"/>	<!-- Avoid 1.0 as it leads to a divergence -->
       </distributionFunction1DPrior>
       <operatorUnaryMapper value="identity"/>
       <distributionFunction1DPerturber value="cauchy">

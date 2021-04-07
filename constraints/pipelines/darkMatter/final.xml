@@ -1,21 +1,14 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<parameters>
-  <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
-
-  <!-- Halo mass function options -->
+<parameters formatVersion="2" version="0.9.4">
+  <galacticusOutputFileName value="/data001/abenson/Galacticus/galacticus_dmConstraintPipeline/pipeline/final.hdf5" />
   <haloMassFunctionMethod value="shethTormen">
-    <a             value="0.758359488694975"/>
-    <p             value="0.331118219117848"/>
-    <normalization value="0.289897200615808"/>
+    <a value="0.758359488694975" />
+    <normalization value="0.289897200615808" />
+    <p value="0.331118219117848" />
   </haloMassFunctionMethod>
-
-  <!-- Merger tree building options -->
   <mergerTreeBranchingProbabilityMethod value="PCHPlus">
-    <G0     value="0.638281579386862"/>
-    <gamma1 value="0.343603753943584"/>
-    <gamma2 value="0.141606083101768"/>
-    <gamma3 value="0.341795281661193"/>
+    <G0 value="1.14254683789855" />
+    <gamma1 value="-0.327359703026759" />
+    <gamma2 value="0.0587448775510245" />
+    <gamma3 value="0.645617093475741" />
   </mergerTreeBranchingProbabilityMethod>
-
 </parameters>

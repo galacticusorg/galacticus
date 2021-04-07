@@ -30,7 +30,7 @@
     <temperatureCMB  value=" 2.725480"/>
   </cosmologyParametersMethod>
 
-  <!-- Power spectrum options matched to MDPL2 -->
+  <!-- Power spectrum options matched to Caterpillar -->
   <transferFunctionMethod        value="CAMB"    />
   <powerSpectrumPrimordialMethod value="powerLaw" >
     <index               value="0.96"/>
@@ -129,6 +129,7 @@
       <massRatioLikelihoodMaximum   value="1.00e+0"                                                                                             />
       <covarianceDiagonalize        value="true"                                                                                                />
       <covarianceTargetOnly         value="true"                                                                                                />
+      <likelihoodInLog              value="true"                                                                                                />
       <rootVarianceTargetFractional value="0.1"                                                                                                 />
       <alwaysIsolatedOnly           value="true"                                                                                                />
       <redshiftParent               value="0.0"                                                                                                 />
@@ -144,6 +145,7 @@
       <massRatioLikelihoodMaximum   value="1.00e+0"                                                                                             />
       <covarianceDiagonalize        value="true"                                                                                                />
       <covarianceTargetOnly         value="true"                                                                                                />
+      <likelihoodInLog              value="true"                                                                                                />
       <rootVarianceTargetFractional value="0.1"                                                                                                 />
       <alwaysIsolatedOnly           value="true"                                                                                                />
       <redshiftParent               value="0.0"                                                                                                 />
@@ -159,6 +161,7 @@
       <massRatioLikelihoodMaximum   value="1.00e+0"                                                                                             />
       <covarianceDiagonalize        value="true"                                                                                                />
       <covarianceTargetOnly         value="true"                                                                                                />
+      <likelihoodInLog              value="true"                                                                                                />
       <rootVarianceTargetFractional value="0.1"                                                                                                 />
       <alwaysIsolatedOnly           value="true"                                                                                                />
       <redshiftParent               value="0.0"                                                                                                 />
@@ -174,6 +177,7 @@
       <massRatioLikelihoodMaximum   value="1.00e+0"                                                                                             />
       <covarianceDiagonalize        value="true"                                                                                                />
       <covarianceTargetOnly         value="true"                                                                                                />
+      <likelihoodInLog              value="true"                                                                                                />
       <rootVarianceTargetFractional value="0.1"                                                                                                 />
       <alwaysIsolatedOnly           value="true"                                                                                                />
       <redshiftParent               value="0.0"                                                                                                 />
@@ -189,6 +193,7 @@
       <massRatioLikelihoodMaximum   value="1.00e+0"                                                                                             />
       <covarianceDiagonalize        value="true"                                                                                                />
       <covarianceTargetOnly         value="true"                                                                                                />
+      <likelihoodInLog              value="true"                                                                                                />
       <rootVarianceTargetFractional value="0.1"                                                                                                 />
       <alwaysIsolatedOnly           value="true"                                                                                                />
       <redshiftParent               value="0.0"                                                                                                 />
@@ -204,6 +209,7 @@
       <massRatioLikelihoodMaximum   value="1.00e+0"                                                                                             />
       <covarianceDiagonalize        value="true"                                                                                                />
       <covarianceTargetOnly         value="true"                                                                                                />
+      <likelihoodInLog              value="true"                                                                                                />
       <rootVarianceTargetFractional value="0.1"                                                                                                 />
       <alwaysIsolatedOnly           value="true"                                                                                                />
       <redshiftParent               value="0.0"                                                                                                 />
@@ -219,6 +225,7 @@
       <massRatioLikelihoodMaximum   value="1.00e+0"                                                                                             />
       <covarianceDiagonalize        value="true"                                                                                                />
       <covarianceTargetOnly         value="true"                                                                                                />
+      <likelihoodInLog              value="true"                                                                                                />
       <rootVarianceTargetFractional value="0.1"                                                                                                 />
       <alwaysIsolatedOnly           value="true"                                                                                                />
       <redshiftParent               value="0.0"                                                                                                 />
@@ -234,6 +241,7 @@
       <massRatioLikelihoodMaximum   value="1.00e+0"                                                                                             />
       <covarianceDiagonalize        value="true"                                                                                                />
       <covarianceTargetOnly         value="true"                                                                                                />
+      <likelihoodInLog              value="true"                                                                                                />
       <rootVarianceTargetFractional value="0.1"                                                                                                 />
       <alwaysIsolatedOnly           value="true"                                                                                                />
       <redshiftParent               value="0.0"                                                                                                 />
@@ -249,6 +257,7 @@
       <massRatioLikelihoodMaximum   value="1.00e+0"                                                                                             />
       <covarianceDiagonalize        value="true"                                                                                                />
       <covarianceTargetOnly         value="true"                                                                                                />
+      <likelihoodInLog              value="true"                                                                                                />
       <rootVarianceTargetFractional value="0.1"                                                                                                 />
       <alwaysIsolatedOnly           value="true"                                                                                                />
       <redshiftParent               value="0.0"                                                                                                 />
@@ -264,6 +273,7 @@
       <massRatioLikelihoodMaximum   value="1.00e+0"                                                                                             />
       <covarianceDiagonalize        value="true"                                                                                                />
       <covarianceTargetOnly         value="true"                                                                                                />
+      <likelihoodInLog              value="true"                                                                                                />
       <rootVarianceTargetFractional value="0.1"                                                                                                 />
       <alwaysIsolatedOnly           value="true"                                                                                                />
       <redshiftParent               value="0.0"                                                                                                 />
