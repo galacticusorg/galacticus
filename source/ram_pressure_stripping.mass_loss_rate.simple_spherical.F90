@@ -157,12 +157,16 @@ contains
          &                                                  componentType   =componentType              &
          &                                                 )
     ! Compute the gravitational restoring force.
-    forceGravitational  =  +4.0d0                           &
-         &                 *gravitationalConstantGalacticus &
-         &                 *densityGas                      &
-         &                 *massHalf                        &
-         &                 /3.0d0                           &
-         &                 /radiusHalfMass
+    if (massHalf > 0.0d0 .and. densityGas > 0.0d0) then
+       forceGravitational  =  +4.0d0                           &
+            &                 *gravitationalConstantGalacticus &
+            &                 *densityGas                      &
+            &                 *massHalf                        &
+            &                 /3.0d0                           &
+            &                 /radiusHalfMass
+    else
+       forceGravitational=0.0d0
+    end if
     ! Return zero rate if the gravitational force is zero.
     if (forceGravitational <= 0.0d0) return
     ! Compute the mass loss fraction per dynamical time.
