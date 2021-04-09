@@ -27,8 +27,8 @@
   type, extends(tidalStrippingClass) :: tidalStrippingSimple
      !% Implementation of a simple model of tidal stripping.
      private
-     class           (satelliteTidalFieldClass), pointer :: satelliteTidalField_ => null()
-     double precision                                    :: rateFractionalMaximum
+     class           (satelliteTidalFieldClass), pointer :: satelliteTidalField_  => null()
+     double precision                                    :: rateFractionalMaximum          , beta
    contains
      final     ::                 simpleDestructor
      procedure :: rateMassLoss => simpleRateMassLoss
@@ -49,7 +49,7 @@ contains
     type            (tidalStrippingSimple    )                :: self
     type            (inputParameters         ), intent(inout) :: parameters
     class           (satelliteTidalFieldClass), pointer       :: satelliteTidalField_
-    double precision                                          :: rateFractionalMaximum
+    double precision                                          :: rateFractionalMaximum, beta
 
     !# <inputParameter>
     !#   <name>rateFractionalMaximum</name>
@@ -57,20 +57,26 @@ contains
     !#   <description>The maximum fractional mass loss rate per dynamical time in the simple model of mass loss due to tidal stripping.</description>
     !#   <source>parameters</source>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>beta</name>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>The scaling factor which multiplies the tidal mass loss rate.</description>
+    !#   <source>parameters</source>
+    !# </inputParameter>
     !# <objectBuilder class="satelliteTidalField" name="satelliteTidalField_" source="parameters"/>
-    self=tidalStrippingSimple(rateFractionalMaximum,satelliteTidalField_)
+    self=tidalStrippingSimple(rateFractionalMaximum,beta,satelliteTidalField_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="satelliteTidalField_"/>
     return
   end function simpleConstructorParameters
 
-  function simpleConstructorInternal(rateFractionalMaximum,satelliteTidalField_) result(self)
+  function simpleConstructorInternal(rateFractionalMaximum,beta,satelliteTidalField_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily simple} model of tidal stripping class.
     implicit none
     type            (tidalStrippingSimple    )                        :: self
-    double precision                          , intent(in   )         :: rateFractionalMaximum
+    double precision                          , intent(in   )         :: rateFractionalMaximum, beta
     class           (satelliteTidalFieldClass), intent(in   ), target :: satelliteTidalField_
-    !# <constructorAssign variables="rateFractionalMaximum, *satelliteTidalField_"/>
+    !# <constructorAssign variables="rateFractionalMaximum, beta, *satelliteTidalField_"/>
 
     return
   end function simpleConstructorInternal
@@ -92,7 +98,7 @@ contains
     !% \end{equation}
     !% where
     !% \begin{equation}
-    !% \alpha = F_\mathrm{tidal}/F_\mathrm{gravity},
+    !% \alpha = \beta F_\mathrm{tidal}/F_\mathrm{gravity},
     !% \end{equation}
     !% $F_\mathrm{tidal}=\mathcal{F}_\mathrm{tidal} r_{1/2}$, $\mathcal{F}_\mathrm{tidal}$ is the tidal field from the host halo (see \refPhysics{satelliteTidalField}), and
     !% \begin{equation}
@@ -159,8 +165,9 @@ contains
     ! Return zero rate if the gravitational force is zero.
     if (forceGravitational <= 0.0d0) return
     ! Compute the mass loss fraction per dynamical time.
-    if (forceTidal < self%rateFractionalMaximum*forceGravitational) then
-       rateMassLossFractional=+forceTidal         &
+    if (self%beta*forceTidal < self%rateFractionalMaximum*forceGravitational) then
+       rateMassLossFractional=+self%beta          &
+            &                 *forceTidal         &
             &                 /forceGravitational
     else
        rateMassLossFractional=+self%rateFractionalMaximum

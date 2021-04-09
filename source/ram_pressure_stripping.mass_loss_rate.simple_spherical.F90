@@ -28,7 +28,7 @@
      !% Implementation of a simple model of ram pressure stripping in spherically-symmetric systems.
      private
      class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_ => null()
-     double precision                                        :: rateFractionalMaximum
+     double precision                                        :: rateFractionalMaximum             , beta
    contains
      final     ::                 simpleSphericalDestructor
      procedure :: rateMassLoss => simpleSphericalRateMassLoss
@@ -50,7 +50,7 @@ contains
     type            (ramPressureStrippingSimpleSpherical)                :: self
     type            (inputParameters                    ), intent(inout) :: parameters
     class           (hotHaloRamPressureForceClass       ), pointer       :: hotHaloRamPressureForce_
-    double precision                                                     :: rateFractionalMaximum
+    double precision                                                     :: rateFractionalMaximum   , beta
 
     !# <inputParameter>
     !#   <name>rateFractionalMaximum</name>
@@ -58,20 +58,26 @@ contains
     !#   <description>The maximum fractional mass loss rate per dynamical time in the simple model of mass loss from spherically-symmetric due to ram pressure stripping.</description>
     !#   <source>parameters</source>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>beta</name>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>The scaling factor which multiplies the ram pressure mass loss rate.</description>
+    !#   <source>parameters</source>
+    !# </inputParameter>
     !# <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
-    self=ramPressureStrippingSimpleSpherical(rateFractionalMaximum,hotHaloRamPressureForce_)
+    self=ramPressureStrippingSimpleSpherical(rateFractionalMaximum,beta,hotHaloRamPressureForce_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="hotHaloRamPressureForce_"/>
     return
   end function simpleSphericalConstructorParameters
 
-  function simpleSphericalConstructorInternal(rateFractionalMaximum,hotHaloRamPressureForce_) result(self)
+  function simpleSphericalConstructorInternal(rateFractionalMaximum,beta,hotHaloRamPressureForce_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily simpleSpherical} model of ram pressure stripping of spheroids class.
     implicit none
     type            (ramPressureStrippingSimpleSpherical)                        :: self
-    double precision                                     , intent(in   )         :: rateFractionalMaximum
+    double precision                                     , intent(in   )         :: rateFractionalMaximum   , beta
     class           (hotHaloRamPressureForceClass       ), intent(in   ), target :: hotHaloRamPressureForce_
-    !# <constructorAssign variables="rateFractionalMaximum, *hotHaloRamPressureForce_"/>
+    !# <constructorAssign variables="rateFractionalMaximum, beta, *hotHaloRamPressureForce_"/>
 
     return
   end function simpleSphericalConstructorInternal
@@ -93,7 +99,7 @@ contains
     !% \end{equation}
     !% where
     !% \begin{equation}
-    !% \alpha = F_\mathrm{ram}/F_\mathrm{gravity},
+    !% \alpha = \beta F_\mathrm{ram}/F_\mathrm{gravity},
     !% \end{equation}
     !% $F_\mathrm{ram}$ is the ram pressure force from the hot halo (see \refPhysics{hotHaloRamPressureForce}), and
     !% \begin{equation}
@@ -170,8 +176,10 @@ contains
     ! Return zero rate if the gravitational force is zero.
     if (forceGravitational <= 0.0d0) return
     ! Compute the mass loss fraction per dynamical time.
-    if (forceRamPressure < self%rateFractionalMaximum*forceGravitational) then
-       rateMassLossFractional=forceRamPressure/forceGravitational
+    if (self%beta*forceRamPressure < self%rateFractionalMaximum*forceGravitational) then
+       rateMassLossFractional=+self%beta          &
+            &                 *forceRamPressure   &
+            &                 /forceGravitational
     else
        rateMassLossFractional=self%rateFractionalMaximum
     end if
