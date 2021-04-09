@@ -302,10 +302,6 @@ contains
     filterResponses(filterIndex)%wavelengthEffectiveAvailable=.true.
     filterResponses(filterIndex)%wavelengthEffective         =+sum(filterResponses(filterIndex)%wavelength*filterResponses(filterIndex)%response) &
          &                                                    /sum(                                        filterResponses(filterIndex)%response)
-
-    !! AJB HACK
-    !! Build an interpolator for this filter.
-    !filterResponses(filterIndex)%interpolator_=interpolator(filterResponses(filterIndex)%wavelength,filterResponses(filterIndex)%response)
     call lock%unsetWrite(haveReadLock=.true.)
     return
   end subroutine Filter_Response_Load
