@@ -473,6 +473,14 @@ contains
        call powerSpectrumGroup%writeAttribute(massHalfMode,'massHalfMode')
        call powerSpectrumGroup%close         (                           )
     end if
+    ! Store sigma8.
+    if (self%outputGroup == ".") then
+       powerSpectrumGroup=galacticusOutputFile%openGroup('powerSpectrum','Group containing data relating to the power spectrum.')
+    else
+       powerSpectrumGroup=containerGroup      %openGroup('powerSpectrum','Group containing data relating to the power spectrum.')
+    end if
+    call powerSpectrumGroup%writeAttribute(self%cosmologicalMassVariance_%sigma8(),'sigma8')
+    call powerSpectrumGroup%close         (                                                )
     ! Store other usual information.
     if (self%outputGroup == ".") then
        cosmologyGroup=galacticusOutputFile%openGroup('cosmology','Group containing data relating to cosmology.')
