@@ -30,25 +30,26 @@
   !#   specifier}.
   !#  </description>
   !# </nodePropertyExtractor>
-  type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorRotationCurve
+  type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorRotationCurve
      !% A property extractor class for the rotation curve at a set of radii.
      private
      class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_
-     integer                                                      :: radiiCount                   , elementCount_       , &
-          &                                                          step
+     integer                                                      :: radiiCount                   , elementCount_
      logical                                                      :: includeRadii
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
      logical                                                      :: darkMatterScaleRadiusIsNeeded, diskIsNeeded        , &
           &                                                          spheroidIsNeeded             , virialRadiusIsNeeded
    contains
-     final     ::                 rotationCurveDestructor
-     procedure :: elementCount => rotationCurveElementCount
-     procedure :: extract      => rotationCurveExtract
-     procedure :: names        => rotationCurveNames
-     procedure :: descriptions => rotationCurveDescriptions
-     procedure :: unitsInSI    => rotationCurveUnitsInSI
-     procedure :: type         => rotationCurveType
+     final     ::                       rotationCurveDestructor
+     procedure :: columnDescriptions => rotationCurveColumnDescriptions
+     procedure :: size               => rotationCurveSize
+     procedure :: elementCount       => rotationCurveElementCount
+     procedure :: extract            => rotationCurveExtract
+     procedure :: names              => rotationCurveNames
+     procedure :: descriptions       => rotationCurveDescriptions
+     procedure :: unitsInSI          => rotationCurveUnitsInSI
+     procedure :: type               => rotationCurveType
   end type nodePropertyExtractorRotationCurve
 
   interface nodePropertyExtractorRotationCurve
@@ -99,12 +100,11 @@ contains
     !# <constructorAssign variables="radiusSpecifiers, includeRadii, *darkMatterHaloScale_"/>
 
     if (includeRadii) then
-       self%step=2
+       self%elementCount_=2
     else
-       self%step=1
+       self%elementCount_=1
     end if
-    self%radiiCount   =size(radiusSpecifiers)
-    self%elementCount_=self%step*self%radiiCount
+    self%radiiCount      =size(radiusSpecifiers)
     call Galactic_Structure_Radii_Definition_Decode(                                    &
          &                                          radiusSpecifiers                  , &
          &                                          self%radii                        , &
@@ -136,6 +136,18 @@ contains
     return
   end function rotationCurveElementCount
 
+  function rotationCurveSize(self,time)
+    !% Return the number of array alements in the {\normalfont \ttfamily rotationCurve} property extractors.
+    implicit none
+    integer         (c_size_t                          )                :: rotationCurveSize
+    class           (nodePropertyExtractorRotationCurve), intent(inout) :: self
+    double precision                                    , intent(in   ) :: time
+    !$GLC attributes unused :: time
+
+    rotationCurveSize=self%radiiCount
+    return
+  end function rotationCurveSize
+
   function rotationCurveExtract(self,node,time,instance)
     !% Implement a {\normalfont \ttfamily rotationCurve} property extractor.
     use :: Galactic_Structure_Enclosed_Masses  , only : Galactic_Structure_Radius_Enclosing_Mass
@@ -146,19 +158,19 @@ contains
     use :: Galactic_Structure_Rotation_Curves  , only : Galactic_Structure_Rotation_Curve
     use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile          , nodeComponentDisk           , nodeComponentSpheroid           , treeNode
     implicit none
-    double precision                                     , dimension(:) , allocatable :: rotationCurveExtract
-    class           (nodePropertyExtractorRotationCurve), intent(inout), target      :: self
-    type            (treeNode                           ), intent(inout), target      :: node
-    double precision                                     , intent(in   )              :: time
-    type            (multiCounter                       ), intent(inout), optional    :: instance
-    class           (nodeComponentDisk                  ), pointer                    :: disk
-    class           (nodeComponentSpheroid              ), pointer                    :: spheroid
-    class           (nodeComponentDarkMatterProfile     ), pointer                    :: darkMatterProfile
+    double precision                                    , dimension(:,:), allocatable :: rotationCurveExtract
+    class           (nodePropertyExtractorRotationCurve), intent(inout) , target      :: self
+    type            (treeNode                          ), intent(inout) , target      :: node
+    double precision                                    , intent(in   )               :: time
+    type            (multiCounter                      ), intent(inout) , optional    :: instance
+    class           (nodeComponentDisk                 ), pointer                     :: disk
+    class           (nodeComponentSpheroid             ), pointer                     :: spheroid
+    class           (nodeComponentDarkMatterProfile    ), pointer                     :: darkMatterProfile
     integer                                                                           :: i
     double precision                                                                  :: radius                , radiusVirial
     !$GLC attributes unused :: time, instance
 
-    allocate(rotationCurveExtract(self%elementCount_))
+    allocate(rotationCurveExtract(self%radiiCount,self%elementCount_))
     radiusVirial                                         =  0.0d0
     if (self%         virialRadiusIsNeeded) radiusVirial      =  self%darkMatterHaloScale_%virialRadius(node                    )
     if (self%                 diskIsNeeded) disk              =>                                        node%disk             ()
@@ -194,14 +206,14 @@ contains
                &   weightIndex   =self%radii(i)%weightByIndex      &
                &  )
        end select
-       rotationCurveExtract       ((i-1)*self%step+1)=Galactic_Structure_Rotation_Curve(                                       &
-               &                                                                        node                                 , &
-               &                                                                        radius                               , &
-               &                                                                        componentType=self%radii(i)%component, &
-               &                                                                        massType     =self%radii(i)%mass       &
-               &                                                                       )
-       if (self%includeRadii)                                                                                                  &
-            & rotationCurveExtract((i-1)*self%step+2)=                                  radius
+       rotationCurveExtract       (i,1)=Galactic_Structure_Rotation_Curve(                                       &
+               &                                                          node                                 , &
+               &                                                          radius                               , &
+               &                                                          componentType=self%radii(i)%component, &
+               &                                                          massType     =self%radii(i)%mass       &
+               &                                                         )
+       if (self%includeRadii)                                                                                    &
+            & rotationCurveExtract(i,2)=                                  radius
     end do
     return
   end function rotationCurveExtract
@@ -212,15 +224,12 @@ contains
     type            (varying_string                    ), dimension(:) , allocatable :: rotationCurveNames
     class           (nodePropertyExtractorRotationCurve), intent(inout)              :: self
     double precision                                    , intent(in   )              :: time
-    integer                                                                          :: i
     !$GLC attributes unused :: time
 
     allocate(rotationCurveNames(self%elementCount_))
-    do i=1,size(self%radii)
-       rotationCurveNames       ((i-1)*self%step+1)="rotationCurve:"      //char(self%radii(i)%name)
-       if (self%includeRadii)                                                                          &
-            & rotationCurveNames((i-1)*self%step+2)="rotationCurveRadius:"//char(self%radii(i)%name)
-    end do
+    rotationCurveNames       (1)="rotationCurve"
+    if (self%includeRadii)                             &
+         & rotationCurveNames(2)="rotationCurveRadius"
     return
   end function rotationCurveNames
 
@@ -230,17 +239,27 @@ contains
     type            (varying_string                    ), dimension(:) , allocatable :: rotationCurveDescriptions
     class           (nodePropertyExtractorRotationCurve), intent(inout)              :: self
     double precision                                    , intent(in   )              :: time
-    integer                                                                          :: i
     !$GLC attributes unused :: time
-
+    
     allocate(rotationCurveDescriptions(self%elementCount_))
-    do i=1,size(self%radii)
-       rotationCurveDescriptions       ((i-1)*self%step+1)="Rotation curve at a given radius [km s⁻¹]."
-       if (self%includeRadii)                                                                                &
-            & rotationCurveDescriptions((i-1)*self%step+2)="Radius at which rotation curve is output [Mpc]."
-    end do
+    rotationCurveDescriptions       (1)="Rotation curve at a given radius [km s⁻¹]."
+    if (self%includeRadii)                                                                &
+         & rotationCurveDescriptions(2)="Radius at which rotation curve is output [Mpc]."
     return
   end function rotationCurveDescriptions
+
+  function rotationCurveColumnDescriptions(self,time)
+    !% Return column descriptions of the {\normalfont \ttfamily rotationCurve} property.
+    implicit none
+    type            (varying_string                    ), dimension(:) , allocatable :: rotationCurveColumnDescriptions
+    class           (nodePropertyExtractorRotationCurve), intent(inout)              :: self
+    double precision                                    , intent(in   )              :: time
+    !$GLC attributes unused :: time
+
+    allocate(rotationCurveColumnDescriptions(self%radiiCount))
+    rotationCurveColumnDescriptions=self%radii%name
+    return
+  end function rotationCurveColumnDescriptions
 
   function rotationCurveUnitsInSI(self,time)
     !% Return the units of the {\normalfont \ttfamily rotationCurve} properties in the SI system.
@@ -250,15 +269,12 @@ contains
     double precision                                    , allocatable  , dimension(:) :: rotationCurveUnitsInSI
     class           (nodePropertyExtractorRotationCurve), intent(inout)               :: self
     double precision                                    , intent(in   )               :: time
-    integer                                                                           :: i
     !$GLC attributes unused :: time
-
+    
     allocate(rotationCurveUnitsInSI(self%elementCount_))
-    do i=1,size(self%radii)
-       rotationCurveUnitsInSI       ((i-1)*self%step+1)=kilo
-       if (self%includeRadii)                                      &
-            & rotationCurveUnitsInSI((i-1)*self%step+2)=megaParsec
-    end do
+    rotationCurveUnitsInSI       (1)=kilo
+    if (self%includeRadii)                      &
+         & rotationCurveUnitsInSI(2)=megaParsec
     return
   end function rotationCurveUnitsInSI
 

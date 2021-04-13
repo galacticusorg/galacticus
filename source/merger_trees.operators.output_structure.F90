@@ -88,15 +88,17 @@ contains
   
   subroutine outputStructureOperatePreEvolution(self,tree)
     !% Output the structure of {\normalfont \ttfamily tree}.
-    use    :: Galacticus_Error        , only : Galacticus_Error_Report
-    use    :: Galacticus_HDF5         , only : galacticusOutputFile
-    use    :: Galacticus_Nodes        , only : nodeComponentBasic
-    !$ use :: IO_HDF5                 , only : hdf5Access
-    use    :: Kind_Numbers            , only : kind_int8
-    use    :: Merger_Tree_Walkers     , only : mergerTreeWalkerIsolatedNodes
-    use    :: Node_Property_Extractors, only : elementTypeDouble            , elementTypeInteger       , nodePropertyExtractorIntegerScalar, nodePropertyExtractorIntegerTuple, &
-         &                                     nodePropertyExtractorMulti   , nodePropertyExtractorNull, nodePropertyExtractorScalar       , nodePropertyExtractorTuple
-    use :: String_Handling, only : operator(//)
+    use    :: Galacticus_Error                  , only : Galacticus_Error_Report
+    use    :: Galacticus_HDF5                   , only : galacticusOutputFile
+    use    :: Galacticus_Nodes                  , only : nodeComponentBasic
+    !$ use :: IO_HDF5                           , only : hdf5Access
+    use    :: Kind_Numbers                      , only : kind_int8
+    use    :: Merger_Tree_Walkers               , only : mergerTreeWalkerIsolatedNodes
+    use    :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyDouble
+    use    :: Node_Property_Extractors          , only : elementTypeDouble            , elementTypeInteger       , nodePropertyExtractorIntegerScalar, nodePropertyExtractorIntegerTuple, &
+         &                                               nodePropertyExtractorMulti   , nodePropertyExtractorNull, nodePropertyExtractorScalar       , nodePropertyExtractorTuple
+    use    :: Poly_Ranks                        , only : polyRankDouble               , polyRankInteger          , assignment(=)
+    use    :: String_Handling                   , only : operator(//)
     implicit none
     class           (mergerTreeOperatorOutputStructure), intent(inout) , target      :: self
     type            (mergerTree                       ), intent(inout) , target      :: tree
@@ -108,6 +110,8 @@ contains
     type            (varying_string                   ), dimension(  :), allocatable :: namesDouble          , namesInteger          , &
          &                                                                              descriptionsDouble   , descriptionsInteger
     double precision                                   , dimension(  :), allocatable :: unitsInSIDouble      , unitsInSIInteger
+    type            (polyRankDouble                   ), dimension(  :), allocatable :: doubleProperties
+    type            (polyRankInteger                  ), dimension(  :), allocatable :: integerProperties
     type            (mergerTreeWalkerIsolatedNodes    )                              :: treeWalker
     integer                                                                          :: countNodes           , countPropertiesInteger, &
          &                                                                              countPropertiesDouble, i
@@ -223,8 +227,24 @@ contains
                   &  .or.                                                                                 &
                   &   countPropertiesInteger /= extractor_%elementCount(elementTypeInteger,basic%time())  &
                   & ) call Galacticus_Error_Report('unsupported change in number of properties'//{introspection:location})
-             propertiesDouble (countNodes,:)=extractor_%extractDouble (node,basic%time())
-             propertiesInteger(countNodes,:)=extractor_%extractInteger(node,basic%time())
+             doubleProperties =extractor_%extractDouble (node,basic%time())
+             do i=1,size(doubleProperties )
+                select case (doubleProperties (i)%rank())
+                case (0)
+                   propertiesDouble (countNodes,i)=doubleProperties (i)
+                case default
+                   call Galacticus_Error_Report('non-scalar properties are not supported'//{introspection:location})
+                end select
+             end do
+             integerProperties=extractor_%extractInteger(node,basic%time())
+             do i=1,size(integerProperties)
+                select case (integerProperties(i)%rank())
+                case (0)
+                   propertiesInteger(countNodes,i)=integerProperties(i)
+                case default
+                   call Galacticus_Error_Report('non-scalar properties are not supported'//{introspection:location})
+                end select
+             end do
           end select
        end do
        ! Output all accumulated properties.

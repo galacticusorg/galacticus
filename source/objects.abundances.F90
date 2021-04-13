@@ -755,25 +755,28 @@ contains
     return
   end function Abundances_Helium_Number_Fraction
 
-  subroutine Abundances_Output(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount&
-       &,doubleBuffer,time,outputInstance)
+  subroutine Abundances_Output(self,integerProperty,integerBufferCount,integerProperties,doubleProperty,doubleBufferCount,doubleProperties,time,outputInstance)
     !% Store an abundances object in the output buffers.
-    use :: Kind_Numbers  , only : kind_int8
-    use :: Multi_Counters, only : multiCounter
+    use :: Kind_Numbers                      , only : kind_int8
+    use :: Multi_Counters                    , only : multiCounter
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger , outputPropertyDouble
     implicit none
-    class           (abundances    )                , intent(in   ) :: self
-    double precision                                , intent(in   ) :: time
-    integer                                         , intent(inout) :: doubleBufferCount, doubleProperty, integerBufferCount, &
-         &                                                             integerProperty
-    integer         (kind=kind_int8), dimension(:,:), intent(inout) :: integerBuffer
-    double precision                , dimension(:,:), intent(inout) :: doubleBuffer
-    type            (multiCounter  )                , intent(in   ) :: outputInstance
-    !$GLC attributes unused :: time, integerBufferCount, integerProperty, integerBuffer, outputInstance
+    class           (abundances           ), intent(in   )               :: self
+    double precision                       , intent(in   )               :: time
+    integer                                , intent(inout)               :: doubleBufferCount , doubleProperty , &
+         &                                                                  integerBufferCount, integerProperty
+    type            (outputPropertyInteger), intent(inout), dimension(:) :: integerProperties
+    type            (outputPropertyDouble ), intent(inout), dimension(:) :: doubleProperties
+    type            (multiCounter         ), intent(in   )               :: outputInstance
+    integer                                                              :: i
+    !$GLC attributes unused :: time, integerBufferCount, integerProperty, integerProperties, outputInstance
 
     doubleProperty=doubleProperty+1
-    doubleBuffer(doubleBufferCount,doubleProperty)=self%metallicityValue
+    doubleProperties(doubleProperty)%scalar(doubleBufferCount)=self%metallicityValue
     if (elementsCount > 0) then
-       doubleBuffer(doubleBufferCount,doubleProperty+1:doubleProperty+elementsCount)=self%elementalValue(:)
+       do i=1,elementsCount
+          doubleProperties(doubleProperty+i)%scalar(doubleBufferCount)=self%elementalValue(i)
+       end do
        doubleProperty=doubleProperty+elementsCount
     end if
     return
@@ -801,31 +804,30 @@ contains
     return
   end subroutine Abundances_Output_Count
 
-  subroutine Abundances_Output_Names(self,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI&
-       &,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,prefix,comment,unitsInSI)
+  subroutine Abundances_Output_Names(self,integerProperty,integerProperties,doubleProperty,doubleProperties,time,prefix,comment,unitsInSI)
     !% Assign names to output buffers for an abundances object.
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
     implicit none
-    class           (abundances       )              , intent(in   ) :: self
-    double precision                                 , intent(in   ) :: time
-    integer                                          , intent(inout) :: doubleProperty         , integerProperty
-    character       (len=*            ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
-         &                                                              integerPropertyComments, integerPropertyNames
-    double precision                   , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    character       (len=*            )              , intent(in   ) :: comment                , prefix
-    double precision                                 , intent(in   ) :: unitsInSI
-    integer                                                          :: iElement
-    !$GLC attributes unused :: self, time, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI
+    class           (abundances           )              , intent(in   ) :: self
+    double precision                                     , intent(in   ) :: time
+    integer                                              , intent(inout) :: doubleProperty    , integerProperty
+    type            (outputPropertyInteger), dimension(:), intent(inout) :: integerProperties
+    type            (outputPropertyDouble ), dimension(:), intent(inout) :: doubleProperties
+    character       (len=*                )              , intent(in   ) :: comment           , prefix
+    double precision                                     , intent(in   ) :: unitsInSI
+    integer                                                              :: iElement
+    !$GLC attributes unused :: self, time, integerProperty, integerProperties
 
     doubleProperty=doubleProperty+1
-    doublePropertyNames   (doubleProperty)=trim(prefix)//'Metals'
-    doublePropertyComments(doubleProperty)=trim(comment)//' [Metals]'
-    doublePropertyUnitsSI (doubleProperty)=unitsInSI
+    doubleProperties(doubleProperty)%name     =trim(prefix )//  'Metals'
+    doubleProperties(doubleProperty)%comment  =trim(comment)//' [Metals]'
+    doubleProperties(doubleProperty)%unitsInSI=unitsInSI
     if (elementsCount > 0) then
        do iElement=1,elementsCount
           doubleProperty=doubleProperty+1
-          doublePropertyNames   (doubleProperty)=trim(prefix)//trim(elementsToTrack(iElement))
-          doublePropertyComments(doubleProperty)=trim(comment)//' ['//trim(elementsToTrack(iElement))//']'
-          doublePropertyUnitsSI (doubleProperty)=unitsInSI
+          doubleProperties(doubleProperty)%name     =trim(prefix )//      trim(elementsToTrack(iElement))
+          doubleProperties(doubleProperty)%comment  =trim(comment)//' ['//trim(elementsToTrack(iElement))//']'
+          doubleProperties(doubleProperty)%unitsInSI=unitsInSI
        end do
     end if
     return

@@ -351,27 +351,26 @@ contains
   !#  <unitName>Node_Component_Black_Hole_Simple_Output_Names</unitName>
   !#  <sortName>Node_Component_Black_Hole_Simple_Output</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Node_Component_Black_Hole_Simple_Output_Names(node,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI&
-       &,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
+  subroutine Node_Component_Black_Hole_Simple_Output_Names(node,integerProperty,integerProperties,doubleProperty,doubleProperties,time)
     !% Set names of black hole properties to be written to the \glc\ output file.
-    use :: Galacticus_Nodes                , only : treeNode
-    use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
+    use :: Galacticus_Nodes                  , only : treeNode
+    use :: Numerical_Constants_Astronomical  , only : gigaYear             , massSolar
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
     implicit none
-    type            (treeNode)              , intent(inout) :: node
-    double precision                        , intent(in   ) :: time
-    integer                                 , intent(inout) :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
-         &                                                     integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    !$GLC attributes unused :: time, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI
+    type            (treeNode)                           , intent(inout) :: node
+    double precision                                     , intent(in   ) :: time
+    integer                                              , intent(inout) :: doubleProperty   , integerProperty
+    type            (outputPropertyInteger), dimension(:), intent(inout) :: integerProperties
+    type            (outputPropertyDouble ), dimension(:), intent(inout) :: doubleProperties
+    !$GLC attributes unused :: time, integerProperty, integerProperties
 
     ! Ensure that the black hole component is of the simple class.
     if (Node_Component_Black_Hole_Simple_Matches(node)) then
        if (blackHoleOutputAccretion) then
           doubleProperty=doubleProperty+1
-          doublePropertyNames   (doubleProperty)='blackHoleAccretionRate'
-          doublePropertyComments(doubleProperty)='Rest-mass accretion rate onto the black hole.'
-          doublePropertyUnitsSI (doubleProperty)=massSolar/gigaYear
+          doubleProperties(doubleProperty)%name     ='blackHoleAccretionRate'
+          doubleProperties(doubleProperty)%comment  ='Rest-mass accretion rate onto the black hole.'
+          doubleProperties(doubleProperty)%unitsInSI=massSolar/gigaYear
        end if
     end if
     return
@@ -402,22 +401,23 @@ contains
   !#  <unitName>Node_Component_Black_Hole_Simple_Output</unitName>
   !#  <sortName>Node_Component_Black_Hole_Simple_Output</sortName>
   !# </mergerTreeOutputTask>
-  subroutine Node_Component_Black_Hole_Simple_Output(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time,instance)
+  subroutine Node_Component_Black_Hole_Simple_Output(node,integerProperty,integerBufferCount,integerProperties,doubleProperty,doubleBufferCount,doubleProperties,time,instance)
     !% Store black hole properties in the \glc\ output file buffers.
-    use :: Galacticus_Nodes, only : nodeComponentBlackHole, nodeComponentSpheroid, treeNode
-    use :: Kind_Numbers    , only : kind_int8
-    use :: Multi_Counters  , only : multiCounter
+    use :: Galacticus_Nodes                  , only : nodeComponentBlackHole, nodeComponentSpheroid, treeNode
+    use :: Kind_Numbers                      , only : kind_int8
+    use :: Multi_Counters                    , only : multiCounter
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger , outputPropertyDouble
     implicit none
-    double precision                        , intent(in   )          :: time
-    type            (treeNode              ), intent(inout)          :: node
-    integer                                 , intent(inout)          :: doubleBufferCount          , doubleProperty, integerBufferCount, &
-         &                                                              integerProperty
-    integer         (kind=kind_int8        ), intent(inout)          :: integerBuffer         (:,:)
-    double precision                        , intent(inout)          :: doubleBuffer          (:,:)
-    type            (multiCounter          ), intent(inout)          :: instance
-    class           (nodeComponentBlackHole)               , pointer :: blackHole
-    double precision                                                 :: restMassAccretionRate
-    !$GLC attributes unused :: time, integerProperty, integerBufferCount, integerBuffer, instance
+    double precision                        , intent(in   )               :: time
+    type            (treeNode              ), intent(inout)               :: node
+    integer                                 , intent(inout)               :: doubleBufferCount    , doubleProperty , &
+         &                                                                   integerBufferCount   , integerProperty
+    type            (outputPropertyInteger ), intent(inout), dimension(:) :: integerProperties
+    type            (outputPropertyDouble  ), intent(inout), dimension(:) :: doubleProperties
+    type            (multiCounter          ), intent(inout)               :: instance
+    class           (nodeComponentBlackHole)               , pointer      :: blackHole
+    double precision                                                      :: restMassAccretionRate
+    !$GLC attributes unused :: time, integerProperty, integerBufferCount, integerProperties, instance
 
     ! Ensure that the black hole component is of the simple class.
     if (Node_Component_Black_Hole_Simple_Matches(node)) then
@@ -428,7 +428,7 @@ contains
           ! Get the rest mass accretion rate.
           restMassAccretionRate=blackHoleToSpheroidStellarGrowthRatio*starFormationRateSpheroids_%rate(node)
           doubleProperty=doubleProperty+1
-          doubleBuffer(doubleBufferCount,doubleProperty)=restMassAccretionRate
+          doubleProperties(doubleProperty)%scalar(doubleBufferCount)=restMassAccretionRate
        end if
     end if
     return

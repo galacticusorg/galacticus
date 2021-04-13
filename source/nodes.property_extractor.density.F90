@@ -24,25 +24,26 @@
   !# <nodePropertyExtractor name="nodePropertyExtractorDensityProfile">
   !#  <description>A property extractor class for the density at a set of radii.</description>
   !# </nodePropertyExtractor>
-  type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorDensityProfile
+  type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorDensityProfile
      !% A property extractor class for the density at a set fo radii.
      private
      class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_
-     integer                                                      :: radiiCount                   , elementCount_       , &
-          &                                                          step
+     integer                                                      :: radiiCount                   , elementCount_
      logical                                                      :: includeRadii
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
      logical                                                      :: darkMatterScaleRadiusIsNeeded, diskIsNeeded        , &
           &                                                          spheroidIsNeeded             , virialRadiusIsNeeded
    contains
-     final     ::                 densityProfileDestructor
-     procedure :: elementCount => densityProfileElementCount
-     procedure :: extract      => densityProfileExtract
-     procedure :: names        => densityProfileNames
-     procedure :: descriptions => densityProfileDescriptions
-     procedure :: unitsInSI    => densityProfileUnitsInSI
-     procedure :: type         => densityProfileType
+     final     ::                       densityProfileDestructor
+     procedure :: columnDescriptions => densityProfileColumnDescriptions
+     procedure :: size               => densityProfileSize
+     procedure :: elementCount       => densityProfileElementCount
+     procedure :: extract            => densityProfileExtract
+     procedure :: names              => densityProfileNames
+     procedure :: descriptions       => densityProfileDescriptions
+     procedure :: unitsInSI          => densityProfileUnitsInSI
+     procedure :: type               => densityProfileType
   end type nodePropertyExtractorDensityProfile
 
   interface nodePropertyExtractorDensityProfile
@@ -93,12 +94,11 @@ contains
     !# <constructorAssign variables="radiusSpecifiers, includeRadii, *darkMatterHaloScale_"/>
 
     if (includeRadii) then
-       self%step=2
+       self%elementCount_=2
     else
-       self%step=1
+       self%elementCount_=1
     end if
-    self%radiiCount   =size(radiusSpecifiers)
-    self%elementCount_=self%step*self%radiiCount
+    self%radiiCount      =size(radiusSpecifiers)
     call Galactic_Structure_Radii_Definition_Decode(                                    &
          &                                          radiusSpecifiers                  , &
          &                                          self%radii                        , &
@@ -130,6 +130,18 @@ contains
     return
   end function densityProfileElementCount
 
+  function densityProfileSize(self,time)
+    !% Return the number of array alements in the {\normalfont \ttfamily densityProfile} property extractors.
+    implicit none
+    integer         (c_size_t                           )                :: densityProfileSize
+    class           (nodePropertyExtractorDensityProfile), intent(inout) :: self
+    double precision                                     , intent(in   ) :: time
+    !$GLC attributes unused :: time
+
+    densityProfileSize=self%radiiCount
+    return
+  end function densityProfileSize
+
   function densityProfileExtract(self,node,time,instance)
     !% Implement a {\normalfont \ttfamily densityProfile} property extractor.
     use :: Galactic_Structure_Densities        , only : Galactic_Structure_Density
@@ -140,20 +152,20 @@ contains
           &                                             radiusTypeVirialRadius
     use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile          , nodeComponentDisk           , nodeComponentSpheroid           , treeNode
     implicit none
-    double precision                                     , dimension(:) , allocatable :: densityProfileExtract
-    class           (nodePropertyExtractorDensityProfile), intent(inout), target      :: self
-    type            (treeNode                           ), intent(inout), target      :: node
-    double precision                                     , intent(in   )              :: time
-    type            (multiCounter                       ), intent(inout), optional    :: instance
-    class           (nodeComponentDisk                  ), pointer                    :: disk
-    class           (nodeComponentSpheroid              ), pointer                    :: spheroid
-    class           (nodeComponentDarkMatterProfile     ), pointer                    :: darkMatterProfile
-    integer                                                                           :: i
-    double precision                                                                  :: radius                , radiusVirial
+    double precision                                     , dimension(:,:), allocatable :: densityProfileExtract
+    class           (nodePropertyExtractorDensityProfile), intent(inout) , target      :: self
+    type            (treeNode                           ), intent(inout) , target      :: node
+    double precision                                     , intent(in   )               :: time
+    type            (multiCounter                       ), intent(inout) , optional    :: instance
+    class           (nodeComponentDisk                  ), pointer                     :: disk
+    class           (nodeComponentSpheroid              ), pointer                     :: spheroid
+    class           (nodeComponentDarkMatterProfile     ), pointer                     :: darkMatterProfile
+    integer                                                                            :: i
+    double precision                                                                   :: radius                , radiusVirial
     !$GLC attributes unused :: time, instance
 
-    allocate(densityProfileExtract(self%elementCount_))
-    radiusVirial                                         =  0.0d0
+    allocate(densityProfileExtract(self%radiiCount,self%elementCount_))
+    radiusVirial                                              =  0.0d0
     if (self%         virialRadiusIsNeeded) radiusVirial      =  self%darkMatterHaloScale_%virialRadius(node                    )
     if (self%                 diskIsNeeded) disk              =>                                        node%disk             ()
     if (self%             spheroidIsNeeded) spheroid          =>                                        node%spheroid         ()
@@ -188,18 +200,18 @@ contains
                &   weightIndex   =self%radii(i)%weightByIndex      &
                &  )
        end select
-       densityProfileExtract       ((i-1)*self%step+1)=Galactic_Structure_Density(                                       &
-            &                                                                     node                                 , &
-            &                                                                     [                                      &
-            &                                                                      radius                              , &
-            &                                                                      0.0d0                               , &
-            &                                                                      0.0d0                                 &
-            &                                                                     ]                                    , &
-            &                                                                     componentType=self%radii(i)%component, &
-            &                                                                     massType     =self%radii(i)%mass       &
-            &                                                                    )
-       if (self%includeRadii)                                                                                            &
-            & densityProfileExtract((i-1)*self%step+2)=                            radius
+       densityProfileExtract       (i,1)=Galactic_Structure_Density(                                       &
+            &                                                       node                                 , &
+            &                                                       [                                      &
+            &                                                        radius                              , &
+            &                                                        0.0d0                               , &
+            &                                                        0.0d0                                 &
+            &                                                       ]                                    , &
+            &                                                       componentType=self%radii(i)%component, &
+            &                                                       massType     =self%radii(i)%mass       &
+            &                                                      )
+       if (self%includeRadii)                                                                              &
+            & densityProfileExtract(i,2)=                            radius
     end do
     return
   end function densityProfileExtract
@@ -210,15 +222,11 @@ contains
     type            (varying_string                     ), dimension(:) , allocatable :: densityProfileNames
     class           (nodePropertyExtractorDensityProfile), intent(inout)              :: self
     double precision                                     , intent(in   )              :: time
-    integer                                                                           :: i
     !$GLC attributes unused :: time
 
     allocate(densityProfileNames(self%elementCount_))
-    do i=1,size(self%radii)
-       densityProfileNames       ((i-1)*self%step+1)="densityProfile:"      //char(self%radii(i)%name)
-       if (self%includeRadii)                                                                          &
-            & densityProfileNames((i-1)*self%step+2)="densityProfileRadius:"//char(self%radii(i)%name)
-    end do
+    densityProfileNames(1)="densityProfile"
+    if (self%includeRadii) densityProfileNames(2)="densityProfileRadius"
     return
   end function densityProfileNames
 
@@ -228,17 +236,27 @@ contains
     type            (varying_string                     ), dimension(:) , allocatable :: densityProfileDescriptions
     class           (nodePropertyExtractorDensityProfile), intent(inout)              :: self
     double precision                                     , intent(in   )              :: time
-    integer                                                                           :: i
     !$GLC attributes unused :: time
 
     allocate(densityProfileDescriptions(self%elementCount_))
-    do i=1,size(self%radii)
-       densityProfileDescriptions       ((i-1)*self%step+1)="Density at a given radius [M☉/Mpc⁻³]."
-       if (self%includeRadii)                                                                          &
-            & densityProfileDescriptions((i-1)*self%step+2)="Radius at which density is output [Mpc]."
-    end do
+    densityProfileDescriptions       (1)="Density at a given radius [M☉/Mpc⁻³]."
+    if (self%includeRadii)                                                          &
+         & densityProfileDescriptions(2)="Radius at which density is output [Mpc]."
     return
   end function densityProfileDescriptions
+
+  function densityProfileColumnDescriptions(self,time)
+    !% Return column descriptions of the {\normalfont \ttfamily densityProfile} property.
+    implicit none
+    type            (varying_string                     ), dimension(:) , allocatable :: densityProfileColumnDescriptions
+    class           (nodePropertyExtractorDensityProfile), intent(inout)              :: self
+    double precision                                     , intent(in   )              :: time
+    !$GLC attributes unused :: time
+
+    allocate(densityProfileColumnDescriptions(self%radiiCount))
+    densityProfileColumnDescriptions=self%radii%name
+    return
+  end function densityProfileColumnDescriptions
 
   function densityProfileUnitsInSI(self,time)
     !% Return the units of the {\normalfont \ttfamily densityProfile} properties in the SI system.
@@ -247,15 +265,12 @@ contains
     double precision                                     , allocatable  , dimension(:) :: densityProfileUnitsInSI
     class           (nodePropertyExtractorDensityProfile), intent(inout)               :: self
     double precision                                     , intent(in   )               :: time
-    integer                                                                            :: i
     !$GLC attributes unused :: time
 
     allocate(densityProfileUnitsInSI(self%elementCount_))
-    do i=1,size(self%radii)
-       densityProfileUnitsInSI       ((i-1)*self%step+1)=massSolar/megaParsec**3
-       if (self%includeRadii)                                                       &
-            & densityProfileUnitsInSI((i-1)*self%step+2)=          megaParsec
-    end do
+    densityProfileUnitsInSI       (1)=massSolar/megaParsec**3
+    if (self%includeRadii)                                    &
+         & densityProfileUnitsInSI(2)=          megaParsec
     return
   end function densityProfileUnitsInSI
 

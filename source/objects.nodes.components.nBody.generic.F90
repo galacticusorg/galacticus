@@ -286,39 +286,36 @@ contains
   !#  <unitName>Node_Component_NBody_Generic_Output_Names</unitName>
   !#  <sortName>Node_Component_NBody_Generic_Output</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Node_Component_NBody_Generic_Output_Names(node,integerProperty,integerPropertyNames&
-       &,integerPropertyComments,integerPropertyUnitsSI ,doubleProperty,doublePropertyNames,doublePropertyComments&
-       &,doublePropertyUnitsSI,time)
+  subroutine Node_Component_NBody_Generic_Output_Names(node,integerProperty,integerProperties,doubleProperty,doubleProperties,time)
     !% Set names of black hole properties to be written to the \glc\ output file.
-    use :: Galacticus_Nodes  , only : treeNode
-    use :: ISO_Varying_String, only : char
-    use :: String_Handling   , only : String_Upper_Case_First, char
+    use :: Galacticus_Nodes                  , only : treeNode
+    use :: ISO_Varying_String                , only : char
+    use :: String_Handling                   , only : String_Upper_Case_First, char
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger  , outputPropertyDouble
     implicit none
-    type            (treeNode)              , intent(inout) :: node
-    double precision                        , intent(in   ) :: time
-    integer                                 , intent(inout) :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
-         &                                                     integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    integer                                                 :: i
+    type            (treeNode             )              , intent(inout) :: node
+    double precision                                     , intent(in   ) :: time
+    integer                                              , intent(inout) :: doubleProperty   , integerProperty
+    type            (outputPropertyInteger), dimension(:), intent(inout) :: integerProperties
+    type            (outputPropertyDouble ), dimension(:), intent(inout) :: doubleProperties
+    integer                                                              :: i
     !$GLC attributes unused :: node, time
-
 
     !$omp critical(nbodyGenericAccess)
     if (allocated(propertyNamesInteger)) then
        do i=1,size(propertyNamesInteger)
-          integerProperty                         =integerProperty+1
-          integerPropertyNames   (integerProperty)='nBody'//String_Upper_Case_First(char(propertyNamesInteger(i)))
-          integerPropertyComments(integerProperty)=''
-          integerPropertyUnitsSI (integerProperty)=0.0d0
+          integerProperty                             =integerProperty+1
+          integerProperties(integerProperty)%name     ='nBody'//String_Upper_Case_First(char(propertyNamesInteger(i)))
+          integerProperties(integerProperty)%comment  =''
+          integerProperties(integerProperty)%unitsInSI=0.0d0
        end do
     end if
-    if (allocated(propertyNamesReal)) then
-       do i=1,size(propertyNamesReal)
-          doubleProperty                        =doubleProperty+1
-          doublePropertyNames   (doubleProperty)='nBody'//String_Upper_Case_First(char(propertyNamesReal(i)))
-          doublePropertyComments(doubleProperty)=''
-          doublePropertyUnitsSI (doubleProperty)=0.0d0
+    if (allocated(propertyNamesReal   )) then
+       do i=1,size(propertyNamesReal   )
+          doubleProperty                              =doubleProperty +1
+          doubleProperties (doubleProperty )%name     ='nBody'//String_Upper_Case_First(char(propertyNamesReal   (i)))
+          doubleProperties (doubleProperty )%comment  =''
+          doubleProperties (doubleProperty )%unitsInSI=0.0d0
        end do
     end if
     !$omp end critical(nbodyGenericAccess)
@@ -349,23 +346,24 @@ contains
   !#  <unitName>Node_Component_NBody_Generic_Output</unitName>
   !#  <sortName>Node_Component_NBody_Generic_Output</sortName>
   !# </mergerTreeOutputTask>
-  subroutine Node_Component_NBody_Generic_Output(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time,instance)
+  subroutine Node_Component_NBody_Generic_Output(node,integerProperty,integerBufferCount,integerProperties,doubleProperty,doubleBufferCount,doubleProperties,time,instance)
     !% Store black hole properties in the \glc\ output file buffers.
-    use :: Galacticus_Nodes, only : nodeComponentNBody, treeNode
-    use :: Kind_Numbers    , only : kind_int8
-    use :: Multi_Counters  , only : multiCounter
+    use :: Galacticus_Nodes                  , only : nodeComponentNBody   , treeNode
+    use :: Kind_Numbers                      , only : kind_int8
+    use :: Multi_Counters                    , only : multiCounter
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
     implicit none
-    double precision                    , intent(in   )               :: time
-    type            (treeNode          ), intent(inout)               :: node
-    integer                             , intent(inout)               :: doubleBufferCount          , doubleProperty, integerBufferCount, &
-         &                                                               integerProperty
-    integer         (kind=kind_int8    ), intent(inout)               :: integerBuffer         (:,:)
-    double precision                    , intent(inout)               :: doubleBuffer          (:,:)
-    type            (multiCounter      ), intent(inout )              :: instance
-    class           (nodeComponentNBody)               , pointer      :: nBody
-    integer         (kind=kind_int8    ), allocatable  , dimension(:) :: propertyValuesInteger
-    double precision                    , allocatable  , dimension(:) :: propertyValuesReal
-    integer                                                           :: i
+    double precision                       , intent(in   )               :: time
+    type            (treeNode             ), intent(inout)               :: node
+    integer                                , intent(inout)               :: doubleBufferCount    , doubleProperty , &
+         &                                                                  integerBufferCount   , integerProperty
+    type            (outputPropertyInteger), intent(inout), dimension(:) :: integerProperties
+    type            (outputPropertyDouble ), intent(inout), dimension(:) :: doubleProperties
+    type            (multiCounter         ), intent(inout )              :: instance
+    class           (nodeComponentNBody   )               , pointer      :: nBody
+    integer         (kind=kind_int8       ), allocatable  , dimension(:) :: propertyValuesInteger
+    double precision                       , allocatable  , dimension(:) :: propertyValuesReal
+    integer                                                              :: i
     !$GLC attributes unused :: time, instance
 
     nBody => node%nBody()
@@ -375,20 +373,20 @@ contains
        do i=1,size(propertyNamesInteger)
           integerProperty=integerProperty+1
           if (i > size(propertyValuesInteger)) then
-             integerBuffer(integerBufferCount,integerProperty)=0_kind_int8
+             integerProperties(integerProperty)%scalar(integerBufferCount)=0_kind_int8
           else
-             integerBuffer(integerBufferCount,integerProperty)=propertyValuesInteger(i)
+             integerProperties(integerProperty)%scalar(integerBufferCount)=propertyValuesInteger(i)
           end if
        end do
     end if
-    if (allocated(propertyNamesReal)) then
-       propertyValuesReal=nBody%reals()
-       do i=1,size(propertyNamesReal)
-          doubleProperty=doubleProperty+1
-          if (i > size(propertyValuesReal)) then
-             doubleBuffer(doubleBufferCount,doubleProperty)=0.0d0
+    if (allocated(propertyNamesReal   )) then
+       propertyValuesReal   =nBody%reals   ()
+       do i=1,size(propertyNamesReal   )
+          doubleProperty =doubleProperty +1
+          if (i > size(propertyValuesReal   )) then
+             doubleProperties (doubleProperty )%scalar(doubleBufferCount )=0.0d0
           else
-             doubleBuffer(doubleBufferCount,doubleProperty)=propertyValuesReal(i)
+             doubleProperties (doubleProperty )%scalar(doubleBufferCount )=propertyValuesReal   (i)
           end if
        end do
     end if

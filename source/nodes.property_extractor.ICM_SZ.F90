@@ -223,10 +223,10 @@ contains
     time  =  basic%time ()
     ! Get upper limit for integral.
     if (self%useDensityContrast) then
-       densityContrastProperties=self%densityContrastExtractor_%extract     (node,time,instance)
-       radiusOuter              =     densityContrastProperties             (1                 )
+       densityContrastProperties=reshape(self%densityContrastExtractor_%extract     (node,time,instance),[2])
+       radiusOuter              =             densityContrastProperties             (1                 )
     else
-       radiusOuter              =self%darkMatterHaloScale_     %virialRadius(node              )
+       radiusOuter              =        self%darkMatterHaloScale_     %virialRadius(node              )
     end if
     ! Find the angular diameter distance to use.
     if (self%useFixedDistance) then

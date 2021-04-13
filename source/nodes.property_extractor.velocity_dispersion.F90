@@ -39,25 +39,26 @@
   !#   mass weighting instead.
   !#  </description>
   !# </nodePropertyExtractor>
-  type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorVelocityDispersion
+  type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorVelocityDispersion
      !% A property extractor class for the velocity dispersion at a set of radii.
      private
      class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_
-     integer                                                      :: radiiCount                   , elementCount_       , &
-          &                                                          step
+     integer                                                      :: radiiCount                   , elementCount_
      logical                                                      :: includeRadii
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
      logical                                                      :: darkMatterScaleRadiusIsNeeded, diskIsNeeded        , &
           &                                                          spheroidIsNeeded             , virialRadiusIsNeeded
    contains
-     final     ::                 velocityDispersionDestructor
-     procedure :: elementCount => velocityDispersionElementCount
-     procedure :: extract      => velocityDispersionExtract
-     procedure :: names        => velocityDispersionNames
-     procedure :: descriptions => velocityDispersionDescriptions
-     procedure :: unitsInSI    => velocityDispersionUnitsInSI
-     procedure :: type         => velocityDispersionType
+     final     ::                       velocityDispersionDestructor
+     procedure :: columnDescriptions => velocityDispersionColumnDescriptions
+     procedure :: size               => velocityDispersionSize
+     procedure :: elementCount       => velocityDispersionElementCount
+     procedure :: extract            => velocityDispersionExtract
+     procedure :: names              => velocityDispersionNames
+     procedure :: descriptions       => velocityDispersionDescriptions
+     procedure :: unitsInSI          => velocityDispersionUnitsInSI
+     procedure :: type               => velocityDispersionType
   end type nodePropertyExtractorVelocityDispersion
 
   interface nodePropertyExtractorVelocityDispersion
@@ -114,12 +115,11 @@ contains
     !# <constructorAssign variables="radiusSpecifiers, includeRadii, *darkMatterHaloScale_"/>
 
     if (includeRadii) then
-       self%step=2
+       self%elementCount_=2
     else
-       self%step=1
+       self%elementCount_=1
     end if
-    self%radiiCount   =size(radiusSpecifiers)
-    self%elementCount_=self%step*self%radiiCount
+    self%radiiCount      =size(radiusSpecifiers)
     call Galactic_Structure_Radii_Definition_Decode(                                    &
          &                                          radiusSpecifiers                  , &
          &                                          self%radii                        , &
@@ -151,6 +151,18 @@ contains
     return
   end function velocityDispersionElementCount
 
+  function velocityDispersionSize(self,time)
+    !% Return the number of array alements in the {\normalfont \ttfamily velocityDispersion} property extractors.
+    implicit none
+    integer         (c_size_t                               )                :: velocityDispersionSize
+    class           (nodePropertyExtractorVelocityDispersion), intent(inout) :: self
+    double precision                                         , intent(in   ) :: time
+    !$GLC attributes unused :: time
+
+    velocityDispersionSize=self%radiiCount
+    return
+  end function velocityDispersionSize
+
   function velocityDispersionExtract(self,node,time,instance)
     !% Implement a {\normalfont \ttfamily velocityDispersion} property extractor.
     use :: Galactic_Structure_Enclosed_Masses     , only : Galactic_Structure_Enclosed_Mass      , Galactic_Structure_Radius_Enclosing_Mass
@@ -164,31 +176,31 @@ contains
     use :: Galacticus_Nodes                       , only : nodeComponentDarkMatterProfile        , nodeComponentDisk                       , nodeComponentSpheroid              , treeNode
     use :: Numerical_Integration                  , only : integrator
     implicit none
-    double precision                                         , dimension(:) , allocatable :: velocityDispersionExtract
-    class           (nodePropertyExtractorVelocityDispersion), intent(inout), target      :: self
-    type            (treeNode                               ), intent(inout), target      :: node
-    double precision                                         , intent(in   )              :: time
-    type            (multiCounter                           ), intent(inout), optional    :: instance
-    class           (nodeComponentDisk                      ), pointer                    :: disk
-    class           (nodeComponentSpheroid                  ), pointer                    :: spheroid
-    class           (nodeComponentDarkMatterProfile         ), pointer                    :: darkMatterProfile
-    double precision                                         , parameter                  :: outerRadiusMultiplier           =10.0d0
-    integer                                                                               :: i
-    double precision                                                                      :: radius                                 , radiusVirial            , &
-         &                                                                                   radiusFromFraction                     , densityIntegrand        , &
-         &                                                                                   radiusZero                             , velocityDensityIntegrand, &
-         &                                                                                   numerator                              , denominator             , &
-         &                                                                                   massDisk                               , massSpheroid
-    logical                                                                               :: scaleIsZero
-    type            (integrator                             )                             :: integratorVelocitySurfaceDensity       , integratorSurfaceDensity, &
-         &                                                                                   integratorLambdaR2                     , integratorLambdaR1
+    double precision                                         , dimension(:,:), allocatable :: velocityDispersionExtract
+    class           (nodePropertyExtractorVelocityDispersion), intent(inout) , target      :: self
+    type            (treeNode                               ), intent(inout) , target      :: node
+    double precision                                         , intent(in   )               :: time
+    type            (multiCounter                           ), intent(inout) , optional    :: instance
+    class           (nodeComponentDisk                      ), pointer                     :: disk
+    class           (nodeComponentSpheroid                  ), pointer                     :: spheroid
+    class           (nodeComponentDarkMatterProfile         ), pointer                     :: darkMatterProfile
+    double precision                                         , parameter                   :: outerRadiusMultiplier           =10.0d0
+    integer                                                                                :: i
+    double precision                                                                       :: radius                                 , radiusVirial            , &
+         &                                                                                    radiusFromFraction                     , densityIntegrand        , &
+         &                                                                                    radiusZero                             , velocityDensityIntegrand, &
+         &                                                                                    numerator                              , denominator             , &
+         &                                                                                    massDisk                               , massSpheroid
+    logical                                                                                :: scaleIsZero
+    type            (integrator                             )                              :: integratorVelocitySurfaceDensity       , integratorSurfaceDensity, &
+         &                                                                                    integratorLambdaR2                     , integratorLambdaR1
     !$GLC attributes unused :: time, instance
 
     integratorVelocitySurfaceDensity=integrator(velocityDispersionVelocitySurfaceDensityIntegrand,toleranceRelative=1.0d-3)
     integratorSurfaceDensity        =integrator(velocityDispersionSurfaceDensityIntegrand        ,toleranceRelative=1.0d-3)
     integratorLambdaR1              =integrator(velocityDispersionLambdaRIntegrand1              ,toleranceRelative=1.0d-2)
     integratorLambdaR2              =integrator(velocityDispersionLambdaRIntegrand2              ,toleranceRelative=1.0d-2)
-    allocate(velocityDispersionExtract(self%elementCount_))
+    allocate(velocityDispersionExtract(self%radiiCount,self%elementCount_))
     radiusVirial                                         =  0.0d0
     if (self%         virialRadiusIsNeeded) radiusVirial      =  self%darkMatterHaloScale_%virialRadius(node                    )
     if (self%                 diskIsNeeded) disk              =>                                        node%disk             ()
@@ -237,27 +249,27 @@ contains
        end select
        if (scaleIsZero) then
           ! Do not compute dispersions if the component scale is zero.
-          velocityDispersionExtract((i-1)*self%step+1)=0.0d0
+          velocityDispersionExtract(i,1)=0.0d0
        else
           select case (self%radii(i)%direction)
           case (directionRadial                    )
              ! Radial velocity dispersion.
-             velocityDispersionExtract((i-1)*self%step+1)=Galactic_Structure_Velocity_Dispersion(                                             &
-                  &                                                                                            node                         , &
-                  &                                                                                            radius                       , &
-                  &                                                                                            velocityDispersionRadiusOuter, &
-                  &                                                                              massType     =self%radii(i)%mass           , &
-                  &                                                                              componentType=self%radii(i)%component        &
-                  &                                                                            )
+             velocityDispersionExtract(i,1)=Galactic_Structure_Velocity_Dispersion(                                             &
+                  &                                                                              node                         , &
+                  &                                                                              radius                       , &
+                  &                                                                              velocityDispersionRadiusOuter, &
+                  &                                                                massType     =self%radii(i)%mass           , &
+                  &                                                                componentType=self%radii(i)%component        &
+                  &                                                               )
           case (directionLineOfSight               )
              ! Line-of-sight velocity dispersion.
-             velocityDispersionNode                       => node
-             velocityDispersionMassType                   =  self%radii(i)%mass
-             velocityDispersionComponentType              =  self%radii(i)%component
-             velocityDispersionWeightBy                   =  self%radii(i)%integralWeightBy
-             velocityDispersionWeightIndex                =  self%radii(i)%integralWeightByIndex
-             velocityDispersionRadiusImpact               =  radius
-             velocityDispersionExtract((i-1)*self%step+1) =  velocityDispersionLineOfSightVelocityDispersionIntegrand(radius)
+             velocityDispersionNode               => node
+             velocityDispersionMassType           =  self%radii(i)%mass
+             velocityDispersionComponentType      =  self%radii(i)%component
+             velocityDispersionWeightBy           =  self%radii(i)%integralWeightBy
+             velocityDispersionWeightIndex        =  self%radii(i)%integralWeightByIndex
+             velocityDispersionRadiusImpact       =  radius
+             velocityDispersionExtract      (i,i) =  velocityDispersionLineOfSightVelocityDispersionIntegrand(radius)
           case (directionLineOfSightInteriorAverage)
              ! Average over the line-of-sight velocity dispersion within the radius.
              velocityDispersionNode          => node
@@ -270,9 +282,9 @@ contains
              velocityDensityIntegrand        =integratorVelocitySurfaceDensity%integrate(radiusZero,velocityDispersionRadiusOuter)
              densityIntegrand                =integratorSurfaceDensity        %integrate(radiusZero,velocityDispersionRadiusOuter)
              if (velocityDensityIntegrand <= 0.0d0) then
-                velocityDispersionExtract((i-1)*self%step+1)=0.0d0
+                velocityDispersionExtract(i,1)=0.0d0
              else
-                velocityDispersionExtract((i-1)*self%step+1)=sqrt(velocityDensityIntegrand/densityIntegrand)
+                velocityDispersionExtract(i,1)=sqrt(velocityDensityIntegrand/densityIntegrand)
              end if
           case (directionLambdaR                   )
              ! The "lambdaR" parameter of Cappellari et al. (2007; MNRAS; 379; 418)
@@ -300,24 +312,24 @@ contains
                   &                                        weightIndex  =velocityDispersionWeightIndex  &
                   &                                       )
              if      (massDisk     <= 0.0d0) then
-                velocityDispersionExtract((i-1)*self%step+1)=0.0d0
+                velocityDispersionExtract(i,1)=0.0d0
              else if (massSpheroid <= 0.0d0) then
-                velocityDispersionExtract((i-1)*self%step+1)=1.0d0
+                velocityDispersionExtract(i,1)=1.0d0
              else
                 ! Full calculation is required.
                 radiusZero=0.0d0
                 numerator  =integratorLambdaR2%integrate(radiusZero,radius)
                 denominator=integratorLambdaR1%integrate(radiusZero,radius)
                 if (denominator <= 0.0d0) then
-                   velocityDispersionExtract((i-1)*self%step+1)=0.0d0
+                   velocityDispersionExtract(i,1)=0.0d0
                 else
-                   velocityDispersionExtract((i-1)*self%step+1)=numerator/denominator
+                   velocityDispersionExtract(i,1)=numerator/denominator
                 end if
              end if
           end select
        end if
-       if (self%includeRadii)                                     &
-            & velocityDispersionExtract((i-1)*self%step+2)=radius
+       if (self%includeRadii)                       &
+            & velocityDispersionExtract(i,2)=radius
     end do
     return
   end function velocityDispersionExtract
@@ -328,15 +340,12 @@ contains
     type            (varying_string                         ), dimension(:) , allocatable :: velocityDispersionNames
     class           (nodePropertyExtractorVelocityDispersion), intent(inout)              :: self
     double precision                                         , intent(in   )              :: time
-    integer                                                                               :: i
     !$GLC attributes unused :: time
-
+    
     allocate(velocityDispersionNames(self%elementCount_))
-    do i=1,size(self%radii)
-       velocityDispersionNames       ((i-1)*self%step+1)="velocityDispersion:"      //char(self%radii(i)%name)
-       if (self%includeRadii)                                                                                  &
-            & velocityDispersionNames((i-1)*self%step+2)="velocityDispersionRadius:"//char(self%radii(i)%name)
-    end do
+    velocityDispersionNames       (1)="velocityDispersion"
+    if (self%includeRadii)                                       &
+         & velocityDispersionNames(2)="velocityDispersionRadius"
     return
   end function velocityDispersionNames
 
@@ -346,17 +355,27 @@ contains
     type            (varying_string                         ), dimension(:) , allocatable :: velocityDispersionDescriptions
     class           (nodePropertyExtractorVelocityDispersion), intent(inout)              :: self
     double precision                                         , intent(in   )              :: time
-    integer                                                                               :: i
     !$GLC attributes unused :: time
 
     allocate(velocityDispersionDescriptions(self%elementCount_))
-    do i=1,size(self%radii)
-       velocityDispersionDescriptions       ((i-1)*self%step+1)="Velocity dispersion at a given radius [km s⁻¹]."
-       if (self%includeRadii)                                                                                          &
-            & velocityDispersionDescriptions((i-1)*self%step+2)="Radius at which velocity dispersion is output [Mpc]."
-    end do
+    velocityDispersionDescriptions       (1)="Velocity dispersion at a given radius [km s⁻¹]."
+    if (self%includeRadii)                                                                          &
+         & velocityDispersionDescriptions(2)="Radius at which velocity dispersion is output [Mpc]."
     return
   end function velocityDispersionDescriptions
+
+  function velocityDispersionColumnDescriptions(self,time)
+    !% Return column descriptions of the {\normalfont \ttfamily velocityDispersion} property.
+    implicit none
+    type            (varying_string                         ), dimension(:) , allocatable :: velocityDispersionColumnDescriptions
+    class           (nodePropertyExtractorVelocityDispersion), intent(inout)              :: self
+    double precision                                         , intent(in   )              :: time
+    !$GLC attributes unused :: time
+
+    allocate(velocityDispersionColumnDescriptions(self%radiiCount))
+    velocityDispersionColumnDescriptions=self%radii%name
+    return
+  end function velocityDispersionColumnDescriptions
 
   function velocityDispersionUnitsInSI(self,time)
     !% Return the units of the {\normalfont \ttfamily velocityDispersion} properties in the SI system.
@@ -366,15 +385,12 @@ contains
     double precision                                         , allocatable  , dimension(:) :: velocityDispersionUnitsInSI
     class           (nodePropertyExtractorVelocityDispersion), intent(inout)               :: self
     double precision                                         , intent(in   )               :: time
-    integer                                                                                :: i
     !$GLC attributes unused :: time
 
     allocate(velocityDispersionUnitsInSI(self%elementCount_))
-    do i=1,size(self%radii)
-       velocityDispersionUnitsInSI       ((i-1)*self%step+1)=kilo
-       if (self%includeRadii)                                           &
-            & velocityDispersionUnitsInSI((i-1)*self%step+2)=megaParsec
-    end do
+    velocityDispersionUnitsInSI       (1)=kilo
+    if (self%includeRadii)                           &
+         & velocityDispersionUnitsInSI(2)=megaParsec
     return
   end function velocityDispersionUnitsInSI
 

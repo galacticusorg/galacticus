@@ -767,26 +767,26 @@ contains
     return
   end subroutine Stellar_Luminosities_Serialize
 
-  subroutine Stellar_Luminosities_Output(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount&
-       &,doubleBuffer,time,outputInstance)
+  subroutine Stellar_Luminosities_Output(self,integerProperty,integerBufferCount,integerProperties,doubleProperty,doubleBufferCount,doubleProperties,time,outputInstance)
     !% Store a {\normalfont \ttfamily stellarLuminosities} object in the output buffers.
-    use :: Kind_Numbers  , only : kind_int8
-    use :: Multi_Counters, only : multiCounter
+    use :: Kind_Numbers                      , only : kind_int8
+    use :: Multi_Counters                    , only : multiCounter
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger , outputPropertyDouble
     implicit none
-    class           (stellarLuminosities)                , intent(inout) :: self
-    double precision                                     , intent(in   ) :: time
-    integer                                              , intent(inout) :: doubleBufferCount, doubleProperty, integerBufferCount, &
-         &                                                                  integerProperty
-    integer         (kind=kind_int8     ), dimension(:,:), intent(inout) :: integerBuffer
-    double precision                     , dimension(:,:), intent(inout) :: doubleBuffer
-    type            (multiCounter       )                , intent(in   ) :: outputInstance
+    class           (stellarLuminosities  ), intent(inout)               :: self
+    double precision                       , intent(in   )               :: time
+    integer                                , intent(inout)               :: doubleBufferCount , doubleProperty , &
+         &                                                                  integerBufferCount, integerProperty
+    type            (outputPropertyInteger), intent(inout), dimension(:) :: integerProperties
+    type            (outputPropertyDouble ), intent(inout), dimension(:) :: doubleProperties
+    type            (multiCounter         ), intent(in   )               :: outputInstance
     integer                                                              :: i
-    !$GLC attributes unused :: integerProperty, integerBufferCount, integerBuffer, outputInstance
+    !$GLC attributes unused :: integerProperty, integerBufferCount, integerProperties, outputInstance
 
     if (luminosityCount > 0) then
        do i=1,luminosityCount
           if (Stellar_Luminosities_Is_Output(i,time)) then
-             doubleBuffer(doubleBufferCount,doubleProperty+1:doubleProperty+1)=self%luminosityValue(i)
+             doubleProperties(doubleProperty+1)%scalar(doubleBufferCount)=self%luminosityValue(i)
              doubleProperty=doubleProperty+1
           end if
        end do
@@ -848,29 +848,28 @@ contains
     return
   end function Stellar_Luminosities_Output_Count_Get
 
-  subroutine Stellar_Luminosities_Output_Names(self,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI&
-       &,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,prefix,comment,unitsInSI)
+  subroutine Stellar_Luminosities_Output_Names(self,integerProperty,integerProperties,doubleProperty,doubleProperties,time,prefix,comment,unitsInSI)
     !% Assign names to output buffers for a {\normalfont \ttfamily stellarLuminosities} object.
-    use :: ISO_Varying_String, only : assignment(=), operator(//), trim
+    use :: ISO_Varying_String                , only : assignment(=)        , operator(//)        , trim
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
     implicit none
-    class           (stellarLuminosities)              , intent(in   ) :: self
-    double precision                                   , intent(in   ) :: time
-    integer                                            , intent(inout) :: doubleProperty         , integerProperty
-    character       (len=*              ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
-         &                                                                integerPropertyComments, integerPropertyNames
-    double precision                     , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    character       (len=*              )              , intent(in   ) :: comment                , prefix
-    double precision                                   , intent(in   ) :: unitsInSI
-    integer                                                            :: i
-    !$GLC attributes unused :: self, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI,
+    class           (stellarLuminosities  )              , intent(in   ) :: self
+    double precision                                     , intent(in   ) :: time
+    integer                                              , intent(inout) :: doubleProperty   , integerProperty
+    type            (outputPropertyInteger), dimension(:), intent(inout) :: integerProperties
+    type            (outputPropertyDouble ), dimension(:), intent(inout) :: doubleProperties
+    character       (len=*                )              , intent(in   ) :: comment          , prefix
+    double precision                                     , intent(in   ) :: unitsInSI
+    integer                                                              :: i
+    !$GLC attributes unused :: self, integerProperty, integerProperties
 
     if (luminosityCount > 0) then
        do i=1,luminosityCount
           if (Stellar_Luminosities_Is_Output(i,time)) then
              doubleProperty=doubleProperty+1
-             doublePropertyNames   (doubleProperty)=trim(prefix )// ':'//trim(luminosityName(i))
-             doublePropertyComments(doubleProperty)=trim(comment)//' ['//trim(luminosityName(i))//']'
-             doublePropertyUnitsSI (doubleProperty)=unitsInSI
+             doubleProperties(doubleProperty)%name     =trim(prefix )// ':'//trim(luminosityName(i))
+             doubleProperties(doubleProperty)%comment  =trim(comment)//' ['//trim(luminosityName(i))//']'
+             doubleProperties(doubleProperty)%unitsInSI=unitsInSI
           end if
        end do
     end if

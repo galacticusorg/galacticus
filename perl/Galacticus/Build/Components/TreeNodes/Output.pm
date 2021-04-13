@@ -92,6 +92,10 @@ sub Tree_Node_Output_Names {
 	name        => "treeNodeOutputNames",
 	description => "Establish the names of properties to output for a {\\normalfont \\ttfamily treeNode}.",
 	content     => "",
+	modules     =>
+	    [
+	     "Merger_Tree_Outputter_Buffer_Types"
+	    ],
 	variables   =>
 	    [
 	     {
@@ -106,15 +110,10 @@ sub Tree_Node_Output_Names {
 		 variables  => [ "integerProperty" ]
 	     },
 	     {
-		 intrinsic  => "character",
-		 type       => "len=*",
+		 intrinsic  => "type",
+		 type       => "outputPropertyInteger",
 		 attributes => [ "intent(inout)", "dimension(:)" ], 
-		 variables  => [ "integerPropertyNames", "integerPropertyComments" ]
-	     },
-	     {
-		 intrinsic  => "double precision",
-		 attributes => [ "intent(inout)", "dimension(:)" ],
-		 variables  => [ "integerPropertyUnitsSI" ]
+		 variables  => [ "integerProperties" ]
 	     },
 	     {
 		 intrinsic  => "integer", 
@@ -122,15 +121,10 @@ sub Tree_Node_Output_Names {
 		 variables  => [ "doubleProperty" ]
 	     },
 	     {
-		 intrinsic  => "character",
-		 type       => "len=*",
+		 intrinsic  => "type",
+		 type       => "outputPropertyDouble",
 		 attributes => [ "intent(inout)", "dimension(:)" ], 
-		 variables  => [ "doublePropertyNames", "doublePropertyComments" ]
-	     },
-	     {
-		 intrinsic  => "double precision",
-		 attributes => [ "intent(inout)", "dimension(:)" ],
-		 variables  => [ "doublePropertyUnitsSI" ]
+		 variables  => [ "doubleProperties" ]
 	     },
 	     {
 		 intrinsic  => "double precision",
@@ -150,7 +144,7 @@ sub Tree_Node_Output_Names {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
-    call self%component{ucfirst($class->{'name'})}(i)%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance=i)
+    call self%component{ucfirst($class->{'name'})}(i)%outputNames(integerProperty,integerProperties,doubleProperty,doubleProperties,time,instance=i)
   end do
 end if
 CODE
@@ -177,7 +171,8 @@ sub Tree_Node_Output {
 	content     => "",
 	modules     =>
 	    [
-	     "Multi_Counters"
+	     "Multi_Counters"                    ,
+	     "Merger_Tree_Outputter_Buffer_Types"
 	    ],
 	variables   =>
 	    [
@@ -193,10 +188,10 @@ sub Tree_Node_Output {
 		 variables  => [ "integerProperty", "integerBufferCount" ]
 	     },
 	     {
-		 intrinsic  => "integer",
-		 type       => "kind=kind_int8",
-		 attributes => [ "intent(inout)", "dimension(:,:)" ],
-		 variables  => [ "integerBuffer" ]
+		 intrinsic  => "type",
+		 type       => "outputPropertyInteger",
+		 attributes => [ "intent(inout)", "dimension(:)" ], 
+		 variables  => [ "integerProperties" ]
 	     },
 	     {
 		 intrinsic  => "integer", 
@@ -204,9 +199,10 @@ sub Tree_Node_Output {
 		 variables  => [ "doubleProperty", "doubleBufferCount" ]
 	     },
 	     {
-		 intrinsic  => "double precision",
-		 attributes => [ "intent(inout)", "dimension(:,:)" ],
-		 variables  => [ "doubleBuffer" ]
+		 intrinsic  => "type",
+		 type       => "outputPropertyDouble",
+		 attributes => [ "intent(inout)", "dimension(:)" ], 
+		 variables  => [ "doubleProperties" ]
 	     },
 	     {
 		 intrinsic  => "double precision",
@@ -232,7 +228,7 @@ sub Tree_Node_Output {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
-    call self%component{ucfirst($class->{'name'})}(i)%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time,outputInstance,instance=i)
+    call self%component{ucfirst($class->{'name'})}(i)%output(integerProperty,integerBufferCount,integerProperties,doubleProperty,doubleBufferCount,doubleProperties,time,outputInstance,instance=i)
   end do
 end if
 CODE

@@ -145,7 +145,7 @@ sub Build_Node_Component_Class {
 	     function    => "Node_Component_Output_Names_Null"                                                                     ,
 	     description => "Generate names of outputtable properties."                                                            ,
 	     returnType  => "\\void"                                                                                               ,
-	     arguments   => "\\intzero\\ integerProperty\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} integerPropertyNames\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} integerPropertyComments\\arginout, \\doubleone\\ integerPropertyUnitsSI\\arginout, \\intzero\\ doubleProperty\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} doublePropertyNames\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} doublePropertyComments\\arginout, \\doubleone\\ doublePropertyUnitsSI\\arginout, \\doublezero\\ time\\argin, \\intzero\\ instance\\argin"
+	     arguments   => "\\intzero\\ integerProperty\\arginout, \\textcolor{red}{\\textless type(outputPropertyInteger)(:)\\textgreater} integerProperties\\arginout, \\intzero\\ doubleProperty\\arginout, \\textcolor{red}{\\textless type(otuputPropertyDouble)(:)\\textgreater} doubleProperties\\arginout, \\doublezero\\ time\\argin, \\intzero\\ instance\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
@@ -153,7 +153,7 @@ sub Build_Node_Component_Class {
 	     function    => "Node_Component_Output_Null"                                                                           ,
 	     description => "Generate values of outputtable properties."                                                           ,
 	     returnType  => "\\void"                                                                                               ,
-	     arguments   => "\\intzero\\ integerProperty\\arginout, \\intzero\\ integerBufferCount\\arginout, \\inttwo\\ integerBuffer\\arginout, \\intzero doubleProperty\\arginout, \\intzero\\ doubleBufferCount\\arginout, \\doubletwo\\ doubleBuffer\\arginout, \\doublezero\\ time\\argin, \\intzero\\ instance\\argin"
+	     arguments   => "\\intzero\\ integerProperty\\arginout, \\intzero\\ integerBufferCount\\arginout, \\textcolor{red}{\\textless type(outputPropertyInteger)(:)\\textgreater} integerProperties\\arginout, \\intzero doubleProperty\\arginout, \\intzero\\ doubleBufferCount\\arginout, \\textcolor{red}{\\textless type(otuputPropertyDouble)(:)\\textgreater} doubleProperties\\arginout, \\doublezero\\ time\\argin, \\intzero\\ instance\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,

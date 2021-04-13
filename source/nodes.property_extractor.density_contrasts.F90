@@ -37,7 +37,7 @@
   !#   of the Universe.
   !#  </description>
   !# </nodePropertyExtractor>
-  type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorDensityContrasts
+  type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorDensityContrasts
      !% A property extractor class for the mass and radii of spheres are specified density contrast..
      private
      class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_ => null()
@@ -49,13 +49,15 @@
      logical                                                               :: darkMatterOnly
      double precision                          , allocatable, dimension(:) :: densityContrasts
    contains
-     final     ::                 densityContrastsDestructor
-     procedure :: elementCount => densityContrastsElementCount
-     procedure :: extract      => densityContrastsExtract
-     procedure :: names        => densityContrastsNames
-     procedure :: descriptions => densityContrastsDescriptions
-     procedure :: unitsInSI    => densityContrastsUnitsInSI
-     procedure :: type         => densityContrastsType
+     final     ::                       densityContrastsDestructor
+     procedure :: size               => densityContrastsSize
+     procedure :: elementCount       => densityContrastsElementCount
+     procedure :: extract            => densityContrastsExtract
+     procedure :: names              => densityContrastsNames
+     procedure :: descriptions       => densityContrastsDescriptions
+     procedure :: columnDescriptions => densityContrastsColumnDescriptions
+     procedure :: unitsInSI          => densityContrastsUnitsInSI
+     procedure :: type               => densityContrastsType
   end type nodePropertyExtractorDensityContrasts
 
   interface nodePropertyExtractorDensityContrasts
@@ -131,8 +133,8 @@ contains
     double precision                                       , parameter                   :: toleranceAbsolute        =0.0d0, toleranceRelative=1.0d-3
     !# <constructorAssign variables="densityContrasts, darkMatterOnly, densityContrastRelativeTo, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_"/>
 
-    self%countDensityContrasts=  size(densityContrasts)
-    self%elementCount_        =2*size(densityContrasts)
+    self%countDensityContrasts=size(densityContrasts)
+    self%elementCount_        =2
     select case (darkMatterOnly)
     case (.true.)
        self%massTypeSelected=massTypeDark
@@ -174,23 +176,35 @@ contains
     return
   end function densityContrastsElementCount
 
+  function densityContrastsSize(self,time)
+    !% Return the number of array alements in the {\normalfont \ttfamily densityContrasts} property extractors.
+    implicit none
+    integer         (c_size_t                             )                :: densityContrastsSize
+    class           (nodePropertyExtractorDensityContrasts), intent(inout) :: self
+    double precision                                       , intent(in   ) :: time
+    !$GLC attributes unused :: time
+
+    densityContrastsSize=self%countDensityContrasts
+    return
+  end function densityContrastsSize
+
   function densityContrastsExtract(self,node,time,instance)
     !% Implement a last isolated redshift output analysis.
     use :: Cosmology_Functions               , only : densityCosmologicalMean         , densityCosmologicalCritical
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : componentTypeAll
     implicit none
-    double precision                                        , dimension(:) , allocatable :: densityContrastsExtract
-    class           (nodePropertyExtractorDensityContrasts ), intent(inout), target      :: self
-    type            (treeNode                              ), intent(inout), target      :: node
-    double precision                                        , intent(in   )              :: time
-    type            (multiCounter                          ), intent(inout), optional    :: instance
-    integer                                                                              :: i
-    double precision                                                                     :: enclosedMass           , radius, &
-         &                                                                                  densityReference
+    double precision                                        , dimension(:,:), allocatable :: densityContrastsExtract
+    class           (nodePropertyExtractorDensityContrasts ), intent(inout) , target      :: self
+    type            (treeNode                              ), intent(inout) , target      :: node
+    double precision                                        , intent(in   )               :: time
+    type            (multiCounter                          ), intent(inout) , optional    :: instance
+    integer                                                                               :: i
+    double precision                                                                      :: enclosedMass           , radius, &
+         &                                                                                   densityReference
     !$GLC attributes unused :: time, instance
 
-    allocate(densityContrastsExtract(self%elementCount_))
+    allocate(densityContrastsExtract(self%countDensityContrasts,self%elementCount_))
     ! Make the self, node, and basic component available to the root finding routine.
     densityContrastsSelf  => self
     densityContrastsNode  => node
@@ -221,7 +235,7 @@ contains
             &                                         componentType=     componentTypeAll, &
             &                                         massType     =self%massTypeSelected  &
             &                                        )
-       densityContrastsExtract((i-1)*2+1:(i-1)*2+2)=[radius,enclosedMass]
+       densityContrastsExtract(i,:)=[radius,enclosedMass]
     end do
     return
   end function densityContrastsExtract
@@ -232,18 +246,11 @@ contains
     type            (varying_string                       ), dimension(:) , allocatable :: densityContrastsNames
     class           (nodePropertyExtractorDensityContrasts), intent(inout)              :: self
     double precision                                       , intent(in   )              :: time
-    integer                                                                             :: i
-    character       (len=32                               )                             :: name                 , label
     !$GLC attributes unused :: time
 
     allocate(densityContrastsNames(self%elementCount_))
-    do i=1,self%countDensityContrasts
-       write (label,'(f9.4)') self%densityContrasts(i)
-       write (name ,'(a,a)' ) 'nodeRadius',trim(adjustl(label))
-       densityContrastsNames((i-1)*2+1)=trim(adjustl(name))
-       write (name ,'(a,a)' ) 'nodeMass'  ,trim(adjustl(label))
-       densityContrastsNames((i-1)*2+2)=trim(adjustl(name))
-    end do
+    densityContrastsNames(1)='nodeRadius'
+    densityContrastsNames(2)='nodeMass'
     return
   end function densityContrastsNames
 
@@ -253,19 +260,31 @@ contains
     type            (varying_string                       ), dimension(:) , allocatable :: densityContrastsDescriptions
     class           (nodePropertyExtractorDensityContrasts), intent(inout)              :: self
     double precision                                       , intent(in   )              :: time
-    integer                                                                             :: i
-    character       (len=64                               )                             :: description
     !$GLC attributes unused :: time
 
     allocate(densityContrastsDescriptions(self%elementCount_))
-    do i=1,self%countDensityContrasts
-       write (description,'(a,f5.1,a)') 'Radius enclosing a density contrast of ',self%densityContrasts(i),' [Mpc].'
-       densityContrastsDescriptions((i-1)*2+1)=trim(adjustl(description))
-       write (description,'(a,f5.1,a)') 'Mass within a density contrast of '     ,self%densityContrasts(i),' [M☉].'
-       densityContrastsDescriptions((i-1)*2+2)=trim(adjustl(description))
-    end do
+       densityContrastsDescriptions(1)='Radius enclosing a given density contrast [Mpc].'
+       densityContrastsDescriptions(2)='Mass within a given density contrast [M☉].'
     return
   end function densityContrastsDescriptions
+
+  function densityContrastsColumnDescriptions(self,time)
+    !% Return column descriptions of the {\normalfont \ttfamily densityContrasts} property.
+    implicit none
+    type            (varying_string                       ), dimension(:) , allocatable :: densityContrastsColumnDescriptions
+    class           (nodePropertyExtractorDensityContrasts), intent(inout)              :: self
+    double precision                                       , intent(in   )              :: time
+    character       (len=32                               )                             :: label
+    integer         (c_size_t                             )                             :: i
+    !$GLC attributes unused :: time
+
+    allocate(densityContrastsColumnDescriptions(self%countDensityContrasts))
+    do i=1,self%countDensityContrasts
+       write (label,'(a2,f9.4)') 'Δ=',self%densityContrasts(i)
+       densityContrastsColumnDescriptions(i)=trim(label)
+    end do
+    return
+  end function densityContrastsColumnDescriptions
 
   function densityContrastsUnitsInSI(self,time)
     !% Return the units of the {\normalfont \ttfamily densityContrasts} properties in the SI system.
@@ -274,13 +293,10 @@ contains
     double precision                                       , allocatable  , dimension(:) :: densityContrastsUnitsInSI
     class           (nodePropertyExtractorDensityContrasts), intent(inout)               :: self
     double precision                                       , intent(in   )               :: time
-    integer                                                                              :: i
     !$GLC attributes unused :: time
 
     allocate(densityContrastsUnitsInSI(self%elementCount_))
-    do i=1,self%countDensityContrasts
-       densityContrastsUnitsInSI((i-1)*2+1:(i-1)*2+2)=[megaParsec,massSolar]
-    end do
+    densityContrastsUnitsInSI(1:2)=[megaParsec,massSolar]
     return
   end function densityContrastsUnitsInSI
 

@@ -962,34 +962,35 @@ module Galacticus_Nodes
     return
   end subroutine Node_Component_Output_Count_Null
 
-  subroutine Node_Component_Output_Names_Null(self,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance)
+  subroutine Node_Component_Output_Names_Null(self,integerProperty,integerProperties,doubleProperty,doubleProperties,time,instance)
     !% Dump a generic tree node component.
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
     implicit none
-    class           (nodeComponent )              , intent(inout) :: self
-    double precision                              , intent(in   ) :: time
-    integer                                       , intent(inout) :: doubleProperty         , integerProperty
-    character       (len=*         ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
-         &                                                           integerPropertyComments, integerPropertyNames
-    double precision                , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    integer                                       , intent(in   ) :: instance
-    !$GLC attributes unused :: self, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI, doubleProperty, doublePropertyNames, doublePropertyComments, doublePropertyUnitsSI, time, instance
+    class           (nodeComponent        )              , intent(inout) :: self
+    double precision                                     , intent(in   ) :: time
+    integer                                              , intent(inout) :: doubleProperty   , integerProperty
+    type            (outputPropertyInteger), dimension(:), intent(inout) :: integerProperties
+    type            (outputPropertyDouble ), dimension(:), intent(inout) :: doubleProperties
+    integer                                              , intent(in   ) :: instance
+    !$GLC attributes unused :: self, integerProperty, integerProperties, doubleProperty, doubleProperties, time, instance
 
     return
   end subroutine Node_Component_Output_Names_Null
 
-  subroutine Node_Component_Output_Null(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time,outputInstance,instance)
+  subroutine Node_Component_Output_Null(self,integerProperty,integerBufferCount,integerProperties,doubleProperty,doubleBufferCount,doubleProperties,time,outputInstance,instance)
     !% Dump a generic tree node component.
     use :: Multi_Counters, only : multiCounter
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
     implicit none
-    class           (nodeComponent    ), intent(inout) :: self
-    double precision                   , intent(in   ) :: time
-    integer                            , intent(inout) :: doubleBufferCount     , doubleProperty, integerBufferCount, &
-         &                                                integerProperty
-    integer         (kind=kind_int8   ), intent(inout) :: integerBuffer    (:,:)
-    double precision                   , intent(inout) :: doubleBuffer     (:,:)
-    type            (multiCounter     ), intent(in   ) :: outputInstance
-    integer                            , intent(in   ) :: instance
-    !$GLC attributes unused :: self, integerProperty, integerBufferCount, integerBuffer, doubleProperty, doubleBufferCount, doubleBuffer, time, outputInstance, instance
+    class           (nodeComponent        )              , intent(inout) :: self
+    double precision                                     , intent(in   ) :: time
+    integer                                              , intent(inout) :: doubleBufferCount , doubleProperty ,  &
+         &                                                                  integerBufferCount, integerProperty
+    type            (outputPropertyInteger), dimension(:), intent(inout) :: integerProperties
+    type            (outputPropertyDouble ), dimension(:), intent(inout) :: doubleProperties
+    type            (multiCounter         )              , intent(in   ) :: outputInstance
+    integer                                              , intent(in   ) :: instance
+    !$GLC attributes unused :: self, integerProperty, integerBufferCount, integerProperties, doubleProperty, doubleBufferCount, doubleProperties, time, outputInstance, instance
 
     return
   end subroutine Node_Component_Output_Null

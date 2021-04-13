@@ -142,6 +142,10 @@ sub Implementation_Output_Names {
 	name        => $code::class->{'name'}.ucfirst($code::member->{'name'})."OutputNames",
 	description => "Return the names of properties to output for a {\\normalfont \\ttfamily ".$code::member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
 	content     => "",
+	modules     =>
+	    [
+	     "Merger_Tree_Outputter_Buffer_Types"
+	    ],
 	variables   =>
 	    [
 	     {
@@ -156,15 +160,10 @@ sub Implementation_Output_Names {
 		 variables  => [ "integerProperty" ]
 	     },
 	     {
-		 intrinsic  => "character",
-		 type       => "len=*",
+		 intrinsic  => "type",
+		 type       => "outputPropertyInteger",
 		 attributes => [ "intent(inout)", "dimension(:)" ], 
-		 variables  => [ "integerPropertyNames", "integerPropertyComments" ]
-	     },
-	     {
-		 intrinsic  => "double precision",
-		 attributes => [ "intent(inout)", "dimension(:)" ],
-		 variables  => [ "integerPropertyUnitsSI" ]
+		 variables  => [ "integerProperties" ]
 	     },
 	     {
 		 intrinsic  => "integer", 
@@ -172,15 +171,10 @@ sub Implementation_Output_Names {
 		 variables  => [ "doubleProperty" ]
 	     },
 	     {
-		 intrinsic  => "character",
-		 type       => "len=*",
+		 intrinsic  => "type",
+		 type       => "outputPropertyDouble",
 		 attributes => [ "intent(inout)", "dimension(:)" ], 
-		 variables  => [ "doublePropertyNames", "doublePropertyComments" ]
-	     },
-	     {
-		 intrinsic  => "double precision",
-		 attributes => [ "intent(inout)", "dimension(:)" ],
-		 variables  => [ "doublePropertyUnitsSI" ]
+		 variables  => [ "doubleProperties" ]
 	     },
 	     {
 		 intrinsic  => "double precision",
@@ -195,11 +189,11 @@ sub Implementation_Output_Names {
 	    ]
     };
     # Perform common output tasks (add modules, variables required, and identify unused arguments).
-    &Implementation_Output_Common_Tasks($build,$code::class,$code::member,$function,[ "Property", "PropertyNames", "PropertyComments", "PropertyUnitsSI" ]);
+    &Implementation_Output_Common_Tasks($build,$code::class,$code::member,$function,[ "Property", "Properties" ]);
     # Get the count of the parent type if necessary.
     if ( exists($code::member->{'extends'}) ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-call self%nodeComponent{ucfirst($member->{'extends'}->{'class'}).ucfirst($member->{'extends'}->{'name'})}%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance)
+call self%nodeComponent{ucfirst($member->{'extends'}->{'class'}).ucfirst($member->{'extends'}->{'name'})}%outputNames(integerProperty,integerProperties,doubleProperty,doubleProperties,time,instance)
 CODE
     }
     # If only the first instance is to be output, check instance number and return if not first.
@@ -218,30 +212,30 @@ CODE
 	    $code::outputType = $outputTypeMap{$code::property->{'data'}->{'type'}};
 	    if ( $code::property->{'data'}->{'rank'} == 0 ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-{$outputType}Property                               = {$outputType}Property+1
-{$outputType}PropertyNames   ({$outputType}Property)='{$class->{'name'}.ucfirst($property->{'name'})}'
-{$outputType}PropertyComments({$outputType}Property)='{$property->{'output'}->{'comment'  }}'
-{$outputType}PropertyUnitsSI ({$outputType}Property)= {$property->{'output'}->{'unitsInSI'}}
+{$outputType}Property                                   = {$outputType}Property+1
+{$outputType}Properties({$outputType}Property)%name     ='{$class->{'name'}.ucfirst($property->{'name'})}'
+{$outputType}Properties({$outputType}Property)%comment  ='{$property->{'output'}->{'comment'  }}'
+{$outputType}Properties({$outputType}Property)%unitsInSI= {$property->{'output'}->{'unitsInSI'}}
 CODE
 	    } elsif ( $code::property->{'data'}->{'rank'} == 1 ) {
 		if ( $code::property->{'output'}->{'labels'} =~ m/^\[(.*)\]$/ ) {
 		    (my $labels = $1) =~ s/\s//g;
 	            foreach $code::label ( split(",",$labels) ) {
 			$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-{$outputType}Property                               ={$outputType}Property+1
-{$outputType}PropertyNames   ({$outputType}Property)='{$class->{'name'}.ucfirst($property->{'name'}).$label}'
-{$outputType}PropertyComments({$outputType}Property)='{$property->{'output'}->{'comment'  }} [{$label}]'
-{$outputType}PropertyUnitsSI ({$outputType}Property)= {$property->{'output'}->{'unitsInSI'}}
+{$outputType}Property                                   ={$outputType}Property+1
+{$outputType}Properties({$outputType}Property)%name     ='{$class->{'name'}.ucfirst($property->{'name'}).$label}'
+{$outputType}Properties({$outputType}Property)%comment  ='{$property->{'output'}->{'comment'  }} [{$label}]'
+{$outputType}Properties({$outputType}Property)%unitsInSI= {$property->{'output'}->{'unitsInSI'}}
 CODE
 		    }
 		} elsif ( exists($code::property->{'output'}->{'count'}) ) {
 		    (my $label = $code::property->{'output'}->{'labels'}) =~ s/\{i\}/i/g;
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 do i=1,{$property->{'output'}->{'count'}}
-   {$outputType}Property                               ={$outputType}Property+1
-   {$outputType}PropertyNames   ({$outputType}Property)='{$class->{'name'}.ucfirst($propertyName)}'//{$label}
-   {$outputType}PropertyComments({$outputType}Property)='{$property->{'output'}->{'comment'  }} [' //{$label}//']'
-   {$outputType}PropertyUnitsSI ({$outputType}Property)= {$property->{'output'}->{'unitsInSI'}}
+   {$outputType}Property                                   ={$outputType}Property+1
+   {$outputType}Properties({$outputType}Property)%name     ='{$class->{'name'}.ucfirst($propertyName)}'//{$label}
+   {$outputType}Properties({$outputType}Property)%comment  ='{$property->{'output'}->{'comment'  }} [' //{$label}//']'
+   {$outputType}Properties({$outputType}Property)%unitsInSI= {$property->{'output'}->{'unitsInSI'}}
 end do
 CODE
                 }
@@ -250,7 +244,7 @@ CODE
 	    $code::unitsInSI = exists($code::property->{'output'}->{'unitsInSI'}) ? $code::property->{'output'}->{'unitsInSI'} : "0.0d0";
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 output{ucfirst($property->{'data'}->{'type'})}=self%{$property->{'name'}}()			   
-call output{ucfirst($property->{'data'}->{'type'})}%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,'{$class->{'name'}.ucfirst($property->{'name'})}','{$property->{'output'}->{'comment'}}',{$unitsInSI})
+call output{ucfirst($property->{'data'}->{'type'})}%outputNames(integerProperty,integerProperties,doubleProperty,doubleProperties,time,'{$class->{'name'}.ucfirst($property->{'name'})}','{$property->{'output'}->{'comment'}}',{$unitsInSI})
 CODE
 	}
     }

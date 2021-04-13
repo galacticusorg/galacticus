@@ -34,78 +34,78 @@ my @tests =
      	     ]
      },
      {
-	 # Closed box chemical evolution model - values below are computed from the analytic solution for this model.
-	 name           => "closedBox"                                         ,
-	 parameters     => "testSuite/parameters/reproducibility/closedBox.xml",
-	 outputFileName => "testSuite/outputs/reproducibility/closedBox.hdf5"  ,
-	 assertions     =>
-	     [
-	      {
-		  name              => "gas mass"                   ,
-		  output            => 1                            ,
-		  property          => "diskMassGas"                ,
-		  values            => pdl ( 9.0717953e9  )         ,
-		  toleranceRelative => 1.0e-2
-	      },
-	      {
-		  name              => "stellar mass"               ,
-		  output            => 1                            ,
-		  property          => "diskMassStellar"            ,
-		  values            => pdl ( 9.0928205e10  )        ,
-		  toleranceRelative => 1.0e-2
-	      },
-	      {
-		  name              => "gas metals"                 ,
-		  output            => 1                            ,
-		  property          => "diskAbundancesGasMetals"    ,
-		  values            => pdl ( 9.0717953e8 )          ,
-		  toleranceRelative => 1.0e-2
-	      },
-	      {
-		  name              => "stellar metals"             ,
-		  output            => 1                            ,
-		  property          => "diskAbundancesStellarMetals",
-		  values            => pdl ( 2.8814957e9 )          ,
-		  toleranceRelative => 1.0e-2
-	      }
-	     ]
+     	 # Closed box chemical evolution model - values below are computed from the analytic solution for this model.
+     	 name           => "closedBox"                                         ,
+     	 parameters     => "testSuite/parameters/reproducibility/closedBox.xml",
+     	 outputFileName => "testSuite/outputs/reproducibility/closedBox.hdf5"  ,
+     	 assertions     =>
+     	     [
+     	      {
+     		  name              => "gas mass"                   ,
+     		  output            => 1                            ,
+     		  property          => "diskMassGas"                ,
+     		  values            => pdl ( 9.0717953e9  )         ,
+     		  toleranceRelative => 1.0e-2
+     	      },
+     	      {
+     		  name              => "stellar mass"               ,
+     		  output            => 1                            ,
+     		  property          => "diskMassStellar"            ,
+     		  values            => pdl ( 9.0928205e10  )        ,
+     		  toleranceRelative => 1.0e-2
+     	      },
+     	      {
+     		  name              => "gas metals"                 ,
+     		  output            => 1                            ,
+     		  property          => "diskAbundancesGasMetals"    ,
+     		  values            => pdl ( 9.0717953e8 )          ,
+     		  toleranceRelative => 1.0e-2
+     	      },
+     	      {
+     		  name              => "stellar metals"             ,
+     		  output            => 1                            ,
+     		  property          => "diskAbundancesStellarMetals",
+     		  values            => pdl ( 2.8814957e9 )          ,
+     		  toleranceRelative => 1.0e-2
+     	      }
+     	     ]
      },
      {
-	 # Leaky box chemical evolution model - values below are computed from the analytic solution for this model.
-	 name           => "leakyBox"                                         ,
-	 parameters     => "testSuite/parameters/reproducibility/leakyBox.xml",
-	 outputFileName => "testSuite/outputs/reproducibility/leakyBox.hdf5"  ,
-	 assertions     =>
-	     [
-	      {
-		  name              => "gas mass"                   ,
-		  output            => 1                            ,
-		  property          => "diskMassGas"                ,
-		  values            => pdl ( 4.0762204e9  )         ,
-		  toleranceRelative => 1.1e-2
-	      },
-	      {
-		  name              => "stellar mass"               ,
-		  output            => 1                            ,
-		  property          => "diskMassStellar"            ,
-		  values            => pdl ( 3.5971417e10  )        ,
-		  toleranceRelative => 1.0e-2
-	      },
-	      {
-		  name              => "gas metals"                 ,
-		  output            => 1                            ,
-		  property          => "diskAbundancesGasMetals"    ,
-		  values            => pdl ( 2.03811e8   )          ,
-		  toleranceRelative => 1.0e-2
-	      },
-	      {
-		  name              => "stellar metals"             ,
-		  output            => 1                            ,
-		  property          => "diskAbundancesStellarMetals",
-		  values            => pdl ( 4.85624e8   )          ,
-		  toleranceRelative => 1.0e-2
-	      }
-	     ]
+     	 # Leaky box chemical evolution model - values below are computed from the analytic solution for this model.
+     	 name           => "leakyBox"                                         ,
+     	 parameters     => "testSuite/parameters/reproducibility/leakyBox.xml",
+     	 outputFileName => "testSuite/outputs/reproducibility/leakyBox.hdf5"  ,
+     	 assertions     =>
+     	     [
+     	      {
+     		  name              => "gas mass"                   ,
+     		  output            => 1                            ,
+     		  property          => "diskMassGas"                ,
+     		  values            => pdl ( 4.0762204e9  )         ,
+     		  toleranceRelative => 1.1e-2
+     	      },
+     	      {
+     		  name              => "stellar mass"               ,
+     		  output            => 1                            ,
+     		  property          => "diskMassStellar"            ,
+     		  values            => pdl ( 3.5971417e10  )        ,
+     		  toleranceRelative => 1.0e-2
+     	      },
+     	      {
+     		  name              => "gas metals"                 ,
+     		  output            => 1                            ,
+     		  property          => "diskAbundancesGasMetals"    ,
+     		  values            => pdl ( 2.03811e8   )          ,
+     		  toleranceRelative => 1.0e-2
+     	      },
+     	      {
+     		  name              => "stellar metals"             ,
+     		  output            => 1                            ,
+     		  property          => "diskAbundancesStellarMetals",
+     		  values            => pdl ( 4.85624e8   )          ,
+     		  toleranceRelative => 1.0e-2
+     	      }
+     	     ]
      },
      {
 	 name           => "adiabaticContraction"                                         ,
@@ -128,10 +128,10 @@ my @tests =
 		  toleranceRelative => 4.0e-5
 	      },
 	      {
-		  name              => "rotation curve"                                                        ,
-		  output            => 1                                                                       ,
-		  expression        => "%[rotationCurve:spheroidRadius:all:all:1.0]/%[spheroidVelocity]",
-		  values            => pdl ( 1.0 )                                                             ,
+		  name              => "rotation curve"                         ,
+		  output            => 1                                        ,
+		  expression        => "%[rotationCurve{0}]/%[spheroidVelocity]",
+		  values            => pdl ( 1.0 )                              ,
 		  toleranceRelative => 2.0e-4
 	      },
 	      {
@@ -153,24 +153,24 @@ my @tests =
 		  #  √f₀ Vᵥ r₀/V₁/r₁ = 1.		  
 		  # Finally, r₀ = rᵥ Mₜ(r₁)/Mᵥ, and Mₜ(r₁) f₁ = Vᵪ₁² r₁/G where Vᵪ₁² is the dark matter contrbution to the
 		  # final rotation curve.  In this calculation, f₁=(0.3-0.05)/0.3=0.833333, and f₀=f₁+10¹⁰/10¹²=0.8433333, 
-		  name              => "initial specific angular momentum"       ,
-		  output            => 1                                         ,
+		  name              => "initial specific angular momentum",
+		  output            => 1                                  ,
 		  expression        =>
-		      "+sqrt(0.84333333)"                                        .
-		      "*%[darkMatterOnlyVelocityVirial]"                         .
-		      "/%[spheroidVelocity]"                                     .
-		      "*("                                                       .
-		      "  +%[darkMatterOnlyRadiusVirial]"                         .
-		      "  *("                                                     .
-		      "    +%[rotationCurve:spheroidRadius:darkHalo:dark:1.0]**2".
-		      "    *%[spheroidRadius]"                                   .
-		      "    /$gravitationalConstant"                              .
-		      "    /0.83333333"                                          .
-		      "   )"                                                     .
-		      "  /%[basicMass]"                                          .
+		      "+sqrt(0.84333333)"                                 .
+		      "*%[darkMatterOnlyVelocityVirial]"                  .
+		      "/%[spheroidVelocity]"                              .
+		      "*("                                                .
+		      "  +%[darkMatterOnlyRadiusVirial]"                  .
+		      "  *("                                              .
+		      "    +%[rotationCurve{1}]**2"                       .
+		      "    *%[spheroidRadius]"                            .
+		      "    /$gravitationalConstant"                       .
+		      "    /0.83333333"                                   .
+		      "   )"                                              .
+		      "  /%[basicMass]"                                   .
 		      " )".
-		      "/%[spheroidRadius]"                                       ,
-		  values            => pdl ( 1.0 )                               ,
+		      "/%[spheroidRadius]"                                ,
+		  values            => pdl ( 1.0 )                        ,
 		  toleranceRelative => 3.0e-3
 	      }
 	     ]
@@ -193,9 +193,13 @@ foreach my $test ( @tests ) {
 		$values      = $property->get    (                        );
 	    } elsif ( exists($assertion->{'expression'}) ) {
 		my %propertyNames;
-		while ( my @matches = $assertion->{'expression'} =~ m/%\[([^%]+)\]/ ) {
-		    my $propertyName = $matches[0];
-		    $assertion->{'expression'} =~ s/%\[([^%]+)\]/\$properties{'$1'}/;
+		while ( my @matches = $assertion->{'expression'} =~ m/%\[([^%]+?)({(\d+)})??\]/ ) {
+		    my $propertyName  = $matches[0];
+		    my $propertyIndex = $matches[2];
+		    my $replacement = "\$properties{'$1'}";
+		    $replacement .= "->((".$propertyIndex."),:)"
+			if ( defined($propertyIndex) );
+		    $assertion->{'expression'} =~ s/%\[[^%]+\]/$replacement/;
 		    ++$propertyNames{$propertyName};
 		}
 		my %properties;
