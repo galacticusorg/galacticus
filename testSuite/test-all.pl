@@ -111,7 +111,7 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
-	name     => "tests.files.exe",                                                   # Tests of file functions.
+	name     => "tests.files.exe",                                                    # Tests of file functions.
 	valgrind => 0,
 	mpi      => 0
     },
@@ -482,6 +482,11 @@ my @executablesToRun = (
     },
     {
 	name     => "tests.accretion_disks.exe",                                          # Tests of accretion disks.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
+	name     => "tests.mass_accretion_history.Hearin2021.exe",                        # Tests of dark matter halo mass accretion histories.
 	valgrind => 0,
 	mpi      => 0
     },
