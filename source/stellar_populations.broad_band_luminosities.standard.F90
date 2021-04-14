@@ -612,7 +612,7 @@ contains
 
       ! If this luminosity is for a redshifted spectrum, then we shift wavelength at which we sample the stellar population
       ! spectrum to be a factor of (1+z) smaller. We therefore integrate over the stellar SED at shorter wavelengths, since these
-      ! will be shifted into the filter by z=0. Factor of 1/wavelength appears since we want to integrate F_ν (dν / ν) and dν =
+      ! will be shifted into the filter by z=0. The factor of 1/λ appears since we want to integrate F_ν (dν / ν) and dν =
       ! -c/λ² dλ. Note that we follow the convention of Hogg et al. (2002) and assume that the filter response gives the fraction
       ! of incident photons received by the detector at a given wavelength, multiplied by the relative photon response (which will
       ! be 1 for a photon-counting detector such as a CCD, or proportional to the photon energy for a bolometer/calorimeter type
