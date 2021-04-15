@@ -1059,10 +1059,11 @@ contains
      type            (history ), intent(in   )           :: addHistory
      logical                   , intent(in   ), optional :: autoExtend
      integer                                             :: addCount           , addHistoryPointCount
-     integer         (c_size_t)                          :: timeBeginIndex     , timeEndIndex            , &
+     integer         (c_size_t)                          :: timeBeginIndex     , timeEndIndex        , &
           &                                                 iPoint             , jPoint
-     double precision                                    :: fractionContributed, timeBegin               , &
-          &                                                 timeEnd
+     double precision                                    :: fractionContributed, timeBegin           , &
+          &                                                 timeEnd            , timeBeginAdd        , &
+          &                                                 timeEndAdd
      !# <optionalArgument name="autoExtend" defaultsTo=".false." />
 
      select type (history_)
@@ -1108,6 +1109,12 @@ contains
         end if
         ! Transfer each entry from addHistory to history_.
         do iPoint=1,addCount
+           if (iPoint == 1) then
+              timeBeginAdd=0.0d0
+           else
+              timeBeginAdd=addHistory%time(iPoint-1)
+           end if
+           timeEndAdd     =addHistory%time(iPoint  )
            ! Find indices in history_ spanned by addHistory point.
            if (iPoint > 1) then
               ! Reuse the end index from the previous loop iteration if available.
@@ -1119,12 +1126,12 @@ contains
            ! Loop over all points in history_ to which we need to add this contribution.
            do jPoint=timeBeginIndex,timeEndIndex
               if (jPoint == 1) then
-                 timeBegin=                            addHistory%time(iPoint-1)
+                 timeBegin=                            timeBeginAdd
               else
-                 timeBegin=max(history_%time(jPoint-1),addHistory%time(iPoint-1))
+                 timeBegin=max(history_%time(jPoint-1),timeBeginAdd)
               end if
-              timeEnd     =min(history_%time(jPoint  ),addHistory%time(iPoint  ))
-              fractionContributed=max(0.0d0,(timeEnd-timeBegin)/(addHistory%time(iPoint)-addHistory%time(iPoint-1)))
+              timeEnd     =min(history_%time(jPoint  ),timeEndAdd  )
+              fractionContributed=max(0.0d0,(timeEnd-timeBegin)/(timeEndAdd-timeBeginAdd))
               history_%data(jPoint,:)=history_%data(jPoint,:)+addHistory%data(iPoint,:)*fractionContributed
            end do
         end do
