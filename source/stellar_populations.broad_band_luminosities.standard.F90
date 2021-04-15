@@ -472,12 +472,18 @@ contains
                       allocate(standardStellarPopulationSpectra             ,mold=stellarPopulationSpectra_                                                                 )
                       allocate(standardStellarPopulationSpectraPostprocessor,mold=stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_)
                       !$omp critical(broadBandLuminositiesDeepCopy)
-                      !# <deepCopyReset variables="stellarPopulationSpectra_ stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_"/>
-                      !# <deepCopy source="stellarPopulationSpectra_"                                                                  destination="standardStellarPopulationSpectra"             />
-                      !# <deepCopy source="stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_" destination="standardStellarPopulationSpectraPostprocessor"/>
-                      !# <deepCopyFinalize variables="standardStellarPopulationSpectra standardStellarPopulationSpectraPostprocessor"/>
+                      !# <deepCopyReset variables="stellarPopulationSpectra_"/>
+                      !# <deepCopy source="stellarPopulationSpectra_" destination="standardStellarPopulationSpectra"/>
+                      !# <deepCopyFinalize variables="standardStellarPopulationSpectra"/>
                       !$omp end critical(broadBandLuminositiesDeepCopy)
                    end if
+                   ! The postprocessor can differ for each luminosity, so deep copy it always.
+                   allocate(standardStellarPopulationSpectraPostprocessor,mold=stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_)
+                   !$omp critical(broadBandLuminositiesDeepCopy)
+                   !# <deepCopyReset variables="stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_"/>
+                   !# <deepCopy source="stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_" destination="standardStellarPopulationSpectraPostprocessor"/>
+                   !# <deepCopyFinalize variables="standardStellarPopulationSpectraPostprocessor"/>
+                   !$omp end critical(broadBandLuminositiesDeepCopy)
                    ! Get the filter response function as an interpolator.
                    standardFilterResponse => Filter_Response_Function(filterIndex(iLuminosity))
                    !$omp do schedule(dynamic)
@@ -530,6 +536,7 @@ contains
                       end do
                    end do
                    !$omp end do
+                   !# <objectDestructor name="standardStellarPopulationSpectraPostprocessor"/>
                    !$omp single
                    ! Clear the counter and write a completion message.
                    call displayCounterClear(           verbosityLevelWorking)
@@ -590,8 +597,7 @@ contains
           !$omp end single
           if (copyDone) then
              deallocate(integrator_)
-             !# <objectDestructor name="standardStellarPopulationSpectra"             />
-             !# <objectDestructor name="standardStellarPopulationSpectraPostprocessor"/>
+             !# <objectDestructor name="standardStellarPopulationSpectra"/>
           end if
           !$omp end parallel
           !$omp end critical(broadBandLuminositiesStandardComputeTable)
