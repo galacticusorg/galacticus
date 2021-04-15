@@ -605,9 +605,13 @@ contains
           if (.not.self%outputGroups(indexOutput)% doubleAttributesWritten.and. self%doubleProperty(iProperty)%unitsInSI /= 0.0d0) then
              dataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%doubleProperty(iProperty)%name)
              call        dataset%writeAttribute(self%doubleProperty(iProperty)%unitsInSI       ,"unitsInSI"        )
-             if (allocated(self%doubleProperty(iProperty)%rank1Descriptors) .and. size(self%doubleProperty(iProperty)%rank1Descriptors) > 0) &
-                  & call dataset%writeAttribute(self%doubleProperty(iProperty)%rank1Descriptors,"columnDescriptors")
              call        dataset%close         (                                                                   )
+             if (allocated(self%doubleProperty(iProperty)%rank1Descriptors) .and. size(self%doubleProperty(iProperty)%rank1Descriptors) > 0)                        &
+                  & call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                                 &
+                  &                                                                     self%doubleProperty(iProperty)%rank1Descriptors                           , &
+                  &                                                                trim(self%doubleProperty(iProperty)%name            )//"Columns"               , &
+                  &                                                                trim(self%doubleProperty(iProperty)%comment         )//" (column descriptions)"  &
+                  &                                                               )
           end if
        end do
        self%doublePropertiesWritten=self%doublePropertiesWritten+self%doubleBufferCount
