@@ -26,10 +26,11 @@
      !% A null star formation histories class.
      private
    contains
-     procedure :: create => nullCreate
-     procedure :: rate   => nullRate
-     procedure :: output => nullOutput
-     procedure :: scales => nullScales
+     procedure :: create                => nullCreate
+     procedure :: rate                  => nullRate
+     procedure :: output                => nullOutput
+     procedure :: scales                => nullScales
+     procedure :: metallicityBoundaries => nullMetallicityBoundaries
   end type starFormationHistoryNull
 
   interface starFormationHistoryNull
@@ -107,3 +108,14 @@ contains
     ! Do nothing.
     return
   end subroutine nullScales
+
+  function nullMetallicityBoundaries(self)
+    !% Return the boundaries of the metallicities used in this tabulation.
+    implicit none
+    double precision                          , allocatable  , dimension(:) :: nullMetallicityBoundaries
+    class           (starFormationHistoryNull), intent(inout)               :: self
+
+    allocate(nullMetallicityBoundaries(0:1))
+    nullMetallicityBoundaries(0:1)=[0.0d0,huge(0.0d0)]
+    return
+  end function nullMetallicityBoundaries

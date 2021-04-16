@@ -113,14 +113,17 @@
      !# <methods>
      !#  <method description="Output all star formation history data accumulated in the output buffers." method="outputBuffers"/>
      !# </methods>
-     final     ::                  adaptiveDestructor
-     procedure :: autoHook      => adaptiveAutoHook
-     procedure :: create        => adaptiveCreate
-     procedure :: rate          => adaptiveRate
-     procedure :: output        => adaptiveOutput
-     procedure :: outputFlush   => adaptiveOutputFlush
-     procedure :: scales        => adaptiveScales
-     procedure :: outputBuffers => adaptiveOutputBuffers
+     final     ::                                adaptiveDestructor
+     procedure :: autoHook                    => adaptiveAutoHook
+     procedure :: create                      => adaptiveCreate
+     procedure :: rate                        => adaptiveRate
+     procedure :: output                      => adaptiveOutput
+     procedure :: outputFlush                 => adaptiveOutputFlush
+     procedure :: scales                      => adaptiveScales
+     procedure :: outputBuffers               => adaptiveOutputBuffers
+     procedure :: metallicityBoundaries       => adaptiveMetallicityBoundaries
+     procedure :: perOutputTabualtionIsStatic => adapativePerOutputTabualtionIsStatic
+     procedure :: descriptor                  => adaptiveDescriptor
   end type starFormationHistoryAdaptive
 
   interface starFormationHistoryAdaptive
@@ -598,3 +601,54 @@ contains
     end select
     return
   end subroutine adaptiveFinalize
+
+  function adaptiveMetallicityBoundaries(self)
+    !% Return the boundaries of the metallicities used in this tabulation.
+    implicit none
+    double precision                              , allocatable  , dimension(:) :: adaptiveMetallicityBoundaries
+    class           (starFormationHistoryAdaptive), intent(inout)               :: self
+
+    allocate(adaptiveMetallicityBoundaries(0:size(self%metallicityTable)-1))
+    adaptiveMetallicityBoundaries(0:size(self%metallicityTable)-1)=self%metallicityTable(1:size(self%metallicityTable))
+    return
+  end function adaptiveMetallicityBoundaries
+
+  logical function adapativePerOutputTabualtionIsStatic(self)
+    !% Return true since the tabulation (in time and metallicity) is static (independent of node) per output.
+    implicit none
+    class(starFormationHistoryAdaptive), intent(inout) :: self
+
+    adapativePerOutputTabualtionIsStatic=.true.
+    return
+  end function adapativePerOutputTabualtionIsStatic
+
+  subroutine adaptiveDescriptor(self,descriptor,includeMethod)
+    !% Return an input parameter list descriptor which could be used to recreate this object.
+    use :: Input_Parameters  , only : inputParameters
+    use :: ISO_Varying_String, only : assignment(=)  , operator(//), char
+    implicit none
+    class    (starFormationHistoryAdaptive), intent(inout)           :: self
+    type     (inputParameters             ), intent(inout)           :: descriptor
+    logical                                , intent(in   ), optional :: includeMethod
+    character(len=18                      )                          :: parameterLabel
+    type     (inputParameters             )                          :: parameters
+    integer                                                          :: i
+    type     (varying_string              )                          :: metallicityBoundariesLabel
+
+    if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter('starFormationHistoryMethod','adaptive')
+    parameters=descriptor%subparameters('starFormationHistoryMethod')
+    write (parameterLabel,'(e17.10)') self%timeStepMinimum
+    call parameters%addParameter('timeStepMinimum'      ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(i17)   ') self%countTimeStepsMaximum
+    call parameters%addParameter('countTimeStepsMaximum',trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(i17)   ') self%countOutputBuffer
+    call parameters%addParameter('countOutputBuffer'    ,trim(adjustl(parameterLabel)))
+    metallicityBoundariesLabel=""
+    do i=1,size(self%metallicityTable)
+       write (parameterLabel,'(e17.10)') self%metallicityTable(i)
+       metallicityBoundariesLabel=metallicityBoundariesLabel//trim(adjustl(parameterLabel))//" "
+    end do
+    call parameters%addParameter('metallicityBoundaries',char(metallicityBoundariesLabel))
+    call self%outputTimes_%descriptor(parameters)
+    return
+  end subroutine adaptiveDescriptor

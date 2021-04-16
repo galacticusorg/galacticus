@@ -82,6 +82,20 @@ module Star_Formation_Histories
   !#    ! Do nothing by default.
   !#   </code>
   !#  </method>
+  !#  <method name="metallicityBoundaries" >
+  !#   <description>Return a (zero-indexed) array of metallicity boundaries for this history.</description>
+  !#   <type>double precision, allocatable, dimension(:)</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="perOutputTabualtionIsStatic" >
+  !#   <description>Return true if the tabulation (in time and metallicity) is static (independent of node) per output.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#   <code>
+  !#    !$GLC attributes unused :: self
+  !#    starFormationHistoryPerOutputTabualtionIsStatic=.false.
+  !#   </code>
+  !#  </method>
   !# </functionClass>
 
 end module Star_Formation_Histories

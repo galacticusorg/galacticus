@@ -105,12 +105,13 @@
      !# <methods>
      !#   <method description="Make the star formation history." method="make" />
      !# </methods>
-     final     ::           metallicitySplitDestructor
-     procedure :: create => metallicitySplitCreate
-     procedure :: rate   => metallicitySplitRate
-     procedure :: output => metallicitySplitOutput
-     procedure :: scales => metallicitySplitScales
-     procedure :: make   => metallicitySplitMake
+     final     ::                          metallicitySplitDestructor
+     procedure :: create                => metallicitySplitCreate
+     procedure :: rate                  => metallicitySplitRate
+     procedure :: output                => metallicitySplitOutput
+     procedure :: scales                => metallicitySplitScales
+     procedure :: make                  => metallicitySplitMake
+     procedure :: metallicityBoundaries => metallicitySplitMetallicityBoundaries
   end type starFormationHistoryMetallicitySplit
 
   interface starFormationHistoryMetallicitySplit
@@ -549,3 +550,14 @@ contains
     end if
     return
   end subroutine metallicitySplitMake
+
+  function metallicitySplitMetallicityBoundaries(self)
+    !% Return the boundaries of the metallicities used in this tabulation.
+    implicit none
+    double precision                                      , allocatable  , dimension(:) :: metallicitySplitMetallicityBoundaries
+    class           (starFormationHistoryMetallicitySplit), intent(inout)               :: self
+
+    allocate(metallicitySplitMetallicityBoundaries(0:size(self%metallicityTable)-1))
+    metallicitySplitMetallicityBoundaries(0:size(self%metallicityTable)-1)=self%metallicityTable(1:size(self%metallicityTable))
+    return
+  end function metallicitySplitMetallicityBoundaries

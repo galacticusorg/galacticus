@@ -40,13 +40,14 @@
      !# <methods>
      !#   <method description="Make the star formation history." method="make" />
      !# </methods>
-     final     ::             inSituDestructor
-     procedure :: create   => inSituCreate
-     procedure :: rate     => inSituRate
-     procedure :: output   => inSituOutput
-     procedure :: scales   => inSituScales
-     procedure :: make     => inSituMake
-     procedure :: autoHook => inSituAutoHook
+     final     ::                          inSituDestructor
+     procedure :: create                => inSituCreate
+     procedure :: rate                  => inSituRate
+     procedure :: output                => inSituOutput
+     procedure :: scales                => inSituScales
+     procedure :: make                  => inSituMake
+     procedure :: autoHook              => inSituAutoHook
+     procedure :: metallicityBoundaries => inSituMetallicityBoundaries
   end type starFormationHistoryInSitu
 
   interface starFormationHistoryInSitu
@@ -429,3 +430,13 @@ contains
     return
   end subroutine inSituSatelliteMerger
 
+  function inSituMetallicityBoundaries(self)
+    !% Return the boundaries of the metallicities used in this tabulation.
+    implicit none
+    double precision                            , allocatable  , dimension(:) :: inSituMetallicityBoundaries
+    class           (starFormationHistoryInSitu), intent(inout)               :: self
+
+    allocate(inSituMetallicityBoundaries(0:1))
+    inSituMetallicityBoundaries(0:1)=[0.0d0,huge(0.0d0)]
+    return
+  end function inSituMetallicityBoundaries
