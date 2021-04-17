@@ -59,7 +59,7 @@ contains
     !% Initialize a database of emission line properties.
     use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataStatic
     use :: IO_HDF5           , only : hdf5Object    , hdf5Access
-    use :: ISO_Varying_String, only : char
+    use :: ISO_Varying_String, only : char          , operator(==)
     implicit none
     type   (hdf5Object) :: file   , lines, &
          &                 dataset
@@ -74,9 +74,13 @@ contains
           call lines%datasets(lineNames)
           allocate(wavelengths(size(lineNames)))
           do i=1,size(lineNames)
-             dataset=lines%openDataset(char(lineNames(i)))
-             call dataset%readAttribute("wavelength",wavelengths(i))
-             call dataset%close        (                           )
+             if (lineNames(i) == "status") then
+                wavelengths(i)=-1.0d0
+             else
+                dataset=lines%openDataset(char(lineNames(i)))
+                call dataset%readAttribute("wavelength",wavelengths(i))
+                call dataset%close        (                           )
+             end if
           end do
           call lines%close()
           call file %close()
