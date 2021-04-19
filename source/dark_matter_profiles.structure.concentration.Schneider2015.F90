@@ -69,7 +69,7 @@
   !$omp threadprivate(self_,massReferencePrevious,timeCollapseReference,time_,timeNowReference,referenceCollapseMassRootPrevious)
 
   ! Upper limit to the reference mass used during root finding.
-  double precision                                             , parameter :: massReferenceMaximum             =1.0d20
+  double precision                                             , parameter :: massReferenceMaximum             =1.0d30
 
 contains
 
@@ -209,7 +209,7 @@ contains
        massReference        =massReferenceMaximum
     else
        massReference        =self%finder%find(rootGuess=mass)
-    end if    
+    end if
     ! Compute the concentration of a node of this mass in the reference model.
     call basic%massSet(massReference)
     schneider2015Concentration=self%referenceConcentration%concentration(node)
