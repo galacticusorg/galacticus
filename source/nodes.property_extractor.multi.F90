@@ -329,14 +329,14 @@ contains
     return
   end function multiNames
 
-  function multiColumnDescriptions(self,elementType,i,time)
+  subroutine multiColumnDescriptions(self,elementType,i,time,descriptions)
     !% Return column descriptions of the multiple properties.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    type            (varying_string            ), dimension(:) , allocatable :: multiColumnDescriptions
     class           (nodePropertyExtractorMulti), intent(inout)              :: self
     integer                                     , intent(in   )              :: elementType            , i
     double precision                            , intent(in   )              :: time
+    type            (varying_string            ), intent(  out), dimension(:) , allocatable :: descriptions
     type            (multiExtractorList        ), pointer                    :: extractor_
     integer                                                                  :: elementCount           , offset
 
@@ -349,7 +349,7 @@ contains
           if (elementType == elementTypeDouble ) then
              elementCount=1
              if (offset+elementCount >= i) then
-                allocate(multiColumnDescriptions(0))
+                allocate(descriptions(0))
                 return
              end if
           end if
@@ -357,7 +357,7 @@ contains
           if (elementType == elementTypeDouble ) then
              elementCount=extractor_%elementCount(time)
              if (offset+elementCount >= i) then
-                allocate(multiColumnDescriptions(0))
+                allocate(descriptions(0))
                 return
              end if
           end if
@@ -365,7 +365,7 @@ contains
           if (elementType == elementTypeInteger) then
              elementCount=1
              if (offset+elementCount >= i) then
-                allocate(multiColumnDescriptions(0))
+                allocate(descriptions(0))
                 return
              end if
           end if
@@ -373,7 +373,7 @@ contains
           if (elementType == elementTypeInteger) then
              elementCount=extractor_%elementCount(time)
              if (offset+elementCount >= i) then
-                allocate(multiColumnDescriptions(0))
+                allocate(descriptions(0))
                 return
              end if
           end if
@@ -381,8 +381,8 @@ contains
           if (elementType == elementTypeDouble ) then
              elementCount=extractor_%elementCount(time)
              if (offset+elementCount >= i) then
-                allocate(multiColumnDescriptions(extractor_%size(time)))
-                multiColumnDescriptions=extractor_%columnDescriptions(time)
+                allocate(descriptions(extractor_%size(time)))
+                descriptions=extractor_%columnDescriptions(time)
                 return
              end if
           end if
@@ -393,7 +393,7 @@ contains
        extractor_ => extractor_%next
     end do
     return
-  end function multiColumnDescriptions
+  end subroutine multiColumnDescriptions
 
   function multiDescriptions(self,elementType,time)
     !% Return the descriptions of the multiple properties.

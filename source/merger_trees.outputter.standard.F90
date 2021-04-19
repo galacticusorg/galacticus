@@ -794,7 +794,6 @@ contains
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%unitsInSI =extractor_%unitsInSI   (                   time)
        do i=1,extractor_%elementCount(time)
           if (allocated(self%doubleProperty(doubleProperty+i)%rank1Descriptors)) deallocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors)
-          allocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors(extractor_%size(time)))
           self%doubleProperty(doubleProperty+i)%rank1Descriptors=extractor_%columnDescriptions(time)
        end do
        doubleProperty =doubleProperty +extractor_%elementCount(time)
@@ -812,19 +811,22 @@ contains
        integerProperty=integerProperty+extractor_%elementCount(time)
     class is (nodePropertyExtractorMulti        )
        ! Multi proprty extractor - get the names, descriptions, and units.
-       self%doubleProperty(doubleProperty +1:doubleProperty +extractor_%elementCount(elementTypeDouble ,time))%name      =extractor_%names       (elementTypeDouble ,time)
-       self%doubleProperty(doubleProperty +1:doubleProperty +extractor_%elementCount(elementTypeDouble ,time))%comment   =extractor_%descriptions(elementTypeDouble ,time)
-       self%doubleProperty(doubleProperty +1:doubleProperty +extractor_%elementCount(elementTypeDouble ,time))%unitsInSI =extractor_%unitsInSI   (elementTypeDouble ,time)
-       do i=1,extractor_%elementCount(elementTypeDouble,time)
-          if (allocated(self%doubleProperty(doubleProperty+i)%rank1Descriptors)) deallocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors)
-          allocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors(size(extractor_%columnDescriptions(elementTypeDouble,i,time))))
-          self%doubleProperty(doubleProperty+i)%rank1Descriptors=extractor_%columnDescriptions(elementTypeDouble,i,time)
-       end do
-       doubleProperty =doubleProperty +extractor_%elementCount(elementTypeDouble ,time)
-       self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(elementTypeInteger,time))%name     =extractor_%names       (elementTypeInteger,time)
-       self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(elementTypeInteger,time))%comment  =extractor_%descriptions(elementTypeInteger,time)
-       self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(elementTypeInteger,time))%unitsInSI=extractor_%unitsInSI   (elementTypeInteger,time)
-       integerProperty=integerProperty+extractor_%elementCount(elementTypeInteger,time)
+       if (extractor_%elementCount(elementTypeDouble ,time) > 0) then
+          self%doubleProperty(doubleProperty +1:doubleProperty +extractor_%elementCount(elementTypeDouble ,time))%name      =extractor_%names       (elementTypeDouble ,time)
+          self%doubleProperty(doubleProperty +1:doubleProperty +extractor_%elementCount(elementTypeDouble ,time))%comment   =extractor_%descriptions(elementTypeDouble ,time)
+          self%doubleProperty(doubleProperty +1:doubleProperty +extractor_%elementCount(elementTypeDouble ,time))%unitsInSI =extractor_%unitsInSI   (elementTypeDouble ,time)
+          do i=1,extractor_%elementCount(elementTypeDouble,time)
+             if (allocated(self%doubleProperty(doubleProperty+i)%rank1Descriptors)) deallocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors)
+             call extractor_%columnDescriptions(elementTypeDouble,i,time,self%doubleProperty(doubleProperty+i)%rank1Descriptors)
+          end do
+          doubleProperty =doubleProperty +extractor_%elementCount(elementTypeDouble ,time)
+       end if
+       if (extractor_%elementCount(elementTypeInteger,time) > 0) then
+          self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(elementTypeInteger,time))%name     =extractor_%names       (elementTypeInteger,time)
+          self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(elementTypeInteger,time))%comment  =extractor_%descriptions(elementTypeInteger,time)
+          self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(elementTypeInteger,time))%unitsInSI=extractor_%unitsInSI   (elementTypeInteger,time)
+          integerProperty=integerProperty+extractor_%elementCount(elementTypeInteger,time)
+       end if
     class default
        call Galacticus_Error_Report('unsupported property extractor class'//{introspection:location})
     end select
