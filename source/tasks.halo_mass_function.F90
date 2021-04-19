@@ -54,10 +54,10 @@
      class           (outputTimesClass                       ), pointer :: outputTimes_                        => null()
      class           (darkMatterProfileScaleRadiusClass      ), pointer :: darkMatterProfileScaleRadius_       => null()
      class           (darkMatterHaloMassAccretionHistoryClass), pointer :: darkMatterHaloMassAccretionHistory_ => null()
-     double precision                                                   :: haloMassMinimum                              , haloMassMaximum, &
+     double precision                                                   :: haloMassMinimum                              , haloMassMaximum         , &
           &                                                                pointsPerDecade
      type            (varying_string                         )          :: outputGroup
-     logical                                                            :: includeUnevolvedSubhaloMassFunction
+     logical                                                            :: includeUnevolvedSubhaloMassFunction          , includeMassAccretionRate
      ! Pointer to the parameters for this task.
      type            (inputParameters                        )          :: parameters
   contains
@@ -99,9 +99,9 @@ contains
     class           (darkMatterHaloMassAccretionHistoryClass), pointer               :: darkMatterHaloMassAccretionHistory_
     type            (inputParameters                        ), pointer               :: parametersRoot
     type            (varying_string                         )                        :: outputGroup
-    double precision                                                                 :: haloMassMinimum                    , haloMassMaximum, &
+    double precision                                                                 :: haloMassMinimum                    , haloMassMaximum         , &
          &                                                                              pointsPerDecade
-    logical                                                                          :: includeUnevolvedSubhaloMassFunction
+    logical                                                                          :: includeUnevolvedSubhaloMassFunction, includeMassAccretionRate
     
     ! Ensure the nodes objects are initialized.
     if (associated(parameters%parent)) then
@@ -146,6 +146,12 @@ contains
     !#   <description>If true then also compute and output the unevolved subhalo mass function.</description>
     !#   <source>parameters</source>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>includeMassAccretionRate</name>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>If true then also compute and output the mass accretion rate of the halos.</description>
+    !#   <source>parameters</source>
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"/>
     !# <objectBuilder class="virialDensityContrast"              name="virialDensityContrast_"              source="parameters"/>
@@ -168,6 +174,7 @@ contains
          &                    pointsPerDecade                    , &
          &                    outputGroup                        , &
          &                    includeUnevolvedSubhaloMassFunction, &
+         &                    includeMassAccretionRate           , &
          &                    cosmologyParameters_               , &
          &                    cosmologyFunctions_                , &
          &                    virialDensityContrast_             , &
@@ -212,6 +219,7 @@ contains
        &                                       pointsPerDecade                    , &
        &                                       outputGroup                        , &
        &                                       includeUnevolvedSubhaloMassFunction, &
+       &                                       includeMassAccretionRate           , &
        &                                       cosmologyParameters_               , &
        &                                       cosmologyFunctions_                , &
        &                                       virialDensityContrast_             , &
@@ -250,11 +258,11 @@ contains
     class           (transferFunctionClass                  ), intent(in   ), target :: transferFunction_
     class           (outputTimesClass                       ), intent(in   ), target :: outputTimes_
     type            (varying_string                         ), intent(in   )         :: outputGroup
-    double precision                                         , intent(in   )         :: haloMassMinimum                    , haloMassMaximum, &
+    double precision                                         , intent(in   )         :: haloMassMinimum                    , haloMassMaximum         , &
          &                                                                              pointsPerDecade
-    logical                                                  , intent(in   )         :: includeUnevolvedSubhaloMassFunction
+    logical                                                  , intent(in   )         :: includeUnevolvedSubhaloMassFunction, includeMassAccretionRate
     type            (inputParameters                        ), intent(in   ), target :: parameters
-    !# <constructorAssign variables="haloMassMinimum, haloMassMaximum, pointsPerDecade, outputGroup, includeUnevolvedSubhaloMassFunction, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *darkMatterProfileDMO_, *criticalOverdensity_, *linearGrowth_, *haloMassFunction_, *haloEnvironment_, *unevolvedSubhaloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *darkMatterHaloMassAccretionHistory_, *cosmologicalMassVariance_, *darkMatterHaloBias_,*transferFunction_, *outputTimes_"/>
+    !# <constructorAssign variables="haloMassMinimum, haloMassMaximum, pointsPerDecade, outputGroup, includeUnevolvedSubhaloMassFunction, includeMassAccretionRate, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *darkMatterProfileDMO_, *criticalOverdensity_, *linearGrowth_, *haloMassFunction_, *haloEnvironment_, *unevolvedSubhaloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *darkMatterHaloMassAccretionHistory_, *cosmologicalMassVariance_, *darkMatterHaloBias_,*transferFunction_, *outputTimes_"/>
 
     self%parameters=inputParameters(parameters)
     call self%parameters%parametersGroupCopy(parameters)
@@ -438,13 +446,14 @@ contains
                &                                                        /abs(                                                                                                                                                                                          &
                &                                                             self%cosmologicalMassVariance_     %rootVarianceLogarithmicGradient(mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput)                   )    &
                &                                                            )
-          massAccretionRate                             (iMass,iOutput)=self%darkMatterHaloMassAccretionHistory_%massAccretionRate              (                                                                     time=outputTimes(iOutput),node=tree%baseNode)
           biasHalo                                      (iMass,iOutput)=self%darkMatterHaloBias_                %bias                           (                                                                                               node=tree%baseNode)
           velocityVirial                                (iMass,iOutput)=self%darkMatterHaloScale_               %virialVelocity                 (                                                                                               node=tree%baseNode)
           temperatureVirial                             (iMass,iOutput)=self%darkMatterHaloScale_               %virialTemperature              (                                                                                               node=tree%baseNode)
           radiusVirial                                  (iMass,iOutput)=self%darkMatterHaloScale_               %virialRadius                   (                                                                                               node=tree%baseNode)
           velocityMaximum                               (iMass,iOutput)=self%darkMatterProfileDMO_              %circularVelocityMaximum        (                                                                                               node=tree%baseNode)
           darkMatterProfileRadiusScale                  (iMass,iOutput)=darkMatterProfileHalo                   %scale                          (                                                                                                                 )
+          if (self%includeMassAccretionRate) &
+               & massAccretionRate                      (iMass,iOutput)=self%darkMatterHaloMassAccretionHistory_%massAccretionRate              (                                                                     time=outputTimes(iOutput),node=tree%baseNode)
           ! Integrate the unevolved subhalo mass function over the halo mass function to get the total subhalo mass function.
           if (self%includeUnevolvedSubhaloMassFunction)                                                                                   &
                & massFunctionCumulativeSubhalo          (iMass,iOutput)=integrator_%integrate(                                            &
@@ -539,9 +548,11 @@ contains
        call    outputGroup%writeDataset  (velocityMaximum                               (:,iOutput),'haloVelocityMaximum'           ,'The maximum circular velocity of halos.'                                    ,datasetReturned=dataset)
        call    dataset    %writeAttribute(kilo                                                     ,'unitsInSI'                                                                                                                           )
        call    dataset    %close         (                                                                                                                                                                                                )
-       call    outputGroup%writeDataset  (massAccretionRate                             (:,iOutput),'haloMassAccretionRate'         ,'The mass accretion rate of halos.'                                          ,datasetReturned=dataset)
-       call    dataset    %writeAttribute(massSolar/gigaYear                                       ,'unitsInSI'                                                                                                                           )
-       call    dataset    %close         (                                                                                                                                                                                                )
+       if (self%includeMassAccretionRate) then
+          call outputGroup%writeDataset  (massAccretionRate                             (:,iOutput),'haloMassAccretionRate'         ,'The mass accretion rate of halos.'                                          ,datasetReturned=dataset)
+          call dataset    %writeAttribute(massSolar/gigaYear                                       ,'unitsInSI'                                                                                                                           )
+          call dataset    %close         (                                                                                                                                                                                                )
+       end if
        call    outputGroup%writeDataset  (biasHalo                                      (:,iOutput),'haloBias'                      ,'The large scale linear bias of halos.'                                                              )
        call    outputGroup%writeDataset  (densityFieldRootVariance                      (:,iOutput),'haloSigma'                     ,'The mass fluctuation on the scale of the halo.'                                                     )
        call    outputGroup%writeDataset  (densityFieldRootVarianceGradientLogarithmic   (:,iOutput),'haloAlpha'                     ,'dlog(σ)/dlog(m).'                                                                                   )
