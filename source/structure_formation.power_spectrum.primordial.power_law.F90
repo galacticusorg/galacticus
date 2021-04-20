@@ -28,20 +28,19 @@
   !#   \end{equation}
   !#   where
   !#   \begin{equation}
-  !#    n_\mathrm{eff}(k) = n_\mathrm{s} + {1\over 2}{\d n \over \d \ln k} \ln \left( {k \over k_\mathrm{ref}} \right),
+  !#    n_\mathrm{eff}(k) = n_\mathrm{s} + {1\over 2}{\d n \over \d \ln k} \ln \left( {k \over k_\mathrm{ref}} \right) + {1\over 6}{\d^2 n \over \d \ln k^2} \left[ \ln \left( {k \over k_\mathrm{ref}} \right) \right]^2,
   !#   \end{equation}
   !#   where $n_\mathrm{s}=${\normalfont \ttfamily [index]} is the power spectrum index at wavenumber
-  !#   $k_\mathrm{ref}=${\normalfont \ttfamily [wavenumberReference]} and $\d n / \d \ln k=${\normalfont \ttfamily [running]}
+  !#   $k_\mathrm{ref}=${\normalfont \ttfamily [wavenumberReference]}, $\d n / \d \ln k=${\normalfont \ttfamily [running]}, and $\d^2 n / \d \ln k^2=${\normalfont \ttfamily [runningRunning]}
   !#   describes the running of this index with wavenumber.
   !#  </description>
   !# </powerSpectrumPrimordial>
   type, extends(powerSpectrumPrimordialClass) :: powerSpectrumPrimordialPowerLaw
      !% A power-law primordial power spectrum class.
      private
-     double precision :: index              , running, &
-          &              wavenumberReference
+     double precision :: index_        , running            , &
+          &              runningRunning, wavenumberReference
    contains
-     final     ::                          powerLawDestructor
      procedure :: power                 => powerLawPower
      procedure :: logarithmicDerivative => powerLawLogarithmicDerivative
   end type powerSpectrumPrimordialPowerLaw
@@ -54,16 +53,18 @@
 
 contains
 
-  function powerLawConstructorParameters(parameters)
+  function powerLawConstructorParameters(parameters) result(self)
     !% Constructor for the ``power-law'' primordial power spectrum class which takes a parameter set as input.
     implicit none
-    type(powerSpectrumPrimordialPowerLaw)                :: powerLawConstructorParameters
-    type(inputParameters                ), intent(inout) :: parameters
+    type            (powerSpectrumPrimordialPowerLaw)                :: self
+    type            (inputParameters                ), intent(inout) :: parameters
+    double precision                                                 :: index_    , wavenumberReference, &
+         &                                                              running   , runningRunning
 
     !# <inputParameter>
     !#   <name>index</name>
+    !#   <variable>index_</variable>
     !#   <source>parameters</source>
-    !#   <variable>powerLawConstructorParameters%index</variable>
     !#   <defaultValue>0.9649d0</defaultValue>
     !#   <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
     !#   <description>The index of the power-law primordial power spectrum.</description>
@@ -71,62 +72,61 @@ contains
     !# <inputParameter>
     !#   <name>running</name>
     !#   <source>parameters</source>
-    !#   <variable>powerLawConstructorParameters%running</variable>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The running, $\d n_\mathrm{s} / \d \ln k$, of the power spectrum index.</description>
     !# </inputParameter>
     !# <inputParameter>
+    !#   <name>runningRunning</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The running-of-the-running, $\d^2 n_\mathrm{s} / \d \ln k^2$, of the power spectrum index.</description>
+    !# </inputParameter>
+    !# <inputParameter>
     !#   <name>wavenumberReference</name>
     !#   <source>parameters</source>
-    !#   <variable>powerLawConstructorParameters%wavenumberReference</variable>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>When a running power spectrum index is used, this is the wavenumber at which the index is equal to {\normalfont \ttfamily [index]}.</description>
     !# </inputParameter>
+    self=powerSpectrumPrimordialPowerLaw(index_,running,runningRunning,wavenumberReference)
     !# <inputParametersValidate source="parameters"/>
     return
   end function powerLawConstructorParameters
 
-  function powerLawConstructorInternal(index,running,wavenumberReference)
+  function powerLawConstructorInternal(index_,running,runningRunning,wavenumberReference) result(self)
     !% Internal constructor for the ``power-law'' primordial power spectrum class.
     implicit none
-    type            (powerSpectrumPrimordialPowerLaw)                :: powerLawConstructorInternal
-    double precision                                 , intent(in   ) :: index                      , running, &
-         &                                                              wavenumberReference
+    type            (powerSpectrumPrimordialPowerLaw)                :: self
+    double precision                                 , intent(in   ) :: index_ , wavenumberReference, &
+         &                                                              running, runningRunning
+    !# <constructorAssign variables="index_, wavenumberReference, running, runningRunning"/>
 
-    powerLawConstructorInternal%index              =index
-    powerLawConstructorInternal%running            =running
-    powerLawConstructorInternal%wavenumberReference=wavenumberReference
     return
   end function powerLawConstructorInternal
-
-  elemental subroutine powerLawDestructor(self)
-    !% Destructor for the ``power-law'' primordial power spectrum class.
-    implicit none
-    type(powerSpectrumPrimordialPowerLaw), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    ! Nothing to do.
-    return
-  end subroutine powerLawDestructor
 
   double precision function powerLawPower(self,wavenumber)
     !% Return the primordial power spectrum at the given {\normalfont \ttfamily wavenumber}.
     implicit none
     class           (powerSpectrumPrimordialPowerLaw), intent(inout) :: self
     double precision                                 , intent(in   ) :: wavenumber
+    double precision                                                 :: indexLocal
 
-    powerLawPower=+(                                  &
-         &          +             wavenumber          &
-         &          /        self%wavenumberReference &
-         &         )**(                               &
-         &             +self%index                    &
-         &             +0.5d0                         &
-         &             *self%running                  &
-         &             *log(                          &
-         &                  +     wavenumber          &
-         &                  /self%wavenumberReference &
-         &                 )                          &
-         &            )
+    indexLocal   =+self%index_                           &
+         &        +1.0d0/2.0d0                           &
+         &        *self%running                          &
+         &        *log(                                  &
+         &             +     wavenumber                  &
+         &             /self%wavenumberReference         &
+         &            )                                  &
+         &        +1.0d0/6.0d0                           &
+         &        *self%runningRunning                   &
+         &        *log(                                  &
+         &             +     wavenumber                  &
+         &             /self%wavenumberReference         &
+         &            )**2
+    powerLawPower=+(                                     &
+         &          +     wavenumber                     &
+         &          /self%wavenumberReference            &
+         &         )**indexLocal
     return
   end function powerLawPower
 
@@ -136,11 +136,17 @@ contains
     class           (powerSpectrumPrimordialPowerLaw), intent(inout) :: self
     double precision                                 , intent(in   ) :: wavenumber
 
-    powerLawLogarithmicDerivative=+self%index                    &
+    powerLawLogarithmicDerivative=+self%index_                   &
          &                        +self%running                  &
          &                        *log(                          &
          &                             +     wavenumber          &
          &                             /self%wavenumberReference &
-         &                            )
+         &                            )                          &
+         &                        +1.0d0/2.0d0                   &
+         &                        *self%runningRunning           &
+         &                        *log(                          &
+         &                             +     wavenumber          &
+         &                             /self%wavenumberReference &
+         &                            )**2
     return
   end function powerLawLogarithmicDerivative
