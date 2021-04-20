@@ -127,8 +127,9 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                      cosmologyFunctions_                =cosmologyFunctionsMatterLambda_              &
           &                                                                                                                     )
      powerSpectrumPrimordialPowerLaw_                           =powerSpectrumPrimordialPowerLaw                                (                                                                                 &
-          &                                                                                                                      index                              =-1.0d0                                     , &
+          &                                                                                                                      index_                             =-1.0d0                                     , &
           &                                                                                                                      running                            =+0.0d0                                     , &
+          &                                                                                                                      runningRunning                     =+0.0d0                                     , &
           &                                                                                                                      wavenumberReference                =+1.0d0                                       &
           &                                                                                                                     )
      transferFunctionIdentity_                                  =transferFunctionIdentity                                       (                                                                                 &

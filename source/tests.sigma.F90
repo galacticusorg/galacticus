@@ -94,8 +94,9 @@ program Tests_Sigma
   !# <referenceConstruct object="powerSpectrumPrimordialLCDM_"           >
   !#  <constructor>
   !#   powerSpectrumPrimordialPowerLaw          (                                                                            &amp;
-  !#    &amp;                                    index                              =+0.9649d0                             , &amp;
+  !#    &amp;                                    index_                             =+0.9649d0                             , &amp;
   !#    &amp;                                    running                            =+0.0000d0                             , &amp;
+  !#    &amp;                                    runningRunning                     =+0.0000d0                             , &amp;
   !#    &amp;                                    wavenumberReference                =+1.0000d0                               &amp;
   !#    &amp;                                   )
   !#  </constructor>

@@ -182,8 +182,9 @@ program Test_Biases
      !# <referenceConstruct object="powerSpectrumPrimordialPowerLaw_"                              >
      !#  <constructor>
      !#   powerSpectrumPrimordialPowerLaw                              (                                                                               &amp;
-     !#    &amp;                                                        index                              =powerSpectrumIndex                       , &amp;
+     !#    &amp;                                                        index_                             =powerSpectrumIndex                       , &amp;
      !#    &amp;                                                        running                            =+0.0d0                                   , &amp;
+     !#    &amp;                                                        runningRunning                     =+0.0d0                                   , &amp;
      !#    &amp;                                                        wavenumberReference                =+1.0d0                                     &amp;
      !#    &amp;                                                       )
      !#  </constructor>

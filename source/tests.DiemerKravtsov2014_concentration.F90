@@ -133,8 +133,9 @@ program Test_DiemerKravtsov2014_Concentration
   !# <referenceConstruct object="powerSpectrumPrimordial_"           >
   !#  <constructor>
   !#   powerSpectrumPrimordialPowerLaw                              (                                                                         &amp;
-  !#    &amp;                                                        index                              =+0.968d0                           , &amp;
+  !#    &amp;                                                        index_                             =+0.968d0                           , &amp;
   !#    &amp;                                                        running                            =+0.000d0                           , &amp;
+  !#    &amp;                                                        runningRunning                     =+0.000d0                           , &amp;
   !#    &amp;                                                        wavenumberReference                =+1.000d0                             &amp;
   !#    &amp;                                                       )
   !#  </constructor>

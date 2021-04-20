@@ -101,8 +101,9 @@ program Tests_Halo_Mass_Function_Tinker
   !# <referenceConstruct object="powerSpectrumPrimordial_"           >
   !#  <constructor>
   !#   powerSpectrumPrimordialPowerLaw                              (                                                                         &amp;
-  !#    &amp;                                                        index                              =+1.0d0                             , &amp;
+  !#    &amp;                                                        index_                             =+1.0d0                             , &amp;
   !#    &amp;                                                        running                            =+0.0d0                             , &amp;
+  !#    &amp;                                                        runningRunning                     =+0.0d0                             , &amp;
   !#    &amp;                                                        wavenumberReference                =+1.0d0                               &amp;
   !#    &amp;                                                       )
   !#  </constructor>

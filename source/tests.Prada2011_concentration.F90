@@ -113,8 +113,9 @@ program Test_Prada2011_Concentration
   !# <referenceConstruct object="powerSpectrumPrimordial_"           >
   !#  <constructor>
   !#   powerSpectrumPrimordialPowerLaw         (                                                                         &amp;
-  !#    &amp;                                   index                              =+0.95d0                            , &amp;
+  !#    &amp;                                   index_                             =+0.95d0                            , &amp;
   !#    &amp;                                   running                            =+0.00d0                            , &amp;
+  !#    &amp;                                   runningRunning                     =+0.00d0                            , &amp;
   !#    &amp;                                   wavenumberReference                =+1.00d0                              &amp;
   !#    &amp;                                  )
   !#  </constructor>

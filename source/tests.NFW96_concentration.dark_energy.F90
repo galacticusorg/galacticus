@@ -124,8 +124,9 @@ program Test_NFW96_Concentration_Dark_Energy
   !# <referenceConstruct object="powerSpectrumPrimordial_"           >
   !#  <constructor>
   !#   powerSpectrumPrimordialPowerLaw                              (                                                                         &amp;
-  !#    &amp;                                                        index                              =+1.000d0                           , &amp;
+  !#    &amp;                                                        index_                             =+1.000d0                           , &amp;
   !#    &amp;                                                        running                            =+0.000d0                           , &amp;
+  !#    &amp;                                                        runningRunning                     =+0.000d0                           , &amp;
   !#    &amp;                                                        wavenumberReference                =+1.000d0                             &amp;
   !#    &amp;                                                       )
   !#  </constructor>
