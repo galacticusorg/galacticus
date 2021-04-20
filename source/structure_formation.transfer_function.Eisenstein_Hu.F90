@@ -56,6 +56,7 @@
      procedure :: logarithmicDerivative => eisensteinHu1999LogarithmicDerivative
      procedure :: computeFactors        => eisensteinHu1999ComputeFactors
      procedure :: halfModeMass          => eisensteinHu1999HalfModeMass
+     procedure :: quarterModeMass       => eisensteinHu1999QuarterModeMass
      procedure :: epochTime             => eisensteinHu1999EpochTime
   end type transferFunctionEisensteinHu1999
 
@@ -530,6 +531,24 @@ contains
     end if
     return
   end function eisensteinHu1999HalfModeMass
+
+  double precision function eisensteinHu1999QuarterModeMass(self,status)
+    !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative
+    !% to a \gls{cdm} transfer function. Not supported in this implementation.
+    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
+    implicit none
+    class  (transferFunctionEisensteinHu1999), intent(inout)           :: self
+    integer                                  , intent(  out), optional :: status
+    !$GLC attributes unused :: self
+
+    eisensteinHu1999QuarterModeMass=0.0d0
+    if (present(status)) then
+       status=errorStatusFail
+    else
+       call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+    end if
+    return
+  end function eisensteinHu1999QuarterModeMass
 
   double precision function eisensteinHu1999EpochTime(self)
     !% Return the cosmic time at the epoch at which this transfer function is defined.

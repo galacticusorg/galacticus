@@ -46,11 +46,16 @@
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
      class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
    contains
-     final     ::                          bode2001Destructor
-     procedure :: value                 => bode2001Value
-     procedure :: logarithmicDerivative => bode2001LogarithmicDerivative
-     procedure :: halfModeMass          => bode2001HalfModeMass
-     procedure :: epochTime             => bode2001EpochTime
+     !# <methods>
+     !#  <method description="Compute the wavenumber at which the transfer function is suppressed by the given factor relative to the large-scale value." method="wavenumberAtSuppression"/>
+     !# </methods>
+     final     ::                            bode2001Destructor
+     procedure :: value                   => bode2001Value
+     procedure :: logarithmicDerivative   => bode2001LogarithmicDerivative
+     procedure :: halfModeMass            => bode2001HalfModeMass
+     procedure :: quarterModeMass         => bode2001QuarterModeMass
+     procedure :: epochTime               => bode2001EpochTime
+     procedure :: wavenumberAtSuppression => bode2001WavenumberAtSupression
   end type transferFunctionBode2001
 
   interface transferFunctionBode2001
@@ -219,6 +224,21 @@ contains
     return
   end function bode2001LogarithmicDerivative
 
+  double precision function bode2001WavenumberAtSupression(self,factorSuppression)
+    !% Compute the wavenumber at which the transfer function is suppressed by the given factor relative to the large-scale value.
+    implicit none
+    class           (transferFunctionBode2001), intent(inout) :: self
+    double precision                          , intent(in   ) :: factorSuppression
+
+    bode2001WavenumberAtSupression=+(                                        &
+         &                           +factorSuppression**(+self%nu/self%eta) &
+         &                           -1.0d0                                  &
+         &                          )                  **(+0.5d0  /self%nu ) &
+         &                          /self%epsilon                            &
+         &                          /self%scaleCutOff
+    return
+  end function bode2001WavenumberAtSupression
+  
   double precision function bode2001HalfModeMass(self,status)
     !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     !% to a \gls{cdm} transfer function.
@@ -227,28 +247,45 @@ contains
     implicit none
     class           (transferFunctionBode2001), intent(inout)           :: self
     integer                                   , intent(  out), optional :: status
-    double precision                          , parameter               :: wavenumberHalfModeScaleFree=sqrt(0.25d0+2.0d0*log(2.0d0))-0.5d0
-    double precision                                                    :: matterDensity                                                  , wavenumberHalfMode
+    double precision                                                    :: matterDensity, wavenumberHalfMode
 
     matterDensity       =+self%cosmologyParameters_%OmegaMatter    () &
          &               *self%cosmologyParameters_%densityCritical()
-    wavenumberHalfMode  =+(                            &
-         &                 +2.0d0**(+self%nu/self%eta) &
-         &                 -1.0d0                      &
-         &                )      **(+0.5d0  /self%nu ) &
-         &                /self%epsilon                &
-         &                /self%scaleCutOff
-    bode2001HalfModeMass=+4.0d0                &
-         &               *Pi                   &
-         &               /3.0d0                &
-         &               *matterDensity        &
-         &               *(                    &
-         &                 +Pi                 &
-         &                 /wavenumberHalfMode &
+    bode2001HalfModeMass=+4.0d0                                 &
+         &               *Pi                                    &
+         &               /3.0d0                                 &
+         &               *matterDensity                         &
+         &               *(                                     &
+         &                 +Pi                                  &
+         &                 /self%wavenumberAtSuppression(2.0d0) &
          &               )**3
     if (present(status)) status=errorStatusSuccess
     return
   end function bode2001HalfModeMass
+
+  double precision function bode2001QuarterModeMass(self,status)
+    !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
+    !% to a \gls{cdm} transfer function.
+    use :: Galacticus_Error        , only : errorStatusSuccess
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    class           (transferFunctionBode2001), intent(inout)           :: self
+    integer                                   , intent(  out), optional :: status
+    double precision                                                    :: matterDensity, wavenumberHalfMode
+
+    matterDensity          =+self%cosmologyParameters_%OmegaMatter    () &
+         &                  *self%cosmologyParameters_%densityCritical()
+    bode2001QuarterModeMass=+4.0d0                                 &
+         &                  *Pi                                    &
+         &                  /3.0d0                                 &
+         &                  *matterDensity                         &
+         &                  *(                                     &
+         &                    +Pi                                  &
+         &                    /self%wavenumberAtSuppression(4.0d0) &
+         &                  )**3
+    if (present(status)) status=errorStatusSuccess
+    return
+  end function bode2001QuarterModeMass
 
   double precision function bode2001EpochTime(self)
     !% Return the cosmic time at the epoch at which this transfer function is defined.
