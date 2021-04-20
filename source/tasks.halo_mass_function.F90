@@ -323,7 +323,9 @@ contains
          &                                                                             velocityVirial                                       , darkMatterProfileRadiusScale , &
          &                                                                             velocityMaximum                                      , peakHeightMassFunction       , &
          &                                                                             densityFieldRootVarianceGradientLogarithmic          , massFunctionCumulativeSubhalo, &
-         &                                                                             massAccretionRate
+         &                                                                             massAccretionRate                                    , massHalo200Mean              , &
+         &                                                                             massHalo200Critical                                  , radius200Mean                , &
+         &                                                                             radius200Critical
     double precision                                , allocatable  , dimension(:  ) :: outputCharacteristicMass                             , outputCriticalOverdensities  , &
          &                                                                             outputExpansionFactors                               , outputGrowthFactors          , &
          &                                                                             outputRedshifts                                      , outputTimes                  , &
@@ -342,11 +344,12 @@ contains
     double precision                                                                :: massHaloBinMinimum                                   , massHaloBinMaximum           , &
          &                                                                             massHaloLogarithmicInterval                          , massHalfMode                 , &
          &                                                                             wavenumberComoving                                   , growthFactor                 , &
-         &                                                                             massCritical
+         &                                                                             massCritical                                         , massQuarterMode              , &
+         &                                                                             densityMean                                          , densityCritical
     type            (hdf5Object                    )                                :: outputsGroup                                         , outputGroup                  , &
          &                                                                             containerGroup                                       , powerSpectrumGroup           , &
          &                                                                             cosmologyGroup                                       , dataset
-    integer                                                                         :: statusHalfModeMass
+    integer                                                                         :: statusHalfModeMass                                   , statusQuarterModeMass
     type            (varying_string                )                                :: groupName                                            , commentText
 
     call displayIndent('Begin task: halo mass function')
@@ -365,6 +368,8 @@ contains
     ! Compute number of tabulation points.
     massCount=int(log10(self%haloMassMaximum/self%haloMassMinimum)*self%pointsPerDecade)+1
     call allocateArray(massHalo                                      ,[massCount            ])
+    call allocateArray(massHalo200Mean                               ,[massCount,outputCount])
+    call allocateArray(massHalo200Critical                           ,[massCount,outputCount])
     call allocateArray(massFunctionDifferential                      ,[massCount,outputCount])
     call allocateArray(massFunctionDifferentialLogarithmic           ,[massCount,outputCount])
     call allocateArray(massFunctionDifferentialLogarithmicBinAveraged,[massCount,outputCount])
@@ -380,6 +385,8 @@ contains
     call allocateArray(velocityVirial                                ,[massCount,outputCount])
     call allocateArray(temperatureVirial                             ,[massCount,outputCount])
     call allocateArray(radiusVirial                                  ,[massCount,outputCount])
+    call allocateArray(radius200Mean                                 ,[massCount,outputCount])
+    call allocateArray(radius200Critical                             ,[massCount,outputCount])
     call allocateArray(darkMatterProfileRadiusScale                  ,[massCount,outputCount])
     call allocateArray(velocityMaximum                               ,[massCount,outputCount])
     ! Compute output time properties.
@@ -413,6 +420,10 @@ contains
     integrator_=integrator(subhaloMassFunctionIntegrand,toleranceRelative=1.0d-3,integrationRule=GSL_Integ_Gauss15)
     ! Iterate over all output times.    
     do iOutput=outputCount,1,-1
+       ! Compute characteristic densities.
+       densityMean    =+self%cosmologyFunctions_%matterDensityEpochal(outputTimes(iOutput))
+       densityCritical=+densityMean                                                         &
+            &          /self%cosmologyFunctions_%omegaMatterEpochal  (outputTimes(iOutput))
        ! Set the time in the node.
        call basic%timeSet(outputTimes(iOutput))
        ! Loop over all halo masses.
@@ -454,6 +465,11 @@ contains
           darkMatterProfileRadiusScale                  (iMass,iOutput)=darkMatterProfileHalo                   %scale                          (                                                                                                                 )
           if (self%includeMassAccretionRate) &
                & massAccretionRate                      (iMass,iOutput)=self%darkMatterHaloMassAccretionHistory_%massAccretionRate              (                                                                     time=outputTimes(iOutput),node=tree%baseNode)
+          ! Compute alternate mass definitions for halos.
+          radius200Mean                                 (iMass,iOutput)=self%darkMatterProfileDMO_%radiusEnclosingDensity(tree%baseNode,densityMean    *200.0d0         )
+          radius200Critical                             (iMass,iOutput)=self%darkMatterProfileDMO_%radiusEnclosingDensity(tree%baseNode,densityCritical*200.0d0         )
+          massHalo200Mean                               (iMass,iOutput)=self%darkMatterProfileDMO_%enclosedMass          (tree%baseNode,radius200Mean    (iMass,iOutput))
+          massHalo200Critical                           (iMass,iOutput)=self%darkMatterProfileDMO_%enclosedMass          (tree%baseNode,radius200Critical(iMass,iOutput))
           ! Integrate the unevolved subhalo mass function over the halo mass function to get the total subhalo mass function.
           if (self%includeUnevolvedSubhaloMassFunction)                                                                                   &
                & massFunctionCumulativeSubhalo          (iMass,iOutput)=integrator_%integrate(                                            &
@@ -471,16 +487,22 @@ contains
        containerGroup=galacticusOutputFile%openGroup(char(self%outputGroup),'Group containing halo mass function data.'          )
        outputsGroup  =containerGroup      %openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
     end if
-    ! Store half-mode mass if possible.
-    massHalfMode=self%transferFunction_%halfModeMass(statusHalfModeMass)
-    if (statusHalfModeMass == errorStatusSuccess) then
+    ! Store half- and quarter-mode masses if possible.
+    massHalfMode   =self%transferFunction_%halfModeMass   (statusHalfModeMass   )
+    massQuarterMode=self%transferFunction_%quarterModeMass(statusQuarterModeMass)
+    if     (                                             &
+         &   statusHalfModeMass    == errorStatusSuccess &
+         &  .or.                                         &
+         &   statusQuarterModeMass == errorStatusSuccess &
+         & ) then
        if (self%outputGroup == ".") then
           powerSpectrumGroup=galacticusOutputFile%openGroup('powerSpectrum','Group containing data relating to the power spectrum.')
        else
           powerSpectrumGroup=containerGroup      %openGroup('powerSpectrum','Group containing data relating to the power spectrum.')
        end if
-       call powerSpectrumGroup%writeAttribute(massHalfMode,'massHalfMode')
-       call powerSpectrumGroup%close         (                           )
+       if (statusHalfModeMass    == errorStatusSuccess) call powerSpectrumGroup%writeAttribute(massHalfMode   ,'massHalfMode'   )
+       if (statusQuarterModeMass == errorStatusSuccess) call powerSpectrumGroup%writeAttribute(massQuarterMode,'massQuarterMode')
+       call                                                  powerSpectrumGroup%close         (                                 )
     end if
     ! Store sigma8.
     if (self%outputGroup == ".") then
@@ -516,6 +538,12 @@ contains
        call    outputGroup%writeDataset  (massHalo                                      (:        ),'haloMass'                      ,'The mass of the halo.'                                                      ,datasetReturned=dataset)
        call    dataset    %writeAttribute(massSolar                                                ,'unitsInSI'                                                                                                                           )
        call    dataset    %close         (                                                                                                                                                                                                )
+       call    outputGroup%writeDataset  (massHalo200Mean                               (:,iOutput),'haloMass200Mean'               ,'The mass of the halo within 200 times the mean density.'                    ,datasetReturned=dataset)
+       call    dataset    %writeAttribute(massSolar                                                ,'unitsInSI'                                                                                                                           )
+       call    dataset    %close         (                                                                                                                                                                                                )
+       call    outputGroup%writeDataset  (massHalo200Critical                           (:,iOutput),'haloMass200Critical'           ,'The mass of the halo within 200 times the critical density.'                ,datasetReturned=dataset)
+       call    dataset    %writeAttribute(massSolar                                                ,'unitsInSI'                                                                                                                           )
+       call    dataset    %close         (                                                                                                                                                                                                )
        call    outputGroup%writeDataset  (massFunctionDifferential                      (:,iOutput),'haloMassFunctionM'             ,'The halo mass function (per unit halo mass).'                               ,datasetReturned=dataset)
        call    dataset    %writeAttribute(1.0d0/megaParsec**3/massSolar                            ,'unitsInSI'                                                                                                                           )
        call    dataset    %close         (                                                                                                                                                                                                )
@@ -540,6 +568,12 @@ contains
        call    dataset    %writeAttribute(1.0d0                                                    ,'unitsInSI'                                                                                                                           )
        call    dataset    %close         (                                                                                                                                                                                                )
        call    outputGroup%writeDataset  (radiusVirial                                  (:,iOutput),'haloVirialRadius'              ,'The virial radius of halos.'                                                ,datasetReturned=dataset)
+       call    dataset    %writeAttribute(megaParsec                                               ,'unitsInSI'                                                                                                                           )
+       call    dataset    %close         (                                                                                                                                                                                                )
+       call    outputGroup%writeDataset  (radius200Mean                                 (:,iOutput),'haloRadius200Mean'             ,'The radius of halos enclosing 200 times the mean density.'                  ,datasetReturned=dataset)
+       call    dataset    %writeAttribute(megaParsec                                               ,'unitsInSI'                                                                                                                           )
+       call    dataset    %close         (                                                                                                                                                                                                )
+       call    outputGroup%writeDataset  (radius200Critical                             (:,iOutput),'haloRadius200Critical'         ,'The radius of halos enclosing 200 times the critical density'              ,datasetReturned=dataset)
        call    dataset    %writeAttribute(megaParsec                                               ,'unitsInSI'                                                                                                                           )
        call    dataset    %close         (                                                                                                                                                                                                )
        call    outputGroup%writeDataset  (darkMatterProfileRadiusScale                  (:,iOutput),'haloScaleRadius'               ,'The scale radius of halos.'                                                 ,datasetReturned=dataset)
