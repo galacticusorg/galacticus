@@ -34,14 +34,18 @@ program Test_Hearin2021_MAH
   use :: Node_Components                          , only : Node_Components_Initialize                  , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
   use :: Unit_Tests                               , only : Assert                                      , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none  
-  type            (treeNode                                    ), pointer      :: node
-  class           (nodeComponentBasic                          ), pointer      :: basic
-  type            (darkMatterHaloMassAccretionHistoryHearin2021)               :: darkMatterHaloMassAccretionHistory_
-  double precision                                              , dimension(:), allocatable :: massTarget         ,  massRecovered
-  double precision :: time, powerLawIndexEarly, powerLawIndexLate, rateRollover, logMassMaximum, logTimeMaximum, massMaximum, timeMaximum
-  integer                                                                      :: i                                  , referenceFile, countTimes
-  type            (inputParameters                             )               :: parameters
-  character       (len=1024                                    )               :: line
+  type            (treeNode                                    ), pointer                   :: node
+  class           (nodeComponentBasic                          ), pointer                   :: basic
+  type            (darkMatterHaloMassAccretionHistoryHearin2021)                            :: darkMatterHaloMassAccretionHistory_
+  double precision                                              , dimension(:), allocatable :: massTarget                         , massRecovered
+  double precision                                                                          :: time                               , powerLawIndexEarly, &
+       &                                                                                       powerLawIndexLate                  , rateRollover      , &
+       &                                                                                       logMassMaximum                     , logTimeMaximum    , &
+       &                                                                                       massMaximum                        , timeMaximum
+  integer                                                                                   :: i                                  , referenceFile     , &
+       &                                                                                       countTimes
+  type            (inputParameters                             )                            :: parameters
+  character       (len=1024                                    )                            :: line
   
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)

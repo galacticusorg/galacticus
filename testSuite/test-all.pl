@@ -491,6 +491,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.mass_accretion_history.Hearin2021_stochastic.exe",             # Tests of stochastic dark matter halo mass accretion histories.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.dark_matter_profiles.exe",                                     # Tests of dark matter profiles.
 	valgrind => 0,
 	mpi      => 0
