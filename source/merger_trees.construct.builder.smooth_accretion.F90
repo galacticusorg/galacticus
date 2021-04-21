@@ -38,7 +38,7 @@
      class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_                 => null()
      class           (darkMatterHaloMassAccretionHistoryClass), pointer :: darkMatterHaloMassAccretionHistory_ => null()
      class           (mergerTreeMassResolutionClass          ), pointer :: mergerTreeMassResolution_           => null()
-     double precision                                                   :: massHaloDeclineFactor
+     double precision                                                   :: massHaloDeclineFactor                        , timeEarliest
    contains
      final     ::          smoothAccretionDestructor
      procedure :: build => smoothAccretionBuild
@@ -61,18 +61,29 @@ contains
     class           (cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
     class           (darkMatterHaloMassAccretionHistoryClass), pointer       :: darkMatterHaloMassAccretionHistory_
     class           (mergerTreeMassResolutionClass          ), pointer       :: mergerTreeMassResolution_
-    double precision                                                         :: massHaloDeclineFactor
+    double precision                                                         :: massHaloDeclineFactor              , redshiftEarliest, &
+         &                                                                      timeEarliest
 
-    !# <inputParameter>
-    !#   <name>massHaloDeclineFactor</name>
-    !#   <defaultValue>0.9d0</defaultValue>
-    !#   <description>The factor by which halo mass should decrease in each step back in time building a smoothly accreting merger tree, in units of $M_\odot$.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"/>
     !# <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"/>
     !# <objectBuilder class="mergerTreeMassResolution"           name="mergerTreeMassResolution_"            source="parameters"/>
-    self=mergerTreeBuilderSmoothAccretion(massHaloDeclineFactor,cosmologyFunctions_,darkMatterHaloMassAccretionHistory_,mergerTreeMassResolution_)
+    !# <inputParameter>
+    !#   <name>massHaloDeclineFactor</name>
+    !#   <defaultValue>0.9d0</defaultValue>
+    !#   <description>The factor by which halo mass should decrease in each step back in time building a smoothly accreting merger tree.</description>
+    !#   <source>parameters</source>
+    !# </inputParameter>
+    if (parameters%isPresent('redshiftEarliest')) then
+       !# <inputParameter>
+       !#   <name>redshiftEarliest</name>
+       !#   <description>The earliest redshift to which to build a smoothly accreting merger tree.</description>
+       !#   <source>parameters</source>
+       !# </inputParameter>
+       timeEarliest=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftEarliest))
+    else
+       timeEarliest=0.0d0
+    end if
+    self=mergerTreeBuilderSmoothAccretion(massHaloDeclineFactor,timeEarliest,cosmologyFunctions_,darkMatterHaloMassAccretionHistory_,mergerTreeMassResolution_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"                />
     !# <objectDestructor name="darkMatterHaloMassAccretionHistory_"/>
@@ -80,15 +91,15 @@ contains
     return
   end function smoothAccretionConstructorParameters
 
-  function smoothAccretionConstructorInternal(massHaloDeclineFactor,cosmologyFunctions_,darkMatterHaloMassAccretionHistory_,mergerTreeMassResolution_) result(self)
+  function smoothAccretionConstructorInternal(massHaloDeclineFactor,timeEarliest,cosmologyFunctions_,darkMatterHaloMassAccretionHistory_,mergerTreeMassResolution_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily augment} merger tree operator class.
     implicit none
     type            (mergerTreeBuilderSmoothAccretion       )                        :: self
     class           (cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
     class           (darkMatterHaloMassAccretionHistoryClass), intent(in   ), target :: darkMatterHaloMassAccretionHistory_
     class           (mergerTreeMassResolutionClass          ), intent(in   ), target :: mergerTreeMassResolution_
-    double precision                                         , intent(in   )         :: massHaloDeclineFactor
-    !# <constructorAssign variables="massHaloDeclineFactor, *cosmologyFunctions_, *darkMatterHaloMassAccretionHistory_, *mergerTreeMassResolution_"/>
+    double precision                                         , intent(in   )         :: massHaloDeclineFactor              , timeEarliest
+    !# <constructorAssign variables="massHaloDeclineFactor, timeEarliest, *cosmologyFunctions_, *darkMatterHaloMassAccretionHistory_, *mergerTreeMassResolution_"/>
 
     return
   end function smoothAccretionConstructorInternal
@@ -127,7 +138,8 @@ contains
     ! Begin building. Steo backward in time, creating nodes until a sufficiently low mass has been reached.
     nodeCurrent    => tree                                 %baseNode
     massNode       =  basic                                %mass      (    )
-    do while (massNode > massResolution)
+    timeNode       =  basic                                %time      (    )
+    do while (massNode > massResolution .and. timeNode > self%timeEarliest)
        indexNode =  +indexNode   &
             &       +1_kind_int8
        nodeNew   =>  treeNode     (index     =indexNode,hostTree=tree)
