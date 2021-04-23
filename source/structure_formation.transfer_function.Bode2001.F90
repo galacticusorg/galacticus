@@ -247,7 +247,7 @@ contains
     implicit none
     class           (transferFunctionBode2001), intent(inout)           :: self
     integer                                   , intent(  out), optional :: status
-    double precision                                                    :: matterDensity, wavenumberHalfMode
+    double precision                                                    :: matterDensity
 
     matterDensity       =+self%cosmologyParameters_%OmegaMatter    () &
          &               *self%cosmologyParameters_%densityCritical()
@@ -271,7 +271,7 @@ contains
     implicit none
     class           (transferFunctionBode2001), intent(inout)           :: self
     integer                                   , intent(  out), optional :: status
-    double precision                                                    :: matterDensity, wavenumberHalfMode
+    double precision                                                    :: matterDensity
 
     matterDensity          =+self%cosmologyParameters_%OmegaMatter    () &
          &                  *self%cosmologyParameters_%densityCritical()
