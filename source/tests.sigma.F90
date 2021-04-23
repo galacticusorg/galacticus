@@ -159,8 +159,9 @@ program Tests_Sigma
   ! n=-1, and a sharp k-space filter, and normalize to σ₈=1. For these, the normalization of σ(M₈) can be computed analytically to
   ! be (π√2/3)^{1/3}.
   powerSpectrumPrimordialPowerLaw_         =powerSpectrumPrimordialPowerLaw         (                                                                               &
-       &                                                                             index                              =-1.0d0                                   , &
+       &                                                                             index_                             =-1.0d0                                   , &
        &                                                                             running                            =+0.0d0                                   , &
+       &                                                                             runningRunning                     =+0.0d0                                   , &
        &                                                                             wavenumberReference                =+1.0d0                                     &
        &                                                                            )
   transferFunctionIdentity_                =transferFunctionIdentity                (                                                                               &
