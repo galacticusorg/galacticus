@@ -38,56 +38,56 @@ die('simulationDataPath is required but is not present')
 # Define simulations to process.
 my @simulations =
 (
- # {
- #     label               => "VSMDPL",
- #     description         => "Progenitor halo mass function for non-backsplash z=0 parent halos from the VSMDPL simulation.",
- #     simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
- #     simulationURL       => "https://www.cosmosim.org/cms/simulations/vsmdpl/",
- #     hubbleConstant      => 0.6777,
- #     massParticle        => 6.2e6,
- #     snapshots           => "150 132 119 100 77 51",
- #     builder             => \&cosmoSimBuilder
- # },
- # {
- #     label               => "SMDPL",
- #     description         => "Progneitor halo mass function for non-backsplash z=0 parent halos from the SMDPL simulation.",
- #     simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
- #     simulationURL       => "https://www.cosmosim.org/cms/simulations/smdpl/",
- #     hubbleConstant      => 0.6777,
- #     massParticle        => 9.63e7,
- #     snapshots           => "116 70 48 38 26 12",
- #     builder             => \&cosmoSimBuilder
- # },
- # {
- #     label               => "MDPL2",
- #     description         => "Progneitor halo mass function for non-backsplash z=0 parent halos from the MDPL2 simulation.",
- #     simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
- #     simulationURL       => "https://www.cosmosim.org/cms/simulations/mdpl2/",
- #     hubbleConstant      => 0.6777,
- #     massParticle        => 1.51e9,
- #     snapshots           => "125 107 94 75 52 26",
- #     builder             => \&cosmoSimBuilder
- # },
- # {
- #     label               => "BigMDPL",
- #     description         => "Progneitor halo mass function for non-backsplash z=0 parent halos from the BigMDPL simulation.",
- #     simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
- #     simulationURL       => "https://www.cosmosim.org/cms/simulations/bigmdpl/",
- #     hubbleConstant      => 0.6777,
- #     massParticle        => 2.359e10,
- #     snapshots           => "79 33 11 9 5 2",
- #     builder             => \&cosmoSimBuilder
- # },
- # {
- #     label               => "HugeMDPL",
- #     description         => "Progneitor halo mass function for non-backsplash z=0 parent halos from the HugeMDPL simulation.",
- #     simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
- #     simulationURL       => "https://www.cosmosim.org/cms/simulations/hugemdpl/",
- #     hubbleConstant      => 0.6777,
- #     massParticle        => 7.9e10,
- #     snapshots           => "102 84 71 52 29 3",
- #     builder             => \&cosmoSimBuilder
- # },
+ {
+     label               => "VSMDPL",
+     description         => "Progenitor halo mass function for non-backsplash z=0 parent halos from the VSMDPL simulation.",
+     simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
+     simulationURL       => "https://www.cosmosim.org/cms/simulations/vsmdpl/",
+     hubbleConstant      => 0.6777,
+     massParticle        => 6.2e6,
+     snapshots           => "150 132 119 100 77 51",
+     builder             => \&cosmoSimBuilder
+ },
+ {
+     label               => "SMDPL",
+     description         => "Progneitor halo mass function for non-backsplash z=0 parent halos from the SMDPL simulation.",
+     simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
+     simulationURL       => "https://www.cosmosim.org/cms/simulations/smdpl/",
+     hubbleConstant      => 0.6777,
+     massParticle        => 9.63e7,
+     snapshots           => "116 70 48 38 26 12",
+     builder             => \&cosmoSimBuilder
+ },
+ {
+     label               => "MDPL2",
+     description         => "Progneitor halo mass function for non-backsplash z=0 parent halos from the MDPL2 simulation.",
+     simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
+     simulationURL       => "https://www.cosmosim.org/cms/simulations/mdpl2/",
+     hubbleConstant      => 0.6777,
+     massParticle        => 1.51e9,
+     snapshots           => "125 107 94 75 52 26",
+     builder             => \&cosmoSimBuilder
+ },
+ {
+     label               => "BigMDPL",
+     description         => "Progneitor halo mass function for non-backsplash z=0 parent halos from the BigMDPL simulation.",
+     simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
+     simulationURL       => "https://www.cosmosim.org/cms/simulations/bigmdpl/",
+     hubbleConstant      => 0.6777,
+     massParticle        => 2.359e10,
+     snapshots           => "79 33 11 9 5 2",
+     builder             => \&cosmoSimBuilder
+ },
+ {
+     label               => "HugeMDPL",
+     description         => "Progneitor halo mass function for non-backsplash z=0 parent halos from the HugeMDPL simulation.",
+     simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
+     simulationURL       => "https://www.cosmosim.org/cms/simulations/hugemdpl/",
+     hubbleConstant      => 0.6777,
+     massParticle        => 7.9e10,
+     snapshots           => "102 84 71 52 29 3",
+     builder             => \&cosmoSimBuilder
+ },
  {
      label               => "Caterpillar",
      description         => "Progneitor halo mass function for non-backsplash z=0 parent halos from the Caterpillar simulations.",
@@ -314,9 +314,8 @@ sub caterpillarBuilder {
 	my $parentDirectoryName = "H".$parent->{'ID'}."_LX".$parent->{'levelMax'}."/";
 	my $outputFileName = $simulation->{'path'}.$parentDirectoryName."identifyAlwaysIsolated_progenitors.hdf5";
 	# Skip if the file already exists.
-	## AJB HACK
-#	next
-#	    if ( -e $outputFileName );
+	next
+	    if ( -e $outputFileName );
 	# Clone parameters.
 	my $parameters_ = dclone($parameters);
 	# Set output file.
@@ -387,9 +386,8 @@ sub caterpillarBuilder {
     foreach my $resolution ( keys(%{$massParent}) ) {
 	# Set output file name.
 	my $outputFileName = $simulation->{'path'}."progenitorMassFunctions_LX".$resolution.".hdf5";
-## AJB HACK
-#	next
-#	    if ( -e $outputFileName );
+	next
+	    if ( -e $outputFileName );
 	# Add an importer for each parent.
 	@{$massFunctionParameters->{'nbodyImporterMethod'}->{'nbodyImporterMethod'}} =
 	    map

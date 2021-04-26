@@ -122,7 +122,7 @@
     </posteriorSampleLikelihoodMethod>
 
     <!-- MDPL2 -->
-    <posteriorSampleLikelihoodMethodINACTIVE value="haloMassFunction"> <!-- AJB HACK -->
+    <posteriorSampleLikelihoodMethod value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <fileName            value="%DATASTATICPATH%/darkMatter/haloMassFunction_MDPL2_z0.000.hdf5"/>
       <redshift            value=" 0.00000e00"                     />
@@ -151,7 +151,7 @@
     	</cosmologicalMassVarianceMethod>
     	<criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
       </unconditioned>
-    </posteriorSampleLikelihoodMethodINACTIVE>
+    </posteriorSampleLikelihoodMethod>
 
     <!-- BigMDPL -->
     <parameterMap value="haloMassFunctionMethod::a haloMassFunctionMethod::p haloMassFunctionMethod::normalization"/>
@@ -188,7 +188,7 @@
     </posteriorSampleLikelihoodMethod>
 
     <!-- HugeMDPL -->
-    <posteriorSampleLikelihoodMethodINACTIVE value="haloMassFunction"> <!-- AJB HACK -->
+    <posteriorSampleLikelihoodMethod value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <fileName            value="%DATASTATICPATH%/darkMatter/haloMassFunction_HugeMDPL_z0.000.hdf5"/>
       <redshift            value=" 0.00000e00"                     />
@@ -217,7 +217,7 @@
     	</cosmologicalMassVarianceMethod>
     	<criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
       </unconditioned>
-    </posteriorSampleLikelihoodMethodINACTIVE>
+    </posteriorSampleLikelihoodMethod>
   
   </posteriorSampleLikelihoodMethod>
 
