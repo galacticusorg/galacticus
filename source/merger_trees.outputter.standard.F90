@@ -431,6 +431,9 @@ contains
           ! Array property extractor - extract and store the values.
           doubleArray =extractor_%extract       (node,time,instance)
           do i=1,+extractor_%elementCount(                  time)
+             if (     allocated(self%doubleProperty (doubleProperty +i)%rank1)) then
+                if (size(self%doubleProperty (doubleProperty +i)%rank1,dim=1) /= size(doubleArray,dim=1)) deallocate(self%doubleProperty (doubleProperty +i)%rank1)
+             end if
              if (.not.allocated(self%doubleProperty (doubleProperty +i)%rank1)) allocate(self%doubleProperty (doubleProperty +i)%rank1(size(doubleArray,dim=1),standardBufferSizeIncrement))
              self%doubleProperty (doubleProperty +i)%rank1(:,self%doubleBufferCount)=doubleArray (:,i)
           end do
@@ -448,9 +451,14 @@ contains
                 end if
                 self%doubleProperty (doubleProperty +i)%scalar(  self%doubleBufferCount )=doubleProperties(i)
              case (1)
-                if (.not.allocated(self%doubleProperty(doubleProperty +i)%rank1 )) then
+                if (     allocated(self%doubleProperty(doubleProperty +i)%rank1)) then
                    shape_=doubleProperties(i)%shape()
-                   allocate(self%doubleProperty(doubleProperty+i)%rank1(shape_(1),standardBufferSizeIncrement))
+                   if (size(self%doubleProperty (doubleProperty +i)%rank1,dim=1) /= shape_(1)) deallocate(self%doubleProperty (doubleProperty +i)%rank1)
+                   deallocate(shape_)
+                end if
+                if (.not.allocated(self%doubleProperty(doubleProperty +i)%rank1 )) then
+                   shape_=doubleProperties (i)%shape()
+                   allocate(self%doubleProperty (doubleProperty +i)%rank1(shape_(1),standardBufferSizeIncrement))
                    deallocate(shape_)
                 end if
                 self%doubleProperty (doubleProperty +i)%rank1 (:,self%doubleBufferCount )=doubleProperties(i)
@@ -470,7 +478,12 @@ contains
                 end if
                 self%integerProperty (integerProperty +i)%scalar(self%integerBufferCount  )=integerProperties(i)
              case (1)
-                if (.not.allocated(self%integerProperty(integerProperty +i)%rank1 )) then
+                if (     allocated(self%integerProperty(integerProperty +i)%rank1)) then
+                   shape_=integerProperties(i)%shape()
+                   if (size(self%integerProperty(integerProperty+i)%rank1,dim=1) /= shape_(1)) deallocate(self%integerProperty(integerProperty+i)%rank1)
+                   deallocate(shape_)
+                end if
+                if (.not.allocated(self%integerProperty(integerProperty +i)%rank1)) then
                    shape_=integerProperties(i)%shape()
                    allocate(self%integerProperty(integerProperty+i)%rank1(shape_(1),standardBufferSizeIncrement))
                    deallocate(shape_)
