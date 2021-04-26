@@ -136,6 +136,7 @@
      procedure :: value                 => fileValue
      procedure :: logarithmicDerivative => fileLogarithmicDerivative
      procedure :: halfModeMass          => fileHalfModeMass
+     procedure :: quarterModeMass       => fileQuarterModeMass
      procedure :: epochTime             => fileEpochTime
   end type transferFunctionFile
 
@@ -341,6 +342,25 @@ contains
     end if
     return
   end function fileHalfModeMass
+
+  double precision function fileQuarterModeMass(self,status)
+    !% Compute the mass corresponding to the wavenumber at which the transfer function is
+    !% suppressed by a factor of two relative to a \gls{cdm} transfer function. Not supported in
+    !% this implementation.
+    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
+    implicit none
+    class  (transferFunctionFile), intent(inout)           :: self
+    integer                      , intent(  out), optional :: status
+    !$GLC attributes unused :: self
+
+    fileQuarterModeMass=0.0d0
+    if (present(status)) then
+       status=errorStatusFail
+    else
+       call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+    end if
+    return
+  end function fileQuarterModeMass
 
   double precision function fileEpochTime(self)
     !% Return the cosmic time at the epoch at which this transfer function is defined.
