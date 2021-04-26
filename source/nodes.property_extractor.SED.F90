@@ -18,6 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements a property extractor class for the SED of a component.
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Output_Times              , only : outputTimesClass
   use :: Stellar_Population_Spectra, only : stellarPopulationSpectraClass
   use :: Star_Formation_Histories  , only : starFormationHistoryClass
@@ -25,9 +26,19 @@
   type :: sedTemplate
      !% Type used to store SED templates.
      private
-     double precision, allocatable, dimension(:,:,:) :: sed
+     integer         (c_size_t)                                :: countWavelengths=-1_c_size_t
+     double precision          , allocatable, dimension(:    ) :: wavelength
+     double precision          , allocatable, dimension(:,:,:) :: sed
   end type sedTemplate
   
+  !# <enumeration>
+  !#  <name>frame</name>
+  !#  <description>Frame for SED calculations.</description>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <entry label="rest"    />
+  !#  <entry label="observed"/>
+  !# </enumeration>
+
   !# <nodePropertyExtractor name="nodePropertyExtractorSED">
   !#  <description>A property extractor class for the SED of a component.</description>
   !# </nodePropertyExtractor>
@@ -37,12 +48,15 @@
      class           (stellarPopulationSpectraClass), pointer                   :: stellarPopulationSpectra_    => null()
      class           (starFormationHistoryClass    ), pointer                   :: starFormationHistory_        => null()
      class           (outputTimesClass             ), pointer                   :: outputTimes_                 => null()
+     class           (cosmologyFunctionsClass      ), pointer                   :: cosmologyFunctions_          => null()
      integer                                                                    :: countWavelengths                      , component
      double precision                               , allocatable, dimension(:) :: wavelengths                           , metallicityBoundaries
      type            (sedTemplate                  ), allocatable, dimension(:) :: templates
-     double precision                                                           :: metallicityPopulationMaximum          , agePopulationMaximum , &
-          &                                                                        metallicityPopulationMinimum
-     integer                                                                    :: abundanceIndex
+     double precision                                                           :: metallicityPopulationMinimum          , metallicityPopulationMaximum, &
+          &                                                                        wavelengthMinimum                     , wavelengthMaximum           , &
+          &                                                                        agePopulationMaximum                  , resolution                  , &
+          &                                                                        factorWavelength
+     integer                                                                    :: abundanceIndex                        , frame
      logical                                                                    :: useSEDTemplates
      type            (varying_string               )                            :: fileName
    contains
@@ -59,8 +73,9 @@
      procedure :: descriptions       => sedDescriptions
      procedure :: unitsInSI          => sedUnitsInSI
      procedure :: type               => sedType
-     procedure :: indexTemplate      => sedIndexTemplate
      procedure :: luminosityMean     => sedLuminosityMean
+     procedure :: indexTemplateTime  => sedIndexTemplateTime
+     procedure :: indexTemplateNode  => sedIndexTemplateNode
   end type nodePropertyExtractorSED
 
   interface nodePropertyExtractorSED
@@ -76,30 +91,59 @@ contains
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
     implicit none
-    type (nodePropertyExtractorSED     )                :: self
-    type (inputParameters              ), intent(inout) :: parameters
-    class(stellarPopulationSpectraClass), pointer       :: stellarPopulationSpectra_
-    class(starFormationHistoryClass    ), pointer       :: starFormationHistory_
-    class(outputTimesClass             ), pointer       :: outputTimes_
-    type (varying_string               )                :: component
+    type            (nodePropertyExtractorSED     )                :: self
+    type            (inputParameters              ), intent(inout) :: parameters
+    class           (stellarPopulationSpectraClass), pointer       :: stellarPopulationSpectra_
+    class           (starFormationHistoryClass    ), pointer       :: starFormationHistory_
+    class           (outputTimesClass             ), pointer       :: outputTimes_
+    class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
+    type            (varying_string               )                :: component                , frame
+    double precision                                               :: wavelengthMinimum        , wavelengthMaximum, &
+          &                                                           resolution
 
     !# <inputParameter>
     !#   <name>component</name>
     !#   <source>parameters</source>
     !#   <description>The component from which to extract star formation rate.</description>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>frame</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>var_str('rest')</defaultValue>
+    !#   <description>The frame ({\normalfont \ttfamily rest} or {\normalfont \ttfamily observed}) for which to compute the SED.</description>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>wavelengthMinimum</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The minimum wavelength at which to compute the SED.</description>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>wavelengthMaximum</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>huge(0.0d0)</defaultValue>
+    !#   <description>The maximum wavelength at which to compute the SED.</description>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>resolution</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>-1.0d0</defaultValue>
+    !#   <description>The resolution, $\lambda/\Delta\lambda$, at which to compute the SED. If a negative value is given the SED will be computed at the full resolution provided by the stellar population spectra class.</description>
+    !# </inputParameter>
     !# <objectBuilder class="stellarPopulationSpectra" name="stellarPopulationSpectra_" source="parameters"/>
     !# <objectBuilder class="starFormationHistory"     name="starFormationHistory_"     source="parameters"/>
     !# <objectBuilder class="outputTimes"              name="outputTimes_"              source="parameters"/>
-    self=nodePropertyExtractorSED(enumerationComponentTypeEncode(char(component),includesPrefix=.false.),stellarPopulationSpectra_,starFormationHistory_,outputTimes_)
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    self=nodePropertyExtractorSED(enumerationComponentTypeEncode(char(component),includesPrefix=.false.),enumerationFrameEncode(char(frame),includesPrefix=.false.),wavelengthMinimum,wavelengthMaximum,resolution,stellarPopulationSpectra_,starFormationHistory_,outputTimes_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="stellarPopulationSpectra_"/>
     !# <objectDestructor name="starFormationHistory_"    />
     !# <objectDestructor name="outputTimes_"             />
+    !# <objectDestructor name="cosmologyFunctions_"      />
     return
   end function sedConstructorParameters
 
-  function sedConstructorInternal(component,stellarPopulationSpectra_,starFormationHistory_,outputTimes_) result(self)
+  function sedConstructorInternal(component,frame,wavelengthMinimum,wavelengthMaximum,resolution,stellarPopulationSpectra_,starFormationHistory_,outputTimes_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily sed} property extractor class.
     use :: Atomic_Data                     , only : Abundance_Pattern_Lookup
     use :: Galacticus_Paths                , only : galacticusPath          , pathTypeDataDynamic
@@ -108,13 +152,16 @@ contains
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
     type            (nodePropertyExtractorSED     )                              :: self
-    integer                                        , intent(in   )               :: component
+    integer                                        , intent(in   )               :: component                , frame
     class           (stellarPopulationSpectraClass), intent(in   ), target       :: stellarPopulationSpectra_
     class           (starFormationHistoryClass    ), intent(in   ), target       :: starFormationHistory_
     class           (outputTimesClass             ), intent(in   ), target       :: outputTimes_
+    class           (cosmologyFunctionsClass      ), intent(in   ), target       :: cosmologyFunctions_
+    double precision                               , intent(in   )               :: wavelengthMinimum        , wavelengthMaximum, &
+          &                                                                         resolution
     double precision                               , allocatable  , dimension(:) :: ages                     , metallicities
     integer                                                                      :: agesCount                , metallicitiesCount
-    !# <constructorAssign variables="component, *stellarPopulationSpectra_, *starFormationHistory_, *outputTimes_"/>
+    !# <constructorAssign variables="component, frame, wavelengthMinimum, wavelengthMaximum, resolution, *stellarPopulationSpectra_, *starFormationHistory_, *outputTimes_, *cosmologyFunctions_"/>
 
     if     (                                                                                                               &
          &   component /= componentTypeDisk                                                                                &
@@ -135,6 +182,8 @@ contains
          &                            '_'                                              // &
          &                            self%hashedDescriptor(includeSourceDigest=.true.)// &
          &                            '.hdf5'
+    ! Compute the factor by which the minimum/maximum wavelength in a resolution element differ from the central wavelength.
+    if (resolution > 0.0d0) self%factorWavelength=(1.0d0+sqrt(1.0d0+4.0d0*resolution**2))/2.0d0/resolution
     return
   end function sedConstructorInternal
 
@@ -146,6 +195,7 @@ contains
     !# <objectDestructor name="self%stellarPopulationSpectra_"/>
     !# <objectDestructor name="self%starFormationHistory_"    />
     !# <objectDestructor name="self%outputTimes_"             />
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
     return
   end subroutine sedDestructor
 
@@ -162,13 +212,74 @@ contains
 
   function sedSize(self,time)
     !% Return the number of array alements in the {\normalfont \ttfamily sed} property extractors.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    integer         (c_size_t                )                :: sedSize
-    class           (nodePropertyExtractorSED), intent(inout) :: self
-    double precision                          , intent(in   ) :: time
-    !$GLC attributes unused :: time
+    integer         (c_size_t                )                              :: sedSize
+    class           (nodePropertyExtractorSED), intent(inout)               :: self
+    double precision                          , intent(in   )               :: time
+    logical                                   , allocatable  , dimension(:) :: selection
+    integer         (c_size_t                )                              :: indexTemplate  , i
+    double precision                                                        :: expansionFactor
 
-    sedSize=int(self%countWavelengths,kind=c_size_t)
+    if (self%resolution < 0.0d0) then
+       ! Full resolution, so the number of wavelengths is simply the total number available within the wavelength range.
+       allocate(selection(self%countWavelengths))
+       select case (self%frame)
+       case (frameRest    )
+          expansionFactor=1.0d0
+          selection      =                                                            &
+               &           self%wavelengths                 >= self%wavelengthMinimum &
+               &          .and.                                                       &
+               &           self%wavelengths                 <= self%wavelengthMaximum
+       case (frameObserved)
+          expansionFactor=self%cosmologyFunctions_%expansionFactor(time)
+          selection      =                                                            &
+               &           self%wavelengths/expansionFactor >= self%wavelengthMinimum &
+               &          .and.                                                       &
+               &           self%wavelengths/expansionFactor <= self%wavelengthMaximum
+       case default
+          expansionFactor=1.0d0
+          sedSize        =0_c_size_t
+          call Galacticus_Error_Report('unknown frame'//{introspection:location})
+       end select
+       sedSize      =count(selection)
+       indexTemplate=self%indexTemplateTime(time)
+       if (indexTemplate > 0) then
+          if (.not.allocated(self%templates)) allocate(self%templates(self%outputTimes_%count()))
+          if (self%templates(indexTemplate)%countWavelengths < 0_c_size_t) then
+             self%templates(indexTemplate)%countWavelengths=sedSize
+             allocate(self%templates(indexTemplate)%wavelength(sedSize))
+             self%templates(indexTemplate)%wavelength=+pack(self%wavelengths    ,mask=selection) &
+                  &                                   /          expansionFactor
+          end if
+       end if
+    else
+       ! The number of wavelengths must be computed, or retrieved from a template.
+       indexTemplate=self%indexTemplateTime(time)
+       if (indexTemplate > 0) then
+          ! A template can be used. If the result is already computed for this template, use it.
+          if (.not.allocated(self%templates)) allocate(self%templates(self%outputTimes_%count()))
+          if (self%templates(indexTemplate)%countWavelengths > -1_c_size_t) then
+             sedSize=self%templates(indexTemplate)%countWavelengths
+             return
+          end if
+       end if
+       ! Compute the number of wavelengths.
+       sedSize=int(log(self%wavelengthMaximum/self%wavelengthMinimum)/log(self%factorWavelength)/2.0d0)+1
+       ! Store the result for future re-use if possible.
+       if (indexTemplate > 0) then
+          self%templates(indexTemplate)%countWavelengths=sedSize
+          allocate(self%templates(indexTemplate)%wavelength(sedSize))
+          self%templates(indexTemplate)%wavelength(1)=+self%wavelengthMinimum &
+               &                                      *self%factorWavelength
+          if (sedSize > 1_c_size_t) then
+             do i=2_c_size_t,sedSize
+                self%templates(indexTemplate)%wavelength(i)=+self%templates(indexTemplate)%wavelength      (i-1)    &
+                     &                                      *self                         %factorWavelength     **2
+             end do
+          end if
+       end if
+    end if
     return
   end function sedSize
 
@@ -191,8 +302,8 @@ contains
     integer                                                                             :: indexTemplate       , iWavelength
     !$GLC attributes unused :: instance
 
-    allocate(sedExtract(self%countWavelengths,1))
-    sedExtract =  0.0d0
+    allocate(sedExtract(self%size(time),1))
+    sedExtract=0.0d0
     ! Get the relevant star formation history.
     select case (self%component)
     case (componentTypeDisk)
@@ -204,7 +315,7 @@ contains
     end select
     if (.not.starFormationHistory%exists()) return
     ! Get the index of the template to use.
-    indexTemplate=self%indexTemplate(node,starFormationHistory)
+    indexTemplate=self%indexTemplateNode(node,starFormationHistory)
     if (indexTemplate > 0) then
        ! Stored templates can be used, so point to the relevant set.
        sedTemplate_ => self%templates(indexTemplate)%sed
@@ -213,7 +324,7 @@ contains
        sedTemplate  =  self%luminosityMean(time,starFormationHistory)
        sedTemplate_ => sedTemplate
     end if
-    do iWavelength=1,self%countWavelengths
+    do iWavelength=1,size(sedExtract,dim=1)
        sedExtract(iWavelength,1)=sum(sedTemplate_(iWavelength,:,:)*starFormationHistory%data(:,:))
     end do
     return
@@ -249,17 +360,50 @@ contains
 
   function sedColumnDescriptions(self,time)
     !% Return column descriptions of the {\normalfont \ttfamily sed} property.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (varying_string          ), dimension(:) , allocatable :: sedColumnDescriptions
     class           (nodePropertyExtractorSED), intent(inout)              :: self
     double precision                          , intent(in   )              :: time
-    integer                                                                :: i
-    character      (len=18                   )                             :: label
-    !$GLC attributes unused :: time
+    integer         (c_size_t                )                             :: i                    , j              , &
+         &                                                                    indexTemplate
+    character       (len=18                  )                             :: label
+    double precision                                                       :: wavelength           , expansionFactor
 
-    allocate(sedColumnDescriptions(self%countWavelengths))
-    do i=1,self%countWavelengths
-       write (label,'(a2,1x,e12.6,1x,a1)') "λ=",self%wavelengths(i),"Å"
+    allocate(sedColumnDescriptions(self%size(time)))
+    indexTemplate  =self%indexTemplateTime(time)
+    j              =0
+    select case (self%frame)
+    case (frameRest    )
+       expansionFactor=1.0d0
+    case (frameObserved)
+       expansionFactor=self%cosmologyFunctions_%expansionFactor(time)
+    case default
+       expansionFactor=0.0d0
+       call Galacticus_Error_Report('unknown frame'//{introspection:location})
+    end select
+    do i=1,size(sedColumnDescriptions)
+       if (indexTemplate > 0) then
+          ! Use wavelength from the pre-computed template.
+          wavelength=self%templates(indexTemplate)%wavelength(i)
+       else if (self%resolution < 0.0d0) then
+          ! Full resolution SED.
+          j=j+1
+          do while (self%wavelengths(j)/expansionFactor < self%wavelengthMinimum)
+             j=j+1
+          end do
+          wavelength=self%wavelengths(j)/expansionFactor
+       else
+          ! Finite resolution SED.
+          if (i == 1) then
+             wavelength=+self%wavelengthMinimum    &
+                  &     *self%factorWavelength
+          else
+             wavelength=+     wavelength           &
+                  &     *self%factorWavelength **2
+          end if
+       end if
+       write (label,'(a2,1x,e12.6,1x,a1)') "λ=",wavelength,"Å"
        sedColumnDescriptions(i)=trim(label)
     end do
     return
@@ -290,8 +434,25 @@ contains
     return
   end function sedType
 
-  integer function sedIndexTemplate(self,node,starFormationHistory)
+  integer function sedIndexTemplateTime(self,time)
     !% Find the index of the template SEDs to use.
+    use :: Numerical_Comparison, only : Values_Agree
+    implicit none
+    class           (nodePropertyExtractorSED), intent(inout) :: self
+    double precision                          , intent(in   ) :: time
+    integer         (c_size_t                )                :: indexOutput
+
+    sedIndexTemplateTime=-1
+    if (.not.self%useSEDTemplates) return
+    ! Check that the time is an output time.
+    indexOutput=self%outputTimes_%index(time,findClosest=.true.)
+    if (.not.Values_Agree(time,self%outputTimes_%time(indexOutput),relTol=1.0d-6)) return
+    sedIndexTemplateTime=int(indexOutput)
+    return
+  end function sedIndexTemplateTime
+  
+  integer function sedIndexTemplateNode(self,node,starFormationHistory)
+    !% Find the index of the template SEDs to use, and also compute the template.
     use :: Galacticus_Nodes    , only : nodeComponentBasic
     use :: Histories           , only : history
     use :: ISO_Varying_String  , only : var_str
@@ -310,16 +471,16 @@ contains
     type   (varying_string          )                :: datasetName
 
     ! Return a negative index if templates are not being used.
-    sedIndexTemplate=-1
+    sedIndexTemplateNode=-1
     if (.not.self%useSEDTemplates) return
     ! Check that the node exists at at output time.
     basic       => node             %basic(                               )
     indexOutput =  self%outputTimes_%index(basic%time(),findClosest=.true.)
     if (.not.Values_Agree(basic%time(),self%outputTimes_%time(indexOutput),relTol=1.0d-6)) return
-    sedIndexTemplate=int(indexOutput)
+    sedIndexTemplateNode=int(indexOutput)
     ! Ensure that the templates have been built for this index.
     if (.not.allocated(self%templates)) allocate(self%templates(self%outputTimes_%count()))
-    if (.not.allocated(self%templates(sedIndexTemplate)%sed)) then
+    if (.not.allocated(self%templates(sedIndexTemplateNode)%sed)) then
        ! Check if the templates can be retrieved from file.
        datasetName=var_str("sedTemplates")//indexOutput
        !! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
@@ -327,28 +488,29 @@ contains
        if (File_Exists(self%fileName)) then
           !$ call hdf5Access%set()
           call file%openFile(char(self%fileName))
-          if (file%hasDataset(char(datasetName))) call file%readDataset(char(datasetName),self%templates(sedIndexTemplate)%sed)
+          if (file%hasDataset(char(datasetName))) call file%readDataset(char(datasetName),self%templates(sedIndexTemplateNode)%sed)
           call file%close()
           !$ call hdf5Access%unset()
        end if
-       if (.not.allocated(self%templates(sedIndexTemplate)%sed)) then
-          self%templates(sedIndexTemplate)%sed=self%luminosityMean(self%outputTimes_%time(indexOutput),starFormationHistory,parallelize=.true.)
+       if (.not.allocated(self%templates(sedIndexTemplateNode)%sed)) then
+          self%templates(sedIndexTemplateNode)%sed=self%luminosityMean(self%outputTimes_%time(indexOutput),starFormationHistory,parallelize=.true.)
           !$ call hdf5Access%set()
           call file%openFile(char(self%fileName),overWrite=.false.,readOnly=.false.)
-          call file%writeDataset(self%templates(sedIndexTemplate)%sed,char(datasetName))
+          call file%writeDataset(self%templates(sedIndexTemplateNode)%sed,char(datasetName))
           call file%close()
           !$ call hdf5Access%unset()
        end if
        call File_Unlock(fileLock)
     end if
     return
-  end function sedIndexTemplate
+  end function sedIndexTemplateNode
   
   double precision function sedLuminosityMean(self,time,starFormationHistory,parallelize)
     !% Compute the mean luminosity of the stellar population in each bin of the star formation history.
-    use    :: Abundances_Structure , only : abundances           , metallicityTypeLinearByMassSolar, adjustElementsReset
-    use    :: Display              , only : displayIndent        , displayUnindent                 , displayCounter     , displayCounterClear, &
+    use    :: Abundances_Structure , only : abundances             , metallicityTypeLinearByMassSolar, adjustElementsReset
+    use    :: Display              , only : displayIndent          , displayUnindent                 , displayCounter     , displayCounterClear, &
          &                                  verbosityLevelWorking
+    use    :: Galacticus_Error     , only : Galacticus_Error_Report
     use    :: Histories            , only : history
     use    :: Numerical_Integration, only : integrator
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
@@ -359,25 +521,63 @@ contains
     type            (history                      ), intent(in   )                 :: starFormationHistory
     logical                                        , intent(in   )   , optional    :: parallelize
     class           (stellarPopulationSpectraClass), pointer         , save        :: stellarPopulationSpectra_
-    type            (integrator                   ), allocatable     , save        :: integratorTime           , integratorMetallicity
+    type            (integrator                   ), allocatable     , save        :: integratorTime           , integratorMetallicity, &
+         &                                                                            integratorWavelength
+    integer                                        , dimension(:    ), allocatable :: jWavelength
+    double precision                               , dimension(:    ), allocatable :: wavelengthMinima         , wavelengthMaxima
     integer                                                                        :: iWavelength              , iTime                , &
-         &                                                                            iMetallicity
-    double precision                                                               :: metallicityMinimum       , metallicityMaximum
+         &                                                                            iMetallicity             , kWavelength
+    double precision                                                               :: metallicityMinimum       , metallicityMaximum   , &
+         &                                                                            expansionFactor
     double precision                                                 , save        :: timeMinimum              , timeMaximum          , &
-         &                                                                            wavelength
+         &                                                                            wavelength               , wavelengthMinimum    , &
+         &                                                                            wavelengthMaximum        , age
     type            (abundances                   )                  , save        :: abundancesStellar
     character       (len=12                       )                                :: label
     integer                                                                        :: counter
-    !$omp threadprivate(stellarPopulationSpectra_,integratorTime,integratorMetallicity,abundancesStellar,wavelength,timeMinimum,timeMaximum)
+    !$omp threadprivate(stellarPopulationSpectra_,integratorTime,integratorWavelength,integratorMetallicity,abundancesStellar,wavelength,wavelengthMinimum,wavelengthMaximum,timeMinimum,timeMaximum,age)
     !# <optionalArgument name="parallelize" defaultsTo=".false." />
 
-    allocate(sedLuminosityMean(self%countWavelengths,size(starFormationHistory%data,dim=1),size(starFormationHistory%data,dim=2)))
+    allocate(sedLuminosityMean(self%size(time),size(starFormationHistory%data,dim=1),size(starFormationHistory%data,dim=2)))
+    select case (self%frame)
+    case (frameRest    )
+       expansionFactor=1.0d0
+    case (frameObserved)
+       expansionFactor=self%cosmologyFunctions_%expansionFactor(time)
+    case default
+       expansionFactor=0.0d0
+       call Galacticus_Error_Report('unknown frame'//{introspection:location})
+    end select
+    if (self%resolution < 0.0d0) then
+       allocate(jWavelength(size(sedLuminosityMean,dim=1)))
+       kWavelength=0
+       do iWavelength=1,self%countWavelengths
+          if     (                                                                         &
+               &   self%wavelengths(iWavelength)/expansionFactor >= self%wavelengthMinimum &
+               &  .and.                                                                    &
+               &   self%wavelengths(iWavelength)/expansionFactor <= self%wavelengthMaximum &
+               & ) then
+             kWavelength             =kWavelength+1
+             jWavelength(kWavelength)=iWavelength
+          end if
+       end do
+    else
+       allocate(wavelengthMinima(size(sedLuminosityMean,dim=1)))
+       allocate(wavelengthMaxima(size(sedLuminosityMean,dim=1)))
+       wavelengthMinima(1)=self%wavelengthMinimum
+       wavelengthMaxima(1)=wavelengthMinima(1)*self%factorWavelength**2
+       do iWavelength=2,size(wavelengthMinima)
+          wavelengthMinima(iWavelength)=wavelengthMaxima(iWavelength-1)
+          wavelengthMaxima(iWavelength)=wavelengthMinima(iWavelength  )*self%factorWavelength**2
+      end do
+    end if
     counter=-1
     !$omp parallel private (iWavelength,iTime,iMetallicity,metallicityMinimum,metallicityMaximum)
     allocate(integratorTime       )
     allocate(integratorMetallicity)
     integratorTime       =integrator(sedIntegrandTime       ,toleranceRelative=1.0d-3)
     integratorMetallicity=integrator(sedIntegrandMetallicity,toleranceRelative=1.0d-3)
+    integratorWavelength =integrator(sedIntegrandWavelength ,toleranceRelative=1.0d-3)
     if (parallelize_) then
        allocate(stellarPopulationSpectra_,mold=self%stellarPopulationSpectra_)
        !$omp critical(nodePropertyExtractSEDDeepCopy)
@@ -393,13 +593,22 @@ contains
     end if
     !$omp end master
     !$omp do
-    do iWavelength=1,self%countWavelengths
+    do iWavelength=1,size(sedLuminosityMean,dim=1)
        if (parallelize_) then
           !$omp atomic
           counter=counter+1
-          call displayCounter(percentageComplete=int(100.0d0*dble(counter)/dble(self%countWavelengths)),isNew=counter==0,verbosity=verbosityLevelWorking)
+          call displayCounter(percentageComplete=int(100.0d0*dble(counter)/dble(size(sedLuminosityMean,dim=1))),isNew=counter==0,verbosity=verbosityLevelWorking)
        end if
-       wavelength=self%wavelengths(iWavelength)
+       ! Determine the wavelength.
+       if (self%resolution < 0.0d0) then
+          ! Full resolution SED.
+          wavelength=self%wavelengths(jWavelength(iWavelength))
+       else
+          ! Finite resolution SED.
+          wavelengthMinimum=wavelengthMinima(iWavelength)*expansionFactor
+          wavelengthMaximum=wavelengthMaxima(iWavelength)*expansionFactor
+       end if
+       ! Iterate over times and metallicities in the star formation history.
        do iTime=1,size(starFormationHistory%data,dim=1)
           if (iTime == 1) then
              timeMinimum=                         0.0d0
@@ -466,20 +675,54 @@ contains
       !% Integrand over birth time of the stellar population.
       implicit none
       double precision, intent(in   ) :: timeBirth
-      double precision                :: age
 
       age             =min(                            &
            &               +     time                  &
            &               -     timeBirth           , &
            &               +self%agePopulationMaximum  &
            &              )
-      if (parallelize) then
-         sedIntegrandTime=     stellarPopulationSpectra_%luminosity(abundancesStellar,age,wavelength)
+      if (self%resolution < 0.0d0) then
+         ! Full resolution - evaluate at the given wavelength.
+         if (parallelize) then
+            sedIntegrandTime=     stellarPopulationSpectra_%luminosity(abundancesStellar,age,wavelength)
+         else
+            sedIntegrandTime=self%stellarPopulationSpectra_%luminosity(abundancesStellar,age,wavelength)
+         end if
       else
-         sedIntegrandTime=self%stellarPopulationSpectra_%luminosity(abundancesStellar,age,wavelength)
+         ! Finite resolution - integrate over wavelength.
+         sedIntegrandTime=integratorWavelength%integrate(wavelengthMinimum,wavelengthMaximum)
       end if
       return
     end function sedIntegrandTime
+
+    double precision function sedIntegrandWavelength(wavelength)
+      !% Integrand over wavelength of the stellar population. The assumption made here is that we have a photon-counting detector
+      !% (such as a CCD). So, we integrate the photon rate over the wavelength range, and then multiply by the energy at the
+      !% central wavelength $\bar{\lambda} = \mathrm{c}/\bar{\nu}$, to find the luminosity in the wavelength range. We then divide
+      !% by the width of the range in frequency to get our SED. Specifically,
+      !% \begin{equation}
+      !%  \langle L_\nu \rangle = \frac{\mathrm{h} \bar{\nu}}{\Delta \nu} \int_{\lambda_\mathrm{min}}^{\lambda_\mathrm{max}} \mathrm{d}\nu \frac{L_\nu}{\mathrm{h}\nu}.
+      !% \end{equation}
+      !% Using the factor that $\Delta\nu = \nu_1-\nu_2 = (\mathrm{c}/\bar{\lambda})(f-f^{-1})$ this can be written as
+      !% \begin{equation}
+      !%  \langle L_\nu \rangle = (f-f^{-1})^{-1} \int_{\lambda_\mathrm{min}}^{\lambda_\mathrm{max}} \frac{\mathrm{d}\lambda}{\lambda} L_\nu.
+      !% \end{equation}
+      implicit none
+      double precision, intent(in   ) :: wavelength
+      
+      if (parallelize) then
+         sedIntegrandWavelength=     stellarPopulationSpectra_%luminosity(abundancesStellar,age,wavelength)
+      else
+         sedIntegrandWavelength=self%stellarPopulationSpectra_%luminosity(abundancesStellar,age,wavelength)
+      end if
+      sedIntegrandWavelength=+sedIntegrandWavelength        &
+           &                 /wavelength                    &
+           &                 /(                             &
+           &                   +1.0d0*self%factorWavelength &
+           &                   -1.0d0/self%factorWavelength &
+           &                 )
+      return
+    end function sedIntegrandWavelength
 
   end function sedLuminosityMean
   
