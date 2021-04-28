@@ -163,8 +163,8 @@ contains
     !#   <source>parameters</source>
     !# </inputParameter>
     if (parameters%isPresent('metallicityBoundaries')) then
-       self%countMetallicities=parameters%count('metallicityBoundaries')
-       allocate(metallicityBoundaries(self%countMetallicities+1))
+       countMetallicities=parameters%count('metallicityBoundaries')
+       allocate(metallicityBoundaries(countMetallicities+1))
        !# <inputParameter>
        !#   <name>metallicityBoundaries</name>
        !#   <description>The metallicities corresponding to boundaries between metallicity bins to use when tabulating star formation histories.</description>
@@ -246,7 +246,8 @@ contains
             &   present(metallicityMaximum   ) &
             & ) call Galacticus_Error_Report('specify either a list of metallicity boundaries, or a range, not both'//{introspection:location})
        allocate(self%metallicityTable(size(metallicityBoundaries)))
-       self%metallicityTable=metallicityBoundaries
+       self%metallicityTable  =     metallicityBoundaries
+       self%countMetallicities=size(metallicityBoundaries)-1
     else
        if     (                                &
             &   present(metallicityBoundaries) &
