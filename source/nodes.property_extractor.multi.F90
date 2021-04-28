@@ -298,27 +298,30 @@ contains
        class is (nodePropertyExtractorScalar       )
           if (elementType == elementTypeDouble ) then
              elementCount=1
-             multiNames(offset+1:offset+elementCount)=extractor_%name (    )
+             multiNames       (offset+1:offset+elementCount)=extractor_%name (    )
           end if
        class is (nodePropertyExtractorTuple        )
           if (elementType == elementTypeDouble ) then
              elementCount=extractor_%elementCount(time)
-             multiNames(offset+1:offset+elementCount)=extractor_%names(time)
+             if (elementCount > 0)                                                  &
+                  & multiNames(offset+1:offset+elementCount)=extractor_%names(time)
           end if
        class is (nodePropertyExtractorIntegerScalar)
           if (elementType == elementTypeInteger) then
              elementCount=1
-             multiNames(offset+1:offset+elementCount)=extractor_%name (    )
+             multiNames       (offset+1:offset+elementCount)=extractor_%name (    )
           end if
        class is (nodePropertyExtractorIntegerTuple )
           if (elementType == elementTypeInteger) then
              elementCount=extractor_%elementCount(time)
-             multiNames(offset+1:offset+elementCount)=extractor_%names(time)
+             if (elementCount > 0)                                                  &
+                  & multiNames(offset+1:offset+elementCount)=extractor_%names(time)
           end if
        class is (nodePropertyExtractorArray        )
           if (elementType == elementTypeDouble ) then
              elementCount=extractor_%elementCount(time)
-             multiNames(offset+1:offset+elementCount)=extractor_%names(time)
+             if (elementCount > 0)                                                  &
+                  & multiNames(offset+1:offset+elementCount)=extractor_%names(time)
           end if
        class default
           call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
