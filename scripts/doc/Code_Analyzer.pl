@@ -80,7 +80,7 @@ my %unitOpeners = (
     # Find interfaces.
     interface          => { unitName => 2, regEx => "^\\s*(abstract\\s+)??interface\\s+([a-z0-9_\\(\\)\\/\\+\\-\\*\\.=]*)"},
     # Find types.
-    type               => { unitName => 3, regEx => "^\\s*type\\s*(,\\s*abstract\\s*|,\\s*public\\s*|,\\s*private\\s*|,\\s*extends\\s*\\([a-zA-Z0-9_]+\\)\\s*|,\\s*bind\\(c\\)\\s*)*(::)??\\s*([a-z0-9_]+)\\s*\$"}
+    type               => { unitName => 3, regEx => "^\\s*type\\s*(,\\s*abstract\\s*|,\\s*public\\s*|,\\s*private\\s*|,\\s*extends\\s*\\([a-zA-Z0-9_]+\\)\\s*|,\\s*bind\\(c\\)\\s*)*(::)??\\s*([a-z0-9_\{\}¦]+)\\s*\$"}
     );
 
 # Specify unit closing regexs.
@@ -90,7 +90,7 @@ my %unitClosers = (
     subroutine         => { unitName => 1, regEx => "^\\s*end\\s+subroutine\\s+([a-z0-9_]+)"},
     function           => { unitName => 1, regEx => "^\\s*end\\s+function\\s+([a-z0-9_]+)"},
     interface          => { unitName => 1, regEx => "^\\s*end\\s+interface"},
-    type               => { unitName => 1, regEx => "^\\s*end\\s+type\\s+([a-z0-9_]+)"}
+    type               => { unitName => 1, regEx => "^\\s*end\\s+type\\s+([a-z0-9_\{\}¦]+)"}
     );
 
 # Find and process all files in the source directory tree.
