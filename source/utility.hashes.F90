@@ -22,22 +22,23 @@
 module Hashes
   !% Implements ``hashes'' (i.e. associative arrays).
   use, intrinsic :: ISO_C_Binding     , only : c_size_t
-  use            :: ISO_Varying_String, only : varying_string
+  use            :: ISO_Varying_String, only : varying_string, var_str
   implicit none
 
   !# <generic identifier="Type">
-  !#  <instance label="integer"              intrinsic="integer"           attributes=""                              argumentAttributes=""                          assignment="="  null="0"         />
-  !#  <instance label="integerSizeT"         intrinsic="integer(c_size_t)" attributes=""                              argumentAttributes=""                          assignment="="  null="0_c_size_t"/>
-  !#  <instance label="rank1IntegerSizeT"    intrinsic="integer(c_size_t)" attributes=", allocatable, dimension(:  )" argumentAttributes="         , dimension(:  )" assignment="="  null="0_c_size_t"/>
-  !#  <instance label="rank2IntegerSizeT"    intrinsic="integer(c_size_t)" attributes=", allocatable, dimension(:,:)" argumentAttributes="         , dimension(:,:)" assignment="="  null="0_c_size_t"/>
-  !#  <instance label="rank1IntegerSizeTPtr" intrinsic="integer(c_size_t)" attributes=", pointer    , dimension(:  )" argumentAttributes=", pointer, dimension(:  )" assignment="=>" null="null()"    />
-  !#  <instance label="rank2IntegerSizeTPtr" intrinsic="integer(c_size_t)" attributes=", pointer    , dimension(:,:)" argumentAttributes=", pointer, dimension(:,:)" assignment="=>" null="null()"    />
-  !#  <instance label="double"               intrinsic="double precision"  attributes=""                              argumentAttributes=""                          assignment="="  null="0.0d0"     />
-  !#  <instance label="rank1Double"          intrinsic="double precision"  attributes=", allocatable, dimension(:  )" argumentAttributes="         , dimension(:  )" assignment="="  null="0.0d0"     />
-  !#  <instance label="rank2Double"          intrinsic="double precision"  attributes=", allocatable, dimension(:,:)" argumentAttributes="         , dimension(:,:)" assignment="="  null="0.0d0"     />
-  !#  <instance label="rank1DoublePtr"       intrinsic="double precision"  attributes=", pointer    , dimension(:  )" argumentAttributes=", pointer, dimension(:  )" assignment="=>" null="null()"    />
-  !#  <instance label="rank2DoublePtr"       intrinsic="double precision"  attributes=", pointer    , dimension(:,:)" argumentAttributes=", pointer, dimension(:,:)" assignment="=>" null="null()"    />
-  !#  <instance label="generic"              intrinsic="class(*)"          attributes=", pointer"                     argumentAttributes=", target"                  assignment="=>" null="null()"    />
+  !#  <instance label="integer"              intrinsic="integer"              attributes=""                              argumentAttributes=""                          assignment="="  null="0"          />
+  !#  <instance label="integerSizeT"         intrinsic="integer(c_size_t)"    attributes=""                              argumentAttributes=""                          assignment="="  null="0_c_size_t" />
+  !#  <instance label="rank1IntegerSizeT"    intrinsic="integer(c_size_t)"    attributes=", allocatable, dimension(:  )" argumentAttributes="         , dimension(:  )" assignment="="  null="0_c_size_t" />
+  !#  <instance label="rank2IntegerSizeT"    intrinsic="integer(c_size_t)"    attributes=", allocatable, dimension(:,:)" argumentAttributes="         , dimension(:,:)" assignment="="  null="0_c_size_t" />
+  !#  <instance label="rank1IntegerSizeTPtr" intrinsic="integer(c_size_t)"    attributes=", pointer    , dimension(:  )" argumentAttributes=", pointer, dimension(:  )" assignment="=>" null="null()"     />
+  !#  <instance label="rank2IntegerSizeTPtr" intrinsic="integer(c_size_t)"    attributes=", pointer    , dimension(:,:)" argumentAttributes=", pointer, dimension(:,:)" assignment="=>" null="null()"     />
+  !#  <instance label="double"               intrinsic="double precision"     attributes=""                              argumentAttributes=""                          assignment="="  null="0.0d0"      />
+  !#  <instance label="rank1Double"          intrinsic="double precision"     attributes=", allocatable, dimension(:  )" argumentAttributes="         , dimension(:  )" assignment="="  null="0.0d0"      />
+  !#  <instance label="rank2Double"          intrinsic="double precision"     attributes=", allocatable, dimension(:,:)" argumentAttributes="         , dimension(:,:)" assignment="="  null="0.0d0"      />
+  !#  <instance label="rank1DoublePtr"       intrinsic="double precision"     attributes=", pointer    , dimension(:  )" argumentAttributes=", pointer, dimension(:  )" assignment="=>" null="null()"     />
+  !#  <instance label="rank2DoublePtr"       intrinsic="double precision"     attributes=", pointer    , dimension(:,:)" argumentAttributes=", pointer, dimension(:,:)" assignment="=>" null="null()"     />
+  !#  <instance label="varyingString"        intrinsic="type(varying_string)" attributes=""                              argumentAttributes=""                          assignment="="  null="var_str('')"/>
+  !#  <instance label="generic"              intrinsic="class(*)"             attributes=", pointer"                     argumentAttributes=", target"                  assignment="=>" null="null()"     />
   !# </generic>
 
   private
