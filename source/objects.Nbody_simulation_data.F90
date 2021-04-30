@@ -24,7 +24,7 @@ module NBody_Simulation_Data
   use :: IO_HDF5           , only : hdf5Object
   use :: ISO_Varying_String, only : varying_string
   use :: Hashes            , only : rank1IntegerSizeTPtrHash, rank2IntegerSizeTPtrHash, rank1DoublePtrHash, rank2DoublePtrHash, &
-       &                            integerSizeTHash        , doubleHash
+       &                            integerSizeTHash        , doubleHash              , varyingStringHash
   implicit none
   private
   public :: nBodyData, nBodyDataPropertyType
@@ -35,6 +35,7 @@ module NBody_Simulation_Data
      type(hdf5Object              ) :: analysis
      type(integerSizeTHash        ) :: attributesInteger
      type(doubleHash              ) :: attributesReal
+     type(varyingStringHash       ) :: attributesText
      type(rank1IntegerSizeTPtrHash) :: propertiesInteger
      type(rank1DoublePtrHash      ) :: propertiesReal
      type(rank2IntegerSizeTPtrHash) :: propertiesIntegerRank1
@@ -136,6 +137,14 @@ contains
     case('descendentExpansionFactor')
        nBodyDataPropertyType=propertyTypeReal
     case('massVirial'               )
+       nBodyDataPropertyType=propertyTypeReal
+    case('radiusVirial'             )
+       nBodyDataPropertyType=propertyTypeReal
+    case('radiusScale'              )
+       nBodyDataPropertyType=propertyTypeReal
+    case('spin'                     )
+       nBodyDataPropertyType=propertyTypeReal
+    case('virialRatio'              )
        nBodyDataPropertyType=propertyTypeReal
     case default
        nBodyDataPropertyType=propertyTypeUnknown

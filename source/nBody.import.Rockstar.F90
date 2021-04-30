@@ -53,38 +53,63 @@
   !#  <visibility>public</visibility>
   !#  <encodeFunction>yes</encodeFunction>
   !#  <validator>yes</validator>
-  !#  <entry label="scale"           />
-  !#  <entry label="id"              />
-  !#  <entry label="desc_scale"      />
-  !#  <entry label="desc_id"         />
-  !#  <entry label="num_prog"        />
-  !#  <entry label="pid"             />
-  !#  <entry label="upid"            />
-  !#  <entry label="desc_pid"        />
-  !#  <entry label="phantom"         />
-  !#  <entry label="sam_Mvir"        />
-  !#  <entry label="Mvir"            />
-  !#  <entry label="Rvir"            />
-  !#  <entry label="rs"              />
-  !#  <entry label="vrms"            />
-  !#  <entry label="mmp"             />
-  !#  <entry label="scale_of_last_MM"/>
-  !#  <entry label="Vmax"            />
-  !#  <entry label="X"               />
-  !#  <entry label="Y"               />
-  !#  <entry label="Z"               />
-  !#  <entry label="VX"              />
-  !#  <entry label="VY"              />
-  !#  <entry label="VZ"              />
-  !#  <entry label="JX"              />
-  !#  <entry label="JY"              />
-  !#  <entry label="JZ"              />
-  !#  <entry label="Spin"            />
-  !#  <entry label="Breadth_first_ID"/>
-  !#  <entry label="Depth_first_ID"  />
-  !#  <entry label="Tree_root_ID"    />
-  !#  <entry label="Orig_halo_ID"    />
-  !#  <entry label="Snap_num"        />
+  !#  <entry label="scale"                          />
+  !#  <entry label="id"                             />
+  !#  <entry label="desc_scale"                     />
+  !#  <entry label="desc_id"                        />
+  !#  <entry label="num_prog"                       />
+  !#  <entry label="pid"                            />
+  !#  <entry label="upid"                           />
+  !#  <entry label="desc_pid"                       />
+  !#  <entry label="phantom"                        />
+  !#  <entry label="sam_Mvir"                       />
+  !#  <entry label="Mvir"                           />
+  !#  <entry label="Rvir"                           />
+  !#  <entry label="rs"                             />
+  !#  <entry label="vrms"                           />
+  !#  <entry label="mmp"                            />
+  !#  <entry label="scale_of_last_MM"               />
+  !#  <entry label="Vmax"                           />
+  !#  <entry label="X"                              />
+  !#  <entry label="Y"                              />
+  !#  <entry label="Z"                              />
+  !#  <entry label="VX"                             />
+  !#  <entry label="VY"                             />
+  !#  <entry label="VZ"                             />
+  !#  <entry label="JX"                             />
+  !#  <entry label="JY"                             />
+  !#  <entry label="JZ"                             />
+  !#  <entry label="Spin"                           />
+  !#  <entry label="Breadth_first_ID"               />
+  !#  <entry label="Depth_first_ID"                 />
+  !#  <entry label="Tree_root_ID"                   />
+  !#  <entry label="Orig_halo_ID"                   />
+  !#  <entry label="Snap_num"                       />
+  !#  <entry label="Next_coprogenitor_depthfirst_ID"/>
+  !#  <entry label="Last_progenitor_depthfirst_ID"  />
+  !#  <entry label="Last_mainleaf_depthfirst_ID"    />
+  !#  <entry label="Tidal_Force"                    />
+  !#  <entry label="Tidal_ID"                       />
+  !#  <entry label="Rs_Klypin"                      />
+  !#  <entry label="Mmvir_all"                      />
+  !#  <entry label="M200b"                          />
+  !#  <entry label="M200c"                          />
+  !#  <entry label="M500c"                          />
+  !#  <entry label="M2500c"                         />
+  !#  <entry label="Xoff"                           />
+  !#  <entry label="Voff"                           />
+  !#  <entry label="Spin_Bullock"                   />
+  !#  <entry label="b_to_a"                         />
+  !#  <entry label="c_to_a"                         />
+  !#  <entry label="Ax"                             />
+  !#  <entry label="Ay"                             />
+  !#  <entry label="Az"                             />
+  !#  <entry label="b_to_a500c"                     />
+  !#  <entry label="c_to_a500c"                     />
+  !#  <entry label="Ax500c"                         />
+  !#  <entry label="Ay500c"                         />
+  !#  <entry label="Az500c"                         />
+  !#  <entry label="TU"                             />
   !# </enumeration>
 
   !# <enumeration>
@@ -163,43 +188,68 @@ contains
        allocate(self%readColumnsType(size(self%readColumns)))
        do i=1,size(self%readColumns)
           select case (self%readColumns(i))
-          case   (                                 &
-               &  rockstarColumnScale            , &
-               &  rockstarColumnDesc_scale       , &
-               &  rockstarColumnSam_Mvir         , &
-               &  rockstarColumnMvir             , &
-               &  rockstarColumnRvir             , &
-               &  rockstarColumnRs               , &
-               &  rockstarColumnVrms             , &
-               &  rockstarColumnscale_of_last_MM , &
-               &  rockstarColumnVmax             , &
-               &  rockstarColumnX                , &
-               &  rockstarColumnY                , &
-               &  rockstarColumnZ                , &
-               &  rockstarColumnVX               , &
-               &  rockstarColumnVY               , &
-               &  rockstarColumnVZ               , &
-               &  rockstarColumnJX               , &
-               &  rockstarColumnJY               , &
-               &  rockstarColumnJZ               , &
-               &  rockstarColumnSpin               &
+          case   (                                               &
+               &  rockstarColumnScale                          , &
+               &  rockstarColumnDesc_scale                     , &
+               &  rockstarColumnSam_Mvir                       , &
+               &  rockstarColumnMvir                           , &
+               &  rockstarColumnRvir                           , &
+               &  rockstarColumnRs                             , &
+               &  rockstarColumnVrms                           , &
+               &  rockstarColumnscale_of_last_MM               , &
+               &  rockstarColumnVmax                           , &
+               &  rockstarColumnX                              , &
+               &  rockstarColumnY                              , &
+               &  rockstarColumnZ                              , &
+               &  rockstarColumnVX                             , &
+               &  rockstarColumnVY                             , &
+               &  rockstarColumnVZ                             , &
+               &  rockstarColumnJX                             , &
+               &  rockstarColumnJY                             , &
+               &  rockstarColumnJZ                             , &
+               &  rockstarColumnSpin                           , &
+               &  rockstarColumnTidal_Force                    , &
+               &  rockstarColumnRs_Klypin                      , &
+               &  rockstarColumnMmvir_all                      , &
+               &  rockstarColumnM200b                          , &
+               &  rockstarColumnM200c                          , &
+               &  rockstarColumnM500c                          , &
+               &  rockstarColumnM2500c                         , &
+               &  rockstarColumnXoff                           , &
+               &  rockstarColumnVoff                           , &
+               &  rockstarColumnSpin_Bullock                   , &
+               &  rockstarColumnb_to_a                         , &
+               &  rockstarColumnc_to_a                         , &
+               &  rockstarColumnAx                             , &
+               &  rockstarColumnAy                             , &
+               &  rockstarColumnAz                             , &
+               &  rockstarColumnb_to_a500c                     , &
+               &  rockstarColumnc_to_a500c                     , &
+               &  rockstarColumnAx500c                         , &
+               &  rockstarColumnAy500c                         , &
+               &  rockstarColumnAz500c                         , &
+               &  rockstarColumnTU                               &
                & )
              self%readColumnsRealCount      =self%readColumnsRealCount   +1
              self%readColumnsType        (i)=columnTypeReal
-          case   (                                 &
-               &  rockstarColumnId               , &
-               &  rockstarColumnDesc_id          , &
-               &  rockstarColumnNum_prog         , &
-               &  rockstarColumnPid              , &
-               &  rockstarColumnUpid             , &
-               &  rockstarColumnDesc_pid         , &
-               &  rockstarColumnPhantom          , &
-               &  rockstarColumnMmp              , &
-               &  rockstarColumnBreadth_first_ID , &
-               &  rockstarColumnDepth_first_ID   , &
-               &  rockstarColumnTree_root_ID     , &
-               &  rockstarColumnOrig_halo_ID     , &
-               &  rockstarColumnSnap_num           &
+          case   (                                               &
+               &  rockstarColumnId                             , &
+               &  rockstarColumnDesc_id                        , &
+               &  rockstarColumnNum_prog                       , &
+               &  rockstarColumnPid                            , &
+               &  rockstarColumnUpid                           , &
+               &  rockstarColumnDesc_pid                       , &
+               &  rockstarColumnPhantom                        , &
+               &  rockstarColumnMmp                            , &
+               &  rockstarColumnBreadth_first_ID               , &
+               &  rockstarColumnDepth_first_ID                 , &
+               &  rockstarColumnTree_root_ID                   , &
+               &  rockstarColumnOrig_halo_ID                   , &
+               &  rockstarColumnSnap_num                       , &
+               &  rockstarColumnNext_coprogenitor_depthfirst_ID, &
+               &  rockstarColumnLast_progenitor_depthfirst_ID  , &
+               &  rockstarColumnLast_mainleaf_depthfirst_ID    , &
+               &  rockstarColumnTidal_ID                         &
                & )
              self%readColumnsIntegerCount   =self%readColumnsIntegerCount+1
              self%readColumnsType        (i)=columnTypeInteger
@@ -234,7 +284,7 @@ contains
           &                             verbosityLevelStandard
     use :: File_Utilities      , only : Count_Lines_in_File
     use :: Hashes              , only : doubleHash            , integerSizeTHash        , rank1DoublePtrHash, rank1IntegerSizeTPtrHash, &
-          &                             rank2DoublePtrHash    , rank2IntegerSizeTPtrHash
+          &                             rank2DoublePtrHash    , rank2IntegerSizeTPtrHash, varyingStringHash
     use :: Memory_Management   , only : allocateArray         , deallocateArray
     implicit none
     class           (nbodyImporterRockstar     ), intent(inout)                                 :: self
@@ -243,8 +293,8 @@ contains
     type            (nbodyPropertiesRealList   )               , dimension( :    ), allocatable :: propertiesReal
     type            (nbodyPropertiesIntegerList)               , dimension( :    ), allocatable :: propertiesInteger
     double precision                                           , dimension( :  ,:), pointer     :: position         , velocity
-    double precision                                           , dimension(0:31  )              :: columnsReal
-    integer         (c_size_t                  )               , dimension(0:31  )              :: columnsInteger
+    double precision                                           , dimension(0:56  )              :: columnsReal
+    integer         (c_size_t                  )               , dimension(0:56  )              :: columnsInteger
     integer         (c_size_t                  )                                                :: countHalos       , countTrees, &
          &                                                                                         i
     integer                                                                                     :: status           , j         , &
@@ -293,7 +343,10 @@ contains
                   &        columnsReal   ( 9:13), &
                   &        columnsInteger(14:14), &
                   &        columnsReal   (15:26), &
-                  &        columnsInteger(27:31)
+                  &        columnsInteger(27:34), &
+                  &        columnsReal   (35   ), &
+                  &        columnsInteger(36   ), &
+                  &        columnsReal   (37:56)
              if (self%expansionFactorNeeded) expansionFactor(i)=columnsReal(0)
              ! Read any extra columns.
              if (allocated(self%readColumns)) then
@@ -341,8 +394,9 @@ contains
     boxSize=+boxSize                                                      &
          &  /self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
     ! Store attribues.
-    simulations(1)%attributesInteger=integerSizeTHash()
-    simulations(1)%attributesReal   =doubleHash      ()
+    simulations(1)%attributesInteger=integerSizeTHash ()
+    simulations(1)%attributesReal   =doubleHash       ()
+    simulations(1)%attributesText   =varyingStringHash()
     call simulations(1)%attributesReal%set('boxSize',boxSize)
     ! Add any additional properties.
     simulations(1)%propertiesInteger     =rank1IntegerSizeTPtrHash()
@@ -392,6 +446,20 @@ contains
                 columnName='massVirial'
                 propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
                      &                         /self                 %cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
+             case (rockstarColumnRvir      )
+                columnName='radiusVirial'
+                propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
+                     &                         /self                 %cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
+             case (rockstarColumnSpin      )
+                columnName='spin'
+             case (rockstarColumnrs        )
+                columnName='radiusScale'
+                propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
+                     &                         /self                 %cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
+             case (rockstarColumnTU        )
+                columnName='virialRatio'
+                propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
+                     &                         *2.0d0
              end select
              if      (self%havePosition.and.self%readColumns(j) == rockstarColumnX ) then
                 position(1,:)=propertiesReal(jReal)%property

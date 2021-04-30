@@ -126,7 +126,7 @@ contains
     use :: Display         , only : displayIndent     , displayUnindent         , verbosityLevelStandard
     use :: Galacticus_Error, only : errorStatusSuccess
     use :: Hashes          , only : doubleHash        , integerSizeTHash        , rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, &
-          &                         rank2DoublePtrHash, rank2IntegerSizeTPtrHash
+          &                         rank2DoublePtrHash, rank2IntegerSizeTPtrHash, varyingStringHash
     use :: IO_HDF5         , only : H5T_NATIVE_DOUBLES, H5T_NATIVE_INTEGERS     , hdf5Access            , hdf5Object
     use :: IO_IRATE        , only : irate
     implicit none
@@ -151,6 +151,7 @@ contains
     simulations(1)%propertiesRealRank1   =rank2DoublePtrHash      ()
     simulations(1)%attributesInteger     =integerSizeTHash        ()
     simulations(1)%attributesReal        =doubleHash              ()
+    simulations(1)%attributesText        =varyingStringHash       ()
     irate_=irate(char(self%fileName),self%cosmologyParameters_,self%cosmologyFunctions_)
     call irate_        %readSimulation    (          boxSize)
     call simulations(1)%attributesReal%set('boxSize',boxSize)

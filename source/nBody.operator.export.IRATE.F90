@@ -152,8 +152,35 @@ contains
     !#  <argument name="velocity" value="velocity"    condition="associated(velocity   )"/>
     !#  <argument name="IDs"      value="particleIDs" condition="associated(particleIDs)"/>
     !# </conditionalCall>
-    ! Write box size to the file.
-    if (simulations(1)%attributesReal%exists('boxSize')) call irate_%writeSimulation(simulations(1)%attributesReal%value('boxSize'))
+    ! Write any attributes to the file.
+    if     (                                                   &
+         &                                                     &
+         &        simulations(1)%attributesInteger%size()  > 0 &
+         &  .or.                                               &
+         &        simulations(1)%attributesReal   %size()  > 0 &
+         &  .or.                                               &
+         &        simulations(1)%attributesText   %size()  > 0 &
+         &                                                     &
+         & ) then       
+       write (snapshotLabel,'(a,i5.5)') 'Snapshot',self%snapshot
+       !$ call hdf5Access%set()
+       call irateFile%openFile(char(self%fileName),readOnly=.false.)
+       snapshotGroup=irateFile    %openGroup(snapshotLabel)
+       halosGroup   =snapshotGroup%openGroup('HaloCatalog')
+       do i=1,simulations(1)%attributesInteger%size()
+          call halosGroup%writeAttribute(simulations(1)%attributesInteger%value(i),char(simulations(1)%attributesInteger%key(i)))
+       end do
+       do i=1,simulations(1)%attributesReal   %size()
+          call halosGroup%writeAttribute(simulations(1)%attributesReal   %value(i),char(simulations(1)%attributesReal   %key(i)))
+       end do
+       do i=1,simulations(1)%attributesText   %size()
+          call halosGroup%writeAttribute(simulations(1)%attributesText   %value(i),char(simulations(1)%attributesText   %key(i)))
+       end do
+       call halosGroup   %close()
+       call snapshotGroup%close()
+       call irateFile    %close()
+       !$ call hdf5Access%unset()
+    end if    
     ! Write any additional properties to the file.
     if     (                                                   &
          &                                                     &
