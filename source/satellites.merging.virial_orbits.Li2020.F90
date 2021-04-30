@@ -51,7 +51,7 @@
      logical                                                         :: propagateOrbits
    contains
      !# <methods>
-     !#   <method description="Evaluate the $\eta$ parameter of the \cite{li_orbital_2020} virial orbit distribution function." method="eta" />
+     !#   <method description="Evaluate the $\eta$ parameter of the \cite{li_orbital_2020} virial orbit distribution function." method="eta"/>
      !# </methods>
      final     ::                                    li2020Destructor
      procedure :: orbit                           => li2020Orbit
@@ -407,11 +407,10 @@ contains
     class           (nodeComponentBasic        ), pointer       :: hostBasic                    , basic
     class           (virialDensityContrastClass), pointer       :: virialDensityContrast_
     double precision                            , parameter     :: extentVelocity        =10.0d0
-    double precision                                            :: massHost                     , radiusHost               , &
-         &                                                         velocityHost                 , massSatellite            , &
-         &                                                         eta                          , velocityTotal_           , &
-         &                                                         velocityTotalMaximum
-    type            (integrator                )                :: integratorVelocityTotal      , integratorCosSquaredTheta
+    double precision                                            :: massHost                     , radiusHost          , &
+         &                                                         velocityHost                 , massSatellite       , &
+         &                                                         eta                          , velocityTotalMaximum
+    type            (integrator                )                :: integratorVelocityTotal
 
     !# <referenceAcquire target="virialDensityContrast_" source="self%densityContrastDefinition()"/>
     basic         => node%basic()
@@ -424,6 +423,7 @@ contains
          &                         +extentVelocity &
          &                         *self%sigma1    &
          &                        )
+    integratorVelocityTotal              =integrator                       (integrandVelocityTotal,toleranceRelative=1.0d-3)
     li2020VelocityTangentialMagnitudeMean=integratorVelocityTotal%integrate(0.0d0,velocityTotalMaximum)
     return
 
@@ -434,44 +434,33 @@ contains
       use :: Numerical_Constants_Math, only : Pi
       implicit none
       double precision, intent(in   ) :: velocityTotal
+      double precision                :: integralCosTheta
 
-      velocityTotal_=velocityTotal
+      ! Evaluate the integral ∫₀¹ p(cos²θ) u √(1-cos²θ) dcos²θ analytically.
       eta=self%eta(host,massSatellite,massHost,velocityTotal)
-      integrandVelocityTotal=integratorCosSquaredTheta%integrate(0.0d0,1.0d0)*exp(-0.5d0*log(velocityTotal/self%mu1)**2/self%sigma1**2)/sqrt(2.0d0*Pi)/self%sigma1/velocityTotal      
+      if (eta <= 0.0d0) then
+         integralCosTheta=+2.0d0                                                    &
+              &           /3.0d0                                                    &
+              &           *velocityTotal
+      else
+         integralCosTheta=+(1.0d0-0.5d0*exp(eta)*sqrt(Pi)*erf(sqrt(eta))/sqrt(eta)) &
+              &           /(1.0d0      -exp(eta)                                  ) &
+              &           *velocityTotal
+      end if
+      integrandVelocityTotal=+integralCosTheta                &
+           &                 *exp(                            &
+           &                      -0.5d0                      &
+           &                      *log(                       &
+           &                           +     velocityTotal    &
+           &                           /self%mu1              &
+           &                          )                   **2 &
+           &                      /     self%sigma1       **2 &
+           &                     )                            &
+           &                 /sqrt(2.0d0*Pi)                  &
+           &                 /          self%sigma1           &
+           &                 /               velocityTotal      
       return
     end function integrandVelocityTotal
-    
-    double precision function integrandCosSquaredTheta(cosSquaredTheta)
-      !% Integrand for the $\cos^2\theta$ distribution, weighted by the tangential velocity.
-      implicit none
-      double precision, intent(in   ) :: cosSquaredTheta
-      double precision, parameter     :: etaSmall       =1.0d-6
-
-      if (eta < etaSmall) then
-         ! Series solution for small values of η.
-         integrandCosSquaredTheta=+exp(+eta   *cosSquaredTheta) &
-              &                   *   (                         &
-              &                        +        1.0d0           &
-              &                        -eta   / 2.0d0           &
-              &                        +eta**2/12.0d0           &
-              &                   )
-      else
-         ! Full solution for larger values of η.
-         integrandCosSquaredTheta=+     eta                     &
-              &                   *exp(+eta   *cosSquaredTheta) &
-              &                   /   (                         &
-              &                        +exp(eta)                &
-              &                        -1.0d0                   &
-              &                       )
-      end if
-      ! Multiply by the tangential velocity.
-      integrandCosSquaredTheta=+integrandCosSquaredTheta*velocityTotal_ &
-           &                   *sqrt(                                   &
-           &                         +1.0d0                             &
-           &                         -cosSquaredTheta                   &
-           &                        )
-      return
-    end function integrandCosSquaredTheta
 
   end function li2020VelocityTangentialMagnitudeMean
 
@@ -588,9 +577,9 @@ contains
     double precision                    , intent(in   ) :: massSatellite        , massHost , &
          &                                                 velocityTotalInternal
     class           (nodeComponentBasic), pointer       :: basic
-    double precision                                    :: peakHeight           , massRatio, &
-         &                                                 time                 , A        , &
-         &                                                 B
+    double precision                                    :: A                    , B        , &
+         &                                                 peakHeight           , massRatio, &
+         &                                                 time
     
     basic      =>  nodeHost%basic()
     time       =   basic   %time ()
@@ -603,19 +592,19 @@ contains
          &      +self%a3*peakHeight*massRatio**self%c
     B          =+self%b1                              &
          &      +self%b2           *massRatio**self%c
-    li2020Eta  =  +max(                                       &
-         &             +0.0d0                               , &
-         &             +self%a0                               &
-         &             *exp(                                  &
-         &                  -log(                             &
-         &                       +velocityTotalInternal       &
-         &                       /self%mu2                    &
-         &                      )       **2                   &
-         &                  /2.0d0                            &
-         &                  /self%sigma1**2                   &
-         &                 )                                  &
-         &              +A*(velocityTotalInternal+1.0d0)      &
-         &              +B                                    &
+    li2020Eta  =  +max(                                   &
+         &             +0.0d0                           , &
+         &             +self%a0                           &
+         &             *exp(                              &
+         &                  -log(                         &
+         &                       +velocityTotalInternal   &
+         &                       /self%mu2                &
+         &                      )       **2               &
+         &                  /2.0d0                        &
+         &                  /self%sigma1**2               &
+         &                 )                              &
+         &              +A*(velocityTotalInternal+1.0d0)  &
+         &              +B                                &
          &            )
     return
   end function li2020Eta
