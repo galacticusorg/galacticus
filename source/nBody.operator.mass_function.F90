@@ -203,13 +203,13 @@ contains
           if (mpiSelf%isMaster()) then
 #endif
              call displayCounter(                                      &
-                  &                          int(                                  &
-                  &                              +100.0d0                          &
-                  &                              *float(i                       )  &
-                  &                              /float(size(mass,kind=c_size_t))  &
-                  &                             )                                , &
-                  &                          .false.                               &
-                  &                         )
+                  &              int(                                  &
+                  &                  +100.0d0                          &
+                  &                  *float(i                       )  &
+                  &                  /float(size(mass,kind=c_size_t))  &
+                  &                 )                                , &
+                  &              .false.                               &
+                  &             )
 #ifdef USEMPI
           end if
 #endif
@@ -253,7 +253,7 @@ contains
 #ifdef USEMPI
        end if
 #endif
-       deallocate(mass)
+       nullify(mass)
     end do
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
