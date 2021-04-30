@@ -25,8 +25,7 @@
   type, extends(nbodyOperatorClass) :: nbodyOperatorAddAttributes
      !% An N-body data operator which adds attributes.
      private
-     double precision                , allocatable, dimension(:) :: values
-     type            (varying_string), allocatable, dimension(:) :: names
+     type            (varying_string), allocatable, dimension(:) :: names, values
    contains
      procedure :: operate => addAttributesOperate
   end type nbodyOperatorAddAttributes
@@ -45,8 +44,7 @@ contains
     implicit none
     type            (nbodyOperatorAddAttributes)                              :: self
     type            (inputParameters           ), intent(inout)               :: parameters
-    double precision                            , allocatable  , dimension(:) :: values
-    type            (varying_string            ), allocatable  , dimension(:) :: names
+    type            (varying_string            ), allocatable  , dimension(:) :: names     , values
 
     allocate(names (parameters%count('names' )))
     allocate(values(parameters%count('values')))
@@ -69,8 +67,7 @@ contains
     !% Internal constructor for the ``addAttributes'' N-body operator class.
     implicit none
     type            (nbodyOperatorAddAttributes)                              :: self
-    double precision                            , intent(in   ), dimension(:) :: values
-    type            (varying_string            ), intent(in   ), dimension(:) :: names
+    type            (varying_string            ), intent(in   ), dimension(:) :: names, values
     !# <constructorAssign variables="names, values"/>
 
     return
@@ -78,9 +75,11 @@ contains
 
   subroutine addAttributesOperate(self,simulations)
     !% Add attributes to the simulations.
-    use :: Display      , only : displayIndent, displayUnindent, verbosityLevelStandard
+    use :: Display        , only : displayIndent    , displayUnindent           , verbosityLevelStandard
+    use :: String_Handling, only : String_Value_Type, String_Value_Extract_Float, String_Value_Extract_Integer_Size_T, valueTypeFloating, &
+         &                         valueTypeInteger , valueTypeOther
 #ifdef USEMPI
-    use :: MPI_Utilities, only : mpiSelf
+    use :: MPI_Utilities  , only : mpiSelf
 #endif
     implicit none
     class  (nbodyOperatorAddAttributes), intent(inout)               :: self
@@ -96,7 +95,14 @@ contains
 #endif
     do iSimulation=1_c_size_t,size(simulations)
        do i=1,size(self%names)
-          call simulations(iSimulation)%attributesReal%set(self%names(i),self%values(i))
+          select case (String_Value_Type(char(self%values(i))))
+          case (valueTypeFloating)
+             call simulations(iSimulation)%attributesReal   %set(self%names(i),String_Value_Extract_Float         (char(self%values(i))))
+          case (valueTypeInteger )
+             call simulations(iSimulation)%attributesInteger%set(self%names(i),String_Value_Extract_Integer_Size_T(char(self%values(i))))
+          case (valueTypeOther   )
+             call simulations(iSimulation)%attributesText   %set(self%names(i),                                         self%values(i)  )
+          end select
        end do
     end do
 #ifdef USEMPI
