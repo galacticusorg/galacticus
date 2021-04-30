@@ -23,9 +23,11 @@ module String_Handling
   !% Implements various useful functionality for manipulating character strings.
   implicit none
   private
-  public :: operator(//), char, String_Split_Words, String_Count_Words, String_Upper_Case, String_Lower_Case, String_Upper_Case_First,&
-       & Convert_VarString_To_Char, String_C_to_Fortran, String_Subscript, String_Superscript, String_Levenshtein_Distance,&
-       & String_Join, String_Strip, String_Lower_Case_First
+  public :: operator(//)              , char                        , String_Split_Words                 , String_Count_Words         , &
+       &    String_Upper_Case         , String_Lower_Case           , String_Upper_Case_First            , Convert_VarString_To_Char  , &
+       &    String_C_to_Fortran       , String_Subscript            , String_Superscript                 , String_Levenshtein_Distance, &
+       &    String_Join               , String_Strip                , String_Lower_Case_First            , String_Value_Type          , &
+       &    String_Value_Extract_Float, String_Value_Extract_Integer, String_Value_Extract_Integer_Size_T
 
   interface operator(//)
      module procedure Concatenate_VarStr_Integer
@@ -51,6 +53,15 @@ module String_Handling
 
   ! Character strings used in whitespace detection.
   character(len=*), parameter :: charactersWhiteSpace=' '//char(0)//char(9)//char(10)//char(13)
+  
+  !# <enumeration>
+  !#  <name>valueType</name>
+  !#  <description>Enumerates possible value types for strings.</description>
+  !#  <visibility>public</visibility>
+  !#  <entry label="floating"/>
+  !#  <entry label="integer" />
+  !#  <entry label="other"   />
+  !# </enumeration>
 
 contains
 
@@ -526,5 +537,64 @@ contains
     end if
     return
   end function Char_Logical
+
+  integer function String_Value_Type(input) result(valueType)
+    !% Attempt to detect whether a string corresponds to a floating point number, integer, or other.
+    implicit none
+    character       (len=*), intent(in   ) :: input
+    double precision                       :: valueFloating
+    integer                                :: valueInteger , status
+
+    read (input,*,ioStat=status) valueInteger
+    if (status == 0) then
+       valueType=valueTypeInteger
+       return
+    end if
+    read (input,*,ioStat=status) valueFloating
+    if (status == 0) then
+       valueType=valueTypeFloating
+       return
+    end if
+    valueType=valueTypeOther
+    return
+  end function String_Value_Type
+
+  double precision function String_Value_Extract_Float(input,status) result(valueFloat)
+    !% Extract a floating-point value from a string.
+    implicit none
+    character(len=*), intent(in   )           :: input
+    integer         , intent(  out), optional :: status
+    integer                                   :: status_
+
+    read (input,*,ioStat=status_) valueFloat
+    if (present(status)) status=status_
+    return
+  end function String_Value_Extract_Float
+  
+  integer function String_Value_Extract_Integer(input,status) result(valueInteger)
+    !% Extract an integer value from a string.
+    implicit none
+    character(len=*), intent(in   )           :: input
+    integer         , intent(  out), optional :: status
+    integer                                   :: status_
+
+    read (input,*,ioStat=status_) valueInteger
+    if (present(status)) status=status_
+    return
+  end function String_Value_Extract_Integer
+
+  function String_Value_Extract_Integer_Size_T(input,status) result(valueInteger)
+    !% Extract a {\normalfont \ttfamily size\_t} integer value from a string.
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
+    implicit none
+    integer  (c_size_t)                          :: valueInteger
+    character(len=*   ), intent(in   )           :: input
+    integer            , intent(  out), optional :: status
+    integer                                      :: status_
+    
+    read (input,*,ioStat=status_) valueInteger
+    if (present(status)) status=status_
+    return
+  end function String_Value_Extract_Integer_Size_T
 
 end module String_Handling
