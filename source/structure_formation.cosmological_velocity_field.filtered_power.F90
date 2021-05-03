@@ -238,7 +238,7 @@ contains
   double precision function filteredPowerVelocityDispersion1DHaloPairwise(self,mass1,mass2,separation,time)
     !% Compute the linear theory velocity dispersion between two patches along line of sight connecting them (this is therefore relevant to the 1D
     !% dispersion), including the effect of correlated velocities between the patches. The integral evaluated here is the sum of the
-    !% integral for the linear velocity dispersion of each halo \citep[][eqn.~8]{sheth_peculiar_200} and the correlation integral
+    !% integral for the linear velocity dispersion of each halo \citep[][eqn.~8]{sheth_peculiar_2001} and the correlation integral
     !% \citep[][eqns.~28 \& 29]{sheth_linear_2001}. We evaluate the integrals together (instead of separately) as at small radii
     !% they cancel to high order---evaluating them separately leads to inaccurate estimates of the velocity dispersion.
     use :: Galacticus_Error        , only : Galacticus_Warn, errorStatusSuccess
