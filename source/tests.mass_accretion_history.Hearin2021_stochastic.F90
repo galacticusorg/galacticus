@@ -46,18 +46,18 @@ program Test_Hearin2021_Stochastic_MAH
        &                                                                                                       countTimes
   type            (inputParameters                                       )                                  :: parameters
   character       (len=1024                                              )                                  :: line
-  double precision                                                        , dimension(2,2,3  ), parameter   :: means  =reshape(                                         &
-       &                                                                                                                       [                                        &
+  double precision                                                        , dimension(2,2,3  ), parameter   :: means  =reshape(                                    &
+       &                                                                                                                       [                                   &
        !                                                                                                                       Each row is the mean of the stated parameter for:
        !                                                                                                                         early foming/low mass : early forming/high mass : late forming/low mass : late forming/high mass
-       !                                                                                                                        log₁₀(α_early)
-       &                                                                                                                        +0.460d0, +0.680d0, +0.030d0, +0.600d0, &
-       !                                                                                                                        log₁₀(α_late )
-       &                                                                                                                        -0.800d0, +0.760d0, -1.400d0, +0.790d0, &
-       !                                                                                                                        log₁₀(t₀     )
-       &                                                                                                                        -0.250d0, -0.240d0, +0.380d0, +0.750d0  &
-       &                                                                                                                       ]                                      , &
-       &                                                                                                                       [2,2,3]                                  &
+       !                                                                                                                       u_early
+       &                                                                                                                       +0.70d0, +3.50d0, +0.50d0, +2.81d0, &
+       !                                                                                                                       u_late
+       &                                                                                                                       -0.40d0, -0.40d0, -3.05d0, -1.65d0, &
+       !                                                                                                                       log₁₀(t₀)
+       &                                                                                                                       -0.39d0, +0.91d0, +0.16d0, +1.90d0  &
+       &                                                                                                                       ]                                 , &
+       &                                                                                                                       [2,2,3]                             &
        &                                                                                                                      )
   double precision                                                        , dimension(2,2,3,3), parameter  :: cholesky=reshape(                                                         &
        &                                                                                                                       [                                                        &
