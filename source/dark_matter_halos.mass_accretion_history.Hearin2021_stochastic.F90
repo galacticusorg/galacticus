@@ -730,7 +730,7 @@ contains
   end function hearin2021StochasticTimeMaximum
 
   double precision function softPlus(x)
-    !% Implementation of the \href{https://en.wikipedia.org/wiki/Rectifier_(neural_networks)#Softplus}{\normalfont \ttfamily softPlus} function.
+    !% Implementation of the \href{https://en.wikipedia.org/wiki/Rectifier_(neural_networks)\#Softplus}{\normalfont \ttfamily softPlus} function.
     implicit none
     double precision, intent(in   ) :: x
 
