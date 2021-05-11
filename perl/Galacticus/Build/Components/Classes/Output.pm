@@ -426,7 +426,7 @@ CODE
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 {$bufferType}OutputTmp=reshape(self%{$property->{'name'}}(),[{$count}])
 do i=1,{$count}
-  {$bufferType}Properties({$bufferType}Property+i-1)%scalar({$bufferType}BufferCount)={$bufferType}OutputTmp(i)
+  {$bufferType}Properties({$bufferType}Property+i)%scalar({$bufferType}BufferCount)={$bufferType}OutputTmp(i)
 end do
 deallocate({$bufferType}OutputTmp)
 {$bufferType}Property={$bufferType}Property+{$count}
