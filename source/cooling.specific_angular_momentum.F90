@@ -32,7 +32,6 @@ module Cooling_Specific_Angular_Momenta
   !#   Class providing models of the specific angular momentum of gas in the hot atmosphere surrounding a galaxy.
   !#  </description>
   !#  <default>constantRotation</default>
-  !#  <calculationReset>yes</calculationReset>
   !#  <method name="angularMomentumSpecific" >
   !#   <description>Return the specific angular momentum (in units of km/s Mpc) of cooling gas in {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>

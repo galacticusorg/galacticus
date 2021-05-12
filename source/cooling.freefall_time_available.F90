@@ -32,7 +32,6 @@ module Cooling_Freefall_Times_Available
   !#   Class providing models of the time available for freefall in cooling calculations.
   !#  </description>
   !#  <default>haloFormation</default>
-  !#  <calculationReset>yes</calculationReset>
   !#  <method name="timeAvailable" >
   !#   <description>Returns the time available for freefall in cooling calculations in {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>

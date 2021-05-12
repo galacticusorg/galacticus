@@ -29,7 +29,6 @@ module Dark_Matter_Halo_Scales
   !#  <descriptiveName>Dark Matter Halo Scales</descriptiveName>
   !#  <description>Class providing dark matter halo scales.</description>
   !#  <default>virialDensityContrastDefinition</default>
-  !#  <calculationReset>yes</calculationReset>
   !#  <method name="dynamicalTimescale" >
   !#   <description>The characteristic dynamical timescale of a dark matter halo.</description>
   !#   <type>double precision</type>

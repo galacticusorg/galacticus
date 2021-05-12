@@ -32,7 +32,6 @@ module Dark_Matter_Profiles
   !#  <descriptiveName>Dark Matter Halo Profiles</descriptiveName>
   !#  <description>Object providing dark matter halo profiles.</description>
   !#  <default>adiabaticGnedin2004</default>
-  !#  <calculationReset>yes</calculationReset>
   !#  <method name="density" >
   !#   <description>Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
   !#   <type>double precision</type>

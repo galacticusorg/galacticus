@@ -31,7 +31,6 @@ module Hot_Halo_Outflows_Reincorporations
   !#   Class providing models of reincorportation of outflowed mass into the hot halo.
   !#  </description>
   !#  <default>haloDynamicalTime</default>
-  !#  <calculationReset>yes</calculationReset>
   !#  <method name="rate" >
   !#   <description>Return the rate at which outflowed mass is being reincorporated into the hot halo.</description>
   !#   <type>double precision</type>
