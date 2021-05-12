@@ -33,7 +33,6 @@ module Satellite_Tidal_Stripping_Radii
   !#   Class providing models of tidal stripping radii for satellites.
   !#  </description>
   !#  <default>king1962</default>
-  !#  <calculationReset>yes</calculationReset>
   !#  <method name="radius" >
   !#   <description>Returns the tidal radius for {\normalfont \ttfamily node} (in units of Mpc).</description>
   !#   <type>double precision</type>
