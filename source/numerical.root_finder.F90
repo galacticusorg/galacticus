@@ -50,6 +50,15 @@ module Root_Finder
   !#  <entry label="positive" />
   !# </enumeration>
   
+  ! Enumeration of stopping criteria.
+  !# <enumeration>
+  !#  <name>stoppingCriterion</name>
+  !#  <description>Used to specify the stoppngi criterion to use when searching for roots using a {\normalfont \ttfamily rootFinder} object.</description>
+  !#  <visibility>public</visibility>
+  !#  <entry label="delta"    />
+  !#  <entry label="interval" />
+  !# </enumeration>
+  
   !# <deepCopyActions class="rootFinder">
   !#  <rootFinder>
   !#   <setTo variables="functionInitialized" state=".false."/>
@@ -77,6 +86,7 @@ module Root_Finder
      logical                                                           :: functionInitialized          =.false.
      logical                                                           :: resetRequired
      logical                                                           :: useDerivative
+     integer                                                           :: stoppingCriterion
      integer                                                           :: rangeExpandType
      double precision                                                  :: rangeExpandUpward
      double precision                                                  :: rangeExpandDownward
@@ -258,7 +268,7 @@ module Root_Finder
   
 contains
   
-  function rootFinderConstructorInternal(rootFunction,rootFunctionDerivative,rootFunctionBoth,solverType,toleranceAbsolute,toleranceRelative,rangeExpandType,rangeExpandUpward,rangeExpandDownward,rangeUpwardLimit,rangeDownwardLimit,rangeExpandUpwardSignExpect,rangeExpandDownwardSignExpect) result(self)
+  function rootFinderConstructorInternal(rootFunction,rootFunctionDerivative,rootFunctionBoth,solverType,toleranceAbsolute,toleranceRelative,rangeExpandType,rangeExpandUpward,rangeExpandDownward,rangeUpwardLimit,rangeDownwardLimit,rangeExpandUpwardSignExpect,rangeExpandDownwardSignExpect,stoppingCriterion) result(self)
     !% Internal constructor for root finders.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
@@ -266,7 +276,7 @@ contains
     double precision                                , intent(in   ), optional :: toleranceAbsolute            , toleranceRelative
     integer                                         , intent(in   ), optional :: solverType
     integer                                         , intent(in   ), optional :: rangeExpandDownwardSignExpect, rangeExpandType    , &
-         &                                                                       rangeExpandUpwardSignExpect
+         &                                                                       rangeExpandUpwardSignExpect  , stoppingCriterion
     double precision                                , intent(in   ), optional :: rangeDownwardLimit           , rangeExpandDownward, &
          &                                                                       rangeExpandUpward            , rangeUpwardLimit
     procedure       (rootFunctionTemplate          )               , optional :: rootFunction
@@ -294,6 +304,8 @@ contains
     self%rangeDownwardLimitSet        =.false.
     self%rangeExpandDownwardSignExpect=rangeExpandSignExpectNone
     self%rangeExpandUpwardSignExpect  =rangeExpandSignExpectNone
+    ! Initialize stopping critertion to an interval test.
+    self%stoppingCriterion            =stoppingCriterionInterval
     ! If functions are provided, set them.
     if (present(rootFunction)) then
        if (present(rootFunctionDerivative).or.present(rootFunctionBoth)) then
@@ -316,6 +328,8 @@ contains
     call self%tolerance(toleranceAbsolute,toleranceRelative)
     ! If range expansion is defined, set it.
     call self%rangeExpand(rangeExpandUpward,rangeExpandDownward,rangeExpandType,rangeUpwardLimit,rangeDownwardLimit,rangeExpandDownwardSignExpect,rangeExpandUpwardSignExpect)
+    ! If a stopping criterion is provided, set it.
+    if (present(stoppingCriterion)) self%stoppingCriterion=stoppingCriterion
     return
   end function rootFinderConstructorInternal
   
@@ -619,18 +633,23 @@ contains
           iteration=iteration+1
           if (self%useDerivative) then
              statusActual=GSL_Root_fdfSolver_Iterate(self%solver)
-             if (statusActual /= GSL_Success .or. iteration > iterationMaximum) exit
+          else
+             statusActual=GSL_Root_fSolver_Iterate  (self%solver)
+          end if
+          if (statusActual /= GSL_Success .or. iteration > iterationMaximum) exit
+          select case (self%stoppingCriterion)
+          case (stoppingCriterionDelta   )
              xRootPrevious=xRoot
              xRoot        =GSL_Root_fdfSolver_Root(self%solver)
              statusActual =GSL_Root_Test_Delta(xRoot,xRootPrevious,self%toleranceAbsolute,self%toleranceRelative)
-          else
-             statusActual=GSL_Root_fSolver_Iterate  (self%solver          )
-             if (statusActual /= GSL_Success .or. iteration > iterationMaximum) exit
+          case (stoppingCriterionInterval)
              xRoot =GSL_Root_fSolver_Root   (self%solver)
              xLow  =GSL_Root_fSolver_x_Lower(self%solver)
              xHigh =GSL_Root_fSolver_x_Upper(self%solver)
              statusActual=GSL_Root_Test_Interval(xLow,xHigh,self%toleranceAbsolute,self%toleranceRelative)
-          end if
+          case default
+             call Galacticus_Error_Report('unknown stopping criterion'//{introspection:location})
+          end select
           if (statusActual == GSL_Success) exit
        end do
        if (statusActual /= GSL_Success) then
