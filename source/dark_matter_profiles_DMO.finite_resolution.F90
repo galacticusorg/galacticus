@@ -163,6 +163,7 @@ contains
     
     if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Galacticus_Error_Report('invalid non-analytic solver type'//{introspection:location})
     self%lastUniqueID              =-1_kind_int8
+    self%genericLastUniqueID       =-1_kind_int8
     self%lengthResolutionPrevious  =-huge(0.0d0)
     self%densityCorePrevious       =-huge(0.0d0)
     self%enclosedMassRadiusPrevious=-huge(0.0d0)
@@ -198,10 +199,15 @@ contains
     type (treeNode                            ), intent(inout) :: node
 
     self%lastUniqueID              =node%uniqueID()
+    self%genericLastUniqueID       =node%uniqueID()
     self%lengthResolutionPrevious  =-huge(0.0d0)
     self%densityCorePrevious       =-huge(0.0d0)
     self%enclosedMassRadiusPrevious=-huge(0.0d0)
     self%enclosedMassPrevious      =-huge(0.0d0)
+    if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
+    if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
+    if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
+    if (allocated(self%genericEnclosedMassRadius              )) deallocate(self%genericEnclosedMassRadius              )
     return
   end subroutine finiteResolutionCalculationReset
 
@@ -319,7 +325,7 @@ contains
     argumentExponential=+radius           &
          &              /lengthResolution
     if (argumentExponential < argumentExponentialMaximum) then
-       finiteResolutionFractionCore=+2.0d0/(1.0d0+exp(radius/lengthResolution))
+       finiteResolutionFractionCore=+2.0d0/(1.0d0+exp(argumentExponential))
     else
        finiteResolutionFractionCore=+0.0d0
     end if
@@ -338,7 +344,7 @@ contains
     argumentExponential=+radius           &
          &              /lengthResolution
      if (argumentExponential < argumentExponentialMaximum) then
-        finiteResolutionFractionCoreGradient=-2.0d0*exp(radius/lengthResolution)/lengthResolution/(1.0d0+exp(radius/lengthResolution))**2
+        finiteResolutionFractionCoreGradient=-2.0d0*exp(argumentExponential)/lengthResolution/(1.0d0+exp(argumentExponential))**2
      else
         finiteResolutionFractionCoreGradient=+0.0d0
      end if

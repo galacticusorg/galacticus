@@ -155,6 +155,7 @@ contains
     ! Validate.
     if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Galacticus_Error_Report('invalid non-analytic solver type'//{introspection:location})
     ! Construct the object.
+    self%genericLastUniqueID=-1_kind_int8
     self%lastUniqueID       =-1_kind_int8
     self%radiusFinalPrevious=-huge(0.0d0)
     self%finder             =rootFinder(                                           &
@@ -196,7 +197,12 @@ contains
 
     ! Reset calculations for this profile.
     self%lastUniqueID       =node%uniqueID()
+    self%genericLastUniqueID=node%uniqueID()
     self%radiusFinalPrevious=-huge(0.0d0)
+    if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
+    if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
+    if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
+    if (allocated(self%genericEnclosedMassRadius              )) deallocate(self%genericEnclosedMassRadius              )
     return
   end subroutine heatedCalculationReset
 
