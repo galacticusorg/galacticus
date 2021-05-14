@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of dark matter halo mass accretion histories using Andrew Hearin's rolling power-law model with stochastic sampling of parameters.
+  !% An implementation of dark matter halo mass accretion histories using the rolling power-law model of \cite{hearin_differentiable_2021} with stochastic sampling of parameters.
 
   !# <enumeration>
   !#  <name>mass</name>
@@ -48,10 +48,10 @@
   !# </enumeration>
 
   !# <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryHearin2021Stochastic">
-  !#  <description>Dark matter halo mass accretion histories using Andrew Hearin's rolling power-law model.</description>
+  !#  <description>Dark matter halo mass accretion histories using the rolling power-law model of \cite{hearin_differentiable_2021} with stochastic sampling of parameters.
   !# </darkMatterHaloMassAccretionHistory>
   type, extends(darkMatterHaloMassAccretionHistoryHearin2021) :: darkMatterHaloMassAccretionHistoryHearin2021Stochastic
-     !% A dark matter halo mass accretion history class using Andrew Hearin's rolling power-law model with stochastic sampling of parameters.
+     !% A dark matter halo mass accretion history class using the rolling power-law model of \cite{hearin_differentiable_2021} with stochastic sampling of parameters.
      private
      double precision                     :: fractionLateLow     , fractionLateHigh, &
           &                                  timeZeroLogarithmic_
