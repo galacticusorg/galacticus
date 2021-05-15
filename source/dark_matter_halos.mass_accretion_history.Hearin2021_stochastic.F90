@@ -48,7 +48,7 @@
   !# </enumeration>
 
   !# <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryHearin2021Stochastic">
-  !#  <description>Dark matter halo mass accretion histories using the rolling power-law model of \cite{hearin_differentiable_2021} with stochastic sampling of parameters.
+  !#  <description>Dark matter halo mass accretion histories using the rolling power-law model of \cite{hearin_differentiable_2021} with stochastic sampling of parameters.</description>
   !# </darkMatterHaloMassAccretionHistory>
   type, extends(darkMatterHaloMassAccretionHistoryHearin2021) :: darkMatterHaloMassAccretionHistoryHearin2021Stochastic
      !% A dark matter halo mass accretion history class using the rolling power-law model of \cite{hearin_differentiable_2021} with stochastic sampling of parameters.
