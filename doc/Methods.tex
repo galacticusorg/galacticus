@@ -1,14 +1,14 @@
-\chapter{Adding New Methods}
+\chapter{Adding New Classes}
 
 \section{Code Directives}\label{sec:CodeDirectives}\hyperdef{sec}{CodeDirectives}{}\index{directives}\index{code!directives}
 
-\glc\ is designed to be flexible and extensible, allowing you to add new methods and functionality without having to hack the code extensively. To achieve this it makes much use of embedded code directives which, for example, explain to the build system how a particular subroutine or function connects into the \glc\ code. Such code directives are indicated by lines beginning with {\normalfont \ttfamily !\#}, and take the form of short blocks of XML. For example, a typical code directive might look like:
+\glc\ is designed to be flexible and extensible, allowing you to add new classes and functionality without having to hack the code extensively. To achieve this it makes much use of embedded code directives which, for example, explain to the build system how a particular subroutine or function connects into the \glc\ code. Such code directives are indicated by lines beginning with {\normalfont \ttfamily !\#}, and take the form of short blocks of XML. For example, a typical code directive might look like:
 \begin{verbatim}
- !# <accretionDisksMethod>
+ !# <accretionDisks>
  !#  <unitName>Accretion_Disks_Shakura_Sunyaev_Initialize</unitName>
- !# </accretionDisksMethod>
+ !# </accretionDisks>
 \end{verbatim}
-This directive would typically appear just prior to a subroutine which initializes the Shakura-Sunyaev accretion disk module (it could appear anywhere throughout that module, but it makes sense to keep it close to the subroutine that it references). The {\normalfont \ttfamily accretionDisksMethod} tag explains to the \glc\ build system that this module contains an implementation of black hole accretion disks. The {\normalfont \ttfamily unitName} tag specifies the name of a program unit which (in this case) should be called to initialize this accretion disk implementation. The build system will then insert appropriate {\normalfont \ttfamily use} and {\normalfont \ttfamily call} statements into the \glc\ code such that this routine will be called if and when accretion disks are required by \glc.
+This directive would typically appear just prior to a subroutine which initializes the Shakura-Sunyaev accretion disk module (it could appear anywhere throughout that module, but it makes sense to keep it close to the subroutine that it references). The {\normalfont \ttfamily accretionDisks} tag explains to the \glc\ build system that this module contains an implementation of black hole accretion disks. The {\normalfont \ttfamily unitName} tag specifies the name of a program unit which (in this case) should be called to initialize this accretion disk implementation. The build system will then insert appropriate {\normalfont \ttfamily use} and {\normalfont \ttfamily call} statements into the \glc\ code such that this routine will be called if and when accretion disks are required by \glc.
 
 \section{Identifying Components and Mass Types}\label{sec:ComponentMassTypes}
 
@@ -218,7 +218,7 @@ A component of a node can be destroyed using:
 call thisNode%<class>Destroy()
 \end{verbatim}
 
-\subsubsection{Component Methods}\label{sec:ComponentMethods}\index{components!methods}
+\subsubsection{Component Implementations}\label{sec:ComponentMethods}\index{components!implementations}
 
 Component implementations optionally provide functions to get and set their properties (and to set the rate of change of evolvable properties) so that other components and functions within \glc\ to can interact with them in a way that is independent of the specific component implementation chosen. To permit this, \glc\ creates functions for each property to access it in all permitted ways. For example, the {\normalfont \ttfamily exponential} implementation of the {\normalfont \ttfamily disk} component class has a ``{\normalfont \ttfamily massStellar}'' property defined by:
 \begin{verbatim}
@@ -315,7 +315,7 @@ An interrupt procedure should have the form:
   end subroutine My_Interrupt_Procedure
 \end{lstlisting}
 
-\section{Existing Method Types}
+\section{Existing Classes}
 
 \subsection{Function Classes}
 

@@ -50,8 +50,8 @@ my @groups =
 	 description => "Cosmological model",
 	 members     =>
 	     [
-	      "cosmologyParametersMethod",
-	      "cosmologyFunctionsMethod",
+	      "cosmologyParameters",
+	      "cosmologyFunctions",
 	      qr/cosmology\d/
 	     ]
      },
@@ -60,12 +60,12 @@ my @groups =
 	 description => "Power spectrum",
 	 members     =>
 	     [
-	      "powerSpectrumMethod",
-	      "powerSpectrumPrimordialMethod",
-	      "transferFunctionMethod",
-	      "powerSpectrumPrimordialTransferredMethod",
-	      "cosmologicalMassVarianceMethod",
-	      "powerSpectrumNonlinearMethod"
+	      "powerSpectrum",
+	      "powerSpectrumPrimordial",
+	      "transferFunction",
+	      "powerSpectrumPrimordialTransferred",
+	      "cosmologicalMassVariance",
+	      "powerSpectrumNonlinear"
 	     ]
      },
      {
@@ -73,13 +73,13 @@ my @groups =
 	 description => "Structure formation",
 	 members     =>
 	     [
-	      "linearGrowthMethod",
-	      "criticalOverdensityMethod",
-	      "virialDensityContrastMethod",
+	      "linearGrowth",
+	      "criticalOverdensity",
+	      "virialDensityContrast",
 	      qr/virialDensityContrast.*/,
-	      "haloMassFunctionMethod",
+	      "haloMassFunction",
 	      qr/haloMassFunctionSystematic\d/,
-	      "gravitationalLensingMethod"
+	      "gravitationalLensing"
 	     ]
      },
      {
@@ -87,16 +87,16 @@ my @groups =
 	 description => "Intergalactic medium and reionization",
 	 members     =>
 	     [
-	      "intergalacticMediumStateMethod",
+	      "intergalacticMediumState",
 	      qr/intergalaticMediumState.*/
 	     ]
      },
      {
-	 name        => "treeNodeMethods" ,
+	 name        => "components" ,
 	 description => "Tree node component selection",
 	 members     =>
 	     [
-	      qr/^treeNodeMethod/,
+	      qr/^component/,
 	      "nodeComponentBasicExtendedSphericalCollapseType"
 	     ]
      },
@@ -105,14 +105,14 @@ my @groups =
 	 description => "Merger tree construction",
 	 members     =>
 	     [
-	      "mergerTreeConstructMethod",
-	      "mergerTreeBuilderMethod",
-	      "mergerTreeMassResolutionMethod",
+	      "mergerTreeConstruct",
+	      "mergerTreeBuilder",
+	      "mergerTreeMassResolution",
 	      qr/^mergerTreeBuild.*/,
 	      qr/^mergerTreesBuild.*/,
-	      "treeBranchingMethod",
+	      "treeBranching",
 	      qr/^modifiedPressSchechter.*/,
-	      "haloMassFunctionSamplingMethod",
+	      "haloMassFunctionSampling",
 	      qr/^haloMassFunctionSampling.*/,
 	      qr/^mergerTreeRead.*/,
 	      qr/mergerTreeImport.*/
@@ -131,7 +131,7 @@ my @groups =
 	 description => "Merger tree halo hierarchy",
 	 members     =>
 	     [
-	      "nodeMergersMethod",
+	      "nodeMergers",
 	      "nodePromotionIndexShift"
 	     ]
      },
@@ -140,8 +140,8 @@ my @groups =
 	 description => "Dark matter halo structure",
 	 members     =>
 	     [
-	      "darkMatterProfileMethod",
-	      "darkMatterProfileConcentrationMethod",
+	      "darkMatterProfile",
+	      "darkMatterProfileConcentration",
 	      "darkMatterProfileMinimumConcentration",
 	      "darkMatterProfileScaleCorrectForConcentrationDefinition"
 	     ]
@@ -151,7 +151,7 @@ my @groups =
 	 description => "Dark matter halo spin",
 	 members     =>
 	     [
-	      "haloSpinDistributionMethod",
+	      "haloSpinDistribution",
 	      "randomSpinResetMassFactor"
 	     ]
      },
@@ -160,11 +160,11 @@ my @groups =
 	 description => "Satellite orbits",
 	 members     =>
 	     [
-	      "virialOrbitMethod",
+	      "virialOrbit",
 	      qr/^virialOrbits.*/,
-	      "satelliteMergingTimescalesMethod",
+	      "satelliteMergingTimescales",
 	      "mergingTimescaleMultiplier",
-	      "satellitesTidalFieldMethod",
+	      "satellitesTidalField",
 	      "satelliteOrbitStoreOrbitalParameters"
 	     ]
      },
@@ -173,18 +173,18 @@ my @groups =
 	 description => "Hot atmosphere",
 	 members     =>
 	     [
-	      "hotHaloOutflowReincorporationMethod",
+	      "hotHaloOutflowReincorporation",
 	      qr/^hotHaloOutflowReincorporation.*/,
-	      "hotHaloTemperatureProfileMethod",
+	      "hotHaloTemperatureProfile",
 	      "hotHaloTrackStrippedGas",
 	      "hotHaloOutflowReturnRate",
 	      "hotHaloOutflowToColdMode",
 	      "hotHaloAngularMomentumAlwaysGrows",
 	      "hotHaloAngularMomentumLossFraction",
-	      "hotHaloColdModeCoredIsothermalCoreRadiiMethod",
+	      "hotHaloColdModeCoredIsothermalCoreRadii",
 	      "hotHaloCoreRadiusOverVirialRadius",
 	      "hotHaloExcessHeatDrivesOutflow",
-	      "hotHaloMassDistributionMethod",
+	      "hotHaloMassDistribution",
 	      "hotHaloNodeMergerLimitBaryonFraction"
 	     ]
      },
@@ -202,7 +202,7 @@ my @groups =
 	 description => "Accretion onto halos",
 	 members     =>
 	     [
-	      "accretionHaloTotalMethod"
+	      "accretionHaloTotal"
 	     ]
      },
     {
@@ -210,7 +210,7 @@ my @groups =
 	 description => "Accretion from the IGM",
 	 members     =>
 	     [
-	      "accretionHaloMethod",
+	      "accretionHalo",
 	     ]
      },
      {
@@ -219,9 +219,9 @@ my @groups =
 	 members     =>
 	     [
 	      "starveSatellites",
-	      "hotHaloRamPressureForceMethod",
-	      "hotHaloRamPressureStrippingMethod",
-	      "hotHaloRamPressureStrippingTimescaleMethod",
+	      "hotHaloRamPressureForce",
+	      "hotHaloRamPressureStripping",
+	      "hotHaloRamPressureStrippingTimescale",
 	      "hotHaloOutflowStrippingEfficiency",
 	      "ramPressureStrippingFormFactor"
 	     ]
@@ -231,20 +231,20 @@ my @groups =
 	 description => "Cooling and infall",
 	 members     =>
 	     [
-	      "coolingRateMethod",
+	      "coolingRate",
 	      qr/^coolingRate.*/,
-	      "coolingFunctionMethod",
+	      "coolingFunction",
 	      "coolingMeanAngularMomentumFrom",
-	      "coolingRadiusMethod",
-	      "infallRadiusMethod",
+	      "coolingRadius",
+	      "infallRadius",
 	      "coolingRotationVelocityFrom",
-	      "coolingSpecificAngularMomentumMethod",
-	      "coolingTimeMethod",
+	      "coolingSpecificAngularMomentum",
+	      "coolingTime",
 	      qr/^coolingTime.*/,
-	      "coldModeInfallRateMethod",
+	      "coldModeInfallRate",
 	      qr/^coldModeInfallRate.*/,
 	      "zeroCoolingRateAboveVelocity",
-	      "chemicalStateMethod"
+	      "chemicalState"
 	     ]
      },
      {
@@ -254,7 +254,7 @@ my @groups =
 	     [
 	      "diskMassDistribution",
 	      "spheroidMassDistribution",
-	      "galacticStructureRadiusSolverMethod",
+	      "galacticStructureRadiusSolver",
 	      qr/^galacticStructureRadii.*/,
 	      "adiabaticContractionGnedinA",
 	      "adiabaticContractionGnedinOmega",
@@ -266,7 +266,7 @@ my @groups =
 	 description => "Galactic disk bar instability",
 	 members     =>
 	     [
-	      "barInstabilityMethod",
+	      "barInstability",
 	      "stabilityThresholdGaseous",
 	      "stabilityThresholdStellar"
 	     ]
@@ -276,7 +276,7 @@ my @groups =
 	 description => "Ram pressure stripping of galactic disk",
 	 members     =>
 	     [
-	      "ramPressureStrippingMassLossRateDisksMethod"
+	      "ramPressureStrippingMassLossRateDisks"
 	     ]
      },
      {
@@ -284,7 +284,7 @@ my @groups =
 	 description => "Ram pressure stripping of galactic spheroid",
 	 members     =>
 	     [
-	      "ramPressureStrippingMassLossRateSpheroidsMethod"
+	      "ramPressureStrippingMassLossRateSpheroids"
 	     ]
      },
      {
@@ -292,7 +292,7 @@ my @groups =
 	 description => "Tidal stripping of galactic disk",
 	 members     =>
 	     [
-	      "tidalStrippingMassLossRateDisksMethod"
+	      "tidalStrippingMassLossRateDisks"
 	     ]
      },
      {
@@ -300,7 +300,7 @@ my @groups =
 	 description => "Tidal stripping of galactic spheroid",
 	 members     =>
 	     [
-	      "tidalStrippingMassLossRateSpheroidsMethod"
+	      "tidalStrippingMassLossRateSpheroids"
 	     ]
      },
      {
@@ -308,7 +308,7 @@ my @groups =
 	 description => "Star formation in disks",
 	 members     =>
 	     [
-	      "starFormationTimescaleDisksMethod",
+	      "starFormationTimescaleDisks",
 	      qr/^starFormationTimescaleDisks.*/,
 	      qr/^diskStarFormation.*/,
 	      qr/^diskVerySimpleSurfaceDensity.*/,
@@ -316,7 +316,7 @@ my @groups =
 	      "starFormationFrequencyKMT09",
 	      "molecularComplexClumpingFactorKMT09",
 	      "molecularFractionFastKMT09",
-	      "starFormationRateSurfaceDensityDisksMethod",
+	      "starFormationRateSurfaceDensityDisks",
 	      "starFormationTimescaleIntegratedSurfaceDensityTolerance"
 	     ]
      },
@@ -325,7 +325,7 @@ my @groups =
 	 description => "Star formation in spheroids",
 	 members     =>
 	     [
-	      "starFormationTimescaleSpheroidsMethod",
+	      "starFormationTimescaleSpheroids",
 	      qr/^starFormationTimescaleSpheroids.*/,
 	      qr/^spheroidStarFormation.*/,
 	      "starFormationSpheroidEfficiency",
@@ -338,7 +338,7 @@ my @groups =
 	 description => "Stellar feedback in disks",
 	 members     =>
 	     [
-	      "starFormationFeedbackDisksMethod",
+	      "starFormationFeedbackDisks",
 	      qr/^diskOutflow.*/
 	     ]
      },
@@ -347,7 +347,7 @@ my @groups =
 	 description => "Stellar feedback in spheroids",
 	 members     =>
 	     [
-	      "starFormationFeedbackSpheroidsMethod",
+	      "starFormationFeedbackSpheroids",
 	      qr/^spheroidOutflow.*/
 	     ]
      },
@@ -356,7 +356,7 @@ my @groups =
 	 description => "Stellar initial mass function",
 	 members     =>
 	     [
-	      "imfSelectionMethod",
+	      "imfSelection",
 	      "imfSelectionFixed",
 	      qr/^imf.*RecycledInstantaneous$/,
 	      qr/^imf.*YieldInstantaneous$/,
@@ -367,8 +367,8 @@ my @groups =
 	 description => "Stellar evolution",
 	 members     =>
 	     [
-	      "stellarPopulationPropertiesMethod",
-	      "stellarPopulationSpectraMethod",
+	      "stellarPopulationProperties",
+	      "stellarPopulationSpectra",
 	      "stellarPopulationLuminosityIntegrationToleranceRelative"
 	     ]
      },
@@ -377,7 +377,7 @@ my @groups =
 	 description => "Super-massive black hole accretion disks",
 	 members     =>
 	     [
-	      "accretionDisksMethod",
+	      "accretionDisks",
 	      "accretionDiskSwitchedScaleAdafRadiativeEfficiency",
 	      "accretionRateThinDiskMaximum",
 	      "accretionRateThinDiskMinimum",
@@ -394,7 +394,7 @@ my @groups =
 	 description => "Super massive black holes",
 	 members     =>
 	     [
-	      "blackHoleBinaryMergersMethod",
+	      "blackHoleBinaryMergers",
 	      "blackHoleHeatsHotHalo",
 	      "blackHoleSeedMass",
 	      "blackHoleWindEfficiency",
@@ -412,8 +412,8 @@ my @groups =
 	 description => "Galaxy merging",
 	 members     =>
 	     [
-	      "satelliteMergingMassMovementsMethod",
-	      "satelliteMergingRemnantSizeMethod",
+	      "satelliteMergingMassMovements",
+	      "satelliteMergingRemnantSize",
 	      "majorMergerMassRatio",
 	      "mergerRemnantSizeOrbitalEnergy",
 	      "minorMergerGasMovesTo"
@@ -482,7 +482,7 @@ my @groups =
 	 description => "Halo model [clustering]",
 	 members     =>
 	     [
-	      "haloModelPowerSpectrumModifierMethod",
+	      "haloModelPowerSpectrumModifier",
 	     ]
      },
      {
