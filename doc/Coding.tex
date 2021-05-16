@@ -154,7 +154,7 @@ As an example, the following constructor requires an instance of the {\normalfon
 
 The {\normalfont \ttfamily objectBuilder} directive will assign a member of the class specified by the {\normalfont \ttfamily class} attribute to the variable specified by the {\normalfont \ttfamily name} attribute. If the parameter set specified by the {\normalfont \ttfamily parameters} attribute contains an explicit definition of the relevant class, that definition will be used to construct the instance. Otherwise, the parent parameter set will be checked for a definition of the relevant class, and so on. If no definition is found when the root parameter set is found the default instance will be used. Note that objects created by an {\normalfont \ttfamily objectBuilder} directive are directly associated with the element in the input parameters XML document from which they were created. Therefore, if a later {\normalfont \ttfamily objectBuilder} requires the object from that same XML element, it will reuse the one previously created.
 
-The {\normalfont \ttfamily objectBuilder} directive by default searches for a parameter named {\normalfont \ttfamily \{class\}Method} where {\normalfont \ttfamily \{class\}} is the value of the {\normalfont \ttfamily class} attribute in the directive. An alternative name may be specified via the addition of a {\normalfont \ttfamily parameterName} attribute.
+The {\normalfont \ttfamily objectBuilder} directive by default searches for a parameter named {\normalfont \ttfamily \{class\}} where {\normalfont \ttfamily \{class\}} is the value of the {\normalfont \ttfamily class} attribute in the directive. An alternative name may be specified via the addition of a {\normalfont \ttfamily parameterName} attribute.
 
 In cases where an explicit {\normalfont \ttfamily parameterName} attribute is given, it is possible to specify an explicit default for the object if no such named parameter is found. (Where no explicit {\normalfont \ttfamily parameterName} attribute is given the global default of the class is used.) A default is specified by adding a {\normalfont \ttfamily default} element to the directive, which should contain default specification for the object (and any subobjects) in the usual format. For example:
 \begin{verbatim}
@@ -659,15 +659,15 @@ Although not methods directly bound to the {\normalfont \ttfamily functionClass}
 \item[]{\normalfont \ttfamily descriptor} Return an input parameter list descriptor which could be used to recreate this object.
 \begin{itemize}
 \item Return type: {\normalfont \ttfamily void}
-\item Interface: {\normalfont \ttfamily (descriptor, includeMethod)}\\
+\item Interface: {\normalfont \ttfamily (descriptor, includeClass)}\\
   {\normalfont \ttfamily type(inputParameters), intent(inout) :: descriptor}\\
-  {\normalfont \ttfamily logical, intent(in   ), optional :: includeMethod}\\
+  {\normalfont \ttfamily logical, intent(in   ), optional :: includeClass}\\
 \end{itemize}
 
 \item[]{\normalfont \ttfamily hashedDescriptor} Return a hash of the descriptor for this object, optionally include the source code digest in the hash.
 \begin{itemize}
 \item Return type: {\normalfont \ttfamily type(varying\_string)}
-\item Interface: {\normalfont \ttfamily (descriptor, includeMethod)}\\
+\item Interface: {\normalfont \ttfamily (descriptor, includeClass)}\\
   {\normalfont \ttfamily logical, intent(in   ), optional :: includeSourceDigest}\\
 \end{itemize}
 
