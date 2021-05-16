@@ -164,8 +164,8 @@ contains
        if (parameters%isPresent('sigma_8')) call Galacticus_Error_Report('sigma_8 must not be specified if a power spectrum amplitude is specified'//{introspection:location})
        if (.not.parameters%isPresent('reference',requireValue=.false.)) call Galacticus_Error_Report('parameters must contain a "reference" section'//{introspection:location})
        referenceParameters=parameters%subParameters('reference',requireValue=.false.)
-       if (.not.referenceParameters%isPresent('cosmologicalMassVarianceMethod'          )) call Galacticus_Error_Report('"reference" section must explicitly defined a "cosmologicalMassVarianceMethod"'          //{introspection:location})
-       if (.not.referenceParameters%isPresent('powerSpectrumPrimordialTransferredMethod')) call Galacticus_Error_Report('"reference" section must explicitly defined a "powerSpectrumPrimordialTransferredMethod"'//{introspection:location})
+       if (.not.referenceParameters%isPresent('cosmologicalMassVariance'          )) call Galacticus_Error_Report('"reference" section must explicitly defined a "cosmologicalMassVariance"'          //{introspection:location})
+       if (.not.referenceParameters%isPresent('powerSpectrumPrimordialTransferred')) call Galacticus_Error_Report('"reference" section must explicitly defined a "powerSpectrumPrimordialTransferred"'//{introspection:location})
        !# <objectBuilder class="cosmologicalMassVariance"           name="cosmologicalMassVarianceReference"           source="referenceParameters"                                         />
        !# <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferredReference" source="referenceParameters"                                         />
        !# <inputParameter>
@@ -1061,18 +1061,18 @@ contains
     return
   end function filteredPowerRemakeTable
 
-  subroutine filteredPowerDescriptor(self,descriptor,includeMethod)
+  subroutine filteredPowerDescriptor(self,descriptor,includeClass)
     !% Return an input parameter list descriptor which could be used to recreate this object.
     use :: Input_Parameters, only : inputParameters
     implicit none
     class    (cosmologicalMassVarianceFilteredPower), intent(inout)           :: self
     type     (inputParameters                      ), intent(inout)           :: descriptor
-    logical                                         , intent(in   ), optional :: includeMethod
+    logical                                         , intent(in   ), optional :: includeClass
     character(len=18                               )                          :: parameterLabel
     type     (inputParameters                      )                          :: parameters    , referenceParameters
 
-    if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter('cosmologicalMassVarianceMethod','filteredPower')
-    parameters=descriptor%subparameters('cosmologicalMassVarianceMethod')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('cosmologicalMassVariance','filteredPower')
+    parameters=descriptor%subparameters('cosmologicalMassVariance')
     if (self%normalizationSigma8) then
        write (parameterLabel,'(e17.10)') self%sigma8Value
        call parameters%addParameter('sigma_8'                            ,trim(adjustl(parameterLabel)))

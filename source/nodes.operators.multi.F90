@@ -65,7 +65,7 @@ contains
 
     self    %processes => null()
     process_          => null()
-    do i=1,parameters%copiesCount('nodeOperatorMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('nodeOperator',zeroIfNotPresent=.true.)
        if (associated(process_)) then
           allocate(process_%next)
           process_ => process_%next

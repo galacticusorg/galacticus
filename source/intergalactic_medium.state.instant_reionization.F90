@@ -296,18 +296,18 @@ contains
     return
   end function instantReionizationTemperature
 
-  subroutine instantReionizationDescriptor(self,descriptor,includeMethod)
+  subroutine instantReionizationDescriptor(self,descriptor,includeClass)
     !% Return an input parameter list descriptor which could be used to recreate this object.
     use :: Input_Parameters, only : inputParameters
     implicit none
     class    (intergalacticMediumStateInstantReionization), intent(inout)           :: self
     type     (inputParameters                            ), intent(inout)           :: descriptor
-    logical                                               , intent(in   ), optional :: includeMethod
+    logical                                               , intent(in   ), optional :: includeClass
     character(len=18                                     )                          :: parameterLabel
     type     (inputParameters                            )                          :: parameters
 
-    if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter('intergalacticMediumStateMethod','instantReionization')
-    parameters=descriptor%subparameters('intergalacticMediumStateMethod')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('intergalacticMediumState','instantReionization')
+    parameters=descriptor%subparameters('intergalacticMediumState')
     write (parameterLabel,'(e17.10)') self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%reionizationTime       ))
     call parameters%addParameter('reionizationRedshift'   ,trim(adjustl(parameterLabel)))
     write (parameterLabel,'(e17.10)')                                                                                               self%reionizationTemperature

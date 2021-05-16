@@ -62,7 +62,7 @@ contains
 
     self      %outputters => null()
     outputter_            => null()
-    do i=1,parameters%copiesCount('radiativeTransferOutputterMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('radiativeTransferOutputter',zeroIfNotPresent=.true.)
        if (associated(outputter_)) then
           allocate(outputter_%next)
           outputter_ => outputter_%next

@@ -52,7 +52,7 @@ contains
          &                                                       gamma               , redshift
 
     ! Validate parameters.
-    if (.not.parameters%isPresent('transferFunctionMethod')) call Galacticus_Error_Report("an explicit 'transferFunctionMethod' must be given"//{introspection:location})
+    if (.not.parameters%isPresent('transferFunction')) call Galacticus_Error_Report("an explicit 'transferFunction' must be given"//{introspection:location})
     ! Read parameters.
     !# <inputParameter>
     !#   <name>m22</name>

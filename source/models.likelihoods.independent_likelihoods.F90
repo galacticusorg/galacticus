@@ -74,14 +74,14 @@ contains
     !#   <description>The log-likelihood which should be ``accepted''---once the log-likelihood reaches this value (or larger) no further updates to the chain will be made.</description>
     !#   <source>parameters</source>
     !# </inputParameter>
-    if     (                                                                                   &
-         &   parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.) &
-         &  /=                                                                                 &
-         &   parameters%copiesCount('parameterMap'                   ,zeroIfNotPresent=.true.) &
+    if     (                                                                             &
+         &   parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.) &
+         &  /=                                                                           &
+         &   parameters%copiesCount('parameterMap'             ,zeroIfNotPresent=.true.) &
          & ) call Galacticus_Error_Report('number of parameter maps must match number of likelihoods'//{introspection:location})
     self            %modelLikelihoods => null()
     modelLikelihood_                  => null()
-    do i=1,parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.)
        if (associated(modelLikelihood_)) then
           allocate(modelLikelihood_%next)
           modelLikelihood_ => modelLikelihood_%next

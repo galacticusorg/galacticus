@@ -7,56 +7,56 @@
 
   <verbosityLevel value="standard"/>
 
-  <taskMethod value="posteriorSample">
+  <task value="posteriorSample">
     <initializeNodeClassHierarchy value="true"/>
-  </taskMethod>
+  </task>
 
   <galacticusOutputFileName value="galacticus.hdf5"/>
   
   <!-- Cosmological parameters and options -->
-  <cosmologyFunctionsMethod  value="matterLambda"/>
-  <cosmologyParametersMethod value="simple"       >
+  <cosmologyFunctions  value="matterLambda"/>
+  <cosmologyParameters value="simple"       >
     <!-- MDPL simulation cosmology; https://www.cosmosim.org/cms/simulations/mdpl -->
     <HubbleConstant  value="67.770000"/>
     <OmegaMatter     value=" 0.307115"/>
     <OmegaDarkEnergy value=" 0.692885"/>
     <OmegaBaryon     value=" 0.048206"/>
     <temperatureCMB  value=" 2.725480"/>
-  </cosmologyParametersMethod>
+  </cosmologyParameters>
 
   <!-- Power spectrum options -->
-  <powerSpectrumPrimordialMethod value="powerLaw">
+  <powerSpectrumPrimordial value="powerLaw">
     <!-- MDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/mdpl -->
     <index               value="0.9600"/>
     <wavenumberReference value="1.000"/>
     <running             value="0.000"/>
-  </powerSpectrumPrimordialMethod>
-  <cosmologicalMassVarianceMethod value="filteredPower">
+  </powerSpectrumPrimordial>
+  <cosmologicalMassVariance value="filteredPower">
     <!-- MDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/mdpl -->
     <sigma_8         value="0.8228"/>
     <tolerance       value="4.0e-4"/>
     <toleranceTopHat value="2.0e-4"/>
-  </cosmologicalMassVarianceMethod>
-  <transferFunctionMethod value="CAMB"/>
-  <powerSpectrumPrimordialTransferredMethod value="simple"/>
+  </cosmologicalMassVariance>
+  <transferFunction value="CAMB"/>
+  <powerSpectrumPrimordialTransferred value="simple"/>
 
   <!-- Structure formation options -->
-  <linearGrowthMethod          value="collisionlessMatter"                      />
-  <criticalOverdensityMethod   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-  <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <linearGrowth          value="collisionlessMatter"                      />
+  <criticalOverdensity   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
 
   <!-- Halo environments -->
-  <haloEnvironmentMethod value="normal">
+  <haloEnvironment value="normal">
     <radiusEnvironment value="7.0"/>
-  </haloEnvironmentMethod>
+  </haloEnvironment>
 
   <!-- Likelihood -->
-  <posteriorSampleLikelihoodMethod value="independentLikelihoods">
+  <posteriorSampleLikelihood value="independentLikelihoods">
 
     <!-- VSMDPL -->
     <parameterMap value="haloMassFunctionMethod::a haloMassFunctionMethod::p haloMassFunctionMethod::normalization"/>
     <parameterInactiveMap value=""/>
-    <posteriorSampleLikelihoodMethod value="haloMassFunction">
+    <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <fileName            value="%DATASTATICPATH%/darkMatter/haloMassFunction_VSMDPL_z0.000.hdf5"/>
       <redshift            value=" 0.00000e00"                     />
@@ -65,32 +65,32 @@
       <binCountMinimum     value="30"         />
       <errorModel          value="trenti2010" />
       <environmentAveraged value="true"       />
-      <cosmologicalMassVarianceMethod value="peakBackgroundSplit">
-	<cosmologicalMassVarianceMethod value="filteredPower">
+      <cosmologicalMassVariance value="peakBackgroundSplit">
+	<cosmologicalMassVariance value="filteredPower">
     	  <!-- VSMDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/vsmdpl -->
     	  <sigma_8         value="0.8228"/>
     	  <tolerance       value="4.0e-4"/>
     	  <toleranceTopHat value="2.0e-4"/>
-	</cosmologicalMassVarianceMethod>
-      </cosmologicalMassVarianceMethod>
-      <criticalOverdensityMethod   value="peakBackgroundSplit"                       >
-	<criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-      </criticalOverdensityMethod>
+	</cosmologicalMassVariance>
+      </cosmologicalMassVariance>
+      <criticalOverdensity   value="peakBackgroundSplit"                       >
+	<criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+      </criticalOverdensity>
       <unconditioned value="">
-	<cosmologicalMassVarianceMethod value="filteredPower">
+	<cosmologicalMassVariance value="filteredPower">
     	  <!-- VSMDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/vsmdpl -->
     	  <sigma_8         value="0.8228"/>
     	  <tolerance       value="4.0e-4"/>
     	  <toleranceTopHat value="2.0e-4"/>
-	</cosmologicalMassVarianceMethod>
-	<criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+	</cosmologicalMassVariance>
+	<criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
       </unconditioned>
-    </posteriorSampleLikelihoodMethod>
+    </posteriorSampleLikelihood>
 
     <!-- SMDPL -->
     <parameterMap value="haloMassFunctionMethod::a haloMassFunctionMethod::p haloMassFunctionMethod::normalization"/>
     <parameterInactiveMap value=""/>
-    <posteriorSampleLikelihoodMethod value="haloMassFunction">
+    <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <fileName            value="%DATASTATICPATH%/darkMatter/haloMassFunction_SMDPL_z0.000.hdf5"/>
       <redshift            value=" 0.00000e00"                     />
@@ -99,30 +99,30 @@
       <binCountMinimum     value="30"         />
       <errorModel          value="trenti2010" />
       <environmentAveraged value="true"       />
-      <cosmologicalMassVarianceMethod value="peakBackgroundSplit">
-	<cosmologicalMassVarianceMethod value="filteredPower">
+      <cosmologicalMassVariance value="peakBackgroundSplit">
+	<cosmologicalMassVariance value="filteredPower">
     	  <!-- SMDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/smdpl -->
     	  <sigma_8         value="0.8228"/>
     	  <tolerance       value="4.0e-4"/>
     	  <toleranceTopHat value="2.0e-4"/>
-	</cosmologicalMassVarianceMethod>
-      </cosmologicalMassVarianceMethod>
-      <criticalOverdensityMethod   value="peakBackgroundSplit"                       >
-	<criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-      </criticalOverdensityMethod>
+	</cosmologicalMassVariance>
+      </cosmologicalMassVariance>
+      <criticalOverdensity   value="peakBackgroundSplit"                       >
+	<criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+      </criticalOverdensity>
       <unconditioned value="">
-	<cosmologicalMassVarianceMethod value="filteredPower">
+	<cosmologicalMassVariance value="filteredPower">
     	  <!-- SMDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/smdpl -->
     	  <sigma_8         value="0.8228"/>
     	  <tolerance       value="4.0e-4"/>
     	  <toleranceTopHat value="2.0e-4"/>
-	</cosmologicalMassVarianceMethod>
-	<criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+	</cosmologicalMassVariance>
+	<criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
       </unconditioned>
-    </posteriorSampleLikelihoodMethod>
+    </posteriorSampleLikelihood>
 
     <!-- MDPL2 -->
-    <posteriorSampleLikelihoodMethod value="haloMassFunction">
+    <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <fileName            value="%DATASTATICPATH%/darkMatter/haloMassFunction_MDPL2_z0.000.hdf5"/>
       <redshift            value=" 0.00000e00"                     />
@@ -131,32 +131,32 @@
       <binCountMinimum     value="30"         />
       <errorModel          value="trenti2010" />
       <environmentAveraged value="true"       />
-      <cosmologicalMassVarianceMethod value="peakBackgroundSplit">
-    	<cosmologicalMassVarianceMethod value="filteredPower">
+      <cosmologicalMassVariance value="peakBackgroundSplit">
+    	<cosmologicalMassVariance value="filteredPower">
     	  <!-- MDPL2 simulation power spectrum; https://www.cosmosim.org/cms/simulations/mdpl2 -->
     	  <sigma_8         value="0.8228"/>
     	  <tolerance       value="4.0e-4"/>
     	  <toleranceTopHat value="2.0e-4"/>
-    	</cosmologicalMassVarianceMethod>
-      </cosmologicalMassVarianceMethod>
-      <criticalOverdensityMethod   value="peakBackgroundSplit"                       >
-    	<criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-      </criticalOverdensityMethod>
+    	</cosmologicalMassVariance>
+      </cosmologicalMassVariance>
+      <criticalOverdensity   value="peakBackgroundSplit"                       >
+    	<criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+      </criticalOverdensity>
       <unconditioned value="">
-    	<cosmologicalMassVarianceMethod value="filteredPower">
+    	<cosmologicalMassVariance value="filteredPower">
     	  <!-- MDPL2 simulation power spectrum; https://www.cosmosim.org/cms/simulations/mdpl2 -->
     	  <sigma_8         value="0.8228"/>
     	  <tolerance       value="4.0e-4"/>
     	  <toleranceTopHat value="2.0e-4"/>
-    	</cosmologicalMassVarianceMethod>
-    	<criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+    	</cosmologicalMassVariance>
+    	<criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
       </unconditioned>
-    </posteriorSampleLikelihoodMethod>
+    </posteriorSampleLikelihood>
 
     <!-- BigMDPL -->
     <parameterMap value="haloMassFunctionMethod::a haloMassFunctionMethod::p haloMassFunctionMethod::normalization"/>
     <parameterInactiveMap value=""/>
-    <posteriorSampleLikelihoodMethod value="haloMassFunction">
+    <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <fileName            value="%DATASTATICPATH%/darkMatter/haloMassFunction_BigMDPL_z0.000.hdf5"/>
       <redshift            value=" 0.00000e00"                     />
@@ -165,30 +165,30 @@
       <binCountMinimum     value="30"         />
       <errorModel          value="trenti2010" />
       <environmentAveraged value="true"       />
-      <cosmologicalMassVarianceMethod value="peakBackgroundSplit">
-	<cosmologicalMassVarianceMethod value="filteredPower">
+      <cosmologicalMassVariance value="peakBackgroundSplit">
+	<cosmologicalMassVariance value="filteredPower">
     	  <!-- BigMDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/bigmdpl -->
     	  <sigma_8         value="0.8228"/>
     	  <tolerance       value="4.0e-4"/>
     	  <toleranceTopHat value="2.0e-4"/>
-	</cosmologicalMassVarianceMethod>
-      </cosmologicalMassVarianceMethod>
-      <criticalOverdensityMethod   value="peakBackgroundSplit"                       >
-	<criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-      </criticalOverdensityMethod>
+	</cosmologicalMassVariance>
+      </cosmologicalMassVariance>
+      <criticalOverdensity   value="peakBackgroundSplit"                       >
+	<criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+      </criticalOverdensity>
       <unconditioned value="">
-	<cosmologicalMassVarianceMethod value="filteredPower">
+	<cosmologicalMassVariance value="filteredPower">
     	  <!-- BigMDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/bigmdpl -->
     	  <sigma_8         value="0.8228"/>
     	  <tolerance       value="4.0e-4"/>
     	  <toleranceTopHat value="2.0e-4"/>
-	</cosmologicalMassVarianceMethod>
-	<criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+	</cosmologicalMassVariance>
+	<criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
       </unconditioned>
-    </posteriorSampleLikelihoodMethod>
+    </posteriorSampleLikelihood>
 
     <!-- HugeMDPL -->
-    <posteriorSampleLikelihoodMethod value="haloMassFunction">
+    <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <fileName            value="%DATASTATICPATH%/darkMatter/haloMassFunction_HugeMDPL_z0.000.hdf5"/>
       <redshift            value=" 0.00000e00"                     />
@@ -197,32 +197,32 @@
       <binCountMinimum     value="30"         />
       <errorModel          value="trenti2010" />
       <environmentAveraged value="true"       />
-      <cosmologicalMassVarianceMethod value="peakBackgroundSplit">
-    	<cosmologicalMassVarianceMethod value="filteredPower">
+      <cosmologicalMassVariance value="peakBackgroundSplit">
+    	<cosmologicalMassVariance value="filteredPower">
     	  <!-- HugeMDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/hugemdpl -->
     	  <sigma_8         value="0.8228"/>
     	  <tolerance       value="4.0e-4"/>
     	  <toleranceTopHat value="2.0e-4"/>
-    	</cosmologicalMassVarianceMethod>
-      </cosmologicalMassVarianceMethod>
-      <criticalOverdensityMethod   value="peakBackgroundSplit"                       >
-    	<criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-      </criticalOverdensityMethod>
+    	</cosmologicalMassVariance>
+      </cosmologicalMassVariance>
+      <criticalOverdensity   value="peakBackgroundSplit"                       >
+    	<criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+      </criticalOverdensity>
       <unconditioned value="">
-    	<cosmologicalMassVarianceMethod value="filteredPower">
+    	<cosmologicalMassVariance value="filteredPower">
     	  <!-- HugeMDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/hugemdpl -->
     	  <sigma_8         value="0.8228"/>
     	  <tolerance       value="4.0e-4"/>
     	  <toleranceTopHat value="2.0e-4"/>
-    	</cosmologicalMassVarianceMethod>
-    	<criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+    	</cosmologicalMassVariance>
+    	<criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
       </unconditioned>
-    </posteriorSampleLikelihoodMethod>
+    </posteriorSampleLikelihood>
   
-  </posteriorSampleLikelihoodMethod>
+  </posteriorSampleLikelihood>
 
   <!-- Particle swarm optimization -->
-  <posteriorSampleSimulationMethod value="particleSwarm">
+  <posteriorSampleSimulation value="particleSwarm">
     <stepsMaximum                    value="100"   />
     <logFlushCount                   value="  1"   />
     <reportCount                     value=" 10"   />
@@ -233,17 +233,17 @@
     <velocityCoefficient             value="0.500" />
     <velocityCoefficientInitial      value="0.000" />
 
-    <posteriorSampleStateInitializeMethod value="latinHypercube">
+    <posteriorSampleStateInitialize value="latinHypercube">
       <maximinTrialCount value="100"/>
-    </posteriorSampleStateInitializeMethod>
+    </posteriorSampleStateInitialize>
     
-    <posteriorSampleConvergenceMethod value="never"/>
+    <posteriorSampleConvergence value="never"/>
     
-    <posteriorSampleStoppingCriterionMethod value="never">
-    </posteriorSampleStoppingCriterionMethod>
+    <posteriorSampleStoppingCriterion value="never">
+    </posteriorSampleStoppingCriterion>
 
     <!-- Parameters of the Sheth & Tormen (2001) dark matter halo mass function. -->
-    <modelParameterMethod value="active">
+    <modelParameter value="active">
        <name value="haloMassFunctionMethod::a"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="0.3"/>
@@ -254,9 +254,9 @@
 	 <median value="0.0"/>
 	 <scale value="1.0e-4"/>
        </distributionFunction1DPerturber>
-     </modelParameterMethod>
+     </modelParameter>
      
-    <modelParameterMethod value="active">
+    <modelParameter value="active">
        <name value="haloMassFunctionMethod::p"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="-1.0"/>
@@ -267,9 +267,9 @@
 	 <median value="0.0"/>
 	 <scale value="1.0e-4"/>
        </distributionFunction1DPerturber>
-     </modelParameterMethod>
+     </modelParameter>
      
-    <modelParameterMethod value="active">
+    <modelParameter value="active">
        <name value="haloMassFunctionMethod::normalization"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="0.0"/>
@@ -280,14 +280,14 @@
 	 <median value="0.0"/>
 	 <scale value="1.0e-4"/>
        </distributionFunction1DPerturber>
-     </modelParameterMethod>
+     </modelParameter>
      
-  </posteriorSampleSimulationMethod>
+  </posteriorSampleSimulation>
 
   <!-- Random seed -->
-  <randomNumberGeneratorMethod value="GSL">
+  <randomNumberGenerator value="GSL">
     <seed          value="219" />
     <mpiRankOffset value="true"/>
-  </randomNumberGeneratorMethod>
+  </randomNumberGenerator>
 
 </parameters>

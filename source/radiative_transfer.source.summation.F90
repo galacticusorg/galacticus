@@ -65,9 +65,9 @@ contains
     integer                                                  :: i
 
     radiativeTransferSource_ => null()
-    self%sourceTypeCount_    =  parameters%copiesCount('radiativeTransferSourceMethod',zeroIfNotPresent=.true.)
+    self%sourceTypeCount_    =  parameters%copiesCount('radiativeTransferSource',zeroIfNotPresent=.true.)
     allocate(self%sourceTypeName_(self%sourceTypeCount_))
-    do i=1,parameters%copiesCount('radiativeTransferSourceMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('radiativeTransferSource',zeroIfNotPresent=.true.)
        if (associated(radiativeTransferSource_)) then
           allocate(radiativeTransferSource_%next)
           radiativeTransferSource_ => radiativeTransferSource_%next

@@ -59,7 +59,7 @@ contains
 
     self       %normalizers => null()
     normalizer_             => null()
-    do i=1,parameters%copiesCount('outputAnalysisDistributionNormalizerMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('outputAnalysisDistributionNormalizer',zeroIfNotPresent=.true.)
        if (associated(normalizer_)) then
           allocate(normalizer_%next)
           normalizer_ => normalizer_%next

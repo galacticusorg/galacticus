@@ -59,7 +59,7 @@ contains
 
     self     %postprocessors => null()
     postprocessor_           => null()
-    do i=1,parameters%copiesCount('stellarPopulationSpectraPostprocessorMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('stellarPopulationSpectraPostprocessor',zeroIfNotPresent=.true.)
        if (associated(postprocessor_)) then
           allocate(postprocessor_%next)
           postprocessor_ => postprocessor_%next
@@ -124,18 +124,18 @@ contains
     return
   end function sequenceMultiplier
 
-  subroutine sequenceDescriptor(self,descriptor,includeMethod)
+  subroutine sequenceDescriptor(self,descriptor,includeClass)
     !% Return an input parameter list descriptor which could be used to recreate this object.
     use :: Input_Parameters, only : inputParameters
     implicit none
     class  (stellarPopulationSpectraPostprocessorSequence), intent(inout)           :: self
     type   (inputParameters                              ), intent(inout)           :: descriptor
-    logical                                               , intent(in   ), optional :: includeMethod
+    logical                                               , intent(in   ), optional :: includeClass
     type   (postprocessorList                            ), pointer                 :: postprocessor_
     type   (inputParameters                              )                          :: parameters
 
-    if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter('stellarPopulationSpectraPostprocessorMethod','sequence')
-    parameters     =  descriptor%subparameters ('stellarPopulationSpectraPostprocessorMethod')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('stellarPopulationSpectraPostprocessor','sequence')
+    parameters     =  descriptor%subparameters ('stellarPopulationSpectraPostprocessor')
     postprocessor_ => self      %postprocessors
     do while (associated(postprocessor_))
        call postprocessor_%postprocessor_%descriptor(parameters)

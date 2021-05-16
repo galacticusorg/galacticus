@@ -86,7 +86,7 @@ contains
 
     self      %extractors => null()
     extractor_            => null()
-    do i=1,parameters%copiesCount('nodePropertyExtractorMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('nodePropertyExtractor',zeroIfNotPresent=.true.)
        if (associated(extractor_)) then
           allocate(extractor_%next)
           extractor_ => extractor_%next

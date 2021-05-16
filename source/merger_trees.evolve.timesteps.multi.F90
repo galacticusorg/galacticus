@@ -58,7 +58,7 @@ contains
 
     self %mergerTreeEvolveTimesteps => null()
     mergerTreeEvolveTimestep_       => null()
-    do i=1,parameters%copiesCount('mergerTreeEvolveTimestepMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('mergerTreeEvolveTimestep',zeroIfNotPresent=.true.)
        if (associated(mergerTreeEvolveTimestep_)) then
           allocate(mergerTreeEvolveTimestep_%next)
           mergerTreeEvolveTimestep_ => mergerTreeEvolveTimestep_%next

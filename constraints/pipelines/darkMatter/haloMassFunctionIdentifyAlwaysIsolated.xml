@@ -4,36 +4,36 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
-  <taskMethod value="NBodyAnalyze"/>
+  <task value="NBodyAnalyze"/>
 
-  <nbodyImporterMethod value="rockstar">
+  <nbodyImporter value="rockstar">
     <fileName    value="tree_0_0_0.dat"            />
     <readColumns value="scale desc_id pid mmp Mvir"/>
-  </nbodyImporterMethod>
+  </nbodyImporter>
 
-  <nbodyOperatorMethod value="sequence">
-    <nbodyOperatorMethod value="flagAlwaysIsolated"/>
-    <nbodyOperatorMethod value="filterProperties"   >
+  <nbodyOperator value="sequence">
+    <nbodyOperator value="flagAlwaysIsolated"/>
+    <nbodyOperator value="filterProperties"   >
       <propertyNames value="alwaysIsolated expansionFactor"/>
       <rangeLow      value="1              0.9999         "/>
       <rangeHigh     value="1              1.0001         "/>
-    </nbodyOperatorMethod>
-    <nbodyOperatorMethod value="deleteProperties">
+    </nbodyOperator>
+    <nbodyOperator value="deleteProperties">
       <propertyNames value="alwaysIsolated descendentID hostID expansionFactor isMostMassiveProgenitor"/>
-    </nbodyOperatorMethod>
-    <nbodyOperatorMethod value="exportIRATE">
+    </nbodyOperator>
+    <nbodyOperator value="exportIRATE">
       <fileName value="alwaysIsolated_z0.000_subVolume0_0_0.hdf5"/>
       <snapshot value="1"                                        />
       <redshift value="0.0"                                      />
-    </nbodyOperatorMethod>
-  </nbodyOperatorMethod>
+    </nbodyOperator>
+  </nbodyOperator>
 
-  <cosmologyParametersMethod value="simple">
+  <cosmologyParameters value="simple">
     <HubbleConstant  value="67.770000"/>
     <OmegaMatter     value=" 0.307115"/>
     <OmegaDarkEnergy value=" 0.692885"/>
     <OmegaBaryon     value=" 0.048206"/>
     <temperatureCMB  value=" 2.725480"/>
-  </cosmologyParametersMethod>
+  </cosmologyParameters>
 
 </parameters>

@@ -62,7 +62,7 @@ contains
 
     self      %analyses => null()
     analysis_           => null()
-    do i=1,parameters%copiesCount('outputAnalysisMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('outputAnalysis',zeroIfNotPresent=.true.)
        if (associated(analysis_)) then
           allocate(analysis_%next)
           analysis_ => analysis_%next

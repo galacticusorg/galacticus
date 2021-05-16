@@ -6,61 +6,61 @@
   <version>0.9.4</version>
   
   <!-- Task control -->
-  <evolveForestsWorkShareMethod value="cyclic"/>
+  <evolveForestsWorkShare value="cyclic"/>
   
   <!-- Component selection -->
-  <treeNodeMethodBasic              value="standard"  />
-  <treeNodeMethodBlackHole          value="null"      />
-  <treeNodeMethodDarkMatterProfile  value="scale"     />
-  <treeNodeMethodDisk               value="null"      />
-  <treeNodeMethodHotHalo            value="null"      />
-  <treeNodeMethodSatellite          value="verySimple"/>
-  <treeNodeMethodSpheroid           value="null"      />
-  <treeNodeMethodMergingStatistics  value="standard"  />
-  <satelliteMergingTimescalesMethod value="zero"      />
-  <treeNodeMethodSpin               value="null"      />
+  <componentBasic              value="standard"  />
+  <componentBlackHole          value="null"      />
+  <componentDarkMatterProfile  value="scale"     />
+  <componentDisk               value="null"      />
+  <componentHotHalo            value="null"      />
+  <componentSatellite          value="verySimple"/>
+  <componentSpheroid           value="null"      />
+  <componentMergingStatistics  value="standard"  />
+  <satelliteMergingTimescales value="zero"      />
+  <componentSpin               value="null"      />
 
   <!-- Cosmological parameters matched to MDPL -->
-  <cosmologyFunctionsMethod value="matterLambda"/>
-  <cosmologyParametersMethod value="simple">
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
     <HubbleConstant  value="67.77000"/>
     <OmegaMatter     value=" 0.307115"/>
     <OmegaDarkEnergy value=" 0.692885"/>
     <OmegaBaryon     value=" 0.048206"/>
     <temperatureCMB  value=" 2.725480"/>
-  </cosmologyParametersMethod>
+  </cosmologyParameters>
 
   <!-- Power spectrum options matched to MDPL2 -->
-  <transferFunctionMethod        value="CAMB"    />
-  <powerSpectrumPrimordialMethod value="powerLaw" >
+  <transferFunction        value="CAMB"    />
+  <powerSpectrumPrimordial value="powerLaw" >
     <index               value="0.96"/>
     <wavenumberReference value="1.00"/>
     <running             value="0.00"/>
-  </powerSpectrumPrimordialMethod>
-  <powerSpectrumPrimordialTransferredMethod value="simple"       />
-  <cosmologicalMassVarianceMethod           value="filteredPower" >
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"       />
+  <cosmologicalMassVariance           value="filteredPower" >
     <sigma_8 value="0.8228"/>
-  </cosmologicalMassVarianceMethod>
+  </cosmologicalMassVariance>
   
   <!-- Structure formation options -->
-  <linearGrowthMethod          value="collisionlessMatter"                       />
-  <haloMassFunctionMethod      value="shethTormen"                                >
+  <linearGrowth          value="collisionlessMatter"                       />
+  <haloMassFunction      value="shethTormen"                                >
     <a             value="+0.8745"/> <!-- Best fit values for z=0 from Benson (2017) -->
     <p             value="-0.0306"/>
     <normalization value="+0.3318"/>
-  </haloMassFunctionMethod>
-  <criticalOverdensityMethod   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/> <!-- Matches halo mass definition in Benson (2017) -->
-  <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  </haloMassFunction>
+  <criticalOverdensity   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/> <!-- Matches halo mass definition in Benson (2017) -->
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
 
   <!-- Merger tree building options -->
-  <mergerTreeConstructorMethod value="build"/>
-  <mergerTreeBuilderMethod value="cole2000">
+  <mergerTreeConstructor value="build"/>
+  <mergerTreeBuilder value="cole2000">
     <accretionLimit     value="0.01"/>
     <mergeProbability   value="0.10"/>
     <branchIntervalStep value="true"/>
     <redshiftMaximum    value="10.0"/>
-  </mergerTreeBuilderMethod>
-  <mergerTreeBranchingProbabilityMethod value="PCHPlus">
+  </mergerTreeBuilder>
+  <mergerTreeBranchingProbability value="PCHPlus">
     <!-- Best fit values from PCH -->
     <G0     value="+0.5700"/>
     <gamma1 value="+0.3800"/>
@@ -68,62 +68,62 @@
     <gamma3 value="+0.0000"/>
     <accuracyFirstOrder value="+0.10"/>
     <cdmAssumptions value="true"/>
-  </mergerTreeBranchingProbabilityMethod>
-  <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+  </mergerTreeBranchingProbability>
+  <mergerTreeBuildMasses value="sampledDistributionUniform">
     <!-- Minimum is smaller of 300 times the SMDPL mass resolution and the minimum parent mass -->
     <massTreeMinimum value="1.00e11"/>
     <massTreeMaximum value="3.16e15"/>
     <treesPerDecade  value="18000"  />
-  </mergerTreeBuildMassesMethod>
-  <mergerTreeMassResolutionMethod value="fixed">
+  </mergerTreeBuildMasses>
+  <mergerTreeMassResolution value="fixed">
     <!-- 1/5th of 300 times the SMDPL particle mass - such that our resolution is well below any mass scale that we care about -->
     <massResolution value="8.53e9"/>
-  </mergerTreeMassResolutionMethod>
+  </mergerTreeMassResolution>
   
   <!-- Substructure hierarchy options -->
-  <mergerTreeNodeMergerMethod value="singleLevelHierarchy"/>
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
 
   <!-- Dark matter halo structure options -->
-  <darkMatterProfileDMOMethod            value="isothermal"/>
-  <darkMatterProfileConcentrationMethod  value="gao2008"   />
+  <darkMatterProfileDMO            value="isothermal"/>
+  <darkMatterProfileConcentration  value="gao2008"   />
   <darkMatterProfileMinimumConcentration value="4"         />
-  <galacticStructureSolverMethod         value="null"      />
-  <haloSpinDistributionMethod value="bett2007">
+  <galacticStructureSolver         value="null"      />
+  <haloSpinDistribution value="bett2007">
     <alpha   value="2.50900"/>
     <lambda0 value="0.04326"/>
-  </haloSpinDistributionMethod>
+  </haloSpinDistribution>
   <randomSpinResetMassFactor value="2.0"/>
 
   <!-- Merger tree evolution -->
-  <mergerTreeEvolverMethod value="standard">
+  <mergerTreeEvolver value="standard">
     <timestepHostAbsolute value="1.0"/>
     <timestepHostRelative value="0.1"/>
-  </mergerTreeEvolverMethod>
-  <mergerTreeNodeEvolverMethod value="standard">
+  </mergerTreeEvolver>
+  <mergerTreeNodeEvolver value="standard">
     <odeToleranceAbsolute value="0.01"/>
     <odeToleranceRelative value="0.01"/>
-  </mergerTreeNodeEvolverMethod>
+  </mergerTreeNodeEvolver>
 
   <!-- Output options -->
   <galacticusOutputFileName  value="SMDPL.hdf5"/>
-  <mergerTreeOutputterMethod value="analyzer">
-  </mergerTreeOutputterMethod>
-  <outputTimesMethod value="list">
+  <mergerTreeOutputter value="analyzer">
+  </mergerTreeOutputter>
+  <outputTimes value="list">
     <!-- Matched to SMDPL snapshots -->
     <redshifts value="0.505343971097396 1.0 2.02114803625378 3.95049504950495 7.84955752212389 "/>
-  </outputTimesMethod>
-  <mergerTreeOperatorMethod value="regridTimes">
+  </outputTimes>
+  <mergerTreeOperator value="regridTimes">
     <!-- Regrid the trees to massively speed up searching for parents etc. -->
     <regridCount       value="7"                        />
     <snapshotSpacing   value="list"                     />
     <!-- Include one higher redshift here since otherwise the regridded halos at the earliest time may not exist precisely at the output time -->
     <!-- Matched to SMDPL snapshots -->
     <snapshotRedshifts value="0.0 0.505343971097396 1.0 2.02114803625378 3.95049504950495 7.84955752212389 9.0"/>
-  </mergerTreeOperatorMethod>
-  <outputAnalysisMethod value="multi">
+  </mergerTreeOperator>
+  <outputAnalysis value="multi">
     <!-- Minimum mass ratio for likelihood is the ratio of the SMDPL 300 particle mass limit (1.42e8) to the minimum parent
          mass in the sample. -->
-    <outputAnalysisMethod value="progenitorMassFunction">
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="0"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
@@ -138,8 +138,8 @@
       <comment                      value="$11.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 11.50$; $z=0.51$; SMDPL halos"/>
       <label                        value="SMDPLM0Z0"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="0"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
@@ -154,8 +154,8 @@
       <comment                      value="$11.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 11.50$; $z=1.00$; SMDPL halos"/>
       <label                        value="SMDPLM0Z1"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="0"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
@@ -170,8 +170,8 @@
       <comment                      value="$11.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 11.50$; $z=2.02$; SMDPL halos"/>
       <label                        value="SMDPLM0Z2"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="0"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
@@ -186,8 +186,8 @@
       <comment                      value="$11.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 11.50$; $z=3.95$; SMDPL halos"/>
       <label                        value="SMDPLM0Z3"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="1"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
@@ -202,8 +202,8 @@
       <comment                      value="$11.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.00$; $z=0.51$; SMDPL halos"/>
       <label                        value="SMDPLM1Z0"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="1"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
@@ -218,8 +218,8 @@
       <comment                      value="$11.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.00$; $z=1.00$; SMDPL halos"/>
       <label                        value="SMDPLM1Z1"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="1"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
@@ -234,8 +234,8 @@
       <comment                      value="$11.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.00$; $z=2.02$; SMDPL halos"/>
       <label                        value="SMDPLM1Z2"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="1"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
@@ -250,8 +250,8 @@
       <comment                      value="$11.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.00$; $z=3.95$; SMDPL halos"/>
       <label                        value="SMDPLM1Z3"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="1"                                                                                        />
       <indexRedshift                value="4"                                                                                        />
@@ -266,8 +266,8 @@
       <comment                      value="$11.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.00$; $z=7.85$; SMDPL halos"/>
       <label                        value="SMDPLM1Z4"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
@@ -282,8 +282,8 @@
       <comment                      value="$12.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.50$; $z=0.51$; SMDPL halos"/>
       <label                        value="SMDPLM2Z0"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
@@ -298,8 +298,8 @@
       <comment                      value="$12.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.50$; $z=1.00$; SMDPL halos"/>
       <label                        value="SMDPLM2Z1"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
@@ -314,8 +314,8 @@
       <comment                      value="$12.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.50$; $z=2.02$; SMDPL halos"/>
       <label                        value="SMDPLM2Z2"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
@@ -330,8 +330,8 @@
       <comment                      value="$12.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.50$; $z=3.95$; SMDPL halos"/>
       <label                        value="SMDPLM2Z3"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="2"                                                                                        />
       <indexRedshift                value="4"                                                                                        />
@@ -346,8 +346,8 @@
       <comment                      value="$12.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 12.50$; $z=7.85$; SMDPL halos"/>
       <label                        value="SMDPLM2Z4"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="3"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
@@ -362,8 +362,8 @@
       <comment                      value="$12.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.00$; $z=0.51$; SMDPL halos"/>
       <label                        value="SMDPLM3Z0"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="3"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
@@ -378,8 +378,8 @@
       <comment                      value="$12.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.00$; $z=1.00$; SMDPL halos"/>
       <label                        value="SMDPLM3Z1"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="3"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
@@ -394,8 +394,8 @@
       <comment                      value="$12.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.00$; $z=2.02$; SMDPL halos"/>
       <label                        value="SMDPLM3Z2"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="3"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
@@ -410,8 +410,8 @@
       <comment                      value="$12.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.00$; $z=3.95$; SMDPL halos"/>
       <label                        value="SMDPLM3Z3"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="3"                                                                                        />
       <indexRedshift                value="4"                                                                                        />
@@ -426,8 +426,8 @@
       <comment                      value="$12.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.00$; $z=7.85$; SMDPL halos"/>
       <label                        value="SMDPLM3Z4"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="4"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
@@ -442,8 +442,8 @@
       <comment                      value="$13.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.50$; $z=0.51$; SMDPL halos"/>
       <label                        value="SMDPLM4Z0"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="4"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
@@ -458,8 +458,8 @@
       <comment                      value="$13.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.50$; $z=1.00$; SMDPL halos"/>
       <label                        value="SMDPLM4Z1"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="4"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
@@ -474,8 +474,8 @@
       <comment                      value="$13.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.50$; $z=2.02$; SMDPL halos"/>
       <label                        value="SMDPLM4Z2"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="4"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
@@ -490,8 +490,8 @@
       <comment                      value="$13.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.50$; $z=3.95$; SMDPL halos"/>
       <label                        value="SMDPLM4Z3"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="4"                                                                                        />
       <indexRedshift                value="4"                                                                                        />
@@ -506,8 +506,8 @@
       <comment                      value="$13.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 13.50$; $z=7.85$; SMDPL halos"/>
       <label                        value="SMDPLM4Z4"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="5"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
@@ -522,8 +522,8 @@
       <comment                      value="$13.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 14.00$; $z=0.51$; SMDPL halos"/>
       <label                        value="SMDPLM5Z0"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="5"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
@@ -538,8 +538,8 @@
       <comment                      value="$13.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 14.00$; $z=1.00$; SMDPL halos"/>
       <label                        value="SMDPLM5Z1"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="5"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
@@ -554,8 +554,8 @@
       <comment                      value="$13.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 14.00$; $z=2.02$; SMDPL halos"/>
       <label                        value="SMDPLM5Z2"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="5"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
@@ -570,8 +570,8 @@
       <comment                      value="$13.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 14.00$; $z=3.95$; SMDPL halos"/>
       <label                        value="SMDPLM5Z3"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="5"                                                                                        />
       <indexRedshift                value="4"                                                                                        />
@@ -586,8 +586,8 @@
       <comment                      value="$13.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 14.00$; $z=7.85$; SMDPL halos"/>
       <label                        value="SMDPLM5Z4"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="6"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
@@ -602,8 +602,8 @@
       <comment                      value="$14.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 14.50$; $z=0.51$; SMDPL halos"/>
       <label                        value="SMDPLM6Z0"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="6"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
@@ -618,8 +618,8 @@
       <comment                      value="$14.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 14.50$; $z=1.00$; SMDPL halos"/>
       <label                        value="SMDPLM6Z1"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="6"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
@@ -634,8 +634,8 @@
       <comment                      value="$14.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 14.50$; $z=2.02$; SMDPL halos"/>
       <label                        value="SMDPLM6Z2"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="6"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
@@ -650,8 +650,8 @@
       <comment                      value="$14.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 14.50$; $z=3.95$; SMDPL halos"/>
       <label                        value="SMDPLM6Z3"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="6"                                                                                        />
       <indexRedshift                value="4"                                                                                        />
@@ -666,8 +666,8 @@
       <comment                      value="$14.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 14.50$; $z=7.85$; SMDPL halos"/>
       <label                        value="SMDPLM6Z4"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="7"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
@@ -682,8 +682,8 @@
       <comment                      value="$14.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.00$; $z=0.51$; SMDPL halos"/>
       <label                        value="SMDPLM7Z0"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="7"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
@@ -698,8 +698,8 @@
       <comment                      value="$14.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.00$; $z=1.00$; SMDPL halos"/>
       <label                        value="SMDPLM7Z1"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="7"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
@@ -714,8 +714,8 @@
       <comment                      value="$14.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.00$; $z=2.02$; SMDPL halos"/>
       <label                        value="SMDPLM7Z2"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="7"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
@@ -730,8 +730,8 @@
       <comment                      value="$14.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.00$; $z=3.95$; SMDPL halos"/>
       <label                        value="SMDPLM7Z3"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="7"                                                                                        />
       <indexRedshift                value="4"                                                                                        />
@@ -746,8 +746,8 @@
       <comment                      value="$14.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.00$; $z=7.85$; SMDPL halos"/>
       <label                        value="SMDPLM7Z4"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="8"                                                                                        />
       <indexRedshift                value="0"                                                                                        />
@@ -762,8 +762,8 @@
       <comment                      value="$15.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.50$; $z=0.51$; SMDPL halos"/>
       <label                        value="SMDPLM8Z0"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="8"                                                                                        />
       <indexRedshift                value="1"                                                                                        />
@@ -778,8 +778,8 @@
       <comment                      value="$15.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.50$; $z=1.00$; SMDPL halos"/>
       <label                        value="SMDPLM8Z1"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="8"                                                                                        />
       <indexRedshift                value="2"                                                                                        />
@@ -794,8 +794,8 @@
       <comment                      value="$15.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.50$; $z=2.02$; SMDPL halos"/>
       <label                        value="SMDPLM8Z2"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="8"                                                                                        />
       <indexRedshift                value="3"                                                                                        />
@@ -810,8 +810,8 @@
       <comment                      value="$15.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.50$; $z=3.95$; SMDPL halos"/>
       <label                        value="SMDPLM8Z3"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-    <outputAnalysisMethod value="progenitorMassFunction">
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="8"                                                                                        />
       <indexRedshift                value="4"                                                                                        />
@@ -826,13 +826,13 @@
       <comment                      value="$15.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.50$; $z=7.85$; SMDPL halos"/>
       <label                        value="SMDPLM8Z4"                                                                               />
       <targetLabel                  value="Klypin et al. (2015)"                                                                     />
-    </outputAnalysisMethod>    
-  </outputAnalysisMethod>
-  <nbodyHaloMassErrorMethod value="trenti2010">
+    </outputAnalysis>    
+  </outputAnalysis>
+  <nbodyHaloMassError value="trenti2010">
     <massParticle                value="1.42e8"/> <!-- Particle mass in SMDPL -->
     <correlationNormalization    value="1.0"   />
     <correlationMassExponent     value="1.0"   />
     <correlationRedshiftExponent value="0.0"   />
-  </nbodyHaloMassErrorMethod>
+  </nbodyHaloMassError>
   
 </parameters>

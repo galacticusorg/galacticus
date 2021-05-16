@@ -127,8 +127,8 @@ contains
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether the radiative efficiency of the ADAF component in a switched accretion disk scales with accretion rate.</description>
     !# </inputParameter>
-    !# <objectBuilder class="accretionDisks" parameterName="accretionDisksADAFMethod"           name="accretionDisksADAF_"           source="parameters"/>
-    !# <objectBuilder class="accretionDisks" parameterName="accretionDisksShakuraSunyaevMethod" name="accretionDisksShakuraSunyaev_" source="parameters"/>
+    !# <objectBuilder class="accretionDisks" parameterName="accretionDisksADAF"           name="accretionDisksADAF_"           source="parameters"/>
+    !# <objectBuilder class="accretionDisks" parameterName="accretionDisksShakuraSunyaev" name="accretionDisksShakuraSunyaev_" source="parameters"/>
     ! If minimum or maximum accretion rate for thin disk does not exist set suitable values.
     if (accretionRateThinDiskMinimumText == "none") then
        accretionRateThinDiskMinimum=-huge(0.0d0)

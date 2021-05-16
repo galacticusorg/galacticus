@@ -198,18 +198,18 @@ contains
     return
   end function simpleTemperature
 
-  subroutine simpleDescriptor(self,descriptor,includeMethod)
+  subroutine simpleDescriptor(self,descriptor,includeClass)
     !% Return an input parameter list descriptor which could be used to recreate this object.
     use :: Input_Parameters, only : inputParameters
     implicit none
     class    (intergalacticMediumStateSimple), intent(inout)           :: self
     type     (inputParameters               ), intent(inout)           :: descriptor
-    logical                                  , intent(in   ), optional :: includeMethod
+    logical                                  , intent(in   ), optional :: includeClass
     character(len=18                        )                          :: parameterLabel
     type     (inputParameters               )                          :: parameters
 
-    if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter('intergalacticMediumStateMethod','simple')
-    parameters=descriptor%subparameters('intergalacticMediumStateMethod')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('intergalacticMediumState','simple')
+    parameters=descriptor%subparameters('intergalacticMediumState')
     write (parameterLabel,'(e17.10)') self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%reionizationTime          ))
     call parameters%addParameter('reionizationRedshift'      ,trim(adjustl(parameterLabel)))
     write (parameterLabel,'(e17.10)')                                                                                               self%reionizationTemperature

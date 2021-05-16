@@ -623,21 +623,21 @@ contains
     return
   end function adapativePerOutputTabualtionIsStatic
 
-  subroutine adaptiveDescriptor(self,descriptor,includeMethod)
+  subroutine adaptiveDescriptor(self,descriptor,includeClass)
     !% Return an input parameter list descriptor which could be used to recreate this object.
     use :: Input_Parameters  , only : inputParameters
     use :: ISO_Varying_String, only : assignment(=)  , operator(//), char
     implicit none
     class    (starFormationHistoryAdaptive), intent(inout)           :: self
     type     (inputParameters             ), intent(inout)           :: descriptor
-    logical                                , intent(in   ), optional :: includeMethod
+    logical                                , intent(in   ), optional :: includeClass
     character(len=18                      )                          :: parameterLabel
     type     (inputParameters             )                          :: parameters
     integer                                                          :: i
     type     (varying_string              )                          :: metallicityBoundariesLabel
 
-    if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter('starFormationHistoryMethod','adaptive')
-    parameters=descriptor%subparameters('starFormationHistoryMethod')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('starFormationHistory','adaptive')
+    parameters=descriptor%subparameters('starFormationHistory')
     write (parameterLabel,'(e17.10)') self%timeStepMinimum
     call parameters%addParameter('timeStepMinimum'      ,trim(adjustl(parameterLabel)))
     write (parameterLabel,'(i17)   ') self%countTimeStepsMaximum

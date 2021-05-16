@@ -338,7 +338,7 @@ contains
                    message=displayMagenta()//'WARNING:'//displayReset()//' the specific angular momentum for node '
                    message=message//nodeHost%index()//' has become very small'//char(10)
                    message=message//' --> this will likely lead to a crash soon'
-                   message=message//'NOTE: this can happen with the covington2008 implementation of the mergerRemnantSizeMethod class'//char(10)
+                   message=message//'NOTE: this can happen with the covington2008 implementation of the mergerRemnantSize class'//char(10)
                    message=message//' --> an alternative choice (e.g. the cole2000 implementation) may avoid this problem'//{introspection:location}
                    call Galacticus_Warn(message)
                    self%warningIssued=.true.

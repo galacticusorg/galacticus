@@ -63,7 +63,7 @@ contains
 
     self     %operators => null()
     operator_           => null()
-    do i=1,parameters%copiesCount('outputAnalysisDistributionOperatorMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('outputAnalysisDistributionOperator',zeroIfNotPresent=.true.)
        if (associated(operator_)) then
           allocate(operator_%next)
           operator_ => operator_%next

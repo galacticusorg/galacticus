@@ -24,7 +24,7 @@
   !# <darkMatterProfileDMO name="darkMatterProfileDMOHeated">
   !#  <description>
   !#   A dark matter profile DMO class in which dark matter halos start out with a density profile defined by another {\normalfont
-  !#   \ttfamily darkMatterProfileMethod}. For subhalos, this profile is modified by tidal heating, under the assumption that the
+  !#   \ttfamily darkMatterProfileDMO}. For subhalos, this profile is modified by tidal heating, under the assumption that the
   !#   energy of a shell of mass before and after heating are related by
   !#   \begin{equation}
   !#   { \mathrm{G} M^\prime(r^\prime) \over r^\prime } = { \mathrm{G} M(r) \over r } + Q r^2,

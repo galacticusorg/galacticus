@@ -7,7 +7,7 @@
   <doAnalysis>no</doAnalysis>
   <modelRootDirectory>testSuite/outputs/test-merger-tree-write-secondary</modelRootDirectory>
   <baseParameters>testSuite/parameters/test-merger-tree-write-base.xml</baseParameters>
-  <launchMethod>pbs</launchMethod>
+  <launchMethod>pbs</launch>
   <pbs>
     <ompThreads>16</ompThreads>
     <maxJobsInQueue>1</maxJobsInQueue>
@@ -17,7 +17,7 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <mergerTreeConstructorMethod value="read">
+    <mergerTreeConstructor value="read">
       <fileNames value="testSuite/outputs/test-merger-tree-write/exportedTreesGLC.hdf5"/>
       <presetSubhaloIndices value="false"/>
       <presetOrbits value="false"/>
@@ -27,6 +27,6 @@
       <presetPositions value="false"/>
       <presetScaleRadii value="false"/>
       <presetSpins value="false"/>
-    </mergerTreeConstructorMethod>
+    </mergerTreeConstructor>
   </parameters>
 </parameterGrid>

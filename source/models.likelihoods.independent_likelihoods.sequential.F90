@@ -82,19 +82,19 @@ contains
     ! Initialize the parent class.
     self%posteriorSampleLikelihoodIndependentLikelihoods=posteriorSampleLikelihoodIndependentLikelihoods(parameters)
     ! Get likelihood multipliers and acceptances.
-    if     (                                                                                   &
-         &   parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.) &
-         &  /=                                                                                 &
-         &   parameters%copiesCount('likelihoodMultiplier'           ,zeroIfNotPresent=.true.) &
+    if     (                                                                             &
+         &   parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.) &
+         &  /=                                                                           &
+         &   parameters%copiesCount('likelihoodMultiplier'     ,zeroIfNotPresent=.true.) &
          & ) call Galacticus_Error_Report('number of likelihood multipliers must match number of likelihoods'//{introspection:location})
-    if     (                                                                                   &
-         &   parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.) &
-         &  /=                                                                                 &
-         &   parameters%copiesCount('likelihoodAccept'               ,zeroIfNotPresent=.true.) &
+    if     (                                                                             &
+         &   parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.) &
+         &  /=                                                                           &
+         &   parameters%copiesCount('likelihoodAccept'         ,zeroIfNotPresent=.true.) &
          & ) call Galacticus_Error_Report('number of likelihood accepts must match number of likelihoods'    //{introspection:location})
-    allocate(self%likelihoodMultiplier(parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.)))
-    allocate(self%likelihoodAccept    (parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.)))
-    do i=1,parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.)
+    allocate(self%likelihoodMultiplier(parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.)))
+    allocate(self%likelihoodAccept    (parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.)))
+    do i=1,parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.)
        call parameters%value('likelihoodMultiplier',self%likelihoodMultiplier(i),copyInstance=i)
        call parameters%value('likelihoodAccept'    ,self%likelihoodAccept    (i),copyInstance=i)
     end do

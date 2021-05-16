@@ -53,7 +53,7 @@ contains
 
     self   %filters => null()
     filter_         => null()
-    do i=1,parameters%copiesCount('mergerTreeFilterMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('mergerTreeFilter',zeroIfNotPresent=.true.)
        if (associated(filter_)) then
           allocate(filter_%next)
           filter_ => filter_%next

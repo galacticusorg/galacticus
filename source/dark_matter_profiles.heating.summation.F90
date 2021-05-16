@@ -60,7 +60,7 @@ contains
     integer                                                   :: i
 
     heatSource => null()
-    do i=1,parameters%copiesCount('darkMatterProfileHeatingMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('darkMatterProfileHeating',zeroIfNotPresent=.true.)
        if (associated(heatSource)) then
           allocate(heatSource%next)
           heatSource => heatSource%next

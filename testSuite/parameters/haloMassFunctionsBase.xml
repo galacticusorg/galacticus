@@ -5,70 +5,70 @@
   <version>0.9.4</version>
 
   <!-- Task -->
-  <taskMethod value="haloMassFunction">
+  <task value="haloMassFunction">
     <haloMassMinimum value="1.0e10"/>
     <haloMassMaximum value="1.0e15"/>
     <pointsPerDecade value="20"/>
-  </taskMethod>
+  </task>
   <galacticusOutputFileName value=""/>
 
   <!-- Cosmological parameters and options -->
-  <cosmologyFunctionsMethod value="matterLambda"/>
-  <cosmologyParametersMethod value="simple">
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
     <HubbleConstant value="70.00"/>
     <OmegaMatter value=" 0.30"/>
     <OmegaDarkEnergy value=" 0.70"/>
     <OmegaBaryon value=" 0.05"/>
     <temperatureCMB value=" 2.73"/>
-  </cosmologyParametersMethod>
+  </cosmologyParameters>
 
   <!-- Power spectrum options -->
-  <cosmologicalMassVarianceMethod value="filteredPower">
+  <cosmologicalMassVariance value="filteredPower">
     <sigma_8 value="0.8"/>
-  </cosmologicalMassVarianceMethod>
+  </cosmologicalMassVariance>
 
-  <transferFunctionMethod value="file">
+  <transferFunction value="file">
     <fileName value=""/>
-  </transferFunctionMethod>
-  <powerSpectrumPrimordialMethod value="powerLaw">
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
     <index value="1.0"/>
     <wavenumberReference value="1.0"/>
     <running value="0.0"/>
-  </powerSpectrumPrimordialMethod>
-  <powerSpectrumPrimordialTransferredMethod value="simple"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
 
   <!-- Structure formation options -->
-  <linearGrowthMethod value="collisionlessMatter"/>
-  <criticalOverdensityMethod value="fixed">
+  <linearGrowth value="collisionlessMatter"/>
+  <criticalOverdensity value="fixed">
     <criticalOverdensity value="1.686"/>
-  </criticalOverdensityMethod>
-  <virialDensityContrastMethod value="fixed">
+  </criticalOverdensity>
+  <virialDensityContrast value="fixed">
     <densityContrastValue value="200.0"/>
     <densityType value="mean"/>
-  </virialDensityContrastMethod>
+  </virialDensityContrast>
 
   <!-- Halo mass function -->
-  <excursionSetBarrierMethod value="criticalOverdensity"/>
-  <excursionSetFirstCrossingMethod value="linearBarrier"/>
+  <excursionSetBarrier value="criticalOverdensity"/>
+  <excursionSetFirstCrossing value="linearBarrier"/>
 
-  <nodeOperatorMethod value="multi"><!--Stellar feedback outflows-->
-    <nodeOperatorMethod value="stellarFeedbackDisks">
-      <stellarFeedbackOutflowsMethod value="rateLimit">
+  <nodeOperator value="multi"><!--Stellar feedback outflows-->
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
         <timescaleOutflowFractionalMinimum value="0.001"/>
-        <stellarFeedbackOutflowsMethod value="powerLaw">
+        <stellarFeedbackOutflows value="powerLaw">
           <velocityCharacteristic value="250.0"/>
           <exponent value="3.5"/>
-        </stellarFeedbackOutflowsMethod>
-      </stellarFeedbackOutflowsMethod>
-    </nodeOperatorMethod>
-    <nodeOperatorMethod value="stellarFeedbackSpheroids">
-      <stellarFeedbackOutflowsMethod value="rateLimit">
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <nodeOperator value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflows value="rateLimit">
         <timescaleOutflowFractionalMinimum value="0.001"/>
-        <stellarFeedbackOutflowsMethod value="powerLaw">
+        <stellarFeedbackOutflows value="powerLaw">
           <velocityCharacteristic value="250.0"/>
           <exponent value="3.5"/>
-        </stellarFeedbackOutflowsMethod>
-      </stellarFeedbackOutflowsMethod>
-    </nodeOperatorMethod>
-  </nodeOperatorMethod>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+  </nodeOperator>
 </parameters>

@@ -3,12 +3,12 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <treeNodeMethodBasic             value="standard"/>
-  <treeNodeMethodDarkMatterProfile value="scale"   />
-  <treeNodeMethodBlackHole         value="null"    />
-  <treeNodeMethodDisk              value="null"    />
-  <treeNodeMethodHotHalo           value="null"    />
-  <treeNodeMethodSatellite         value="null"    />
-  <treeNodeMethodSpheroid          value="null"    />
-  <treeNodeMethodSpin              value="null"    />
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="scale"   />
+  <componentBlackHole         value="null"    />
+  <componentDisk              value="null"    />
+  <componentHotHalo           value="null"    />
+  <componentSatellite         value="null"    />
+  <componentSpheroid          value="null"    />
+  <componentSpin              value="null"    />
 </parameters>
