@@ -3,8 +3,8 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <treeNodeMethodBasic value="standard"/>
-  <treeNodeMethodSpheroid value="standard"/>
-  <treeNodeMethodBlackHole value="standard"/>
-  <treeNodeMethodPosition value="preset"/>
+  <componentBasic value="standard"/>
+  <componentSpheroid value="standard"/>
+  <componentBlackHole value="standard"/>
+  <componentPosition value="preset"/>
 </parameters>

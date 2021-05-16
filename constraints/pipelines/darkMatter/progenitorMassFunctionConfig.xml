@@ -9,98 +9,98 @@
   <verbosityLevel value="standard"/>
   <errorWaitTime  value="0"/>
 
-  <taskMethod value="posteriorSample">
+  <task value="posteriorSample">
     <initializeNodeClassHierarchy value="false"/>
-  </taskMethod>
+  </task>
 
   <galacticusOutputFileName value="galacticus.hdf5"/>
   
-  <posteriorSampleLikelihoodMethod value="independentLikelihoods">
+  <posteriorSampleLikelihood value="independentLikelihoods">
 
     <!-- HugeMDPL -->
     <parameterMap         value="mergerTreeBranchingProbabilityMethod::G0 mergerTreeBranchingProbabilityMethod::gamma1 mergerTreeBranchingProbabilityMethod::gamma2 mergerTreeBranchingProbabilityMethod::gamma3"/>
     <parameterInactiveMap value=""                                                                                                                                                                               />
-    <posteriorSampleLikelihoodMethod value="galaxyPopulation">
+    <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseHugeMDPL.xml"/>
       <randomize              value="false"                                                                            />
       <cpuLimit               value="7200"                                                                             />
       <evolveForestsVerbosity value="0"                                                                                />
-    </posteriorSampleLikelihoodMethod>
+    </posteriorSampleLikelihood>
 
     <!-- BigMDPL -->
     <parameterMap         value="mergerTreeBranchingProbabilityMethod::G0 mergerTreeBranchingProbabilityMethod::gamma1 mergerTreeBranchingProbabilityMethod::gamma2 mergerTreeBranchingProbabilityMethod::gamma3"/>
     <parameterInactiveMap value=""                                                                                                                                                                               />
-    <posteriorSampleLikelihoodMethod value="galaxyPopulation">
+    <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseBigMDPL.xml"/>
       <randomize              value="false"                                                                           />
       <cpuLimit               value="7200"                                                                            />
       <evolveForestsVerbosity value="0"                                                                               />
-    </posteriorSampleLikelihoodMethod>
+    </posteriorSampleLikelihood>
 
     <!-- MDPL2 -->
     <parameterMap         value="mergerTreeBranchingProbabilityMethod::G0 mergerTreeBranchingProbabilityMethod::gamma1 mergerTreeBranchingProbabilityMethod::gamma2 mergerTreeBranchingProbabilityMethod::gamma3"/>
     <parameterInactiveMap value=""                                                                                                                                                                               />
-    <posteriorSampleLikelihoodMethod value="galaxyPopulation">
+    <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseMDPL2.xml"/>
       <randomize              value="false"                                                                         />
       <cpuLimit               value="7200"                                                                          />
       <evolveForestsVerbosity value="0"                                                                             />
-    </posteriorSampleLikelihoodMethod>
+    </posteriorSampleLikelihood>
 
     <!-- SMDPL -->
     <parameterMap         value="mergerTreeBranchingProbabilityMethod::G0 mergerTreeBranchingProbabilityMethod::gamma1 mergerTreeBranchingProbabilityMethod::gamma2 mergerTreeBranchingProbabilityMethod::gamma3"/>
     <parameterInactiveMap value=""                                                                                                                                                                               />
-    <posteriorSampleLikelihoodMethod value="galaxyPopulation">
+    <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseSMDPL.xml"/>
       <randomize              value="false"                                                                         />
       <cpuLimit               value="7200"                                                                          />
       <evolveForestsVerbosity value="0"                                                                             />
-    </posteriorSampleLikelihoodMethod>
+    </posteriorSampleLikelihood>
 
     <!-- VSMDPL -->
     <parameterMap         value="mergerTreeBranchingProbabilityMethod::G0 mergerTreeBranchingProbabilityMethod::gamma1 mergerTreeBranchingProbabilityMethod::gamma2 mergerTreeBranchingProbabilityMethod::gamma3"/>
     <parameterInactiveMap value=""                                                                                                                                                                               />
-    <posteriorSampleLikelihoodMethod value="galaxyPopulation">
+    <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseVSMDPL.xml"/>
       <randomize              value="false"                                                                          />
       <cpuLimit               value="7200"                                                                           />
       <evolveForestsVerbosity value="0"                                                                              />
-    </posteriorSampleLikelihoodMethod>
+    </posteriorSampleLikelihood>
 
     <!-- Caterpillar LX12 -->
     <parameterMap         value="mergerTreeBranchingProbabilityMethod::G0 mergerTreeBranchingProbabilityMethod::gamma1 mergerTreeBranchingProbabilityMethod::gamma2 mergerTreeBranchingProbabilityMethod::gamma3"/>
     <parameterInactiveMap value=""                                                                                                                                                                               />
-    <posteriorSampleLikelihoodMethod value="galaxyPopulation">
+    <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseCaterpillar_LX12.xml"/>
       <randomize              value="false"                                                                                    />
       <cpuLimit               value="7200"                                                                                     />
       <evolveForestsVerbosity value="0"                                                                                        />
-    </posteriorSampleLikelihoodMethod>
+    </posteriorSampleLikelihood>
 
     <!-- Caterpillar LX13 -->
     <parameterMap         value="mergerTreeBranchingProbabilityMethod::G0 mergerTreeBranchingProbabilityMethod::gamma1 mergerTreeBranchingProbabilityMethod::gamma2 mergerTreeBranchingProbabilityMethod::gamma3"/>
     <parameterInactiveMap value=""                                                                                                                                                                               />
-    <posteriorSampleLikelihoodMethod value="galaxyPopulation">
+    <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseCaterpillar_LX13.xml"/>
       <randomize              value="false"                                                                                    />
       <cpuLimit               value="7200"                                                                                     />
       <evolveForestsVerbosity value="0"                                                                                        />
-    </posteriorSampleLikelihoodMethod>
+    </posteriorSampleLikelihood>
 
     <!-- Caterpillar LX14 -->
     <parameterMap         value="mergerTreeBranchingProbabilityMethod::G0 mergerTreeBranchingProbabilityMethod::gamma1 mergerTreeBranchingProbabilityMethod::gamma2 mergerTreeBranchingProbabilityMethod::gamma3"/>
     <parameterInactiveMap value=""                                                                                                                                                                               />
-    <posteriorSampleLikelihoodMethod value="galaxyPopulation">
+    <posteriorSampleLikelihood value="galaxyPopulation">
       <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/progenitorMassFunctionBaseCaterpillar_LX14.xml"/>
       <randomize              value="false"                                                                                    />
       <cpuLimit               value="7200"                                                                                     />
       <evolveForestsVerbosity value="0"                                                                                        />
-    </posteriorSampleLikelihoodMethod>
+    </posteriorSampleLikelihood>
 
-  </posteriorSampleLikelihoodMethod>
+  </posteriorSampleLikelihood>
 
   <!-- Particle swarm optimization -->
-  <posteriorSampleSimulationMethod value="particleSwarm">
+  <posteriorSampleSimulation value="particleSwarm">
     <stepsMaximum                    value="50"    />
     <logFlushCount                   value=" 1"    />
     <reportCount                     value="10"    />
@@ -111,17 +111,17 @@
     <velocityCoefficient             value="0.500" />
     <velocityCoefficientInitial      value="0.000" />
 
-    <posteriorSampleStateInitializeMethod value="latinHypercube">
+    <posteriorSampleStateInitialize value="latinHypercube">
       <maximinTrialCount value="100"/>
-    </posteriorSampleStateInitializeMethod>
+    </posteriorSampleStateInitialize>
     
-    <posteriorSampleConvergenceMethod value="never"/>
+    <posteriorSampleConvergence value="never"/>
     
-    <posteriorSampleStoppingCriterionMethod value="never">
-    </posteriorSampleStoppingCriterionMethod>
+    <posteriorSampleStoppingCriterion value="never">
+    </posteriorSampleStoppingCriterion>
     
     <!-- PCH parameters -->
-    <modelParameterMethod value="active">
+    <modelParameter value="active">
       <name value="mergerTreeBranchingProbabilityMethod::G0"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="0.10"/>
@@ -132,9 +132,9 @@
 	<median value="0.0e+0"/>
 	<scale  value="1.0e-9"/>
       </distributionFunction1DPerturber>
-    </modelParameterMethod>
+    </modelParameter>
     
-    <modelParameterMethod value="active">
+    <modelParameter value="active">
       <name value="mergerTreeBranchingProbabilityMethod::gamma1"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="-1.00"/>
@@ -145,9 +145,9 @@
 	<median value="0.0e+0"/>
 	<scale  value="1.0e-9"/>
       </distributionFunction1DPerturber>
-    </modelParameterMethod>
+    </modelParameter>
     
-    <modelParameterMethod value="active">
+    <modelParameter value="active">
       <name value="mergerTreeBranchingProbabilityMethod::gamma2"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="-1.00"/>
@@ -158,9 +158,9 @@
 	<median value="0.0e+0"/>
 	<scale  value="1.0e-9"/>
       </distributionFunction1DPerturber>
-    </modelParameterMethod>
+    </modelParameter>
     
-    <modelParameterMethod value="active">
+    <modelParameter value="active">
       <name value="mergerTreeBranchingProbabilityMethod::gamma3"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="+0.00"/>
@@ -171,28 +171,28 @@
 	<median value="0.0e+0"/>
 	<scale  value="1.0e-9"/>
       </distributionFunction1DPerturber>
-    </modelParameterMethod>
+    </modelParameter>
     
-  </posteriorSampleSimulationMethod>
+  </posteriorSampleSimulation>
 
   <!-- Random number generator with seed offset for each MPI process -->
-  <randomNumberGeneratorMethod value="GSL">
+  <randomNumberGenerator value="GSL">
     <seed          value="9372"/>
     <mpiRankOffset value="true"/>
-  </randomNumberGeneratorMethod>
+  </randomNumberGenerator>
 
   <!-- The following are matched to the base parameters file - this is necessary due to the legacy use of "globalParameters" -->
   <!-- meaning that these are set from this parameter file, not from the base parameter file -->
   <!-- Component selection -->
-  <treeNodeMethodBasic              value="standard"/>
-  <treeNodeMethodBlackHole          value="null"    />
-  <treeNodeMethodDarkMatterProfile  value="null"    />
-  <treeNodeMethodDisk               value="null"    />
-  <treeNodeMethodHotHalo            value="null"    />
-  <treeNodeMethodSatellite          value="standard"/>
-  <treeNodeMethodSpheroid           value="null"    />
-  <treeNodeMethodMergingStatistics  value="standard"/>
-  <treeNodeMethodSpin               value="null"    />
-  <satelliteMergingTimescalesMethod value="zero"    />
+  <componentBasic              value="standard"/>
+  <componentBlackHole          value="null"    />
+  <componentDarkMatterProfile  value="null"    />
+  <componentDisk               value="null"    />
+  <componentHotHalo            value="null"    />
+  <componentSatellite          value="standard"/>
+  <componentSpheroid           value="null"    />
+  <componentMergingStatistics  value="standard"/>
+  <componentSpin               value="null"    />
+  <satelliteMergingTimescales value="zero"    />
 
 </parameters>

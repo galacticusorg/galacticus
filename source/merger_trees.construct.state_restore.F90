@@ -43,7 +43,7 @@
   !#    internal state of \glc\ to be stored;
   !#    \item Remove the code inserted above and recompile;
   !#    \item Run \glc\ with an input parameter file identical to the one used previously except with {\normalfont \ttfamily
-  !#    [mergerTreeConstructMethod]}$=${\normalfont \ttfamily stateRestore}, {\normalfont \ttfamily [stateFileRoot]} removed,
+  !#    [mergerTreeConstruct]}$=${\normalfont \ttfamily stateRestore}, {\normalfont \ttfamily [stateFileRoot]} removed,
   !#    {\normalfont \ttfamily [stateRetrieveFileRoot]} set to the value previously used for {\normalfont \ttfamily
   !#    [stateFileRoot]} and {\normalfont \ttfamily [fileName]}$=${\normalfont \ttfamily storedTree.dat}.
   !#   \end{enumerate}

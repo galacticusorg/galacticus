@@ -24,7 +24,7 @@
   !# <darkMatterProfileDMO name="darkMatterProfileDMOMultiple">
   !#  <description>
   !#   A dark matter profile DMO class in which the density profiles of the host halo and the satellite halo can be set separately
-  !#   to any other {\normalfont \ttfamily darkMatterProfileMethod} available.
+  !#   to any other {\normalfont \ttfamily darkMatterProfileDMO} available.
   !#  </description>
   !# </darkMatterProfileDMO>
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOMultiple
@@ -68,8 +68,8 @@ contains
     type   (inputParameters             ), intent(inout) :: parameters
     class  (darkMatterProfileDMOClass   ), pointer       :: darkMatterProfileDMOHost_, darkMatterProfileDMOSatellite_
 
-    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMOHost_"      parameterName="darkMatterProfileDMOHostMethod"      source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMOSatellite_" parameterName="darkMatterProfileDMOSatelliteMethod" source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMOHost_"      parameterName="darkMatterProfileDMOHost"      source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMOSatellite_" parameterName="darkMatterProfileDMOSatellite" source="parameters"/>
     self=darkMatterProfileDMOMultiple(darkMatterProfileDMOHost_,darkMatterProfileDMOSatellite_)
     !# <objectDestructor name="darkMatterProfileDMOHost_"     />
     !# <objectDestructor name="darkMatterProfileDMOSatellite_"/>

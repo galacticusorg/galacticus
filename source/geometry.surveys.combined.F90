@@ -61,7 +61,7 @@ contains
 
     self           %surveyGeometries => null()
     surveyGeometry_                  => null()
-    do i=1,parameters%copiesCount('surveyGeometryMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('surveyGeometry',zeroIfNotPresent=.true.)
        if (associated(surveyGeometry_)) then
           allocate(surveyGeometry_%next)
           surveyGeometry_ => surveyGeometry_%next

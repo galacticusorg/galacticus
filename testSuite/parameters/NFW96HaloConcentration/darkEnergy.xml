@@ -3,5 +3,5 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <treeNodeMethodBasic value="standard"/>
+  <componentBasic value="standard"/>
 </parameters>

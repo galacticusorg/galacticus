@@ -558,7 +558,7 @@ contains
                       datasetName="redshift"//adjustl(trim(redshiftLabel))
                       ! Open the file.
                       descriptor=inputParameters()
-                      call stellarPopulation_%descriptor(descriptor,includeMethod=.true.)
+                      call stellarPopulation_%descriptor(descriptor,includeClass=.true.)
                       descriptorString=descriptor%serializeToString()
                       call descriptor%destroy()
                       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.

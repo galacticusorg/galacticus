@@ -1123,7 +1123,7 @@ contains
     integer(c_size_t), intent(in   ) :: stateOperationID
     type   (c_ptr   ), intent(in   ) :: gslStateFile
 
-    call displayMessage('Storing state for: treeNodeMethodDisk -> standard',verbosity=verbosityLevelInfo)
+    call displayMessage('Storing state for: componentDisk -> standard',verbosity=verbosityLevelInfo)
     !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
     !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
     !# </workaround>
@@ -1154,7 +1154,7 @@ contains
     type   (c_ptr   ), intent(in   ) :: gslStateFile
     logical                          :: wasAllocated
 
-    call displayMessage('Retrieving state for: treeNodeMethodDisk -> standard',verbosity=verbosityLevelInfo)
+    call displayMessage('Retrieving state for: componentDisk -> standard',verbosity=verbosityLevelInfo)
     !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
     !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
     !# </workaround>

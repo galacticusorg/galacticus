@@ -56,7 +56,7 @@ contains
     integer                                                  :: i
 
     stellarFeedbackOutflows_ => null()
-    do i=1,parameters%copiesCount('stellarFeedbackOutflowsMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('stellarFeedbackOutflows',zeroIfNotPresent=.true.)
        if (associated(stellarFeedbackOutflows_)) then
           allocate(stellarFeedbackOutflows_%next)
           stellarFeedbackOutflows_ => stellarFeedbackOutflows_%next

@@ -53,8 +53,8 @@ contains
     integer                                                                                  :: countPostprocessors, countPostprocessorNames, &
          &                                                                                      i
 
-    countPostprocessors    =max(parameters%copiesCount('stellarPopulationSpectraPostprocessorMethod',zeroIfNotPresent=.true.),1)
-    countPostprocessorNames=max(parameters%      count('names'                                      ,zeroIfNotPresent=.true.),1)
+    countPostprocessors    =max(parameters%copiesCount('stellarPopulationSpectraPostprocessor',zeroIfNotPresent=.true.),1)
+    countPostprocessorNames=max(parameters%      count('names'                                ,zeroIfNotPresent=.true.),1)
     if (countPostprocessors /= countPostprocessorNames) call Galacticus_Error_Report('number of names must match number of postprocessors'//{introspection:location})
     allocate(names         (countPostprocessors))
     allocate(postprocessors(countPostprocessors))

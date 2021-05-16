@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- Parameter file for building merger tree files for the Bolshoi simulation. -->
 <parameters>
-  <taskMethod value="mergerTreeFileBuilder">
+  <task value="mergerTreeFileBuilder">
 
     <inputFileName value="testSuite/data/mergerTrees/bolshoiTestTrees.dat"/>
     <outputFileName value="testSuite/outputs/bolshoiTestTreesIRATE_in.hdf5"/>
@@ -113,25 +113,25 @@
       <content value="http://hipacc.ucsc.edu/Bolshoi/MergerTrees.html"/>
     </metaData>
 
-    <cosmologyParametersMethod value="simple">
+    <cosmologyParameters value="simple">
       <HubbleConstant value="70.0000"/>
       <OmegaMatter value=" 0.2700"/>
       <OmegaDarkEnergy value=" 0.7300"/>
       <OmegaBaryon value=" 0.0469"/>
-    </cosmologyParametersMethod>
+    </cosmologyParameters>
 
-    <cosmologicalMassVarianceMethod value="filteredPower">
+    <cosmologicalMassVariance value="filteredPower">
       <sigma_8 value="0.82"/>
 
-    </cosmologicalMassVarianceMethod>
+    </cosmologicalMassVariance>
 
-    <transferFunctionMethod value="CAMB"/>
+    <transferFunction value="CAMB"/>
 
-    <powerSpectrumPrimordialMethod value="powerLaw">
+    <powerSpectrumPrimordial value="powerLaw">
       <index value="0.95"/>
       <wavenumberReference value="1.00"/>
       <running value="0.00"/>
-    </powerSpectrumPrimordialMethod>
+    </powerSpectrumPrimordial>
 
     <unitsMass>
       <unitsInSI value="1.989e30"/>
@@ -237,25 +237,25 @@
       <column value="33"/>
     </property>
 
-  </taskMethod>
-  <nodeOperatorMethod value="multi"><!--Stellar feedback outflows-->
-    <nodeOperatorMethod value="stellarFeedbackDisks">
-      <stellarFeedbackOutflowsMethod value="rateLimit">
+  </task>
+  <nodeOperator value="multi"><!--Stellar feedback outflows-->
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
         <timescaleOutflowFractionalMinimum value="0.001"/>
-        <stellarFeedbackOutflowsMethod value="powerLaw">
+        <stellarFeedbackOutflows value="powerLaw">
           <velocityCharacteristic value="250.0"/>
           <exponent value="3.5"/>
-        </stellarFeedbackOutflowsMethod>
-      </stellarFeedbackOutflowsMethod>
-    </nodeOperatorMethod>
-    <nodeOperatorMethod value="stellarFeedbackSpheroids">
-      <stellarFeedbackOutflowsMethod value="rateLimit">
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <nodeOperator value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflows value="rateLimit">
         <timescaleOutflowFractionalMinimum value="0.001"/>
-        <stellarFeedbackOutflowsMethod value="powerLaw">
+        <stellarFeedbackOutflows value="powerLaw">
           <velocityCharacteristic value="250.0"/>
           <exponent value="3.5"/>
-        </stellarFeedbackOutflowsMethod>
-      </stellarFeedbackOutflowsMethod>
-    </nodeOperatorMethod>
-  </nodeOperatorMethod>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+  </nodeOperator>
 </parameters>

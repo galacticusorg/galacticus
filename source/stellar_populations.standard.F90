@@ -383,7 +383,7 @@ contains
           property%age                                         =Make_Range(standardTableAgeMinimum        ,standardTableAgeMaximum        ,standardTableAgeCount          ,rangeType=rangeTypeLogarithmic)
           ! Open file to output the data to.
           descriptor=inputParameters()
-          call self%descriptor(descriptor,includeMethod=.true.)
+          call self%descriptor(descriptor,includeClass=.true.)
           descriptorString=descriptor%serializeToString()
           call hdf5Access%set()
           call file%openFile(char(fileName))

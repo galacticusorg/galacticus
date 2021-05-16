@@ -71,20 +71,20 @@ contains
     powerSpectrum_          => null()
     cosmologyFunctions_     => null()
     linearGrowth_           => null()
-    if (parameters%isPresent('powerSpectrumNonlinearMethod')) then
+    if (parameters%isPresent('powerSpectrumNonlinear')) then
        !# <objectBuilder class="powerSpectrumNonlinear" name="powerSpectrumNonlinear_" source="parameters"/>
     end if
-    if (parameters%isPresent('powerSpectrumMethod'         )) then
+    if (parameters%isPresent('powerSpectrum'         )) then
        !# <objectBuilder class="powerSpectrum"          name="powerSpectrum_"          source="parameters"/>
        !# <objectBuilder class="cosmologyFunctions"     name="cosmologyFunctions_"     source="parameters"/>
        !# <objectBuilder class="linearGrowth"           name="linearGrowth_"           source="parameters"/>
     end if
     !# <conditionalCall>
     !#  <call>self=correlationFunctionTwoPointPowerSpectrumTransform({conditions})</call>
-    !#  <argument name="powerSpectrumNonlinear_" value="powerSpectrumNonlinear_" parameterPresent="parameters" parameterName="powerSpectrumNonlinearMethod"/>
-    !#  <argument name="powerSpectrum_"          value="powerSpectrum_"          parameterPresent="parameters" parameterName="powerSpectrumMethod"         />
-    !#  <argument name="cosmologyFunctions_"     value="cosmologyFunctions_"     parameterPresent="parameters" parameterName="powerSpectrumMethod"         />
-    !#  <argument name="linearGrowth_"           value="linearGrowth_"           parameterPresent="parameters" parameterName="powerSpectrumMethod"         />
+    !#  <argument name="powerSpectrumNonlinear_" value="powerSpectrumNonlinear_" parameterPresent="parameters" parameterName="powerSpectrumNonlinear"/>
+    !#  <argument name="powerSpectrum_"          value="powerSpectrum_"          parameterPresent="parameters" parameterName="powerSpectrum"         />
+    !#  <argument name="cosmologyFunctions_"     value="cosmologyFunctions_"     parameterPresent="parameters" parameterName="powerSpectrum"         />
+    !#  <argument name="linearGrowth_"           value="linearGrowth_"           parameterPresent="parameters" parameterName="powerSpectrum"         />
     !# </conditionalCall>
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="powerSpectrumNonlinear_"/>

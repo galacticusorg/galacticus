@@ -4,83 +4,83 @@
   <!-- Logging -->
   <verbosityLevel value="standard"/>
 
-  <taskMethod value="evolveForests">
+  <task value="evolveForests">
     <evolveSingleForest value="false"/>
-  </taskMethod>
-  <evolveForestsWorkShareMethod value="cyclic"/>
+  </task>
+  <evolveForestsWorkShare value="cyclic"/>
 
   <!-- Cosmological model -->
-  <cosmologyParametersMethod value="simple">
+  <cosmologyParameters value="simple">
     <HubbleConstant value="73.00000"/>
     <OmegaBaryon value=" 0.00000"/>
     <OmegaDarkEnergy value=" 0.75000"/>
     <OmegaMatter value=" 0.25000"/>
     <temperatureCMB value=" 2.72548"/>
-  </cosmologyParametersMethod>
-  <cosmologyFunctionsMethod value="matterLambda"/>
+  </cosmologyParameters>
+  <cosmologyFunctions value="matterLambda"/>
 
   <!-- Power spectrum -->
-  <powerSpectrumPrimordialMethod value="powerLaw">
+  <powerSpectrumPrimordial value="powerLaw">
     <index value="1.000"/>
     <running value="0.000"/>
     <wavenumberReference value="1.000"/>
-  </powerSpectrumPrimordialMethod>
-  <transferFunctionMethod value="eisensteinHu1999">
-    <cosmologyParametersMethod value="simple">
+  </powerSpectrumPrimordial>
+  <transferFunction value="eisensteinHu1999">
+    <cosmologyParameters value="simple">
       <HubbleConstant value="73.00000"/>
       <OmegaBaryon value=" 0.04500"/>
       <OmegaDarkEnergy value=" 0.75000"/>
       <OmegaMatter value=" 0.25000"/>
       <temperatureCMB value=" 2.72548"/>
-    </cosmologyParametersMethod>
+    </cosmologyParameters>
     <neutrinoMassSummed value="0.000"/>
     <neutrinoNumberEffective value="3.046"/>
-  </transferFunctionMethod>
-  <powerSpectrumPrimordialTransferredMethod value="simple"/>
-  <cosmologicalMassVarianceMethod value="filteredPower">
+  </transferFunction>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <cosmologicalMassVariance value="filteredPower">
     <sigma_8 value="0.9"/>
-  </cosmologicalMassVarianceMethod>
+  </cosmologicalMassVariance>
 
   <!-- Structure formation -->
-  <haloEnvironmentMethod value="normal">
-    <criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <haloEnvironment value="normal">
+    <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
     <radiusEnvironment value="7.1022727"/>
-  </haloEnvironmentMethod>
-  <linearGrowthMethod value="collisionlessMatter"/>
-  <criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-  <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-  <haloMassFunctionMethod value="environmental">
+  </haloEnvironment>
+  <linearGrowth value="collisionlessMatter"/>
+  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <haloMassFunction value="environmental">
     <haloMassFunctionConditioned value="shethTormen">
       <a value="0.851879452240045"/>
       <normalization value="0.31033528914211"/>
       <p value="0.125711028294346"/>
-      <cosmologicalMassVarianceMethod value="peakBackgroundSplit">
-        <cosmologicalMassVarianceMethod value="filteredPower">
+      <cosmologicalMassVariance value="peakBackgroundSplit">
+        <cosmologicalMassVariance value="filteredPower">
           <sigma_8 value="0.9"/>
-        </cosmologicalMassVarianceMethod>
-      </cosmologicalMassVarianceMethod>
-      <criticalOverdensityMethod value="peakBackgroundSplit">
-        <criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-      </criticalOverdensityMethod>
+        </cosmologicalMassVariance>
+      </cosmologicalMassVariance>
+      <criticalOverdensity value="peakBackgroundSplit">
+        <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+      </criticalOverdensity>
     </haloMassFunctionConditioned>
     <haloMassFunctionUnconditioned value="shethTormen">
       <a value="0.851879452240045"/>
       <normalization value="0.31033528914211"/>
       <p value="0.125711028294346"/>
     </haloMassFunctionUnconditioned>
-  </haloMassFunctionMethod>
+  </haloMassFunction>
 
   <!-- Dark matter halo structure -->
-  <darkMatterProfileDMOMethod value="NFW"/>
+  <darkMatterProfileDMO value="NFW"/>
   <darkMatterProfileMaximumConcentration value="100.0"/>
-  <darkMatterProfileScaleRadiusMethod value="binary">
+  <darkMatterProfileScaleRadius value="binary">
     <darkMatterProfileScaleRadiusAccept value="ludlow2016">
       <C value="662.1352038205450000"/>
       <f value="  0.0592527034455003"/>
       <timeFormationSeekDelta value="  0.0000000000000000"/>
-      <darkMatterProfileScaleRadiusMethod value="concentration">
+      <darkMatterProfileScaleRadius value="concentration">
         <correctForConcentrationDefinition value="true"/>
-        <darkMatterProfileConcentrationMethod value="diemerKravtsov2014">
+        <darkMatterProfileConcentration value="diemerKravtsov2014">
           <alpha value="1.12"/>
           <beta value="1.69"/>
           <eta0 value="6.82"/>
@@ -89,12 +89,12 @@
           <phi0 value="6.58"/>
           <phi1 value="1.37"/>
           <scatter value="0.00"/>
-        </darkMatterProfileConcentrationMethod>
-      </darkMatterProfileScaleRadiusMethod>
+        </darkMatterProfileConcentration>
+      </darkMatterProfileScaleRadius>
     </darkMatterProfileScaleRadiusAccept>
     <darkMatterProfileScaleRadiusReject value="concentration">
       <correctForConcentrationDefinition value="false"/>
-      <darkMatterProfileConcentrationMethod value="diemerKravtsov2014">
+      <darkMatterProfileConcentration value="diemerKravtsov2014">
         <alpha value="1.12"/>
         <beta value="1.69"/>
         <eta0 value="6.82"/>
@@ -103,51 +103,51 @@
         <phi0 value="6.58"/>
         <phi1 value="1.37"/>
         <scatter value="0.00"/>
-      </darkMatterProfileConcentrationMethod>
+      </darkMatterProfileConcentration>
     </darkMatterProfileScaleRadiusReject>
-    <galacticFilterMethod value="all">
-      <galacticFilterMethod value="rootNode"/>
-      <galacticFilterMethod value="treeHosted"/>
-    </galacticFilterMethod>
-  </darkMatterProfileScaleRadiusMethod>
+    <galacticFilter value="all">
+      <galacticFilter value="rootNode"/>
+      <galacticFilter value="treeHosted"/>
+    </galacticFilter>
+  </darkMatterProfileScaleRadius>
   <darkMatterProfileMinimumConcentration value="4.0"/>
 
   <!-- Tree node component selection -->
-  <treeNodeMethodBasic value="standard"/>
-  <treeNodeMethodBlackHole value="null"/>
-  <treeNodeMethodDarkMatterProfile value="scale"/>
-  <treeNodeMethodDisk value="null"/>
-  <treeNodeMethodHotHalo value="null"/>
-  <treeNodeMethodMergingStatistics value="standard"/>
-  <treeNodeMethodSatellite value="standard"/>
-  <treeNodeMethodSpheroid value="null"/>
-  <treeNodeMethodSpin value="vitvitska"/>
+  <componentBasic value="standard"/>
+  <componentBlackHole value="null"/>
+  <componentDarkMatterProfile value="scale"/>
+  <componentDisk value="null"/>
+  <componentHotHalo value="null"/>
+  <componentMergingStatistics value="standard"/>
+  <componentSatellite value="standard"/>
+  <componentSpheroid value="null"/>
+  <componentSpin value="vitvitska"/>
   <spinVitvitskaMassExponent value="0.274460218346487"/>
 
   <!-- Merger tree construction -->
-  <mergerTreeBuilderMethod value="cole2000">
+  <mergerTreeBuilder value="cole2000">
     <accretionLimit value="0.1"/>
     <branchIntervalStep value="true"/>
-    <criticalOverdensityMethod value="environmental">
+    <criticalOverdensity value="environmental">
       <a value="0.0794070054754877"/>
-      <criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-    </criticalOverdensityMethod>
+      <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+    </criticalOverdensity>
     <mergeProbability value="0.1"/>
-  </mergerTreeBuilderMethod>
-  <mergerTreeMassResolutionMethod value="scaled">
+  </mergerTreeBuilder>
+  <mergerTreeMassResolution value="scaled">
     <massResolutionFractional value="1.0e-3"/>
     <massResolutionMinimum value="1.0e+0"/>
-  </mergerTreeMassResolutionMethod>
-  <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+  </mergerTreeMassResolution>
+  <mergerTreeBuildMasses value="sampledDistributionUniform">
     <massTreeMaximum value="1.00e15"/>
     <massTreeMinimum value="3.53e11"/>
     <treesPerDecade value="20000"/>
-  </mergerTreeBuildMassesMethod>
-  <mergerTreeConstructorMethod value="build">
+  </mergerTreeBuildMasses>
+  <mergerTreeConstructor value="build">
     <processDescending value="false"/>
     <redshiftBase value="0.0"/>
-  </mergerTreeConstructorMethod>
-  <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
+  </mergerTreeConstructor>
+  <mergerTreeBranchingProbability value="parkinsonColeHelly">
     <G0 value="0.594091687664904"/>
     <gamma1 value="0.246656118484551"/>
     <gamma2 value="0.121083725002541"/>
@@ -155,18 +155,18 @@
     <cdmAssumptions value="true"/>
     <hypergeometricTabulate value="true"/>
     <precisionHypergeometric value="1.0e-6"/>
-  </mergerTreeBranchingProbabilityMethod>
+  </mergerTreeBranchingProbability>
 
   <!-- Dark matter halo spin -->
-  <haloSpinDistributionMethod value="bett2007">
+  <haloSpinDistribution value="bett2007">
     <alpha value="1.7075094184473300"/>
     <lambda0 value="0.0420488509078904"/>
-  </haloSpinDistributionMethod>
+  </haloSpinDistribution>
 
   <!-- Satellite orbits -->
-  <virialOrbitMethod value="spinCorrelated">
+  <virialOrbit value="spinCorrelated">
     <alpha value="0.0848854967343242"/>
-    <virialOrbitMethod value="jiang2014">
+    <virialOrbit value="jiang2014">
       <bRatioHigh value="2.6793743127999600 3.8760812983815100 7.7540896059832200"/>
       <bRatioIntermediate value="1.0206317589622500 1.5437447786413200 3.1934409026641900"/>
       <bRatioLow value="0.0360898994010274 0.5255263882429860 1.2037786367531500"/>
@@ -179,66 +179,66 @@
       <sigmaRatioHigh value="0.0883976709242311 0.1403052274126690 0.1817545363343280"/>
       <sigmaRatioIntermediate value="0.0732299074383621 0.0744899232510299 0.1163409393399260"/>
       <sigmaRatioLow value="0.0776201433711154 0.0942600359498180 0.0671681460348582"/>
-    </virialOrbitMethod>
-  </virialOrbitMethod>
-  <satelliteMergingTimescalesMethod value="villalobos2013">
+    </virialOrbit>
+  </virialOrbit>
+  <satelliteMergingTimescales value="villalobos2013">
     <exponent value="0.44"/>
-    <satelliteMergingTimescalesMethod value="jiang2008">
+    <satelliteMergingTimescales value="jiang2008">
       <timescaleMultiplier value="1.0"/>
-    </satelliteMergingTimescalesMethod>
-  </satelliteMergingTimescalesMethod>
+    </satelliteMergingTimescales>
+  </satelliteMergingTimescales>
   <satelliteOrbitStoreOrbitalParameters value="true"/>
 
   <!-- Disable all baryonic physics -->
-  <hotHaloMassDistributionMethod value="null"/>
-  <accretionHaloMethod value="zero"/>
-  <mergerRemnantSizeMethod value="null"/>
-  <satelliteTidalFieldMethod value="null"/>
+  <hotHaloMassDistribution value="null"/>
+  <accretionHalo value="zero"/>
+  <mergerRemnantSize value="null"/>
+  <satelliteTidalField value="null"/>
 
   <!-- Merger tree evolution -->
-  <mergerTreeEvolveTimestepMethod value="simple">
+  <mergerTreeEvolveTimestep value="simple">
     <timeStepAbsolute value="1.0"/>
     <timeStepRelative value="0.1"/>
-  </mergerTreeEvolveTimestepMethod>
-  <mergerTreeEvolverMethod value="nonEvolving"/>
-  <mergerTreeNodeMergerMethod value="singleLevelHierarchy"/>
+  </mergerTreeEvolveTimestep>
+  <mergerTreeEvolver value="nonEvolving"/>
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
 
   <!-- Output -->
   <galacticusOutputFileName value="testSuite/outputs/constrainDeterministicSpins.hdf5"/>
-  <mergerTreeOutputterMethod value="analyzer"/>
-  <outputAnalysisMethod value="spinDistributionBett2007">
+  <mergerTreeOutputter value="analyzer"/>
+  <outputAnalysis value="spinDistributionBett2007">
     <errorTolerant value="true"/>
     <logNormalRange value="1.44411312812926"/>
     <timeRecent value="0.533408761742939"/>
-  </outputAnalysisMethod>
-  <outputTimesMethod value="list">
+  </outputAnalysis>
+  <outputTimes value="list">
     <redshifts value="0.0"/>
-  </outputTimesMethod>
-  <nbodyHaloMassErrorMethod value="trenti2010">
+  </outputTimes>
+  <nbodyHaloMassError value="trenti2010">
     <correlationMassExponent value="1.000e0"/>
     <correlationNormalization value="1.000e0"/>
     <correlationRedshiftExponent value="0.000e0"/>
     <massParticle value="1.178e9"/>
-  </nbodyHaloMassErrorMethod>
+  </nbodyHaloMassError>
   <nodeMajorMergerFraction value="0.206728116479416"/>
 
   <!--Stellar feedback outflows-->
-  <nodeOperatorMethod value="stellarFeedbackDisks">
-    <stellarFeedbackOutflowsMethod value="rateLimit">
+  <nodeOperator value="stellarFeedbackDisks">
+    <stellarFeedbackOutflows value="rateLimit">
       <timescaleOutflowFractionalMinimum value="0.001"/>
-      <stellarFeedbackOutflowsMethod value="powerLaw">
+      <stellarFeedbackOutflows value="powerLaw">
         <velocityCharacteristic value="250.0"/>
         <exponent value="3.5"/>
-      </stellarFeedbackOutflowsMethod>
-    </stellarFeedbackOutflowsMethod>
-  </nodeOperatorMethod>
-  <nodeOperatorMethod value="stellarFeedbackSpheroids">
-    <stellarFeedbackOutflowsMethod value="rateLimit">
+      </stellarFeedbackOutflows>
+    </stellarFeedbackOutflows>
+  </nodeOperator>
+  <nodeOperator value="stellarFeedbackSpheroids">
+    <stellarFeedbackOutflows value="rateLimit">
       <timescaleOutflowFractionalMinimum value="0.001"/>
-      <stellarFeedbackOutflowsMethod value="powerLaw">
+      <stellarFeedbackOutflows value="powerLaw">
         <velocityCharacteristic value="250.0"/>
         <exponent value="3.5"/>
-      </stellarFeedbackOutflowsMethod>
-    </stellarFeedbackOutflowsMethod>
-  </nodeOperatorMethod>
+      </stellarFeedbackOutflows>
+    </stellarFeedbackOutflows>
+  </nodeOperator>
 </parameters>

@@ -3,9 +3,9 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <treeNodeMethodDarkMatterProfile value="scaleShape"/>
-  <virialDensityContrastMethod value="fixed">
+  <componentDarkMatterProfile value="scaleShape"/>
+  <virialDensityContrast value="fixed">
     <densityContrastValue value="200.0"/>
     <densityType value="critical"/>
-  </virialDensityContrastMethod>
+  </virialDensityContrast>
 </parameters>

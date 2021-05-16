@@ -183,7 +183,7 @@ contains
     ! Determine the number of parameters.
     activeParameterCount  =0
     inactiveParameterCount=0
-    do i=1,parameters%copiesCount("modelParameterMethod")
+    do i=1,parameters%copiesCount("modelParameter")
        !# <objectBuilder class="modelParameter" name="modelParameter_" source="parameters" copy="i" />
        select type (modelParameter_)
        class is (modelParameterActive  )
@@ -204,7 +204,7 @@ contains
     allocate(modelParametersInactive_(inactiveParameterCount))
     iActive  =0
     iInactive=0
-    do i=1,parameters%copiesCount("modelParameterMethod")
+    do i=1,parameters%copiesCount("modelParameter")
        !# <objectBuilder class="modelParameter" name="modelParameter_" source="parameters" copy="i" />
        select type (modelParameter_)
        class is (modelParameterInactive)

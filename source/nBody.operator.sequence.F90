@@ -21,7 +21,7 @@
 
   type, public :: nbodyOperatorList
      class(nbodyOperatorClass), pointer :: operator_
-     type (nbodyOperatorList ), pointer :: next     => null()
+     type (nbodyOperatorList ), pointer :: next      => null()
   end type nbodyOperatorList
 
   !# <nbodyOperator name="nbodyOperatorSequence">
@@ -58,7 +58,7 @@ contains
 
     self     %operators => null()
     operator_           => null()
-    do i=1,parameters%copiesCount('nbodyOperatorMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('nbodyOperator',zeroIfNotPresent=.true.)
        if (associated(operator_)) then
           allocate(operator_%next)
           operator_ => operator_%next

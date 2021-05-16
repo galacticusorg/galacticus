@@ -7,7 +7,7 @@
   <doAnalysis>no</doAnalysis>
   <modelRootDirectory>testSuite/outputs/test-cosmology</modelRootDirectory>
   <baseParameters>testSuite/test-cosmology-base.xml</baseParameters>
-  <launchMethod>pbs</launchMethod>
+  <launchMethod>pbs</launch>
   <pbs>
     <ompThreads>16</ompThreads>
     <maxJobsInQueue>40</maxJobsInQueue>
@@ -17,19 +17,19 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <cosmologyParametersMethod value="simple">
+    <cosmologyParameters value="simple">
       <OmegaMatter value="0.25"/>
       <OmegaDarkEnergy value="0.75"/>
       <OmegaDarkEnergy value="0.00"/>
-    </cosmologyParametersMethod>
+    </cosmologyParameters>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <cosmologyParametersMethod value="simple">
+    <cosmologyParameters value="simple">
       <OmegaMatter value="1.00"/>
       <OmegaMatter value="1.25"/>
       <OmegaDarkEnergy value="0.00"/>
-    </cosmologyParametersMethod>
+    </cosmologyParameters>
   </parameters>
 </parameterGrid>

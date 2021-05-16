@@ -57,7 +57,7 @@ contains
 
     self %tasks => null()
     task_       => null()
-    do i=1,parameters%copiesCount('taskMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('task',zeroIfNotPresent=.true.)
        if (associated(task_)) then
           allocate(task_%next)
           task_ => task_%next
