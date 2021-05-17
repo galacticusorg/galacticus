@@ -494,7 +494,7 @@ contains
           !$ call hdf5Access%set()
           call file%openFile(char(fileName))
           if (file%hasDataset(char(datasetName))) then
-             write (label,'(f12.8)') self%outputTimes_%time(indexOutput
+             write (label,'(f12.8)') self%outputTimes_%time(indexOutput)
              call displayMessage("reading SED tabulation for time "//trim(adjustl(label))//" Gyr from file '"//fileName//"'",verbosityLevelWorking)
              call file%readDataset(char(datasetName),self%templates(sedIndexTemplateNode)%sed)
           end if
@@ -503,7 +503,7 @@ contains
        end if
        if (.not.allocated(self%templates(sedIndexTemplateNode)%sed)) then
           self%templates(sedIndexTemplateNode)%sed=self%luminosityMean(self%outputTimes_%time(indexOutput),starFormationHistory,parallelize=.true.)
-          write (label,'(f12.8)') self%outputTimes_%time(indexOutput
+          write (label,'(f12.8)') self%outputTimes_%time(indexOutput)
           call displayMessage("storing SED tabulation for time "//trim(adjustl(label))//" Gyr to file '"//fileName//"'",verbosityLevelWorking)
           !$ call hdf5Access%set()
           call file%openFile(char(fileName),overWrite=.false.,readOnly=.false.)
