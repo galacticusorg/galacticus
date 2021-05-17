@@ -448,23 +448,25 @@ contains
   
   integer function sedIndexTemplateNode(self,node,starFormationHistory)
     !% Find the index of the template SEDs to use, and also compute the template.
+    use :: Display             , only : displayMessage    , verbosityLevelWorking
     use :: Galacticus_Nodes    , only : nodeComponentBasic
     use :: Histories           , only : history
     use :: ISO_Varying_String  , only : var_str
     use :: IO_HDF5             , only : hdf5Access        , hdf5Object
     use :: Numerical_Comparison, only : Values_Agree
-    use :: File_Utilities      , only : File_Exists       , File_Lock          , File_Unlock, lockDescriptor
+    use :: File_Utilities      , only : File_Exists       , File_Lock            , File_Unlock, lockDescriptor
     use :: String_Handling     , only : operator(//)
     use :: Galacticus_Paths    , only : galacticusPath    , pathTypeDataDynamic
     implicit none
-    class  (nodePropertyExtractorSED), intent(inout) :: self
-    type   (treeNode                ), intent(inout) :: node
-    type   (history                 ), intent(in   ) :: starFormationHistory
-    class  (nodeComponentBasic      ), pointer       :: basic
-    integer(c_size_t                )                :: indexOutput
-    type   (lockDescriptor          )                :: fileLock
-    type   (hdf5Object              )                :: file
-    type   (varying_string          )                :: datasetName         , fileName
+    class    (nodePropertyExtractorSED), intent(inout) :: self
+    type     (treeNode                ), intent(inout) :: node
+    type     (history                 ), intent(in   ) :: starFormationHistory
+    class    (nodeComponentBasic      ), pointer       :: basic
+    integer  (c_size_t                )                :: indexOutput
+    type     (lockDescriptor          )                :: fileLock
+    type     (hdf5Object              )                :: file
+    type     (varying_string          )                :: datasetName         , fileName
+    character(len=16                  )                :: label
 
     ! Return a negative index if templates are not being used.
     sedIndexTemplateNode=-1
@@ -491,12 +493,18 @@ contains
        if (File_Exists(fileName)) then
           !$ call hdf5Access%set()
           call file%openFile(char(fileName))
-          if (file%hasDataset(char(datasetName))) call file%readDataset(char(datasetName),self%templates(sedIndexTemplateNode)%sed)
+          if (file%hasDataset(char(datasetName))) then
+             write (label,'(f12.8)') self%outputTimes_%time(indexOutput
+             call displayMessage("reading SED tabulation for time "//trim(adjustl(label))//" Gyr from file '"//fileName//"'",verbosityLevelWorking)
+             call file%readDataset(char(datasetName),self%templates(sedIndexTemplateNode)%sed)
+          end if
           call file%close()
           !$ call hdf5Access%unset()
        end if
        if (.not.allocated(self%templates(sedIndexTemplateNode)%sed)) then
           self%templates(sedIndexTemplateNode)%sed=self%luminosityMean(self%outputTimes_%time(indexOutput),starFormationHistory,parallelize=.true.)
+          write (label,'(f12.8)') self%outputTimes_%time(indexOutput
+          call displayMessage("storing SED tabulation for time "//trim(adjustl(label))//" Gyr to file '"//fileName//"'",verbosityLevelWorking)
           !$ call hdf5Access%set()
           call file%openFile(char(fileName),overWrite=.false.,readOnly=.false.)
           call file%writeDataset(self%templates(sedIndexTemplateNode)%sed,char(datasetName))
