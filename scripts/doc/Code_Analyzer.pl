@@ -107,7 +107,7 @@ find(\&processFile, @sourceDir);
 exit;
 
 sub processFile {
-
+    
     # Process a file in the source directory tree. Scans the file and extracts information on units, variables, types, calls etc.
     my $fileName = $_;
     chomp($fileName);
@@ -171,6 +171,7 @@ sub processFile {
 			  my $parentID = $unitIdList[-1];
 			  # Generate identifier for this unit.
 			  my $unitID = $parentID.":".$unitName;
+			  $unitID =~ s/[¦\{\}]//g;
 			  # Add this unit to the "contains" list for its parent.
 			  $units{$parentID}->{"contains"}->{$unitID} = 1;
 			  # Create an entry for this new unit.
@@ -373,6 +374,7 @@ sub Output_Data {
 	# Get unit name in LaTeX encoding.
 	my $unitName = &latex_encode($units{$unitID}->{"unitName"});
 	$unitName =~ s/\\_/\\\-\\_/g;
+	$unitName =~ s/¦/\\textbrokenbar/g;
 	# Get ID of parent.
 	my $parentID;
 	if ( exists($units{$unitID}->{"belongsTo"}) ) {

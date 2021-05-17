@@ -62,7 +62,7 @@ my $powerSpectrumIndex = $parameters(($parameterMap{'n_s'}));
 # Construct data for XML output.
 my $parameterData =
 {
-    cosmologyParametersMethod =>
+    cosmologyParameters =>
     {
 	value => "simple",
 	"Omega_M"            => {value => $Omega_M           ->sclr()},

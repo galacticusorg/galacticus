@@ -135,15 +135,15 @@ contains
     return
   end function identityEpochTime
 
-  subroutine identityDescriptor(self,descriptor,includeMethod)
+  subroutine identityDescriptor(self,descriptor,includeClass)
     !% Return an input parameter list descriptor which could be used to recreate this object.
     use :: Input_Parameters, only : inputParameters
     implicit none
     class  (transferFunctionIdentity), intent(inout)           :: self
     type   (inputParameters         ), intent(inout)           :: descriptor
-    logical                          , intent(in   ), optional :: includeMethod
+    logical                          , intent(in   ), optional :: includeClass
     !$GLC attributes unused :: self
 
-    if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter('transferFunctionMethod','identity')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('transferFunction','identity')
     return
   end subroutine identityDescriptor

@@ -453,16 +453,16 @@ sub Process_FunctionClass {
 		    # Build an auto-descriptor function.
 		    if ( $declarationMatches && $supported == 1 ) {
 			$descriptorUsed = 1;
-			$descriptorCode .= " if (present(includeMethod)) then\n";
-			$descriptorCode .= "  includeMethod_=includeMethod\n";
+			$descriptorCode .= " if (present(includeClass)) then\n";
+			$descriptorCode .= "  includeClass_=includeClass\n";
 			$descriptorCode .= " else\n";
-			$descriptorCode .= "  includeMethod_=.true.\n";
+			$descriptorCode .= "  includeClass_=.true.\n";
 			$descriptorCode .= " end if\n";
-			$descriptorCode .= " if (includeMethod_) call descriptor%addParameter('".$directive->{'name'}."Method','".$label."')\n";
+			$descriptorCode .= " if (includeClass_) call descriptor%addParameter('".$directive->{'name'}."','".$label."')\n";
 			if ( defined($descriptorParameters) ) {
 			    # Get subparameters.
 			    $addSubParameters{'parameters'} = 1;
-			    $descriptorCode   .= "parameters=descriptor%subparameters('".$directive->{'name'}."Method')\n";
+			    $descriptorCode   .= "parameters=descriptor%subparameters('".$directive->{'name'}."')\n";
 			    foreach my $subParameterName (keys(%subParameters) ) {
 				$addSubParameters{$subParameterName} = 1;
 				$descriptorCode .= $subParameters{$subParameterName}->{'source'};
@@ -552,7 +552,7 @@ sub Process_FunctionClass {
 			}
 			# If the parent constructor was used, call its descriptor method.
 			if ( $parentConstructorUsed ) {
-			    $descriptorCode .= "call self%".$extensionOf."%descriptor(descriptor,includeMethod=.false.)\n";
+			    $descriptorCode .= "call self%".$extensionOf."%descriptor(descriptor,includeClass=.false.)\n";
 			}
 		    } elsif ( ! $declarationMatches     ) {
 			$descriptorCode .= " call Galacticus_Error_Report('auto-descriptor not supported for this class: parameter-based constructor not found'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
@@ -565,9 +565,9 @@ sub Process_FunctionClass {
 	    }
 	    $descriptorCode .= "end select\n";
 	    if ( $descriptorUsed ) {
-		$descriptorCode = "logical :: includeMethod_\n".$descriptorCode;
+		$descriptorCode = "logical :: includeClass_\n".$descriptorCode;
 	    } else {
-		$descriptorCode  = " !\$GLC attributes unused :: descriptor, includeMethod\n".$descriptorCode;
+		$descriptorCode  = " !\$GLC attributes unused :: descriptor, includeClass\n".$descriptorCode;
 	    }
  	    $descriptorCode  = "type(inputParameters) :: ".join(",",keys(%addSubParameters))."\n".$descriptorCode
 		if ( %addSubParameters );
@@ -582,7 +582,7 @@ sub Process_FunctionClass {
 		type        => "void",
 		pass        => "yes",
 		modules     => join(" ",keys(%descriptorModules)),
-		argument    => [ "type(inputParameters), intent(inout) :: descriptor", "logical, intent(in   ), optional :: includeMethod" ],
+		argument    => [ "type(inputParameters), intent(inout) :: descriptor", "logical, intent(in   ), optional :: includeClass" ],
 		code        => $descriptorCode
 	    };
 	    # Add a "hashedDescriptor" method.
@@ -719,7 +719,7 @@ CODE
 			    }
 			    if ( $constructorNode->{'type'} eq "objectBuilder"  ) {
 				my $source = $constructorNode->{'directive'}->{'source'};
-				push(@{$allowedParameters->{$source}->{'all'}},exists($constructorNode->{'directive'}->{'parameterName'}) ? $constructorNode->{'directive'}->{'parameterName'} : $constructorNode->{'directive'}->{'class'}."Method");
+				push(@{$allowedParameters->{$source}->{'all'}},exists($constructorNode->{'directive'}->{'parameterName'}) ? $constructorNode->{'directive'}->{'parameterName'} : $constructorNode->{'directive'}->{'class'});
 				# Check if the class contains a pointer of the expected type and name for this object.
 				my $typeNode = $class->{'tree'}->{'firstChild'};
 				while ( $typeNode ) {
@@ -2519,8 +2519,8 @@ CODE
                 }
  	    }
 	    # Add method name parameter.
-	    $modulePreContains->{'content'} .= "   ! Method name parameter.\n";
-	    $modulePreContains->{'content'} .= "   type(varying_string) :: ".$directive->{'name'}."Method\n\n";
+	    $modulePreContains->{'content'} .= "   ! Class name parameter.\n";
+	    $modulePreContains->{'content'} .= "   type(varying_string) :: ".$directive->{'name'}."Class_\n\n";
 	    my $nameUsesNode =
 	    {
 		type      => "moduleUse",
@@ -2537,7 +2537,7 @@ CODE
 	    if ( $tree->{'type'} eq "file" ) {
 		(my $fileName = $tree->{'name'}) =~ s/\.F90$/.p/;
 		open(my $parametersFile,">>".$ENV{'BUILDPATH'}."/".$fileName);
-		print $parametersFile $directive->{'name'}."Method\n";
+		print $parametersFile $directive->{'name'}."\n";
 		close($parametersFile);
 	    }
 	    # Add default implementation.
@@ -2588,7 +2588,7 @@ CODE
 	    $modulePostContains->{'content'} .= "      if (present(parameterName)) then\n";
 	    $modulePostContains->{'content'} .= "        parameterName_=parameterName\n";
 	    $modulePostContains->{'content'} .= "      else\n";
-	    $modulePostContains->{'content'} .= "        parameterName_='".$directive->{'name'}."Method'\n";
+	    $modulePostContains->{'content'} .= "        parameterName_='".$directive->{'name'}."'\n";
 	    $modulePostContains->{'content'} .= "      end if\n";
 	    $modulePostContains->{'content'} .= "      if (present(copyInstance)) then\n";
 	    $modulePostContains->{'content'} .= "        copyInstance_=copyInstance\n";
@@ -2597,9 +2597,9 @@ CODE
 	    $modulePostContains->{'content'} .= "      end if\n";
             if ( exists($directive->{'default'}) ) {
                 (my $class) = grep {$_->{'name'} eq $directive->{'name'}.ucfirst($directive->{'default'})} @nonAbstractClasses;
-	        $modulePostContains->{'content'} .= "      if (parameterName_ == '".$directive->{'name'}."Method' .and. copyInstance_ == 1 .and. .not.parameters%isPresent(char(parameterName_))) then\n";
-	        $modulePostContains->{'content'} .= "        call parameters%addParameter('".$directive->{'name'}."Method','".$directive->{'default'}."')\n";
-	        $modulePostContains->{'content'} .= "        parameterNode => parameters%node('".$directive->{'name'}."Method',requireValue=.true.)\n";
+	        $modulePostContains->{'content'} .= "      if (parameterName_ == '".$directive->{'name'}."' .and. copyInstance_ == 1 .and. .not.parameters%isPresent(char(parameterName_))) then\n";
+	        $modulePostContains->{'content'} .= "        call parameters%addParameter('".$directive->{'name'}."','".$directive->{'default'}."')\n";
+	        $modulePostContains->{'content'} .= "        parameterNode => parameters%node('".$directive->{'name'}."',requireValue=.true.)\n";
 		$modulePostContains->{'content'} .= "        subParameters=parameters%subParameters(char(parameterName_))\n";
 		$modulePostContains->{'content'} .= "        allocate(".$directive->{'name'}.ucfirst($directive->{'default'})." :: self)\n";
 		if ( exists($class->{'recursive'}) && $class->{'recursive'} eq "yes" ) {
@@ -2621,7 +2621,7 @@ CODE
                 $modulePostContains->{'content'} .= "         call parameterNode%objectSet(self)\n";
                 $modulePostContains->{'content'} .= "      else\n";
                 if ( exists($class->{'recursive'}) && $class->{'recursive'} eq "yes" ) {
-		    $modulePostContains->{'content'} .= "         parameterNode => parameters%node('".$directive->{'name'}."Method',requireValue=.true.)\n";
+		    $modulePostContains->{'content'} .= "         parameterNode => parameters%node('".$directive->{'name'}."',requireValue=.true.)\n";
 		    $modulePostContains->{'content'} .= "        if (associated(parameterNode,".$directive->{'name'}."DefaultBuildNode)) then\n";
 		    $modulePostContains->{'content'} .= "           allocate(".$directive->{'name'}.ucfirst($directive->{'default'})." :: self)\n";
 		    $modulePostContains->{'content'} .= "           select type (self)\n";
@@ -3025,14 +3025,14 @@ CODE
 	    $modulePostContains->{'content'} .= "      type   (varying_string ) :: message\n";
 	    $modulePostContains->{'content'} .= "      !\$omp critical (".$directive->{'name'}."Initialization)\n";
 	    $modulePostContains->{'content'} .= "      if (.not.".$directive->{'name'}."Initialized) then\n";
-	    $modulePostContains->{'content'} .= "         call globalParameters%value('".$directive->{'name'}."Method',".$directive->{'name'}."Method";
+	    $modulePostContains->{'content'} .= "         call globalParameters%value('".$directive->{'name'}."',".$directive->{'name'}."Class_";
 	    $modulePostContains->{'content'} .= ",defaultValue=var_str('".$directive->{'default'}."')"
                if ( exists($directive->{'default'}) );
 	    $modulePostContains->{'content'} .= ")\n";
 	    $modulePostContains->{'content'} .= "         ".$directive->{'name'}."Initialized=.true.\n";
 	    $modulePostContains->{'content'} .= "      end if\n";
-	    $modulePostContains->{'content'} .= "      subParameters=globalParameters%subParameters('".$directive->{'name'}."Method',requirePresent=.false.)\n";
-	    $modulePostContains->{'content'} .= "      select case (char(".$directive->{'name'}."Method))\n";
+	    $modulePostContains->{'content'} .= "      subParameters=globalParameters%subParameters('".$directive->{'name'}."',requirePresent=.false.)\n";
+	    $modulePostContains->{'content'} .= "      select case (char(".$directive->{'name'}."Class_))\n";
 	    foreach my $class ( @nonAbstractClasses ) {
 		(my $name = $class->{'name'}) =~ s/^$directive->{'name'}//;
 		$name = lcfirst($name)
@@ -3046,7 +3046,7 @@ CODE
 		$modulePostContains->{'content'} .= "        end select\n";
 	    }
 	    $modulePostContains->{'content'} .= "      case default\n";
-	    $modulePostContains->{'content'} .= "         message='Unrecognized option for [".$directive->{'name'}."Method](='//".$directive->{'name'}."Method//'). Available options are:'\n";
+	    $modulePostContains->{'content'} .= "         message='Unrecognized option for [".$directive->{'name'}."](='//".$directive->{'name'}."Class_//'). Available options are:'\n";
 	    foreach ( sort(@classNames) ) {
 		(my $name = $_) =~ s/^$directive->{'name'}//;
 		$name = lcfirst($name)
@@ -3072,8 +3072,8 @@ CODE
 		$modulePostContains->{'content'} .= "      class  (".$directive->{'name'}."Class), pointer :: self\n";
 		$modulePostContains->{'content'} .= "      type   (inputParameters) :: subParameters\n";
 		$modulePostContains->{'content'} .= "      type   (varying_string ) :: message\n";
-		$modulePostContains->{'content'} .= "      subParameters=globalParameters%subParameters('".$directive->{'name'}."Method',requirePresent=.false.)\n";
-		$modulePostContains->{'content'} .= "      select case (char(".$directive->{'name'}."Method))\n";
+		$modulePostContains->{'content'} .= "      subParameters=globalParameters%subParameters('".$directive->{'name'}."',requirePresent=.false.)\n";
+		$modulePostContains->{'content'} .= "      select case (char(".$directive->{'name'}."Class_))\n";
 		my @nonRecursiveTypes;
 		foreach my $class ( @nonAbstractClasses ) {
 		    (my $name = $class->{'name'}) =~ s/^$directive->{'name'}//;
@@ -3100,7 +3100,7 @@ CODE
 		    $modulePostContains->{'content'} .= "         call Galacticus_Error_Report('this type does not support recursion'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		}
 		$modulePostContains->{'content'} .= "      case default\n";
-		$modulePostContains->{'content'} .= "         message='Unrecognized option for [".$directive->{'name'}."Method](='//".$directive->{'name'}."Method//'). Available options are:'\n";
+		$modulePostContains->{'content'} .= "         message='Unrecognized option for [".$directive->{'name'}."](='//".$directive->{'name'}."Class_//'). Available options are:'\n";
 		foreach ( sort(@classNames) ) {
 		    (my $name = $_) =~ s/^$directive->{'name'}//;
 		    $name = lcfirst($name)

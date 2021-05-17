@@ -56,9 +56,9 @@ program Test_Parameters
   ! Test retrieval of cosmological mass variance through a reference.
   cosmologicalMassVariance_ => cosmologicalMassVariance(testParameters)
   call Unit_Tests_Begin_Group("Parameter referencing")
-  call Assert('σ₈ via reference'          ,cosmologicalMassVariance_%sigma8     (                                ),0.912d0,relTol=1.0d-6)
-  call Assert('Test presence of reference',testParameters           %isPresent  ('cosmologicalMassVarianceMethod'),.true.               )
-  call Assert('Test count of references'  ,testParameters           %copiesCount('cosmologicalMassVarianceMethod'),1                    )
+  call Assert('σ₈ via reference'          ,cosmologicalMassVariance_%sigma8     (                          ),0.912d0,relTol=1.0d-6)
+  call Assert('Test presence of reference',testParameters           %isPresent  ('cosmologicalMassVariance'),.true.               )
+  call Assert('Test count of references'  ,testParameters           %copiesCount('cosmologicalMassVariance'),1                    )
   call Unit_Tests_End_Group()
   ! Test adding, retrieving, reseting, readding a parameter.
   call Unit_Tests_Begin_Group("Parameter adding")

@@ -34,7 +34,6 @@ module Dark_Matter_Profiles_DMO
   !#   Class providing dark matter-only halo profiles.
   !#  </description>
   !#  <default>NFW</default>
-  !#  <calculationReset>yes</calculationReset>
   !#  <method name="density" >
   !#   <description>Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
   !#   <type>double precision</type>
@@ -210,7 +209,6 @@ module Dark_Matter_Profiles_DMO
   !#   Class providing models of heating of dark matter profiles.
   !#  </description>
   !#  <default>null</default>
-  !#  <calculationReset>yes</calculationReset>
   !#  <method name="specificEnergy" >
   !#   <description>The specific energy of heating at the given {\normalfont \ttfamily radius} in the given {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>

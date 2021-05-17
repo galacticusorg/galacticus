@@ -7,7 +7,7 @@
   <doAnalysis>no</doAnalysis>
   <modelRootDirectory>testSuite/outputs/test-merger-tree-write</modelRootDirectory>
   <baseParameters>testSuite/parameters/test-merger-tree-write-base.xml</baseParameters>
-  <launchMethod>pbs</launchMethod>
+  <launchMethod>pbs</launch>
   <pbs>
     <ompThreads>16</ompThreads>
     <maxJobsInQueue>1</maxJobsInQueue>
@@ -17,28 +17,28 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <mergerTreeConstructorMethod value="build">
-      <mergerTreeOperatorMethod value="export" parameterLevel="top">
+    <mergerTreeConstructor value="build">
+      <mergerTreeOperator value="export" parameterLevel="top">
         <outputFileName value="testSuite/outputs/test-merger-tree-write/exportedTreesGLC.hdf5"/>
         <exportFormat value="galacticus"/>
-      </mergerTreeOperatorMethod>
-    </mergerTreeConstructorMethod>
-    <mergerTreeConstructorMethod value="read">
+      </mergerTreeOperator>
+    </mergerTreeConstructor>
+    <mergerTreeConstructor value="read">
       <fileNames value="testSuite/data/mergerTrees/millenniumTestTreesGLC.hdf5"/>
-      <cosmologyParametersMethod value="simple" parameterLevel="top">
+      <cosmologyParameters value="simple" parameterLevel="top">
         <OmegaMatter value="0.25"/>
         <OmegaDarkEnergy value="0.75"/>
         <OmegaBaryon value="0.045"/>
         <HubbleConstant value="73.0"/>
-      </cosmologyParametersMethod>
-      <cosmologicalMassVarianceMethod value="filteredPower" parameterLevel="top">
+      </cosmologyParameters>
+      <cosmologicalMassVariance value="filteredPower" parameterLevel="top">
         <sigma_8 value="0.9"/>
-      </cosmologicalMassVarianceMethod>
-      <treeNodeMethodPosition value="preset" parameterLevel="top"/>
-      <mergerTreeOperatorMethod value="export" parameterLevel="top">
+      </cosmologicalMassVariance>
+      <componentPosition value="preset" parameterLevel="top"/>
+      <mergerTreeOperator value="export" parameterLevel="top">
         <outputFileName value="testSuite/outputs/test-merger-tree-write/exportedTreesIRATE.hdf5"/>
         <exportFormat value="irate"/>
-      </mergerTreeOperatorMethod>
+      </mergerTreeOperator>
       <presetOrbits value="false"/>
       <presetMergerTimes value="false"/>
       <presetSubhaloIndices value="false"/>
@@ -47,6 +47,6 @@
       <presetPositions value="true"/>
       <presetScaleRadii value="false"/>
       <presetSpins value="false"/>
-    </mergerTreeConstructorMethod>
+    </mergerTreeConstructor>
   </parameters>
 </parameterGrid>

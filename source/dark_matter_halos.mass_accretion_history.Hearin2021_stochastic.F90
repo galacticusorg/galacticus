@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of dark matter halo mass accretion histories using Andrew Hearin's rolling power-law model with stochastic sampling of parameters.
+  !% An implementation of dark matter halo mass accretion histories using the rolling power-law model of \cite{hearin_differentiable_2021} with stochastic sampling of parameters.
 
   !# <enumeration>
   !#  <name>mass</name>
@@ -42,16 +42,16 @@
   !#  <description>Enumeration of parameters.</description>
   !#  <decodeFunction>yes</decodeFunction>
   !#  <indexing>1</indexing>
-  !#  <entry label="log10PowerLawIndexEarly"/>
-  !#  <entry label="log10PowerLawIndexLate" />
-  !#  <entry label="log10TimeZero"          />
+  !#  <entry label="uEarly"       />
+  !#  <entry label="uLate"        />
+  !#  <entry label="log10TimeZero"/>
   !# </enumeration>
 
   !# <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryHearin2021Stochastic">
-  !#  <description>Dark matter halo mass accretion histories using Andrew Hearin's rolling power-law model.</description>
+  !#  <description>Dark matter halo mass accretion histories using the rolling power-law model of \cite{hearin_differentiable_2021} with stochastic sampling of parameters.</description>
   !# </darkMatterHaloMassAccretionHistory>
   type, extends(darkMatterHaloMassAccretionHistoryHearin2021) :: darkMatterHaloMassAccretionHistoryHearin2021Stochastic
-     !% A dark matter halo mass accretion history class using Andrew Hearin's rolling power-law model with stochastic sampling of parameters.
+     !% A dark matter halo mass accretion history class using the rolling power-law model of \cite{hearin_differentiable_2021} with stochastic sampling of parameters.
      private
      double precision                     :: fractionLateLow     , fractionLateHigh, &
           &                                  timeZeroLogarithmic_
@@ -77,56 +77,56 @@
   end interface darkMatterHaloMassAccretionHistoryHearin2021Stochastic
 
   ! Set default values for the mean parameter functions.
-  double precision, dimension(2,2,3  ), parameter :: meanDefault                =reshape(                                         &
-       &                                                                                 [                                        &
+  double precision, dimension(2,2,3  ), parameter :: meanDefault                =reshape(                                     &
+       &                                                                                 [                                    &
        !                                                                                 Each row is the mean of the stated parameter for:
        !                                                                                   early foming/low mass : early forming/high mass : late forming/low mass : late forming/high mass
-       !                                                                                  log₁₀(α_early)
-       &                                                                                  +0.460d0, +0.680d0, +0.030d0, +0.600d0, &
-       !                                                                                  log₁₀(α_late )
-       &                                                                                  -0.800d0, +0.760d0, -1.400d0, +0.790d0, &
-       !                                                                                  log₁₀(t₀     )
-       &                                                                                  -0.250d0, -0.240d0, +0.380d0, +0.750d0  &
-       &                                                                                 ]                                      , &
-       &                                                                                 [2,2,3]                                  &
+       !                                                                                  u_early
+       &                                                                                  +0.70d0, +3.50d0, +0.50d0, +2.81d0, &
+       !                                                                                  u_late
+       &                                                                                  -0.40d0, -0.40d0, -3.05d0, -1.65d0, &
+       !                                                                                  log₁₀(t₀)
+       &                                                                                  -0.39d0, +0.91d0, +0.16d0, +1.90d0  &
+       &                                                                                 ]                                  , &
+       &                                                                                 [2,2,3]                              &
        &                                                                                )
   
   ! Set default values for Cholesky matrix elements of parameter functions.
-  double precision, dimension(2,2,3,3), parameter :: choleskyDefault            =reshape(                                         &
-       &                                                                                 [                                        &
+  double precision, dimension(2,2,3,3), parameter :: choleskyDefault            =reshape(                                     &
+       &                                                                                 [                                    &
        !                                                                                  Each row is the mean of the stated parameter for:
        !                                                                                   early foming/low mass : early forming/high mass : late forming/low mass : late forming/high mass
-       !                                                                                  log₁₀(α_early)-log₁₀(α_early)
-       &                                                                                  -0.630d0, -0.750d0, -0.830d0, -1.000d0, &
-       !                                                                                  log₁₀(α_early)-log₁₀(α_late )
-       &                                                                                  +0.010d0, -0.120d0, -0.330d0, -0.130d0, &
-       !                                                                                  log₁₀(α_early)-log₁₀(t₀     )
-       &                                                                                  -0.070d0, -0.050d0, -0.350d0, -0.050d0, &
-       !                                                                                  log₁₀(α_late )-log₁₀(α_early)
-       &                                                                                  +0.010d0, -0.120d0, -0.330d0, -0.130d0, &
-       !                                                                                  log₁₀(α_late )-log₁₀(α_late )
-       &                                                                                  -0.050d0, -1.200d0, -0.290d0, -0.620d0, &
-       !                                                                                  log₁₀(α_late )-log₁₀(t₀     )
-       &                                                                                  -0.300d0, -0.050d0, +0.150d0, -0.070d0, &
-       !                                                                                  log₁₀(t₀     )-log₁₀(α_early)
-       &                                                                                  -0.070d0, -0.050d0, -0.350d0, -0.050d0, &
-       !                                                                                  log₁₀(t₀     )-log₁₀(α_late )
-       &                                                                                  -0.300d0, -0.050d0, +0.150d0, -0.070d0, &
-       !                                                                                  log₁₀(t₀     )-log₁₀(t₀     )
-       &                                                                                  -0.810d0, -0.990d0, -0.630d0, -0.700d0  &
-       &                                                                                 ]                                      , &
-       &                                                                                 [2,2,3,3]                                &
+       !                                                                                  u_early  -u_early
+       &                                                                                  +0.10d0, -0.25d0, -0.20d0, -0.70d0, &
+       !                                                                                  u_early  -u_late
+       &                                                                                  -0.65d0, -0.55d0, -1.20d0, +0.50d0, &
+       !                                                                                  u_early  -log₁₀(t₀)
+       &                                                                                  +0.00d0, -0.15d0, -0.20d0, -0.03d0, &
+       !                                                                                  u_late   -u_early
+       &                                                                                  -0.65d0, -0.55d0, -1.20d0, +0.50d0, &
+       !                                                                                  u_late   -u_late
+       &                                                                                  -0.25d0, +0.00d0, +0.10d0, -0.25d0, &
+       !                                                                                  u_late   -log₁₀(t₀)
+       &                                                                                  -0.13d0, -0.25d0, +0.57d0, +0.39d0, &
+       !                                                                                  log₁₀(t₀)-u_early
+       &                                                                                  +0.00d0, -0.15d0, -0.20d0, -0.03d0, &
+       !                                                                                  log₁₀(t₀)-u_late
+       &                                                                                  -0.13d0, -0.25d0, +0.57d0, +0.39d0, &
+       !                                                                                  log₁₀(t₀)-log₁₀(t₀)
+       &                                                                                  -0.50d0, -1.30d0, -0.50d0, -1.15d0  &
+       &                                                                                 ]                                  , &
+       &                                                                                 [2,2,3,3]                            &
        &                                                                                )
 
   double precision, dimension(2,3), parameter :: log10MassZeroMean              =reshape(                 &
        &                                                                                 [                &
        !                                                                                  Each row is the zero-point of the mass transition for the mean for:
        !                                                                                   early foming : late forming
-       !                                                                                  log₁₀(α_early)
+       !                                                                                  u_early
        &                                                                                  13.0d0, 13.0d0, &
-       !                                                                                  log10(alpha_late)
-       &                                                                                  13.0d0, 14.0d0, &
-       !                                                                                  log10(t_0)
+       !                                                                                  u_late
+       &                                                                                  13.0d0, 13.0d0, &
+       !                                                                                  log10(t₀)
        &                                                                                  13.0d0, 13.0d0  &
        &                                                                                 ]              , &
        &                                                                                 [2,3]            &
@@ -136,11 +136,11 @@
        &                                                                                 [              &
        !                                                                                  Each row is the roll-over rate of the mass transition for the mean for:
        !                                                                                   early foming : late forming
-       !                                                                                  log₁₀(α_early)
+       !                                                                                  u_early
        &                                                                                  0.5d0, 0.5d0, &
-       !                                                                                  log10(alpha_late)
+       !                                                                                  u_late
        &                                                                                  0.5d0, 0.5d0, &
-       !                                                                                  log10(t_0)
+       !                                                                                  log10(t₀)
        &                                                                                  0.5d0, 0.5d0  &
        &                                                                                 ]            , &
        &                                                                                 [2,3]          &
@@ -150,23 +150,23 @@
        &                                                                                 [                  &
        !                                                                                  Each row is the zero-point of the mass transition for the Cholesky matrix element for:
        !                                                                                   early foming : late forming
-       !                                                                                  log₁₀(α_early)-log₁₀(α_early)
-       &                                                                                  12.00d0, 13.00d0, &
-       !                                                                                  log₁₀(α_early)-log₁₀(α_late )
+       !                                                                                  u_early  -u_early
        &                                                                                  13.00d0, 13.00d0, &
-       !                                                                                  log₁₀(α_early)-log₁₀(t₀     )
+       !                                                                                  u_early  -u_late
        &                                                                                  13.00d0, 13.00d0, &
-       !                                                                                  log₁₀(α_late )-log₁₀(α_early)
+       !                                                                                  u_early  -log₁₀(t₀)
        &                                                                                  13.00d0, 13.00d0, &
-       !                                                                                  log₁₀(α_late )-log₁₀(α_late )
-       &                                                                                  12.75d0, 14.00d0, &
-       !                                                                                  log₁₀(α_late )-log₁₀(t₀     )
+       !                                                                                  u_late   -u_early
        &                                                                                  13.00d0, 13.00d0, &
-       !                                                                                  log₁₀(t₀     )-log₁₀(α_early)
+       !                                                                                  u_late   -u_late
        &                                                                                  13.00d0, 13.00d0, &
-       !                                                                                  log₁₀(t₀     )-log₁₀(α_late )
+       !                                                                                  u_late   -log₁₀(t₀)
        &                                                                                  13.00d0, 13.00d0, &
-       !                                                                                  log₁₀(t₀     )-log₁₀(t₀     )
+       !                                                                                  log₁₀(t₀)-u_early
+       &                                                                                  13.00d0, 13.00d0, &
+       !                                                                                  log₁₀(t₀)-u_late
+       &                                                                                  13.00d0, 13.00d0, &
+       !                                                                                  log₁₀(t₀)-log₁₀(t₀)
        &                                                                                  13.00d0, 13.00d0  &
        &                                                                                 ]                , &
        &                                                                                 [2,3,3]            &
@@ -176,23 +176,23 @@
        &                                                                                 [              &
        !                                                                                  Each row is the roll-over rate of the mass transition for the Cholesky matrix element for:
        !                                                                                   early foming : late forming
-       !                                                                                  log₁₀(α_early)-log₁₀(α_early)
-       &                                                                                  1.0d0, 0.5d0, &
-       !                                                                                  log₁₀(α_early)-log₁₀(α_late )
+       !                                                                                  u_early  -u_early
        &                                                                                  0.5d0, 0.5d0, &
-       !                                                                                  log₁₀(α_early)-log₁₀(t₀     )
+       !                                                                                  u_early  -u_late
        &                                                                                  0.5d0, 0.5d0, &
-       !                                                                                  log₁₀(α_late )-log₁₀(α_early)
+       !                                                                                  u_early  -log₁₀(t₀)
        &                                                                                  0.5d0, 0.5d0, &
-       !                                                                                  log₁₀(α_late )-log₁₀(α_late )
-       &                                                                                  0.5d0, 1.0d0, &
-       !                                                                                  log₁₀(α_late )-log₁₀(t₀     )
+       !                                                                                  u_late   -u_early
        &                                                                                  0.5d0, 0.5d0, &
-       !                                                                                  log₁₀(t₀     )-log₁₀(α_early)
+       !                                                                                  u_late   -u_late
        &                                                                                  0.5d0, 0.5d0, &
-       !                                                                                  log₁₀(t₀     )-log₁₀(α_late )
+       !                                                                                  u_late   -log₁₀(t₀)
        &                                                                                  0.5d0, 0.5d0, &
-       !                                                                                  log₁₀(t₀     )-log₁₀(t₀     )
+       !                                                                                  log₁₀(t₀)-u_early
+       &                                                                                  0.5d0, 0.5d0, &
+       !                                                                                  log₁₀(t₀)-u_late
+       &                                                                                  0.5d0, 0.5d0, &
+       !                                                                                  log₁₀(t₀)-log₁₀(t₀)
        &                                                                                  0.5d0, 0.5d0  &
        &                                                                                 ]            , &
        &                                                                                 [2,3,3]        &
@@ -217,13 +217,13 @@ contains
     !#   <name>fractionLateLow</name>
     !#   <description>The fraction of late-forming halos in the low halo mass limit.</description>
     !#   <source>parameters</source>
-    !#   <defaultValue>0.60d0</defaultValue>
+    !#   <defaultValue>0.35d0</defaultValue>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>fractionLateHigh</name>
     !#   <description>The fraction of late-forming halos in the high halo mass limit.</description>
     !#   <source>parameters</source>
-    !#   <defaultValue>0.62d0</defaultValue>
+    !#   <defaultValue>0.45d0</defaultValue>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>rateRollOver</name>
@@ -235,74 +235,74 @@ contains
     !# </inputParameter>
     ! Means.
     !# <inputParameter>
-    !#   <name>meanLog10PowerLawIndexEarlyLowEarlyForming</name>
+    !#   <name>meanUEarlyLowEarlyForming</name>
     !#   <description>The mean low-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
-    !#   <variable>means(massLow,formationEarly,parameterLog10PowerLawIndexEarly)</variable>
+    !#   <variable>means(massLow,formationEarly,parameterUEarly)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>meanDefault(massLow,formationEarly,parameterLog10PowerLawIndexEarly)</defaultValue>
+    !#   <defaultValue>meanDefault(massLow,formationEarly,parameterUEarly)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>meanLog10PowerLawIndexEarlyHighEarlyForming</name>
+    !#   <name>meanUEarlyHighEarlyForming</name>
     !#   <description>The mean high-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
-    !#   <variable>means(massHigh,formationEarly,parameterLog10PowerLawIndexEarly)</variable>
+    !#   <variable>means(massHigh,formationEarly,parameterUEarly)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>meanDefault(massHigh,formationEarly,parameterLog10PowerLawIndexEarly)</defaultValue>
+    !#   <defaultValue>meanDefault(massHigh,formationEarly,parameterUEarly)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>meanLog10PowerLawIndexEarlyLowLateForming</name>
+    !#   <name>meanUEarlyLowLateForming</name>
     !#   <description>The mean low-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
-    !#   <variable>means(massLow,formationLate,parameterLog10PowerLawIndexEarly)</variable>
+    !#   <variable>means(massLow,formationLate,parameterUEarly)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>meanDefault(massLow,formationLate,parameterLog10PowerLawIndexEarly)</defaultValue>
+    !#   <defaultValue>meanDefault(massLow,formationLate,parameterUEarly)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>meanLog10PowerLawIndexEarlyHighLateForming</name>
+    !#   <name>meanUEarlyHighLateForming</name>
     !#   <description>The mean high-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
-    !#   <variable>means(massHigh,formationLate,parameterLog10PowerLawIndexEarly)</variable>
+    !#   <variable>means(massHigh,formationLate,parameterUEarly)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>meanDefault(massHigh,formationLate,parameterLog10PowerLawIndexEarly)</defaultValue>
+    !#   <defaultValue>meanDefault(massHigh,formationLate,parameterUEarly)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter> 
     !# <inputParameter>
-    !#   <name>meanLog10PowerLawIndexLateLowEarlyForming</name>
+    !#   <name>meanULateLowEarlyForming</name>
     !#   <description>The mean low-mass limit of $\log_{10}$ late-time power law index for early-forming halos.</description>
-    !#   <variable>means(massLow,formationEarly,parameterLog10PowerLawIndexLate)</variable>
+    !#   <variable>means(massLow,formationEarly,parameterULate)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>meanDefault(massLow,formationEarly,parameterLog10PowerLawIndexLate)</defaultValue>
+    !#   <defaultValue>meanDefault(massLow,formationEarly,parameterULate)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>meanLog10PowerLawIndexLateHighEarlyForming</name>
+    !#   <name>meanULateHighEarlyForming</name>
     !#   <description>The mean high-mass limit of $\log_{10}$ late-time power law index for early-forming halos.</description>
-    !#   <variable>means(massHigh,formationEarly,parameterLog10PowerLawIndexLate)</variable>
+    !#   <variable>means(massHigh,formationEarly,parameterULate)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>meanDefault(massHigh,formationEarly,parameterLog10PowerLawIndexLate)</defaultValue>
+    !#   <defaultValue>meanDefault(massHigh,formationEarly,parameterULate)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>meanLog10PowerLawIndexLateLowLateForming</name>
+    !#   <name>meanULateLowLateForming</name>
     !#   <description>The mean low-mass limit of $\log_{10}$ late-time power law index for late-forming halos.</description>
-    !#   <variable>means(massLow,formationLate,parameterLog10PowerLawIndexLate)</variable>
+    !#   <variable>means(massLow,formationLate,parameterULate)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>meanDefault(massLow,formationLate,parameterLog10PowerLawIndexLate)</defaultValue>
+    !#   <defaultValue>meanDefault(massLow,formationLate,parameterULate)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>meanLog10PowerLawIndexLateHighLateForming</name>
+    !#   <name>meanULateHighLateForming</name>
     !#   <description>The mean high-mass limit of $\log_{10}$ late-time power law index for late-forming halos.</description>
-    !#   <variable>means(massHigh,formationLate,parameterLog10PowerLawIndexLate)</variable>
+    !#   <variable>means(massHigh,formationLate,parameterULate)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>meanDefault(massHigh,formationLate,parameterLog10PowerLawIndexLate)</defaultValue>
+    !#   <defaultValue>meanDefault(massHigh,formationLate,parameterULate)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
@@ -344,182 +344,182 @@ contains
     !# </inputParameter>
     ! Cholesky matrix elements.
     !# <inputParameter>
-    !#   <name>choleskyLog10PowerLawIndexEarlyLog10PowerLawIndexEarlyLowEarlyForming</name>
+    !#   <name>choleskyUEarlyUEarlyLowEarlyForming</name>
     !#   <description>The Cholesky matrix element low-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
-    !#   <variable>cholesky(massLow,formationEarly,parameterLog10PowerLawIndexEarly,parameterLog10PowerLawIndexEarly)</variable>
+    !#   <variable>cholesky(massLow,formationEarly,parameterUEarly,parameterUEarly)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>choleskyDefault(massLow,formationEarly,parameterLog10PowerLawIndexEarly,parameterLog10PowerLawIndexEarly)</defaultValue>
+    !#   <defaultValue>choleskyDefault(massLow,formationEarly,parameterUEarly,parameterUEarly)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>choleskyLog10PowerLawIndexEarlyLog10PowerLawIndexEarlyHighEarlyForming</name>
+    !#   <name>choleskyUEarlyUEarlyHighEarlyForming</name>
     !#   <description>The Cholesky matrix element high-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
-    !#   <variable>cholesky(massHigh,formationEarly,parameterLog10PowerLawIndexEarly,parameterLog10PowerLawIndexEarly)</variable>
+    !#   <variable>cholesky(massHigh,formationEarly,parameterUEarly,parameterUEarly)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>choleskyDefault(massHigh,formationEarly,parameterLog10PowerLawIndexEarly,parameterLog10PowerLawIndexEarly)</defaultValue>
+    !#   <defaultValue>choleskyDefault(massHigh,formationEarly,parameterUEarly,parameterUEarly)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>choleskyLog10PowerLawIndexEarlyLog10PowerLawIndexEarlyLowLateForming</name>
+    !#   <name>choleskyUEarlyUEarlyLowLateForming</name>
     !#   <description>The Cholesky matrix element low-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
-    !#   <variable>cholesky(massLow,formationLate,parameterLog10PowerLawIndexEarly,parameterLog10PowerLawIndexEarly)</variable>
+    !#   <variable>cholesky(massLow,formationLate,parameterUEarly,parameterUEarly)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>choleskyDefault(massLow,formationLate,parameterLog10PowerLawIndexEarly,parameterLog10PowerLawIndexEarly)</defaultValue>
+    !#   <defaultValue>choleskyDefault(massLow,formationLate,parameterUEarly,parameterUEarly)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>choleskyLog10PowerLawIndexEarlyLog10PowerLawIndexEarlyHighLateForming</name>
+    !#   <name>choleskyUEarlyUEarlyHighLateForming</name>
     !#   <description>The Cholesky matrix element high-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
-    !#   <variable>cholesky(massHigh,formationLate,parameterLog10PowerLawIndexEarly,parameterLog10PowerLawIndexEarly)</variable>
+    !#   <variable>cholesky(massHigh,formationLate,parameterUEarly,parameterUEarly)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>choleskyDefault(massHigh,formationLate,parameterLog10PowerLawIndexEarly,parameterLog10PowerLawIndexEarly)</defaultValue>
+    !#   <defaultValue>choleskyDefault(massHigh,formationLate,parameterUEarly,parameterUEarly)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>       
     !# <inputParameter>
-    !#   <name>choleskyLog10PowerLawIndexEarlyLog10PowerLawIndexLateLowEarlyForming</name>
+    !#   <name>choleskyUEarlyULateLowEarlyForming</name>
     !#   <description>The Cholesky matrix element low-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
-    !#   <variable>cholesky(massLow,formationEarly,parameterLog10PowerLawIndexEarly,parameterLog10PowerLawIndexLate)</variable>
+    !#   <variable>cholesky(massLow,formationEarly,parameterUEarly,parameterULate)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>choleskyDefault(massLow,formationEarly,parameterLog10PowerLawIndexEarly,parameterLog10PowerLawIndexLate)</defaultValue>
+    !#   <defaultValue>choleskyDefault(massLow,formationEarly,parameterUEarly,parameterULate)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>choleskyLog10PowerLawIndexEarlyLog10PowerLawIndexLateHighEarlyForming</name>
+    !#   <name>choleskyUEarlyULateHighEarlyForming</name>
     !#   <description>The Cholesky matrix element high-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
-    !#   <variable>cholesky(massHigh,formationEarly,parameterLog10PowerLawIndexEarly,parameterLog10PowerLawIndexLate)</variable>
+    !#   <variable>cholesky(massHigh,formationEarly,parameterUEarly,parameterULate)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>choleskyDefault(massHigh,formationEarly,parameterLog10PowerLawIndexEarly,parameterLog10PowerLawIndexLate)</defaultValue>
+    !#   <defaultValue>choleskyDefault(massHigh,formationEarly,parameterUEarly,parameterULate)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>choleskyLog10PowerLawIndexEarlyLog10PowerLawIndexLateLowLateForming</name>
+    !#   <name>choleskyUEarlyULateLowLateForming</name>
     !#   <description>The Cholesky matrix element low-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
-    !#   <variable>cholesky(massLow,formationLate,parameterLog10PowerLawIndexEarly,parameterLog10PowerLawIndexLate)</variable>
+    !#   <variable>cholesky(massLow,formationLate,parameterUEarly,parameterULate)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>choleskyDefault(massLow,formationLate,parameterLog10PowerLawIndexEarly,parameterLog10PowerLawIndexLate)</defaultValue>
+    !#   <defaultValue>choleskyDefault(massLow,formationLate,parameterUEarly,parameterULate)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>choleskyLog10PowerLawIndexEarlyLog10PowerLawIndexLateHighLateForming</name>
+    !#   <name>choleskyUEarlyULateHighLateForming</name>
     !#   <description>The Cholesky matrix element high-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
-    !#   <variable>cholesky(massHigh,formationLate,parameterLog10PowerLawIndexEarly,parameterLog10PowerLawIndexLate)</variable>
+    !#   <variable>cholesky(massHigh,formationLate,parameterUEarly,parameterULate)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>choleskyDefault(massHigh,formationLate,parameterLog10PowerLawIndexEarly,parameterLog10PowerLawIndexLate)</defaultValue>
+    !#   <defaultValue>choleskyDefault(massHigh,formationLate,parameterUEarly,parameterULate)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>       
     !# <inputParameter>
-    !#   <name>choleskyLog10PowerLawIndexEarlyLog10TimeZeroLowEarlyForming</name>
+    !#   <name>choleskyUEarlyLog10TimeZeroLowEarlyForming</name>
     !#   <description>The Cholesky matrix element low-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
-    !#   <variable>cholesky(massLow,formationEarly,parameterLog10PowerLawIndexEarly,parameterLog10TimeZero)</variable>
+    !#   <variable>cholesky(massLow,formationEarly,parameterUEarly,parameterLog10TimeZero)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>choleskyDefault(massLow,formationEarly,parameterLog10PowerLawIndexEarly,parameterLog10TimeZero)</defaultValue>
+    !#   <defaultValue>choleskyDefault(massLow,formationEarly,parameterUEarly,parameterLog10TimeZero)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>choleskyLog10PowerLawIndexEarlyLog10TimeZeroHighEarlyForming</name>
+    !#   <name>choleskyUEarlyLog10TimeZeroHighEarlyForming</name>
     !#   <description>The Cholesky matrix element high-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
-    !#   <variable>cholesky(massHigh,formationEarly,parameterLog10PowerLawIndexEarly,parameterLog10TimeZero)</variable>
+    !#   <variable>cholesky(massHigh,formationEarly,parameterUEarly,parameterLog10TimeZero)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>choleskyDefault(massHigh,formationEarly,parameterLog10PowerLawIndexEarly,parameterLog10TimeZero)</defaultValue>
+    !#   <defaultValue>choleskyDefault(massHigh,formationEarly,parameterUEarly,parameterLog10TimeZero)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>choleskyLog10PowerLawIndexEarlyLog10TimeZeroLowLateForming</name>
+    !#   <name>choleskyUEarlyLog10TimeZeroLowLateForming</name>
     !#   <description>The Cholesky matrix element low-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
-    !#   <variable>cholesky(massLow,formationLate,parameterLog10PowerLawIndexEarly,parameterLog10TimeZero)</variable>
+    !#   <variable>cholesky(massLow,formationLate,parameterUEarly,parameterLog10TimeZero)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>choleskyDefault(massLow,formationLate,parameterLog10PowerLawIndexEarly,parameterLog10TimeZero)</defaultValue>
+    !#   <defaultValue>choleskyDefault(massLow,formationLate,parameterUEarly,parameterLog10TimeZero)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>choleskyLog10PowerLawIndexEarlyLog10TimeZeroHighLateForming</name>
+    !#   <name>choleskyUEarlyLog10TimeZeroHighLateForming</name>
     !#   <description>The Cholesky matrix element high-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
-    !#   <variable>cholesky(massHigh,formationLate,parameterLog10PowerLawIndexEarly,parameterLog10TimeZero)</variable>
+    !#   <variable>cholesky(massHigh,formationLate,parameterUEarly,parameterLog10TimeZero)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>choleskyDefault(massHigh,formationLate,parameterLog10PowerLawIndexEarly,parameterLog10TimeZero)</defaultValue>
+    !#   <defaultValue>choleskyDefault(massHigh,formationLate,parameterUEarly,parameterLog10TimeZero)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>choleskyLog10PowerLawIndexLateLog10PowerLawIndexLateLowEarlyForming</name>
+    !#   <name>choleskyULateULateLowEarlyForming</name>
     !#   <description>The Cholesky matrix element low-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
-    !#   <variable>cholesky(massLow,formationEarly,parameterLog10PowerLawIndexLate,parameterLog10PowerLawIndexLate)</variable>
+    !#   <variable>cholesky(massLow,formationEarly,parameterULate,parameterULate)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>choleskyDefault(massLow,formationEarly,parameterLog10PowerLawIndexLate,parameterLog10PowerLawIndexLate)</defaultValue>
+    !#   <defaultValue>choleskyDefault(massLow,formationEarly,parameterULate,parameterULate)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>choleskyLog10PowerLawIndexLateLog10PowerLawIndexLateHighEarlyForming</name>
+    !#   <name>choleskyULateULateHighEarlyForming</name>
     !#   <description>The Cholesky matrix element high-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
-    !#   <variable>cholesky(massHigh,formationEarly,parameterLog10PowerLawIndexLate,parameterLog10PowerLawIndexLate)</variable>
+    !#   <variable>cholesky(massHigh,formationEarly,parameterULate,parameterULate)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>choleskyDefault(massHigh,formationEarly,parameterLog10PowerLawIndexLate,parameterLog10PowerLawIndexLate)</defaultValue>
+    !#   <defaultValue>choleskyDefault(massHigh,formationEarly,parameterULate,parameterULate)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>choleskyLog10PowerLawIndexLateLog10PowerLawIndexLateLowLateForming</name>
+    !#   <name>choleskyULateULateLowLateForming</name>
     !#   <description>The Cholesky matrix element low-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
-    !#   <variable>cholesky(massLow,formationLate,parameterLog10PowerLawIndexLate,parameterLog10PowerLawIndexLate)</variable>
+    !#   <variable>cholesky(massLow,formationLate,parameterULate,parameterULate)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>choleskyDefault(massLow,formationLate,parameterLog10PowerLawIndexLate,parameterLog10PowerLawIndexLate)</defaultValue>
+    !#   <defaultValue>choleskyDefault(massLow,formationLate,parameterULate,parameterULate)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>choleskyLog10PowerLawIndexLateLog10PowerLawIndexLateHighLateForming</name>
+    !#   <name>choleskyULateULateHighLateForming</name>
     !#   <description>The Cholesky matrix element high-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
-    !#   <variable>cholesky(massHigh,formationLate,parameterLog10PowerLawIndexLate,parameterLog10PowerLawIndexLate)</variable>
+    !#   <variable>cholesky(massHigh,formationLate,parameterULate,parameterULate)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>choleskyDefault(massHigh,formationLate,parameterLog10PowerLawIndexLate,parameterLog10PowerLawIndexLate)</defaultValue>
+    !#   <defaultValue>choleskyDefault(massHigh,formationLate,parameterULate,parameterULate)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>choleskyLog10PowerLawIndexLateLog10TimeZeroLowEarlyForming</name>
+    !#   <name>choleskyULateLog10TimeZeroLowEarlyForming</name>
     !#   <description>The Cholesky matrix element low-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
-    !#   <variable>cholesky(massLow,formationEarly,parameterLog10PowerLawIndexLate,parameterLog10TimeZero)</variable>
+    !#   <variable>cholesky(massLow,formationEarly,parameterULate,parameterLog10TimeZero)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>choleskyDefault(massLow,formationEarly,parameterLog10PowerLawIndexLate,parameterLog10TimeZero)</defaultValue>
+    !#   <defaultValue>choleskyDefault(massLow,formationEarly,parameterULate,parameterLog10TimeZero)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>choleskyLog10PowerLawIndexLateLog10TimeZeroHighEarlyForming</name>
+    !#   <name>choleskyULateLog10TimeZeroHighEarlyForming</name>
     !#   <description>The Cholesky matrix element high-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
-    !#   <variable>cholesky(massHigh,formationEarly,parameterLog10PowerLawIndexLate,parameterLog10TimeZero)</variable>
+    !#   <variable>cholesky(massHigh,formationEarly,parameterULate,parameterLog10TimeZero)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>choleskyDefault(massHigh,formationEarly,parameterLog10PowerLawIndexLate,parameterLog10TimeZero)</defaultValue>
+    !#   <defaultValue>choleskyDefault(massHigh,formationEarly,parameterULate,parameterLog10TimeZero)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>choleskyLog10PowerLawIndexLateLog10TimeZeroLowLateForming</name>
+    !#   <name>choleskyULateLog10TimeZeroLowLateForming</name>
     !#   <description>The Cholesky matrix element low-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
-    !#   <variable>cholesky(massLow,formationLate,parameterLog10PowerLawIndexLate,parameterLog10TimeZero)</variable>
+    !#   <variable>cholesky(massLow,formationLate,parameterULate,parameterLog10TimeZero)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>choleskyDefault(massLow,formationLate,parameterLog10PowerLawIndexLate,parameterLog10TimeZero)</defaultValue>
+    !#   <defaultValue>choleskyDefault(massLow,formationLate,parameterULate,parameterLog10TimeZero)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>choleskyLog10PowerLawIndexLateLog10TimeZeroHighLateForming</name>
+    !#   <name>choleskyULateLog10TimeZeroHighLateForming</name>
     !#   <description>The Cholesky matrix element high-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
-    !#   <variable>cholesky(massHigh,formationLate,parameterLog10PowerLawIndexLate,parameterLog10TimeZero)</variable>
+    !#   <variable>cholesky(massHigh,formationLate,parameterULate,parameterLog10TimeZero)</variable>
     !#   <source>parameters</source>
-    !#   <defaultValue>choleskyDefault(massHigh,formationLate,parameterLog10PowerLawIndexLate,parameterLog10TimeZero)</defaultValue>
+    !#   <defaultValue>choleskyDefault(massHigh,formationLate,parameterULate,parameterLog10TimeZero)</defaultValue>
     !# <type>real</type>
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
@@ -560,9 +560,9 @@ contains
     !# <cardinality>0..1</cardinality>
     !# </inputParameter>
     ! Symmetrize the Cholesky matrix.
-    cholesky(:,:,parameterLog10PowerLawIndexLate,parameterLog10PowerLawIndexEarly)=cholesky(:,:,parameterLog10PowerLawIndexEarly,parameterLog10PowerLawIndexLate)
-    cholesky(:,:,parameterLog10TimeZero         ,parameterLog10PowerLawIndexEarly)=cholesky(:,:,parameterLog10PowerLawIndexEarly,parameterLog10TimeZero         )
-    cholesky(:,:,parameterLog10TimeZero         ,parameterLog10PowerLawIndexLate )=cholesky(:,:,parameterLog10PowerLawIndexLate ,parameterLog10TimeZero         )
+    cholesky(:,:,parameterULate        ,parameterUEarly)=cholesky(:,:,parameterUEarly,parameterULate        )
+    cholesky(:,:,parameterLog10TimeZero,parameterUEarly)=cholesky(:,:,parameterUEarly,parameterLog10TimeZero)
+    cholesky(:,:,parameterLog10TimeZero,parameterULate )=cholesky(:,:,parameterULate ,parameterLog10TimeZero)
     self=darkMatterHaloMassAccretionHistoryHearin2021Stochastic(rateRollOver,fractionLateLow,fractionLateHigh,means,cholesky)
     !# <inputParametersValidate source="parameters"/>
     return
@@ -657,10 +657,11 @@ contains
             & +cholesky &
             & *randoms
        ! Extract the parameters.
-       sample_                  =sample
-       self%powerLawIndexEarly  =10.0d0**sample_(1)
-       self%powerLawIndexLate   =10.0d0**sample_(2)
-       self%timeZeroLogarithmic_=        sample_(3)
+       sample_                  = sample
+       self%powerLawIndexEarly  =+softPlus(sample_(1)) &
+            &                    +softPlus(sample_(2))
+       self%powerLawIndexLate   =+softPlus(sample_(2))
+       self%timeZeroLogarithmic_=+         sample_(3)
        ! Store the parameters for this tree.
        call node%hostTree%properties%set('treeMAHHearin2021PowerLawIndexEarly',self%powerLawIndexEarly  )
        call node%hostTree%properties%set('treeMAHHearin2021PowerLawIndexLate' ,self%powerLawIndexLate   )
@@ -727,3 +728,12 @@ contains
     hearin2021StochasticTimeMaximum =  basic%                  time ()
     return
   end function hearin2021StochasticTimeMaximum
+
+  double precision function softPlus(x)
+    !% Implementation of the \href{https://en.wikipedia.org/wiki/Rectifier_(neural_networks)\#Softplus}{\normalfont \ttfamily softPlus} function.
+    implicit none
+    double precision, intent(in   ) :: x
+
+    softPlus=log(1.0d0+exp(x)) 
+    return
+  end function softPlus

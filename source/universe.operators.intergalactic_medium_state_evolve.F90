@@ -130,21 +130,21 @@ contains
     !#   <description>The maximum redshift to use in calculations.</description>
     !#   <source>parameters</source>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"                     name="cosmologyParameters_"                     source="parameters"                                                            />
-    !# <objectBuilder class="cosmologyFunctions"                      name="cosmologyFunctions_"                      source="parameters"                                                            />
-    !# <objectBuilder class="linearGrowth"                            name="linearGrowth_"                            source="parameters"                                                            />
-    !# <objectBuilder class="cosmologicalMassVariance"                name="cosmologicalMassVariance_"                source="parameters"                                                            />
-    !# <objectBuilder class="outputTimes"                             name="outputTimes_"                             source="parameters"                                                            />
-    !# <objectBuilder class="gauntFactor"                             name="gauntFactor_"                             source="parameters"                                                            />
-    !# <objectBuilder class="atomicCrossSectionIonizationPhoto"       name="atomicCrossSectionIonizationPhoto_"       source="parameters"                                                            />
-    !# <objectBuilder class="atomicIonizationPotential"               name="atomicIonizationPotential_"               source="parameters"                                                            />
-    !# <objectBuilder class="atomicRecombinationRateDielectronic"     name="atomicRecombinationRateDielectronic_"     source="parameters"                                                            />
-    !# <objectBuilder class="atomicRecombinationRateRadiative"        name="atomicRecombinationRateRadiative_"        source="parameters"                                                            />
-    !# <objectBuilder class="atomicRecombinationRateRadiativeCooling" name="atomicRecombinationRateRadiativeCooling_" source="parameters"                                                            />
-    !# <objectBuilder class="atomicIonizationRateCollisional"         name="atomicIonizationRateCollisional_"         source="parameters"                                                            />
-    !# <objectBuilder class="atomicExcitationRateCollisional"         name="atomicExcitationRateCollisional_"         source="parameters"                                                            />
-    !# <objectBuilder class="intergalacticMediumState"                name="intergalacticMediumState_"                source="parameters"                                                            />
-    !# <objectBuilder class="radiationField"                          name="radiationField_"                          source="parameters" parameterName="radiationFieldIntergalacticBackgroundMethod"/>
+    !# <objectBuilder class="cosmologyParameters"                     name="cosmologyParameters_"                     source="parameters"                                                      />
+    !# <objectBuilder class="cosmologyFunctions"                      name="cosmologyFunctions_"                      source="parameters"                                                      />
+    !# <objectBuilder class="linearGrowth"                            name="linearGrowth_"                            source="parameters"                                                      />
+    !# <objectBuilder class="cosmologicalMassVariance"                name="cosmologicalMassVariance_"                source="parameters"                                                      />
+    !# <objectBuilder class="outputTimes"                             name="outputTimes_"                             source="parameters"                                                      />
+    !# <objectBuilder class="gauntFactor"                             name="gauntFactor_"                             source="parameters"                                                      />
+    !# <objectBuilder class="atomicCrossSectionIonizationPhoto"       name="atomicCrossSectionIonizationPhoto_"       source="parameters"                                                      />
+    !# <objectBuilder class="atomicIonizationPotential"               name="atomicIonizationPotential_"               source="parameters"                                                      />
+    !# <objectBuilder class="atomicRecombinationRateDielectronic"     name="atomicRecombinationRateDielectronic_"     source="parameters"                                                      />
+    !# <objectBuilder class="atomicRecombinationRateRadiative"        name="atomicRecombinationRateRadiative_"        source="parameters"                                                      />
+    !# <objectBuilder class="atomicRecombinationRateRadiativeCooling" name="atomicRecombinationRateRadiativeCooling_" source="parameters"                                                      />
+    !# <objectBuilder class="atomicIonizationRateCollisional"         name="atomicIonizationRateCollisional_"         source="parameters"                                                      />
+    !# <objectBuilder class="atomicExcitationRateCollisional"         name="atomicExcitationRateCollisional_"         source="parameters"                                                      />
+    !# <objectBuilder class="intergalacticMediumState"                name="intergalacticMediumState_"                source="parameters"                                                      />
+    !# <objectBuilder class="radiationField"                          name="radiationField_"                          source="parameters" parameterName="radiationFieldIntergalacticBackground"/>
     select type (radiationField_)
     class is (radiationFieldIntergalacticBackground)
        ! This is as expected.

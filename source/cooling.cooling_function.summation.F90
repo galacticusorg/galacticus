@@ -62,7 +62,7 @@ contains
     integer                                          :: i
 
     coolant => null()
-    do i=1,parameters%copiesCount('coolingFunctionMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('coolingFunction',zeroIfNotPresent=.true.)
        if (associated(coolant)) then
           allocate(coolant%next)
           coolant => coolant%next
@@ -297,18 +297,18 @@ contains
     return
   end function summationCoolingFunctionTemperatureLogSlope
 
-  subroutine summationDescriptor(self,descriptor,includeMethod)
+  subroutine summationDescriptor(self,descriptor,includeClass)
     !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
     use :: Input_Parameters, only : inputParameters
     implicit none
     class  (coolingFunctionSummation), intent(inout)           :: self
     type   (inputParameters         ), intent(inout)           :: descriptor
-    logical                          , intent(in   ), optional :: includeMethod
+    logical                          , intent(in   ), optional :: includeClass
     type   (coolantList             ), pointer                 :: coolant
     type   (inputParameters         )                          :: subParameters
 
-    if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter("coolingFunctionMethod","summation")
-    subParameters=descriptor%subparameters("coolingFunctionMethod")
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter("coolingFunction","summation")
+    subParameters=descriptor%subparameters("coolingFunction")
     coolant       => self%coolants
     do while (associated(coolant))
        call coolant%coolingFunction%descriptor(subParameters)

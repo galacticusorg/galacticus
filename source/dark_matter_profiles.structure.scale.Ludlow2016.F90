@@ -92,7 +92,7 @@ contains
     double precision                                                        :: C                            , f, &
          &                                                                     timeFormationSeekDelta
 
-    if (.not.parameters%isPresent('darkMatterProfileScaleRadiusMethod')) call Galacticus_Error_Report('a fallback scale radius method must be specified'//{introspection:location})
+    if (.not.parameters%isPresent('darkMatterProfileScaleRadius')) call Galacticus_Error_Report('a fallback scale radius method must be specified'//{introspection:location})
     !# <inputParameter>
     !#   <name>C</name>
     !#   <source>parameters</source>
@@ -291,14 +291,14 @@ contains
              else
                 timeFormation=ludlow2016States(ludlow2016StateCount)%finder%find(rootGuess= timeFormationPrevious                     ,status=status)
              end if
-             if (status /= errorStatusSuccess)                                                                                                                                     &
-                  & call Galacticus_Error_Report(                                                                                                                                  &
-                  &                              'solving for formation time failed'//char        (10)                                                                          // &
-                  &                              displayGreen()//' HELP:'           //displayReset(  )                                                                          // &
-                  &                              ' if you are using <darkMatterProfileScaleRadiusMethod value="concentration"> as the fall back method for setting scale radii,'// &
-                  &                              ' consider setting <useMeanConcentration value="true"/> in the fall-back method - scatter in the concentration-mass relation'  // &
-                  &                              ' can lead to poor convergence here'                                                                                           // &
-                  &                              {introspection:location}                                                                                                          &
+             if (status /= errorStatusSuccess)                                                                                                                                   &
+                  & call Galacticus_Error_Report(                                                                                                                                &
+                  &                              'solving for formation time failed'//char        (10)                                                                        // &
+                  &                              displayGreen()//' HELP:'           //displayReset(  )                                                                        // &
+                  &                              ' if you are using <darkMatterProfileScaleRadius value="concentration"> as the fall back method for setting scale radii,'    // &
+                  &                              ' consider setting <useMeanConcentration value="true"/> in the fall-back method - scatter in the concentration-mass relation'// &
+                  &                              ' can lead to poor convergence here'                                                                                         // &
+                  &                              {introspection:location}                                                                                                        &
                   &                             )
              ! If requested, check for possible earlier formation times by simply stepping through trial times and finding the
              ! earliest at which the required mass threshold is reached. This is used for cases where the cumulative mass history

@@ -4,47 +4,47 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
-  <taskMethod value="NBodyAnalyze"/>
+  <task value="NBodyAnalyze"/>
 
-  <nbodyImporterMethod value="rockstar">
+  <nbodyImporter value="rockstar">
     <fileName    value="tree_0_0_0.dat"                                   />
     <readColumns value="id scale desc_id pid upid mmp Mvir scale Snap_num"/>
-  </nbodyImporterMethod>
+  </nbodyImporter>
 
-  <nbodyOperatorMethod value="sequence">
-    <nbodyOperatorMethod value="flagAlwaysIsolated"/>
-    <nbodyOperatorMethod value="hostedRootID" >
+  <nbodyOperator value="sequence">
+    <nbodyOperator value="flagAlwaysIsolated"/>
+    <nbodyOperator value="hostedRootID" >
       <missingHalosAreFatal value="false"/>
-    </nbodyOperatorMethod>
-    <nbodyOperatorMethod value="selectProperties"   >
+    </nbodyOperator>
+    <nbodyOperator value="selectProperties"   >
       <propertyName   value="alwaysIsolated"/>
       <selectedValues value="1"             />
-    </nbodyOperatorMethod>
-    <nbodyOperatorMethod value="selectProperties"   >
+    </nbodyOperator>
+    <nbodyOperator value="selectProperties"   >
       <propertyName   value="snapshotID"           />
       <!-- Select snapshots for z = 0.0, 0.49, 0.99, 2.03, 4.04, 7.96 -->
       <selectedValues value="150 132 119 100 77 51"/>
-    </nbodyOperatorMethod>
-    <nbodyOperatorMethod value="selectProperties"   >
+    </nbodyOperator>
+    <nbodyOperator value="selectProperties"   >
       <propertyName   value="hostedRootID"/>
       <selectedValues value=""/>
-    </nbodyOperatorMethod>
-    <nbodyOperatorMethod value="deleteProperties">
+    </nbodyOperator>
+    <nbodyOperator value="deleteProperties">
       <propertyNames value="alwaysIsolated descendentID isolatedHostID hostID isMostMassiveProgenitor"/>
-    </nbodyOperatorMethod>
-    <nbodyOperatorMethod value="exportIRATE">
+    </nbodyOperator>
+    <nbodyOperator value="exportIRATE">
       <fileName value="alwaysIsolated_progenitors_subVolume0_0_0.hdf5"/>
       <snapshot value="1"                                             />
       <redshift value="0.0"                                           />
-    </nbodyOperatorMethod>
-  </nbodyOperatorMethod>
+    </nbodyOperator>
+  </nbodyOperator>
 
-  <cosmologyParametersMethod value="simple">
+  <cosmologyParameters value="simple">
     <HubbleConstant  value="67.770000"/>
     <OmegaMatter     value=" 0.307115"/>
     <OmegaDarkEnergy value=" 0.692885"/>
     <OmegaBaryon     value=" 0.048206"/>
     <temperatureCMB  value=" 2.725480"/>
-  </cosmologyParametersMethod>
+  </cosmologyParameters>
 
 </parameters>

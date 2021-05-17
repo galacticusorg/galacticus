@@ -443,8 +443,8 @@ contains
        allocate(radiationCosmicMicrowaveBackground)
        !# <referenceConstruct object="radiationCosmicMicrowaveBackground" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
        radiationFieldList_%radiationField_ => radiationCosmicMicrowaveBackground
-       if (parameters_%isPresent('radiationFieldIntergalacticBackgroundMethod')) then
-          !# <objectBuilder class="radiationField" name="radiationIntergalacticBackground" parameterName="radiationFieldIntergalacticBackgroundMethod" source="parameters_"/>
+       if (parameters_%isPresent('radiationFieldIntergalacticBackground')) then
+          !# <objectBuilder class="radiationField" name="radiationIntergalacticBackground" parameterName="radiationFieldIntergalacticBackground" source="parameters_"/>
           select type (radiationIntergalacticBackground)
           class is (radiationFieldIntergalacticBackground)
              ! This is as expected.

@@ -40,7 +40,6 @@
      final     ::                starFormationRateDestructor
      procedure :: extract     => starFormationRateExtract
      procedure :: type        => starFormationRateType
-     procedure :: quantity    => starFormationRateQuantity
      procedure :: name        => starFormationRateName
      procedure :: description => starFormationRateDescription
      procedure :: unitsInSI   => starFormationRateUnitsInSI
@@ -133,7 +132,7 @@ contains
   end subroutine starFormationRateDestructor
 
   double precision function starFormationRateExtract(self,node,instance)
-    !% Implement an emission line output analysis property extractor.
+    !% Implement a star formation rate output analysis property extractor.
     implicit none
     class(nodePropertyExtractorStarFormationRate), intent(inout)           :: self
     type (treeNode                              ), intent(inout), target   :: node
@@ -147,7 +146,7 @@ contains
   end function starFormationRateExtract
 
   integer function starFormationRateType(self)
-    !% Return the type of the emission line luminosity property.
+    !% Return the type of the star formation rate property.
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorStarFormationRate), intent(inout) :: self
@@ -156,17 +155,6 @@ contains
     starFormationRateType=outputAnalysisPropertyTypeLinear
     return
   end function starFormationRateType
-
-  integer function starFormationRateQuantity(self)
-    !% Return the class of the emission line luminosity property.
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
-    implicit none
-    class(nodePropertyExtractorStarFormationRate), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    starFormationRateQuantity=outputAnalysisPropertyQuantityLuminosity
-    return
-  end function starFormationRateQuantity
 
   function starFormationRateName(self)
     !% Return the name of the starFormationRate property.

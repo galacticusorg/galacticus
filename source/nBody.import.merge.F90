@@ -62,7 +62,7 @@ contains
     !# </inputParameter>
     self     %importers => null()
     importer_           => null()
-    do i=1,parameters%copiesCount('nbodyImporterMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('nbodyImporter',zeroIfNotPresent=.true.)
        if (associated(importer_)) then
           allocate(importer_%next)
           importer_ => importer_%next

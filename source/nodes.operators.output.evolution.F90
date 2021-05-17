@@ -58,9 +58,9 @@ contains
     !#   <description>The name of the file to which merger tree evolution should be output.</description>
     !#   <source>parameters</source>
     !# </inputParameter>
-    !# <objectBuilder class="galacticFilter" parameterName="galacticFilterMethod" name="galacticFilter_" source="parameters">
+    !# <objectBuilder class="galacticFilter" parameterName="galacticFilter" name="galacticFilter_" source="parameters">
     !#  <default>
-    !#   <galacticFilterMethod value="always"/>
+    !#   <galacticFilter value="always"/>
     !#  </default>
     !# </objectBuilder>
     self=nodeOperatorEvolutionOutput(outputFileName,galacticFilter_)

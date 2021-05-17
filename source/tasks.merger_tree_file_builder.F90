@@ -626,8 +626,8 @@ contains
     ! Get descriptors.
     descriptorPowerSpectrum   =inputParameters()
     descriptorTransferFunction=inputParameters()
-    call self%powerSpectrumPrimordial_%descriptor(descriptorPowerSpectrum   ,includeMethod=.true.)
-    call self%transferFunction_       %descriptor(descriptorTransferFunction,includeMethod=.true.)
+    call self%powerSpectrumPrimordial_%descriptor(descriptorPowerSpectrum   ,includeClass=.true.)
+    call self%transferFunction_       %descriptor(descriptorTransferFunction,includeClass=.true.)
     ! Set metadata.
     call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaMatter'       ,     self%cosmologyParameters_      %OmegaMatter      (                  ) )
     call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaBaryon'       ,     self%cosmologyParameters_      %OmegaBaryon      (                  ) )

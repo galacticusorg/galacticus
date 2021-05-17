@@ -55,7 +55,7 @@ contains
 
     self%mergerTreeBuildMasses_ => null()
     mergerTreeBuildMasses_      => null()
-    do i=1,parameters%copiesCount('mergerTreeBuildMassesMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('mergerTreeBuildMasses',zeroIfNotPresent=.true.)
        if (associated(mergerTreeBuildMasses_)) then
           allocate(mergerTreeBuildMasses_%next)
           mergerTreeBuildMasses_ => mergerTreeBuildMasses_%next

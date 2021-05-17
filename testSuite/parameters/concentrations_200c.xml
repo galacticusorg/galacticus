@@ -3,29 +3,29 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <treeNodeMethodDarkMatterProfile value="scaleShape"/>
-  <virialDensityContrastMethod value="fixed">
+  <componentDarkMatterProfile value="scaleShape"/>
+  <virialDensityContrast value="fixed">
     <densityContrastValue value="200.0"/>
     <densityType value="critical"/>
-  </virialDensityContrastMethod>
-  <nodeOperatorMethod value="multi"><!--Stellar feedback outflows-->
-    <nodeOperatorMethod value="stellarFeedbackDisks">
-      <stellarFeedbackOutflowsMethod value="rateLimit">
+  </virialDensityContrast>
+  <nodeOperator value="multi"><!--Stellar feedback outflows-->
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
         <timescaleOutflowFractionalMinimum value="0.001"/>
-        <stellarFeedbackOutflowsMethod value="powerLaw">
+        <stellarFeedbackOutflows value="powerLaw">
           <velocityCharacteristic value="250.0"/>
           <exponent value="3.5"/>
-        </stellarFeedbackOutflowsMethod>
-      </stellarFeedbackOutflowsMethod>
-    </nodeOperatorMethod>
-    <nodeOperatorMethod value="stellarFeedbackSpheroids">
-      <stellarFeedbackOutflowsMethod value="rateLimit">
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <nodeOperator value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflows value="rateLimit">
         <timescaleOutflowFractionalMinimum value="0.001"/>
-        <stellarFeedbackOutflowsMethod value="powerLaw">
+        <stellarFeedbackOutflows value="powerLaw">
           <velocityCharacteristic value="250.0"/>
           <exponent value="3.5"/>
-        </stellarFeedbackOutflowsMethod>
-      </stellarFeedbackOutflowsMethod>
-    </nodeOperatorMethod>
-  </nodeOperatorMethod>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+  </nodeOperator>
 </parameters>

@@ -161,7 +161,7 @@
   !#     [mergerTreeReadPresetMergerTimes]}$=${\normalfont \ttfamily true} then merger times for satellites will be computed directly
   !#   from the merger tree data read from file. When a subhalo has an isolated halo as a descendent it is assumed to undergo a merger
   !#   with that isolated halo at that time. Note that this requires a satellite orbit component method which supports setting of merger
-  !#   times (e.g. {\normalfont \ttfamily [treeNodeMethodSatelliteOrbit]}$=${\normalfont \ttfamily preset}).
+  !#   times (e.g. {\normalfont \ttfamily [componentSatellite]}$=${\normalfont \ttfamily preset}).
   !#   
   !#   \textbf{Dark Matter Halo Spins:}\index{dark matter halo!spin} If {\normalfont \ttfamily
   !#     [mergerTreeReadPresetSpins]}$=${\normalfont \ttfamily true} and the {\normalfont \ttfamily angularMomentum} dataset is available
@@ -398,7 +398,7 @@ contains
     allocate(fileNames(fileCount))
     !# <inputParameter>
     !#   <name>fileNames</name>
-    !#   <description>The name of the file(s) from which merger tree data should be read when using the {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\normalfont \ttfamily read} tree construction method.</description>
+    !#   <description>The name of the file(s) from which merger tree data should be read when using the {\normalfont \ttfamily [mergerTreeConstruct]}$=${\normalfont \ttfamily read} tree construction method.</description>
     !#   <source>parameters</source>
     !# </inputParameter>
     !# <inputParameter>
@@ -556,7 +556,7 @@ contains
     if (size(presetNamedReals   ) > 0) then
        !# <inputParameter>
        !#   <name>presetNamedReals</name>
-       !#   <description>Names of real datasets to be additionally read and stored in the nodes of the merger tree when using the {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\normalfont \ttfamily read} tree construction method.</description>
+       !#   <description>Names of real datasets to be additionally read and stored in the nodes of the merger tree when using the {\normalfont \ttfamily [mergerTreeConstruct]}$=${\normalfont \ttfamily read} tree construction method.</description>
        !#   <source>parameters</source>
        !# </inputParameter>
     end if
@@ -564,23 +564,23 @@ contains
     if (size(presetNamedIntegers) > 0) then
        !# <inputParameter>
        !#   <name>presetNamedIntegers</name>
-       !#   <description>Names of integer datasets to be additionally read and stored in the nodes of the merger tree when using the {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\normalfont \ttfamily read} tree construction method.</description>
+       !#   <description>Names of integer datasets to be additionally read and stored in the nodes of the merger tree when using the {\normalfont \ttfamily [mergerTreeConstruct]}$=${\normalfont \ttfamily read} tree construction method.</description>
        !#   <source>parameters</source>
        !# </inputParameter>
     end if
-    !# <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"                                                                                  />
-    !# <objectBuilder class="mergerTreeImporter"             name="mergerTreeImporter_"             source="parameters"                                                                                  />
-    !# <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"                                                                                  />
-    !# <objectBuilder class="darkMatterProfileDMO"           name="darkMatterProfileDMO_"           source="parameters"                                                                                  />
-    !# <objectBuilder class="darkMatterProfileConcentration" name="darkMatterProfileConcentration_" source="parameters"                                                                                  />
-    !# <objectBuilder class="haloSpinDistribution"           name="haloSpinDistribution_"           source="parameters"                                                                                  />
-    !# <objectBuilder class="virialOrbit"                    name="virialOrbit_"                    source="parameters"                                                                                  />
-    !# <objectBuilder class="outputTimes"                    name="outputTimes_"                    source="parameters"                                                                                  />
-    !# <objectBuilder class="darkMatterProfileScaleRadius"   name="darkMatterProfileScaleRadius_"   source="parameters"                                                                                  />
-    !# <objectBuilder class="randomNumberGenerator"          name="randomNumberGenerator_"          source="parameters"                                                                                  />
-    !# <objectBuilder class="satelliteMergingTimescales"     name="satelliteMergingTimescales_"     source="parameters" parameterName="satelliteMergingTimescalesSubresolutionMethod" threadPrivate="yes" >
+    !# <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"                                                                            />
+    !# <objectBuilder class="mergerTreeImporter"             name="mergerTreeImporter_"             source="parameters"                                                                            />
+    !# <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"                                                                            />
+    !# <objectBuilder class="darkMatterProfileDMO"           name="darkMatterProfileDMO_"           source="parameters"                                                                            />
+    !# <objectBuilder class="darkMatterProfileConcentration" name="darkMatterProfileConcentration_" source="parameters"                                                                            />
+    !# <objectBuilder class="haloSpinDistribution"           name="haloSpinDistribution_"           source="parameters"                                                                            />
+    !# <objectBuilder class="virialOrbit"                    name="virialOrbit_"                    source="parameters"                                                                            />
+    !# <objectBuilder class="outputTimes"                    name="outputTimes_"                    source="parameters"                                                                            />
+    !# <objectBuilder class="darkMatterProfileScaleRadius"   name="darkMatterProfileScaleRadius_"   source="parameters"                                                                            />
+    !# <objectBuilder class="randomNumberGenerator"          name="randomNumberGenerator_"          source="parameters"                                                                            />
+    !# <objectBuilder class="satelliteMergingTimescales"     name="satelliteMergingTimescales_"     source="parameters" parameterName="satelliteMergingTimescalesSubresolution" threadPrivate="yes" >
     !#  <default>
-    !#   <satelliteMergingTimescalesSubresolutionMethod value="zero"/>
+    !#   <satelliteMergingTimescalesSubresolution value="zero"/>
     !#  </default>
     !# </objectBuilder>
     self=mergerTreeConstructorRead(                                                                                                                     &
@@ -1141,51 +1141,51 @@ contains
           ! Check that all required properties exist.
           if (self%presetPositions.or.self%presetOrbits) then
              ! Position and velocity methods are required.
-             if     (                                                                                                                                                     &
-                  &  .not.(                                                                                                                                               &
-                  &         defaultPositionComponent%positionIsSettable()                                                                                                 &
-                  &        .and.                                                                                                                                          &
-                  &         defaultPositionComponent%velocityIsSettable()                                                                                                 &
-                  &       )                                                                                                                                               &
-                  & )                                                                                                                                                     &
-                  & call Galacticus_Error_Report                                                                                                                          &
-                  &      (                                                                                                                                                &
-                  &       'presetting positions or orbits requires a component that supports position and velocity setting (e.g. set [treeNodeMethodPosition]=preset);'// &
-                  &       Galacticus_Component_List(                                                                                                                      &
-                  &                                 'position'                                                                                                          , &
-                  &                                  defaultPositionComponent        %     positionAttributeMatch(requireSettable=.true.)                                 &
-                  &                                 .intersection.                                                                                                        &
-                  &                                  defaultPositionComponent        %     velocityAttributeMatch(requireSettable=.true.)                                 &
-                  &                                )                                                                                                                   // &
-                  &       char(10)                                                                                                                                     // &
-                  &       'alternatively setting [presetPositions]=false and [presetOrbits]=false will remove the need to store positions and velocities'              // &
-                  &       {introspection:location}                                                                                                                        &
+             if     (                                                                                                                                                &
+                  &  .not.(                                                                                                                                          &
+                  &         defaultPositionComponent%positionIsSettable()                                                                                            &
+                  &        .and.                                                                                                                                     &
+                  &         defaultPositionComponent%velocityIsSettable()                                                                                            &
+                  &       )                                                                                                                                          &
+                  & )                                                                                                                                                &
+                  & call Galacticus_Error_Report                                                                                                                     &
+                  &      (                                                                                                                                           &
+                  &       'presetting positions or orbits requires a component that supports position and velocity setting (e.g. set [componentPosition]=preset);'// &
+                  &       Galacticus_Component_List(                                                                                                                 &
+                  &                                 'position'                                                                                                     , &
+                  &                                  defaultPositionComponent        %     positionAttributeMatch(requireSettable=.true.)                            &
+                  &                                 .intersection.                                                                                                   &
+                  &                                  defaultPositionComponent        %     velocityAttributeMatch(requireSettable=.true.)                            &
+                  &                                )                                                                                                              // &
+                  &       char(10)                                                                                                                                // &
+                  &       'alternatively setting [presetPositions]=false and [presetOrbits]=false will remove the need to store positions and velocities'         // &
+                  &       {introspection:location}                                                                                                                   &
                   & )
           end if
           if (self%presetMergerTimes) then
              ! Time of merging property is required.
-             if (.not.defaultSatelliteComponent%timeOfMergingIsSettable      ())                                                                                          &
-                  & call Galacticus_Error_Report                                                                                                                          &
-                  &      (                                                                                                                                                &
-                  &       'presetting merging times requires a component that supports setting of merging times.'                                                      // &
-                  &       Galacticus_Component_List(                                                                                                                      &
-                  &                                 'satellite'                                                                                                         , &
-                  &                                  defaultSatelliteComponent       %timeOfMergingAttributeMatch(requireSettable=.true.)                                 &
-                  &                                 )                                                                                                                  // &
-                  &       {introspection:location}                                                                                                                        &
+             if (.not.defaultSatelliteComponent%timeOfMergingIsSettable      ())                                                                                     &
+                  & call Galacticus_Error_Report                                                                                                                     &
+                  &      (                                                                                                                                           &
+                  &       'presetting merging times requires a component that supports setting of merging times.'                                                 // &
+                  &       Galacticus_Component_List(                                                                                                                 &
+                  &                                 'satellite'                                                                                                    , &
+                  &                                  defaultSatelliteComponent       %timeOfMergingAttributeMatch(requireSettable=.true.)                            &
+                  &                                 )                                                                                                             // &
+                  &       {introspection:location}                                                                                                                   &
                   &      )
           end if
           if (self%presetScaleRadii) then
              ! Scale radius property is required.
-             if (.not.defaultDarkMatterProfileComponent%scaleIsSettable      ())                                                                                          &
-                  & call Galacticus_Error_Report                                                                                                                          &
-                  &      (                                                                                                                                                &
-                  &       'presetting scale radii requires a component that supports setting of scale radii.'                                                          // &
-                  &       Galacticus_Component_List(                                                                                                                      &
-                  &                                 'darkMatterProfile'                                                                                                 , &
-                  &                                 defaultDarkMatterProfileComponent%        scaleAttributeMatch(requireSettable=.true.)                                 &
-                  &                                )                                                                                                                   // &
-                  &       {introspection:location}                                                                                                                        &
+             if (.not.defaultDarkMatterProfileComponent%scaleIsSettable      ())                                                                                     &
+                  & call Galacticus_Error_Report                                                                                                                     &
+                  &      (                                                                                                                                           &
+                  &       'presetting scale radii requires a component that supports setting of scale radii.'                                                     // &
+                  &       Galacticus_Component_List(                                                                                                                 &
+                  &                                 'darkMatterProfile'                                                                                            , &
+                  &                                 defaultDarkMatterProfileComponent%        scaleAttributeMatch(requireSettable=.true.)                            &
+                  &                                )                                                                                                              // &
+                  &       {introspection:location}                                                                                                                   &
                   &      )
           end if
           if (self%presetSpins      ) then
@@ -1219,7 +1219,7 @@ contains
              if (.not.defaultSatelliteComponent        %virialOrbitIsSettable())                                                                                          &
                   & call Galacticus_Error_Report                                                                                                                          &
                   &      (                                                                                                                                                &
-                  &       'presetting orbits requires a component that supports setting of orbits (e.g. [treeNodeMethodSatelliteOrbit]=preset);'                       // &
+                  &       'presetting orbits requires a component that supports setting of orbits (e.g. [componentSatellite]=preset);'                                 // &
                   &       Galacticus_Component_List(                                                                                                                      &
                   &                                 'satellite'                                                                                                         , &
                   &                                 defaultSatelliteComponent        %  virialOrbitAttributeMatch(requireSettable=.true.)                                 &

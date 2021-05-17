@@ -16,8 +16,8 @@ die("FAILED: failed to run calculation")
 # Read model output and parameters.
 my $outputFile                                                                    = new PDL::IO::HDF5('outputs/radiativeTransfer-StromgrenSphere:MPI0000.hdf5');
 my $parameters                                                                    = $outputFile         ->group  ('Parameters'                                                        )       ;
-my $recombination                                                                 = $parameters         ->group  ('atomicRecombinationRateRadiativeMethod'                            )       ;
-my $computationalDomain                                                           = $parameters         ->group  ('computationalDomainMethod'                                         )       ;
+my $recombination                                                                 = $parameters         ->group  ('atomicRecombinationRateRadiative'                                  )       ;
+my $computationalDomain                                                           = $parameters         ->group  ('computationalDomain'                                               )       ;
 my $model                                                                         = $outputFile         ->group  ('radiativeTransferModel'                                            )       ;
 my $densityNumber                                                                 = $model              ->dataset('densityNumberH'                                                    )->get();
 my $fractionHydrogenII                                                            = $model              ->dataset('fractionHII'                                                       )->get();

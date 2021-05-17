@@ -35,7 +35,6 @@ module Accretion_Halos
   !#   gas.
   !#  </description>
   !#  <default>simple</default>
-  !#  <calculationReset>yes</calculationReset>
   !#  <method name="branchHasBaryons" >
   !#   <description>Returns {\normalfont \ttfamily true} if this tree branch may accrete baryons, and {\normalfont \ttfamily false} otherwise.</description>
   !#   <type>logical</type>

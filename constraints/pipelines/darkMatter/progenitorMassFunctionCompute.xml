@@ -4,17 +4,17 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
-  <taskMethod value="NBodyAnalyze"/>
+  <task value="NBodyAnalyze"/>
 
-  <nbodyImporterMethod value="merge">
-  </nbodyImporterMethod>
+  <nbodyImporter value="merge">
+  </nbodyImporter>
 
-  <nbodyOperatorMethod value="sequence">
-    <nbodyOperatorMethod value="addAttributes">
+  <nbodyOperator value="sequence">
+    <nbodyOperator value="addAttributes">
       <names  value="massParticle"/>
       <values value="1.0e9"       />
-    </nbodyOperatorMethod>
-    <nbodyOperatorMethod value="progenitorMassFunction">
+    </nbodyOperator>
+    <nbodyOperator value="progenitorMassFunction">
       <description                       value=""                 />
       <simulationReference               value=""                 />
       <simulationURL                     value=""                 />
@@ -26,7 +26,7 @@
       <massRatioProgenitorCountPerDecade value="5"                />
       <snapshotParents                   value="150"              />
       <snapshotsProgenitors              value="132 119 100 77 51"/>      
-    </nbodyOperatorMethod>
-  </nbodyOperatorMethod>
+    </nbodyOperator>
+  </nbodyOperator>
   
 </parameters>

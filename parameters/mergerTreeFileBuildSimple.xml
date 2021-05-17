@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- Parameter file for building merger tree files from a simple CSV file. -->
 <parameters>
-  <taskMethod value="mergerTreeFileBuilder">
+  <task value="mergerTreeFileBuilder">
 
     <inputFileName value="forests.csv"/>
     <outputFileName value="forests.hdf5"/>
@@ -53,25 +53,25 @@
       <name value="redshift"/>
       <column value="6"/>
     </property>
-  </taskMethod>
-  <nodeOperatorMethod value="multi"><!--Stellar feedback outflows-->
-    <nodeOperatorMethod value="stellarFeedbackDisks">
-      <stellarFeedbackOutflowsMethod value="rateLimit">
+  </task>
+  <nodeOperator value="multi"><!--Stellar feedback outflows-->
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
         <timescaleOutflowFractionalMinimum value="0.001"/>
-        <stellarFeedbackOutflowsMethod value="powerLaw">
+        <stellarFeedbackOutflows value="powerLaw">
           <velocityCharacteristic value="250.0"/>
           <exponent value="3.5"/>
-        </stellarFeedbackOutflowsMethod>
-      </stellarFeedbackOutflowsMethod>
-    </nodeOperatorMethod>
-    <nodeOperatorMethod value="stellarFeedbackSpheroids">
-      <stellarFeedbackOutflowsMethod value="rateLimit">
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <nodeOperator value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflows value="rateLimit">
         <timescaleOutflowFractionalMinimum value="0.001"/>
-        <stellarFeedbackOutflowsMethod value="powerLaw">
+        <stellarFeedbackOutflows value="powerLaw">
           <velocityCharacteristic value="250.0"/>
           <exponent value="3.5"/>
-        </stellarFeedbackOutflowsMethod>
-      </stellarFeedbackOutflowsMethod>
-    </nodeOperatorMethod>
-  </nodeOperatorMethod>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+  </nodeOperator>
 </parameters>

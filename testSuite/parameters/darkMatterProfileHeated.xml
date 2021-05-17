@@ -3,5 +3,5 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <treeNodeMethodSatellite value="orbiting"/>
+  <componentSatellite value="orbiting"/>
 </parameters>

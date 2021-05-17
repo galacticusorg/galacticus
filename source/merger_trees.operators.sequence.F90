@@ -60,7 +60,7 @@ contains
 
     self     %operators => null()
     operator_           => null()
-    do i=1,parameters%copiesCount('mergerTreeOperatorMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('mergerTreeOperator',zeroIfNotPresent=.true.)
        if (associated(operator_)) then
           allocate(operator_%next)
           operator_ => operator_%next

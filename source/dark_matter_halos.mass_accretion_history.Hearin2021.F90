@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of dark matter halo mass accretion histories using Andrew Hearin's rolling power-law model.
+  !% An implementation of dark matter halo mass accretion histories using the rolling power-law model of \cite{hearin_differentiable_2021}.
 
   !# <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryHearin2021">
-  !#  <description>Dark matter halo mass accretion histories using Andrew Hearin's rolling power-law model.</description>
+  !#  <description>Dark matter halo mass accretion histories using the rolling power-law model of \cite{hearin_differentiable_2021}.</description>
   !# </darkMatterHaloMassAccretionHistory>
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryHearin2021
-     !% A dark matter halo mass accretion history class using Andrew Hearin's rolling power-law model.
+     !% A dark matter halo mass accretion history class using the rolling power-law model of \cite{hearin_differentiable_2021}.
      private
      double precision :: powerLawIndexEarly, powerLawIndexLate, &
           &              rateRollOver      , timeMaximum

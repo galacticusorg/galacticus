@@ -30,7 +30,6 @@ module Geometry_Lightcones
   !#  <descriptiveName>Lightcone Geometries</descriptiveName>
   !#  <description>Class providing geometries of lightcones.</description>
   !#  <default>square</default>
-  !#  <calculationReset>yes</calculationReset>
   !#  <method name="isInLightcone" >
   !#   <description>Returns true if the provided node lies within the lightcone.</description>
   !#   <type>logical</type>

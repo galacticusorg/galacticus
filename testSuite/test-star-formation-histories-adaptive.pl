@@ -27,10 +27,10 @@ if ( $? == 0 ) {
 
 # Read the model data and check for consistency.
 my $model                  = new PDL::IO::HDF5("outputs/test-star-formation-histories-adapative/galacticus.hdf5");
-my $outputs                = $model            ->group  ('Outputs'               )                                  ;
-my $starFormationHistories = $model            ->group  ('starFormationHistories')                                  ;
-my $stellarPopulation      = $model            ->group  ('Parameters'            )->group('stellarPopulationMethod');
-(my $recycledFraction)     = $stellarPopulation->attrGet('recycledFraction'      )                                  ;
+my $outputs                = $model            ->group  ('Outputs'               )                            ;
+my $starFormationHistories = $model            ->group  ('starFormationHistories')                            ;
+my $stellarPopulation      = $model            ->group  ('Parameters'            )->group('stellarPopulation');
+(my $recycledFraction)     = $stellarPopulation->attrGet('recycledFraction'      )                            ;
 foreach my $outputName ( sort($outputs->groups()) ) {
     print $outputName.":\n";
     # Read stellar masses of disk and bulge, along with node and tree indices.

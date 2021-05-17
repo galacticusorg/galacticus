@@ -62,7 +62,7 @@ contains
 
     self     %radiationFields => null()
     radiationField_           => null()
-    do i=1,parameters%copiesCount('radiationFieldMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('radiationField',zeroIfNotPresent=.true.)
        if (associated(radiationField_)) then
           allocate(radiationField_%next)
           radiationField_ => radiationField_%next

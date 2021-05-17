@@ -70,8 +70,8 @@ sub Process_ObjectBuilder {
 		$returnValueLabel = $node->{'parent'}->{'name'}; 
 	    }
 	    # Determine the parameter name.
-	    my $parameterName = exists($node->{'directive'}->{'parameterName'}) ? $node->{'directive'}->{'parameterName'} : $node->{'directive'}->{'class'}."Method";
-	    my $defaultName   = $parameterName eq $node->{'directive'}->{'class'}."Method";
+	    my $parameterName = exists($node->{'directive'}->{'parameterName'}) ? $node->{'directive'}->{'parameterName'} : $node->{'directive'}->{'class'};
+	    my $defaultName   = $parameterName eq $node->{'directive'}->{'class'};
 	    die("objects with defaults must have explicit parameter names")
 		if ( exists($node->{'directive'}->{'default'}) && ! exists($node->{'directive'}->{'parameterName'}) );
 	    # If including debugging information determine what will own the built object.

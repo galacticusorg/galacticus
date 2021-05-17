@@ -58,25 +58,26 @@
           &                                                                        factorWavelength
      integer                                                                    :: abundanceIndex                        , frame
      logical                                                                    :: useSEDTemplates
-     type            (varying_string               )                            :: fileName
    contains
      !# <methods>
-     !#  <method description="Return the index of the template SEDs to use."                                                         method="indexTemplateTime"/>
-     !#  <method description="Return the index of the template SEDs to use."                                                         method="indexTemplateNode"/>
-     !#  <method description="Compute the mean luminosity of the stellar population in the given bin of the star formation history." method="luminosityMean"   />
+     !#  <method description="Return the index of the template SEDs to use."                                                                               method="indexTemplateTime"      />
+     !#  <method description="Return the index of the template SEDs to use."                                                                               method="indexTemplateNode"      />
+     !#  <method description="Compute the mean luminosity of the stellar population in the given bin of the star formation history."                       method="luminosityMean"         />
+     !#  <method description="Return a hashed descriptor of the object which incorporates the time and metallicity binning of the star formation history." method="historyHashedDescriptor"/>
      !# </methods>
-     final     ::                       sedDestructor
-     procedure :: columnDescriptions => sedColumnDescriptions
-     procedure :: size               => sedSize
-     procedure :: elementCount       => sedElementCount
-     procedure :: extract            => sedExtract
-     procedure :: names              => sedNames
-     procedure :: descriptions       => sedDescriptions
-     procedure :: unitsInSI          => sedUnitsInSI
-     procedure :: type               => sedType
-     procedure :: luminosityMean     => sedLuminosityMean
-     procedure :: indexTemplateTime  => sedIndexTemplateTime
-     procedure :: indexTemplateNode  => sedIndexTemplateNode
+     final     ::                            sedDestructor
+     procedure :: historyHashedDescriptor => sedHistoryHashedDescriptor
+     procedure :: columnDescriptions      => sedColumnDescriptions
+     procedure :: size                    => sedSize
+     procedure :: elementCount            => sedElementCount
+     procedure :: extract                 => sedExtract
+     procedure :: names                   => sedNames
+     procedure :: descriptions            => sedDescriptions
+     procedure :: unitsInSI               => sedUnitsInSI
+     procedure :: type                    => sedType
+     procedure :: luminosityMean          => sedLuminosityMean
+     procedure :: indexTemplateTime       => sedIndexTemplateTime
+     procedure :: indexTemplateNode       => sedIndexTemplateNode
   end type nodePropertyExtractorSED
 
   interface nodePropertyExtractorSED
@@ -147,7 +148,6 @@ contains
   function sedConstructorInternal(component,frame,wavelengthMinimum,wavelengthMaximum,resolution,stellarPopulationSpectra_,starFormationHistory_,outputTimes_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily sed} property extractor class.
     use :: Atomic_Data                     , only : Abundance_Pattern_Lookup
-    use :: Galacticus_Paths                , only : galacticusPath          , pathTypeDataDynamic
     use :: Galactic_Structure_Options      , only : componentTypeDisk       , componentTypeSpheroid
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
@@ -177,12 +177,6 @@ contains
     self%metallicityPopulationMinimum=metallicities(                 1)/metallicitySolar
     self%abundanceIndex              =Abundance_Pattern_Lookup(abundanceName="solar")
     self%useSEDTemplates             =self%starFormationHistory_%perOutputTabualtionIsStatic()
-    self%fileName                    =galacticusPath(pathTypeDataDynamic)              // &
-         &                            'stellarPopulations/'                            // &
-         &                            self%objectType      (                          )// &
-         &                            '_'                                              // &
-         &                            self%hashedDescriptor(includeSourceDigest=.true.)// &
-         &                            '.hdf5'
     ! Compute the factor by which the minimum/maximum wavelength in a resolution element differ from the central wavelength.
     if (resolution > 0.0d0) self%factorWavelength=(1.0d0+sqrt(1.0d0+4.0d0*resolution**2))/2.0d0/resolution
     return
@@ -454,22 +448,25 @@ contains
   
   integer function sedIndexTemplateNode(self,node,starFormationHistory)
     !% Find the index of the template SEDs to use, and also compute the template.
+    use :: Display             , only : displayMessage    , verbosityLevelWorking
     use :: Galacticus_Nodes    , only : nodeComponentBasic
     use :: Histories           , only : history
     use :: ISO_Varying_String  , only : var_str
     use :: IO_HDF5             , only : hdf5Access        , hdf5Object
     use :: Numerical_Comparison, only : Values_Agree
-    use :: File_Utilities      , only : File_Exists       , File_Lock , File_Unlock, lockDescriptor
+    use :: File_Utilities      , only : File_Exists       , File_Lock            , File_Unlock, lockDescriptor
     use :: String_Handling     , only : operator(//)
+    use :: Galacticus_Paths    , only : galacticusPath    , pathTypeDataDynamic
     implicit none
-    class  (nodePropertyExtractorSED), intent(inout) :: self
-    type   (treeNode                ), intent(inout) :: node
-    type   (history                 ), intent(in   ) :: starFormationHistory
-    class  (nodeComponentBasic      ), pointer       :: basic
-    integer(c_size_t                )                :: indexOutput
-    type   (lockDescriptor          )                :: fileLock
-    type   (hdf5Object              )                :: file
-    type   (varying_string          )                :: datasetName
+    class    (nodePropertyExtractorSED), intent(inout) :: self
+    type     (treeNode                ), intent(inout) :: node
+    type     (history                 ), intent(in   ) :: starFormationHistory
+    class    (nodeComponentBasic      ), pointer       :: basic
+    integer  (c_size_t                )                :: indexOutput
+    type     (lockDescriptor          )                :: fileLock
+    type     (hdf5Object              )                :: file
+    type     (varying_string          )                :: datasetName         , fileName
+    character(len=16                  )                :: label
 
     ! Return a negative index if templates are not being used.
     sedIndexTemplateNode=-1
@@ -482,21 +479,34 @@ contains
     ! Ensure that the templates have been built for this index.
     if (.not.allocated(self%templates)) allocate(self%templates(self%outputTimes_%count()))
     if (.not.allocated(self%templates(sedIndexTemplateNode)%sed)) then
+       ! Construct the file name.
+       fileName=galacticusPath(pathTypeDataDynamic)                    // &
+            &        'stellarPopulations/'                             // &
+            &        self%objectType             (                    )// &
+            &        '_'                                               // &
+            &        self%historyHashedDescriptor(starFormationHistory)// &
+            &        '.hdf5'
        ! Check if the templates can be retrieved from file.
        datasetName=var_str("sedTemplates")//indexOutput
        !! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       call File_Lock(char(self%fileName),fileLock,lockIsShared=.false.)
-       if (File_Exists(self%fileName)) then
+       call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
+       if (File_Exists(fileName)) then
           !$ call hdf5Access%set()
-          call file%openFile(char(self%fileName))
-          if (file%hasDataset(char(datasetName))) call file%readDataset(char(datasetName),self%templates(sedIndexTemplateNode)%sed)
+          call file%openFile(char(fileName))
+          if (file%hasDataset(char(datasetName))) then
+             write (label,'(f12.8)') self%outputTimes_%time(indexOutput
+             call displayMessage("reading SED tabulation for time "//trim(adjustl(label))//" Gyr from file '"//fileName//"'",verbosityLevelWorking)
+             call file%readDataset(char(datasetName),self%templates(sedIndexTemplateNode)%sed)
+          end if
           call file%close()
           !$ call hdf5Access%unset()
        end if
        if (.not.allocated(self%templates(sedIndexTemplateNode)%sed)) then
           self%templates(sedIndexTemplateNode)%sed=self%luminosityMean(self%outputTimes_%time(indexOutput),starFormationHistory,parallelize=.true.)
+          write (label,'(f12.8)') self%outputTimes_%time(indexOutput
+          call displayMessage("storing SED tabulation for time "//trim(adjustl(label))//" Gyr to file '"//fileName//"'",verbosityLevelWorking)
           !$ call hdf5Access%set()
-          call file%openFile(char(self%fileName),overWrite=.false.,readOnly=.false.)
+          call file%openFile(char(fileName),overWrite=.false.,readOnly=.false.)
           call file%writeDataset(self%templates(sedIndexTemplateNode)%sed,char(datasetName))
           call file%close()
           !$ call hdf5Access%unset()
@@ -514,6 +524,8 @@ contains
     use    :: Galacticus_Error     , only : Galacticus_Error_Report
     use    :: Histories            , only : history
     use    :: Numerical_Integration, only : integrator
+    use    :: Multi_Counters       , only : multiCounter
+    use    :: Locks                , only : ompLock
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
     implicit none
     double precision                               , dimension(:,:,:), allocatable :: sedLuminosityMean
@@ -524,10 +536,12 @@ contains
     class           (stellarPopulationSpectraClass), pointer         , save        :: stellarPopulationSpectra_
     type            (integrator                   ), allocatable     , save        :: integratorTime           , integratorMetallicity, &
          &                                                                            integratorWavelength
-    integer                                        , dimension(:    ), allocatable :: jWavelength
+    integer         (c_size_t                     ), dimension(:    ), allocatable :: jWavelength
     double precision                               , dimension(:    ), allocatable :: wavelengthMinima         , wavelengthMaxima
-    integer                                                                        :: iWavelength              , iTime                , &
-         &                                                                            iMetallicity             , kWavelength
+    integer         (c_size_t                     )                                :: iWavelength              , iTime                , &
+         &                                                                            iMetallicity             , kWavelength          , &
+         &                                                                            counter                  , counterMaximum       , &
+         &                                                                            iterator
     double precision                                                               :: metallicityMinimum       , metallicityMaximum   , &
          &                                                                            expansionFactor
     double precision                                                 , save        :: timeMinimum              , timeMaximum          , &
@@ -535,7 +549,8 @@ contains
          &                                                                            wavelengthMaximum        , age
     type            (abundances                   )                  , save        :: abundancesStellar
     character       (len=12                       )                                :: label
-    integer                                                                        :: counter
+    type            (multiCounter                 )                                :: state
+    type            (ompLock                      )                                :: stateLock
     !$omp threadprivate(stellarPopulationSpectra_,integratorTime,integratorWavelength,integratorMetallicity,abundancesStellar,wavelength,wavelengthMinimum,wavelengthMaximum,timeMinimum,timeMaximum,age)
     !# <optionalArgument name="parallelize" defaultsTo=".false." />
 
@@ -570,9 +585,12 @@ contains
        do iWavelength=2,size(wavelengthMinima)
           wavelengthMinima(iWavelength)=wavelengthMaxima(iWavelength-1)
           wavelengthMaxima(iWavelength)=wavelengthMinima(iWavelength  )*self%factorWavelength**2
-      end do
+       end do
     end if
-    counter=-1
+    counter       =-1
+    counterMaximum=product     ([size(sedLuminosityMean,dim=1),size(starFormationHistory%data,dim=1),size(starFormationHistory%data,dim=2)])
+    state         =multiCounter([size(sedLuminosityMean,dim=1,kind=c_size_t),size(starFormationHistory%data,dim=1,kind=c_size_t),size(starFormationHistory%data,dim=2,kind=c_size_t)])
+    stateLock     =ompLock     (                                                                                                           )
     !$omp parallel private (iWavelength,iTime,iMetallicity,metallicityMinimum,metallicityMaximum)
     allocate(integratorTime       )
     allocate(integratorMetallicity)
@@ -593,12 +611,25 @@ contains
        call displayIndent("computing template SEDs for time "//trim(adjustl(label))//" Gyr",verbosityLevelWorking)
     end if
     !$omp end master
+    ! Iterate over (wavelength,time,metallicity).
     !$omp do
-    do iWavelength=1,size(sedLuminosityMean,dim=1)
+    do iterator=0,counterMaximum-1
+       call stateLock%  set()
+       if (state%increment()) then
+          iWavelength =state%state(1_c_size_t)
+          iTime       =state%state(2_c_size_t)
+          iMetallicity=state%state(3_c_size_t)
+       else
+          iWavelength =0_c_size_t
+          iTime       =0_c_size_t
+          iMetallicity=0_c_size_t
+          call Galacticus_Error_Report('unable to increment counter'//{introspection:location})
+       end if
+       call stateLock%unset()
        if (parallelize_) then
           !$omp atomic
           counter=counter+1
-          call displayCounter(percentageComplete=int(100.0d0*dble(counter)/dble(size(sedLuminosityMean,dim=1))),isNew=counter==0,verbosity=verbosityLevelWorking)
+          call displayCounter(percentageComplete=int(100.0d0*dble(counter)/dble(counterMaximum)),isNew=counter==0,verbosity=verbosityLevelWorking)
        end if
        ! Determine the wavelength.
        if (self%resolution < 0.0d0) then
@@ -609,38 +640,35 @@ contains
           wavelengthMinimum=wavelengthMinima(iWavelength)*expansionFactor
           wavelengthMaximum=wavelengthMaxima(iWavelength)*expansionFactor
        end if
-       ! Iterate over times and metallicities in the star formation history.
-       do iTime=1,size(starFormationHistory%data,dim=1)
-          if (iTime == 1) then
-             timeMinimum=                         0.0d0
-          else
-             timeMinimum=    starFormationHistory%time(iTime-1)
-          end if
-          timeMaximum   =min(starFormationHistory%time(iTime  ),time)
-          if (timeMaximum <= timeMinimum) cycle
-          do iMetallicity=1,size(starFormationHistory%data,dim=2)
-             if (iMetallicity == 1) then
-                metallicityMinimum=                                                   self%metallicityPopulationMinimum
-             else
-                metallicityMinimum=min(max(self%metallicityBoundaries(iMetallicity-1),self%metallicityPopulationMinimum),self%metallicityPopulationMaximum)
-             end if
-             metallicityMaximum   =min(max(self%metallicityBoundaries(iMetallicity  ),self%metallicityPopulationMinimum),self%metallicityPopulationMaximum)
-             if (metallicityMaximum > metallicityMinimum) then
-                sedLuminosityMean(iWavelength,iTime,iMetallicity)=+integratorMetallicity%integrate(metallicityMinimum,metallicityMaximum) &
-                     &                                            /                               (timeMaximum       -timeMinimum       ) &
-                     &                                            /                               (metallicityMaximum-metallicityMinimum)
-             else
-                call abundancesStellar%metallicitySet(                                                       &
-                     &                                metallicity    =     metallicityMinimum              , &
-                     &                                metallicityType=     metallicityTypeLinearByMassSolar, &
-                     &                                adjustElements =     adjustElementsReset             , &
-                     &                                abundanceIndex =self%abundanceIndex                    &
-                     &                               )
-                sedLuminosityMean(iWavelength,iTime,iMetallicity)=+integratorTime       %integrate(timeMinimum       ,timeMaximum       ) &
-                     &                                            /                               (timeMaximum       -timeMinimum       )
-             end if
-          end do
-       end do
+       ! Determine times.
+       if (iTime == 1) then
+          timeMinimum=                         0.0d0
+       else
+          timeMinimum=    starFormationHistory%time(iTime-1)
+       end if
+       timeMaximum   =min(starFormationHistory%time(iTime  ),time)
+       if (timeMaximum <= timeMinimum) cycle
+       ! Determine metllicities.
+       if (iMetallicity == 1) then
+          metallicityMinimum=                                                   self%metallicityPopulationMinimum
+       else
+          metallicityMinimum=min(max(self%metallicityBoundaries(iMetallicity-1),self%metallicityPopulationMinimum),self%metallicityPopulationMaximum)
+       end if
+       metallicityMaximum   =min(max(self%metallicityBoundaries(iMetallicity  ),self%metallicityPopulationMinimum),self%metallicityPopulationMaximum)
+       if (metallicityMaximum > metallicityMinimum) then
+          sedLuminosityMean(iWavelength,iTime,iMetallicity)=+integratorMetallicity%integrate(metallicityMinimum,metallicityMaximum) &
+               &                                            /                               (timeMaximum       -timeMinimum       ) &
+               &                                            /                               (metallicityMaximum-metallicityMinimum)
+       else
+          call abundancesStellar%metallicitySet(                                                       &
+               &                                metallicity    =     metallicityMinimum              , &
+               &                                metallicityType=     metallicityTypeLinearByMassSolar, &
+               &                                adjustElements =     adjustElementsReset             , &
+               &                                abundanceIndex =self%abundanceIndex                    &
+               &                               )
+          sedLuminosityMean(iWavelength,iTime,iMetallicity)=+integratorTime       %integrate(timeMinimum       ,timeMaximum       ) &
+               &                                            /                               (timeMaximum       -timeMinimum       )
+       end if
     end do
     !$omp end do
     !$omp master
@@ -727,3 +755,59 @@ contains
 
   end function sedLuminosityMean
   
+  function sedHistoryHashedDescriptor(self,starFormationHistory)  
+    !% Return an input parameter list descriptor which could be used to recreate this object.
+    use :: Input_Parameters    , only : inputParameters
+    use :: String_Handling     , only : String_C_To_Fortran
+    use :: Hashes_Cryptographic, only : Hash_MD5
+    use :: FoX_DOM             , only : setLiveNodeLists
+    use :: Histories           , only : history
+    implicit none
+    type     (varying_string          )                :: sedHistoryHashedDescriptor
+    class    (nodePropertyExtractorSED), intent(in   ) :: self
+    type     (history                 ), intent(in   ) :: starFormationHistory
+    character(len=18                  )                :: parameterLabel
+    type     (inputParameters         )                :: descriptor
+    type     (varying_string          )                :: descriptorString          , values
+    integer                                            :: i
+    type     (varying_string          ), save          :: descriptorStringPrevious  , hashedDescriptorPrevious
+    !$omp threadprivate(descriptorStringPrevious,hashedDescriptorPrevious)
+    
+    descriptor=inputParameters()
+    call setLiveNodeLists(descriptor%document,.false.)
+    write (parameterLabel,'(i17)'   ) self%frame
+    call descriptor%addParameter('frame'            ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%wavelengthMinimum
+    call descriptor%addParameter('wavelengthMinimum',trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%wavelengthMaximum
+    call descriptor%addParameter('wavelengthMaximum',trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%resolution
+    call descriptor%addParameter('resolution'       ,trim(adjustl(parameterLabel)))
+    call self%stellarPopulationSpectra_%descriptor(descriptor)
+    call self%starFormationHistory_    %descriptor(descriptor)
+    call self%outputTimes_             %descriptor(descriptor)
+    call self%cosmologyFunctions_      %descriptor(descriptor)
+    values=""
+    do i=1,size(self%metallicityBoundaries)
+       write (parameterLabel,'(e17.10)') self                %metallicityBoundaries(i)
+       values=values//trim(adjustl(parameterLabel))
+       if (i < size(self%metallicityBoundaries)) values=values//":"
+    end do
+    call descriptor%addParameter('metallicity',char(values))
+    values=""
+    do i=1,size(starFormationHistory%time)
+       write (parameterLabel,'(e17.10)') starFormationHistory%time                 (i)
+       values=values//trim(adjustl(parameterLabel))
+       if (i < size(starFormationHistory%time)) values=values//":"
+    end do
+    call descriptor%addParameter('time'       ,char(values))
+    descriptorString=descriptor%serializeToString()
+    call descriptor%destroy()
+    descriptorString=descriptorString//":sourceDigest{"//String_C_To_Fortran(nodePropertyExtractorSED5)//"}"
+    if (descriptorString /= descriptorStringPrevious) then
+       descriptorStringPrevious=         descriptorString
+       hashedDescriptorPrevious=Hash_MD5(descriptorString)
+    end if
+    sedHistoryHashedDescriptor=hashedDescriptorPrevious
+    return
+  end function sedHistoryHashedDescriptor

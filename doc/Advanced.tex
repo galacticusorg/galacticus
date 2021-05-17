@@ -44,18 +44,18 @@ Each named element must have a {\normalfont \ttfamily value} attribute (preferre
 
 Sub-parameters are used in object composition within \glc. For example, the following would specify that linear growth of cosmological large scale structure should be modeled using the {\normalfont \ttfamily collisionlessMatter} method:
 \begin{verbatim}
-  <linearGrowthMethod value="collisionlessMatter">
-    <cosmologyParametersMethod value="simple">
+  <linearGrowth value="collisionlessMatter">
+    <cosmologyParameters value="simple">
       <HubbleConstant   value="70.0" />
       <OmegaMatter      value="0.31"  />
       <OmegaDarkEnergy  value="0.69"  />
       <OmegaBaryon      value="0.045"/>
       <temperatureCMB   value="2.725"/>
-    </cosmologyParametersMethod>
-    <cosmologyFunctionsMethod value="matterLambda"/>
-  </linearGrowthMethod>
+    </cosmologyParameters>
+    <cosmologyFunctions value="matterLambda"/>
+  </linearGrowth>
 \end{verbatim}
-The linear growth function object requires knowledge about the cosmological parameters and model. In the above, we specify this explicitly by including a definition of the cosmological parameter object and cosmological functions object that our linear growth function object should use. Note that the cosmological functions object also requires knowledge of the cosmological parameters. When the {\normalfont \ttfamily cosmologyFunctionsMethod} object is built from the above definition it will first check for a cosmological parameters object defined in its own subparameters. Since it does not find one in this instance it will check for a cosmological parameters definition in its parent object (the {\normalfont \ttfamily linearGrowthMethod} element) and, in this case, will use that definition. If no definition were to be found in any parent element, a default set of cosmological parameters would be used instead\footnote{This approach allows a direct connection to be made between the structure of the input parameter XML file and the internal object hierarchy used by \glc, allowing very fine-grained control over the composition of \glc\ functionality. In particular it permits easy construction of objects which work by modifying results from other objects, such as the \protect\refPhysics{darkMatterProfileConcentrationSchneider2015} model for dark matter halo concentrations.}.
+The linear growth function object requires knowledge about the cosmological parameters and model. In the above, we specify this explicitly by including a definition of the cosmological parameter object and cosmological functions object that our linear growth function object should use. Note that the cosmological functions object also requires knowledge of the cosmological parameters. When the {\normalfont \ttfamily cosmologyFunctions} object is built from the above definition it will first check for a cosmological parameters object defined in its own subparameters. Since it does not find one in this instance it will check for a cosmological parameters definition in its parent object (the {\normalfont \ttfamily linearGrowth} element) and, in this case, will use that definition. If no definition were to be found in any parent element, a default set of cosmological parameters would be used instead\footnote{This approach allows a direct connection to be made between the structure of the input parameter XML file and the internal object hierarchy used by \glc, allowing very fine-grained control over the composition of \glc\ functionality. In particular it permits easy construction of objects which work by modifying results from other objects, such as the \protect\refPhysics{darkMatterProfileConcentrationSchneider2015} model for dark matter halo concentrations.}.
 
 Parameters can also be defined with an ``{\normalfont \ttfamily id}'' attribute. Such parameters are targets for pointers elsewhere in the file, and as such are inactive (i.e. they will be ignored by \glc\ except as targets for pointers). A pointer to a target is created by specifying an element with the same parameter name and an ``{\normalfont \ttfamily idRef}'' element with a value equal to that of the {\normalfont \ttfamily id} element of the target. The pointer then acts as a regular parameter, adopting the value and subparameters of the target. Targets can be targetted by multiple pointers. This allows for a single object to be shared between multiple other objects.
 
@@ -244,7 +244,7 @@ Output is controlled by parameters given within the {\normalfont \ttfamily merge
 \begin{description}
 \item[{\normalfont \ttfamily outputMergerTrees}] If {\normalfont \ttfamily true} then each merger tree is output to the relevant sub-group at each output time (see \S\ref{sec:nodeDataGroup}). Otherwise merger trees are not output. [Default: {\normalfont \ttfamily true}.]
 \item[{\normalfont \ttfamily outputReferences}] If {\normalfont \ttfamily true} then an HDF5 reference dataset is written for each merger tree subgroup (see \S\ref{sec:mergerTreeSubgroups}). [Default: {\normalfont \ttfamily false}.]
-\item[{\normalfont \ttfamily galacticFilterMethod}] A \refClass{galacticFilterClass} which is applied to each node in the tree to determine whether or not it should be output. By combining multiple filters it is possible to construct arbitrarily complex criteria for output. [Default: {\normalfont \ttfamily always}.]
+\item[{\normalfont \ttfamily galacticFilter}] A \refClass{galacticFilterClass} which is applied to each node in the tree to determine whether or not it should be output. By combining multiple filters it is possible to construct arbitrarily complex criteria for output. [Default: {\normalfont \ttfamily always}.]
 \end{description}
 
 \subsubsection{nodeData group}\label{sec:nodeDataGroup}\hyperdef{sec}{nodeDataGroup}{}
@@ -265,19 +265,19 @@ In addition to simply outputting the properties of every galaxy formed, \glc\ ca
 
 To perform such on-the-fly analysis, simply use the ``{\normalfont \ttfamily analyzer}'' \refClass{mergerTreeOutputterClass}, by including the following in your parameter file:
 \begin{verbatim}
- <mergerTreeOutputterMethod value="analyzer"/>
+ <mergerTreeOutputter value="analyzer"/>
 \end{verbatim}
 If you want to also keep the standard output of all galaxy properties, simply combine the ``{\normalfont \ttfamily standard}'' and ``{\normalfont \ttfamily analyzer}'' \refClass{mergerTreeOutputterClass}es:
 \begin{verbatim}
- <mergerTreeOutputterMethod value="multi">
-  <mergerTreeOutputterMethod value="standard"/>
-  <mergerTreeOutputterMethod value="analyzer"/>
- </mergerTreeOutputterMethod>
+ <mergerTreeOutputter value="multi">
+  <mergerTreeOutputter value="standard"/>
+  <mergerTreeOutputter value="analyzer"/>
+ </mergerTreeOutputter>
 \end{verbatim}
 
 The analysis to be performed is determined by the \refClass{outputAnalysisClass}. For example, to compute the GAMA stellar mass function \citep{baldry_galaxy_2012} you would include in your parameter file:
 \begin{verbatim}
- <outputAnalysisMethod value="massFunctionStellarBaldry2012GAMA"/>
+ <outputAnalysis value="massFunctionStellarBaldry2012GAMA"/>
 \end{verbatim}
 The resulting mass function is written to the output file in a group named ``{\normalfont \ttfamily analyses/massFunctionStellarBaldry2012GAMA}'', which will contain the following datasets:
 \begin{description}
@@ -295,10 +295,10 @@ The output group also contains a ``{\normalfont \ttfamily logLikelihood}'' attri
 
 Multiple on-the-fly analyses can be performed, by simply grouping them inside a ``{\normalfont \ttfamily multi}'' \refClass{outputAnalysisClass}, e.g.:
 \begin{verbatim}
- <outputAnalysisMethod value="multi">
-  <outputAnalysisMethod value="massFunctionStellarBaldry2012GAMA"/>
-  <outputAnalysisMethod value="massFunctionHIALFALFAMartin2010"  />
- </outputAnalysisMethod>
+ <outputAnalysis value="multi">
+  <outputAnalysis value="massFunctionStellarBaldry2012GAMA"/>
+  <outputAnalysis value="massFunctionHIALFALFAMartin2010"  />
+ </outputAnalysis>
 \end{verbatim}
 which would then compute both the stellar mass function of \cite{baldry_galaxy_2012} and the HI mass function of \cite{martin_arecibo_2010}.
 
@@ -389,35 +389,35 @@ The {\normalfont \ttfamily runFile} is an XML file with the following structure:
  </parameters>
 
  <parameters>
-  <starFormationFeedbackDisksMethod value="powerLaw">
+  <starFormationFeedbackDisks value="powerLaw">
    <exponent value="2.5"/>
    <exponent value="3.0"/>
-  </starFormationFeedbackDisksMethod>
-  <starFormationFeedbackDisksMethod value="creasey2012"/>
+  </starFormationFeedbackDisks>
+  <starFormationFeedbackDisks value="creasey2012"/>
  </parameters>
 
  <parameters>
-  <imfSelectionMethod value="fixed">
+  <imfSelection value="fixed">
     <imfSelectionFixed value="Chabrier" parameterLevel="top"/>
     <imfSelectionFixed value="Salpeter" parameterLevel="top"/>
-  </imfSelectionMethod>
-  <imfSelectionMethod value="diskSpheroid">
+  </imfSelection>
+  <imfSelection value="diskSpheroid">
     <imfSelectionDisk     value="Chabrier"  parameterLevel="top"/>
     <imfSelectionSpheroid value="Kennicutt" parameterLevel="top"/>
-  </imfSelectionMethod>
+  </imfSelection>
  </parameters>
 
  <parameters>
-   <coolingFunctionMethod value="summation">
-     <coolingFunctionMethod value="atomicCIECloudy"             iterable="no"/>
-     <coolingFunctionMethod value="CMBCompton"                  iterable="no"/>
-     <coolingFunctionMethod value="molecularHydrogenGalliPalla" iterable="no"/>
-   </coolingFunctionMethod>
+   <coolingFunction value="summation">
+     <coolingFunction value="atomicCIECloudy"             iterable="no"/>
+     <coolingFunction value="CMBCompton"                  iterable="no"/>
+     <coolingFunction value="molecularHydrogenGalliPalla" iterable="no"/>
+   </coolingFunction>
  </parameters>
 
 </parameterGrid>
 \end{verbatim}
-Each {\normalfont \ttfamily parameters} block contains a list of parameters following the format used in standard \glc\ parameter files, with the difference that each parameter can appear multiple times, each time with a different {\normalfont \ttfamily value} attribute, as is the case for {\normalfont \ttfamily stabilityThresholdStellar} in the first {\normalfont \ttfamily parameters} element in the above. A model will be run for all possible combinations of these values. For nested parameters with multiple values, all possible values of these parameters will be looped over when, and only when, the appropriate value of the containing parameter is being used. For example, in the second {\normalfont \ttfamily parameters} element in the above example, models will be run with subparameter {\normalfont \ttfamily [exponent]}$=${\normalfont \ttfamily 2.5} and {\normalfont \ttfamily 3.5} for the {\normalfont \ttfamily starFormationFeedbackDisksMethod} element only when {\normalfont \ttfamily [starFormationFeedbackDisksMethod]}$=${\normalfont \ttfamily powerLaw} and not when {\normalfont \ttfamily [starFormationFeedbackDisksMethod]}$=${\normalfont \ttfamily creasey2012}. It is also possible to specify that subparameter should be promoted to the top-level of the parameter file. In the third {\normalfont \ttfamily parameters} element in the above example, {\normalfont \ttfamily imfSelectionFixed} will take on values of {\normalfont \ttfamily Chabrier} and {\normalfont \ttfamily Salpeter} only when {\normalfont \ttfamily imfSelectionMethod}$=${\normalfont \ttfamily fixed}, and the {\normalfont \ttfamily imfSelectionFixed} element will be promoted from a sub-parameter of {\normalfont \ttfamily imfSelectionMethod} to the top-level of the parameter file due to the presence of the \verb|parameterLevel="top"| attribute. Finally in some cases a parameter which appears multiple times is not to be iterated over. In the fourth {\normalfont \ttfamily parameters} element in the above example, this is the case for the {\normalfont \ttfamily coolingFunctionMethod} subparameters. The addition of an \verb|iterable="no"| attribute specifies that these parameters are not to be iterated over, but simply left as they are.
+Each {\normalfont \ttfamily parameters} block contains a list of parameters following the format used in standard \glc\ parameter files, with the difference that each parameter can appear multiple times, each time with a different {\normalfont \ttfamily value} attribute, as is the case for {\normalfont \ttfamily stabilityThresholdStellar} in the first {\normalfont \ttfamily parameters} element in the above. A model will be run for all possible combinations of these values. For nested parameters with multiple values, all possible values of these parameters will be looped over when, and only when, the appropriate value of the containing parameter is being used. For example, in the second {\normalfont \ttfamily parameters} element in the above example, models will be run with subparameter {\normalfont \ttfamily [exponent]}$=${\normalfont \ttfamily 2.5} and {\normalfont \ttfamily 3.5} for the {\normalfont \ttfamily starFormationFeedbackDisks} element only when {\normalfont \ttfamily [starFormationFeedbackDisks]}$=${\normalfont \ttfamily powerLaw} and not when {\normalfont \ttfamily [starFormationFeedbackDisks]}$=${\normalfont \ttfamily creasey2012}. It is also possible to specify that subparameter should be promoted to the top-level of the parameter file. In the third {\normalfont \ttfamily parameters} element in the above example, {\normalfont \ttfamily imfSelectionFixed} will take on values of {\normalfont \ttfamily Chabrier} and {\normalfont \ttfamily Salpeter} only when {\normalfont \ttfamily imfSelection}$=${\normalfont \ttfamily fixed}, and the {\normalfont \ttfamily imfSelectionFixed} element will be promoted from a sub-parameter of {\normalfont \ttfamily imfSelection} to the top-level of the parameter file due to the presence of the \verb|parameterLevel="top"| attribute. Finally in some cases a parameter which appears multiple times is not to be iterated over. In the fourth {\normalfont \ttfamily parameters} element in the above example, this is the case for the {\normalfont \ttfamily coolingFunction} subparameters. The addition of an \verb|iterable="no"| attribute specifies that these parameters are not to be iterated over, but simply left as they are.
 
 Some variables, which are expanded at run time, are available. These include:
 \begin{description}
@@ -532,9 +532,9 @@ To cause \glc\ to periodically store its internal state include the following in
 This will cause the internal state to be stored to files {\normalfont \ttfamily galacticusState.state} prior to commencing building each merger tree. Should a tree crash then replace this input parameter with:
 \begin{verbatim}
   <stateRetrieveFileRoot       value="galacticusState"/>
-  <mergerTreeConstructorMethod value="build"           >
+  <mergerTreeConstructor value="build"           >
    <treeBeginAt value="N"/>
-  </mergerTreeConstructorMethod>
+  </mergerTreeConstructor>
 \end{verbatim}
 where {\normalfont \ttfamily N} is the number of the tree that crashed. This will cause calculations to begin with tree {\normalfont \ttfamily N} and for the internal state to be recovered from the above mentioned files. The resulting tree and all galaxy formation calculations should therefore proceed just as in the original run (and so create the same crash condition).
 
