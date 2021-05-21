@@ -28,37 +28,30 @@
   !#   A dark matter profile DMO class which applies a finite resolution to some other DMO class, typically to mimic the effects
   !#   of finite resolution in an N-body simulation. Specifically, the density profile is given by
   !#   \begin{equation}
-  !#    \rho(r) = \rho^\prime(r) [1-f(r/\Delta x)] + \rho_\mathrm{c} f(r/\Delta x),
+  !#    \rho(r) = \rho^\prime(r) \left( 1 + \left[ \frac{\Delta x}{r} \right]^2 \right)^{-1/2},
   !#   \end{equation}
   !#   where $\Delta x$ is the larger of the resolution length, {\normalfont \ttfamily [lengthResolution]}, and the radius in the
-  !#   original profile enclosing the mass resolution, {\normalfont \ttfamily [massResolution]}. The function $f(x)$ is chosen to be
-  !#   \begin{equation}
-  !#    f(x) = {2 \over 1 + \exp(r/\Delta x)},
-  !#   \end{equation}
-  !#   and the core density $\rho_\mathrm{c}$ is chosen such that the total mass within the virial radius is unchanged.
+  !#   original profile enclosing the mass resolution, {\normalfont \ttfamily [massResolution]}.
   !#
-  !#   Note that in the limit of $r \rightarrow 0$ we have $1 - f(x) \propto r$. Therefore, a density profile, $\rho^\prime(r)$, which
-  !#   rises more steeply than $r^{-1}$ as $r \rightarrow 0$ will still have a cuspy density profile under this model.
+  !#   Note that this choice was constructed to give a constant density core in an NFW density profile. For a density profile, $\rho^\prime(r)$, which
+  !#   rises more steeply than $r^{-1}$ as $r \rightarrow 0$ we will still have a cuspy density profile under this model.
   !#  </description>
   !# </darkMatterProfileDMO>
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOFiniteResolution
      !% A dark matter halo profile class implementing finiteResolution dark matter halos.
      private
-     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
-     class           (cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_   => null()
+     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_      => null()
+     class           (cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_        => null()
      integer                                              :: nonAnalyticSolver
      integer         (kind=kind_int8           )          :: lastUniqueID
      logical                                              :: resolutionIsComoving
-     double precision                                     :: lengthResolution               , massResolution            , &
-          &                                                  densityCorePrevious            , lengthResolutionPrevious  , &
-          &                                                  enclosedMassPrevious           , enclosedMassRadiusPrevious
+     double precision                                     :: lengthResolution                    , massResolution      , &
+          &                                                  lengthResolutionPrevious            , enclosedMassPrevious, &
+          &                                                  enclosedMassRadiusPrevious
    contains
      !# <methods>
-     !#   <method description="The function $f(r/\Delta x)$ given the fraction of the density due to the core." method="fractionCore"            />
-     !#   <method description="The gradient of the function $f(r/\Delta x)$ with respect to $r$."               method="fractionCoreGradient"    />
-     !#   <method description="The density of the core profile."                                                method="densityCore"             />
-     !#   <method description="Return the resolution length in physical units."                                 method="lengthResolutionPhysical"/>
-     !#   <method description="Reset memoized calculations."                                                    method="calculationReset"        />
+     !#   <method description="Return the resolution length in physical units." method="lengthResolutionPhysical"/>
+     !#   <method description="Reset memoized calculations."                    method="calculationReset"        />
      !# </methods>
      final     ::                                      finiteResolutionDestructor
      procedure :: autoHook                          => finiteResolutionAutoHook
@@ -82,9 +75,6 @@
      procedure :: freefallRadius                    => finiteResolutionFreefallRadius
      procedure :: freefallRadiusIncreaseRate        => finiteResolutionFreefallRadiusIncreaseRate
      procedure :: lengthResolutionPhysical          => finiteResolutionLengthResolutionPhysical
-     procedure :: fractionCore                      => finiteResolutionFractionCore
-     procedure :: fractionCoreGradient              => finiteResolutionFractionCoreGradient
-     procedure :: densityCore                       => finiteResolutionDensityCore
   end type darkMatterProfileDMOFiniteResolution
 
   interface darkMatterProfileDMOFiniteResolution
@@ -93,14 +83,8 @@
      module procedure finiteResolutionConstructorInternal
   end interface darkMatterProfileDMOFiniteResolution
 
-  ! Maximum argument for which to evaluate the exponential term.
-  double precision, parameter :: argumentExponentialMaximum=100.0d0
+  double precision, parameter :: radiusLengthResolutionRatioMaximum=100.0d0
 
-  ! Sub-module scope pointer to self (for use in integrands).
-  class(darkMatterProfileDMOFiniteResolution), pointer :: self_
-  type (treeNode                            ), pointer :: node_
-  !$omp threadprivate(self_,node_)
-  
 contains
 
   function finiteResolutionConstructorParameters(parameters) result(self)
@@ -165,9 +149,8 @@ contains
     self%lastUniqueID              =-1_kind_int8
     self%genericLastUniqueID       =-1_kind_int8
     self%lengthResolutionPrevious  =-huge(0.0d0)
-    self%densityCorePrevious       =-huge(0.0d0)
-    self%enclosedMassRadiusPrevious=-huge(0.0d0)
     self%enclosedMassPrevious      =-huge(0.0d0)
+    self%enclosedMassRadiusPrevious=-huge(0.0d0)
     return
   end function finiteResolutionConstructorInternal
 
@@ -201,100 +184,14 @@ contains
     self%lastUniqueID              =node%uniqueID()
     self%genericLastUniqueID       =node%uniqueID()
     self%lengthResolutionPrevious  =-huge(0.0d0)
-    self%densityCorePrevious       =-huge(0.0d0)
-    self%enclosedMassRadiusPrevious=-huge(0.0d0)
     self%enclosedMassPrevious      =-huge(0.0d0)
+    self%enclosedMassRadiusPrevious=-huge(0.0d0)
     if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
     if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
     if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
     if (allocated(self%genericEnclosedMassRadius              )) deallocate(self%genericEnclosedMassRadius              )
     return
   end subroutine finiteResolutionCalculationReset
-
-  double precision function finiteResolutionDensityCore(self,node)
-    !% Returns the mass deficit (in $M_\odot$) in the uncompensated dark matter profile of {\normalfont \ttfamily node}.
-    use :: Galacticus_Nodes        , only : nodeComponentBasic
-    use :: Numerical_Integration   , only : integrator
-    use :: Numerical_Constants_Math, only : riemannZeta3
-    use :: Polylogarithms          , only : Polylogarithm_2   , Polylogarithm_3
-    implicit none
-    class           (darkMatterProfileDMOFiniteResolution), intent(inout), target :: self
-    type            (treeNode                            ), intent(inout), target :: node
-    class           (nodeComponentBasic                  ), pointer               :: basic
-    type            (integrator                          ), save                  :: integratorProfile
-    logical                                               , save                  :: initialized         =.false.
-    !$omp threadprivate(initialized,integratorProfile)
-    double precision                                                              :: lengthResolution            , massProfile   , &
-         &                                                                           massCoreUnnormalized
-    
-    if (.not.initialized) then
-       integratorProfile=integrator(integrand =profileIntegrand,toleranceRelative=1.0d-6)
-       initialized      =.true.
-    end if
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-    if (self%densityCorePrevious < 0.0d0) then
-       self_                    =>  self
-       node_                    =>  node
-       basic                    =>  node             %basic                   (                                                                        )
-       lengthResolution         =   self             %lengthResolutionPhysical(           node                                                         )
-       massProfile              =   integratorProfile%integrate               (limitLower=0.0d0,limitUpper=self%darkMatterHaloScale_%virialRadius(node))
-       if (self%darkMatterHaloScale_%virialRadius(node) > 500.0d0*lengthResolution) then
-          ! For sufficiently small cores use the asymptotic solution to avoid floating point errors.
-          massCoreUnnormalized     =  +12.0d0                                                                                                                                                    &
-               &                      *Pi                                                                                                                                                        &
-               &                      *                                    lengthResolution      **3                                                                                             &
-               &                      *                                                              riemannZeta3
-       else
-          massCoreUnnormalized     =  + 4.0d0                                                                                                                                                    &
-               &                      *Pi                                                                                                                                                        &
-               &                      *                                    lengthResolution                                                                                                      &
-               &                      *(                                                                                                                                                         &
-               &                        +                                  lengthResolution                                                                                                      &
-               &                        *(                                                                                                                                                       &
-               &                          +3.0d0*                          lengthResolution         *riemannZeta3                                                                                &
-               &                          +4.0d0*                          lengthResolution         *Polylogarithm_3(      -exp(-self%darkMatterHaloScale_%virialRadius(node)/lengthResolution)) &
-               &                          +4.0d0*self%darkMatterHaloScale_%virialRadius    (node)   *Polylogarithm_2(      -exp(-self%darkMatterHaloScale_%virialRadius(node)/lengthResolution)) &
-               &                         )                                                                                                                                                       &
-               &                        -  2.0d0*self%darkMatterHaloScale_%virialRadius    (node)**2*log            (+1.0d0+exp(-self%darkMatterHaloScale_%virialRadius(node)/lengthResolution)) &
-               &                       )
-       end if
-       self%densityCorePrevious =  +(                              &
-            &                        +basic%mass                () &
-            &                        -      massProfile            &
-            &                       )                              &
-            &                      /        massCoreUnnormalized
-    end if
-    finiteResolutionDensityCore=self%densityCorePrevious
-    return
-  end function finiteResolutionDensityCore
-  
-  double precision function profileIntegrand(radius)
-    !% Integrand for the mass contributed by the original profile.
-    use :: Numerical_Constants_Math, only : Pi
-    implicit none
-    double precision, intent(in   ) :: radius
-    
-    if (radius > 0.0d0) then
-       profileIntegrand=4.0d0*Pi*radius**2*self_%darkMatterProfileDMO_%density(node_,radius)*(1.0d0-self_%fractionCore(node_,radius))
-    else
-       profileIntegrand=0.0d0
-    end if
-    return
-  end function profileIntegrand
-  
-  double precision function coreIntegrand(radius)
-    !% Integrand for mass contributed by the (unnormalized) core profile.
-    use :: Numerical_Constants_Math, only : Pi
-    implicit none
-    double precision, intent(in   ) :: radius
-    
-    if (radius > 0.0d0) then
-       coreIntegrand=4.0d0*Pi*radius**2*self_%fractionCore(node_,radius)
-    else
-       coreIntegrand=0.0d0
-    end if
-    return
-  end function coreIntegrand
 
   double precision function finiteResolutionDensity(self,node,radius)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
@@ -304,53 +201,20 @@ contains
     class           (darkMatterProfileDMOFiniteResolution), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(in   ) :: radius
-    double precision                                                      :: lengthResolution, fractionCore
+    double precision                                                      :: lengthResolution
 
     lengthResolution       =+self                      %lengthResolutionPhysical(node       )
-    fractionCore           =+self                      %fractionCore            (node,radius)
-    finiteResolutionDensity=+self%darkMatterProfileDMO_%density                 (node,radius)*(1.0d0-fractionCore) &
-         &                  +self                      %densityCore             (node       )*       fractionCore
+    finiteResolutionDensity=+self%darkMatterProfileDMO_%density                 (node,radius) &
+         &                  /sqrt(                                                            &
+         &                        +1.0d0                                                      &
+         &                        +(                                                          &
+         &                          +lengthResolution                                         &
+         &                          /radius                                                   &
+         &                         )**2                                                       &
+         &                       )
     return
   end function finiteResolutionDensity
 
-  double precision function finiteResolutionFractionCore(self,node,radius)
-    !% Compute the fraction of the core profile to mix in to the original profile.
-    implicit none
-    class           (darkMatterProfileDMOFiniteResolution), intent(inout) :: self
-    type            (treeNode                            ), intent(inout) :: node
-    double precision                                      , intent(in   ) :: radius
-    double precision                                                      :: lengthResolution, argumentExponential
-
-    lengthResolution   =+self%lengthResolutionPhysical(node)
-    argumentExponential=+radius           &
-         &              /lengthResolution
-    if (argumentExponential < argumentExponentialMaximum) then
-       finiteResolutionFractionCore=+2.0d0/(1.0d0+exp(argumentExponential))
-    else
-       finiteResolutionFractionCore=+0.0d0
-    end if
-    return
-  end function finiteResolutionFractionCore
-  
-  double precision function finiteResolutionFractionCoreGradient(self,node,radius)
-    !% Compute the gradient with radius of the fraction of the core profile to mix in to the original profile.
-    implicit none
-    class           (darkMatterProfileDMOFiniteResolution), intent(inout) :: self
-    type            (treeNode                            ), intent(inout) :: node
-    double precision                                      , intent(in   ) :: radius
-    double precision                                                      :: lengthResolution, argumentExponential
-
-    lengthResolution   =+self%lengthResolutionPhysical(node)
-    argumentExponential=+radius           &
-         &              /lengthResolution
-     if (argumentExponential < argumentExponentialMaximum) then
-        finiteResolutionFractionCoreGradient=-2.0d0*exp(argumentExponential)/lengthResolution/(1.0d0+exp(argumentExponential))**2
-     else
-        finiteResolutionFractionCoreGradient=+0.0d0
-     end if
-    return
-  end function finiteResolutionFractionCoreGradient
-  
   double precision function finiteResolutionDensityLogSlope(self,node,radius)
     !% Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
@@ -358,20 +222,21 @@ contains
     class           (darkMatterProfileDMOFiniteResolution), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(in   ) :: radius
-    double precision                                                      :: lengthResolution, densityProfile      , &
-         &                                                                   fractionCore    , fractionCoreGradient
+    double precision                                                      :: lengthResolution
 
     lengthResolution               =+self                      %lengthResolutionPhysical(node       )
-    fractionCore                   =+self                      %fractionCore            (node,radius)
-    fractionCoreGradient           =+self                      %fractionCoreGradient    (node,radius)
-    densityProfile                 =+self%darkMatterProfileDMO_%density                 (node,radius)
-    finiteResolutionDensityLogSlope=+(                                                                                                            &
-         &                            +self%darkMatterProfileDMO_%densityLogSlope(node,radius)*densityProfile/radius*(1.0d0-fractionCore        ) &
-         &                            -                                                        densityProfile       *       fractionCoreGradient  &
-         &                            +self                      %densityCore    (node       )                      *       fractionCoreGradient  &
-         &                           )                                                                                                            &
-         &                          *                  radius                                                                                     &
-         &                          /self%density(node,radius)
+    finiteResolutionDensityLogSlope=+self%darkMatterProfileDMO_%densityLogSlope         (node,radius) &
+         &                          +(                                                                &
+         &                            +  lengthResolution                                             &
+         &                            /  radius                                                       &
+         &                           )  **2                                                           &
+         &                          /(                                                                &
+         &                            +1.0d0                                                          &
+         &                            +(                                                              &
+         &                              +lengthResolution                                             &
+         &                              /radius                                                       &
+         &                             )**2                                                           &
+         &                           )
     return
   end function finiteResolutionDensityLogSlope
 
@@ -434,7 +299,7 @@ contains
     if (node%uniqueID() /= self%lastUniqueID              ) call self%calculationReset(node)
     if (     radius     /= self%enclosedMassRadiusPrevious) then
        self%enclosedMassRadiusPrevious=radius
-       if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough .or. radius > argumentExponentialMaximum*self%lengthResolutionPhysical(node)) then
+       if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough .or. radius > radiusLengthResolutionRatioMaximum*self%lengthResolutionPhysical(node)) then
           self%enclosedMassPrevious=self%darkMatterProfileDMO_%enclosedMass         (node,radius)
        else
           self%enclosedMassPrevious=self                      %enclosedMassNumerical(node,radius)
@@ -453,7 +318,7 @@ contains
     double precision                                      , intent(in   )           :: radius
     integer                                               , intent(  out), optional :: status
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough .or. radius > argumentExponentialMaximum*self%lengthResolutionPhysical(node)) then
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough .or. radius > radiusLengthResolutionRatioMaximum*self%lengthResolutionPhysical(node)) then
        finiteResolutionPotential=self%darkMatterProfileDMO_%potential         (node,radius,status)
     else
        finiteResolutionPotential=self                      %potentialNumerical(node,radius,status)
@@ -518,7 +383,7 @@ contains
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(in   ) :: radius
  
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough .or. radius > argumentExponentialMaximum*self%lengthResolutionPhysical(node)) then
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough .or. radius > radiusLengthResolutionRatioMaximum*self%lengthResolutionPhysical(node)) then
        finiteResolutionRadialVelocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
     else
        finiteResolutionRadialVelocityDispersion=self                      %radialVelocityDispersionNumerical(node,radius)
