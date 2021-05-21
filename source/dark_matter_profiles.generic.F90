@@ -41,6 +41,7 @@ module Dark_Matter_Profiles_Generic
      class           (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_                         => null()
      ! Tolerances used in numerical solutions.
      double precision                                                      :: toleranceRelativeVelocityDispersion          =  1.0d-6
+     double precision                                                      :: toleranceRelativeVelocityDispersionMaximum   =  1.0d-3
      ! Unique ID for memoization
      integer         (kind_int8               )                            :: genericLastUniqueID
      ! Memoized solutions for the radial velocity dispersion.
@@ -391,7 +392,7 @@ contains
     !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Galacticus_Error       , only : Galacticus_Error_Report
+    use            :: Galacticus_Error       , only : Galacticus_Error_Report, errorStatusSuccess
     use            :: Numerical_Integration  , only : integrator
     use            :: Numerical_Ranges       , only : Make_Range             , rangeTypeLogarithmic
     use            :: Table_Labels           , only : extrapolationTypeFix
@@ -402,14 +403,16 @@ contains
     double precision                          , intent(in   )              :: radius
     double precision                                         , parameter   :: radiusTinyFactor     =1.0d-9 , radiusLargeFactor=5.0d2
     double precision                                         , parameter   :: countPointsPerOctave =2.0d0
+    double precision                                         , parameter   :: toleranceFactor      =2.0d0
     double precision                          , dimension(:) , allocatable :: velocityDispersions          , radii
     double precision                                                       :: radiusMinimum                , radiusMaximum          , &
          &                                                                    radiusVirial                 , density                , &
          &                                                                    jeansIntegral                , radiusOuter            , &
          &                                                                    radiusLower                  , radiusUpper            , &
-         &                                                                    jeansIntegralPrevious
+         &                                                                    jeansIntegralPrevious        , toleranceRelative
     integer         (c_size_t                )                             :: countRadii                   , iMinimum               , &
          &                                                                    iMaximum                     , i
+    integer                                                                :: status
     type            (integrator              ), save                       :: integrator_
     logical                                   , save                       :: initialized          =.false.
     logical                                                                :: remakeTable
@@ -483,8 +486,24 @@ contains
           if (i == iMinimum-1) jeansIntegralPrevious=+     velocityDispersions(           iMinimum )**2 &
                &                                     *self%density            (node,radii(iMinimum))
           ! Evaluate the integral.
-          jeansIntegral=integrator_%integrate(     radiusLower,radiusUpper)
-          density      =self       %density  (node,radiusLower            )
+          density      =self       %density  (node,radiusLower                   )
+          jeansIntegral=integrator_%integrate(     radiusLower,radiusUpper,status)
+          if (status /= errorStatusSuccess) then
+             ! Integration failed.
+             toleranceRelative=+     toleranceFactor                     &
+                  &            *self%toleranceRelativeVelocityDispersion
+             do while (toleranceRelative < self%toleranceRelativeVelocityDispersionMaximum)
+                call integrator_%toleranceSet(toleranceRelative=toleranceRelative)
+                jeansIntegral=integrator_%integrate(radiusLower,radiusUpper,status)
+                if (status == errorStatusSuccess) then
+                   exit
+                else
+                   toleranceRelative=+toleranceFactor   &
+                        &            *toleranceRelative
+                end if
+             end do
+             if (status /= errorStatusSuccess) call Galacticus_Error_Report('integration of Jeans equation failed'//{introspection:location})
+          end if
           if (density <= 0.0d0) then
              ! Density is zero - the velocity dispersion is undefined. If the Jeans integral is also zero this is acceptable - we've
              ! been asked for the velocity dispersion in a region of zero density, so we simply return zero dispersion as it should have
@@ -968,7 +987,7 @@ contains
     implicit none
     class           (darkMatterProfileGeneric), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
-    double precision                          , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
+    double precision                          , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
     class           (nodeComponentBasic      ), pointer       :: basic
     type            (rootFinder              )                :: finder
 
@@ -984,16 +1003,37 @@ contains
          &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  &
          &                   )
     ! Isothermal profiles have dVc²/dr=0 everywhere. To handle these profiles, first test if the root function is sufficiently
-    ! close to zero at the virial radius (which it will be for an isothermal profile), and return the circular velocity at that
-    ! radius if so. Otherwise solve for the radius corresponding to the maximum circular velocity.
+    ! close to zero at a few points throughout the halo (which it will be for an isothermal profile), and return the circular
+    ! velocity at the virial radius if so. Otherwise solve for the radius corresponding to the maximum circular velocity.
     basic => node%basic()
-    if     (                                                                                                &
-         &  Values_Agree(                                                                                   &
-         &                      +rootCircularVelocityMaximum(self%darkMatterHaloScale_%virialRadius(node)), &
-         &                      +0.0d0                                                                    , &
-         &               absTol=+toleranceRelative                                                          &
-         &                      *basic%mass                 (                                            )  &
-         &               )                                                                                  &
+    if     (                                                                                                        &
+         &   Values_Agree(                                                                                          &
+         &                       +rootCircularVelocityMaximum(1.0d+0*self%darkMatterHaloScale_%virialRadius(node)), &
+         &                       +0.0d0                                                                           , &
+         &                absTol=+toleranceRelative                                                                 &
+         &                       *basic%mass                 (                                                   )  &
+         &                )                                                                                         &
+         &  .and. &
+         &   Values_Agree(                                                                                          &
+         &                       +rootCircularVelocityMaximum(3.0d-1*self%darkMatterHaloScale_%virialRadius(node)), &
+         &                       +0.0d0                                                                           , &
+         &                absTol=+toleranceRelative                                                                 &
+         &                       *basic%mass                 (                                                   )  &
+         &                )                                                                                         &
+         &  .and. &
+         &   Values_Agree(                                                                                          &
+         &                       +rootCircularVelocityMaximum(1.0d-1*self%darkMatterHaloScale_%virialRadius(node)), &
+         &                       +0.0d0                                                                           , &
+         &                absTol=+toleranceRelative                                                                 &
+         &                       *basic%mass                 (                                                   )  &
+         &                )                                                                                         &
+         &  .and. &
+         &   Values_Agree(                                                                                          &
+         &                       +rootCircularVelocityMaximum(3.0d-2*self%darkMatterHaloScale_%virialRadius(node)), &
+         &                       +0.0d0                                                                           , &
+         &                absTol=+toleranceRelative                                                                 &
+         &                       *basic%mass                 (                                                   )  &
+         &                )                                                                                         &
          & ) then
        genericRadiusCircularVelocityMaximumNumerical=                      self%darkMatterHaloScale_%virialRadius(node)
     else
