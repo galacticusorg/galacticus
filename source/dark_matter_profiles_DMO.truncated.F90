@@ -123,7 +123,8 @@ contains
 
     ! Validate.
     if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Galacticus_Error_Report('invalid non-analytic solver type'//{introspection:location})
-    self%lastUniqueID=-1_kind_int8
+    self%lastUniqueID       =-1_kind_int8
+    self%genericLastUniqueID=-1_kind_int8
     return
   end function truncatedConstructorInternal
 
@@ -156,11 +157,16 @@ contains
     type (treeNode                     ), intent(inout) :: node
 
     self%lastUniqueID                                              =node%uniqueID()
+    self%genericLastUniqueID                                       =node%uniqueID()
     self%enclosingMassRadiusPrevious                               =-1.0d0
     self%enclosedMassTruncateMinimumPrevious                       =-1.0d0
     self%enclosedMassTruncateMaximumPrevious                       =-1.0d0
     self%radialVelocityDispersionTruncateMinimumPrevious           =-1.0d0
     self%radialVelocityDispersionTruncateMinimumUntruncatedPrevious=-1.0d0
+    if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
+    if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
+    if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
+    if (allocated(self%genericEnclosedMassRadius              )) deallocate(self%genericEnclosedMassRadius              )
     return
   end subroutine truncatedCalculationReset
 

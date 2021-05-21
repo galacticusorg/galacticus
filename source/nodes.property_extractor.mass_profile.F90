@@ -26,18 +26,20 @@
   !#   mass will be extracted as {\normalfont \ttfamily massProfile}$r$.
   !#  </description>
   !# </nodePropertyExtractor>
-  type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorMassProfile
+  type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorMassProfile
      !% A property extractor class for the mass enclosed within a specified list of radii.
      private
-     integer                                     :: elementCount_
-     double precision, allocatable, dimension(:) :: radii
+     integer         (c_size_t)                            :: radiiCount
+     double precision          , allocatable, dimension(:) :: radii
    contains
-     procedure :: elementCount => massProfileElementCount
-     procedure :: extract      => massProfileExtract
-     procedure :: names        => massProfileNames
-     procedure :: descriptions => massProfileDescriptions
-     procedure :: unitsInSI    => massProfileUnitsInSI
-     procedure :: type         => massProfileType
+     procedure :: columnDescriptions => massProfileColumnDescriptions
+     procedure :: size               => massProfileSize
+     procedure :: elementCount       => massProfileElementCount
+     procedure :: extract            => massProfileExtract
+     procedure :: names              => massProfileNames
+     procedure :: descriptions       => massProfileDescriptions
+     procedure :: unitsInSI          => massProfileUnitsInSI
+     procedure :: type               => massProfileType
   end type nodePropertyExtractorMassProfile
 
   interface nodePropertyExtractorMassProfile
@@ -75,7 +77,7 @@ contains
     double precision                                  , intent(in   ), dimension(:) :: radii
     !# <constructorAssign variables="radii"/>
 
-    self%elementCount_=size(radii)
+    self%radiiCount=size(radii)
     return
   end function massProfileConstructorInternal
 
@@ -84,28 +86,40 @@ contains
     implicit none
     class           (nodePropertyExtractorMassProfile), intent(inout) :: self
     double precision                                  , intent(in   ) :: time
-    !$GLC attributes unused :: time
+    !$GLC attributes unused :: self, time
 
-    massProfileElementCount=self%elementCount_
+    massProfileElementCount=1
     return
   end function massProfileElementCount
+
+  function massProfileSize(self,time)
+    !% Return the number of array alements in the {\normalfont \ttfamily massProfile} property extractors.
+    implicit none
+    integer         (c_size_t                        )                :: massProfileSize
+    class           (nodePropertyExtractorMassProfile), intent(inout) :: self
+    double precision                                  , intent(in   ) :: time
+    !$GLC attributes unused :: time
+
+    massProfileSize=self%radiiCount
+    return
+  end function massProfileSize
 
   function massProfileExtract(self,node,time,instance)
     !% Implement a last isolated redshift output analysis.
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : componentTypeAll                , massTypeAll
     implicit none
-    double precision                                  , dimension(:) , allocatable :: massProfileExtract
-    class           (nodePropertyExtractorMassProfile), intent(inout), target      :: self
-    type            (treeNode                        ), intent(inout), target      :: node
-    double precision                                  , intent(in   )              :: time
-    type            (multiCounter                    ), intent(inout), optional    :: instance
-    integer                                                                        :: i
+    double precision                                  , dimension(:,:), allocatable :: massProfileExtract
+    class           (nodePropertyExtractorMassProfile), intent(inout) , target      :: self
+    type            (treeNode                        ), intent(inout) , target      :: node
+    double precision                                  , intent(in   )               :: time
+    type            (multiCounter                    ), intent(inout) , optional    :: instance
+    integer         (c_size_t                        )                              :: i
     !$GLC attributes unused :: time, instance
 
-    allocate(massProfileExtract(self%elementCount_))
-    do i=1,self%elementCount_
-       massProfileExtract(i)=Galactic_Structure_Enclosed_Mass(node,self%radii(i),componentType=componentTypeAll,massType=massTypeAll)
+    allocate(massProfileExtract(self%radiiCount,1_c_size_t))
+    do i=1,self%radiiCount
+       massProfileExtract(i,1)=Galactic_Structure_Enclosed_Mass(node,self%radii(i),componentType=componentTypeAll,massType=massTypeAll)
     end do
     return
   end function massProfileExtract
@@ -116,15 +130,10 @@ contains
     type            (varying_string                  ), dimension(:) , allocatable :: massProfileNames
     class           (nodePropertyExtractorMassProfile), intent(inout)              :: self
     double precision                                  , intent(in   )              :: time
-    integer                                                                        :: i
-    character       (len=22                          )                             :: name
     !$GLC attributes unused :: time
 
-    allocate(massProfileNames(self%elementCount_))
-    do i=1,self%elementCount_
-       write (name,'(a,e9.3)') 'massProfile',self%radii(i)
-       massProfileNames(i)=trim(adjustl(name))
-    end do
+    allocate(massProfileNames(1))
+    massProfileNames(1)='massProfile'
     return
   end function massProfileNames
 
@@ -134,18 +143,31 @@ contains
     type            (varying_string                  ), dimension(:) , allocatable :: massProfileDescriptions
     class           (nodePropertyExtractorMassProfile), intent(inout)              :: self
     double precision                                  , intent(in   )              :: time
-    integer                                                                        :: i
-    character       (len=64                          )                             :: description
     !$GLC attributes unused :: time
 
-    allocate(massProfileDescriptions(self%elementCount_))
-    do i=1,self%elementCount_
-       write (description,'(a,e9.3,a)') 'Mass enclosed within a radius of ',self%radii(i),' Mpc [M☉].'
-       massProfileDescriptions(i)=trim(adjustl(description))
-    end do
+    allocate(massProfileDescriptions(1))
+    massProfileDescriptions(1)='Mass enclosed within each radius'
     return
   end function massProfileDescriptions
 
+  function massProfileColumnDescriptions(self,time)
+    !% Return column descriptions of the {\normalfont \ttfamily massProfile} property.
+    implicit none
+    type            (varying_string                  ), dimension(:) , allocatable :: massProfileColumnDescriptions
+    class           (nodePropertyExtractorMassProfile), intent(inout)              :: self
+    double precision                                  , intent(in   )              :: time
+    integer         (c_size_t                        )                             :: i
+    character       (len=22                          )                             :: name
+    !$GLC attributes unused :: time
+    
+    allocate(massProfileColumnDescriptions(self%radiiCount))
+    do i=1,self%radiiCount
+       write (name,'(a,e9.3,a)') 'r = ',self%radii(i),' Mpc'       
+       massProfileColumnDescriptions(i)=trim(adjustl(name))
+    end do
+    return
+  end function massProfileColumnDescriptions
+  
   function massProfileUnitsInSI(self,time)
     !% Return the units of the {\normalfont \ttfamily massProfile} properties in the SI system.
     use :: Numerical_Constants_Astronomical, only : massSolar
@@ -153,13 +175,10 @@ contains
     double precision                                  , allocatable  , dimension(:) :: massProfileUnitsInSI
     class           (nodePropertyExtractorMassProfile), intent(inout)               :: self
     double precision                                  , intent(in   )               :: time
-    integer                                                                         :: i
     !$GLC attributes unused :: time
 
-    allocate(massProfileUnitsInSI(self%elementCount_))
-    do i=1,self%elementCount_
-       massProfileUnitsInSI(i)=massSolar
-    end do
+    allocate(massProfileUnitsInSI(1))
+    massProfileUnitsInSI(1)=massSolar
     return
   end function massProfileUnitsInSI
 
