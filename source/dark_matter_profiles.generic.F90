@@ -170,7 +170,7 @@ contains
     class           (darkMatterProfileGeneric), intent(inout), target      :: self
     type            (treeNode                ), intent(inout), target      :: node
     double precision                          , intent(in   )              :: radiusLower                      , radiusUpper
-    double precision                                         , parameter   :: countPointsPerOctave     =2.0d+00
+    double precision                                         , parameter   :: countPointsPerOctave     =4.0d+00
     double precision                                         , parameter   :: radiusVirialFractionSmall=1.0d-12
     double precision                          , dimension(:) , allocatable :: masses                           , radii
     type            (integrator              ), save                       :: integrator_
