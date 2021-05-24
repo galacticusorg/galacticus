@@ -296,6 +296,7 @@ contains
     self%initialized                  =.false.
     self%functionInitialized          =.false.
     self%resetRequired                =.false.
+    self%useDerivative                =.false.
     ! Initialize range expansion to no expansion.
     self%rangeExpandType              =rangeExpandNull
     self%rangeExpandUpward            =1.0d0
@@ -322,6 +323,9 @@ contains
     else if (present(rootFunctionDerivative).or.present(rootFunctionBoth)) then
        call Galacticus_Error_Report('missing "rootFunction"'//{introspection:location})
     end if
+    ! Validate stopping criterion.
+    if (self%useDerivative .and. self%stoppingCriterion == stoppingCriterionInterval) &
+         & call Galacticus_Error_Report('"interval" stopping criteria is not valid when using a derivative-based method'//{introspection:location})
     ! If a solver type is provided, set that.
     if (present(solverType)) call self%type(solverType)
     ! If tolerances are provided, set them.
