@@ -32,6 +32,7 @@
      class(nodePropertyExtractorClass), pointer :: nodePropertyExtractor_ => null()
      class(outputTimesClass          ), pointer :: outputTimes_           => null()
      class(starFormationHistoryClass ), pointer :: starFormationHistory_  => null()
+     type (inputParameters           )          :: parameters
    contains
      final     ::                       buildSEDDestructor
      procedure :: perform            => buildSEDTabulationsPerform
@@ -52,12 +53,12 @@ contains
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Node_Components , only : Node_Components_Initialize
     implicit none
-    type (taskBuildSEDTabulations   )                :: self
-    type (inputParameters           ), intent(inout) :: parameters
-    class(nodePropertyExtractorClass), pointer       :: nodePropertyExtractor_
-    class(outputTimesClass          ), pointer       :: outputTimes_
-    class(starFormationHistoryClass ), pointer       :: starFormationHistory_
-    type (inputParameters           ), pointer       :: parametersRoot
+    type (taskBuildSEDTabulations   )                        :: self
+    type (inputParameters           ), intent(inout), target :: parameters
+    class(nodePropertyExtractorClass), pointer               :: nodePropertyExtractor_
+    class(outputTimesClass          ), pointer               :: outputTimes_
+    class(starFormationHistoryClass ), pointer               :: starFormationHistory_
+    type (inputParameters           ), pointer               :: parametersRoot
 
     ! Ensure the nodes objects are initialized.
     if (associated(parameters%parent)) then
@@ -68,14 +69,14 @@ contains
        call nodeClassHierarchyInitialize(parametersRoot)
        call Node_Components_Initialize  (parametersRoot)
     else
-       parametersRoot => null()
+       parametersRoot => parameters
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
     !# <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
     !# <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
     !# <objectBuilder class="starFormationHistory"  name="starFormationHistory_"  source="parameters"/>
-    self=taskBuildSEDTabulations(nodePropertyExtractor_,starFormationHistory_,outputTimes_)
+    self=taskBuildSEDTabulations(nodePropertyExtractor_,starFormationHistory_,outputTimes_,parametersRoot)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="nodePropertyExtractor_"/>
     !# <objectDestructor name="outputTimes_"          />
@@ -83,7 +84,7 @@ contains
     return
   end function buildSEDTabulationsParameters
 
-  function buildSEDTabulationsInternal(nodePropertyExtractor_,starFormationHistory_,outputTimes_) result(self)
+  function buildSEDTabulationsInternal(nodePropertyExtractor_,starFormationHistory_,outputTimes_,parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily buildSEDTabulations} task class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -91,8 +92,10 @@ contains
     class(nodePropertyExtractorClass), intent(in   ), target :: nodePropertyExtractor_
     class(outputTimesClass          ), intent(in   ), target :: outputTimes_
     class(starFormationHistoryClass ), intent(in   ), target :: starFormationHistory_
+    type (inputParameters           ), intent(in   ), target :: parameters
     !# <constructorAssign variables="*nodePropertyExtractor_, *outputTimes_, *starFormationHistory_"/>
 
+    self%parameters=inputParameters(parameters)
     return
   end function buildSEDTabulationsInternal
 
@@ -111,32 +114,40 @@ contains
 
   subroutine buildSEDTabulationsPerform(self,status)
     !% Builds the tabulation.
-    use :: Display                   , only : displayIndent           , displayUnindent
-    use :: Galacticus_Error          , only : errorStatusSuccess      , Galacticus_Error_Report
+    use :: Display                   , only : displayIndent                    , displayUnindent
+    use :: Galacticus_Error          , only : errorStatusSuccess               , Galacticus_Error_Report
     use :: Histories                 , only : history
-    use :: Galacticus_Nodes          , only : treeNode                , nodeComponentBasic        , nodeComponentDisk, nodeComponentSpheroid
-    use :: Poly_Ranks                , only : polyRankDouble          , assignment(=)
+    use :: Galacticus_Nodes          , only : treeNode                         , nodeComponentBasic                 , nodeComponentDisk, nodeComponentSpheroid, &
+         &                                    mergerTree
+    use :: Poly_Ranks                , only : polyRankDouble                   , assignment(=)
     use :: Multi_Counters            , only : multiCounter
-    use :: Node_Property_Extractors  , only : nodePropertyExtractorSED, nodePropertyExtractorMulti
-    use :: Galactic_Structure_Options, only : componentTypeDisk       , componentTypeSpheroid
+    use :: Node_Property_Extractors  , only : nodePropertyExtractorSED         , nodePropertyExtractorMulti
+    use :: Galactic_Structure_Options, only : componentTypeDisk                , componentTypeSpheroid
+    use :: Node_Components           , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     implicit none
     class           (taskBuildSEDTabulations), intent(inout), target         :: self
     integer                                  , intent(  out), optional       :: status
     double precision                         , allocatable  , dimension(:,:) :: doubleArray
     type            (polyRankDouble         ), allocatable  , dimension(:  ) :: doubleProperties
+    type            (mergerTree             ), target                        :: tree
     type            (treeNode               ), pointer                       :: node
     class           (nodeComponentBasic     ), pointer                       :: basic
     class           (nodeComponentDisk      ), pointer                       :: disk
     class           (nodeComponentSpheroid  ), pointer                       :: spheroid
-    type            (history                )                                :: starFormationHistoryDisk, starFormationHistorySpheroid
+    double precision                         , parameter                     :: mass                    =1.0d12
+    type            (history                )                                :: starFormationHistoryDisk       , starFormationHistorySpheroid
     integer         (c_size_t               )                                :: i
     double precision                                                         :: time
     type            (multiCounter           )                                :: instance
     !$GLC attributes unused :: self
 
     call displayIndent ('Begin task: build SED tabulations')
+    ! Call routines to perform initializations which must occur for all threads if run in parallel.
+    call Node_Components_Thread_Initialize(self%parameters)
     ! Build a node and components.
     node     => treeNode         (                 )
+    tree    %baseNode => node
+    node%hostTree => tree
     disk     => node    %disk    (autoCreate=.true.)
     spheroid => node    %spheroid(autoCreate=.true.)
     basic    => node    %basic   (autoCreate=.true.)
@@ -146,6 +157,7 @@ contains
     time=self%outputTimes_%time(1_c_size_t)
     call basic%timeSet            (time)
     call basic%timeLastIsolatedSet(time)
+    call basic%massSet            (mass)
     ! Create the star formation histories.
     call self    %starFormationHistory_  %create(node,starFormationHistoryDisk    ,time)
     call self    %starFormationHistory_  %create(node,starFormationHistorySpheroid,time)
@@ -205,6 +217,7 @@ contains
     call node%destroy()
     deallocate(node)
     if (present(status)) status=errorStatusSuccess
+    call Node_Components_Thread_Uninitialize()
     call displayUnindent('Done task: build SED tabulations')
     return
   end subroutine buildSEDTabulationsPerform
