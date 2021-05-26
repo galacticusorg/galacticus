@@ -36,12 +36,15 @@
           &              gamma
    contains
      !# <methods>
+     !#   <method description="Reset memoized calculations."                                                                                              method="calculationReset"/>
      !#   <method description="Provides the values of the $(\alpha,\beta,\gamma)$ exponents in \cite{zhao_analytical_1996} dark matter density profiles." method="exponents"       />
      !#   <method description="Compute the scale radius of the profile."                                                                                  method="scaleRadius"     />
      !#   <method description="Compute the normalization of the profile."                                                                                 method="normalization"   />
      !#   <method description="Compute the unnormalized mass within the given scale-free radius"                                                          method="massUnnormalized"/>
      !# </methods>
      final     ::                                      zhao1996Destructor
+     procedure :: autoHook                          => zhao1996AutoHook
+     procedure :: calculationReset                  => zhao1996CalculationReset
      procedure :: exponents                         => zhao1996Exponents
      procedure :: scaleRadius                       => zhao1996ScaleRadius
      procedure :: normalization                     => zhao1996Normalization
@@ -124,6 +127,16 @@ contains
     return
   end function zhao1996ConstructorInternal
 
+  subroutine zhao1996AutoHook(self)
+    !% Attach to the calculation reset event.
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    implicit none
+    class(darkMatterProfileDMOZhao1996), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,zhao1996CalculationReset,openMPThreadBindingAllLevels)
+    return
+  end subroutine zhao1996AutoHook
+
   subroutine zhao1996Destructor(self)
     !% Destructor for the {\normalfont \ttfamily zhao1996} dark matter halo profile class.
     implicit none
@@ -132,6 +145,20 @@ contains
     !# <objectDestructor name="self%darkMatterHaloScale_" />
     return
   end subroutine zhao1996Destructor
+
+  subroutine zhao1996CalculationReset(self,node)
+    !% Reset the dark matter profile calculation.
+    implicit none
+    class(darkMatterProfileDMOZhao1996), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+
+    self%genericLastUniqueID=node%uniqueID()
+    if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
+    if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
+    if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
+    if (allocated(self%genericEnclosedMassRadius              )) deallocate(self%genericEnclosedMassRadius              )
+    return
+  end subroutine zhao1996CalculationReset
 
   subroutine zhao1996Exponents(self,node,alpha,beta,gamma)
     !% Compute the exponents of the {\normalfont \ttfamily zhao1996} dark matter halo profile.

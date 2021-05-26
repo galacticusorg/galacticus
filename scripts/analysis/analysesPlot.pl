@@ -27,6 +27,7 @@ my $galacticusFile = new PDL::IO::HDF5($galacticusFileName);
 # Iterate over all analyses.
 my $analysesGroup = $galacticusFile->group('analyses');
 my @analyses      =  $analysesGroup->groups();
+my $logLikelihoodTotal = pdl 0.0;
 foreach my $analysisName ( @analyses ) {
     print " -> ".$analysisName."\n";    # Extract all available attributes from this analysis.
     my $analysisGroup  = $analysesGroup->group($analysisName);
@@ -41,6 +42,9 @@ foreach my $analysisName ( @analyses ) {
     };
     ($attributes->{$_}) = $analysisGroup->attrGet($_)
 	foreach ( @attributeNames );
+    (my $logLikelihood) = $analysisGroup->attrGet('logLikelihood');
+    print "   -> logℒ = ".$logLikelihood."\n";
+    $logLikelihoodTotal += $logLikelihood;
     # Skip cases for which we have no "type" specified.
     unless ( exists($attributes->{'type'}) ) {
 	print "Warning: analysis '".$analysisName."' has no 'type' attribute, so it can not be processed.\n";

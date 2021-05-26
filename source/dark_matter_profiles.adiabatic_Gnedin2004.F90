@@ -212,6 +212,7 @@
     if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Galacticus_Error_Report('invalid non-analytic solver type'//{introspection:location})
     ! Construct the object.
     self%lastUniqueID       =-1_kind_int8
+    self%genericLastUniqueID=-1_kind_int8
     self%massesComputed     =.false.
     self%radiusExponentiator=fastExponentiator(1.0d-3,1.0d0,omega,1.0d4,.false.)
     ! Evaluate the dark matter fraction.
@@ -258,10 +259,15 @@
 
     ! Reset calculations for this profile.
     self%lastUniqueID              =node%uniqueID()
+    self%genericLastUniqueID       =node%uniqueID()
     self%radiusPreviousIndex       = 0
     self%radiusPreviousIndexMaximum= 0
     self%radiusPrevious            =-1.0d0
     self%massesComputed            =.false.
+    if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
+    if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
+    if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
+    if (allocated(self%genericEnclosedMassRadius              )) deallocate(self%genericEnclosedMassRadius              )
     return
   end subroutine adiabaticGnedin2004CalculationReset
 
