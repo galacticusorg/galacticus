@@ -465,7 +465,7 @@ contains
     integer  (c_size_t                )                :: indexOutput
     type     (lockDescriptor          )                :: fileLock
     type     (hdf5Object              )                :: file
-    type     (varying_string          )                :: datasetName         , fileName
+    type     (varying_string          )                :: fileName
     character(len=16                  )                :: label
 
     ! Return a negative index if templates are not being used.
@@ -485,18 +485,19 @@ contains
             &        self%objectType             (                    )// &
             &        '_'                                               // &
             &        self%historyHashedDescriptor(starFormationHistory)// &
+            &        '_'                                               // &
+            &        indexOutput                                       // &
             &        '.hdf5'
        ! Check if the templates can be retrieved from file.
-       datasetName=var_str("sedTemplates")//indexOutput
        !! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
        if (File_Exists(fileName)) then
           !$ call hdf5Access%set()
           call file%openFile(char(fileName))
-          if (file%hasDataset(char(datasetName))) then
+          if (file%hasDataset('sedTemplate')) then
              write (label,'(f12.8)') self%outputTimes_%time(indexOutput)
              call displayMessage("reading SED tabulation for time "//trim(adjustl(label))//" Gyr from file '"//fileName//"'",verbosityLevelWorking)
-             call file%readDataset(char(datasetName),self%templates(sedIndexTemplateNode)%sed)
+             call file%readDataset('sedTemplate',self%templates(sedIndexTemplateNode)%sed)
           end if
           call file%close()
           !$ call hdf5Access%unset()
@@ -507,7 +508,7 @@ contains
           call displayMessage("storing SED tabulation for time "//trim(adjustl(label))//" Gyr to file '"//fileName//"'",verbosityLevelWorking)
           !$ call hdf5Access%set()
           call file%openFile(char(fileName),overWrite=.false.,readOnly=.false.)
-          call file%writeDataset(self%templates(sedIndexTemplateNode)%sed,char(datasetName))
+          call file%writeDataset(self%templates(sedIndexTemplateNode)%sed,'sedTemplate')
           call file%close()
           !$ call hdf5Access%unset()
        end if

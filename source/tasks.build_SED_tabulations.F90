@@ -124,6 +124,7 @@ contains
     use :: Node_Property_Extractors  , only : nodePropertyExtractorSED         , nodePropertyExtractorMulti
     use :: Galactic_Structure_Options, only : componentTypeDisk                , componentTypeSpheroid
     use :: Node_Components           , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
+    use :: MPI_Utilities             , only : mpiBarrier                       , mpiSelf
     implicit none
     class           (taskBuildSEDTabulations), intent(inout), target         :: self
     integer                                  , intent(  out), optional       :: status
@@ -167,6 +168,9 @@ contains
     call spheroid%starFormationHistorySet       (     starFormationHistorySpheroid     )
     ! Iterate over output times.
     do i=1_c_size_t,self%outputTimes_%count()
+#ifdef USEMPI
+       if (mod(i,mpiSelf%count()) /= mpiSelf%rank()) cycle
+#endif
        time=self%outputTimes_%time(i)
        call basic   %timeSet            (time)
        call basic   %timeLastIsolatedSet(time)
