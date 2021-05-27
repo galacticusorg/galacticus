@@ -50,7 +50,7 @@
      class           (outputTimesClass             ), pointer                   :: outputTimes_                 => null()
      class           (cosmologyFunctionsClass      ), pointer                   :: cosmologyFunctions_          => null()
      integer                                                                    :: countWavelengths                      , component
-     double precision                               , allocatable, dimension(:) :: wavelengths                           , metallicityBoundaries
+     double precision                               , allocatable, dimension(:) :: wavelengths_                          , metallicityBoundaries
      type            (sedTemplate                  ), allocatable, dimension(:) :: templates
      double precision                                                           :: metallicityPopulationMinimum          , metallicityPopulationMaximum, &
           &                                                                        wavelengthMinimum                     , wavelengthMaximum           , &
@@ -64,9 +64,11 @@
      !#  <method description="Return the index of the template SEDs to use."                                                                               method="indexTemplateNode"      />
      !#  <method description="Compute the mean luminosity of the stellar population in the given bin of the star formation history."                       method="luminosityMean"         />
      !#  <method description="Return a hashed descriptor of the object which incorporates the time and metallicity binning of the star formation history." method="historyHashedDescriptor"/>
+     !#  <method description="Return an array of the wavelengths at which the SED is computed."                                                            method="wavelengths"            />
      !# </methods>
      final     ::                            sedDestructor
      procedure :: historyHashedDescriptor => sedHistoryHashedDescriptor
+     procedure :: wavelengths             => sedWavelengths
      procedure :: columnDescriptions      => sedColumnDescriptions
      procedure :: size                    => sedSize
      procedure :: elementCount            => sedElementCount
@@ -169,8 +171,8 @@ contains
          &  .and.                                                                                                          &
          &   component /= componentTypeSpheroid                                                                            &
          & ) call Galacticus_Error_Report("only 'disk' and 'spheroid' components are supported"//{introspection:location})
-    call self%stellarPopulationSpectra_%wavelengths(self%countWavelengths                   ,self%wavelengths              )
-    call self%stellarPopulationSpectra_%tabulation (     agesCount       ,metallicitiesCount,     ages       ,metallicities)
+    call self%stellarPopulationSpectra_%wavelengths(self%countWavelengths                   ,self%wavelengths_              )
+    call self%stellarPopulationSpectra_%tabulation (     agesCount       ,metallicitiesCount,     ages        ,metallicities)
     self%metallicityBoundaries       =self%starFormationHistory_%metallicityBoundaries()
     self%agePopulationMaximum        =ages         (agesCount         )
     self%metallicityPopulationMaximum=metallicities(metallicitiesCount)/metallicitySolar
@@ -222,16 +224,16 @@ contains
        select case (self%frame)
        case (frameRest    )
           expansionFactor=1.0d0
-          selection      =                                                            &
-               &           self%wavelengths                 >= self%wavelengthMinimum &
-               &          .and.                                                       &
-               &           self%wavelengths                 <= self%wavelengthMaximum
+          selection      =                                                             &
+               &           self%wavelengths_                 >= self%wavelengthMinimum &
+               &          .and.                                                        &
+               &           self%wavelengths_                 <= self%wavelengthMaximum
        case (frameObserved)
           expansionFactor=self%cosmologyFunctions_%expansionFactor(time)
-          selection      =                                                            &
-               &           self%wavelengths/expansionFactor >= self%wavelengthMinimum &
-               &          .and.                                                       &
-               &           self%wavelengths/expansionFactor <= self%wavelengthMaximum
+          selection      =                                                             &
+               &           self%wavelengths_/expansionFactor >= self%wavelengthMinimum &
+               &          .and.                                                        &
+               &           self%wavelengths_/expansionFactor <= self%wavelengthMaximum
        case default
           expansionFactor=1.0d0
           sedSize        =0_c_size_t
@@ -244,7 +246,7 @@ contains
           if (self%templates(indexTemplate)%countWavelengths < 0_c_size_t) then
              self%templates(indexTemplate)%countWavelengths=sedSize
              allocate(self%templates(indexTemplate)%wavelength(sedSize))
-             self%templates(indexTemplate)%wavelength=+pack(self%wavelengths    ,mask=selection) &
+             self%templates(indexTemplate)%wavelength=+pack(self%wavelengths_   ,mask=selection) &
                   &                                   /          expansionFactor
           end if
        end if
@@ -353,19 +355,18 @@ contains
     return
   end function sedDescriptions
 
-  function sedColumnDescriptions(self,time)
+  function sedWavelengths(self,time)
     !% Return column descriptions of the {\normalfont \ttfamily sed} property.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    type            (varying_string          ), dimension(:) , allocatable :: sedColumnDescriptions
+    double precision                          , dimension(:) , allocatable :: sedWavelengths
     class           (nodePropertyExtractorSED), intent(inout)              :: self
     double precision                          , intent(in   )              :: time
-    integer         (c_size_t                )                             :: i                    , j              , &
+    integer         (c_size_t                )                             :: i             , j              , &
          &                                                                    indexTemplate
-    character       (len=18                  )                             :: label
-    double precision                                                       :: wavelength           , expansionFactor
+    double precision                                                       :: wavelength    , expansionFactor
 
-    allocate(sedColumnDescriptions(self%size(time)))
+    allocate(sedWavelengths(self%size(time)))
     indexTemplate  =self%indexTemplateTime(time)
     j              =0
     select case (self%frame)
@@ -377,17 +378,17 @@ contains
        expansionFactor=0.0d0
        call Galacticus_Error_Report('unknown frame'//{introspection:location})
     end select
-    do i=1,size(sedColumnDescriptions)
+    do i=1,size(sedWavelengths)
        if (indexTemplate > 0) then
           ! Use wavelength from the pre-computed template.
           wavelength=self%templates(indexTemplate)%wavelength(i)
        else if (self%resolution < 0.0d0) then
           ! Full resolution SED.
           j=j+1
-          do while (self%wavelengths(j)/expansionFactor < self%wavelengthMinimum)
+          do while (self%wavelengths_(j)/expansionFactor < self%wavelengthMinimum)
              j=j+1
           end do
-          wavelength=self%wavelengths(j)/expansionFactor
+          wavelength=self%wavelengths_(j)/expansionFactor
        else
           ! Finite resolution SED.
           if (i == 1) then
@@ -398,7 +399,27 @@ contains
                   &     *self%factorWavelength **2
           end if
        end if
-       write (label,'(a2,1x,e12.6,1x,a1)') "λ=",wavelength,"Å"
+       sedWavelengths(i)=wavelength
+    end do
+    return
+  end function sedWavelengths
+
+  function sedColumnDescriptions(self,time)
+    !% Return column descriptions of the {\normalfont \ttfamily sed} property.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    type            (varying_string          ), dimension(:) , allocatable :: sedColumnDescriptions
+    class           (nodePropertyExtractorSED), intent(inout)              :: self
+    double precision                          , intent(in   )              :: time
+    double precision                          , dimension(:) , allocatable :: wavelengths
+    integer         (c_size_t                )                             :: i
+    character       (len=18                  )                             :: label
+    
+    allocate(sedColumnDescriptions(self%size(time)))
+    allocate(          wavelengths(self%size(time)))
+    wavelengths=self%wavelengths(time)
+    do i=1,size(sedColumnDescriptions)      
+       write (label,'(a2,1x,e12.6,1x,a1)') "λ=",wavelengths(i),"Å"
        sedColumnDescriptions(i)=trim(label)
     end do
     return
@@ -569,10 +590,10 @@ contains
        allocate(jWavelength(size(sedLuminosityMean,dim=1)))
        kWavelength=0
        do iWavelength=1,self%countWavelengths
-          if     (                                                                         &
-               &   self%wavelengths(iWavelength)/expansionFactor >= self%wavelengthMinimum &
-               &  .and.                                                                    &
-               &   self%wavelengths(iWavelength)/expansionFactor <= self%wavelengthMaximum &
+          if     (                                                                          &
+               &   self%wavelengths_(iWavelength)/expansionFactor >= self%wavelengthMinimum &
+               &  .and.                                                                     &
+               &   self%wavelengths_(iWavelength)/expansionFactor <= self%wavelengthMaximum &
                & ) then
              kWavelength             =kWavelength+1
              jWavelength(kWavelength)=iWavelength
@@ -635,7 +656,7 @@ contains
        ! Determine the wavelength.
        if (self%resolution < 0.0d0) then
           ! Full resolution SED.
-          wavelength=self%wavelengths(jWavelength(iWavelength))
+          wavelength=self%wavelengths_(jWavelength(iWavelength))
        else
           ! Finite resolution SED.
           wavelengthMinimum=wavelengthMinima(iWavelength)*expansionFactor
