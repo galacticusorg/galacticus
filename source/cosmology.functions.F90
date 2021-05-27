@@ -154,6 +154,12 @@ module Cosmology_Functions
   !#   <argument>double precision, intent(in   ), optional :: time  , expansionFactor</argument>
   !#   <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
   !#  </method>
+  !#  <method name="distanceParticleHorizonComoving" >
+  !#   <description>Return the comoving distance to the particle horizon at the given {\normalfont \ttfamily time}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: time</argument>
+  !#  </method>
   !#  <method name="distanceComoving" >
   !#   <description>Return the comoving distance to the given cosmic {\normalfont \ttfamily time}.</description>
   !#   <type>double precision</type>

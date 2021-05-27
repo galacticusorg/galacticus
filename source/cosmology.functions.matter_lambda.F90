@@ -67,33 +67,34 @@
      !#   <method description="Tabulate comoving distance as a function of cosmic time." method="distanceTabulate" />
      !#   <method description="Tabulate expansion factor as a function of cosmic time." method="expansionFactorTabulate" />
      !# </methods>
-     final     ::                                  matterLambdaDestructor
-     procedure :: epochValidate                 => matterLambdaEpochValidate
-     procedure :: cosmicTime                    => matterLambdaCosmicTime
-     procedure :: timeBigCrunch                 => matterLambdaTimeBigCrunch
-     procedure :: expansionFactor               => matterLambdaExpansionFactor
-     procedure :: expansionRate                 => matterLambdaExpansionRate
-     procedure :: hubbleParameterEpochal        => matterLambdaHubbleParameterEpochal
-     procedure :: hubbleParameterRateOfChange   => matterLambdaHubbleParameterRateOfChange
-     procedure :: densityScalingEarlyTime       => matterLambdaDensityScalingEarlyTime
-     procedure :: omegaMatterEpochal            => matterLambdaOmegaMatterEpochal
-     procedure :: omegaMatterRateOfChange       => matterLambdaOmegaMatterRateOfChange
-     procedure :: omegaDarkEnergyEpochal        => matterLambdaOmegaDarkEnergyEpochal
-     procedure :: equationOfStateDarkEnergy     => matterLambdaEquationOfStateDarkEnergy
-     procedure :: exponentDarkEnergy            => matterLambdaExponentDarkEnergy
-     procedure :: equalityEpochMatterDarkEnergy => matterLambdaEqualityEpochMatterDarkEnergy
-     procedure :: equalityEpochMatterCurvature  => matterLambdaEqualityEpochMatterCurvature
-     procedure :: equalityEpochMatterRadiation  => matterLambdaEqualityEpochMatterRadiation
-     procedure :: dominationEpochMatter         => matterLambdaDominationEpochMatter
-     procedure :: temperatureCMBEpochal         => matterLambdaTemperatureCMBEpochal
-     procedure :: distanceComoving              => matterLambdaDistanceComoving
-     procedure :: distanceLuminosity            => matterLambdaDistanceLuminosity
-     procedure :: distanceAngular               => matterLambdaDistanceAngular
-     procedure :: timeAtDistanceComoving        => matterLambdaTimeAtDistanceComoving
-     procedure :: distanceComovingConvert       => matterLambdaDistanceComovingConvert
-     procedure :: expansionFactorTabulate       => matterLambdaMakeExpansionFactorTable
-     procedure :: distanceTabulate              => matterLambdaMakeDistanceTable
-     procedure :: matterDensityEpochal          => matterLambdaMatterDensityEpochal
+     final     ::                                    matterLambdaDestructor
+     procedure :: epochValidate                   => matterLambdaEpochValidate
+     procedure :: cosmicTime                      => matterLambdaCosmicTime
+     procedure :: timeBigCrunch                   => matterLambdaTimeBigCrunch
+     procedure :: expansionFactor                 => matterLambdaExpansionFactor
+     procedure :: expansionRate                   => matterLambdaExpansionRate
+     procedure :: hubbleParameterEpochal          => matterLambdaHubbleParameterEpochal
+     procedure :: hubbleParameterRateOfChange     => matterLambdaHubbleParameterRateOfChange
+     procedure :: densityScalingEarlyTime         => matterLambdaDensityScalingEarlyTime
+     procedure :: omegaMatterEpochal              => matterLambdaOmegaMatterEpochal
+     procedure :: omegaMatterRateOfChange         => matterLambdaOmegaMatterRateOfChange
+     procedure :: omegaDarkEnergyEpochal          => matterLambdaOmegaDarkEnergyEpochal
+     procedure :: equationOfStateDarkEnergy       => matterLambdaEquationOfStateDarkEnergy
+     procedure :: exponentDarkEnergy              => matterLambdaExponentDarkEnergy
+     procedure :: equalityEpochMatterDarkEnergy   => matterLambdaEqualityEpochMatterDarkEnergy
+     procedure :: equalityEpochMatterCurvature    => matterLambdaEqualityEpochMatterCurvature
+     procedure :: equalityEpochMatterRadiation    => matterLambdaEqualityEpochMatterRadiation
+     procedure :: dominationEpochMatter           => matterLambdaDominationEpochMatter
+     procedure :: temperatureCMBEpochal           => matterLambdaTemperatureCMBEpochal
+     procedure :: distanceComoving                => matterLambdaDistanceComoving
+     procedure :: distanceLuminosity              => matterLambdaDistanceLuminosity
+     procedure :: distanceAngular                 => matterLambdaDistanceAngular
+     procedure :: timeAtDistanceComoving          => matterLambdaTimeAtDistanceComoving
+     procedure :: distanceComovingConvert         => matterLambdaDistanceComovingConvert
+     procedure :: expansionFactorTabulate         => matterLambdaMakeExpansionFactorTable
+     procedure :: distanceTabulate                => matterLambdaMakeDistanceTable
+     procedure :: matterDensityEpochal            => matterLambdaMatterDensityEpochal
+     procedure :: distanceParticleHorizonComoving => matterLambdaDistanceParticleHorizonComoving
   end type cosmologyFunctionsMatterLambda
 
   ! Module scope pointer to the current object.
@@ -1120,6 +1121,40 @@ contains
     return
   end function matterLambdaDistanceComovingConvert
 
+  double precision function matterLambdaDistanceParticleHorizonComoving(self,time)
+    !% Returns the comoving distance to the particle horizon at cosmological time {\normalfont \ttfamily time}.
+    use :: Numerical_Integration, only : integrator
+    implicit none
+    class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
+    double precision                                , intent(in   ) :: time
+    type            (integrator                    ), allocatable   :: integrator_
+
+    integrator_                                =integrator           (integrandParticleHorizon,toleranceRelative=1.0d-6)
+    matterLambdaDistanceParticleHorizonComoving=integrator_%integrate(0.0d0                   ,                  time  )
+    return
+
+  contains
+
+    double precision function integrandParticleHorizon(time)
+      !% Integrand used to compute the distance to the comoving particle horizon.
+      use :: Numerical_Constants_Physical    , only : speedLight
+      use :: Numerical_Constants_Astronomical, only : megaParsec, gigaYear
+      implicit none
+      double precision, intent(in   ) :: time
+
+      if (time > 0.0d0) then
+         integrandParticleHorizon=+     speedLight            &
+              &                   *     gigaYear              &
+              &                   /     megaParsec            &
+              &                   /self%expansionFactor(time)
+      else
+         integrandParticleHorizon=0.0d0
+      end if
+      return
+    end function integrandParticleHorizon
+    
+  end function matterLambdaDistanceParticleHorizonComoving
+  
   subroutine matterLambdaMakeDistanceTable(self,time)
     !% Builds a table of distance vs. time.
     use :: Memory_Management    , only : allocateArray, deallocateArray
