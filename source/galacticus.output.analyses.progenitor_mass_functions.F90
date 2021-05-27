@@ -683,8 +683,8 @@ contains
     call analysisGroup%writeAttribute(self%logLikelihood             (),'logLikelihood'             )
     call analysisGroup%writeAttribute(self%massRatioLikelihoodMinimum  ,'massRatioLikelihoodMinimum')
     call analysisGroup%writeAttribute(self%massRatioLikelihoodMaximum  ,'massRatioLikelihoodMaximum')
-    call analysisGroup%close         (                                        )
-    call analysesGroup%close         (                                        )
+    call analysisGroup%close         (                                                              )
+    call analysesGroup%close         (                                                              )
     !$ call hdf5Access%unset()
     return
   end subroutine progenitorMassFunctionFinalize
@@ -692,8 +692,7 @@ contains
   double precision function progenitorMassFunctionLogLikelihood(self)
     !% Return the log-likelihood of the progenitor mass function.
     use, intrinsic :: ISO_C_Binding               , only : c_size_t
-    use            :: Linear_Algebra              , only : vector                 , matrix, assignment(=), operator(*)
-    use            :: Galacticus_Error            , only : Galacticus_Error_Report
+    use            :: Linear_Algebra              , only : vector       , matrix, assignment(=), operator(*)
     use            :: Interface_GSL               , only : GSL_Success
     use            :: Models_Likelihoods_Constants, only : logImprobable
     implicit none
@@ -801,7 +800,6 @@ contains
        end if
     else
        progenitorMassFunctionLogLikelihood   =+0.0d0
-       call Galacticus_Error_Report('no target distribution was provided for likelihood calculation'//{introspection:location})
     end if
     return
   end function progenitorMassFunctionLogLikelihood
