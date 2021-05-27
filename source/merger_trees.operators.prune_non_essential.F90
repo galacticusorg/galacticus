@@ -114,7 +114,7 @@ contains
           do while (treeWalker%next(node))
              ! Record the parent node to which we will return.
              if     (                                                &
-                  &   associated(nodePrevious)                       &
+                  &   associated(node%parent)                        &
                   &  .and.                                           &
                   &   .not.                                          &
                   &    (                                             &
@@ -128,7 +128,7 @@ contains
                 ! Decouple from other nodes.
                 call Merger_Tree_Prune_Unlink_Parent(                                                    &
                      &                               node                                              , &
-                     &                               nodePrevious                                      , &
+                     &                               node%parent                                       , &
                      &                               .not.                                               &
                      &                                    (                                              &
                      &                                      nodePrevious %isProgenitorOf(nodeEssential)  &
