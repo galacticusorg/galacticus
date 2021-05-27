@@ -124,7 +124,9 @@ contains
     use :: Node_Property_Extractors  , only : nodePropertyExtractorSED         , nodePropertyExtractorMulti
     use :: Galactic_Structure_Options, only : componentTypeDisk                , componentTypeSpheroid
     use :: Node_Components           , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
+#ifdef USEMPI
     use :: MPI_Utilities             , only : mpiBarrier                       , mpiSelf
+#endif
     implicit none
     class           (taskBuildSEDTabulations), intent(inout), target         :: self
     integer                                  , intent(  out), optional       :: status
