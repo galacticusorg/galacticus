@@ -155,6 +155,7 @@ program Test_Prada2011_Concentration
   !#    &amp;                                   toleranceTopHat                    =1.00d-4                            , &amp;
   !#    &amp;                                   nonMonotonicIsFatal                =.true.                             , &amp;
   !#    &amp;                                   monotonicInterpolation             =.false.                            , &amp;
+  !#    &amp;                                   truncateAtParticleHorizon          =.false.                            , &amp;
   !#    &amp;                                   cosmologyParameters_               =cosmologyParameters_               , &amp;
   !#    &amp;                                   cosmologyFunctions_                =cosmologyFunctions_                , &amp;
   !#    &amp;                                   linearGrowth_                      =linearGrowth_                      , &amp;

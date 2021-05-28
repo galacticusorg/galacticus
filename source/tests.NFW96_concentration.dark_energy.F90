@@ -164,6 +164,7 @@ program Test_NFW96_Concentration_Dark_Energy
   !#    &amp;                                                        toleranceTopHat                    =1.000d-4                           , &amp;
   !#    &amp;                                                        nonMonotonicIsFatal                =.true.                             , &amp;
   !#    &amp;                                                        monotonicInterpolation             =.false.                            , &amp;
+  !#    &amp;                                                        truncateAtParticleHorizon          =.false.                            , &amp;
   !#    &amp;                                                        cosmologyParameters_               =cosmologyParameters_               , &amp;
   !#    &amp;                                                        cosmologyFunctions_                =cosmologyFunctions_                , &amp;
   !#    &amp;                                                        linearGrowth_                      =linearGrowth_                      , &amp;

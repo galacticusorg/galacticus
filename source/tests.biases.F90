@@ -224,6 +224,7 @@ program Test_Biases
      !#    &amp;                                                        toleranceTopHat                    =1.0d-4                                   , &amp;
      !#    &amp;                                                        nonMonotonicIsFatal                =.true.                                   , &amp;
      !#    &amp;                                                        monotonicInterpolation             =.false.                                  , &amp;
+     !#    &amp;                                                        truncateAtParticleHorizon          =.false.                                  , &amp;
      !#    &amp;                                                        cosmologyParameters_               =cosmologyParametersSimple_               , &amp;
      !#    &amp;                                                        cosmologyFunctions_                =cosmologyFunctionsMatterLambda_          , &amp;
      !#    &amp;                                                        linearGrowth_                      =linearGrowthCollisionlessMatter_         , &amp;

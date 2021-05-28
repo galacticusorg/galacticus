@@ -178,6 +178,7 @@ program Tests_Power_Spectrum
   !#    &amp;                                   toleranceTopHat                    =1.0d-6                                               , &amp;
   !#    &amp;                                   nonMonotonicIsFatal                =.true.                                               , &amp;
   !#    &amp;                                   monotonicInterpolation             =.false.                                              , &amp;
+  !#    &amp;                                   truncateAtParticleHorizon          =.false.                                              , &amp;
   !#    &amp;                                   cosmologyParameters_               =cosmologyParameters_                                 , &amp;
   !#    &amp;                                   cosmologyFunctions_                =cosmologyFunctions_                                  , &amp;
   !#    &amp;                                   linearGrowth_                      =linearGrowth_                                        , &amp;
