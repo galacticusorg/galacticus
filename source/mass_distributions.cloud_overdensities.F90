@@ -157,9 +157,7 @@ contains
     do i=1,3
        call sortByIndex(self%positions(:,i),order)
     end do
-
-self%neighbors=nearestNeighbors(self%positions)
-    
+    self%neighbors=nearestNeighbors(self%positions)
     return
   end function cloudOverdensitiesConstructorInternal
   
