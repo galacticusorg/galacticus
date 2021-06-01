@@ -103,12 +103,12 @@
      logical                                                                               :: massesComputed
    contains
      !# <methods>
-     !#   <method description="Reset memoized calculations." method="calculationReset" />
-     !#   <method description="Compute factors needed for solving adiabatic contraction." method="computeFactors" />
-     !#   <method description="Compute the orbit-averaged radius for dark matter." method="radiusOrbitalMean" />
-     !#   <method description="Compute the derivative of the orbit-averaged radius for dark matter." method="radiusOrbitalMeanDerivative" />
-     !#   <method description="Compute the initial radius in the dark matter profile." method="radiusInitial" />
-     !#   <method description="Compute the derivative of the initial radius in the dark matter profile." method="radiusInitialDerivative" />
+     !#   <method description="Reset memoized calculations."                                             method="calculationReset"           />
+     !#   <method description="Compute factors needed for solving adiabatic contraction."                method="computeFactors"             />
+     !#   <method description="Compute the orbit-averaged radius for dark matter."                       method="radiusOrbitalMean"          />
+     !#   <method description="Compute the derivative of the orbit-averaged radius for dark matter."     method="radiusOrbitalMeanDerivative"/>
+     !#   <method description="Compute the initial radius in the dark matter profile."                   method="radiusInitial"              />
+     !#   <method description="Compute the derivative of the initial radius in the dark matter profile." method="radiusInitialDerivative"    />
      !# </methods>
      final     ::                                      adiabaticGnedin2004Destructor
      procedure :: autoHook                          => adiabaticGnedin2004AutoHook
@@ -201,7 +201,7 @@
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterProfileAdiabaticGnedin2004)                        :: self
-    double precision                                      , intent(in   )         :: A                   , omega
+    double precision                                      , intent(in   )         :: A                    , omega
     class           (cosmologyParametersClass            ), intent(in   ), target :: cosmologyParameters_
     class           (darkMatterProfileDMOClass           ), intent(in   ), target :: darkMatterProfileDMO_
     class           (darkMatterHaloScaleClass            ), intent(in   ), target :: darkMatterHaloScale_
@@ -319,10 +319,11 @@
     class           (darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(in   ) :: radius
-    double precision                                                      :: radiusInitial
+    logical                                                               :: fallThrough
 
-    radiusInitial=self%radiusInitial(node,radius)
-    if (radius == radiusInitial .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
+    fallThrough=self%nonAnalyticSolver == nonAnalyticSolversFallThrough
+    if (.not.fallThrough) fallThrough=radius == self%radiusInitial(node,radius)
+    if (fallThrough) then
        adiabaticGnedin2004DensityLogSlope=self%darkMatterProfileDMO_%densityLogSlope         (node,radius)
     else
        adiabaticGnedin2004DensityLogSlope=self                      %densityLogSlopeNumerical(node,radius)
@@ -387,10 +388,11 @@
     type            (treeNode                            ), intent(inout), target   :: node
     double precision                                      , intent(in   )           :: radius
     integer                                               , intent(  out), optional :: status
-    double precision                                                                :: radiusInitial
+    logical                                                                         :: fallThrough
 
-    radiusInitial=self%radiusInitial(node,radius)
-    if (radius == radiusInitial .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
+    fallThrough=self%nonAnalyticSolver == nonAnalyticSolversFallThrough
+    if (.not.fallThrough) fallThrough=radius == self%radiusInitial(node,radius)
+    if (fallThrough) then
        ! No adiabatic contraction - use the dark-matter-only result.
        adiabaticGnedin2004Potential=+self%darkMatterFraction                                           &
             &                       *self%darkMatterProfileDMO_%potential         (node,radius,status)
@@ -704,8 +706,8 @@
   subroutine adiabaticGnedin2004ComputeFactors(self,node,radius,computeGradientFactors)
     !% Compute various factors needed when solving for the initial radius in the dark matter halo using the adiabatic contraction
     !% algorithm of \cite{gnedin_response_2004}.
-    use :: Galacticus_Nodes            , only : nodeComponentBasic             , optimizeForEnclosedMassSummation, optimizeForRotationCurveGradientSummation, optimizeForRotationCurveSummation, &
-          &                                     reductionSummation             , treeNode
+    use :: Galacticus_Nodes                , only : nodeComponentBasic             , optimizeForEnclosedMassSummation, optimizeForRotationCurveGradientSummation, optimizeForRotationCurveSummation, &
+          &                                         reductionSummation             , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     !# <include directive="rotationCurveTask" name="radiusSolverRotationCurveTask" type="moduleUse">
     !# <exclude>Dark_Matter_Profile_Structure_Tasks</exclude>
