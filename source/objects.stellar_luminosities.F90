@@ -805,14 +805,11 @@ contains
     if (luminosityCount > 0) then
        select case (luminosityOutputOption)
        case (luminosityOutputOptionFuture,luminosityOutputOptionPresent)
-          ! Luminosities from this and earlier outputs no longer needed, so prune them. This is somewhat inefficient if there are
-          ! luminosities computed which do not correspond to any output. They will never be pruned and so will continue to use
-          ! memory and be evolved along with the galaxy. In principle such luminosities could be needed internally so we do not
-          ! remove them.
+          ! Luminosities from this and earlier outputs no longer needed, so prune them.
           call Move_Alloc(self%luminosityValue,luminosityTmp)
-          luminosityRemainingCount=size(luminosityTmp)
+          luminosityRemainingCount=luminosityCount
           do i=1,luminosityCount
-             if (Stellar_Luminosities_Is_Output(i,time,luminosityOutputOptionPresent)) &
+             if (.not.Stellar_Luminosities_Is_Output(i,time,luminosityOutputOptionFuture)) &
                   & luminosityRemainingCount=luminosityRemainingCount-1
           end do
           allocate(self%luminosityValue(luminosityRemainingCount))
