@@ -61,7 +61,7 @@ contains
     implicit none
     class           (mergerTreeOperatorMonotonizeMassGrowth), intent(inout), target :: self
     type            (mergerTree                            ), intent(inout), target :: tree
-    type            (treeNode                              ), pointer               :: nodeProgenitor          , node
+    type            (treeNode                              ), pointer               :: nodeProgenitor , node
     class           (nodeComponentBasic                    ), pointer               :: basicProgenitor, basic
     type            (mergerTree                            ), pointer               :: treeCurrent
     type            (mergerTreeWalkerIsolatedNodes         )                        :: treeWalker
