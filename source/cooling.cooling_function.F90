@@ -23,6 +23,7 @@ module Cooling_Functions
   !% Provides a class implementing cooling functions.
   use :: Abundances_Structure         , only : abundances
   use :: Chemical_Abundances_Structure, only : chemicalAbundances
+  use :: Galacticus_Nodes             , only : treeNode
   use :: Radiation_Fields             , only : radiationFieldClass
   private
 
@@ -34,9 +35,10 @@ module Cooling_Functions
   !#  </description>
   !#  <default>atomicCIECloudy</default>
   !#  <method name="coolingFunction" >
-  !#   <description>Return the cooling function at the given temperature and hydrogen density for the specified set of abundances and radiation field. Units of the returned cooling function are the traditional ergs cm$^-3$ s$^{-1}$.</description>
+  !#   <description>Return the cooling function at the given temperature and hydrogen density for the specified set of abundances and radiation field. Units of the returned cooling function are the traditional ergs cm$^3$ s$^{-1}$.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode           ), intent(inout) :: node</argument>
   !#   <argument>double precision                     , intent(in   ) :: numberDensityHydrogen, temperature</argument>
   !#   <argument>type            (abundances         ), intent(in   ) :: gasAbundances</argument>
   !#   <argument>type            (chemicalAbundances ), intent(in   ) :: chemicalDensities</argument>
@@ -46,6 +48,7 @@ module Cooling_Functions
   !#   <description>Return the fraction of the total cooling function due to emission in the the given energy range, specified by {\normalfont \ttfamily energyLow} and {\normalfont \ttfamily energyHigh} (in units of keV).</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode           ), intent(inout) :: node</argument>
   !#   <argument>double precision                     , intent(in   ) :: numberDensityHydrogen, temperature</argument>
   !#   <argument>type            (abundances         ), intent(in   ) :: gasAbundances                     </argument>
   !#   <argument>type            (chemicalAbundances ), intent(in   ) :: chemicalDensities                 </argument>
@@ -55,7 +58,8 @@ module Cooling_Functions
   !#  <method name="coolingFunctionDensityLogSlope" >
   !#   <description>Return $\d\ln\Lambda/\d\ln\rho$ for a cooling function at the given temperature and hydrogen density for the specified set of abundances and radiation field.</description>
   !#   <type>double precision</type>
-  !#   <pass>yes</pass>
+  !#   <pass>yes</pass> 
+  !#   <argument>type            (treeNode           ), intent(inout) :: node</argument>
   !#   <argument>double precision                     , intent(in   ) :: numberDensityHydrogen, temperature</argument>
   !#   <argument>type            (abundances         ), intent(in   ) :: gasAbundances</argument>
   !#   <argument>type            (chemicalAbundances ), intent(in   ) :: chemicalDensities</argument>
@@ -65,6 +69,7 @@ module Cooling_Functions
   !#   <description>Return $\d\ln\Lambda/\d\ln T$ for a cooling function at the given temperature and hydrogen density for the specified set of abundances and radiation field.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode           ), intent(inout) :: node</argument>
   !#   <argument>double precision                     , intent(in   ) :: numberDensityHydrogen, temperature</argument>
   !#   <argument>type            (abundances         ), intent(in   ) :: gasAbundances</argument>
   !#   <argument>type            (chemicalAbundances ), intent(in   ) :: chemicalDensities</argument>

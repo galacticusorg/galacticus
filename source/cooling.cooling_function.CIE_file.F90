@@ -217,7 +217,7 @@ contains
     return
   end function cieFileConstructorInternal
 
-  double precision function cieFileCoolingFunction(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  double precision function cieFileCoolingFunction(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the cooling function by interpolating in tabulated CIE data read from a file.
     use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances               , metallicityTypeLinearByMassSolar
     use            :: Chemical_Abundances_Structure, only : chemicalAbundances
@@ -226,6 +226,7 @@ contains
     use            :: Table_Labels                 , only : extrapolationTypeFix      , extrapolationTypePowerLaw, extrapolationTypeZero
     implicit none
     class           (coolingFunctionCIEFile), intent(inout) :: self
+    type            (treeNode              ), intent(inout) :: node
     double precision                        , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances            ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances    ), intent(in   ) :: chemicalDensities
@@ -233,7 +234,7 @@ contains
     integer         (c_size_t              )                :: iMetallicity         , iTemperature
     double precision                                        :: hMetallicity         , hTemperature  , &
          &                                                     metallicityUse       , temperatureUse
-    !$GLC attributes unused :: chemicalDensities, radiation
+    !$GLC attributes unused :: node, chemicalDensities, radiation
 
     ! Handle out of range temperatures.
     temperatureUse=temperature
@@ -295,7 +296,7 @@ contains
     return
   end function cieFileCoolingFunction
 
-  double precision function cieFileCoolingFunctionFractionInBand(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
+  double precision function cieFileCoolingFunctionFractionInBand(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
     !% Return the fraction of the cooling function due to emission in the given energy band by interpolating in tabulated CIE data read from a file.
     use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances               , metallicityTypeLinearByMassSolar
     use            :: Chemical_Abundances_Structure, only : chemicalAbundances
@@ -305,6 +306,7 @@ contains
     use            :: Table_Labels                 , only : extrapolationTypeFix      , extrapolationTypePowerLaw, extrapolationTypeZero
     implicit none
     class           (coolingFunctionCIEFile), intent(inout)  :: self 
+    type            (treeNode              ), intent(inout) :: node
     double precision                        , intent(in   )  :: numberDensityHydrogen, temperature        , &
          &                                                      energyLow            , energyHigh
     type            (abundances            ), intent(in   )  :: gasAbundances
@@ -317,7 +319,7 @@ contains
     double precision                                         :: hMetallicity         , hTemperature       , &
          &                                                      metallicityUse       , temperatureUse     , &
          &                                                      powerCumulativeLow   , powerCumulativeHigh
-    !$GLC attributes unused :: chemicalDensities, radiation, numberDensityHydrogen
+    !$GLC attributes unused :: node,chemicalDensities, radiation, numberDensityHydrogen
 
     ! Abort if cumulative power is not available.
     cieFileCoolingFunctionFractionInBand=0.0d0
@@ -383,7 +385,7 @@ contains
     return
   end function cieFileCoolingFunctionFractionInBand
 
-  double precision function cieFileCoolingFunctionTemperatureLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  double precision function cieFileCoolingFunctionTemperatureLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the slope of the cooling function with respect to temperature by interpolating in tabulated CIE data
     !% read from a file.
     use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances               , metallicityTypeLinearByMassSolar
@@ -393,6 +395,7 @@ contains
     use            :: Table_Labels                 , only : extrapolationTypeFix      , extrapolationTypePowerLaw, extrapolationTypeZero
     implicit none
     class           (coolingFunctionCIEFile), intent(inout) :: self
+    type            (treeNode              ), intent(inout) :: node
     double precision                        , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances            ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances    ), intent(in   ) :: chemicalDensities
@@ -401,9 +404,10 @@ contains
     integer         (c_size_t              )                :: iMetallicity         , iTemperature
     double precision                                        :: hMetallicity         , hTemperature  , &
          &                                                     metallicityUse       , temperatureUse
-
+    !$GLC attributes unused :: node
+    
     ! Get the cooling function.
-    coolingFunction=self%coolingFunction(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+    coolingFunction=self%coolingFunction(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     ! Handle out of range temperatures.
     temperatureUse=temperature
     if (temperatureUse < self%temperatureMinimum) then
@@ -484,18 +488,19 @@ contains
     return
   end function cieFileCoolingFunctionTemperatureLogSlope
 
-  double precision function cieFileCoolingFunctionDensityLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  double precision function cieFileCoolingFunctionDensityLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the logarithmic slope of the cooling function with respect to density.
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionCIEFile), intent(inout) :: self
+    type            (treeNode              ), intent(inout) :: node
     double precision                        , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances            ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances    ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass   ), intent(inout) :: radiation
-    !$GLC attributes unused :: self, numberDensityHydrogen, temperature, gasAbundances, chemicalDensities, radiation
+    !$GLC attributes unused :: self, node, numberDensityHydrogen, temperature, gasAbundances, chemicalDensities, radiation
 
     ! Logarithmic slope is always 2 for a CIE cooling function.
     cieFileCoolingFunctionDensityLogSlope=2.0d0

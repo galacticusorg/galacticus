@@ -290,7 +290,7 @@ contains
        density     =self%hotHaloMassDistribution_  %density    (node,radiusVirial)
        temperature =self%hotHaloTemperatureProfile_%temperature(node,radiusVirial)
        ! Compute the cooling time at the virial radius.
-       coolingTime =self%coolingTime_              %time       (temperature,density,hotAbundances,chemicalDensities,self%radiation)
+       coolingTime =self%coolingTime_              %time       (node,temperature,density,hotAbundances,chemicalDensities,self%radiation)
        if (coolingTime < timeAvailable) then
           ! Cooling time available exceeds cooling time at virial radius, return virial radius.
           self%radiusStored=radiusVirial

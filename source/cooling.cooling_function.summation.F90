@@ -109,13 +109,14 @@ contains
     return
   end subroutine summationDestructor
 
-  double precision function summationCoolingFunction(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  double precision function summationCoolingFunction(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the cooling function summed over other cooling functions.
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionSummation), intent(inout) :: self
+    type            (treeNode                ), intent(inout) :: node
     double precision                          , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances              ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances      ), intent(in   ) :: chemicalDensities
@@ -128,6 +129,7 @@ contains
        summationCoolingFunction=                                                                &
             &                   +summationCoolingFunction                                       &
             &                   +coolant%coolingFunction%coolingFunction(                       &
+            &                                                            node                 , &
             &                                                            numberDensityHydrogen, &
             &                                                            temperature          , &
             &                                                            gasAbundances        , &
@@ -139,13 +141,14 @@ contains
     return
   end function summationCoolingFunction
 
-  double precision function summationCoolingFunctionFractionInBand(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
+  double precision function summationCoolingFunctionFractionInBand(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
     !% Return the fraction of the cooling function summed over other cooling functions due to emission in the given band.
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionSummation), intent(inout) :: self
+    type            (treeNode                ), intent(inout) :: node
     double precision                          , intent(in   ) :: numberDensityHydrogen, temperature          , &
          &                                                       energyLow            , energyHigh
     type            (abundances              ), intent(in   ) :: gasAbundances
@@ -160,6 +163,7 @@ contains
     coolant               => self%coolants
     do while (associated(coolant))
        coolingFunction       =coolant%coolingFunction%coolingFunction             (                       &
+            &                                                                      node                 , &
             &                                                                      numberDensityHydrogen, &
             &                                                                      temperature          , &
             &                                                                      gasAbundances        , &
@@ -167,6 +171,7 @@ contains
             &                                                                      radiation              &
             &                                                                     )
        fractionInBand       =coolant%coolingFunction%coolingFunctionFractionInBand(                       &
+            &                                                                      node                 , &
             &                                                                      numberDensityHydrogen, &
             &                                                                      temperature          , &
             &                                                                      gasAbundances        , &
@@ -191,7 +196,7 @@ contains
     return
   end function summationCoolingFunctionFractionInBand
 
-  double precision function summationCoolingFunctionDensityLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  double precision function summationCoolingFunctionDensityLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the logarithmic gradient with respect to density of the cooling function due to Compton scattering off of \gls{cmb}
     !% photons.
     use :: Abundances_Structure         , only : abundances
@@ -200,6 +205,7 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionSummation), intent(inout) :: self
+    type            (treeNode                ), intent(inout) :: node
     double precision                          , intent(in   ) :: numberDensityHydrogen  , temperature
     type            (abundances              ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances      ), intent(in   ) :: chemicalDensities
@@ -213,6 +219,7 @@ contains
     coolant                   => self%coolants
     do while (associated(coolant))
        coolingFunction          =+coolant%coolingFunction%coolingFunction               (                       &
+            &                                                                            node                 , &
             &                                                                            numberDensityHydrogen, &
             &                                                                            temperature          , &
             &                                                                            gasAbundances        , &
@@ -225,6 +232,7 @@ contains
             &                    +coolingFunction                                                               &
             &                    /numberDensityHydrogen                                                         &
             &                    *coolant%coolingFunction%coolingFunctionDensityLogSlope(                       &
+            &                                                                            node                 , &
             &                                                                            numberDensityHydrogen, &
             &                                                                            temperature          , &
             &                                                                            gasAbundances        , &
@@ -244,7 +252,7 @@ contains
     return
   end function summationCoolingFunctionDensityLogSlope
 
-  double precision function summationCoolingFunctionTemperatureLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  double precision function summationCoolingFunctionTemperatureLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the logarithmic gradient with respect to temperature of the cooling function due to Compton scattering off of
     !% \gls{cmb} photons.
     use :: Abundances_Structure         , only : abundances
@@ -253,6 +261,7 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionSummation), intent(inout) :: self
+    type            (treeNode                ), intent(inout) :: node
     double precision                          , intent(in   ) :: numberDensityHydrogen                       , temperature
     type            (abundances              ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances      ), intent(in   ) :: chemicalDensities
@@ -266,6 +275,7 @@ contains
     coolant                   => self%coolants
     do while (associated(coolant))
        coolingFunction          =+coolant%coolingFunction%coolingFunction                   (                       &
+            &                                                                                node                 , &
             &                                                                                numberDensityHydrogen, &
             &                                                                                temperature          , &
             &                                                                                gasAbundances        , &
@@ -278,6 +288,7 @@ contains
             &                    +coolingFunction                                                                   &
             &                    /temperature                                                                       &
             &                    *coolant%coolingFunction%coolingFunctionTemperatureLogSlope(                       &
+            &                                                                                node                 , &
             &                                                                                numberDensityHydrogen, &
             &                                                                                temperature          , &
             &                                                                                gasAbundances        , &

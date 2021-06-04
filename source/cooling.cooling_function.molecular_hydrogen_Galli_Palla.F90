@@ -147,7 +147,7 @@ contains
     return
   end function molecularHydrogenGalliPallaConstructorInternal
 
-  double precision function molecularHydrogenGalliPallaCoolingFunction(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  double precision function molecularHydrogenGalliPallaCoolingFunction(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the cooling function due to molecular hydrogen using the cooling function of \cite{galli_chemistry_1998} (which
     !% refers to the local thermodynamic equilibrium cooling function of \cite{hollenbach_molecule_1979}). Cooling functions
     !% involving H$_2^+$ are computed using polynomial fits to the results of \cite{suchkov_cooling_1978} found by Andrew
@@ -157,11 +157,12 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout) :: self
+    type            (treeNode                                  ), intent(inout) :: node
     double precision                                            , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances                                ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances                        ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass                       ), intent(inout) :: radiation
-    !$GLC attributes unused :: radiation, gasAbundances
+    !$GLC attributes unused :: node, radiation, gasAbundances
 
     ! Check if the hydrogen density is positive.
     if (numberDensityHydrogen > 0.0d0) then
@@ -175,7 +176,7 @@ contains
     return
   end function molecularHydrogenGalliPallaCoolingFunction
 
-  double precision function molecularHydrogenGalliPallaCoolingFunctionFractionInBand(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
+  double precision function molecularHydrogenGalliPallaCoolingFunctionFractionInBand(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
     !% Return the fraction of the cooling function due to emission in the given band. This is currently unsupported.
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
@@ -183,19 +184,20 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout) :: self
+    type            (treeNode                                  ), intent(inout) :: node
     double precision                                            , intent(in   ) :: numberDensityHydrogen, temperature, &
          &                                                                         energyLow            , energyHigh
     type            (abundances                                ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances                        ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass                       ), intent(inout) :: radiation
-    !$GLC attributes unused :: self, numberDensityHydrogen, temperature, gasAbundances, chemicalDensities, radiation, energyLow, energyHigh
+    !$GLC attributes unused :: self, node, numberDensityHydrogen, temperature, gasAbundances, chemicalDensities, radiation, energyLow, energyHigh
 
     molecularHydrogenGalliPallaCoolingFunctionFractionInBand=0.0d0
     call Galacticus_Error_Report('fraction in band is not supported'//{introspection:location})
     return
   end function molecularHydrogenGalliPallaCoolingFunctionFractionInBand
 
-  double precision function molecularHydrogenGalliPallaCoolingFunctionDensityLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  double precision function molecularHydrogenGalliPallaCoolingFunctionDensityLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the gradient with respect to density of the cooling function due to molecular hydrogen using the cooling function
     !% of \cite{galli_chemistry_1998}.
     use :: Abundances_Structure         , only : abundances
@@ -203,6 +205,7 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout) :: self
+    type            (treeNode                                  ), intent(inout) :: node
     double precision                                            , intent(in   ) :: numberDensityHydrogen         , temperature
     type            (abundances                                ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances                        ), intent(in   ) :: chemicalDensities
@@ -210,7 +213,7 @@ contains
     double precision                                                            :: coolingFunction               , coolingFunctionLocalThermodynamicEquilibrium  , &
          &                                                                         coolingFunctionLowDensityLimit, numberDensityCriticalOverNumberDensityHydrogen, &
          &                                                                         coolingFunctionCumulative
-    !$GLC attributes unused :: radiation, gasAbundances
+    !$GLC attributes unused :: node, radiation, gasAbundances
 
     ! Check if the hydrogen density is positive.
     if (numberDensityHydrogen > 0.0d0) then
@@ -267,7 +270,7 @@ contains
     return
   end function molecularHydrogenGalliPallaCoolingFunctionDensityLogSlope
 
-  double precision function molecularHydrogenGalliPallaCoolingFunctionTemperatureLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  double precision function molecularHydrogenGalliPallaCoolingFunctionTemperatureLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the gradient with respect to temperature of the cooling function due to molecular hydrogen using the cooling
     !% function of \cite{galli_chemistry_1998}.
     use :: Abundances_Structure         , only : abundances
@@ -276,6 +279,7 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout) :: self
+    type            (treeNode                                  ), intent(inout) :: node
     double precision                                            , intent(in   ) :: numberDensityHydrogen                                          , temperature
     type            (abundances                                ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances                        ), intent(in   ) :: chemicalDensities
@@ -285,7 +289,7 @@ contains
          &                                                                         coolingFunctionLowDensityLimitTemperatureGradient              , logarithmic10Temperature                       , &
          &                                                                         numberDensityCriticalOverNumberDensityHydrogen                 , temperatureThousand                            , &
          &                                                                         coolingFunctionCumulative
-    !$GLC attributes unused :: gasAbundances, radiation
+    !$GLC attributes unused :: node, gasAbundances, radiation
 
     ! Check if the hydrogen density is positive.
     if (numberDensityHydrogen > 0.0d0) then

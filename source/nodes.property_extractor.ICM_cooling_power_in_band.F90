@@ -176,8 +176,8 @@ contains
 
       call icmProperties(radius,numberDensityHydrogen,temperature,abundancesICM,densityChemicalICM)
       ! Do not include factors of 4π and unit conversions, as these would cancel out of the final result.
-      integrandLuminosityTotal=+radius**2                                                                                                            &
-           &                   *self%coolingFunction_%coolingFunction(numberDensityHydrogen,temperature,abundancesICM,densityChemicalICM,radiation_)
+      integrandLuminosityTotal=+radius**2                                                                                                                 &
+           &                   *self%coolingFunction_%coolingFunction(node,numberDensityHydrogen,temperature,abundancesICM,densityChemicalICM,radiation_)
       return
     end function integrandLuminosityTotal
     
@@ -193,9 +193,9 @@ contains
       
       call icmProperties(radius,numberDensityHydrogen,temperature,abundancesICM,densityChemicalICM)
       ! Do not include factors of 4π and unit conversions, as these would cancel out of the final result.
-      integrandLuminosityInBand=+radius**2                                                                                                                                                         &
-           &                    *self%coolingFunction_%coolingFunction              (numberDensityHydrogen,temperature,abundancesICM,densityChemicalICM,radiation_                               ) &
-           &                    *self%coolingFunction_%coolingFunctionFractionInBand(numberDensityHydrogen,temperature,abundancesICM,densityChemicalICM,radiation_,self%energyLow,self%energyHigh)
+      integrandLuminosityInBand=+radius**2                                                                                                                                                              &
+           &                    *self%coolingFunction_%coolingFunction              (node,numberDensityHydrogen,temperature,abundancesICM,densityChemicalICM,radiation_                               ) &
+           &                    *self%coolingFunction_%coolingFunctionFractionInBand(node,numberDensityHydrogen,temperature,abundancesICM,densityChemicalICM,radiation_,self%energyLow,self%energyHigh)
       return
     end function integrandLuminosityInBand
 
