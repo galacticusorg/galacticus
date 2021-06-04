@@ -128,12 +128,11 @@ contains
     implicit none
     class           (nodeOperatorSatelliteSubsampling), intent(inout) :: self
     type            (treeNode                        ), intent(inout) :: node
-    class           (nodeComponentSatellite          ), pointer       :: satellite       , satelliteHost
+    class           (nodeComponentSatellite          ), pointer       :: satellite
     type            (mergerTreeWalkerAllNodesBranch  )                :: treeWalker
-    type            (treeNode                        ), pointer       :: workNode        , hostNode
+    type            (treeNode                        ), pointer       :: workNode
     double precision                                                  :: sample          , samplingRate   , &
-         &                                                               sampleWeight    , sampleWeightNew, &
-         &                                                               sampleWeightHost
+         &                                                               sampleWeight    , sampleWeightNew
     
     satellite => node%satellite()
     ! Compute the sampling rate.
@@ -146,7 +145,6 @@ contains
        treeWalker=mergerTreeWalkerAllNodesBranch(node)
        if (sample >= samplingRate) then
           ! Remove this satellite and its own satellites by setting their destruction time to zero.
-          call satellite%destructionTimeSet(0.0d0)
           do while (treeWalker%next(workNode))
              satellite => workNode%satellite()
              call satellite%destructionTimeSet(0.0d0)
@@ -154,15 +152,10 @@ contains
        else
           ! Adjust the weights of this satellite. The weights of satellites this satellite contains
           ! are changed accordingly.
-          sampleWeightNew=1.0d0/samplingRate
-          call satellite%subsamplingWeightSet(sampleWeightNew)
           do while (treeWalker%next(workNode))
-             hostNode         => workNode%mergesWith()
-             satellite        => workNode%satellite ()
-             satelliteHost    => hostNode%satellite ()
-             sampleWeight     =  satellite    %subsamplingWeight()
-             sampleWeightHost =  satelliteHost%subsamplingWeight()
-             sampleWeightNew  =  sampleWeight*sampleWeightHost
+             satellite        => workNode %satellite        ()
+             sampleWeight     =  satellite%subsamplingWeight()
+             sampleWeightNew  =  sampleWeight/samplingRate
              call satellite%subsamplingWeightSet(sampleWeightNew)
           end do
        end if
