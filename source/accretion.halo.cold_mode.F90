@@ -431,6 +431,7 @@ contains
                &                                    )
           coolingFunctionValue=                                                             &
                &               self%coolingFunction_%coolingFunction(                       &
+               &                                                     node                 , &
                &                                                     numberDensityHydrogen, &
                &                                                     temperaturePostShock , &
                &                                                     zeroAbundances       , &
@@ -451,15 +452,19 @@ contains
           ! Compute the cold fraction using the model from eqn. (2) of Benson & Bower (2011). The original form doesn't allow the
           ! cold fraction to go to zero in high mass halos, since "shockStability" can never be less than zero. This form is
           ! basically the equivalent functional form, but defined in terms of ln(epsilon) rather than epsilon.
-          stabilityRatio=self%thresholdStabilityShock/shockStability
-          if (log(stabilityRatio) > self%widthTransitionStabilityShock*logStabilityRatioMaximum) then
+          if (shockStability <= 0.0d0) then
              self%coldFractionStored=+0.0d0
           else
-             self%coldFractionStored=+1.0d0                                                        &
-                  &                  /(                                                            &
-                  &                    +1.0d0                                                      &
-                  &                    +stabilityRatio**(1.0d0/self%widthTransitionStabilityShock) &
-                  &                   )
+             stabilityRatio=self%thresholdStabilityShock/shockStability
+             if (log(stabilityRatio) > self%widthTransitionStabilityShock*logStabilityRatioMaximum) then
+                self%coldFractionStored=+0.0d0
+             else
+                self%coldFractionStored=+1.0d0                                                        &
+                     &                  /(                                                            &
+                     &                    +1.0d0                                                      &
+                     &                    +stabilityRatio**(1.0d0/self%widthTransitionStabilityShock) &
+                     &                   )
+             end if
           end if
           ! Mark cold fraction as computed.
           self%coldFractionComputed=.true.

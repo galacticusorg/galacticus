@@ -254,8 +254,8 @@ contains
           coolingTimeAvailable            =self%coolingTimeAvailable_%timeAvailable            (node)
           coolingTimeAvailableIncreaseRate=self%coolingTimeAvailable_%timeAvailableIncreaseRate(node)
           ! Get gradients of cooling time with density and temperature.
-          coolingTimeDensityLogSlope    =self%coolingTime_%gradientDensityLogarithmic    (temperature,density,simpleGasAbundances_,simpleChemicalDensities_,self%radiation)
-          coolingTimeTemperatureLogSlope=self%coolingTime_%gradientTemperatureLogarithmic(temperature,density,simpleGasAbundances_,simpleChemicalDensities_,self%radiation)
+          coolingTimeDensityLogSlope    =self%coolingTime_%gradientDensityLogarithmic    (node,temperature,density,simpleGasAbundances_,simpleChemicalDensities_,self%radiation)
+          coolingTimeTemperatureLogSlope=self%coolingTime_%gradientTemperatureLogarithmic(node,temperature,density,simpleGasAbundances_,simpleChemicalDensities_,self%radiation)
           ! Compute rate at which cooling radius grows.
           if (coolingRadius > 0.0d0) then
              self%radiusGrowthRateStored=+coolingRadius                                        &
@@ -355,7 +355,7 @@ contains
     density    =simpleSelf_%hotHaloMassDistribution_  %density    (simpleNode_,radius)
     temperature=simpleSelf_%hotHaloTemperatureProfile_%temperature(simpleNode_,radius)
     ! Compute the cooling time at the specified radius.
-    coolingTime=simpleSelf_%coolingTime_              %time       (temperature,density,simpleGasAbundances_,simpleChemicalDensities_,simpleSelf_%radiation)
+    coolingTime=simpleSelf_%coolingTime_              %time       (simpleNode_,temperature,density,simpleGasAbundances_,simpleChemicalDensities_,simpleSelf_%radiation)
     ! Return the difference between cooling time and time available.
     coolingRadiusRoot=coolingTime-simpleCoolingTimeAvailable_
     return

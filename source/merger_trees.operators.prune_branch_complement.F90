@@ -78,12 +78,14 @@ contains
     implicit none
     class(mergerTreeOperatorPruneBranchComplement), intent(inout), target  :: self
     type (mergerTree                             ), intent(inout), target  :: tree
-    type (mergerTree                             )               , pointer :: treeCurrent
+    type (mergerTree                             )               , pointer :: treeCurrent , treeHost  , &
+         &                                                                    treeNext
     type (treeNode                               )               , pointer :: node        , nodeBranch, &
          &                                                                    nodePrevious
 
     ! Iterate over trees.
     treeCurrent => tree
+    treeHost    => null()
     do while (associated(treeCurrent))
        ! Find the branch node.
        nodeBranch => treeCurrent%getNode(self%branchNodeID)
@@ -104,27 +106,41 @@ contains
                    node         => node%sibling
                 end do
              end if
-             node%parent  => null()
-             node%sibling => null()
+             nodeBranch%parent  => null()
+             nodeBranch%sibling => null()
           end if
           ! Destroy the original tree.
           call treeCurrent%baseNode%destroy()
           deallocate(treeCurrent%baseNode)
-          treeCurrent%baseNode => nodeBranch     
-       else
-          ! Entire tree can be pruned. Destroy all but this base node. (Leaving just
-          ! the base node makes the tree inert - i.e. it can not do anything.)
-          node => treeCurrent%baseNode%firstChild
-          do while (associated(node))
-             nodePrevious => node%sibling
-             call Merger_Tree_Prune_Clean_Branch(node)
-             call node%destroyBranch()
-             deallocate(node)
-             node => nodePrevious
-          end do
+          treeCurrent%baseNode => nodeBranch
+          treeHost             => treeCurrent
        end if
        ! Move to the next tree.
        treeCurrent => treeCurrent%nextTree
     end do
+    ! Set the first tree in the forest to be the tree hosting the target branch.
+    treeCurrent => tree
+    do while (associated(treeCurrent))
+       treeNext => treeCurrent%nextTree
+       ! Destroy all nodes in the tree if it is not the one hosting the target node.
+       if (.not.associated(treeCurrent,treeHost)) call treeCurrent%baseNode%destroy()
+       ! Destroy the tree itself unless it is the initial tree, or the one hosting the target node.
+       if (.not.associated(treeCurrent,treeHost).and..not.associated(treeCurrent,tree)) then
+          call treeCurrent%destroy()
+          deallocate(treeCurrent)
+       end if
+       treeCurrent => treeNext
+    end do
+    ! Assign the tree containing the target node to the initial tree in the forest.
+    tree%baseNode     => treeHost%baseNode
+    tree%nextTree     => null()
+    tree%firstTree    => tree
+    tree%index        =  treeHost%index
+    tree%volumeWeight =  treeHost%volumeWeight
+    ! Destroy the original host tree (unless it was already the first tree in the forest).
+    if (.not.associated(treeHost,tree)) then
+       call treeHost%destroy()
+       deallocate(treeHost)
+    end if
     return
   end subroutine pruneBranchComplementOperatePreEvolution

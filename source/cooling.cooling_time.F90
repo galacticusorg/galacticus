@@ -23,6 +23,7 @@ module Cooling_Times
   !% Implements calculations of the cooling time.
   use :: Abundances_Structure         , only : abundances
   use :: Chemical_Abundances_Structure, only : chemicalAbundances
+  use :: Galacticus_Nodes             , only : treeNode
   use :: Radiation_Fields             , only : radiationFieldClass
   implicit none
   private
@@ -38,6 +39,7 @@ module Cooling_Times
   !#   <description>Returns the cooling time for gas in the hot atmosphere surrounding the galaxy in units of Gyr.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode           ), intent(inout) :: node                      </argument>
   !#   <argument>double precision                     , intent(in   ) :: temperature      , density</argument>
   !#   <argument>type            (abundances         ), intent(in   ) :: gasAbundances             </argument>
   !#   <argument>type            (chemicalAbundances ), intent(in   ) :: chemicalDensities         </argument>
@@ -47,6 +49,7 @@ module Cooling_Times
   !#   <description>Returns the logarithmic derivative of cooling time with respect to density for gas in the hot atmosphere surrounding the galaxy.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode           ), intent(inout) :: node                      </argument>
   !#   <argument>double precision                     , intent(in   ) :: temperature      , density</argument>
   !#   <argument>type            (abundances         ), intent(in   ) :: gasAbundances             </argument>
   !#   <argument>type            (chemicalAbundances ), intent(in   ) :: chemicalDensities         </argument>
@@ -56,6 +59,7 @@ module Cooling_Times
   !#   <description>Returns the logarithmic derivative of cooling time with respect to temperature for gas in the hot atmosphere surrounding the galaxy.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode           ), intent(inout) :: node                      </argument>
   !#   <argument>double precision                     , intent(in   ) :: temperature      , density</argument>
   !#   <argument>type            (abundances         ), intent(in   ) :: gasAbundances             </argument>
   !#   <argument>type            (chemicalAbundances ), intent(in   ) :: chemicalDensities         </argument>

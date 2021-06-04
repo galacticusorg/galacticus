@@ -166,64 +166,68 @@ contains
     return
   end subroutine atomicCIECloudyTabulate
 
-  double precision function atomicCIECloudyCoolingFunction(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  double precision function atomicCIECloudyCoolingFunction(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the cooling function for collisional ionization equilibrium as computed by
     !% {\normalfont \scshape Cloudy}.
     implicit none
     class           (coolingFunctionAtomicCIECloudy), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances                    ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances            ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass           ), intent(inout) :: radiation
 
-    call                           self%tabulate                              (                                  gasAbundances                            )
-    atomicCIECloudyCoolingFunction=self%coolingFunctionCIEFile%coolingFunction(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+    call                           self%tabulate                              (                                       gasAbundances                            )
+    atomicCIECloudyCoolingFunction=self%coolingFunctionCIEFile%coolingFunction(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     return
   end function atomicCIECloudyCoolingFunction
 
-  double precision function atomicCIECloudyCoolingFunctionFractionInBand(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
+  double precision function atomicCIECloudyCoolingFunctionFractionInBand(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
     !% Return the fraction of the cooling luminosity due to emission in the given energy range as computed by
     !% {\normalfont \scshape Cloudy}.
     implicit none
     class           (coolingFunctionAtomicCIECloudy), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: numberDensityHydrogen, temperature, &
          &                                                             energyLow            , energyHigh
     type            (abundances                    ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances            ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass           ), intent(inout) :: radiation
 
-    call                                         self%tabulate                                            (                                  gasAbundances                                                 )
-    atomicCIECloudyCoolingFunctionFractionInBand=self%coolingFunctionCIEFile%coolingFunctionFractionInBand(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
+    call                                         self%tabulate                                            (                                       gasAbundances                                                 )
+    atomicCIECloudyCoolingFunctionFractionInBand=self%coolingFunctionCIEFile%coolingFunctionFractionInBand(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
     return
   end function atomicCIECloudyCoolingFunctionFractionInBand
 
-  double precision function atomicCIECloudyCoolingFunctionTemperatureLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  double precision function atomicCIECloudyCoolingFunctionTemperatureLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the logarithmic slope of the cooling function with respect to temperature for
     !% collisional ionization equilibrium as computed by {\normalfont \scshape Cloudy}.  read
     !% from a file.
     implicit none
     class           (coolingFunctionAtomicCIECloudy), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances                    ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances            ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass           ), intent(inout) :: radiation
 
-    call                                              self%tabulate                                                 (                                  gasAbundances                            )
-    atomicCIECloudyCoolingFunctionTemperatureLogSlope=self%coolingFunctionCIEFile%coolingFunctionTemperatureLogSlope(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+    call                                              self%tabulate                                                 (                                       gasAbundances                            )
+    atomicCIECloudyCoolingFunctionTemperatureLogSlope=self%coolingFunctionCIEFile%coolingFunctionTemperatureLogSlope(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     return
   end function atomicCIECloudyCoolingFunctionTemperatureLogSlope
 
-  double precision function atomicCIECloudyCoolingFunctionDensityLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  double precision function atomicCIECloudyCoolingFunctionDensityLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the logarithmic slope of the cooling function with respect to density for
     !% collisional ionization equilibrium as computed by {\normalfont \scshape Cloudy}.
     implicit none
     class           (coolingFunctionAtomicCIECloudy), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances                    ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances            ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass           ), intent(inout) :: radiation
 
-    call                                          self%tabulate                                             (                                  gasAbundances                            )
-    atomicCIECloudyCoolingFunctionDensityLogSlope=self%coolingFunctionCIEFile%coolingFunctionDensityLogSlope(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+    call                                          self%tabulate                                             (                                       gasAbundances                            )
+    atomicCIECloudyCoolingFunctionDensityLogSlope=self%coolingFunctionCIEFile%coolingFunctionDensityLogSlope(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     return
   end function atomicCIECloudyCoolingFunctionDensityLogSlope

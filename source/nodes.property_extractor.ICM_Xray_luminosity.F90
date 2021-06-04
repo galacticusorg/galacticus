@@ -208,13 +208,13 @@ contains
            &                  /hecto                                  **3 &
            &                  /megaParsec                             **3
       ! Evaluate the integrand.
-      integrandLuminosityXray=+4.0d0                                                                                                                &
-           &                  *Pi                                                                                                                   &
-           &                  *radius**2                                                                                                            &
-           &                  *self%coolingFunction_%coolingFunction(numberDensityHydrogen,temperature,abundancesICM,densityChemicalICM,radiation_) &
-           &                  *(                                                                                                                    &
-           &                    +megaParsec                                                                                                         &
-           &                    /centi                                                                                                              &
+      integrandLuminosityXray=+4.0d0                                                                                                                     &
+           &                  *Pi                                                                                                                        &
+           &                  *radius**2                                                                                                                 &
+           &                  *self%coolingFunction_%coolingFunction(node,numberDensityHydrogen,temperature,abundancesICM,densityChemicalICM,radiation_) &
+           &                  *(                                                                                                                         &
+           &                    +megaParsec                                                                                                              &
+           &                    /centi                                                                                                                   &
            &                   )**3
       return
     end function integrandLuminosityXray
