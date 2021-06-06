@@ -125,14 +125,17 @@ contains
     !% Does a subsampling of satellites based on their infall mass and orbital parameters.
     use :: Galacticus_Nodes   , only : nodeComponentSatellite
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodesBranch
+    use :: Display            , only : displayMessage                , displayVerbosity, verbosityLevelInfo
+    use :: String_Handling    , only : operator(//)
     implicit none
     class           (nodeOperatorSatelliteSubsampling), intent(inout) :: self
     type            (treeNode                        ), intent(inout) :: node
     class           (nodeComponentSatellite          ), pointer       :: satellite
     type            (mergerTreeWalkerAllNodesBranch  )                :: treeWalker
-    type            (treeNode                        ), pointer       :: workNode
+    type            (treeNode                        ), pointer       :: workNode        , nodeNext
     double precision                                                  :: sample          , samplingRate   , &
          &                                                               sampleWeight    , sampleWeightNew
+    type            (varying_string                  )                :: message
     
     satellite => node%satellite()
     ! Compute the sampling rate.
@@ -141,17 +144,28 @@ contains
        return
     else
        ! Do subsampling.
-       sample    =node%hostTree%randomNumberGenerator_%uniformSample()
-       treeWalker=mergerTreeWalkerAllNodesBranch(node)
+       sample=node%hostTree%randomNumberGenerator_%uniformSample()
        if (sample >= samplingRate) then
-          ! Remove this satellite and its own satellites by setting their destruction time to zero.
-          do while (treeWalker%next(workNode))
-             satellite => workNode%satellite()
-             call satellite%destructionTimeSet(0.0d0)
+          ! Remove this satellite by destroying any of its own satellites and setting its destruction time to zero.
+          ! Report if necessary.
+          if (displayVerbosity() >= verbosityLevelInfo) then
+             message='Satellite node ['
+             message=message//node%index()//'] is being destroyed'
+             call displayMessage(message)
+          end if
+          call satellite%destructionTimeSet(0.0d0)
+          workNode => node%firstSatellite
+          do while (associated(workNode))
+             nodeNext => workNode%sibling
+             call workNode%destroyBranch()
+             deallocate(workNode)
+             workNode => nodeNext
           end do
+          node%firstSatellite => null()
        else
           ! Adjust the weights of this satellite. The weights of satellites this satellite contains
           ! are changed accordingly.
+          treeWalker=mergerTreeWalkerAllNodesBranch(node)
           do while (treeWalker%next(workNode))
              sampleWeight   =workNode%subsamplingWeight()
              sampleWeightNew=sampleWeight/samplingRate
