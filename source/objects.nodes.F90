@@ -340,7 +340,26 @@ module Galacticus_Nodes
     return
   end subroutine Tree_Node_Time_Step_Set
 
- subroutine Tree_Node_Attach_Event(self,newEvent)
+  double precision function Tree_Node_Subsampling_Weight(self)
+    !% Returns the subsampling weight of a {\normalfont \ttfamily treeNode}.
+    implicit none
+    class(treeNode), intent(in   ) :: self
+
+    Tree_Node_Subsampling_Weight=self%subsamplingWeightValue
+    return
+  end function Tree_Node_Subsampling_Weight
+
+  subroutine Tree_Node_Subsampling_Weight_Set(self,subsamplingWeight)
+    !% Sets the time-step used by a {\normalfont \ttfamily treeNode}.
+    implicit none
+    class           (treeNode      ), intent(inout) :: self
+    double precision                , intent(in   ) :: subsamplingWeight
+
+    self%subsamplingWeightValue=subsamplingWeight
+    return
+  end subroutine Tree_Node_Subsampling_Weight_Set
+
+  subroutine Tree_Node_Attach_Event(self,newEvent)
     !% Create a new event in a tree node.
     implicit none
     class(treeNode ), intent(inout)          :: self

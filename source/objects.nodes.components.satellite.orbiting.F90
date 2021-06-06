@@ -103,14 +103,6 @@ module Node_Component_Satellite_Orbiting
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="kilo**2/megaParsec**2" comment="Energy/radius^2 of satellite."/>
   !#   </property>
-  !#   <property>
-  !#     <name>subsamplingWeight</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <classDefault>1.0d0</classDefault>
-  !#     <output unitsInSI="0.0d0" comment="Weight of satellite in the subsample."/>
-  !#   </property>
   !#  </properties>
   !#  <functions>objects.nodes.components.satellite.orbiting.bound_functions.inc</functions>
   !# </component>

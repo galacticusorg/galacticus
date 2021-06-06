@@ -89,7 +89,8 @@ if (uniqueIDCount <= 0) call Galacticus_Error_Report('ran out of unique ID numbe
 self%uniqueIdValue=uniqueIDCount
 !$omp end critical(UniqueID_Assign)
 ! Assign a timestep.
-self%timeStepValue=-1.0d0
+self%timeStepValue         =-1.0d0
+self%subsamplingWeightValue= 1.0d0
 CODE
     # Insert a type-binding for this function.
     push(

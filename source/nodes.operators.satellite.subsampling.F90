@@ -153,10 +153,9 @@ contains
           ! Adjust the weights of this satellite. The weights of satellites this satellite contains
           ! are changed accordingly.
           do while (treeWalker%next(workNode))
-             satellite        => workNode %satellite        ()
-             sampleWeight     =  satellite%subsamplingWeight()
-             sampleWeightNew  =  sampleWeight/samplingRate
-             call satellite%subsamplingWeightSet(sampleWeightNew)
+             sampleWeight   =workNode%subsamplingWeight()
+             sampleWeightNew=sampleWeight/samplingRate
+             call workNode%subsamplingWeightSet(sampleWeightNew)
           end do
        end if
     end if

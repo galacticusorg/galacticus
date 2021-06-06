@@ -27,6 +27,17 @@ use Galacticus::Build::Components::DataTypes;
      }
     );
 
+# List of node properties to be output.
+my @nodePropertiesOutputList =
+    (
+     {
+	 type        => "double",
+	 name        => "subsamplingWeight",
+	 description => "Weight of node in the subsample.",
+	 unitsInSI   => "0.0d0"
+     }
+    );
+
 sub Tree_Node_Output_Count {
     # Generate a function to return a count of the number of properties to be output from a tree node.
     my $build = shift();   
@@ -60,6 +71,21 @@ sub Tree_Node_Output_Count {
 	     }
 	    ]
     };    
+    # Add necessary node properties to the output.
+    foreach ( @nodePropertiesOutputList ) {
+	if    ( $_->{'type'} eq "integer" )
+	{
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+integerPropertyCount=integerPropertyCount+1
+CODE
+	}
+	elsif ( $_->{'type'} eq "double"  )
+	{
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+doublePropertyCount=doublePropertyCount+1
+CODE
+	}
+    };
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	next
@@ -137,6 +163,27 @@ sub Tree_Node_Output_Names {
 	     }
 	    ]
     };    
+    # Add necessary node properties to the output.
+    foreach ( @nodePropertiesOutputList ) {
+	if    ( $_->{'type'} eq "integer" )
+	{
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+integerProperty=integerProperty+1
+integerProperties(integerProperty)%name     ="node{ucfirst($_->{'name'})}"
+integerProperties(integerProperty)%comment  ="{$_->{'description'}}"
+integerProperties(integerProperty)%unitsInSI={$_->{'unitsInSI'}}
+CODE
+	}
+	elsif ( $_->{'type'} eq "double"  )
+	{
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+doubleProperty=doubleProperty+1
+doubleProperties(doubleProperty)%name     ="node{ucfirst($_->{'name'})}"
+doubleProperties(doubleProperty)%comment  ="{$_->{'description'}}"
+doubleProperties(doubleProperty)%unitsInSI={$_->{'unitsInSI'}}
+CODE
+	}
+    };
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	next
@@ -221,6 +268,23 @@ sub Tree_Node_Output {
 	     }
 	    ]
     };    
+    # Add necessary node properties to the output.
+    foreach ( @nodePropertiesOutputList ) {
+	if    ( $_->{'type'} eq "integer" )
+	{
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+integerProperty=integerProperty+1
+integerProperties(integerProperty)%scalar(integerBufferCount)=self%{$_->{'name'}}()
+CODE
+	}
+	elsif ( $_->{'type'} eq "double"  )
+	{
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+doubleProperty=doubleProperty+1
+doubleProperties(doubleProperty)%scalar(doubleBufferCount)=self%{$_->{'name'}}()
+CODE
+	}
+    };
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	next
