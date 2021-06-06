@@ -38,6 +38,7 @@
      double precision :: samplingMassThreshold        , samplingInfallTimeThreshold, &
           &              samplingPericenterThreshold  , samplingFunctionSlope      , &
           &              samplingFunctionNormalization
+     logical          :: applyOrbitCriterion
    contains
      !# <methods>
      !#   <method description="Compute the sampling rate." method="samplingRate" />
@@ -80,7 +81,7 @@ contains
     !# <inputParameter>
     !#   <name>samplingPericenterThreshold</name>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>Pericenter distance threshold above which satellites are subsampled in units of the distance to the host halo at infall.</description>
+    !#   <description>Pericenter distance threshold above which satellites are subsampled in units of the distance to the host halo at infall. This criterion will be ignored if the {\normalfont \ttfamily virialOrbit} of satellite is not gettable.</description>
     !#   <source>parameters</source>
     !# </inputParameter>
     !# <inputParameter>
@@ -102,13 +103,19 @@ contains
 
   function satelliteSubsamplingConstructorInternal(samplingMassThreshold,samplingInfallTimeThreshold,samplingPericenterThreshold,samplingFunctionSlope,samplingFunctionNormalization) result(self)
     !% Internal constructor for the {\normalfont \ttfamily satelliteSubsampling} node operator class.
+    use :: Galacticus_Nodes, only : defaultSatelliteComponent
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (nodeOperatorSatelliteSubsampling)                :: self
     double precision                                  , intent(in   ) :: samplingMassThreshold        , samplingInfallTimeThreshold, &
          &                                                               samplingPericenterThreshold  , samplingFunctionSlope      , &
          &                                                               samplingFunctionNormalization
-    !# <constructorAssign variables="samplingMassThreshold,samplingInfallTimeThreshold,samplingPericenterThreshold,samplingFunctionSlope,samplingFunctionNormalization"/>
-    
+    if (defaultSatelliteComponent%destructionTimeIsSettable()) then
+       !# <constructorAssign variables="samplingMassThreshold,samplingInfallTimeThreshold,samplingPericenterThreshold,samplingFunctionSlope,samplingFunctionNormalization"/>
+       self%applyOrbitCriterion=defaultSatelliteComponent%virialOrbitIsGettable()
+    else
+       call Galacticus_Error_Report('satellite subsampling is supported only when the "destructionTime" of satellite is settable'//{introspection:location})
+    end if
     return
   end function satelliteSubsamplingConstructorInternal
 
@@ -186,24 +193,30 @@ contains
     class           (nodeComponentBasic              ), pointer       :: basic
     class           (nodeComponentSatellite          ), pointer       :: satellite
     type            (keplerOrbit                     )                :: orbit
-    double precision                                                  :: infallMass    , infallTime        , &
-         &                                                               infallDistance, pericenterDistance
+    double precision                                                  :: infallMass          , infallTime        , &
+         &                                                               infallDistance      , pericenterDistance
+    logical                                                           :: orbitCriterionPassed
 
     satelliteSubsamplingSamplingRate = 1.0d0
     if (self%samplingMassThreshold > 0.0d0) then
        satellite          => node     %satellite       ()
        basic              => node     %basic           ()
-       orbit              =  satellite%virialOrbit     ()
        infallMass         =  basic    %mass            ()
        infallTime         =  basic    %time            ()
-       infallDistance     =  orbit    %radius          ()
-       pericenterDistance =  orbit    %radiusPericenter()
+       if (self%applyOrbitCriterion) then
+          orbit               =satellite%virialOrbit     ()
+          infallDistance      =orbit    %radius          ()
+          pericenterDistance  =orbit    %radiusPericenter()
+          orbitCriterionPassed=(pericenterDistance/infallDistance > self%samplingPericenterThreshold)
+       else
+          orbitCriterionPassed=.true.
+       end if
        if     (                                                                      &
             &   infallMass                        < self%samplingMassThreshold       &
             &  .and.                                                                 &
             &   infallTime                        < self%samplingInfallTimeThreshold &
             &  .and.                                                                 &
-            &   pericenterDistance/infallDistance > self%samplingPericenterThreshold &
+            &   orbitCriterionPassed                                                 &
             & ) then
           satelliteSubsamplingSamplingRate = +self%samplingFunctionNormalization &
                &                             *(                                  &
