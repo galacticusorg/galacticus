@@ -110,8 +110,9 @@ contains
     double precision                                  , intent(in   ) :: samplingMassThreshold        , samplingInfallTimeThreshold, &
          &                                                               samplingPericenterThreshold  , samplingFunctionSlope      , &
          &                                                               samplingFunctionNormalization
+    !# <constructorAssign variables="samplingMassThreshold,samplingInfallTimeThreshold,samplingPericenterThreshold,samplingFunctionSlope,samplingFunctionNormalization"/>
+    
     if (defaultSatelliteComponent%destructionTimeIsSettable()) then
-       !# <constructorAssign variables="samplingMassThreshold,samplingInfallTimeThreshold,samplingPericenterThreshold,samplingFunctionSlope,samplingFunctionNormalization"/>
        self%applyOrbitCriterion=defaultSatelliteComponent%virialOrbitIsGettable()
     else
        call Galacticus_Error_Report('satellite subsampling is supported only when the "destructionTime" of satellite is settable'//{introspection:location})
