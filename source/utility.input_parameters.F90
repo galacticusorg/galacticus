@@ -479,10 +479,16 @@ contains
 
    subroutine inputParametersResolveReferences(self)
     !% Build a tree representation of the input parameter file.
-    use :: FoX_dom, only : ELEMENT_NODE, getNodeName, getNodeType, hasAttribute
+    use :: FoX_dom           , only : ELEMENT_NODE           , getNodeName  , getNodeType     , hasAttribute  , &
+         &                            DOMException           , inException  , getAttributeNode, getTextContent
+    use :: ISO_Varying_String, only : operator(==)           , assignment(=)
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
     implicit none
     class(inputParameters), intent(inout) :: self
     type (inputParameter ), pointer       :: currentParameter, referencedParameter
+    type (node           ), pointer       :: identifierNode  , identifierReferenceNode
+    type (varying_string )                :: identifier      , identifierReference
+    type (DOMException   )                :: exception
 
     ! Begin walking the parameter tree.
     currentParameter => inputParametersWalkTree(self%parameters)
@@ -497,13 +503,21 @@ contains
           referencedParameter => inputParametersWalkTree(self%parameters)
           do while (associated(referencedParameter))
              ! If found, set a pointer to this other parameter which will be later dereferenced for parameter extraction.
-             if     (                                                                                 &
-                  &   getNodeType (referencedParameter%content        ) == ELEMENT_NODE               &
-                  &  .and.                                                                            &
-                  &   hasAttribute(referencedParameter%content,'id')                                  &
-                  &.and.                                                                              &
-                  & getNodeName(referencedParameter%content) == getNodeName(currentParameter%content) &
-                  & ) currentParameter%referenced => referencedParameter
+             if     (                                                                                         &
+                  &   getNodeType (referencedParameter%content     ) == ELEMENT_NODE                          &
+                  &  .and.                                                                                    &
+                  &   hasAttribute(referencedParameter%content,'id')                                          &
+                  &  .and.                                                                                    &
+                  &   getNodeName (referencedParameter%content     ) == getNodeName(currentParameter%content) &
+                  & ) then
+                identifierNode          => getAttributeNode(referencedParameter    %content,   'id'     )
+                identifierReferenceNode => getAttributeNode(currentParameter       %content,   'idRef'  )
+                identifier              =  getTextContent  (identifierNode                 ,ex=exception)
+                if (inException(exception)) call Galacticus_Error_Report('unable to parse identifier'//{introspection:location})
+                identifierReference     =  getTextContent  (identifierReferenceNode        ,ex=exception)
+                if (inException(exception)) call Galacticus_Error_Report('unable to parse identifier'//{introspection:location})
+                if (identifier == identifierReference) currentParameter%referenced => referencedParameter
+             end if
              ! Walk to next node.
              referencedParameter => inputParametersWalkTree(referencedParameter)
           end do

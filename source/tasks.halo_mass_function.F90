@@ -32,34 +32,41 @@
   use :: Unevolved_Subhalo_Mass_Functions         , only : unevolvedSubhaloMassFunctionClass
   use :: Virial_Density_Contrast                  , only : virialDensityContrastClass
 
+  type :: virialDensityContrastList
+     !% Type used to store a list of virial density contrasts.
+     type (varying_string            )          :: label
+     class(virialDensityContrastClass), pointer :: virialDensityContrast_
+  end type virialDensityContrastList
+  
   !# <task name="taskHaloMassFunction">
   !#  <description>A task which computes and outputs the halo mass function and related quantities.</description>
   !# </task>
   type, extends(taskClass) :: taskHaloMassFunction
      !% Implementation of a task which computes and outputs the halo mass function and related quantities.
      private
-     class           (cosmologyParametersClass               ), pointer :: cosmologyParameters_                => null()
-     class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_                 => null()
-     class           (virialDensityContrastClass             ), pointer :: virialDensityContrast_              => null()
-     class           (darkMatterProfileDMOClass              ), pointer :: darkMatterProfileDMO_               => null()
-     class           (criticalOverdensityClass               ), pointer :: criticalOverdensity_                => null()
-     class           (linearGrowthClass                      ), pointer :: linearGrowth_                       => null()
-     class           (haloMassFunctionClass                  ), pointer :: haloMassFunction_                   => null()
-     class           (haloEnvironmentClass                   ), pointer :: haloEnvironment_                    => null()
-     class           (unevolvedSubhaloMassFunctionClass      ), pointer :: unevolvedSubhaloMassFunction_       => null()
-     class           (darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_                => null()
-     class           (cosmologicalMassVarianceClass          ), pointer :: cosmologicalMassVariance_           => null()
-     class           (darkMatterHaloBiasClass                ), pointer :: darkMatterHaloBias_                 => null()
-     class           (transferFunctionClass                  ), pointer :: transferFunction_                   => null()
-     class           (outputTimesClass                       ), pointer :: outputTimes_                        => null()
-     class           (darkMatterProfileScaleRadiusClass      ), pointer :: darkMatterProfileScaleRadius_       => null()
-     class           (darkMatterHaloMassAccretionHistoryClass), pointer :: darkMatterHaloMassAccretionHistory_ => null()
-     double precision                                                   :: haloMassMinimum                              , haloMassMaximum         , &
-          &                                                                pointsPerDecade
-     type            (varying_string                         )          :: outputGroup
-     logical                                                            :: includeUnevolvedSubhaloMassFunction          , includeMassAccretionRate
+     class           (cosmologyParametersClass               ), pointer                   :: cosmologyParameters_                => null()
+     class           (cosmologyFunctionsClass                ), pointer                   :: cosmologyFunctions_                 => null()
+     class           (virialDensityContrastClass             ), pointer                   :: virialDensityContrast_              => null()
+     class           (darkMatterProfileDMOClass              ), pointer                   :: darkMatterProfileDMO_               => null()
+     class           (criticalOverdensityClass               ), pointer                   :: criticalOverdensity_                => null()
+     class           (linearGrowthClass                      ), pointer                   :: linearGrowth_                       => null()
+     class           (haloMassFunctionClass                  ), pointer                   :: haloMassFunction_                   => null()
+     class           (haloEnvironmentClass                   ), pointer                   :: haloEnvironment_                    => null()
+     class           (unevolvedSubhaloMassFunctionClass      ), pointer                   :: unevolvedSubhaloMassFunction_       => null()
+     class           (darkMatterHaloScaleClass               ), pointer                   :: darkMatterHaloScale_                => null()
+     class           (cosmologicalMassVarianceClass          ), pointer                   :: cosmologicalMassVariance_           => null()
+     class           (darkMatterHaloBiasClass                ), pointer                   :: darkMatterHaloBias_                 => null()
+     class           (transferFunctionClass                  ), pointer                   :: transferFunction_                   => null()
+     class           (outputTimesClass                       ), pointer                   :: outputTimes_                        => null()
+     class           (darkMatterProfileScaleRadiusClass      ), pointer                   :: darkMatterProfileScaleRadius_       => null()
+     class           (darkMatterHaloMassAccretionHistoryClass), pointer                   :: darkMatterHaloMassAccretionHistory_ => null()
+     double precision                                                                     :: haloMassMinimum                              , haloMassMaximum         , &
+          &                                                                                  pointsPerDecade
+     type            (varying_string                         )                            :: outputGroup
+     logical                                                                              :: includeUnevolvedSubhaloMassFunction          , includeMassAccretionRate
+     type            (virialDensityContrastList              ), allocatable, dimension(:) :: virialDensityContrasts
      ! Pointer to the parameters for this task.
-     type            (inputParameters                        )          :: parameters
+     type            (inputParameters                        )                            :: parameters
   contains
      final     ::            haloMassFunctionDestructor
      procedure :: perform => haloMassFunctionPerform
@@ -79,29 +86,33 @@ contains
     use :: Input_Parameters, only : inputParameter              , inputParameters
     use :: Node_Components , only : Node_Components_Initialize
     implicit none
-    type            (taskHaloMassFunction                   )                        :: self
-    type            (inputParameters                        ), intent(inout), target :: parameters
-    class           (cosmologyParametersClass               ), pointer               :: cosmologyParameters_
-    class           (cosmologyFunctionsClass                ), pointer               :: cosmologyFunctions_
-    class           (virialDensityContrastClass             ), pointer               :: virialDensityContrast_
-    class           (darkMatterProfileDMOClass              ), pointer               :: darkMatterProfileDMO_
-    class           (criticalOverdensityClass               ), pointer               :: criticalOverdensity_
-    class           (linearGrowthClass                      ), pointer               :: linearGrowth_
-    class           (haloMassFunctionClass                  ), pointer               :: haloMassFunction_
-    class           (haloEnvironmentClass                   ), pointer               :: haloEnvironment_
-    class           (unevolvedSubhaloMassFunctionClass      ), pointer               :: unevolvedSubhaloMassFunction_
-    class           (darkMatterHaloScaleClass               ), pointer               :: darkMatterHaloScale_
-    class           (cosmologicalMassVarianceClass          ), pointer               :: cosmologicalMassVariance_
-    class           (darkMatterHaloBiasClass                ), pointer               :: darkMatterHaloBias_
-    class           (transferFunctionClass                  ), pointer               :: transferFunction_
-    class           (outputTimesClass                       ), pointer               :: outputTimes_
-    class           (darkMatterProfileScaleRadiusClass      ), pointer               :: darkMatterProfileScaleRadius_
-    class           (darkMatterHaloMassAccretionHistoryClass), pointer               :: darkMatterHaloMassAccretionHistory_
-    type            (inputParameters                        ), pointer               :: parametersRoot
-    type            (varying_string                         )                        :: outputGroup
-    double precision                                                                 :: haloMassMinimum                    , haloMassMaximum         , &
-         &                                                                              pointsPerDecade
-    logical                                                                          :: includeUnevolvedSubhaloMassFunction, includeMassAccretionRate
+    type            (taskHaloMassFunction                   )                              :: self
+    type            (inputParameters                        ), intent(inout), target       :: parameters
+    class           (cosmologyParametersClass               ), pointer                     :: cosmologyParameters_
+    class           (cosmologyFunctionsClass                ), pointer                     :: cosmologyFunctions_
+    class           (virialDensityContrastClass             ), pointer                     :: virialDensityContrast_
+    class           (darkMatterProfileDMOClass              ), pointer                     :: darkMatterProfileDMO_
+    class           (criticalOverdensityClass               ), pointer                     :: criticalOverdensity_
+    class           (linearGrowthClass                      ), pointer                     :: linearGrowth_
+    class           (haloMassFunctionClass                  ), pointer                     :: haloMassFunction_
+    class           (haloEnvironmentClass                   ), pointer                     :: haloEnvironment_
+    class           (unevolvedSubhaloMassFunctionClass      ), pointer                     :: unevolvedSubhaloMassFunction_
+    class           (darkMatterHaloScaleClass               ), pointer                     :: darkMatterHaloScale_
+    class           (cosmologicalMassVarianceClass          ), pointer                     :: cosmologicalMassVariance_
+    class           (darkMatterHaloBiasClass                ), pointer                     :: darkMatterHaloBias_
+    class           (transferFunctionClass                  ), pointer                     :: transferFunction_
+    class           (outputTimesClass                       ), pointer                     :: outputTimes_
+    class           (darkMatterProfileScaleRadiusClass      ), pointer                     :: darkMatterProfileScaleRadius_
+    class           (darkMatterHaloMassAccretionHistoryClass), pointer                     :: darkMatterHaloMassAccretionHistory_
+    type            (inputParameters                        ), pointer                     :: parametersRoot
+    type            (inputParameters                        ),                             :: parametersMassDefinitions
+    type            (virialDensityContrastList              ), allocatable  , dimension(:) :: virialDensityContrasts
+    type            (varying_string                         ), allocatable  , dimension(:) :: labels
+    type            (varying_string                         )                              :: outputGroup
+    double precision                                                                       :: haloMassMinimum                    , haloMassMaximum          , &
+         &                                                                                    pointsPerDecade
+    logical                                                                                :: includeUnevolvedSubhaloMassFunction, includeMassAccretionRate
+    integer                                                                                :: i
     
     ! Ensure the nodes objects are initialized.
     if (associated(parameters%parent)) then
@@ -168,6 +179,24 @@ contains
     !# <objectBuilder class="outputTimes"                        name="outputTimes_"                        source="parameters"/>
     !# <objectBuilder class="darkMatterProfileScaleRadius"       name="darkMatterProfileScaleRadius_"       source="parameters"/>
     !# <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"/>
+    if (parameters%isPresent('massDefinitions',requireValue=.false.)) then
+       parametersMassDefinitions=parameters%subParameters('massDefinitions',requireValue=.false.)
+       if (parametersMassDefinitions%copiesCount('virialDensityContrast') /= parametersMassDefinitions%count('labels')) &
+            & call Galacticus_Error_Report('number of labels must match number of virial density contrasts'//{introspection:location})
+       allocate(virialDensityContrasts(parametersMassDefinitions%copiesCount('virialDensityContrast')))
+       allocate(labels                (parametersMassDefinitions%copiesCount('virialDensityContrast')))
+       !# <inputParameter>
+       !#   <name>labels</name>
+       !#   <description>Labels for virial density contrast mass definitions.</description>
+       !#   <source>parametersMassDefinitions</source>
+       !# </inputParameter>
+       do i=1,parametersMassDefinitions%copiesCount('virialDensityContrast')
+          !# <objectBuilder class="virialDensityContrast" name="virialDensityContrasts(i)%virialDensityContrast_" source="parametersMassDefinitions" copy="i" />
+          virialDensityContrasts(i)%label=labels(i)
+       end do
+    else
+       allocate(virialDensityContrasts(0))
+    end if
     self=taskHaloMassFunction(                                     &
          &                    haloMassMinimum                    , &
          &                    haloMassMaximum                    , &
@@ -191,6 +220,7 @@ contains
          &                    darkMatterHaloBias_                , &
          &                    transferFunction_                  , &
          &                    outputTimes_                       , &
+         &                    virialDensityContrasts             , &
          &                    parametersRoot                       &
          &                   )
     !# <inputParametersValidate source="parameters"/>
@@ -210,6 +240,11 @@ contains
     !# <objectDestructor name="outputTimes_"                       />
     !# <objectDestructor name="darkMatterProfileScaleRadius_"      />
     !# <objectDestructor name="darkMatterHaloMassAccretionHistory_"/>
+    if (size(virialDensityContrasts) > 0) then
+       do i=1,parametersMassDefinitions%copiesCount('virialDensityContrast')
+          !# <objectDestructor name="virialDensityContrasts(i)%virialDensityContrast_"/>
+       end do
+    end if
     return
   end function haloMassFunctionConstructorParameters
 
@@ -236,36 +271,44 @@ contains
        &                                       darkMatterHaloBias_                , &
        &                                       transferFunction_                  , &
        &                                       outputTimes_                       , &
+       &                                       virialDensityContrasts             , &
        &                                       parameters                           &
        &                                      ) result(self)
     !% Constructor for the {\normalfont \ttfamily haloMassFunction} task class which takes a parameter set as input.
     implicit none
-    type            (taskHaloMassFunction                   )                        :: self
-    class           (cosmologyParametersClass               ), intent(in   ), target :: cosmologyParameters_
-    class           (cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
-    class           (virialDensityContrastClass             ), intent(in   ), target :: virialDensityContrast_
-    class           (darkMatterProfileDMOClass              ), intent(in   ), target :: darkMatterProfileDMO_
-    class           (criticalOverdensityClass               ), intent(in   ), target :: criticalOverdensity_
-    class           (linearGrowthClass                      ), intent(in   ), target :: linearGrowth_
-    class           (haloMassFunctionClass                  ), intent(in   ), target :: haloMassFunction_
-    class           (haloEnvironmentClass                   ), intent(in   ), target :: haloEnvironment_
-    class           (unevolvedSubhaloMassFunctionClass      ), intent(in   ), target :: unevolvedSubhaloMassFunction_
-    class           (darkMatterHaloScaleClass               ), intent(in   ), target :: darkMatterHaloScale_
-    class           (darkMatterProfileScaleRadiusClass      ), intent(in   ), target :: darkMatterProfileScaleRadius_
-    class           (darkMatterHaloMassAccretionHistoryClass), intent(in   ), target :: darkMatterHaloMassAccretionHistory_
-    class           (cosmologicalMassVarianceClass          ), intent(in   ), target :: cosmologicalMassVariance_
-    class           (darkMatterHaloBiasClass                ), intent(in   ), target :: darkMatterHaloBias_
-    class           (transferFunctionClass                  ), intent(in   ), target :: transferFunction_
-    class           (outputTimesClass                       ), intent(in   ), target :: outputTimes_
-    type            (varying_string                         ), intent(in   )         :: outputGroup
-    double precision                                         , intent(in   )         :: haloMassMinimum                    , haloMassMaximum         , &
-         &                                                                              pointsPerDecade
-    logical                                                  , intent(in   )         :: includeUnevolvedSubhaloMassFunction, includeMassAccretionRate
-    type            (inputParameters                        ), intent(in   ), target :: parameters
+    type            (taskHaloMassFunction                   )                              :: self
+    class           (cosmologyParametersClass               ), intent(in   ), target       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass                ), intent(in   ), target       :: cosmologyFunctions_
+    class           (virialDensityContrastClass             ), intent(in   ), target       :: virialDensityContrast_
+    class           (darkMatterProfileDMOClass              ), intent(in   ), target       :: darkMatterProfileDMO_
+    class           (criticalOverdensityClass               ), intent(in   ), target       :: criticalOverdensity_
+    class           (linearGrowthClass                      ), intent(in   ), target       :: linearGrowth_
+    class           (haloMassFunctionClass                  ), intent(in   ), target       :: haloMassFunction_
+    class           (haloEnvironmentClass                   ), intent(in   ), target       :: haloEnvironment_
+    class           (unevolvedSubhaloMassFunctionClass      ), intent(in   ), target       :: unevolvedSubhaloMassFunction_
+    class           (darkMatterHaloScaleClass               ), intent(in   ), target       :: darkMatterHaloScale_
+    class           (darkMatterProfileScaleRadiusClass      ), intent(in   ), target       :: darkMatterProfileScaleRadius_
+    class           (darkMatterHaloMassAccretionHistoryClass), intent(in   ), target       :: darkMatterHaloMassAccretionHistory_
+    class           (cosmologicalMassVarianceClass          ), intent(in   ), target       :: cosmologicalMassVariance_
+    class           (darkMatterHaloBiasClass                ), intent(in   ), target       :: darkMatterHaloBias_
+    class           (transferFunctionClass                  ), intent(in   ), target       :: transferFunction_
+    class           (outputTimesClass                       ), intent(in   ), target       :: outputTimes_
+    type            (virialDensityContrastList              ), intent(in   ), dimension(:) :: virialDensityContrasts
+    type            (varying_string                         ), intent(in   )               :: outputGroup
+    double precision                                         , intent(in   )               :: haloMassMinimum                    , haloMassMaximum         , &
+         &                                                                                    pointsPerDecade
+    logical                                                  , intent(in   )               :: includeUnevolvedSubhaloMassFunction, includeMassAccretionRate
+    type            (inputParameters                        ), intent(in   ), target       :: parameters
+    integer                                                                                :: i
     !# <constructorAssign variables="haloMassMinimum, haloMassMaximum, pointsPerDecade, outputGroup, includeUnevolvedSubhaloMassFunction, includeMassAccretionRate, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *darkMatterProfileDMO_, *criticalOverdensity_, *linearGrowth_, *haloMassFunction_, *haloEnvironment_, *unevolvedSubhaloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *darkMatterHaloMassAccretionHistory_, *cosmologicalMassVariance_, *darkMatterHaloBias_,*transferFunction_, *outputTimes_"/>
 
     self%parameters=inputParameters(parameters)
     call self%parameters%parametersGroupCopy(parameters)
+    allocate(self%virialDensityContrasts(size(virialDensityContrasts)))
+    do i=1,size(virialDensityContrasts)
+       self%virialDensityContrasts(i)%label=virialDensityContrasts(i)%label
+       !# <referenceAcquire isResult="yes" owner="self" target="virialDensityContrasts(i)%virialDensityContrast_" source="virialDensityContrasts(i)%virialDensityContrast_"/>
+    end do
     return
   end function haloMassFunctionConstructorInternal
 
@@ -273,7 +316,8 @@ contains
     !% Destructor for the {\normalfont \ttfamily haloMassFunction} task class.
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
-    type(taskHaloMassFunction), intent(inout) :: self
+    type   (taskHaloMassFunction), intent(inout) :: self
+    integer                                      :: i
 
     !# <objectDestructor name="self%cosmologyParameters_"               />
     !# <objectDestructor name="self%cosmologyFunctions_"                />
@@ -291,66 +335,70 @@ contains
     !# <objectDestructor name="self%darkMatterHaloBias_"                />
     !# <objectDestructor name="self%transferFunction_"                  />
     !# <objectDestructor name="self%outputTimes_"                       />
+    do i=1,size(self%virialDensityContrasts)
+       !# <objectDestructor name="self%virialDensityContrasts(i)%virialDensityContrast_"/>
+    end do
     call Node_Components_Uninitialize()
     return
   end subroutine haloMassFunctionDestructor
 
   subroutine haloMassFunctionPerform(self,status)
     !% Compute and output the halo mass function.
-    use            :: Display                         , only : displayIndent                    , displayUnindent
-    use            :: Galacticus_Calculations_Resets  , only : Galacticus_Calculations_Reset
-    use            :: Galacticus_Error                , only : errorStatusSuccess
-    use            :: Galacticus_HDF5                 , only : galacticusOutputFile
-    use            :: Galacticus_Nodes                , only : mergerTree                       , nodeComponentBasic                 , nodeComponentDarkMatterProfile, treeNode
-    use            :: IO_HDF5                         , only : hdf5Object
-    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use            :: Memory_Management               , only : allocateArray
-    use            :: Node_Components                 , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
-    use            :: Numerical_Constants_Astronomical, only : massSolar                        , megaParsec                         , gigaYear
-    use            :: Numerical_Constants_Math        , only : Pi
-    use            :: Numerical_Constants_Prefixes    , only : kilo
-    use            :: Numerical_Integration           , only : GSL_Integ_Gauss15                , integrator
-    use            :: Numerical_Ranges                , only : Make_Range                       , rangeTypeLogarithmic
-    use            :: String_Handling                 , only : operator(//)
+    use            :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
+    use            :: Display                             , only : displayIndent                      , displayUnindent
+    use            :: Galacticus_Calculations_Resets      , only : Galacticus_Calculations_Reset
+    use            :: Galacticus_Error                    , only : errorStatusSuccess
+    use            :: Galacticus_HDF5                     , only : galacticusOutputFile
+    use            :: Galacticus_Nodes                    , only : mergerTree                         , nodeComponentBasic                 , nodeComponentDarkMatterProfile, treeNode
+    use            :: IO_HDF5                             , only : hdf5Object
+    use, intrinsic :: ISO_C_Binding                       , only : c_size_t
+    use            :: Memory_Management                   , only : allocateArray
+    use            :: Node_Components                     , only : Node_Components_Thread_Initialize  , Node_Components_Thread_Uninitialize
+    use            :: Numerical_Constants_Astronomical    , only : massSolar                          , megaParsec                         , gigaYear
+    use            :: Numerical_Constants_Math            , only : Pi
+    use            :: Numerical_Constants_Prefixes        , only : kilo
+    use            :: Numerical_Integration               , only : GSL_Integ_Gauss15                  , integrator
+    use            :: Numerical_Ranges                    , only : Make_Range                         , rangeTypeLogarithmic
+    use            :: String_Handling                     , only : operator(//)                       , String_Upper_Case_First
     implicit none
-    class           (taskHaloMassFunction          ), intent(inout), target         :: self
-    integer                                         , intent(  out), optional       :: status
-    double precision                                , allocatable  , dimension(:,:) :: massFunctionDifferentialLogarithmicBinAveraged       , biasHalo                     , &
-         &                                                                             massFunctionCumulative                               , massFunctionDifferential     , &
-         &                                                                             massFunctionDifferentialLogarithmic                  , massFunctionMassFraction     , &
-         &                                                                             peakHeight                                           , densityFieldRootVariance     , &
-         &                                                                             radiusVirial                                         , temperatureVirial            , &
-         &                                                                             velocityVirial                                       , darkMatterProfileRadiusScale , &
-         &                                                                             velocityMaximum                                      , peakHeightMassFunction       , &
-         &                                                                             densityFieldRootVarianceGradientLogarithmic          , massFunctionCumulativeSubhalo, &
-         &                                                                             massAccretionRate                                    , massHalo200Mean              , &
-         &                                                                             massHalo200Critical                                  , radius200Mean                , &
-         &                                                                             radius200Critical
-    double precision                                , allocatable  , dimension(:  ) :: outputCharacteristicMass                             , outputCriticalOverdensities  , &
-         &                                                                             outputExpansionFactors                               , outputGrowthFactors          , &
-         &                                                                             outputRedshifts                                      , outputTimes                  , &
-         &                                                                             outputVirialDensityContrast                          , outputTurnAroundRadius       , &
-         &                                                                             massHalo
+    class           (taskHaloMassFunction          ), intent(inout), target           :: self
+    integer                                         , intent(  out), optional         :: status
+    double precision                                , allocatable  , dimension(:,:)   :: massFunctionDifferentialLogarithmicBinAveraged       , biasHalo                     , &
+         &                                                                               massFunctionCumulative                               , massFunctionDifferential     , &
+         &                                                                               massFunctionDifferentialLogarithmic                  , massFunctionMassFraction     , &
+         &                                                                               peakHeight                                           , densityFieldRootVariance     , &
+         &                                                                               radiusVirial                                         , temperatureVirial            , &
+         &                                                                               velocityVirial                                       , darkMatterProfileRadiusScale , &
+         &                                                                               velocityMaximum                                      , peakHeightMassFunction       , &
+         &                                                                               densityFieldRootVarianceGradientLogarithmic          , massFunctionCumulativeSubhalo, &
+         &                                                                               massAccretionRate
+    double precision                                , allocatable  , dimension(:  )   :: outputCharacteristicMass                             , outputCriticalOverdensities  , &
+         &                                                                               outputExpansionFactors                               , outputGrowthFactors          , &
+         &                                                                               outputRedshifts                                      , outputTimes                  , &
+         &                                                                               outputVirialDensityContrast                          , outputTurnAroundRadius       , &
+         &                                                                               massHalo
+    double precision                                , allocatable  , dimension(:,:,:) :: massAlternate, radiusAlternate
     ! The upper limit to halo mass used when computing cumulative mass functions.
-    double precision                                , parameter                     :: haloMassEffectiveInfinity                     =1.0d16
+    double precision                                , parameter                       :: haloMassEffectiveInfinity                     =1.0d16
     ! Largest subhalo mass (in units of host mass) for which we expect significant unevolved subhalo mass function.
-    double precision                                , parameter                     :: subhaloMassMaximum                            =1.0d02
-    class           (nodeComponentBasic            ), pointer                       :: basic
-    class           (nodeComponentDarkMatterProfile), pointer                       :: darkMatterProfileHalo
-    type            (mergerTree                    ), target                        :: tree
-    type            (integrator                    )                                :: integrator_
-    integer         (c_size_t                      )                                :: iOutput                                              , outputCount                  , &
-         &                                                                             iMass                                                , massCount
-    double precision                                                                :: massHaloBinMinimum                                   , massHaloBinMaximum           , &
-         &                                                                             massHaloLogarithmicInterval                          , massHalfMode                 , &
-         &                                                                             wavenumberComoving                                   , growthFactor                 , &
-         &                                                                             massCritical                                         , massQuarterMode              , &
-         &                                                                             densityMean                                          , densityCritical
-    type            (hdf5Object                    )                                :: outputsGroup                                         , outputGroup                  , &
-         &                                                                             containerGroup                                       , powerSpectrumGroup           , &
-         &                                                                             cosmologyGroup                                       , dataset
-    integer                                                                         :: statusHalfModeMass                                   , statusQuarterModeMass
-    type            (varying_string                )                                :: groupName                                            , commentText
+    double precision                                , parameter                       :: subhaloMassMaximum                            =1.0d02
+    class           (nodeComponentBasic            ), pointer                         :: basic
+    class           (nodeComponentDarkMatterProfile), pointer                         :: darkMatterProfileHalo
+    type            (mergerTree                    ), target                          :: tree
+    type            (integrator                    )                                  :: integrator_
+    integer         (c_size_t                      )                                  :: iOutput                                              , outputCount                  , &
+         &                                                                               iMass                                                , massCount                    , &
+         &                                                                               iAlternate
+    double precision                                                                  :: massHaloBinMinimum                                   , massHaloBinMaximum           , &
+         &                                                                               massHaloLogarithmicInterval                          , massHalfMode                 , &
+         &                                                                               wavenumberComoving                                   , growthFactor                 , &
+         &                                                                               massCritical                                         , massQuarterMode              , &
+         &                                                                               densityMean                                          , densityCritical
+    type            (hdf5Object                    )                                  :: outputsGroup                                         , outputGroup                  , &
+         &                                                                               containerGroup                                       , powerSpectrumGroup           , &
+         &                                                                               cosmologyGroup                                       , dataset
+    integer                                                                           :: statusHalfModeMass                                   , statusQuarterModeMass
+    type            (varying_string                )                                  :: groupName                                            , commentText
 
     call displayIndent('Begin task: halo mass function')
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
@@ -367,28 +415,26 @@ contains
     call allocateArray(outputCharacteristicMass                      ,[          outputCount])
     ! Compute number of tabulation points.
     massCount=int(log10(self%haloMassMaximum/self%haloMassMinimum)*self%pointsPerDecade)+1
-    call allocateArray(massHalo                                      ,[massCount            ])
-    call allocateArray(massHalo200Mean                               ,[massCount,outputCount])
-    call allocateArray(massHalo200Critical                           ,[massCount,outputCount])
-    call allocateArray(massFunctionDifferential                      ,[massCount,outputCount])
-    call allocateArray(massFunctionDifferentialLogarithmic           ,[massCount,outputCount])
-    call allocateArray(massFunctionDifferentialLogarithmicBinAveraged,[massCount,outputCount])
-    call allocateArray(massFunctionCumulative                        ,[massCount,outputCount])
-    call allocateArray(massFunctionCumulativeSubhalo                 ,[massCount,outputCount])
-    call allocateArray(massFunctionMassFraction                      ,[massCount,outputCount])
-    call allocateArray(massAccretionRate                             ,[massCount,outputCount])
-    call allocateArray(biasHalo                                      ,[massCount,outputCount])
-    call allocateArray(densityFieldRootVariance                      ,[massCount,outputCount])
-    call allocateArray(densityFieldRootVarianceGradientLogarithmic   ,[massCount,outputCount])
-    call allocateArray(peakHeight                                    ,[massCount,outputCount])
-    call allocateArray(peakHeightMassFunction                        ,[massCount,outputCount])
-    call allocateArray(velocityVirial                                ,[massCount,outputCount])
-    call allocateArray(temperatureVirial                             ,[massCount,outputCount])
-    call allocateArray(radiusVirial                                  ,[massCount,outputCount])
-    call allocateArray(radius200Mean                                 ,[massCount,outputCount])
-    call allocateArray(radius200Critical                             ,[massCount,outputCount])
-    call allocateArray(darkMatterProfileRadiusScale                  ,[massCount,outputCount])
-    call allocateArray(velocityMaximum                               ,[massCount,outputCount])
+    call allocateArray(massHalo                                      ,[                                                massCount            ])
+    call allocateArray(massFunctionDifferential                      ,[                                                massCount,outputCount])
+    call allocateArray(massFunctionDifferentialLogarithmic           ,[                                                massCount,outputCount])
+    call allocateArray(massFunctionDifferentialLogarithmicBinAveraged,[                                                massCount,outputCount])
+    call allocateArray(massFunctionCumulative                        ,[                                                massCount,outputCount])
+    call allocateArray(massFunctionCumulativeSubhalo                 ,[                                                massCount,outputCount])
+    call allocateArray(massFunctionMassFraction                      ,[                                                massCount,outputCount])
+    call allocateArray(massAccretionRate                             ,[                                                massCount,outputCount])
+    call allocateArray(biasHalo                                      ,[                                                massCount,outputCount])
+    call allocateArray(densityFieldRootVariance                      ,[                                                massCount,outputCount])
+    call allocateArray(densityFieldRootVarianceGradientLogarithmic   ,[                                                massCount,outputCount])
+    call allocateArray(peakHeight                                    ,[                                                massCount,outputCount])
+    call allocateArray(peakHeightMassFunction                        ,[                                                massCount,outputCount])
+    call allocateArray(velocityVirial                                ,[                                                massCount,outputCount])
+    call allocateArray(temperatureVirial                             ,[                                                massCount,outputCount])
+    call allocateArray(radiusVirial                                  ,[                                                massCount,outputCount])
+    call allocateArray(darkMatterProfileRadiusScale                  ,[                                                massCount,outputCount])
+    call allocateArray(velocityMaximum                               ,[                                                massCount,outputCount])
+    call allocateArray(massAlternate                                 ,[size(self%virialDensityContrasts,kind=c_size_t),massCount,outputCount])
+    call allocateArray(radiusAlternate                               ,[size(self%virialDensityContrasts,kind=c_size_t),massCount,outputCount])
     ! Compute output time properties.
     do iOutput=1,outputCount
        outputTimes                (iOutput)=self%outputTimes_%time                                 (                                                      iOutput )
@@ -466,10 +512,9 @@ contains
           if (self%includeMassAccretionRate) &
                & massAccretionRate                      (iMass,iOutput)=self%darkMatterHaloMassAccretionHistory_%massAccretionRate              (                                                                     time=outputTimes(iOutput),node=tree%baseNode)
           ! Compute alternate mass definitions for halos.
-          radius200Mean                                 (iMass,iOutput)=self%darkMatterProfileDMO_%radiusEnclosingDensity(tree%baseNode,densityMean    *200.0d0         )
-          radius200Critical                             (iMass,iOutput)=self%darkMatterProfileDMO_%radiusEnclosingDensity(tree%baseNode,densityCritical*200.0d0         )
-          massHalo200Mean                               (iMass,iOutput)=self%darkMatterProfileDMO_%enclosedMass          (tree%baseNode,radius200Mean    (iMass,iOutput))
-          massHalo200Critical                           (iMass,iOutput)=self%darkMatterProfileDMO_%enclosedMass          (tree%baseNode,radius200Critical(iMass,iOutput))
+          do iAlternate=1,size(self%virialDensityContrasts)
+             massAlternate(iAlternate,iMass,iOutput)=Dark_Matter_Profile_Mass_Definition(tree%baseNode,self%virialDensityContrasts(iAlternate)%virialDensityContrast_%densityContrast(mass=massHalo(iMass),time=outputTimes(iOutput)),radius=radiusAlternate(iAlternate,iMass,iOutput))
+          end do
           ! Integrate the unevolved subhalo mass function over the halo mass function to get the total subhalo mass function.
           if (self%includeUnevolvedSubhaloMassFunction)                                                                                   &
                & massFunctionCumulativeSubhalo          (iMass,iOutput)=integrator_%integrate(                                            &
@@ -538,12 +583,6 @@ contains
        call    outputGroup%writeDataset  (massHalo                                      (:        ),'haloMass'                      ,'The mass of the halo.'                                                      ,datasetReturned=dataset)
        call    dataset    %writeAttribute(massSolar                                                ,'unitsInSI'                                                                                                                           )
        call    dataset    %close         (                                                                                                                                                                                                )
-       call    outputGroup%writeDataset  (massHalo200Mean                               (:,iOutput),'haloMass200Mean'               ,'The mass of the halo within 200 times the mean density.'                    ,datasetReturned=dataset)
-       call    dataset    %writeAttribute(massSolar                                                ,'unitsInSI'                                                                                                                           )
-       call    dataset    %close         (                                                                                                                                                                                                )
-       call    outputGroup%writeDataset  (massHalo200Critical                           (:,iOutput),'haloMass200Critical'           ,'The mass of the halo within 200 times the critical density.'                ,datasetReturned=dataset)
-       call    dataset    %writeAttribute(massSolar                                                ,'unitsInSI'                                                                                                                           )
-       call    dataset    %close         (                                                                                                                                                                                                )
        call    outputGroup%writeDataset  (massFunctionDifferential                      (:,iOutput),'haloMassFunctionM'             ,'The halo mass function (per unit halo mass).'                               ,datasetReturned=dataset)
        call    dataset    %writeAttribute(1.0d0/megaParsec**3/massSolar                            ,'unitsInSI'                                                                                                                           )
        call    dataset    %close         (                                                                                                                                                                                                )
@@ -570,12 +609,6 @@ contains
        call    outputGroup%writeDataset  (radiusVirial                                  (:,iOutput),'haloVirialRadius'              ,'The virial radius of halos.'                                                ,datasetReturned=dataset)
        call    dataset    %writeAttribute(megaParsec                                               ,'unitsInSI'                                                                                                                           )
        call    dataset    %close         (                                                                                                                                                                                                )
-       call    outputGroup%writeDataset  (radius200Mean                                 (:,iOutput),'haloRadius200Mean'             ,'The radius of halos enclosing 200 times the mean density.'                  ,datasetReturned=dataset)
-       call    dataset    %writeAttribute(megaParsec                                               ,'unitsInSI'                                                                                                                           )
-       call    dataset    %close         (                                                                                                                                                                                                )
-       call    outputGroup%writeDataset  (radius200Critical                             (:,iOutput),'haloRadius200Critical'         ,'The radius of halos enclosing 200 times the critical density'              ,datasetReturned=dataset)
-       call    dataset    %writeAttribute(megaParsec                                               ,'unitsInSI'                                                                                                                           )
-       call    dataset    %close         (                                                                                                                                                                                                )
        call    outputGroup%writeDataset  (darkMatterProfileRadiusScale                  (:,iOutput),'haloScaleRadius'               ,'The scale radius of halos.'                                                 ,datasetReturned=dataset)
        call    dataset    %writeAttribute(megaParsec                                               ,'unitsInSI'                                                                                                                           )
        call    dataset    %close         (                                                                                                                                                                                                )
@@ -593,7 +626,17 @@ contains
        call    outputGroup%writeDataset  (peakHeight                                    (:,iOutput),'haloPeakHeightNu'              ,'The peak height, ν, of the halo.'                                                                   )
        call    outputGroup%writeDataset  (massFunctionMassFraction                      (:,iOutput),'haloMassFractionCumulative'    ,'The halo cumulative mass fraction.'                                                                 )
        call    outputGroup%writeDataset  (peakHeightMassFunction                        (:,iOutput),'haloMassFunctionNuFNu'         ,'The halo mass fraction function as a function of the ν parameter, νF(ν).'                           )
-       call    outputGroup%close         (                                                                                                                                                                                                )
+       if (size(self%virialDensityContrasts) > 0) then
+          do iAlternate=1,size(self%virialDensityContrasts)
+             call outputGroup%writeDataset  (massAlternate  (iAlternate,:,iOutput),'haloMass'  //String_Upper_Case_First(char(self%virialDensityContrasts(iAlternate)%label)),'The mass of the halo under the "'  //char(self%virialDensityContrasts(iAlternate)%label)//'" definition.',datasetReturned=dataset)
+             call dataset    %writeAttribute(massSolar                            ,'unitsInSI'                                                                                                                                                                                                                  )
+             call dataset    %close         (                                                                                                                                                                                                                                                                   )
+             call outputGroup%writeDataset  (radiusAlternate(iAlternate,:,iOutput),'haloRadius'//String_Upper_Case_First(char(self%virialDensityContrasts(iAlternate)%label)),'The radius of the halo under the "'//char(self%virialDensityContrasts(iAlternate)%label)//'" definition.',datasetReturned=dataset)
+             call dataset    %writeAttribute(megaParsec                           ,'unitsInSI'                                                                                                                                                                                                                  )
+             call dataset    %close         (                                                                                                                                                                                                                                                                   )
+          end do
+       end if
+       call outputGroup%close()
     end do
     call outputsGroup%close()
     if (containerGroup%isOpen()) call containerGroup%close()

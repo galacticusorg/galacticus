@@ -21,11 +21,13 @@ program Tests_Comoving_Distance
   !% Tests comoving distance calculations for various universes. Distances calculated using Python
   !% \href{http://www.astro.ucla.edu/~wright/CC.python}{implementation} of Ned Wright's cosmology
   !% calculator.
-  use :: Cosmology_Functions        , only : cosmologyFunctions       , cosmologyFunctionsClass, cosmologyFunctionsMatterLambda
-  use :: Cosmology_Functions_Options, only : distanceTypeComoving
-  use :: Cosmology_Parameters       , only : cosmologyParametersSimple
-  use :: Display                    , only : displayVerbositySet      , verbosityLevelStandard
-  use :: Unit_Tests                 , only : Assert                   , Unit_Tests_Begin_Group , Unit_Tests_End_Group          , Unit_Tests_Finish
+  use :: Cosmology_Functions             , only : cosmologyFunctions       , cosmologyFunctionsClass, cosmologyFunctionsMatterLambda
+  use :: Cosmology_Functions_Options     , only : distanceTypeComoving
+  use :: Cosmology_Parameters            , only : cosmologyParametersSimple, hubbleUnitsTime
+  use :: Display                         , only : displayVerbositySet      , verbosityLevelStandard
+  use :: Unit_Tests                      , only : Assert                   , Unit_Tests_Begin_Group , Unit_Tests_End_Group          , Unit_Tests_Finish
+  use :: Numerical_Constants_Physical    , only : speedLight
+  use :: Numerical_Constants_Astronomical, only : megaParsec               , gigaYear
   implicit none
   double precision                                , dimension(8), parameter :: redshift                               =[0.1000000d0, 1.0000000d0, 3.0000000d0, 9.0000000d0,30.0000000d0,100.0000000d0,300.0000000d0,1000.0000000d0]
   double precision                                , dimension(8), target    :: distanceEdS                            =[2.7903130d0,17.5614328d0,29.9792345d0,40.9979133d0,49.1894753d0, 53.9916697d0, 56.4991337d0,  58.0449076d0]
@@ -110,6 +112,18 @@ program Tests_Comoving_Distance
         call Unit_Tests_Begin_Group("Einstein-de Sitter"   )
         cosmologyFunctions_ => cosmologyFunctionsEdS
         distance_           => distanceEdS
+        ! For Einstein-de Sitter test the calculation of the comoving distance to the particle horizon. This is
+        ! ∫_0^t c dt' / a(t') = 2c/H(t)
+        call Assert(                                                                                                       &
+             &             "Comoving distance to particle horizon"                                                       , &
+             &             cosmologyFunctions_    %distanceParticleHorizonComoving(cosmologyFunctions_%cosmicTime(1.0d0)), &
+             &             +2.0d0                                                                                          &
+             &             *speedLight                                                                                     &
+             &             *gigaYear                                                                                       &
+             &             /megaParsec                                                                                     &
+             &             /cosmologyParametersEdS%HubbleConstant                 (hubbleUnitsTime                      ), &
+             &      relTol=+1.0d-5                                                                                         &
+             &     )
      case (2)
         call Unit_Tests_Begin_Group("Open universe"        )
         cosmologyFunctions_ => cosmologyFunctionsOpen
@@ -117,7 +131,7 @@ program Tests_Comoving_Distance
      case (3)
         call Unit_Tests_Begin_Group("Cosmological constant")
         cosmologyFunctions_ => cosmologyFunctionsCosmologicalConstant
-        distance_           => distanceCosmologicalConstant
+        distance_           => distanceCosmologicalConstant        
      end select
      do iExpansion=1,size(redshift)
         time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift(iExpansion)))

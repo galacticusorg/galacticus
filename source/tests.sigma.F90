@@ -136,6 +136,7 @@ program Tests_Sigma
   !#    &amp;                                   toleranceTopHat                    =1.0000d-4                              , &amp;
   !#    &amp;                                   nonMonotonicIsFatal                =.true.                                 , &amp;
   !#    &amp;                                   monotonicInterpolation             =.false.                                , &amp;
+  !#    &amp;                                   truncateAtParticleHorizon          =.false.                                , &amp;
   !#    &amp;                                   cosmologyParameters_               =cosmologyParameters_                   , &amp;
   !#    &amp;                                   cosmologyFunctions_                =cosmologyFunctions_                    , &amp;
   !#    &amp;                                   linearGrowth_                      =linearGrowth_                          , &amp;
@@ -182,6 +183,7 @@ program Tests_Sigma
        &                                                                             toleranceTopHat                    =1.0d-4                                   , &
        &                                                                             nonMonotonicIsFatal                =.true.                                   , &
        &                                                                             monotonicInterpolation             =.false.                                  , &
+       &                                                                             truncateAtParticleHorizon          =.false.                                  , &
        &                                                                             cosmologyParameters_               =cosmologyParameters_                     , &
        &                                                                             cosmologyFunctions_                =cosmologyFunctions_                      , &
        &                                                                             linearGrowth_                      =linearGrowth_                            , &

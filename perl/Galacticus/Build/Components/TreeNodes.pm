@@ -70,7 +70,23 @@ sub Build_Tree_Node_Class {
 	     function    => "Tree_Node_Time_Step_Set"                                                                                         ,
 	     description => "Set the time-step used by this node."                                                                            ,
 	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => "\\doublezero\ index\\argin"
+	     arguments   => "\\doublezero\\ timeStep\\argin"
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "subsamplingWeight"                                                                                               ,
+	     function    => "Tree_Node_Subsampling_Weight"                                                                                    ,
+	     description => "Return the subsampling weight of this node."                                                                     ,
+	     returnType  => "\\doublezero"                                                                                                    ,
+	     arguments   => ""
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "subsamplingWeightSet"                                                                                            ,
+	     function    => "Tree_Node_Subsampling_Weight_Set"                                                                                ,
+	     description => "Set the subsampling weight of this node."                                                                        ,
+	     returnType  => "\\void"                                                                                                          ,
+	     arguments   => "\\doublezero\\ subsamplingWeight\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
@@ -236,6 +252,10 @@ sub Build_Tree_Node_Class {
 	 {
 	     intrinsic  => "double precision",
 	     variables  => [ "timeStepValue" ]
+	 },
+	 {
+	     intrinsic  => "double precision",
+	     variables  => [ "subsamplingWeightValue" ]
 	 },
 	 {
 	     intrinsic  => "type",

@@ -38,6 +38,7 @@
      double precision :: samplingMassThreshold        , samplingInfallTimeThreshold, &
           &              samplingPericenterThreshold  , samplingFunctionSlope      , &
           &              samplingFunctionNormalization
+     logical          :: applyOrbitCriterion
    contains
      !# <methods>
      !#   <method description="Compute the sampling rate." method="samplingRate" />
@@ -80,7 +81,7 @@ contains
     !# <inputParameter>
     !#   <name>samplingPericenterThreshold</name>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>Pericenter distance threshold above which satellites are subsampled in units of the distance to the host halo at infall.</description>
+    !#   <description>Pericenter distance threshold above which satellites are subsampled in units of the distance to the host halo at infall. This criterion will be ignored if the {\normalfont \ttfamily virialOrbit} of satellite is not gettable.</description>
     !#   <source>parameters</source>
     !# </inputParameter>
     !# <inputParameter>
@@ -102,6 +103,8 @@ contains
 
   function satelliteSubsamplingConstructorInternal(samplingMassThreshold,samplingInfallTimeThreshold,samplingPericenterThreshold,samplingFunctionSlope,samplingFunctionNormalization) result(self)
     !% Internal constructor for the {\normalfont \ttfamily satelliteSubsampling} node operator class.
+    use :: Galacticus_Nodes, only : defaultSatelliteComponent
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (nodeOperatorSatelliteSubsampling)                :: self
     double precision                                  , intent(in   ) :: samplingMassThreshold        , samplingInfallTimeThreshold, &
@@ -109,6 +112,11 @@ contains
          &                                                               samplingFunctionNormalization
     !# <constructorAssign variables="samplingMassThreshold,samplingInfallTimeThreshold,samplingPericenterThreshold,samplingFunctionSlope,samplingFunctionNormalization"/>
     
+    if (defaultSatelliteComponent%destructionTimeIsSettable()) then
+       self%applyOrbitCriterion=defaultSatelliteComponent%virialOrbitIsGettable()
+    else
+       call Galacticus_Error_Report('satellite subsampling is supported only when the "destructionTime" of satellite is settable'//{introspection:location})
+    end if
     return
   end function satelliteSubsamplingConstructorInternal
 
@@ -125,15 +133,17 @@ contains
     !% Does a subsampling of satellites based on their infall mass and orbital parameters.
     use :: Galacticus_Nodes   , only : nodeComponentSatellite
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodesBranch
+    use :: Display            , only : displayMessage                , displayVerbosity, verbosityLevelInfo
+    use :: String_Handling    , only : operator(//)
     implicit none
     class           (nodeOperatorSatelliteSubsampling), intent(inout) :: self
     type            (treeNode                        ), intent(inout) :: node
-    class           (nodeComponentSatellite          ), pointer       :: satellite       , satelliteHost
+    class           (nodeComponentSatellite          ), pointer       :: satellite
     type            (mergerTreeWalkerAllNodesBranch  )                :: treeWalker
-    type            (treeNode                        ), pointer       :: workNode        , hostNode
+    type            (treeNode                        ), pointer       :: workNode        , nodeNext
     double precision                                                  :: sample          , samplingRate   , &
-         &                                                               sampleWeight    , sampleWeightNew, &
-         &                                                               sampleWeightHost
+         &                                                               sampleWeight    , sampleWeightNew
+    type            (varying_string                  )                :: message
     
     satellite => node%satellite()
     ! Compute the sampling rate.
@@ -142,28 +152,32 @@ contains
        return
     else
        ! Do subsampling.
-       sample    =node%hostTree%randomNumberGenerator_%uniformSample()
-       treeWalker=mergerTreeWalkerAllNodesBranch(node)
+       sample=node%hostTree%randomNumberGenerator_%uniformSample()
        if (sample >= samplingRate) then
-          ! Remove this satellite and its own satellites by setting their destruction time to zero.
+          ! Remove this satellite by destroying any of its own satellites and setting its destruction time to zero.
+          ! Report if necessary.
+          if (displayVerbosity() >= verbosityLevelInfo) then
+             message='Satellite node ['
+             message=message//node%index()//'] is being destroyed'
+             call displayMessage(message)
+          end if
           call satellite%destructionTimeSet(0.0d0)
-          do while (treeWalker%next(workNode))
-             satellite => workNode%satellite()
-             call satellite%destructionTimeSet(0.0d0)
+          workNode => node%firstSatellite
+          do while (associated(workNode))
+             nodeNext => workNode%sibling
+             call workNode%destroyBranch()
+             deallocate(workNode)
+             workNode => nodeNext
           end do
+          node%firstSatellite => null()
        else
           ! Adjust the weights of this satellite. The weights of satellites this satellite contains
           ! are changed accordingly.
-          sampleWeightNew=1.0d0/samplingRate
-          call satellite%subsamplingWeightSet(sampleWeightNew)
+          treeWalker=mergerTreeWalkerAllNodesBranch(node)
           do while (treeWalker%next(workNode))
-             hostNode         => workNode%mergesWith()
-             satellite        => workNode%satellite ()
-             satelliteHost    => hostNode%satellite ()
-             sampleWeight     =  satellite    %subsamplingWeight()
-             sampleWeightHost =  satelliteHost%subsamplingWeight()
-             sampleWeightNew  =  sampleWeight*sampleWeightHost
-             call satellite%subsamplingWeightSet(sampleWeightNew)
+             sampleWeight   =workNode%subsamplingWeight()
+             sampleWeightNew=sampleWeight/samplingRate
+             call workNode%subsamplingWeightSet(sampleWeightNew)
           end do
        end if
     end if
@@ -180,24 +194,30 @@ contains
     class           (nodeComponentBasic              ), pointer       :: basic
     class           (nodeComponentSatellite          ), pointer       :: satellite
     type            (keplerOrbit                     )                :: orbit
-    double precision                                                  :: infallMass    , infallTime        , &
-         &                                                               infallDistance, pericenterDistance
+    double precision                                                  :: infallMass          , infallTime        , &
+         &                                                               infallDistance      , pericenterDistance
+    logical                                                           :: orbitCriterionPassed
 
     satelliteSubsamplingSamplingRate = 1.0d0
     if (self%samplingMassThreshold > 0.0d0) then
        satellite          => node     %satellite       ()
        basic              => node     %basic           ()
-       orbit              =  satellite%virialOrbit     ()
        infallMass         =  basic    %mass            ()
        infallTime         =  basic    %time            ()
-       infallDistance     =  orbit    %radius          ()
-       pericenterDistance =  orbit    %radiusPericenter()
+       if (self%applyOrbitCriterion) then
+          orbit               =satellite%virialOrbit     ()
+          infallDistance      =orbit    %radius          ()
+          pericenterDistance  =orbit    %radiusPericenter()
+          orbitCriterionPassed=(pericenterDistance/infallDistance > self%samplingPericenterThreshold)
+       else
+          orbitCriterionPassed=.true.
+       end if
        if     (                                                                      &
             &   infallMass                        < self%samplingMassThreshold       &
             &  .and.                                                                 &
             &   infallTime                        < self%samplingInfallTimeThreshold &
             &  .and.                                                                 &
-            &   pericenterDistance/infallDistance > self%samplingPericenterThreshold &
+            &   orbitCriterionPassed                                                 &
             & ) then
           satelliteSubsamplingSamplingRate = +self%samplingFunctionNormalization &
                &                             *(                                  &

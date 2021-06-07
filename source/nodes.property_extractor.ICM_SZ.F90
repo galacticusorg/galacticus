@@ -39,7 +39,7 @@
   !#   the optional {\normalfont \ttfamily [densityContrast]} parameter. This density contrast is relative to either {\normalfont
   !#   \ttfamily mean} or {\normalfont \ttfamily critical} density as specified by the {\normalfont \ttfamily
   !#   densityContrastRelativeTo} parameter.
-  !#   </description>
+  !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="densityContrastExtractor_"/>
   !#  </deepCopy>

@@ -45,7 +45,7 @@
   !#   \end{equation}
   !#   This last relation is used to determine the number of spherical shells to generate. These shells are then placed randomly
   !#   in radius between $0$ and $l$. Each shell is also assigned an impact parameter, $b$, meant to represent the distance of the
-  !#   center of the notional spehrical cloud from the line of sight. The effective half-width of the shell is then
+  !#   center of the notional spherical cloud from the line of sight. The effective half-width of the shell is then
   !#   $\sqrt{r_\mathrm{c}^2-b^2}$.
   !#  </description>
   !# </massDistribution>

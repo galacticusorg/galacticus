@@ -120,6 +120,7 @@ foreach my $analysisName ( @analyses ) {
 	}
     }
 }
+print "logℒ = ".$logLikelihoodTotal."\n";
 
 exit 0;
 

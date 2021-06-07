@@ -91,7 +91,7 @@
      ! Unique values in the variance table and their corresponding indices.
      type            (uniqueTable                            ), allocatable, dimension(:) :: rootVarianceUniqueTable
      logical                                                                              :: monotonicInterpolation                       , growthIsMassDependent_                               , &
-         &                                                                                   normalizationSigma8
+         &                                                                                   normalizationSigma8                          , truncateAtParticleHorizon
    contains
      !# <methods>
      !#   <method description="Tabulate cosmological mass variance."        method="retabulate"      />
@@ -148,7 +148,8 @@ contains
     class           (linearGrowthClass                      ), pointer       :: linearGrowth_
     double precision                                                         :: sigma8Value                        , tolerance                                  , &
          &                                                                      toleranceTopHat                    , wavenumberReference
-    logical                                                                  :: monotonicInterpolation             , nonMonotonicIsFatal
+    logical                                                                  :: monotonicInterpolation             , nonMonotonicIsFatal                        , &
+         &                                                                      truncateAtParticleHorizon
 
     !# <objectBuilder    class="cosmologyParameters"                name="cosmologyParameters_"                        source="parameters"                                                  />
     !# <objectBuilder    class="cosmologyFunctions"                 name="cosmologyFunctions_"                         source="parameters"                                                  />
@@ -207,6 +208,12 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true use a monotonic cubic spline interpolator to interpolate in the $\sigma(M)$ table. Otherwise use a standard cubic spline interpoltor. Use of the monotonic interpolator can be helpful is $\sigma(M)$ must be strictly monotonic but becomes a very weak function of $M$ at low masses.</description>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>truncateAtParticleHorizon</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true then integration over the power spectrum is truncated at a wavenumber $k=1/H_\mathrm{p}(t_0)$, where $/H_\mathrm{p}(t_0)$ is the comoving distance to the particle horizon at the present epoch. Otherwise, integration continues to $k=0$.</description>
+    !# </inputParameter>
     !# <conditionalCall>
     !#  <call>
     !#   self=filteredPowerConstructorInternal(                                                                         &amp;
@@ -214,6 +221,7 @@ contains
     !#    &amp;                                toleranceTopHat                    =toleranceTopHat                    , &amp;
     !#    &amp;                                nonMonotonicIsFatal                =nonMonotonicIsFatal                , &amp;
     !#    &amp;                                monotonicInterpolation             =monotonicInterpolation             , &amp;
+    !#    &amp;                                truncateAtParticleHorizon          =truncateAtParticleHorizon          , &amp;
     !#    &amp;                                cosmologyParameters_               =cosmologyParameters_               , &amp;
     !#    &amp;                                cosmologyFunctions_                =cosmologyFunctions_                , &amp;
     !#    &amp;                                linearGrowth_                      =linearGrowth_                      , &amp;
@@ -244,7 +252,7 @@ contains
     return
   end function filteredPowerConstructorParameters
 
-  function filteredPowerConstructorInternal(sigma8,cosmologicalMassVarianceReference,powerSpectrumPrimordialTransferredReference,wavenumberReference,tolerance,toleranceTopHat,nonMonotonicIsFatal,monotonicInterpolation,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_,powerSpectrumWindowFunctionTopHat_) result(self)
+  function filteredPowerConstructorInternal(sigma8,cosmologicalMassVarianceReference,powerSpectrumPrimordialTransferredReference,wavenumberReference,tolerance,toleranceTopHat,nonMonotonicIsFatal,monotonicInterpolation,truncateAtParticleHorizon,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_,powerSpectrumWindowFunctionTopHat_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
     use :: File_Utilities                 , only : Directory_Make                   , File_Path
     use :: Galacticus_Error               , only : Galacticus_Error_Report
@@ -254,7 +262,8 @@ contains
     type            (cosmologicalMassVarianceFilteredPower  )                                  :: self
     double precision                                         , intent(in   )                   :: tolerance                                  , toleranceTopHat
     double precision                                         , intent(in   )        , optional :: wavenumberReference                        , sigma8
-    logical                                                  , intent(in   )                   :: nonMonotonicIsFatal                        , monotonicInterpolation
+    logical                                                  , intent(in   )                   :: nonMonotonicIsFatal                        , monotonicInterpolation, &
+         &                                                                                        truncateAtParticleHorizon
     class           (cosmologyParametersClass               ), intent(in   ), target           :: cosmologyParameters_
     class           (cosmologyFunctionsClass                ), intent(in   ), target           :: cosmologyFunctions_
     class           (powerSpectrumPrimordialTransferredClass), intent(in   ), target           :: powerSpectrumPrimordialTransferred_
@@ -263,7 +272,7 @@ contains
     class           (cosmologicalMassVarianceClass          ), intent(in   ), target, optional :: cosmologicalMassVarianceReference
     class           (powerSpectrumWindowFunctionClass       ), intent(in   ), target, optional :: powerSpectrumWindowFunctionTopHat_
     class           (linearGrowthClass                      ), intent(in   ), target           :: linearGrowth_
-    !# <constructorAssign variables="tolerance, toleranceTopHat, nonMonotonicIsFatal, monotonicInterpolation, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *powerSpectrumPrimordialTransferred_, *powerSpectrumWindowFunction_, *powerSpectrumWindowFunctionTopHat_"/>
+    !# <constructorAssign variables="tolerance, toleranceTopHat, nonMonotonicIsFatal, monotonicInterpolation, truncateAtParticleHorizon, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *powerSpectrumPrimordialTransferred_, *powerSpectrumWindowFunction_, *powerSpectrumWindowFunctionTopHat_"/>
 
     if (.not.present(powerSpectrumWindowFunctionTopHat_)) then
        allocate(powerSpectrumWindowFunctionTopHat :: self%powerSpectrumWindowFunctionTopHat_)
@@ -802,7 +811,12 @@ contains
            &             /self%cosmologyParameters_%OmegaMatter    () &
            &             /self%cosmologyParameters_%densityCritical() &
            &            )**(1.0d0/3.0d0)
-      wavenumberMinimum=0.0d0
+      if (self%truncateAtParticleHorizon) then
+         wavenumberMinimum=+1.0d0                                                                                                &
+              &            /self%cosmologyFunctions_%distanceParticleHorizonComoving(self%cosmologyFunctions_%cosmicTime(1.0d0))
+      else
+         wavenumberMinimum=+0.0d0
+      end if
       ! The integral over the power spectrum is split at a wavenumber corresponding to the smallest scale at which BAO features
       ! are significant (unless the upper limit of the integral is already below that wavenumber). This allows the oscillatory
       ! part of the integral to be computed more accurately, without affecting the non-oscillatory part at larger wavenumbers, and

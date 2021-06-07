@@ -21,20 +21,28 @@
 
 program Test_Cooling_Functions
   !% Tests cooling function functionality.
-  use :: Abundances_Structure            , only : abundances                             , metallicityTypeLinearByMassSolar
-  use :: Chemical_Abundances_Structure   , only : chemicalAbundances                     , zeroChemicalAbundances
-  use :: Chemical_States                 , only : chemicalStateAtomicCIECloudy
-  use :: Cooling_Functions               , only : coolingFunctionSummation                        , coolingFunctionAtomicCIECloudy  , coolingFunctionCMBCompton, coolantList
-  use :: Cosmology_Parameters, only : cosmologyParametersSimple
-  use :: Cosmology_Functions             , only : cosmologyFunctionsMatterLambda
-  use :: Display                         , only : displayVerbositySet                    , verbosityLevelStandard
-  use :: Numerical_Constants_Astronomical, only : gigaYear
-  use :: Numerical_Constants_Physical    , only : boltzmannsConstant
-  use :: Numerical_Constants_Units       , only : ergs
-  use :: Radiation_Fields                , only : radiationFieldCosmicMicrowaveBackground
-  use :: Unit_Tests                      , only : Assert                                 , Unit_Tests_Begin_Group          , Unit_Tests_End_Group     , Unit_Tests_Finish
+  use :: Abundances_Structure                , only : abundances                             , metallicityTypeLinearByMassSolar
+  use :: Chemical_Abundances_Structure       , only : chemicalAbundances                     , zeroChemicalAbundances
+  use :: Chemical_States                     , only : chemicalStateAtomicCIECloudy
+  use :: Cooling_Functions                   , only : coolingFunctionSummation               , coolingFunctionAtomicCIECloudy   , coolingFunctionCMBCompton          , coolantList
+  use :: Cosmology_Parameters                , only : cosmologyParametersSimple
+  use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda
+  use :: Display                             , only : displayVerbositySet                    , verbosityLevelStandard
+  use :: Events_Hooks                        , only : eventsHooksInitialize
+  use :: Functions_Global_Utilities          , only : Functions_Global_Set
+  use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize           , nodeComponentBasic               , treeNode
+  use :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
+  use :: Input_Parameters                    , only : inputParameters
+  use :: Node_Components                     , only : Node_Components_Initialize             , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use :: Numerical_Constants_Astronomical    , only : gigaYear
+  use :: Numerical_Constants_Physical        , only : boltzmannsConstant
+  use :: Numerical_Constants_Units           , only : ergs
+  use :: Radiation_Fields                    , only : radiationFieldCosmicMicrowaveBackground
+  use :: Unit_Tests                          , only : Assert                                 , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
   type            (coolantList                            ), pointer :: coolants
+  type            (treeNode                               ), pointer :: node
+  class           (nodeComponentBasic                     ), pointer :: basic
   type            (coolingFunctionCMBCompton              ), target  :: coolingFunctionCMBCompton_
   type            (coolingFunctionSummation               )          :: coolingFunctionSummation_
   type            (coolingFunctionAtomicCIECloudy)                   :: coolingFunctionAtomicCIECloudy_
@@ -47,11 +55,24 @@ program Test_Cooling_Functions
   double precision                                                   :: numberDensityHydrogen          , temperature           , &
        &                                                                coolantSummation               , coolantCMBCompton     , &
        &                                                                timescaleCooling               , coolantAtomicCIECloudy
+  type            (inputParameters                        )          :: parameters
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
+  call eventsHooksInitialize()
+  call Functions_Global_Set ()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Cooling functions")
+  ! Build a node (required to be passed to cooling functions).
+  parameters=inputParameters()
+  call nodeClassHierarchyInitialize     (parameters)
+  call Node_Components_Initialize       (parameters)
+  call Node_Components_Thread_Initialize(parameters)
+  node  => treeNode      (                 )
+  basic => node    %basic(autoCreate=.true.)
+  call basic%timeSet            (13.8d00)
+  call basic%timeLastIsolatedSet(13.8d00)
+  call basic%massSet            ( 1.0d12)
   ! Construct cooling functions.
   !# <referenceConstruct object="cosmologyParameters_"           >
   !#  <constructor>
@@ -109,22 +130,22 @@ program Test_Cooling_Functions
   call radiation    %       timeSet(1.0d0                                                  )
   call gasAbundances%metallicitySet(1.0d0,metallicityType= metallicityTypeLinearByMassSolar)
   ! Summed cooling function should be twice the CMB Compton cooling function.
-  coolantSummation       =  coolingFunctionSummation_ %coolingFunction                   (numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-  coolantCMBCompton      =  coolingFunctionCMBCompton_%coolingFunction                   (numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  coolantSummation       =  coolingFunctionSummation_ %coolingFunction                   (node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  coolantCMBCompton      =  coolingFunctionCMBCompton_%coolingFunction                   (node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
   call Assert('summation'        ,coolantSummation,2.0d0*coolantCMBCompton,relTol=1.0d-6)
   ! Logarithmic derivatives of summed cooling function should equal those of the CMB Compton cooling function.
-  coolantSummation       =  coolingFunctionSummation_ %coolingFunctionDensityLogSlope    (numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-  coolantCMBCompton      =  coolingFunctionCMBCompton_%coolingFunctionDensityLogSlope    (numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  coolantSummation       =  coolingFunctionSummation_ %coolingFunctionDensityLogSlope    (node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  coolantCMBCompton      =  coolingFunctionCMBCompton_%coolingFunctionDensityLogSlope    (node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
   call Assert('density slope'    ,coolantSummation,      coolantCMBCompton,relTol=1.0d-6)
   ! Logarithmic derivatives of summed cooling function should equal those of the CMB Compton cooling function.
-  coolantSummation       =  coolingFunctionSummation_ %coolingFunctionTemperatureLogSlope(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-  coolantCMBCompton      =  coolingFunctionCMBCompton_%coolingFunctionTemperatureLogSlope(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  coolantSummation       =  coolingFunctionSummation_ %coolingFunctionTemperatureLogSlope(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  coolantCMBCompton      =  coolingFunctionCMBCompton_%coolingFunctionTemperatureLogSlope(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
   call Assert('temperature slope',coolantSummation,      coolantCMBCompton,relTol=1.0d-6)
   ! Begin repeatibility tests.
   call Unit_Tests_Begin_Group("Repeatibility")
   ! Compute timescale for Compton cooling off of CMB at the present day.
   call radiation%timeSet(13.8d0)
-  coolantCMBCompton=+coolingFunctionCMBCompton_%coolingFunction(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  coolantCMBCompton=+coolingFunctionCMBCompton_%coolingFunction(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
   timescaleCooling =+1.5d0                 &
        &            *numberDensityHydrogen &
        &            *boltzmannsConstant    &
@@ -134,10 +155,14 @@ program Test_Cooling_Functions
        &            /gigaYear
   call Assert('CMB Compton cooling timescale at z=0',timescaleCooling,976.65342064763729d0,relTol=1.0d-6)
   ! Compute Cloudy cooling time.
-  coolantAtomicCIECloudy=+coolingFunctionAtomicCIECloudy_%coolingFunction(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  coolantAtomicCIECloudy=+coolingFunctionAtomicCIECloudy_%coolingFunction(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
   call Assert('Cloudy CIE cooling function',coolantAtomicCIECloudy,1.4155d-30,relTol=1.0d-6)
   call Unit_Tests_End_Group       ()
   ! End unit tests.
   call Unit_Tests_End_Group       ()
   call Unit_Tests_Finish          ()
+  ! Clean up.
+  call Node_Components_Thread_Uninitialize()
+  call Node_Components_Uninitialize       ()
+  call Galacticus_Function_Classes_Destroy()
 end program Test_Cooling_Functions

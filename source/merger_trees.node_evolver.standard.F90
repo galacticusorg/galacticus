@@ -315,7 +315,7 @@ contains
           &                                                  errorStatusXCPU
     use            :: Galacticus_Nodes              , only : interruptTask                , mergerTree                                      , nodeComponentBasic                             , propertyTypeActive, &
           &                                                  propertyTypeAll              , propertyTypeInactive                            , propertyTypeNone                               , rateComputeState  , &
-          &                                                  treeNode
+          &                                                  treeNode    
     use, intrinsic :: ISO_C_Binding                 , only : c_funloc                     , c_funptr                                        , c_null_funptr
     use            :: Memory_Management             , only : Memory_Usage_Record
     use            :: Numerical_Integration2        , only : integratorMultiVectorized1D  , integratorMultiVectorizedCompositeGaussKronrod1D, integratorMultiVectorizedCompositeTrapezoidal1D
@@ -356,7 +356,7 @@ contains
     integer         (kind_int8                    )                                      :: systemClockCount
     type            (varying_string               )                                      :: message                  , line
     character       (len =12                      )                                      :: label
-
+    
     ! Set status to success.
     if (present(status)) status=errorStatusSuccess
     ! Set time limit.
@@ -652,7 +652,7 @@ contains
              end if
           end if
        end do
-    endif
+    end if
     ! Call routines to perform any post-evolution tasks.
     if (associated(node)) then
        call self%nodeOperator_%differentialEvolutionPost(node)
