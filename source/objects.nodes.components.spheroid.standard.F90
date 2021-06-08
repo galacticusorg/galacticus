@@ -690,12 +690,13 @@ contains
   subroutine Node_Component_Spheroid_Standard_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}. Note that gas masses get an additional scaling down since they can approach
     !% zero and we'd like to prevent them from becoming negative.
-    use :: Abundances_Structure          , only : abs                     , max              , operator(*)          , unitAbundances
+    use :: Abundances_Structure          , only : abs                     , max              , operator(*)          , unitAbundances               , &
+         &                                        abundances
     use :: Galacticus_Nodes              , only : defaultSpheroidComponent, nodeComponentDisk, nodeComponentSpheroid, nodeComponentSpheroidStandard, &
-          &                                       treeNode
+         &                                        treeNode
     use :: Histories                     , only : history                 , operator(*)
     use :: Stellar_Luminosities_Structure, only : abs                     , max              , operator(*)          , stellarLuminosities          , &
-          &                                       unitStellarLuminosities
+         &                                        unitStellarLuminosities
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
     class           (nodeComponentSpheroid)               , pointer :: spheroid
@@ -707,6 +708,7 @@ contains
     double precision                                                :: angularMomentum                     , mass
     type            (history              )                         :: stellarPopulationHistoryScales
     type            (stellarLuminosities  )                         :: stellarLuminositiesScale
+    type            (abundances           )                         :: abundancesScale
 
     ! Check if we are the default method.
     if (.not.defaultSpheroidComponent%standardIsActive()) return
@@ -715,54 +717,54 @@ contains
     ! Check if a standard spheroid component exists.
     select type (spheroid)
     class is (nodeComponentSpheroidStandard)
-
        ! Get the disk component.
        disk => node%disk()
-
        ! Set scale for angular momentum.
-       angularMomentum=abs(spheroid%angularMomentum())
+       !! The scale here (and for other quantities below) combines the mass of disk and spheroid. This avoids attempts to solve
+       !! tiny spheroids to high precision in massive disk galaxies. This is particularly important here as dynamical processes
+       !! (such as bar instabilities) can transfer mass/angular momentum/metals from such a disk to the spheroid. In cases where
+       !! such a process creates the spheroid then, by definition, the spheroid initially has no mass/angular momentum.
+       angularMomentum=+abs(disk    %angularMomentum()) &
+            &          +abs(spheroid%angularMomentum())
        call spheroid%angularMomentumScale  (               max(angularMomentum,angularMomentumMinimum))
-
        ! Set scale for gas mass.
-       mass           =abs(                        &
-            &              +spheroid%massGas    () &
-            &              +spheroid%massStellar() &
+       mass           =abs(                                                     &
+            &              +abs(disk%massGas    ())+abs(spheroid%massGas    ()) &
+            &              +abs(disk%massStellar())+abs(spheroid%massStellar()) &
             &             )
        call spheroid%          massGasScale(gasMassScaling*max(           mass,           massMinimum))
        call spheroid%      massStellarScale(               max(           mass,           massMinimum))
        call spheroid%massStellarFormedScale(               max(           mass,           massMinimum))
-
        ! Set scales for abundances if necessary.
        if (abundancesCount > 0) then
+          ! Set scale for abundances.
+          abundancesScale=+max(                                     &
+               &               +abs(+disk    %abundancesGas    ())  &
+               &               +abs(+disk    %abundancesStellar())  &
+               &               +abs(+spheroid%abundancesGas    ())  &
+               &               +abs(+spheroid%abundancesStellar()), &
+               &                    +massMinimum                    &
+               &                    *unitAbundances                 &
+               &              )
           ! Set scale for gas abundances.
-          call spheroid%abundancesGasScale    (                                                       &
-               &                                            +gasMassScaling                           &
-               &                                            *max(                                     &
-               &                                                 +abs(+spheroid%abundancesGas    ())  &
-               &                                                 +abs(+spheroid%abundancesStellar()), &
-               &                                                      +massMinimum                    &
-               &                                                      *unitAbundances                 &
-               &                                                )                                     &
-               &                                           )
-
+          call spheroid%abundancesGasScale    (                     &
+               &                               +gasMassScaling      &
+               &                               *abundancesScale     &
+               &                              )
           ! Set scale for stellar abundances.
-          call spheroid%abundancesStellarScale(                                                      &
-               &                                            max(                                     &
-               &                                                 abs(+spheroid%abundancesStellar()), &
-               &                                                     +massMinimum                    &
-               &                                                     *unitAbundances                 &
-               &                                               )                                     &
-               &                                           )
+          call spheroid%abundancesStellarScale(                     &
+               &                               +abundancesScale     &
+               &                              )
        end if
        ! Set scales for stellar luminosities.
-       stellarLuminositiesScale=max(                                       &
-            &                       abs(spheroid  %luminositiesStellar()), &
-            &                           +unitStellarLuminosities           &
-            &                           *luminosityMinimum                 &
+       stellarLuminositiesScale=max(                                      &
+            &                       +abs(disk    %luminositiesStellar())  &
+            &                       +abs(spheroid%luminositiesStellar()), &
+            &                           +unitStellarLuminosities          &
+            &                           *luminosityMinimum                &
             &                      )
-       call stellarLuminositiesScale%truncate                (spheroid   %luminositiesStellar())
-       call spheroid   %luminositiesStellarScale(stellarLuminositiesScale                      )
-
+       call stellarLuminositiesScale%truncate                (spheroid                %luminositiesStellar())
+       call spheroid                %luminositiesStellarScale(stellarLuminositiesScale                      )
        ! Set scales for stellar population properties history.
        stellarPopulationHistoryScales=spheroid%stellarPropertiesHistory()
        call stellarPopulationProperties_%scales   (spheroid%massStellar(),spheroid%abundancesStellar(),stellarPopulationHistoryScales)

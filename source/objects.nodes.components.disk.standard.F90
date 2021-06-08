@@ -648,10 +648,10 @@ contains
     type            (treeNode                        ), intent(inout), pointer :: node
     class           (nodeComponentDisk               )               , pointer :: disk
     class           (nodeComponentSpheroid           )               , pointer :: spheroid
-    double precision                                  , parameter              :: massMinimum                   =1.0d+00
+    double precision                                  , parameter              :: massMinimum                   =1.0d+0
     double precision                                  , parameter              :: angularMomentumMinimum        =1.0d-1
     double precision                                  , parameter              :: fractionTolerance             =1.0d-4
-    double precision                                  , parameter              :: luminosityMinimum             =1.0d0
+    double precision                                  , parameter              :: luminosityMinimum             =1.0d+0
     double precision                                                           :: angularMomentum                      , mass
     type            (history                         )                         :: stellarPopulationHistoryScales
     type            (stellarLuminosities             )                         :: stellarLuminositiesScale
@@ -667,12 +667,15 @@ contains
        ! Get spheroid component.
        spheroid => node%spheroid()
        ! Set scale for angular momentum.
-       angularMomentum=abs(disk%angularMomentum())
+       angularMomentum=+abs(disk    %angularMomentum()) &
+            &          +abs(spheroid%angularMomentum())
        call disk%angularMomentumScale(max(angularMomentum,angularMomentumMinimum))
        ! Set scale for masses.
-       mass           =abs(                         &
-            &              +abs(disk%massGas    ()) &
-            &              +abs(disk%massStellar()) &
+       !! The scale here (and for other quantities below) combines the mass of disk and spheroid. This avoids attempts to solve
+       !! tiny disks to high precision in massive spheroidal galaxies.
+       mass           =abs(                                                     &
+            &              +abs(disk%massGas    ())+abs(spheroid%massGas    ()) &
+            &              +abs(disk%massStellar())+abs(spheroid%massStellar()) &
             &             )
        call disk%massGasScale                    (max(mass,massMinimum      ))
        call disk%massStellarScale                (max(mass,massMinimum      ))
@@ -684,25 +687,26 @@ contains
           ! Set scale for abundances.
           abundancesScale=+max(                                     &
                &               +abs(+disk    %abundancesGas    ())  &
-               &               +abs(+disk    %abundancesStellar()), &
+               &               +abs(+disk    %abundancesStellar())  &
+               &               +abs(+spheroid%abundancesGas    ())  &
+               &               +abs(+spheroid%abundancesStellar()), &
                &                    +massMinimum                    &
                &                    *unitAbundances                 &
                &              )
           ! Set scale for gas abundances.
           call disk%abundancesGasScale    (abundancesScale)
-
           ! Set scale for stellar abundances.
           call disk%abundancesStellarScale(abundancesScale)
        end if
        ! Set scale for stellar luminosities.
-       stellarLuminositiesScale=max(                                        &
-            &                       abs(+disk      %luminositiesStellar()), &
-            &                           +unitStellarLuminosities            &
-            &                           *luminosityMinimum                  &
+       stellarLuminositiesScale=max(                                      &
+            &                       +abs(disk    %luminositiesStellar())  &
+            &                       +abs(spheroid%luminositiesStellar()), &
+            &                           +unitStellarLuminosities          &
+            &                           *luminosityMinimum                &
             &                      )
-       call stellarLuminositiesScale%truncate                (disk       %luminositiesStellar())
-       call disk       %luminositiesStellarScale(stellarLuminositiesScale                      )
-
+       call stellarLuminositiesScale%truncate                (disk                    %luminositiesStellar())
+       call disk                    %luminositiesStellarScale(stellarLuminositiesScale                      )
        ! Set scales for stellar population properties and star formation histories.
        stellarPopulationHistoryScales=disk%stellarPropertiesHistory()
        call stellarPopulationProperties_%scales (disk%massStellar(),disk%abundancesStellar(),stellarPopulationHistoryScales)
@@ -712,7 +716,6 @@ contains
        call starFormationHistory_%scales        (stellarPopulationHistoryScales,disk%massStellar(),disk%abundancesStellar())
        call disk%starFormationHistoryScale      (stellarPopulationHistoryScales                                            )
        call stellarPopulationHistoryScales%destroy()
-
     end select
     return
   end subroutine Node_Component_Disk_Standard_Scale_Set
