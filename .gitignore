@@ -1,6 +1,7 @@
 # Ignore the work directory as it is created as needed #
 *~
 *.exe
+galacticusConfig.xml
 work
 testSuite/*.log
 testSuite/*.pbs
