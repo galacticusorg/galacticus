@@ -636,7 +636,6 @@ contains
              end if
           end if
           if (solvedNumerically) then
-             call node%timeStepSet(stepSize)
              ! Extract values.
              call node%deserializeValues(self%propertyValuesActive  ,self%propertyTypeODE       )
              call node%deserializeValues(self%propertyValuesInactive,self%propertyTypeIntegrator)            
@@ -645,10 +644,12 @@ contains
              if (self%timeInterruptFirst /= 0.0d0) then
                 interrupted=.true.
                 functionInterrupt => self%functionInterruptFirst
-                call basic%timeSet(self%timeInterruptFirst)
+                call basic%timeSet    (self%timeInterruptFirst)
+                call node %timeStepSet(     -1.0d0            )
              else
                 interrupted=.false.
-                call basic%timeSet(     timeEnd           )
+                call basic%timeSet    (     timeEnd           )
+                call node %timeStepSet(     stepSize          )
              end if
           end if
        end do
@@ -735,13 +736,13 @@ contains
     use :: Interface_GSL         , only : GSL_Success
     use :: ODE_Solver_Error_Codes, only : interruptedAtX , odeSolverInterrupt
     implicit none
-    double precision                     , intent(in   )               :: time
-    double precision                     , intent(in   ), dimension(:) :: y
-    double precision                     , intent(  out), dimension(:) :: dydt
-    logical                                                            :: interrupt
-    procedure       (interruptTask     ), pointer                      :: functionInterrupt
-    class           (nodeComponentBasic), pointer                      :: basic
-    integer         (kind_int8         )                               :: systemClockCount
+    double precision                    , intent(in   )               :: time
+    double precision                    , intent(in   ), dimension(:) :: y
+    double precision                    , intent(  out), dimension(:) :: dydt
+    logical                                                           :: interrupt
+    procedure       (interruptTask     ), pointer                     :: functionInterrupt
+    class           (nodeComponentBasic), pointer                     :: basic
+    integer         (kind_int8         )                              :: systemClockCount
 
     ! Check for exceeding wall time.
     if (standardSelf%systemClockMaximum > 0_kind_int8) then
