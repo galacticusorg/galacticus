@@ -247,7 +247,7 @@ contains
                &                      /(+x(i)**2+1.0d0) &
                &                     )
           evaporationFactor(i)=+integrator_        %integrate                  (Pi-thetaCritical,thetaCritical) &
-               &                /darkMatterParticle_%crossSectionSelfInteraction(                   )
+               &               /darkMatterParticle_%crossSectionSelfInteraction(                              )
        end do
        if (allocated(self%evaporationFactor)) deallocate(self%evaporationFactor)
        allocate(self%evaporationFactor)
