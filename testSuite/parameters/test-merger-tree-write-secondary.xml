@@ -7,7 +7,7 @@
   <doAnalysis>no</doAnalysis>
   <modelRootDirectory>testSuite/outputs/test-merger-tree-write-secondary</modelRootDirectory>
   <baseParameters>testSuite/parameters/test-merger-tree-write-base.xml</baseParameters>
-  <launchMethod>pbs</launch>
+  <launchMethod>pbs</launchMethod>
   <pbs>
     <ompThreads>16</ompThreads>
     <maxJobsInQueue>1</maxJobsInQueue>

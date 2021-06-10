@@ -7,7 +7,7 @@
   <doAnalysis>no</doAnalysis>
   <modelRootDirectory>testSuite/outputs/test-mass-conservation-standard</modelRootDirectory>
   <baseParameters>parameters.xml</baseParameters>
-  <launchMethod>pbs</launch>
+  <launchMethod>pbs</launchMethod>
   <pbs>
     <ompThreads>16</ompThreads>
     <maxJobsInQueue>40</maxJobsInQueue>
