@@ -43,10 +43,10 @@
   !#  <description>The standard merger tree outputter.</description>
   !#  <stateStorable>
   !#   <restoreTo variables="outputsGroupOpened" state=".false."/>
-  !#   <restoreTo variables="outputGroupsCount  , doublePropertiesWritten, integerPropertiesWritten, doubleBufferCount   , integerBufferCount" state="0"                          />
-  !#   <restoreTo variables="doublePropertyCount, integerPropertyCount"                                                                        state="-1"                         />
-  !#   <restoreTo variables="integerBufferSize  , doubleBufferSize"                                                                            state="standardBufferSizeIncrement"/>
-  !#   <exclude   variables="doubleProperty     , integerProperty"                                                                                                                />
+  !#   <restoreTo variables="outputGroupsCount  , doublePropertiesWritten, integerPropertiesWritten, doubleBufferCount, integerBufferCount" state="0"                          />
+  !#   <restoreTo variables="doublePropertyCount, integerPropertyCount"                                                                     state="-1"                         />
+  !#   <restoreTo variables="integerBufferSize  , doubleBufferSize"                                                                         state="standardBufferSizeIncrement"/>
+  !#   <exclude   variables="doubleProperty     , integerProperty"                                                                                                             />
   !#  </stateStorable>
   !# </mergerTreeOutputter>
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterStandard
@@ -807,6 +807,7 @@ contains
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%unitsInSI =extractor_%unitsInSI   (                   time)
        do i=1,extractor_%elementCount(time)
           if (allocated(self%doubleProperty(doubleProperty+i)%rank1Descriptors)) deallocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors)
+          allocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors(extractor_%size(time)))
           self%doubleProperty(doubleProperty+i)%rank1Descriptors=extractor_%columnDescriptions(time)
        end do
        doubleProperty =doubleProperty +extractor_%elementCount(time)
