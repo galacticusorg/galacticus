@@ -28,7 +28,8 @@
   type, extends(nbodyImporterClass) :: nbodyImporterMultiple
      !% An importer which imports using multiple other importers.
      private
-     type(nbodyImporterList), pointer :: importers => null()
+     type   (nbodyImporterList), pointer :: importers => null()
+     logical                             :: allHDF5   =  .true.
    contains
      final     ::           multipleDestructor
      procedure :: import => multipleImport
@@ -118,6 +119,7 @@ contains
     do while (associated(importer_))
        call importer_%importer_%import(importer_%simulations)
        countSimulations=countSimulations+size(importer_%simulations)
+       self%allHDF5=( self%allHDF5 .and. importer_%importer_%isHDF5() )
        importer_ => importer_%next
     end do
     allocate(simulations(countSimulations))
@@ -151,6 +153,6 @@ contains
     implicit none
     class(nbodyImporterMultiple), intent(inout) :: self
 
-    multipleIsHDF5=.false.
+    multipleIsHDF5=self%allHDF5
     return
   end function multipleIsHDF5
